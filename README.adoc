@@ -1,0 +1,86 @@
+= IDEasy
+
+:toc: macro
+
+image::documentation/images/devonfwidelogo.png["Logo",align="center",width=100%]
+
+Tool to automate the setup and updates of a development environment for any project (Successor of devonfw-ide).
+
+image:https://img.shields.io/github/license/devonfw/IDEasy.svg?label=License["Apache License, Version 2.0",link=https://github.com/devonfw/IDEasy/blob/master/LICENSE]
+image:https://img.shields.io/maven-central/v/com.devonfw.tools.ide/ide-cli.svg?label=Maven%20Central["Maven Central",link=https://search.maven.org/search?q=g:com.devonfw.tools.ide]
+image:https://github.com/devonfw/IDEasy/actions/workflows/build.yml/badge.svg["Build Status",link="https://github.com/devonfw/IDEasy/actions/workflows/build.yml"]
+image:https://github.com/devonfw/IDEasy/actions/workflows/update-urls.yml/badge.svg["Update URLS Status",link="https://github.com/devonfw/IDEasy/actions/workflows/update-urls.yml"]
+
+toc::[]
+
+== Setup
+
+=== Prerequisites
+** Windows
+
+*** On Windows you need to  *download and install* https://git-scm.com/download/win[git for windows].
+
+*** You need a tool to extract `*.tar.gz` files (`tar` and `gzip`).
++
+For example https://www.7-zip.org/[7-zip] or https://www.win-rar.com/[WinRar]. 
+** Linux
+*** On Linux you need to install `curl` and `git` if you don't have them already
++
+[source,terminal, .text-center]
+----
+sudo apt-get install git curl 
+or
+sudo yum install git-core curl
+----
+
+** MacOS
+*** On MacOS you only need to download and install https://git-scm.com/download/mac[git for mac].
+
+=== Install
+
+** Download the latest version of `devonfw-ide` from https://github.com/devonfw/ide/releases[here] and extract it to a folder of your choice.
++
+(You can find all Releases in https://repo.maven.apache.org/maven2/com/devonfw/tools/ide/devonfw-ide-scripts/[Maven Central])
+** Run the `setup` in this folder (On Windows you can double click on `setup.bat`)
++
+A command prompt will open and the setup will start. The setup will ask for a settings URL. In case you do not have a settings URL for your project, you can just press enter to use the default settings.
+** After the setup is finished, you can close the command prompt and open a new one.
+** *You are done! You can now use the `devon` command in your terminal to use the devonfw-ide.*
+
+==== Video Tutorial
+ifdef::env-github[]
+image:https://img.youtube.com/vi/NG6TAmksBGI/0.jpg[link=https://www.youtube.com/watch?v=NG6TAmksBGI, width=640, height =360]
+endif::[]
+
+ifndef::env-github[]
+video::NG6TAmksBGI[youtube]
+endif::[]
+//video::NG6TAmksBGI[youtube, width=640, height=360]
+// end::you[]
+
+See also our latest video https://vimeo.com/808368450/88d4af9d18[devon ide update @ RISE]
+
+== Documentation
+
+* link:documentation/features.asciidoc[Features]
+* link:documentation/setup.asciidoc[Download & Setup]
+* link:documentation/usage.asciidoc[Usage]
+* link:documentation/devonfw-ide-contribution-getting-started.asciidoc[Contribution]
+* link:documentation/configuration.asciidoc[Configuration]
+* link:documentation/structure.asciidoc[Structure]
+* link:documentation/cli.asciidoc[Command Line Interface]
+* link:documentation/variables.asciidoc[Variables]
+* link:documentation/scripts.asciidoc[Scripts]
+* link:documentation/settings.asciidoc[Settings]
+* link:documentation/software.asciidoc[Software Folder]
+* link:documentation/integration.asciidoc[Integration]
+* link:documentation/advanced-tooling.asciidoc[Advanced-tooling]
+* link:documentation/[Documentation]
+
+== Contribution Guidelines
+*If you want to contribute to `devon-ide` please read our https://github.com/devonfw/ide/blob/master/documentation/devonfw-ide-contribution-getting-started.asciidoc[Contribution Guidelines].*
+
+*We use https://github.com/devonfw/ide/issues[GitHub Issues] to track bugs and submit feature requests.*
+
+== License 
+* link:documentation/LICENSE.asciidoc[License]
