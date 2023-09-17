@@ -1,0 +1,23 @@
+{
+   "content":{
+      "item":[
+         {
+            "date":"May 2, 2023",
+            "platformBuild":"231.6890.12",
+            "download":[
+               {
+                  "size":"1.1 GB",
+                  "link":"http://localhost:8080/edgedl/android/studio/ide-zips/2023.1.1.2/android-studio-2023.1.1.2-windows.zip",
+                  "checksum":""
+               }
+            ],
+            "build":"AI-231.6890.12.2311.10027519",
+            "platformVersion":2023.1,
+            "name":"Android Studio Hedgehog | 2023.1.1 Canary 2",
+            "channel":"Canary",
+            "version":"2023.1.1.2"
+         }
+      ],
+      "version":137
+   }
+}

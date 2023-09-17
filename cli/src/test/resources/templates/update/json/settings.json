@@ -1,0 +1,8 @@
+{
+  "java.home": "${client.env.home}/software/java",
+  "tslint.autoFixOnSave": true,
+  "object": {
+    "bar": "${client.env.home}/bar",
+    "array": ["a", "b", "${client.env.home}"]
+  }
+}

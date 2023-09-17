@@ -1,0 +1,10 @@
+= Changelog of IDEasy
+
+This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
+
+== 2024.01.001
+
+This version marks the first fully official release of IDEasy.
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/5?closed=1[milestone 2024.01.001].
+IDEasy is the successor product of https://github.com/devonfw/ide[devonfw-ide].
+If you are interested in the legacy history go to https://github.com/devonfw/ide/blob/master/CHANGELOG.asciidoc[devonfw-ide Changelog].

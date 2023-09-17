@@ -1,0 +1,6 @@
+{
+  "object": {
+    "foo": "${client.env.home}/foo",
+    "array": ["a", "b", "${client.env.home}"]
+  }
+}
