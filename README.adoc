@@ -2,7 +2,7 @@
 
 :toc: macro
 
-image::documentation/images/logo.png["Logo",align="center",width=100%]
+image::documentation/images/logo.png["Logo",align="center",width=60%]
 
 Tool to automate the setup and updates of a development environment for any project (Successor of devonfw-ide).
 
