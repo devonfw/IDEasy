@@ -185,6 +185,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected boolean doAddVersion(UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture,
       String checksum) {
 
+    UrlStatusFile status = urlVersion.getStatus();
+    if ((status != null) && status.getStatusJson().isManual()) {
+      return true;
+    }
     String version = urlVersion.getName();
     url = url.replace("${version}", version);
     String major = urlVersion.getVersionIdentifier().getStart().getDigits();
