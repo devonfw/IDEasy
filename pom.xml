@@ -35,7 +35,7 @@
   </dependencies>
 
   <modules>
-    <module>documentation</module>
+    <!--<module>documentation</module>-->
     <module>cli</module>
   </modules>
 

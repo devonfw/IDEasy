@@ -9,7 +9,7 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <groupId>com.devonfw.tools.ide</groupId>
-  <artifactId>ide-cli</artifactId>
+  <artifactId>devonfw-ide-cli</artifactId>
   <version>${revision}</version>
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ide</mainClass>
