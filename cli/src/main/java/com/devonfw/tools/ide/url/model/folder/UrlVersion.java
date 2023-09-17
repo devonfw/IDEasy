@@ -135,6 +135,14 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
   /**
    * @return the {@link UrlStatusFile}.
    */
+  public UrlStatusFile getStatus() {
+
+    return (UrlStatusFile) getChild(UrlStatusFile.STATUS_JSON);
+  }
+
+  /**
+   * @return the {@link UrlStatusFile}.
+   */
   public UrlStatusFile getOrCreateStatus() {
 
     return (UrlStatusFile) getOrCreateChild(UrlStatusFile.STATUS_JSON);

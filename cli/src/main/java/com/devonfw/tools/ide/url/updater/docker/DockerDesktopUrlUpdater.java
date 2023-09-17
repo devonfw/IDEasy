@@ -1,15 +1,22 @@
 package com.devonfw.tools.ide.url.updater.docker;
 
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link WebsiteUrlUpdater} for docker-desktop.
  */
 public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
+
+  private final static Set<VersionIdentifier> WINDOWS_ONLY_VERSIONS = Set.of(VersionIdentifier.of("4.16.3"),
+      VersionIdentifier.of("4.4.3"), VersionIdentifier.of("4.4.4"), VersionIdentifier.of("4.17.1"),
+      VersionIdentifier.of("4.5.1"));
+
   @Override
   protected String getTool() {
 
@@ -19,37 +26,28 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
+    VersionIdentifier vid = VersionIdentifier.of(urlVersion.getName());
     String version = urlVersion.getName().replaceAll("\\.", "");
     // get Code for version
     String body = doGetResponseBodyAsString("https://docs.docker.com/desktop/release-notes/");
-    String regex = "<h2 id=\"" + version + "\".*?https://desktop\\.docker\\.com.*?(\\d{5})\\.exe(?!.<h2 id=)";
+    String regex = "href=#" + version
+    // ...........1.........................................................2................
+        + ".{8,12}(\r\n|\r|\n).{0,350}href=https://desktop\\.docker\\.com.*?(\\d{5,6}).*\\.exe";
     Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
     Matcher matcher = pattern.matcher(body);
     String code;
     if (matcher.find()) {
-      code = matcher.group(1);
+      code = matcher.group(2);
       boolean success = doAddVersion(urlVersion,
           "https://desktop.docker.com/win/main/amd64/" + code + "/Docker%20Desktop%20Installer.exe", WINDOWS);
       if (!success) {
         return;
       }
-      doAddVersion(urlVersion, "https://desktop.docker.com/mac/main/amd64/" + code + "/Docker.dmg", MAC, X64);
-      doAddVersion(urlVersion, "https://desktop.docker.com/mac/main/arm64/" + code + "/Docker.dmg", MAC, ARM64);
-    } else {
-      // For the latest version, there is no code in the url.
-      // TODO but that means that the implementation is wrong as the URL will then change later and is therefore
-      // unstable as it is always pointing to the latest version so all newly added versions will always have the same
-      // URL pointing to the latest version what is dead wrong...
-      // instead we could add a manual version called "latest" with these URLs but we can not provide checksum files...
-      boolean success = doAddVersion(urlVersion,
-          "https://desktop.docker.com/win/main/amd64/Docker%20Desktop%20Installer.exe", WINDOWS);
-      if (!success) {
-        return;
+      if (!WINDOWS_ONLY_VERSIONS.stream().anyMatch(i -> vid.compareVersion(i).isEqual())) {
+        doAddVersion(urlVersion, "https://desktop.docker.com/mac/main/amd64/" + code + "/Docker.dmg", MAC, X64);
+        doAddVersion(urlVersion, "https://desktop.docker.com/mac/main/arm64/" + code + "/Docker.dmg", MAC, ARM64);
       }
-      doAddVersion(urlVersion, "https://desktop.docker.com/mac/main/amd64/Docker.dmg", MAC, X64);
-      doAddVersion(urlVersion, "https://desktop.docker.com/mac/main/arm64/Docker.dmg", MAC, ARM64);
     }
-
   }
 
   @Override
@@ -61,6 +59,6 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected Pattern getVersionPattern() {
 
-    return Pattern.compile("(4\\.\\d+\\.\\d+)");
+    return Pattern.compile("(4\\.\\d{1,4}+\\.\\d+)");
   }
 }
