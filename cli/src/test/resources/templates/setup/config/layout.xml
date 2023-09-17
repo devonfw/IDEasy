@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><layout>
+  <left>navigator</left>
+  <right>debugger</right>
+  <top>editor</top>
+  <bottom>console</bottom>
+  <test path="${client.env.home}">${client.env.home}</test>
+</layout>

@@ -1,0 +1,68 @@
+name: Release
+
+# Runs manually
+on:
+  workflow_dispatch
+
+jobs:
+  release:
+    name: Release on Sonatype OSS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          token: ${{ secrets.ACTION_PUSH_TOKEN }}
+      - name: Set up Apache Maven Central
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: 'maven'
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+          gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
+      - name: Publish to Apache Maven Central
+        run: |
+          maven_config="$(cat .mvn/maven.config)"
+          current_version="${maven_config/#*-Drevision=}"
+          current_version="${current_version/ */}"
+          next_version="${current_version/-SNAPSHOT/}"
+          sed -i "s/${current_version}/${next_version}/" .mvn/maven.config
+          git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
+          git config --global user.name ${{ secrets.BUILD_USER }}
+          git add -f .mvn/maven.config
+          git commit -m "set release version to ${next_version}"
+          git tag -a "release/${next_version}" -m "tagged version ${next_version}"
+          export GPG_TTY=$TTY
+          mvn --settings .mvn/settings.xml -B -ntp deploy -Pdeploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+          GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+      - name: set next version & create gitHub release
+        run: |
+          maven_config="$(cat .mvn/maven.config)"
+          current_version="${maven_config/#*-Drevision=}"
+          current_version="${current_version/ */}"
+          current_segment="${current_version/*./}"
+          (( next_segment=${current_segment}+1 ))
+          while [ ${#next_segment} -ne 3 ]; do next_segment="0${next_segment}"; done
+          next_version="${current_version%.*}.${next_segment}-SNAPSHOT"
+          sed -i "s/${current_version}/${next_version}/" .mvn/maven.config
+          git add -f .mvn/maven.config
+          git commit -m "set next version to ${next_version}"
+          # prevent GH006 error when pushing to protected branch
+          git push
+          git push --tags
+          noDotVersion="${current_version//.}"
+          gh release create "release/${current_version}" --title "${current_version}" --notes "# Download
+          https://repo1.maven.org/maven2/com/devonfw/tools/ide/devonfw-ide-cli/${current_version}/devonfw-ide-cli-${current_version}.tar.gz
+          # Changes
+          https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.asciidoc#${noDotVersion}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BUILD_USER: ${{ secrets.BUILD_USER }}
+          BUILD_USER_PASSWD: ${{ secrets.BUILD_USER_PASSWD }}

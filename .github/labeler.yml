@@ -1,0 +1,50 @@
+bash:
+  - '!*.*'
+
+cobigen:
+  - 'cobigen'
+
+commandlet:
+  - 'scripts/src/main/resources/scripts/command/**/*'
+
+config:
+  - any: ['settings/**/*', 'configurator/**/*']
+
+documentation:
+  - 'documentation/**/*'
+
+eclipse:
+  - any: ['eclipse-m2e/**/*', 'eclipse']
+
+intellij:
+  - 'intellij'
+
+java:
+  - 'java'
+
+javascript:
+  - any: ['node', 'npm', 'ng', 'yarn']
+
+npm:
+  - 'npm'
+
+SCM:
+  - '.github/**/*'
+
+scripts:
+  - 'scripts/**/*'
+
+settings:
+  - 'settings/**/*'
+
+test:
+  - 'scripts/src/test/**/*'
+
+vscode:
+  - 'vscode'
+
+macOS:
+  - 'scripts/src/main/resources/system/mac/**/*'
+
+windows:
+  - 'scripts/src/main/resources/system/windows/**/*'

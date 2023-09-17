@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.devonfw</groupId>
+    <artifactId>maven-parent</artifactId>
+    <version>13</version>
+  </parent>
+  <groupId>com.devonfw.tools.ide.dev</groupId>
+  <artifactId>devonfw-IDEasy</artifactId>
+  <packaging>pom</packaging>
+  <version>dev-SNAPSHOT</version>
+  <name>${project.artifactId}</name>
+  <description>This project provides automatic setup and update of the local development environment.</description>
+
+  <properties>
+    <github.repository>IDEasy</github.repository>
+    <ide_version>${revision}</ide_version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <version>5.9.0</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>2.6.0</version>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <modules>
+    <module>documentation</module>
+    <module>cli</module>
+  </modules>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <configuration>
+          <updatePomFile>true</updatePomFile>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <profile>
+      <id>deploy</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.sonatype.plugins</groupId>
+            <artifactId>nexus-staging-maven-plugin</artifactId>
+            <version>1.6.13</version>
+            <extensions>true</extensions>
+            <configuration>
+              <serverId>repository</serverId>
+              <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+              <autoReleaseAfterClose>true</autoReleaseAfterClose>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
+  <developers>
+    <developer>
+      <id>hohwille</id>
+      <name>J&#246;rg Hohwiller</name>
+      <email>hohwille@users.sourceforge.net</email>
+      <organization>Capgemini</organization>
+      <organizationUrl />
+      <roles>
+        <role>admin</role>
+        <role>designer</role>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+      <properties />
+    </developer>
+    <developer>
+      <id>trippl</id>
+      <name>Thomas Rippl</name>
+      <email></email>
+      <organization></organization>
+      <organizationUrl />
+      <roles>
+        <role>developer</role>
+      </roles>
+      <timezone>+1</timezone>
+      <properties />
+    </developer>
+    <developer>
+      <id>markusschuh</id>
+      <name>Markus Schuh</name>
+      <email></email>
+      <organization>Capgemini</organization>
+      <organizationUrl />
+      <roles>
+        <role>contributor</role>
+      </roles>
+      <timezone>+1</timezone>
+      <properties />
+    </developer>
+    <developer>
+      <id>maybeec</id>
+      <name>Malte Brunnlieb</name>
+      <email></email>
+      <organization>Capgemini</organization>
+      <organizationUrl />
+      <roles>
+        <role>contributor</role>
+      </roles>
+      <timezone>+1</timezone>
+      <properties />
+    </developer>
+    <developer>
+      <id>ediekman</id>
+      <name>Erik Diekmann</name>
+      <email></email>
+      <organization>Capgemini</organization>
+      <organizationUrl />
+      <roles>
+        <role>contributor</role>
+      </roles>
+      <timezone>+1</timezone>
+      <properties />
+    </developer>
+    <developer>
+      <id>nricheton</id>
+      <name>Nicolas Richeton</name>
+      <email></email>
+      <organization>Capgemini</organization>
+      <organizationUrl />
+      <roles>
+        <role>contributor</role>
+      </roles>
+      <timezone>+1</timezone>
+      <properties />
+    </developer>
+  </developers>
+</project>
