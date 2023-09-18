@@ -23,12 +23,12 @@ jobs:
       - name: Build native images with maven plugin
         shell: bash
         run: |
-          cd cli
-          mvn -B -ntp -Pnative -DskipTests=true package
-          cd target
           maven_config="$(cat ../.mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}
+          cd cli
+          mvn -B -ntp -Pnative -DskipTests=true package
+          cd target
           tar -cvf cli-${current_version}-${{ runner.os }}.tar cli*
           ls -lR
 
