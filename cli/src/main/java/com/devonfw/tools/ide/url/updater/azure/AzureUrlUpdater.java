@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.url.updater.az;
+package com.devonfw.tools.ide.url.updater.azure;
 
 import com.devonfw.tools.ide.common.OperatingSystem;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;

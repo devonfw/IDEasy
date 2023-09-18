@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.updater.androidstudio.AndroidStudioUrlUpdater;
 import com.devonfw.tools.ide.url.updater.aws.AwsUrlUpdater;
-import com.devonfw.tools.ide.url.updater.az.AzureUrlUpdater;
+import com.devonfw.tools.ide.url.updater.azure.AzureUrlUpdater;
 import com.devonfw.tools.ide.url.updater.cobigen.CobigenUrlUpdater;
 import com.devonfw.tools.ide.url.updater.docker.DockerDesktopUrlUpdater;
 import com.devonfw.tools.ide.url.updater.docker.DockerRancherDesktopUrlUpdater;
