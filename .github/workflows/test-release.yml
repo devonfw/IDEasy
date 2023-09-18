@@ -23,7 +23,7 @@ jobs:
       - name: Build native images with maven plugin
         shell: bash
         run: |
-          maven_config="$(cat ../.mvn/maven.config)"
+          maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}
           cd cli
