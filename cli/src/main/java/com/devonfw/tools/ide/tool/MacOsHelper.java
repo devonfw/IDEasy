@@ -50,9 +50,6 @@ public final class MacOsHelper {
 
   /**
    * @param rootDir the {@link Path} to the root directory.
-   * @param fileAccess the {@link FileAccess} instance.
-   * @param systemInfo the {@link SystemInfo} instance.
-   * @param logger the {@link IdeLogger} instance.
    * @return the {@link ToolInstallation#linkDir() link directory}.
    */
   Path findLinkDir(Path rootDir) {
