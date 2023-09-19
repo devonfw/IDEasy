@@ -20,7 +20,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
 
-      - name: Build native images with maven plugin
+      - name: Build native images with nativ maven plugin and extract in tar.gz
         shell: bash
         run: |
           maven_config="$(cat .mvn/maven.config)"
@@ -28,49 +28,6 @@ jobs:
           current_version="${current_version/ */}"
           cd cli
           mvn -B -ntp -Pnative -DskipTests=true package
-          cd target
-          tar -cvf cli-${current_version}-${{ runner.os }}.tar cli*
-          ls -lR
-
-      - uses: actions/upload-artifact@v3
-        with:
-          name: natives
-          path: cli/target/cli*.tar
-
-  attach-artifacts:
-    name: Attach native images and create release
-    runs-on: ubuntu-latest
-    needs: [build-natives]
-
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          submodules: recursive
-      - name: Set up JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: '17'
-      - uses: actions/download-artifact@v3
-      - name: Create tar.gz archives for release
-        run: |
-          maven_config="$(cat .mvn/maven.config)"
-          current_version="${maven_config/#*-Drevision=}"
-          current_version="${current_version/ */}"
-          
-          windows_name=cli-${current_version}-Windows.tar
-          mv ./natives/${windows_name} ./cli/
-          gzip ./cli/${windows_name}
-          
-          macos_name=cli-${current_version}-macOS.tar
-          mv ./natives/${macos_name} ./cli/
-          gzip ./cli/${macos_name}
-          
-          linux_name=cli-${current_version}-Linux.tar
-          mv ./natives/${linux_name} ./cli/
-          gzip ./cli/${linux_name}
-          ls -R
-          mvn -B -ntp -DskipTests=true -Dstyle.color=always install
-          gh release create ${current_version} ./cli/*.tar.gz
-
+          gh release create ${current_version} target/*.tar.gz
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
