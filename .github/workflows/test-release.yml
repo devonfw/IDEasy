@@ -56,7 +56,6 @@ jobs:
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}"
-          mvn -B -ntp -DskipTests=true -Dstyle.color=always install
           
           windows_name=cli-${current_version}-Windows.tar
           mv ./natives/${windows_name} ./cli/
@@ -70,6 +69,7 @@ jobs:
           mv ./natives/${linux_name} ./cli/
           gzip ./cli/${linux_name}
           ls -R
+          mvn -B -ntp -DskipTests=true -Dstyle.color=always install
           gh release create ${current-version} ./cli/*.tar.gz
 
         env:
