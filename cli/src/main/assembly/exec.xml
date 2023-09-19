@@ -13,15 +13,15 @@
       <excludes>
         <exclude>*</exclude>
         <exclude>*/**</exclude>
-        <exclude>*.tar.gz</exclude>
       </excludes>
     </fileSet>
     <fileSet>
       <directory>${project.build.directory}</directory>
       <outputDirectory>./</outputDirectory>
       <includes>
-        <include>**/*.exe</include>
-        <include>${project.artifactId}*</include>
+        <include>${imageName}-windows.exe</include>
+        <include>${imageName}-linux</include>
+        <include>${imageName}-macos</include>
       </includes>
     </fileSet>
   </fileSets>
