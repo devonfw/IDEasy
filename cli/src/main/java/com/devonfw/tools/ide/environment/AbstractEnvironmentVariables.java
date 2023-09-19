@@ -64,7 +64,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
         this.source = this.source + "@" + propertiesPath;
       }
     }
-    return this.source;
+    return this.source; // Test
   }
 
   /**
