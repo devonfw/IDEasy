@@ -3,20 +3,18 @@ package com.devonfw.tools.ide.tool;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.common.SystemInformationMock;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeContextTest;
-import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Test of {@link MacOsHelper}.
  */
-public class MacOsHelperTest extends Assertions {
+public class MacOsHelperTest extends AbstractIdeContextTest {
 
-  private static final IdeContext CONTEXT = new IdeTestContext(IdeContextTest.PATH_PROJECTS.resolve("basic"));
+  private static final IdeContext CONTEXT = newContext("basic", "", false);
 
   private static final Path APPS_DIR = Paths.get("src/test/resources/mac-apps");
 

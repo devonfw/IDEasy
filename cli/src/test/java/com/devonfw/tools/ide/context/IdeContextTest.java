@@ -1,55 +1,19 @@
 package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ListAssert;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Integration test of {@link IdeContext}.
  */
-@SuppressWarnings("javadoc")
-public class IdeContextTest extends Assertions {
-
-  public static final Path PATH_PROJECTS = Paths.get("src/test/resources/ide-projects");
-
-  private IdeContext newContext(String path) {
-
-    Path userDir = PATH_PROJECTS.resolve(path);
-    return new IdeTestContext(userDir);
-  }
-
-  protected void assertLogMessage(IdeContext context, IdeLogLevel level, String message) {
-
-    assertLogMessage(context, level, message, false);
-  }
-
-  protected void assertLogMessage(IdeContext context, IdeLogLevel level, String message, boolean contains) {
-
-    IdeTestLogger logger = (IdeTestLogger) context.level(IdeLogLevel.WARNING);
-    ListAssert<String> assertion = assertThat(logger.getMessages()).as(level.name() + "-Log messages");
-    if (contains) {
-      Condition<String> condition = new Condition<>() {
-        public boolean matches(String e) {
-
-          return e.contains(message);
-        };
-      };
-      assertion.filteredOn(condition).isNotEmpty();
-    } else {
-      assertion.contains(message);
-    }
-  }
+public class IdeContextTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link IdeContext} initialization from basic project.
@@ -58,9 +22,9 @@ public class IdeContextTest extends Assertions {
   public void testBasicProjectEnvironment() {
 
     // arrange
-    String path = "basic/workspaces/foo-test/my-git-repo";
+    String path = "workspaces/foo-test/my-git-repo";
     // act
-    IdeContext context = newContext(path);
+    IdeContext context = newContext("basic", path, false);
     // assert
     assertThat(context.getWorkspaceName()).isEqualTo("foo-test");
     assertThat(IdeVariables.DOCKER_EDITION.get(context)).isEqualTo("docker");
