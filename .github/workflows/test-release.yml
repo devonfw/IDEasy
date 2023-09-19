@@ -35,7 +35,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: natives
-          path: ide/package/target/cli*.tar
+          path: ide/cli/target/cli*.tar
 
   attach-artifacts:
     name: Attach native images and create release
