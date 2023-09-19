@@ -70,7 +70,7 @@ jobs:
           gzip ./cli/${linux_name}
           ls -R
           mvn -B -ntp -DskipTests=true -Dstyle.color=always install
-          gh release create ${current-version} ./cli/*.tar.gz
+          gh release create ${current_version} ./cli/*.tar.gz
 
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
