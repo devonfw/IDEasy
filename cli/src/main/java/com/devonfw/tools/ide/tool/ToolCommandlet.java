@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.TarCompression;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -306,7 +307,7 @@ public abstract class ToolCommandlet extends Commandlet {
     }
     if (linkDir != rootDir) {
       assert (!linkDir.equals(rootDir));
-      this.context.getFileAccess().copy(toolVersionFile, linkDir, true);
+      this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
     }
     return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion);
   }

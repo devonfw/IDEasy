@@ -27,7 +27,6 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
@@ -45,12 +44,12 @@ public class FileAccessImpl implements FileAccess {
   /**
    * The constructor.
    *
-   * @param logger the {@link IdeLogger} to use.
+   * @param context the {@link IdeContext} to use.
    */
-  public FileAccessImpl(IdeContext logger) {
+  public FileAccessImpl(IdeContext context) {
 
     super();
-    this.context = logger;
+    this.context = context;
     this.client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
   }
 
@@ -163,37 +162,48 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void copy(Path source, Path targetDir, boolean fileOnly) {
+  public void copy(Path source, Path target, FileCopyMode mode) {
 
+    boolean fileOnly = mode.isFileOnly();
     if (fileOnly) {
-      this.context.debug("Copying file {} to {}", source, targetDir);
+      this.context.debug("Copying file {} to {}", source, target);
     } else {
-      this.context.debug("Copying {} recursively to {}", source, targetDir);
+      this.context.debug("Copying {} recursively to {}", source, target);
     }
     if (fileOnly && Files.isDirectory(source)) {
       throw new IllegalStateException("Expected file but found a directory to copy at " + source);
     }
+    if (mode.isFailIfExists()) {
+      if (Files.exists(target)) {
+        throw new IllegalStateException("Failed to copy " + source + " to already existing target " + target);
+      }
+    } else if (mode == FileCopyMode.COPY_TREE_OVERRIDE_TREE) {
+      delete(target);
+    }
     try {
-      copyRecursive(source, targetDir);
+      copyRecursive(source, target, mode);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to copy " + source + " to " + targetDir);
+      throw new IllegalStateException("Failed to copy " + source + " to " + target, e);
     }
   }
 
-  private void copyRecursive(Path source, Path targetDir) throws IOException {
+  private void copyRecursive(Path source, Path target, FileCopyMode mode) throws IOException {
 
     if (Files.isDirectory(source)) {
-      mkdirs(targetDir);
+      mkdirs(target);
       try (Stream<Path> childStream = Files.list(source)) {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
           Path child = iterator.next();
-          copyRecursive(child, targetDir.resolve(child.getFileName()));
+          copyRecursive(child, target.resolve(child.getFileName()), mode);
         }
       }
     } else if (Files.exists(source)) {
-      this.context.trace("Copying {} to {}", source, targetDir);
-      Files.copy(source, targetDir);
+      if (mode == FileCopyMode.COPY_TREE_OVERRIDE_FILES) {
+        delete(target);
+      }
+      this.context.trace("Copying {} to {}", source, target);
+      Files.copy(source, target);
     } else {
       throw new IOException("Path " + source + " does not exist.");
     }
