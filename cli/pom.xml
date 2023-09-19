@@ -108,17 +108,17 @@
             <configuration>
               <artifacts>
                 <artifact>
-                  <file>cli-${version}-linux.tar.gz</file>
+                  <file>cli-${version}-Linux.tar.gz</file>
                   <type>tar.gz</type>
                   <classifier>linux</classifier>
                 </artifact>
                 <artifact>
-                  <file>cli-${version}-windows.tar.gz</file>
+                  <file>cli-${version}-Windows.tar.gz</file>
                   <type>tar.gz</type>
                   <classifier>windows</classifier>
                 </artifact>
                 <artifact>
-                  <file>cli-${version}-macos.tar.gz</file>
+                  <file>cli-${version}-macOS.tar.gz</file>
                   <type>tar.gz</type>
                   <classifier>macos</classifier>
                 </artifact>
