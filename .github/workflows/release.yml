@@ -1,4 +1,4 @@
-name: Release
+name: Build and deploy a release including native-images
 
 # Runs manually
 on:
