@@ -60,7 +60,9 @@ public class SystemPath {
         this.paths.add(path);
       } else {
         Path duplicate = this.tool2pathMap.putIfAbsent(tool, path);
-        assert (duplicate != null);
+        if (duplicate != null) {
+          throw new IllegalStateException("Duplicate tool path for " + tool + ":" + path + " and " + duplicate);
+        }
       }
     }
     collectToolPath(softwarePath);
