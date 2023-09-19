@@ -315,7 +315,7 @@ public class FileAccessImpl implements FileAccess {
   public void delete(Path path) {
 
     if (!Files.exists(path)) {
-      this.context.trace("Deleting {} skiped as the path does not exist.", path);
+      this.context.trace("Deleting {} skipped as the path does not exist.", path);
       return;
     }
     this.context.debug("Deleting {} ...", path);
