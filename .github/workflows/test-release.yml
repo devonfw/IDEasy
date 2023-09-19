@@ -1,4 +1,4 @@
-name: GraalVM Native Image builds
+name: Build and deploy a release including native-images
 on: push
 jobs:
   build-natives:
