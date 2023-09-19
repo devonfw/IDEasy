@@ -96,6 +96,10 @@ public final class Ide {
 
     CliArgument first = CliArgument.of(args);
     CliArgument current = initContext(first);
+    if (current == null) {
+      // exit with success after --version has been printed...
+      return ProcessResult.SUCCESS;
+    }
     String keyword = current.get();
     Commandlet firstCandidate = this.context.getCommandletManager().getCommandletByFirstKeyword(keyword);
     boolean matches;
@@ -144,6 +148,9 @@ public final class Ide {
     }
     init.run();
     this.context = init.getIdeContext();
+    if (init.version.isTrue()) {
+      return null;
+    }
     return current;
   }
 

@@ -62,8 +62,8 @@ public final class HelpCommandlet extends Commandlet {
   public void run() {
 
     printLogo();
-    this.context.success("Current version of IDE is {}", IdeVersion.get());
     NlsBundle bundle = NlsBundle.of(this.context);
+    this.context.success(bundle.get("version-banner"), IdeVersion.get());
     Commandlet cmd = this.commandlet.getValue();
     if (cmd == null) {
       this.context.info(bundle.get("usage") + " ide [option]* [[commandlet] [arg]*]");
@@ -91,7 +91,7 @@ public final class HelpCommandlet extends Commandlet {
     usage.append(bundle.get("usage"));
     usage.append(" ide [option]*");
     for (Property<?> property : cmd.getProperties()) {
-      if (property.isValue()) {
+      if (property.isValue() || property.isRequired()) {
         usage.append(" ");
         if (!property.isRequired()) {
           usage.append('[');
@@ -138,7 +138,7 @@ public final class HelpCommandlet extends Commandlet {
   private void collectOptions(Args options, Commandlet cmd, NlsBundle bundle) {
 
     for (Property<?> property : cmd.getProperties()) {
-      if (property.isOption()) {
+      if (property.isOption() && !property.isRequired()) {
         String id = property.getAlias();
         String name = property.getName();
         if (id == null) {
