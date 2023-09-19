@@ -25,7 +25,7 @@ jobs:
         run: |
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
-          current_version="${current_version/ */}
+          current_version="${current_version/ */}"
           cd cli
           mvn -B -ntp -Pnative -DskipTests=true package
           cd target
@@ -55,7 +55,7 @@ jobs:
         run: |
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
-          current_version="${current_version/ */}
+          current_version="${current_version/ */}"
           mvn -B -ntp -DskipTests=true -Dstyle.color=always install
           
           windows_name=cli-${current_version}-Windows.tar
