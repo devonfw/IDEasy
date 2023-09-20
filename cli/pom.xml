@@ -121,7 +121,7 @@
                   <artifact>
                     <file>${imageName}-mac.tar.gz</file>
                     <type>tar.gz</type>
-                    <classifier>macos</classifier>
+                    <classifier>mac</classifier>
                   </artifact>
                 </artifacts>
               </configuration>
