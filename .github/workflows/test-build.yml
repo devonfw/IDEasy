@@ -1,0 +1,51 @@
+name: Nightly CI Build and Snapshot Release
+on: 
+  push:
+    paths-ignore:
+      - 'documentation/**'
+    branches: [ main ]
+    
+jobs:
+  build-natives:
+    name: Build native images
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          ref: feature/release-workflow
+
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '17.0.7'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+
+      - name: Build native images with nativ maven plugin and extract in tar.gz
+        shell: bash
+        run: |
+          mvn -B -ntp -Pnative -DskipTests=true package
+
+  build:
+    needs: [build-natives]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '17'
+      - name: Build project with Maven
+        run: mvn -B -ntp -Dstyle.color=always install
+      - name: Deploy to OSSRH nexus
+        env:
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dstyle.color=always -B -ntp deploy
