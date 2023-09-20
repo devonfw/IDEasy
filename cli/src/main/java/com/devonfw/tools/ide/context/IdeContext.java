@@ -65,11 +65,20 @@ public interface IdeContext extends IdeLogger {
   /** The name of the app folder inside a MacOS app. */
   String FOLDER_APP = "app";
 
+  /**
+   * The name of the {@link #getPluginsPath() plugins folder} and also the plugins folder inside the IDE folders of
+   * {@link #getSettingsPath() settings} (e.g. settings/eclipse/plugins).
+   */
+  String FOLDER_PLUGINS = "plugins";
+
   /** The file where the installed software version is written to as plain text. */
   String FILE_SOFTWARE_VERSION = ".ide.software.version";
 
   /** The file where the installed software version is written to as plain text. */
   String FILE_LEGACY_SOFTWARE_VERSION = ".devon.software.version";
+
+  /** The file extension for a {@link java.util.Properties} file. */
+  String EXT_PROPERTIES = ".properties";
 
   /** The default for {@link #getWorkspaceName()}. */
   String WORKSPACE_MAIN = "main";
@@ -258,6 +267,13 @@ public interface IdeContext extends IdeLogger {
    *         plugins and other kind of changes to such tool need to happen strictly out of the scope of this folders.
    */
   Path getSoftwareRepositoryPath();
+
+  /**
+   * @return the {@link Path} to the {@link #FOLDER_PLUGINS plugins folder} inside {@link #getIdeHome() IDE_HOME}. All
+   *         plugins of the IDE instance will be stored here. For each tool that supports plugins a sub-folder with the
+   *         tool name will be created where the plugins for that tool get installed.
+   */
+  Path getPluginsPath();
 
   /**
    * @return the {@link Path} to the central tool repository. All tools will be installed in this location using the

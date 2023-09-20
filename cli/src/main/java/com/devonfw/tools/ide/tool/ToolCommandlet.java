@@ -5,8 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Set;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -24,12 +26,15 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * {@link Commandlet} for a tool integrated into the IDE.
  */
-public abstract class ToolCommandlet extends Commandlet {
+public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /** @see #getName() */
   protected final String tool;
 
-  private final StringListProperty arguments;
+  private final Set<String> tags;
+
+  /** The commandline arguments to pass to the tool. */
+  public final StringListProperty arguments;
 
   private MacOsHelper macOsHelper;
 
@@ -38,11 +43,14 @@ public abstract class ToolCommandlet extends Commandlet {
    *
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
+   *        method.
    */
-  public ToolCommandlet(IdeContext context, String tool) {
+  public ToolCommandlet(IdeContext context, String tool, Set<String> tags) {
 
     super(context);
     this.tool = tool;
+    this.tags = tags;
     addKeyword(tool);
     this.arguments = add(new StringListProperty("", false, "args"));
   }
@@ -54,6 +62,12 @@ public abstract class ToolCommandlet extends Commandlet {
   public String getName() {
 
     return this.tool;
+  }
+
+  @Override
+  public final Set<String> getTags() {
+
+    return this.tags;
   }
 
   @Override
@@ -72,23 +86,29 @@ public abstract class ToolCommandlet extends Commandlet {
    */
   public void runTool(VersionIdentifier toolVersion, String... args) {
 
-    install(true);
-    if (toolVersion != null) {
+    Path binary;
+    if (toolVersion == null) {
+      install(true);
+      binary = getToolBinary();
+    } else {
       throw new UnsupportedOperationException("Not yet implemented!");
-    }
-    Path toolPath = getToolPath();
-    FileAccess fileAccess = this.context.getFileAccess();
-    Path binPath = fileAccess.findFirst(toolPath, path -> path.getFileName().toString().equals("bin"), false);
-    if (binPath == null) {
-      binPath = toolPath;
-    }
-    Path binary = fileAccess.findFirst(binPath, this::isBinary, false);
-    if (binary == null) {
-      throw new IllegalStateException("Could not find executable binary for " + getName() + " in " + binPath);
     }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binary)
         .addArgs(args);
     pc.run();
+  }
+
+  /**
+   * @return the {@link Path} where the main executable file of this tool is installed.
+   */
+  public Path getToolBinary() {
+
+    Path binPath = getToolBinPath();
+    Path binary = this.context.getFileAccess().findFirst(binPath, this::isBinary, false);
+    if (binary == null) {
+      throw new IllegalStateException("Could not find executable binary for " + getName() + " in " + binPath);
+    }
+    return binary;
   }
 
   private boolean isBinary(Path path) {
@@ -138,9 +158,24 @@ public abstract class ToolCommandlet extends Commandlet {
   /**
    * @return the {@link Path} where the tool is located (installed).
    */
-  protected Path getToolPath() {
+  public Path getToolPath() {
 
     return this.context.getSoftwarePath().resolve(getName());
+  }
+
+  /**
+   * @return the {@link Path} where the executables of the tool can be found. Typically a "bin" folder inside
+   *         {@link #getToolPath() tool path}.
+   */
+  public Path getToolBinPath() {
+
+    Path toolPath = getToolPath();
+    Path binPath = this.context.getFileAccess().findFirst(toolPath, path -> path.getFileName().toString().equals("bin"),
+        false);
+    if ((binPath != null) && Files.isDirectory(binPath)) {
+      return binPath;
+    }
+    return toolPath;
   }
 
   /**
@@ -182,28 +217,35 @@ public abstract class ToolCommandlet extends Commandlet {
 
   /**
    * Method to be called for {@link #install(boolean)} from dependent {@link Commandlet}s.
+   *
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
+   *         nothing has changed.
    */
-  public void install() {
+  public boolean install() {
 
-    install(true);
+    return install(true);
   }
 
   /**
    * Performs the installation of the {@link #getName() tool} managed by this {@link Commandlet}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
+   *         nothing has changed.
    */
-  public void install(boolean silent) {
+  public boolean install(boolean silent) {
 
-    doInstall(silent);
+    return doInstall(silent);
   }
 
   /**
    * Installs or updates the managed {@link #getName() tool}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
+   *         nothing has changed.
    */
-  protected void doInstall(boolean silent) {
+  protected boolean doInstall(boolean silent) {
 
     VersionIdentifier configuredVersion = getConfiguredVersion();
     // install configured version of our tool in the software repository if not already installed
@@ -213,7 +255,7 @@ public abstract class ToolCommandlet extends Commandlet {
     VersionIdentifier installedVersion = getInstalledVersion();
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
     if (isInstalledVersion(resolvedVersion, installedVersion, silent)) {
-      return;
+      return false;
     }
     // we need to link the version or update the link.
     Path toolPath = getToolPath();
@@ -229,7 +271,7 @@ public abstract class ToolCommandlet extends Commandlet {
       this.context.success("Successfully installed {} in version {} replacing previous version {]", this.tool,
           resolvedVersion, installedVersion);
     }
-    return;
+    return true;
   }
 
   /**

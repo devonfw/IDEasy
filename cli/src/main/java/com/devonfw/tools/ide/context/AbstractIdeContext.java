@@ -55,6 +55,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final Path softwareRepositoryPath;
 
+  private final Path pluginsPath;
+
   private final Path workspacePath;
 
   private final String workspaceName;
@@ -157,6 +159,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       this.confPath = null;
       this.settingsPath = null;
       this.softwarePath = null;
+      this.pluginsPath = null;
     } else {
       debug(getMessageIdeHomeFound());
       this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
@@ -182,6 +185,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       this.confPath = this.ideHome.resolve(FOLDER_CONF);
       this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
       this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
+      this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
     }
     if (this.ideRoot == null) {
       this.toolRepository = null;
@@ -407,6 +411,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   public Path getSoftwareRepositoryPath() {
 
     return this.softwareRepositoryPath;
+  }
+
+  @Override
+  public Path getPluginsPath() {
+
+    return this.pluginsPath;
   }
 
   @Override

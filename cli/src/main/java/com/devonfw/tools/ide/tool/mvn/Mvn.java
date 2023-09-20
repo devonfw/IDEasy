@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.mvn;
 
+import java.util.Set;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
@@ -16,14 +18,14 @@ public class Mvn extends ToolCommandlet {
    */
   public Mvn(IdeContext context) {
 
-    super(context, "mvn");
+    super(context, "mvn", Set.of(TAG_JAVA, TAG_BUILD));
   }
 
   @Override
-  public void install(boolean silent) {
+  public boolean install(boolean silent) {
 
     getCommandlet(Java.class).install();
-    super.install(silent);
+    return super.install(silent);
   }
 
 }

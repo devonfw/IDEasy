@@ -9,6 +9,7 @@ import java.util.Map;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
@@ -49,6 +50,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Gh(context));
     add(new Java(context));
     add(new Mvn(context));
+    add(new Eclipse(context));
   }
 
   private void add(Commandlet commandlet) {
