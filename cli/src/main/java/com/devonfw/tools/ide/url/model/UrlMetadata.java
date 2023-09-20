@@ -94,7 +94,7 @@ public class UrlMetadata {
     }
     List<VersionIdentifier> versions = getSortedVersions(tool, edition);
     for (VersionIdentifier vi : versions) {
-      if (vi.matches(version)) {
+      if (version.matches(vi)) {
         this.context.debug("Resolved version pattern {} to version {}", version, vi);
         return vi;
       }
