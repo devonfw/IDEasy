@@ -29,7 +29,7 @@ public final class Ide {
   private AbstractIdeContext context;
 
   /**
-   * The actualy main method of the CLI program.
+   * The actual main method of the CLI program.
    *
    * @param args the command-line arguments.
    */
