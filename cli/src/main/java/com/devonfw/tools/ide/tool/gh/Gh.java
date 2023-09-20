@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.gh;
 
+import java.util.Set;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
@@ -15,7 +17,7 @@ public class Gh extends ToolCommandlet {
    */
   public Gh(IdeContext context) {
 
-    super(context, "gh");
+    super(context, "gh", Set.of(TAG_CLOUD));
   }
 
 }
