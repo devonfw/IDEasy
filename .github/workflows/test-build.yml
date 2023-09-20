@@ -3,6 +3,7 @@ on:
   push:
     paths-ignore:
       - 'documentation/**'
+    branches: [ main ]
     
 jobs:
   build-natives:
