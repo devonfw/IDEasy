@@ -29,7 +29,7 @@ jobs:
         run: |
           mvn -B -ntp -Pnative -DskipTests=true package
 
-  build:
+  build-snapshot:
     needs: [build-natives]
     runs-on: ubuntu-latest
     steps:
@@ -41,8 +41,11 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '17'
-      - name: Build project with Maven
-        run: mvn -B -ntp -Dstyle.color=always install
+      - uses: actions/download-artifact@v3
+      - name: Make natives available and build project 
+        run: |
+          mv ./natives/* ./cli/
+          mvn -B -ntp -Dstyle.color=always install
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
