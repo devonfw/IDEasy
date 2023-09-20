@@ -16,15 +16,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          ref: feature/release-workflow
-
+          submodules: recursive
+          
       - uses: graalvm/setup-graalvm@v1
         with:
           java-version: '17.0.7'
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
-
+          
       - name: Build native images with nativ maven plugin and extract in tar.gz
         shell: bash
         run: |
@@ -35,7 +35,7 @@ jobs:
           name: natives
           path: cli/target/*.tar.gz
 
-  build-snapshot:
+  build:
     name: Build Project and Deploy
     needs: [build-natives]
     runs-on: ubuntu-latest
