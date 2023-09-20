@@ -30,7 +30,13 @@ jobs:
         run: |
           mvn -B -ntp -Pnative -DskipTests=true package
 
+      - uses: actions/upload-artifact@v3
+        with:
+          name: natives
+          path: cli/target/*.tar.gz
+
   build-snapshot:
+    name: Build Project and Deploy
     needs: [build-natives]
     runs-on: ubuntu-latest
     steps:
