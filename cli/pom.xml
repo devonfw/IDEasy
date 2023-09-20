@@ -119,7 +119,7 @@
                     <classifier>windows</classifier>
                   </artifact>
                   <artifact>
-                    <file>${imageName}-macos.tar.gz</file>
+                    <file>${imageName}-mac.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>macos</classifier>
                   </artifact>
@@ -209,7 +209,7 @@
         </os>
       </activation>
       <properties>
-        <os.detected.classifier>macos</os.detected.classifier>
+        <os.detected.classifier>mac</os.detected.classifier>
       </properties>
     </profile>
     <profile>
