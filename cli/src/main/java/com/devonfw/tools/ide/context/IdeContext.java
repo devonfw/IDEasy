@@ -284,7 +284,7 @@ public interface IdeContext extends IdeLogger {
    *         {@link #getUrlsPath() ide-urls download metadata} but this will differ for custom tools from a private
    *         repository.
    */
-  Path getToolRepository();
+  Path getToolRepositoryPath();
 
   /**
    * @return the {@link Path} to the users home directory. Typically initialized via the
