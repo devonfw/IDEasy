@@ -62,7 +62,7 @@ public final class IdeVersion {
       String classFile = type.getName().replace('.', '/') + ".class";
       URL classUrl = type.getClassLoader().getResource(classFile);
       if (classUrl != null) {
-        String protocol = classUrl.getProtocol().toLowerCase(Locale.US);
+        String protocol = classUrl.getProtocol().toLowerCase(Locale.GERMANY);
         if ("jar".equals(protocol)) {
           JarURLConnection connection = (JarURLConnection) classUrl.openConnection();
           JarFile jarFile = connection.getJarFile();
