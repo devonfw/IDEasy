@@ -157,7 +157,6 @@
               </execution>
             </executions>
             <configuration>
-              <quickBuild>true</quickBuild>
               <agent>
                 <enabled>true</enabled>
               </agent>
