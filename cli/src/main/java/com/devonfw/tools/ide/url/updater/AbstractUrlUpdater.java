@@ -260,16 +260,29 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
 
     if (isSuccess(response)) {
       String contentType = response.headers().firstValue("content-type").orElse("undefined");
-      if (contentType.startsWith("text")) {
+      boolean isValidContentType = isValidContentType(contentType);
+      if (!isValidContentType){
         logger.error("For tool {} and version {} the download has an invalid content type {} for URL {}", tool, version,
-            contentType, url);
+        contentType, url);
         return false;
       }
+      return true;
     } else {
       return false;
     }
+  }
 
-    return true;
+  /**
+   * Checks if the content type was not of type text (this method is required because {@link com.devonfw.tools.ide.url.updater.pip.PipUrlUpdater} returns text and needs to be overridden)
+   * <p>
+   * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
+   *
+   * @param contentType String of the content type
+   * @return {@code true} if the content type is not of type text, {@code false} otherwise.
+   */
+  protected boolean isValidContentType(String contentType) {
+
+    return !contentType.startsWith("text");
   }
 
   /**
@@ -426,7 +439,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
         modified = true;
       }
 
-      logger.info("For tool {} and version {} the download verification suceeded with status code {} for URL {}.", tool,
+      logger.info("For tool {} and version {} the download verification succeeded with status code {} for URL {}.", tool,
           version, code, url);
     } else {
       if (status != null) {
@@ -435,7 +448,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
         } else {
           if (!Objects.equals(code, errorStatus.getCode())) {
             logger.warn("For tool {} and version {} the error status-code changed from {} to {} for URL {}.", tool,
-                version, code, errorStatus.getCode(), code, url);
+                version, code, errorStatus.getCode(), url);
             modified = true;
           }
           if (!modified) {
@@ -460,7 +473,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @return Set of URL file names (dependency on OS file names can be overriden with isOsDependent())
+   * @return Set of URL file names (dependency on OS file names can be overridden with isOsDependent())
    */
   protected Set<String> getUrlFilenames() {
 
@@ -472,7 +485,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * Checks if we are dependent on OS URL file names, can be overriden to disable OS dependency
+   * Checks if we are dependent on OS URL file names, can be overridden to disable OS dependency
    *
    * @return true if we want to check for missing OS URL file names, false if not
    */

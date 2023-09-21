@@ -11,7 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * {@link JsonUrlUpdater} test mock for {@link UrlUpdater}.
+ * Test mock for {@link UrlUpdater} preparing multiple tool versions and distributions.
  */
 public class UrlUpdaterMock extends AbstractUrlUpdater {
 
