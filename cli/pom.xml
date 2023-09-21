@@ -165,7 +165,7 @@
               </imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=https</arg>
-                <arg>-H:+IncludeAllLocales</arg>
+                <arg>-H:IncludeResources=".*"</arg>
               </buildArgs>
             </configuration>
           </plugin>
