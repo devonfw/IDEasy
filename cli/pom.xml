@@ -165,7 +165,6 @@
               </imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=https</arg>
-                <arg>--static</arg>
               </buildArgs>
             </configuration>
           </plugin>
