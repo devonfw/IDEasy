@@ -444,7 +444,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public Path getToolRepository() {
+  public Path getToolRepositoryPath() {
 
     return this.toolRepository;
   }
