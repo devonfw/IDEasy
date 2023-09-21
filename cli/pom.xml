@@ -13,7 +13,7 @@
   <version>${revision}</version>
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ide</mainClass>
-    <imageName>${project.artifactId}-${version}</imageName>
+    <imageName>${project.artifactId}-${project.version}</imageName>
     <java.version>17</java.version>
     <native.maven.plugin.version>0.9.23</native.maven.plugin.version>
   </properties>
