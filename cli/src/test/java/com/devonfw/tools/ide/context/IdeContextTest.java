@@ -38,7 +38,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(variables.getPath("M2_REPO")).isEqualTo(context.getUserHome().resolve(".m2/repository"));
     assertThat(context.getDownloadPath().resolve("readme")).hasContent("this is the download cache");
     assertThat(context.getUrlsPath().resolve("readme")).hasContent("this is the download metadata");
-    assertThat(context.getToolRepository().resolve("readme")).hasContent("this is the tool repository");
+    assertThat(context.getToolRepositoryPath().resolve("readme")).hasContent("this is the tool repository");
     assertThat(context.getWorkspacePath().resolve("readme")).hasContent("this is the foo-test workspace of basic");
     SystemPath systemPath = IdeVariables.PATH.get(context);
     assertThat(systemPath).isSameAs(context.getPath());
