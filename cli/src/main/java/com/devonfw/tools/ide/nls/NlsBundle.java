@@ -40,7 +40,7 @@ public class NlsBundle {
 
     super();
     this.context = context;
-    this.fqn = "nls." + name;
+    this.fqn = "ressources/nls." + name;
     this.bundle = ResourceBundle.getBundle(this.fqn, locale);
   }
 
