@@ -1,0 +1,58 @@
+:toc:
+toc::[]
+
+== Introduction
+
+As https://www.docker.com/blog/updating-product-subscriptions/[Docker Desktop has changed its licensing] we have been looking for a license-free alternative.
+This document gives a rationale why we have choosen https://rancherdesktop.io/[Rancher Desktop] as alternative to setup and manage https://www.docker.com/[docker] and https://kubernetes.io/[kubernetes].
+
+== Why we chose Rancher Desktop as Docker-Desktop alternative 
+
+Our main criteria for tool comparision were:
+
+* The softwares licence
+* Match of toolset compared to Docker Desktop
+* Complexity of installing and setting up the toolset
+* Stability of the solution
+* Future-proofness (community activitiy, regular updates and fixes)
+
+[cols="asciidoc",options="header",grid="cols"]
+|======================
+|        |*Rancher Desktop*|*Podman-Minikube*|*Others*
+|*Pro*   |
+- It comes very close to what Docker-Desktop offers, as it installs most of Docker-Desktop's cli-tools  -> Almost frictionless shift +
+- Installs and sets up a good toolset including typical docker compnents as well as kubernetes +
+- Makes installation and setup very easy +
+- Cloud tools like Helm or Terraform are usable +
+- Works on macOS, Windows and Linux +
+- Comes with a GUI +
+- Easy shift between Kubernetes versions via GUI +
+- Works with VPN when using https://github.com/sakai135/wsl-vpnkit/[wsl-vpnkit] +
+- Licence free
+|
+- Works deamon less, also OCI-Containers (like Docker) +
+- Root less Containers, giving security improvements over Docker +
+- Not that hard to install and setup +
+- Kubernetes usable locally +
+- Licence free
+|
+Interesting components: +
+- e.g. Lazydocker gives a pretty and compact graphical component +
+- e.g. MicroK8s as a lightweight, fast version of Kubernetes +
+|*Contra*|
+-does not have all features Docker Desktop has, like image security scans 
+|
+- Has most usual Docker-commands, but not all of them +
+- For ongoing Docker-projects might not be worth it, because of some differences to Docker -> Porblems during software migration +
+- GUI less +
+- More work when it comes to implementation +
+- minikube only gives us one cluster +
+- Does not have all features Docker Desktop has, like image security scans +
+|
+- In some cases not available for all OS +
+- Software often just one component of what we need (like Kind for running Clusters using Docker; Buildah for building Containers...), therefore need to mix tools +
+- Especially for a manual mix of tools severe implementation/maintenance increase possible +
+- More error-prone, particularly when using a rather uncommon mix of tools +
+- Unclear future of some projects +
+- Some options were bleeding edge
+|======================

@@ -1,0 +1,12 @@
+= Introduction
+
+http://devonfw.com[devonfw] provides a solution to building applications which combine best-in-class frameworks and libraries as well as industry proven practices and code conventions.
+It massively speeds up development, reduces risks and helps deliver better results.
+
+This document contains the documentation for the tool `IDEasy`.
+It automates the setup and update of local development environments with all the tools including your favorite IDE (integrated development environment).
+
+include::features.asciidoc[leveloffset=2]
+
+include::setup.asciidoc[leveloffset=2]
+

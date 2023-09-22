@@ -1,0 +1,91 @@
+:toc:
+toc::[]
+
+= Features
+
+Every developer needs great tools to work efficiently. Setting up these tools manually can be tedious and error-prone.
+Furthermore, some projects may require different versions and configurations of such tools.
+In case you are working for more than one project in parallel, you may have contradicting requirements for your environments (e.g. different versions of Java, Node.js, etc. or different code-styles).
+Especially configurations like code-formatters should be consistent within a project to avoid diff-wars.
+
+`IDEasy` will solve these issues. Here are the features and benefits for you:
+
+* *Efficient* +
+Set up your IDE quickly tailored for the requirements of your project.
+* *Automated* +
+Automate the setup and update, avoid manual steps and mistakes.
+* *Simple* +
+KISS (Keep It Small and Simple), no native installers that globally mess your operating-system or tool-integrations that break with every release.
+* *Configurable* +
+Each project can be configured via a simple git repository. These link:settings.asciidoc[settings] allow a project to maintain their configuration tailored to its needs and this way distribute it to its team. A developer can even customize and configure additional fine-tunings for personal preferences.
+* *Maintainable* +
+For your project you should fork (copy) these link:settings.asciidoc[settings] to an own git repository that can be maintained and updated to manage the tool configurations during the project lifecycle. If you use GitHub, GitLab, or BitBucket every developer can easily suggest changes and improvements to these link:settings.asciidoc[settings] via pull/merge requests. This makes it scale from a single developer up to teams with hundreds of developers.
+* *Customizable* +
+You can integrate any tool you need on your local machine. Most development tools are supported out of the box and if you want you get security updates automatically without manual maintenance. You can even add link:software.asciidoc#custom[custom tools] on your own to integrate tools that are not supported out of the box (including closed-source, proprietary or commercial software) as long as you care about the terms and licenses of these tools.
+* *Multi-platform* +
+It supports and works on all major platforms: Windows, Mac and Linux.
+* *Multi-tenancy* +
+You can have any number of projects "link:setup.asciidoc[installed]" with `IDEasy` on your machine with different tools, tool versions and configurations. Such "installations" do not interfere with each other nor with other software installed on your operating-system.
+* *Multiple Workspaces* +
+It supports working with different link:workspaces.asciidoc[workspaces]. You can create and update new workspaces with a few clicks e.g. for different sub-projects or branches. You can see the workspace name in the title-bar of your IDE so you do not get confused and work on the right workspace.
+* *Free* +
+`IDEasy` is free just like everything from https://devonfw.com[devonfw]. See link:license.asciidoc[LICENSE] for details.
+
+== IDEs
+We support the following IDEs:
+
+* https://www.eclipse.org/[Eclipse]
+* https://code.visualstudio.com/[Visual Studio Code]
+* https://www.jetbrains.com/idea/[IntelliJ]
+* https://developer.android.com/studio[Android Studio]
+
+== Motivation
+
+`TL;DR`? Lets talk to developers a correct language. Here are some examples with `IDEasy`:
+
+[source,bash]
+--------
+[/]$ ide
+You are not inside an IDEasy project: /
+[/]$ cd /projects/devonfw
+[devonfw]$ mvn
+zsh: command not found: mvn
+[devonfw]$ ide
+Environment variables have been set for /projects/devonfw in workspace main
+[devonfw]$ mvn -v
+Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T20:41:47+02:00)
+Maven home: /projects/devonfw/software/mvn
+Java version: 1.8.0_191, vendor: Oracle Corporation, runtime: /projects/devonfw/software/java
+Default locale: en_DE, platform encoding: UTF-8
+OS name: "mac os x", version: "10.14.3", arch: "x86_64", family: "mac"
+[devonfw]$ cd /projects/ide-test/workspaces/test/my-project
+[my-project]$ ide
+Environment variables have been set for /projects/ide-test in workspace test
+[my-project]$ mvn -v
+Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T20:41:47+02:00)
+Maven home: /projects/ide-test/software/mvn
+Java version: 11.0.2, vendor: Oracle Corporation, runtime: /projects/ide-test/software/jdk/Contents/Home
+Default locale: en_DE, platform encoding: UTF-8
+OS name: "mac os x", version: "10.14.3", arch: "x86_64", family: "mac"
+[ide-test]$ ide eclipse
+launching Eclipse for workspace test...
+[my-project]$ ide build
+[INFO] Scanning for projects...
+...
+[INFO] BUILD SUCCESS
+--------
+
+This was just a very simple demo of what `IDEasy` can do.
+For further details have a look at our link:cli.asciidoc[CLI documentation].
+
+Now you might ask:
+
+* But I use Windows/Linux/MacOS/… - it works on all platforms!
+* But I want to use Windows CMD or Power-Shell - it works!
+* But I use cygwin or git-bash on Windows - it works!
+* But I run this inside Windows-Terminal and want tight integration - it works!
+* But I am on MacOS want to use Terminal or iTerm2 with tight integration? - it works!
+* But I use (OhMy)Zsh  - it works!
+* But ...? - it works!
+
+Wow! So let's get started with link:setup.asciidoc[download & setup].

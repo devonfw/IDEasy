@@ -1,0 +1,41 @@
+= Guide: Finding Processes that Block Specific Files
+
+== Introduction
+
+Sometimes, when you try to perform an action on a file on your Windows computer, you may encounter an error message that says the file is in use and cannot be accessed. This is usually because the file is locked by a process that is currently running on your system. In this guide, we will show you how to find the processes that are blocking specific files, as well as provide information on Windows file locks and resulting problems and solutions.
+
+== Understanding Windows File Locks
+
+In Windows, when a process opens a file, the operating system creates a file lock to prevent other processes from modifying or deleting the file while it is being used. When a file is locked, any attempt to modify or delete the file will fail. This can result in errors or unexpected behavior when you try to perform actions on the file.
+
+There are two types of file locks in Windows: shared locks and exclusive locks. Shared locks allow multiple processes to access a file at the same time, but prevent any one process from modifying or deleting the file while it is in use. Exclusive locks, on the other hand, prevent all other processes from accessing the file while it is in use.
+
+== Finding Processes that Block Specific Files
+
+To find the processes that are blocking a specific file, you can use the Windows Resource Monitor or the Command Prompt. Here are the steps to do so:
+
+1. Open the Windows Resource Monitor by typing "resmon" in the Start menu search bar, then press Enter.
+
+2. Click on the CPU tab.
+
+3. In the Associated Handles section, type the name of the file that is being blocked in the Search Handles field, then press Enter.
+
+4. The processes that are blocking the file will be listed in the lower pane of the Resource Monitor. Note the name of the process that is blocking the file.
++
+image::images/ResourceManager.png[UnlockFileResourceMonitor]
++
+5. You can right click the process name and terminate it.
+
+== Solutions for File Locking Problems
+
+If you have identified the process that is blocking a file, you can take one of the following actions:
+
+- Close the process: If the process is not necessary, you can close it to release the file lock.
+
+- Wait for the process to complete: If the process is performing a necessary operation on the file, you can wait for it to complete before attempting to perform your action.
+
+- Use a file unlocking tool: There are many third-party tools available that can unlock files and release file locks. Some popular tools include Unlocker and ProcessExplorer. Another option is IObit Unlocker, which is a free tool that can help you unlock and delete files that are in use. You can download IObit Unlocker from the following link: https://www.iobit.com/en/iobit-unlocker.php
+
+== Conclusion
+
+In this guide, we have provided information on Windows file locks and how to find processes that are blocking specific files. We have also provided solutions for file locking problems, including using third-party tools like Unlocker, ProcessExplorer, and IObit Unlocker. If you encounter file locking problems on your Windows computer, following the steps in this guide should help you resolve them.

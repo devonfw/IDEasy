@@ -1,0 +1,68 @@
+:toc:
+toc::[]
+
+= scripts
+This directory is the heart of the `devonfw-ide` and contains the required link:https://github.com/devonfw/ide/tree/master/scripts/src/main/resources/scripts[scripts].
+
+.File structure of the conf folder
+[subs=+macros]
+----
+/scripts
+├──/ https://github.com/devonfw/ide/tree/master/scripts/src/main/resources/scripts/command[command]
+│  ├── link:android-studio.asciidoc[android-studio]
+│  ├── link:aws.asciidoc[aws]
+│  ├── link:az.asciidoc[az]
+│  ├── link:build.asciidoc[build]
+│  ├── link:docker.asciidoc[docker]
+│  ├── link:dotnet.asciidoc[dotnet]
+│  ├── link:eclipse.asciidoc[eclipse]
+│  ├── link:gcloud.asciidoc[gcloud]
+│  ├── link:gcviewer.asciidoc[gcviewer]
+│  ├── link:gh.asciidoc[gh]
+│  ├── link:graalvm.asciidoc[graalvm]
+│  ├── link:gradle.asciidoc[gradle]
+│  ├── link:helm.asciidoc[helm]
+│  ├── link:help.asciidoc[help]
+│  ├── link:ide.asciidoc[ide]
+│  ├── link:intellij.asciidoc[intellij]
+│  ├── link:ionic.asciidoc[ionic]
+│  ├── link:jasypt.asciidoc[jasypt]
+│  ├── link:java.asciidoc[java]
+│  ├── link:jenkins.asciidoc[jenkins]
+│  ├── link:jmc.asciidoc[jmc]
+│  ├── link:kotlinc.asciidoc[kotlinc]
+│  ├── link:kotlinc-native.asciidoc[kotlinc-native]
+│  ├── link:kubectl.asciidoc[kubectl]
+│  ├── link:lazydocker.asciidoc[lazydocker]
+│  ├── link:mvn.asciidoc[mvn]
+│  ├── link:ng.asciidoc[ng]
+│  ├── link:node.asciidoc[node]
+│  ├── link:npm.asciidoc[npm]
+│  ├── link:oc.asciidoc[oc]
+│  ├── link:project.asciidoc[project]
+│  ├── link:python.asciidoc[python]
+│  ├── link:pip.asciidoc[pip]
+│  ├── link:quarkus.asciidoc[quarkus]
+│  ├── link:release.asciidoc[release]
+│  ├── link:rewrite.asciidoc[rewrite]
+│  ├── link:sonar.asciidoc[sonar]
+│  ├── link:terraform.asciidoc[terraform]
+│  ├── link:tomcat.asciidoc[tomcat]
+│  ├── link:vscode.asciidoc[vscode]
+│  └── link:yarn.asciidoc[yarn]
+├── link:cli.asciidoc[devon]
+├── link:cli.asciidoc[devon.bat]
+├── link:configuration.asciidoc[environment-project]
+├── link:configuration.asciidoc[environment-project.bat]
+├── link:functions.asciidoc[functions]
+└── link:configuration.asciidoc[devon.properties]
+----
+
+The https://github.com/devonfw/ide/tree/master/scripts/src/main/resources/scripts/command[command] folder contains the link:cli.asciidoc#commandlets[commandlets].
+The https://github.com/devonfw/ide/tree/master/scripts/src/main/resources/scripts/devon[devon] script is the key link:cli.asciidoc[command line interface] for `devonfw-ide`.
+There is also https://github.com/devonfw/ide/tree/master/scripts/src/main/resources/scripts/devon.bat[devon.bat] that can be used in cmd or PowerShell.
+As the `devon` link:cli.asciidoc[CLI] can be used as a global command on your computer from any directory and gets link:setup.asciidoc#install[installed] centrally, it aims to be stable, minimal, and lightweight.
+The key logic to set up the environment variables is therefore in a separate script https://github.com/devonfw/ide/tree/master/scripts/src/main/resources/scripts/environment-project[environment-project] and its Windows variant https://github.com/devonfw/ide/tree/master/scripts/src/main/resources/scripts/environment-project.bat[environment-project.bat] inside this `scripts` folder.
+The file https://github.com/devonfw/ide/tree/master/scripts/src/main/resources/scripts/functions[functions] contains a collection of reusable bash functions.
+These are sourced and used by the link:cli.asciidoc#commandlets[commandlets].
+Finally the `devon.properties` file contains defaults for the general link:configuration.asciidoc[configuration] of `devonfw-ide`.

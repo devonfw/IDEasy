@@ -1,0 +1,5 @@
+:toc:
+toc::[]
+
+= log
+The log directory is used to store log files e.g. for the IDE link:configurator.asciidoc[configurator]. You may look here for debug information if something goes wrong.

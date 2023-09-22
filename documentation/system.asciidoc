@@ -1,0 +1,7 @@
+:toc:
+toc::[]
+
+= system
+
+The link:https://github.com/devonfw/ide/tree/master/scripts/src/main/resources/system[system] folder contains documentation and solutions for operation system specific link:integration.asciidoc[integration]. Please have a look to get the maximum out of `devonfw-ide` and become a very efficient power user.
+

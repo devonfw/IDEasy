@@ -1,0 +1,86 @@
+:doctype: book
+:toc:
+toc::[]
+
+= software
+
+The `software` folder contains the third party tools for your IDE such as link:mvn.asciidoc[maven], link:npm.asciidoc[npm], link:java.asciidoc[java], etc.
+With respect to the link:LICENSE.asciidoc[licensing terms] you may create a custom archive containing a `devonfw-ide` together with the required software.
+However, to be platform independent and allow lightweight updates, the `devonfw-ide` is capable to link:setup.asciidoc[download and install] the software automatically for you.
+
+== Repository
+
+By default, software is downloaded via the internet from public download URLs of the according tools.
+However, some projects may need specific tools or tool versions that are not publicly available.
+In such case, they can create their own software repository (e.g. in a `VPN`) and link:configuration.asciidoc[configure] the base URL of it via `DEVON_SOFTWARE_REPOSITORY` link:variables.asciidoc[variable].
+Then, `devonfw-ide` will download all software from this repository only instead of the default public download URLs.
+This repository (URL) should be accessible within your network via HTTPS (or HTTP) and without any authentication.
+The repository needs to have the following structure:
+
+```
+${DEVON_SOFTWARE_REPOSITORY}/«tool»/«version»/«tool»-«version»[-«os»].tgz
+```
+
+So for every tool `«tool»` (link:java.asciidoc[java], link:mvn.asciidoc[maven], link:vscode.asciidoc[vscode], link:eclipse.asciidoc[eclipse], etc.) you need to provide a folder in your repository.
+Within this folder for every supported version `«version»` you need a subfolder.
+This subfolder needs to contain the tool in that version for every operating system `«os»` (`windows`, `linux`, or `mac` - omitted if platform independent, e.g. for `maven`).
+
+== Shared
+
+By default, each installation of `devonfw-ide` has its own physical installations of the required tools in the desired versions stored in its local `software` folder.
+While this is great for isolation of `devonfw-ide` installations and to prevent side-effects, it can cause a huge waste of disc resources in case you are having many installations of `devonfw-ide`.
+If you are a power-user of `devonfw-ide` with more then ten or even up to hundreds of installations on your machine, you might love to share installations of a software tool in a particular version between multiple `devonfw-ide` installations.
+In order to do so, you only need to link:configuration.asciidoc[configure] the variable `DEVON_SOFTWARE_PATH` in your `~/devon.properties` pointing to an existing absolute directory on your disc (e.g. `/projects/software` or `C:\projects\software`).
+
+CAUTION: DEVON_SOFTWARE_PATH must be an absolte path that is an existing directory.
+On windows it has to be on the same drive as your IDE installations.
+If you use this power-feature you are taking responsibility for side-effects and should not expect support.
+You might also use this link:advanced-tooling-windows.asciidoc#create-symbolic-links[hint] and maintain it manually without enabling the following feature.
+
+Then `devonfw-ide` will install required software into `${DEVON_SOFTWARE_PATH}/${software_name}/${software_version}` as needed and create a symbolic link to it in `${DEVON_IDE_HOME}/software/${software_name}`.
+
+As a benefit, another `devonfw-ide` installation will using the same software with the same version can re-use the existing installation and only needs to create the symbolic link.
+No more waste of having many identical JDK installations on your disc.
+
+As a drawback, you need to be aware that specific tools may be "manipulated" after installation.
+The most common case is that a tool allows to install plugins or extensions such as all IDEs do.
+Such "manipulations" will cause side-effects between the different `devonfw-ide` installations sharing the same version of that tool.
+While this can also be a benefit it may also cause trouble.
+If you have a sensitive project that should not be affected by such side-effects, you may again override the `DEVON_SOFTWARE_PATH` variable to the empty value in your `${DEVON_IDE_HOME}/conf/devon.properties` of that sensitive installation:
+
+```
+DEVON_SOFTWARE_PATH=
+```
+
+This will disable this feature particularly for that specific sensitive `devonfw-ide` installation but let you use it for other ones.
+
+== Custom
+
+In some cases, a project might need a (proprietary) tool(s) that (are) not supported by `devonfw-ide`.
+A very simple solution is to get a release of `devonfw-ide` and add the tool(s) to the software folder and then distribute this modified release to your team.
+However, this has several drawbacks as you then have a fork of `devonfw-ide` all will loose your tool(s) when updating to a new release.
+
+As a solution for this need, `devonfw-ide` let's you configure custom tools via the `DEVON_IDE_CUSTOM_TOOLS` link:variables.asciidoc[variable].
+It can be defined in link:configuration.asciidoc[`devon.properties`] of your link:settings.asciidoc[settings] git repository as an array of the custom tools you need to add.
+Each entry applies:
+
+* It needs to have the form `«tool»:«version»[:all]:[«repository-url»]`
+* The first entry must have the `«repository-url»` included which is used as default
+* Further entries will inherit this default if omitted
+* This URL is used in the same way as described above for a software xref:repository[repository].
+* The `DEVON_SOFTWARE_REPOSITORY` variable is ignored by this feature.
+* The optional infix `:all` is used to indicate that the tool is platform independent.
+Otherwise, an OS specific infix is appended to the URL file to download for your platform (`windows`, `linux`, or `mac`).
+
+As an example, we define it in `${DEVON_IDE_HOME}/settings/devon.properties`:
+
+```
+DEVON_IDE_CUSTOM_TOOLS=(jboss-eap:7.1.4.GA:all:https://host.tld/projects/my-project firefox:70.0.1:)
+```
+
+This will download and extract the following content to your `software` folder:
+
+* `https://host.tld/projects/my-project/jboss-eap/7.1.4.GA/jboss-eap-7.1.4.GA.tgz`
+* `https://host.tld/projects/my-project/firefox/70.0.1/firefox-70.0.1-windows.tgz`
+
+Please note that if you are not using windows, the `-windows` suffix will be `-mac` or `-linux`.

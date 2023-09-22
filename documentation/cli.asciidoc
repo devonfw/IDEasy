@@ -1,0 +1,93 @@
+:toc:
+toc::[]
+
+= Devon CLI
+
+The `devonfw-ide` is shipped with a central command `devon`. The link:setup.asciidoc[setup] will automatically register this command so it is available in any shell on your system. This page describes the Command Line Interface (CLI) of this command.
+
+== Devon
+Without any argument the `devon` command will determine your `DEVON_IDE_HOME` and setup your link:variables.asciidoc[environment variables] automatically. In case you are not inside of a `devonfw-ide` folder the command will echo a message and do nothing.
+
+[source,bash]
+--------
+[/]$ devon
+You are not inside a devon IDE installation: /
+[/]$ cd /projects/my-project/workspaces/test/my-git-repo
+[my-git-repo]$ devon
+devonfw-ide has environment variables have been set for /projects/my-project in workspace main
+[my-git-repo]$ echo $DEVON_IDE_HOME
+/projects/devon
+[my-git-repo]$ echo $JAVA_HOME
+/projects/my-project/software/java
+--------
+
+== Commandlets
+The `devon` command supports a pluggable set of _commandlets_. Such commandlet is provided as first argument to the devon command and may take additional arguments:
+
+`devon «commandlet» [«arg»]*`
+
+Technically, a commandlet is a bash script located in `$DEVON_IDE_HOME/scripts/command`. So if you want to integrate another tool with `devonfw-ide` we are awaiting your pull-request.
+Every commandlet takes the following generic arguments:
+
+.Generic arguments of every commandlet
+[options="header"]
+|=======================
+|*Argument(s)*     |*Meaning*
+|`-b` or `--batch` |run in non-interactive mode (do not ask any questions).
+|`-q` or `--quiet` |be quiet and avoid output.
+|=======================
+
+=== Command-wrapper
+For many commandlets the `devon` command acts as a wrapper.
+Similar to `mvnw` or `gradlew` you can use it as a proxy command.
+Therefore `devon mvn clean install` will be the same as `mvn clean install`.
+The benefit when using `devon` as wrapper is that it will even work when the command (`mvn`, `node`, `npm`, etc.) is not on your `PATH` variable or even not yet installed.
+We see the main benefit in this for writing portable scripts that you may commit to your git repository and that will then run everywhere and will lazily install the required tools on the fly.
+In your daily usage you can and surely should avoid to always type `devon` as prefix to every command.
+However, when you automate and want to avoid "command not found" errors, you can simply prefix the command with `devon`.
+
+=== Commandlet overview
+
+The following commandlets are currently available:
+
+* link:android-studio.asciidoc[android-studio]
+* link:aws.asciidoc[aws]
+* link:az.asciidoc[az]
+* link:build.asciidoc[build]
+* link:cobigen.asciidoc[cobigen]
+* link:docker.asciidoc[docker]
+* link:dotnet.asciidoc[dotnet]
+* link:eclipse.asciidoc[eclipse]
+* link:gcloud.asciidoc[gcloud]
+* link:gcviewer.asciidoc[gcviewer]
+* link:gh.asciidoc[gh]
+* link:graalvm.asciidoc[graalvm]
+* link:gradle.asciidoc[gradle]
+* link:helm.asciidoc[helm]
+* link:help.asciidoc[help]
+* link:ide.asciidoc[ide]
+* link:intellij.asciidoc[intellij]
+* link:ionic.asciidoc[ionic]
+* link:jasypt.asciidoc[jasypt]
+* link:java.asciidoc[java]
+* link:jenkins.asciidoc[jenkins]
+* link:jmc.asciidoc[jmc]
+* link:kotlinc.asciidoc[kotlinc]
+* link:kotlinc-native.asciidoc[kotlinc-native]
+* link:kubectl.asciidoc[kubectl]
+* link:lazydocker.asciidoc[lazydocker]
+* link:mvn.asciidoc[mvn]
+* link:ng.asciidoc[ng]
+* link:node.asciidoc[node]
+* link:npm.asciidoc[npm]
+* link:oc.asciidoc[oc]
+* link:python.asciidoc[python]
+* link:pip.asciidoc[pip]
+* link:quarkus.asciidoc[quarkus]
+* link:release.asciidoc[release]
+* link:rewrite.asciidoc[rewrite]
+* link:sonar.asciidoc[sonar]
+* link:terraform.asciidoc[terraform]
+* link:tomcat.asciidoc[tomcat]
+* link:vscode.asciidoc[vscode]
+* link:yarn.asciidoc[yarn]

@@ -1,0 +1,26 @@
+:toc:
+toc::[]
+
+= workspaces
+
+The `workspaces` folder contains folders for your active work. There is a workspace folder `main` dedicated for your primary work. You may do all your work inside the `main` workspace. Also, you are free to create any number of additional workspace folders named as you like (e.g. `test`, `release`, `testing`, `my-sub-project`, etc.). Using multiple workspaces is especially relevant for Eclipse as each workspace has its own Eclipse runtime instance and configuration.
+
+Within the workspace folder (e.g. `workspaces/main`) you are again free to create sub-folders for (sub-)projects according to your needs. We assume that in most cases you clone git repositories here. The following structure shows an example layout for devonfw:
+
+.File structure of workspaces
+[subs=+macros]
+----
+/ workspaces
+├──/ main
+│  ├──/ link:configurator.asciidoc[.metadata]
+│  ├──/ https://github.com/devonfw/ide[ide]
+│  ├──/ https://github.com/devonfw/devon4j[devon4j]
+│  └──/ https://github.com/devonfw/my-thai-star[my-thai-star]
+└──/ stable
+   ├──/ link:configurator.asciidoc[.metadata]
+   ├──/ https://github.com/devonfw/ide[ide]
+   └──/ https://github.com/devonfw/devon4j[devon4j]
+----
+
+In the `main` workspace you may find the cloned forks for regular work (in the example e.g. `devon4j`) as a base to create pull-requests while in the `stable` workspace there is a clone of `devon4j` from the official https://github.com/devonfw/devon4j/[devon4j].
+However, this is just an example. Some people like to create separate workspaces for development and maintenance branches with git. Other people just switch between those via `git checkout`.
