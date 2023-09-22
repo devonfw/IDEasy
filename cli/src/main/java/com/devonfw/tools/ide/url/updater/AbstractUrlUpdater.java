@@ -19,8 +19,8 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.common.OperatingSystem;
-import com.devonfw.tools.ide.common.SystemArchitecture;
+import com.devonfw.tools.ide.os.OperatingSystem;
+import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlFile;
@@ -273,7 +273,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * Checks if the content type was not of type text (this method is required because {@link com.devonfw.tools.ide.url.updater.pip.PipUrlUpdater} returns text and needs to be overridden)
+   * Checks if the content type was not of type text (this method is required because {@link com.devonfw.tools.ide.tool.pip.PipUrlUpdater} returns text and needs to be overridden)
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
