@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.util.Collection;
 
+import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -49,6 +50,8 @@ public final class EnvironmentCommandlet extends Commandlet {
       }
       this.context.info(line.toString());
     }
+    SystemPath path = this.context.getPath();
+    this.context.info("export PATH={}", path.toString(this.bash.isTrue()));
   }
 
   VariableLine normalizeWindowsValue(VariableLine line) {
@@ -56,7 +59,7 @@ public final class EnvironmentCommandlet extends Commandlet {
     String value = line.getValue();
     String normalized = normalizeWindowsValue(value);
     if (normalized != value) {
-      line = line.withValue(value);
+      line = line.withValue(normalized);
     }
     return line;
   }
@@ -64,15 +67,15 @@ public final class EnvironmentCommandlet extends Commandlet {
   String normalizeWindowsValue(String value) {
 
     WindowsPathSyntax pathSyntax;
-    WindowsPathSyntax driveSyntax;
     if (this.bash.isTrue()) {
       pathSyntax = WindowsPathSyntax.MSYS;
-      driveSyntax = WindowsPathSyntax.WINDOWS;
     } else {
       pathSyntax = WindowsPathSyntax.WINDOWS;
-      driveSyntax = WindowsPathSyntax.MSYS;
     }
-    String drive = driveSyntax.getDrive(value);
+    String drive = WindowsPathSyntax.WINDOWS.getDrive(value);
+    if (drive == null) {
+      drive = WindowsPathSyntax.MSYS.getDrive(value);
+    }
     if (drive != null) {
       value = pathSyntax.replaceDrive(value, drive);
     }
