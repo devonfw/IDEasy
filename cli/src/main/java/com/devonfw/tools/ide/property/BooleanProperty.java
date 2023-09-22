@@ -33,6 +33,14 @@ public class BooleanProperty extends Property<Boolean> {
     return Boolean.TRUE.equals(getValue());
   }
 
+  /**
+   * @param value the {@link #getValue() value} as primitive boolean.
+   */
+  public void setValue(boolean value) {
+
+    setValue(Boolean.valueOf(value));
+  }
+
   @Override
   public Boolean parse(String valueAsString) {
 

@@ -14,8 +14,6 @@ import java.util.function.Function;
 
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
-import com.devonfw.tools.ide.common.SystemInfo;
-import com.devonfw.tools.ide.common.SystemInfoImpl;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
@@ -25,6 +23,8 @@ import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.log.IdeSubLoggerNone;
+import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -146,7 +146,9 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
       name2 = name1;
       int nameCount = currentDir.getNameCount();
-      name1 = currentDir.getName(nameCount - 1).toString();
+      if (nameCount >= 1) {
+        name1 = currentDir.getName(nameCount - 1).toString();
+      }
       currentDir = getParentPath(currentDir);
     }
     // detection completed, initializing variables
@@ -208,7 +210,11 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     if (isTest()) {
       // only for testing...
-      this.userHome = this.ideHome.resolve("home");
+      if (this.ideHome == null) {
+        this.userHome = Paths.get("/non-existing-user-home-for-testing");
+      } else {
+        this.userHome = this.ideHome.resolve("home");
+      }
     } else {
       this.userHome = Paths.get(System.getProperty("user.home"));
     }
@@ -245,7 +251,18 @@ public abstract class AbstractIdeContext implements IdeContext {
   /**
    * @return {@code true} if this is a test context for JUnits, {@code false} otherwise.
    */
-  protected boolean isTest() {
+  public boolean isTest() {
+
+    if (isMock()) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * @return {@code true} if this is a mock context for JUnits, {@code false} otherwise.
+   */
+  public boolean isMock() {
 
     return false;
   }

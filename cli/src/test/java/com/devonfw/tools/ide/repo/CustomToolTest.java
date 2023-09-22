@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.repo;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.common.SystemInformationMock;
+import com.devonfw.tools.ide.os.SystemInformationMock;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**

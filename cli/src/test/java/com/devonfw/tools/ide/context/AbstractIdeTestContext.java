@@ -29,7 +29,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  protected boolean isTest() {
+  public boolean isTest() {
 
     return true;
   }
