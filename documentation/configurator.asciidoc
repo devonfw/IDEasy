@@ -1,0 +1,45 @@
+:toc:
+toc::[]
+
+= Configurator
+
+The `devonfw-ide` maintains and includes a tool called https://github.com/devonfw/ide/tree/master/configurator[devonfw-ide-configurator]. This allows to synchronize and manage complex configurations. Initially it was written for Eclipse that stores its information in a `.metadata` folder of your workspace. Unfortunately it contains different file-formats (including XML as String value inside properties files), temporary data as well as important configurations with sometimes mixtures of project specific, developer specific, and UI specific settings. To make it short it is a mess. Instead of bashing on Eclipse we want to make this IDE more usable and created a way to manage important parts of such configuration structures.
+
+== How to use
+The easiest way is that you do not care. When you launch the IDE of your choice (e.g. via `devon eclipse`, `devon vscode` or by running `eclipse-main` script), this will happen automatically.
+If you want to explicitly update your workspace without launching the IDE, you can append `ws-update` (e.g. `devon eclipse ws-update`). Instead, if you want to launch your IDE without touching its configuration you can append `run` or `start` (e.g. `devon eclipse run`) what will omit this `configurator`.
+
+== How it works
+For every tool managed with our configurator we distinguish the following file structures:
+
+1. The actual configuration location of the tool itself. We configure the tool to relocate this to a specific workspace (so by default `workspaces/main/`).
+2. A configuration location with the configuration only used during the link:setup.asciidoc[setup]: `$SETTINGS_PATH/«tool»/workspace/setup`. Contains settings to setup a link:workspaces.asciidoc[workspace]. After that the user remains control over these settings.
+3. A configuration location with the configuration used to update and override settings: `$SETTINGS_PATH/«tool»/workspace/update`. Contains settings that are overridden with every update and enforced for every team member.
+
+The configurator will recursively traverse the directory structure of 2. and 3. together. For each located file `«relative-path»/«file»` it will create or update 1. according to the following rules:
+
+* If `«relative-path»/«file»` is present in 1. it will be loaded and used as basis.
+* Otherwise if `«relative-path»/«file»` is present in 2. it will be loaded and used as basis.
+* If `«relative-path»/«file»` is present in 3. it will be loaded and merged with the current basis.
+* Variables in the from `${«variable-name»}` get resolved if `«variable-name»` is defined.
+* If this caused any change the result is written to `«relative-path»/«file»` in 1.
+
+In other words this means:
+
+* When your workspace configuration is initially created, 1. is empty. Hence, settings from 2. are used and merged with 3.
+* Settings in 2. are therefore used as initial defaults and suggestions but can be changed by the end-user (developer). Hence, use 2. for things such as themes, UI tweaks, etc. Once the workspace is configured 2. typically is not relevant anymore.
+* Settings in 3. are applied on every update. By default this happens every time you start your IDE, these settings are managed by the `settings` and in control `configurator`. If the user modifies such settings and reopens his IDE his changes are reverted. Hence, use 3. for things such as code-formatters, compiler options, paths to tools shipped with `devonfw-ide`, etc. that should be consistent and homogeneous for every team-member.
+
+== How to customize
+
+Many fundamental settings for Eclipse can be found in the sub-folder `https://github.com/devonfw/ide/tree/master/settings/src/main/settings/eclipse/workspace/update/.metadata/.plugins/org.eclipse.core.runtime/.settings[.metadata/.plugins/org.eclipse.core.runtime/.settings]`. Of course you could manually edit these settings with a text editor. However, this requires a lot of knowledge. As we want to provide a great user-experience with `devonfw-ide` you can also do the following:
+
+* Launch the IDE to configure (e.g. `devon eclipse`).
+* In case of a non-trivial tweak you may first create a backup copy of your workspace folder (for eclipse this would be `workspaces/main/.metadata`) to some temporary location.
+* Do the desired modification of the configuration via the GUI of your IDE (e.g. in Eclipse preferences).
+* Exit your IDE and wait till it is shutdown
+* Call `ws-reverse` command for your IDE (e.g. `devon eclipse ws-reverse`) - ensure you do this in the same workspace where you launched and tweaked the config (without intermediate `cd` commands).
+* Review the changes to your link:settings.asciidoc[settings] with a git and diff tool of your choice (e.g. call `git diff`).
+* If all looks as expected commit these changes and push them - consider using a feature branch and ask a colleague to test these changes before you apply this to the main branch.
+* In case you could not find the expected changes, you may have tweaked a property that is not yet managed. Therefore, you can try again with `ws-reverse-add` instead of `ws-reverse` (e.g. `devon eclipse ws-reverse-add`) but be aware to revert undesired changes. Be sure not to add undesired settings that should not be managed.
+* In case your changes are in an entirely new configuration file that is currently not managed,you can simply diff the current workspace folder with the previously created backup copy using a recursive diff tool (such as winmerge or maybe just `diff -R`). Once you figured out the relevant change from that diff, you can manually apply it to the according `«ide»/workspace/update` folder in your `ide-settings` git repository.

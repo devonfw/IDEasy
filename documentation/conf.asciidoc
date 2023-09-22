@@ -1,0 +1,29 @@
+:toc:
+toc::[]
+
+= conf
+This folder contains configurations for your IDE:
+
+.File structure of the conf folder
+[source]
+----
+/ conf
+├──/ .m2
+│  ├──/ repository
+│  │  ├──/ ant
+│  │  ├──/ ...
+│  │  └──/ zw
+│  ├── settings-security.xml
+│  └── settings.xml
+├──/ .sonar
+├──/ ...
+└── variables
+----
+
+The `.m2` folder is used for configurations of link:mvn.asciidoc[maven]. It contains the local `repository` folder used as cache for artifacts downloaded and installed by maven (see also https://maven.apache.org/guides/introduction/introduction-to-repositories.html[maven repositories]).
+Further, there are two configuration files for maven:
+
+* https://maven.apache.org/settings.html[settings.xml] initialized from a template from your `devonfw-ide` xref:settings[]. You may customize this to your needs (configuring HTTP proxies, credentials, or other user-specific settings). Secrets can be specified as `$[«variable.name»]` and will be prompted, encrypted and replaced automatically during the setup (unless in link:cli.asciidoc#commandlets[batch mode]). Please note that this process is skipped in batch mode and also if you use the default settings URL (for simplicity of testing). To make use of this feature simply fork or copy the settings to your own git repo. In case your credentials have changed or you made a typo, you can simply redo this step by first moving your `${DEVON_IDE_HOME}/conf/.m2/settings.xml` file to a temporary folder and then calling `devon mvn setup`.
+* https://maven.apache.org/guides/mini/guide-encryption.html[settings-security.xml] is auto-generated for you by `devonfw-ide` with a random password. This should make it easier for `devonfw-ide` users to use https://maven.apache.org/guides/mini/guide-encryption.html[password encryption] and never add passwords in plain text for better security.
+
+Finally,there is a file `variables` for the user-specific link:configuration.asciidoc[configuration] of `devonfw-ide`.
