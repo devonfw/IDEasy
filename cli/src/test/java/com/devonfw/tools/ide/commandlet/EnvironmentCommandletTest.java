@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.environment.VariableLine;
 
 /**
  * Test of {@link EnvironmentCommandlet}.
@@ -24,6 +25,9 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         .isEqualTo("C:\\Windows\\system32\\drivers\\etc\\hosts");
     assertThat(env.normalizeWindowsValue("C:\\Windows\\system32\\drivers\\etc\\hosts"))
         .isEqualTo("C:\\Windows\\system32\\drivers\\etc\\hosts");
+    assertThat(env.normalizeWindowsValue("C:\\Users\\login/.ide/scripts/ide"))
+        .isEqualTo("C:\\Users\\login\\.ide\\scripts\\ide");
+    assertThat(env.normalizeWindowsValue("\\login/.ide/scripts/ide")).isEqualTo("\\login/.ide/scripts/ide");
   }
 
   /**
@@ -41,6 +45,23 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         .isEqualTo("/c/Windows/system32/drivers/etc/hosts");
     assertThat(env.normalizeWindowsValue("/c/Windows/system32/drivers/etc/hosts"))
         .isEqualTo("/c/Windows/system32/drivers/etc/hosts");
+  }
+
+  /**
+   * Test of {@link EnvironmentCommandlet#normalizeWindowsValue(VariableLine)} for Windows.
+   */
+  @Test
+  public void testNormalizeWindowsLine() {
+
+    // arrange
+    VariableLine line = VariableLine.of(true, "MAGIC_PATH", "/c/Windows/system32/drivers/etc/hosts");
+    EnvironmentCommandlet env = new EnvironmentCommandlet(IdeTestContextMock.get());
+    // act
+    VariableLine normalized = env.normalizeWindowsValue(line);
+    // assert
+    assertThat(normalized.getValue()).isEqualTo("C:\\Windows\\system32\\drivers\\etc\\hosts");
+    assertThat(normalized.isExport()).isTrue();
+    assertThat(normalized.getName()).isEqualTo("MAGIC_PATH");
   }
 
 }
