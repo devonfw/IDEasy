@@ -7,9 +7,10 @@
     <artifactId>maven-parent</artifactId>
     <version>13</version>
   </parent>
-  <groupId>com.devonfw.tools.ide.dev</groupId>
-  <artifactId>devonfw-IDEasy</artifactId>
+  <groupId>com.devonfw.tools.IDEasy.dev</groupId>
+  <artifactId>ide</artifactId>
   <packaging>pom</packaging>
+  <!-- dev-SNAPSHOT is used to avoid that this POM gets officially release to maven central -->
   <version>dev-SNAPSHOT</version>
   <name>${project.artifactId}</name>
   <description>This project provides automatic setup and update of the local development environment.</description>
@@ -35,7 +36,7 @@
   </dependencies>
 
   <modules>
-    <!--<module>documentation</module>-->
+    <module>documentation</module>
     <module>cli</module>
   </modules>
 

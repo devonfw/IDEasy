@@ -1,0 +1,33 @@
+= IDEasy
+The devonfw community
+${project.version}, ${buildtime}
+:description: comprehensive documentation of the IDEasy tool to manage your development environments.
+:doctype: book
+:toc:
+:toc-title: Table of Contents
+:idprefix:
+:idseparator: -
+:sectnums:
+:reproducible:
+:source-highlighter: rouge
+:listing-caption: Listing
+:chapter-label:
+:partnums:
+:imagesdir: ./
+
+:toc:
+
+[preface]
+include::IDEasy-introduction.asciidoc[leveloffset=1]
+
+<<<<
+
+include::IDEasy-usage.asciidoc[leveloffset=1]
+
+<<<<
+
+include::IDEasy-advanced.asciidoc[leveloffset=1]
+
+<<<<
+
+include::IDEasy-support.asciidoc[leveloffset=1]
