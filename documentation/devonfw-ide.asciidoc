@@ -1,16 +1,16 @@
-image::images/devonfwidelogo.png["Logo",align="center",width=100%]
+image::images/logo.png["Logo",align="center",width=100%]
 
-include::devonfw-ide-introduction.asciidoc[leveloffset=1]
-
-<<<<
-
-include::devonfw-ide-usage.asciidoc[leveloffset=1]
+include::IDEasy-introduction.asciidoc[leveloffset=1]
 
 <<<<
 
-include::devonfw-ide-advanced.asciidoc[leveloffset=1]
+include::IDEasy-usage.asciidoc[leveloffset=1]
 
 <<<<
 
-include::devonfw-ide-support.asciidoc[leveloffset=1]
+include::IDEasy-advanced.asciidoc[leveloffset=1]
+
+<<<<
+
+include::IDEasy-support.asciidoc[leveloffset=1]
 
