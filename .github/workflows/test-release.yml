@@ -54,9 +54,9 @@ jobs:
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}"
-          mv ./natives/* ./cli/target/
           ls -R
           mvn -B -ntp -DskipTests=true -Dstyle.color=always install
+          mv ./natives/* ./cli/target/
           gh release create ${current_version} ./cli/target/*.tar.gz
 
         env:
