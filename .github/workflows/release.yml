@@ -61,7 +61,7 @@ jobs:
       - uses: actions/download-artifact@v3
       - name: Publish to Apache Maven Central
         run: |
-          mv ./natives/* ./cli/
+          mv ./natives/* ./cli/target/
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}"
@@ -98,7 +98,7 @@ jobs:
           git push
           git push --tags
           noDotVersion="${current_version//.}"
-          gh release create "release/${current_version}" ./cli/*.tar.gz --title "${current_version}" --notes "# Download
+          gh release create "release/${current_version}" ./cli/target/*.tar.gz --title "${current_version}" --notes "# Download
           https://repo1.maven.org/maven2/com/devonfw/tools/ide/devonfw-ide-cli/${current_version}/devonfw-ide-cli-${current_version}.tar.gz
           # Changes
           https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.asciidoc#${noDotVersion}"
