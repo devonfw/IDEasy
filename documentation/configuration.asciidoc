@@ -7,11 +7,11 @@ toc::[]
 
 1. build in defaults (for `JAVA_VERSION`, `ECLIPSE_PLUGINS`, etc.)
 2. `~/ide.properties` - user specific global defaults (on windows in `%USERPROFILE%/ide.properties`)
-3. `https://github.com/devonfw/ide/blob/master/scripts/src/main/resources/scripts/devon.properties[.ide/scripts/ide.properties]` - defaults provided by `IDEasy`. Never directly modify this file!
+3. `https://github.com/devonfw/ide/blob/master/scripts/src/main/resources/scripts/devon.properties[scripts/ide.properties]` - defaults provided by `IDEasy`. Never directly modify this file!
 4. `ide.properties` - vendor variables for custom distributions of `link:scripts.asciidoc[IDEasy-scripts]`, may e.g. tweak `SETTINGS_PATH` or predefine `SETTINGS_URL`.
 5. `https://github.com/devonfw/ide-settings/blob/master/devon.properties[settings/ide.properties]` (`${SETTINGS_PATH}/ide.properties`) - project specific configurations from link:settings.asciidoc[settings].
 6. `workspaces/${WORKSPACE}/ide.properties` - optional workspace specific configurations (especially helpful in projects using docker).
-7. `https://github.com/devonfw/ide-settings/blob/master/devon/conf/devon.properties[conf/ide.properties]` - user specific configurations (e.g. `M2_REPO=~/.m2/repository`). During setup this file is created by copying a template from `${SETTINGS_PATH}/ide/conf/ide.properties`.
+7. `https://github.com/devonfw/ide-settings/blob/master/devon/conf/devon.properties[conf/ide.properties]` - user specific configurations (e.g. `M2_REPO=~/.m2/repository`). During setup this file is created by copying a template from `${SETTINGS_PATH}/devon/conf/ide.properties`.
 
 == ide.properties
 
