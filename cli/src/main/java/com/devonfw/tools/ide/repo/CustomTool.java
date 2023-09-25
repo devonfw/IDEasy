@@ -2,9 +2,9 @@ package com.devonfw.tools.ide.repo;
 
 import java.util.Set;
 
-import com.devonfw.tools.ide.common.OperatingSystem;
-import com.devonfw.tools.ide.common.SystemArchitecture;
-import com.devonfw.tools.ide.common.SystemInfo;
+import com.devonfw.tools.ide.os.OperatingSystem;
+import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 

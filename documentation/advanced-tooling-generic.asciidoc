@@ -1,0 +1,23 @@
+:toc: macro
+toc::[]
+
+= Cross-Platform Tooling
+
+== Browser Plugins
+There are tons of helpful browser plugins out there and it might be a matter of personal taste what you like to have installed. However, as we are heavily using github we want to promote https://github.com/buunguyen/octotree#octotree[octotree].
+In case you also work with ZenHub you might want to install the https://www.zenhub.com/extension[Zenhub Browser Extension].
+
+== Draw Diagrams
+To draw diagrams for your project or for blueprints in devonfw, we recommend the following cross-platform tools:
+
+* https://draw.io/[draw.io] is a powerful generic vector painting program (similar to visio). You can get a free open-source edition for your desktop from https://github.com/jgraph/drawio-desktop/releases[here].
+* https://www.objectaid.com/[ObjectAid] is a nice and easy to use eclipse plugin that you can use to quickly create UML diagrams from existing code. While class-diagrams are supported for free, you need to buy a license if you want to use the other diagram types.
+* https://plantuml.com/[PlantUML] is a great tool that can render UML diagrams from simple markup that can be easily managed in git or other version-control systems together with your code. Its simplicity allows branching and merging unlike other greedy binary UML data-formats.
+
+== Git Client
+If you are looking for a git client that works cross-platform we recommend to use https://git-fork.com/[Fork].
+
+
+== Tab Grouping For The Web Browser
+https://addons.mozilla.org/en-US/firefox/addon/simple-tab-groups/[Simple Tab Groups] is a Firefox plugin that helps to separate tabs e.g. tabs for projekt A, projekt B, travelplanning or hobbies 
+

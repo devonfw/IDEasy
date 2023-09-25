@@ -24,7 +24,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
     // act
-    IdeContext context = newContext("basic", path, false);
+    IdeContext context = newContext(PROJECT_BASIC, path, false);
     // assert
     assertThat(context.getWorkspaceName()).isEqualTo("foo-test");
     assertThat(IdeVariables.DOCKER_EDITION.get(context)).isEqualTo("docker");

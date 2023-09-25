@@ -1,0 +1,23 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>com.devonfw.tools</groupId>
+    <artifactId>devonfw-docgen-pdf</artifactId>
+    <version>2023.04.001</version>
+  </parent>
+  <groupId>com.devonfw.tools.IDEasy</groupId>
+  <artifactId>ide-doc</artifactId>
+  <version>${revision}</version>
+  <packaging>pom</packaging>
+  <name>${project.artifactId}</name>
+  <description>Documentation for IDEasy (Tool for automation of development environments)</description>
+
+  <properties>
+    <docgen.asciidoc.page>IDEasy</docgen.asciidoc.page>
+    <revision>dev-SNAPSHOT</revision>
+  </properties>
+
+  <!-- run "mvn package" and get the PDF result in target/generated-docs/*.pdf -->
+</project>

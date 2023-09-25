@@ -1,7 +1,7 @@
 package com.devonfw.tools.ide.repo;
 
-import com.devonfw.tools.ide.common.SystemInfo;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;

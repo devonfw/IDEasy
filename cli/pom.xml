@@ -3,13 +3,13 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.devonfw.tools.ide.dev</groupId>
-    <artifactId>devonfw-IDEasy</artifactId>
+    <groupId>com.devonfw.tools.IDEasy.dev</groupId>
+    <artifactId>ide</artifactId>
     <version>dev-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <groupId>com.devonfw.tools.ide</groupId>
-  <artifactId>devonfw-ide-cli</artifactId>
+  <groupId>com.devonfw.tools.IDEasy</groupId>
+  <artifactId>ide-cli</artifactId>
   <version>${revision}</version>
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ide</mainClass>

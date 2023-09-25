@@ -9,8 +9,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.devonfw.tools.ide.common.OperatingSystem;
-import com.devonfw.tools.ide.common.SystemArchitecture;
+import com.devonfw.tools.ide.os.OperatingSystem;
+import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;

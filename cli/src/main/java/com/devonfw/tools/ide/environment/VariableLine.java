@@ -217,7 +217,15 @@ public abstract class VariableLine {
 
   }
 
-  static VariableLine of(String line, IdeLogger logger, Object source) {
+  /**
+   * Parses a {@link VariableLine} from {@link String}.
+   *
+   * @param line the {@link VariableLine} as {@link String} to parse.
+   * @param logger the {@link IdeLogger}.
+   * @param source the source where the given {@link String} to parse is from (e.g. the file path).
+   * @return the parsed {@link VariableLine}.
+   */
+  public static VariableLine of(String line, IdeLogger logger, Object source) {
 
     int len = line.length();
     int start = 0;
@@ -271,7 +279,13 @@ public abstract class VariableLine {
     return new Garbage(line);
   }
 
-  static VariableLine of(boolean export, String name, String value) {
+  /**
+   * @param export the {@link #isExport() export flag}.
+   * @param name the {@link #getName() name}.
+   * @param value the {@link #getValue() value}.
+   * @return the {@link VariableLine} for the given values.
+   */
+  public static VariableLine of(boolean export, String name, String value) {
 
     return new Variable(export, name, value);
   }

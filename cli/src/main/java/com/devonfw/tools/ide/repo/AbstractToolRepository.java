@@ -8,10 +8,10 @@ import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.common.OperatingSystem;
-import com.devonfw.tools.ide.common.SystemArchitecture;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.OperatingSystem;
+import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;

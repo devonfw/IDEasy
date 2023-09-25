@@ -7,6 +7,7 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 
+import com.devonfw.tools.ide.commandlet.CommandletManagerResetter;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
@@ -17,6 +18,9 @@ import com.devonfw.tools.ide.log.IdeTestLogger;
  * Abstract base class for tests that need mocked instances of {@link IdeContext}.
  */
 public abstract class AbstractIdeContextTest extends Assertions {
+
+  /** {@link #newContext(String) Name of test project} {@value}. */
+  protected static final String PROJECT_BASIC = "basic";
 
   /** The source {@link Path} to the test projects. */
   protected static final Path PATH_PROJECTS = Paths.get("src/test/resources/ide-projects");
@@ -58,16 +62,19 @@ public abstract class AbstractIdeContextTest extends Assertions {
     if (projectPath != null) {
       userDir = sourceDir.resolve(projectPath);
     }
-    IdeContext context = new IdeTestContext(userDir);
+    CommandletManagerResetter.reset();
+    IdeContext context;
     if (copyForMutation) {
       Path projectDir = PATH_PROJECTS_COPY.resolve(projectName);
-      FileAccess fileAccess = new FileAccessImpl(context);
+      FileAccess fileAccess = new FileAccessImpl(IdeTestContextMock.get());
       fileAccess.delete(projectDir);
       fileAccess.mkdirs(PATH_PROJECTS_COPY);
       fileAccess.copy(sourceDir, projectDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
       fileAccess.copy(PATH_PROJECTS.resolve(IdeContext.FOLDER_IDE), PATH_PROJECTS_COPY.resolve(IdeContext.FOLDER_IDE),
           FileCopyMode.COPY_TREE_OVERRIDE_TREE);
       context = new IdeTestContext(projectDir.resolve(projectPath));
+    } else {
+      context = new IdeTestContext(userDir);
     }
     return context;
   }

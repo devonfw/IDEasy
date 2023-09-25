@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
@@ -119,12 +120,25 @@ public final class CommandletManagerImpl implements CommandletManager {
         throw new IllegalStateException("Not initialized!");
       }
     } else {
+      if (context instanceof AbstractIdeContext c) {
+        if (c.isMock()) {
+          return new CommandletManagerImpl(context);
+        }
+      }
       if (INSTANCE != null) {
         System.out.println("Multiple initializations!");
       }
       INSTANCE = new CommandletManagerImpl(context);
     }
     return INSTANCE;
+  }
+
+  /**
+   * Internal method to reset internal instance. May only be used for testing!
+   */
+  static void reset() {
+
+    INSTANCE = null;
   }
 
 }
