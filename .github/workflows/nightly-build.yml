@@ -1,9 +1,7 @@
 name: Nightly CI Build and Snapshot Release
 on: 
-  push:
-    paths-ignore:
-      - 'documentation/**'
-    branches: [ main ]
+   schedule:
+   - cron: '0 2 * * *'
     
 jobs:
   verify_commit:
