@@ -272,7 +272,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       this.context.success("Successfully installed {} in version {} replacing previous version {]", this.tool,
           resolvedVersion, installedVersion);
     }
+    postInstall();
     return true;
+  }
+
+  /**
+   * Installs or updates the managed {@link #getName() tool}.
+   *
+   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
+   *         nothing has changed.
+   */
+  protected void postInstall() {
+// nothing to do by default
   }
 
   /**
