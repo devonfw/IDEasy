@@ -61,7 +61,6 @@ jobs:
       - uses: actions/download-artifact@v3
       - name: Publish to Apache Maven Central
         run: |
-          mv ./natives/* ./cli/target/
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}"
@@ -77,6 +76,7 @@ jobs:
           git tag -a "release/${next_version}" -m "tagged version ${next_version}"
           export GPG_TTY=$TTY
           mvn --settings .mvn/settings.xml -B -ntp deploy -Pdeploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
+          mv ./natives/* ./cli/target/
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
