@@ -154,7 +154,7 @@ public class CliArgument {
     String prefix = "\"";
     while (!current.isEnd()) {
       sb.append(prefix);
-      sb.append(this.arg);
+      sb.append(current.arg);
       sb.append("\"");
       current = current.next;
       prefix = " \"";
