@@ -277,11 +277,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * Installs or updates the managed {@link #getName() tool}.
-   *
-   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   *         nothing has changed.
+   * Starts post installation commands.
    */
   protected void postInstall() {
 // nothing to do by default
