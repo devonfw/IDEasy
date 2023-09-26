@@ -1,10 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -14,6 +10,7 @@ import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.terraform.Terraform;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -52,6 +49,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Java(context));
     add(new Mvn(context));
     add(new Eclipse(context));
+    add(new Terraform(context));
   }
 
   private void add(Commandlet commandlet) {
