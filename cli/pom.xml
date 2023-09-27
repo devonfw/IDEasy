@@ -174,7 +174,7 @@
               </imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=https</arg>
-                <arg>-H:IncludeResources="resources/nls/*"</arg>
+                <arg>-H:IncludeResources="nls/.*"</arg>
                 <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
               </buildArgs>
             </configuration>
