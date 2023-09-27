@@ -174,8 +174,9 @@
               </imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=https</arg>
-                <arg>-H:IncludeResources=".*/nls/.*"</arg>
+                <arg>-H:IncludeResources="/nls/.*"</arg>
                 <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
+                <arg>-H:ReflectionConfigurationFiles=./m2/repository/org/apache/commons/compress/1.23.0/reflect-config.json</arg>
               </buildArgs>
             </configuration>
           </plugin>
