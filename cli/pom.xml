@@ -126,12 +126,6 @@
                 </artifacts>
               </configuration>
             </execution>
-            <execution>
-              <id>add-reachability-metadata</id>
-              <goals>
-                <goal>add-reachability-metadata</goal>
-              </goals>
-            </execution>
           </executions>
         </plugin>
       </plugins>
@@ -161,6 +155,12 @@
                 </goals>
                 <phase>test</phase>
               </execution>
+              <execution>
+                <id>add-reachability-metadata</id>
+                <goals>
+                  <goal>add-reachability-metadata</goal>
+                </goals>
+              </execution>
             </executions>
             <configuration>
               <metadataRepository>
@@ -174,7 +174,8 @@
               </imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=https</arg>
-                <arg>-H:IncludeResources=".*"</arg>
+                <arg>-H:IncludeResources="./nls/*"</arg>
+                <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
               </buildArgs>
             </configuration>
           </plugin>
