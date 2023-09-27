@@ -157,6 +157,9 @@
               </execution>
             </executions>
             <configuration>
+              <metadataRepository>
+                <enabled>true</enabled>
+              </metadataRepository>
               <agent>
                 <enabled>true</enabled>
               </agent>
