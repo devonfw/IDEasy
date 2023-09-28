@@ -21,7 +21,6 @@
       <includes>
         <include>${imageName}.exe</include>
         <include>${imageName}</include>
-        <include>${imageName}</include>
       </includes>
     </fileSet>
   </fileSets>
