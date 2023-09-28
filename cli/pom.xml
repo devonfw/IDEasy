@@ -13,7 +13,8 @@
   <version>${revision}</version>
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ide</mainClass>
-    <imageName>${project.artifactId}-${project.version}</imageName>
+    <imageName>bin/ide</imageName>
+    <releaseName>${project.artifactId}-${os.detected.classifier}-${os.detected.arch}</releaseName>
     <java.version>17</java.version>
     <native.maven.plugin.version>0.9.23</native.maven.plugin.version>
   </properties>
@@ -109,17 +110,17 @@
               <configuration>
                 <artifacts>
                   <artifact>
-                    <file>${imageName}-linux.tar.gz</file>
+                    <file>${releaseName}.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>linux</classifier>
                   </artifact>
                   <artifact>
-                    <file>${imageName}-windows.tar.gz</file>
+                    <file>${releaseName}.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>windows</classifier>
                   </artifact>
                   <artifact>
-                    <file>${imageName}-mac.tar.gz</file>
+                    <file>${releaseName}.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>mac</classifier>
                   </artifact>
@@ -164,7 +165,7 @@
                 <enabled>true</enabled>
               </agent>
               <imageName>
-                ${imageName}-${os.detected.classifier}
+                ${imageName}
               </imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=https</arg>
@@ -203,6 +204,7 @@
       </activation>
       <properties>
         <os.detected.classifier>windows</os.detected.classifier>
+        <os.detected.arch>x64</os.detected.arch>
       </properties>
     </profile>
     <profile>
@@ -214,6 +216,7 @@
       </activation>
       <properties>
         <os.detected.classifier>mac</os.detected.classifier>
+        <os.detected.arch>x64</os.detected.arch>
       </properties>
     </profile>
     <profile>
@@ -225,6 +228,7 @@
       </activation>
       <properties>
         <os.detected.classifier>linux</os.detected.classifier>
+        <os.detected.arch>x64</os.detected.arch>
       </properties>
     </profile>
   </profiles>
