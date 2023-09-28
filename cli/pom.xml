@@ -185,6 +185,7 @@
                   <goal>single</goal>
                 </goals>
                 <configuration>
+                  <finaleName>${releaseName}.tar.gz</finaleName>
                   <descriptors>
                     <descriptor>/src/main/assembly/exec.xml</descriptor>
                   </descriptors>
