@@ -1,7 +1,11 @@
 package com.devonfw.tools.ide.io;
 
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -30,6 +34,10 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
+
+import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
 
 /**
  * Implementation of {@link FileAccess}.
@@ -60,20 +68,20 @@ public class FileAccessImpl implements FileAccess {
     mkdirs(target.getParent());
     try {
       if (url.startsWith("http")) {
+
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
         HttpResponse<InputStream> response = this.client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+
         if (response.statusCode() == 200) {
-          InputStream body = response.body();
-          // TODO progress marker???
-          Files.copy(body, target);
+          downloadFileWithProgressBar(url, target, response);
         }
       } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
         throw new IllegalArgumentException("Unsupported download URL: " + url);
       } else {
         Path source = Paths.get(url);
         if (isFile(source)) {
-          // TODO progress marker???
-          Files.copy(source, target);
+          // network drive
+          copyFileWithProgressBar(source, target);
         } else {
           throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
         }
@@ -81,6 +89,92 @@ public class FileAccessImpl implements FileAccess {
     } catch (Exception e) {
       throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, e);
     }
+  }
+
+  /**
+   * Downloads a file while showing a progress bar
+   *
+   * @param url the url to download
+   * @param target Path of the target directory
+   * @param response {@link HttpResponse} to use
+   */
+  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) throws IOException {
+
+    String contentLength = response.headers().firstValue("content-length").orElse("undefined");
+    if (contentLength.equals("undefined")) {
+      throw new IllegalStateException("Content-Length was not provided by download source: " + url);
+    }
+
+    long size = Long.parseLong(contentLength);
+
+    byte[] data = new byte[1024];
+    boolean fileComplete = false;
+    int count;
+    ProgressBarBuilder pbb = getProgressBarBuilder(size, "Downloading");
+
+    try (InputStream body = response.body();
+        FileOutputStream fileOutput = new FileOutputStream(target.toFile());
+        BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, 1024);
+        ProgressBar pb = pbb.build()) {
+      while (!fileComplete) {
+        count = body.read(data, 0, 1024);
+        if (count <= 0) {
+          fileComplete = true;
+        } else {
+          bufferedOut.write(data, 0, count);
+          pb.stepBy(count);
+        }
+      }
+    }
+  }
+
+  /**
+   * Copies a file while displaying a progress bar
+   *
+   * @param source Path of file to copy
+   * @param target Path of target directory
+   */
+  private void copyFileWithProgressBar(Path source, Path target) throws IOException {
+
+    try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
+
+      long size = source.toFile().length();
+      byte[] buf = new byte[1024];
+      int readBytes;
+      ProgressBarBuilder pbb = getProgressBarBuilder(size, "Copying");
+      
+      try (ProgressBar pb = pbb.build())
+      {
+        while ((readBytes = in.read(buf)) > 0) {
+          out.write(buf, 0, readBytes);
+          pb.step();
+        }
+      }
+    }
+  }
+
+  /**
+   * Prepares the {@link ProgressBar}
+   *
+   * @param size of the content
+   * @param taskName name of the task
+   * @return {@link ProgressBarBuilder} to use
+   */
+  private ProgressBarBuilder getProgressBarBuilder(long size, String taskName) {
+
+    ProgressBarBuilder pbb = new ProgressBarBuilder();
+    pbb.setStyle(ProgressBarStyle.COLORFUL_UNICODE_BLOCK);
+    // set different style for Windows systems
+    if (this.context.getSystemInfo().isWindows()) {
+      pbb.setStyle(ProgressBarStyle.ASCII);
+    }
+    pbb.showSpeed();
+    pbb.setTaskName(taskName);
+    pbb.setUnit("MiB", 1048576);
+    pbb.setInitialMax(size);
+    pbb.continuousUpdate();
+    pbb.setUpdateIntervalMillis(1);
+    return pbb;
   }
 
   @Override
