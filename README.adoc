@@ -65,7 +65,7 @@ See also our latest video https://vimeo.com/808368450/88d4af9d18[devon ide updat
 * link:documentation/features.asciidoc[Features]
 * link:documentation/setup.asciidoc[Download & Setup]
 * link:documentation/usage.asciidoc[Usage]
-* link:documentation/devonfw-ide-contribution-getting-started.asciidoc[Contribution]
+* link:documentation/IDEasy-contribution-getting-started.asciidoc[Contribution]
 * link:documentation/configuration.asciidoc[Configuration]
 * link:documentation/structure.asciidoc[Structure]
 * link:documentation/cli.asciidoc[Command Line Interface]
