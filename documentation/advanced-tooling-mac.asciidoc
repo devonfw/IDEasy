@@ -5,11 +5,11 @@ toc::[]
 
 == Finder
 
-If you want to open a terminal from a folder in Finder and automatically get your environment set properly for `devonfw-ide` you will find the perfect solution here.
+If you want to open a terminal from a folder in Finder and automatically get your environment set properly for `IDEasy` you will find the perfect solution here.
 
-image::images/finder-integration.png["devonfw-ide integration in MacOS Finder"]
+image::images/finder-integration.png["IDEasy integration in MacOS Finder"]
 
-So after installing (see below) the integration(s) provided here, you can easily open a terminal ready for your `devonfw-ide`:
+So after installing (see below) the integration(s) provided here, you can easily open a terminal ready for your `IDEasy`:
 
 * right click (`[control]` + click) on file or folder in `Finder`
 * Expand the `Quick-Actions` sub-menu
@@ -20,14 +20,14 @@ So after installing (see below) the integration(s) provided here, you can easily
 mvn -v
 ```
 
-To get this feature for macOS `Terminal.app` open Finder and run the workflow `system/mac/terminal/Open_devonfw-Terminal_here.workflow` (in `${DEVON_IDE_HOME}`). For iTerm2.app (that can be installed from `App Store`) do the same with `system/mac/iterm/Open_devonfw-iTerm_here.workflow`.
+To get this feature for macOS `Terminal.app` open Finder and run the workflow `system/mac/terminal/Open_devonfw-Terminal_here.workflow` (in `${IDE_HOME}`). For iTerm2.app (that can be installed from `App Store`) do the same with `system/mac/iterm/Open_devonfw-iTerm_here.workflow`.
 
 == Keyboard
 
 Keyboard support is not an integration however, some users coming from other platforms may struggle with the way macOS deals with (external non-apple) keyboards.
 So to make it short: if you are happy with your keyboard and shortcuts, you can skip all the following.
 Otherwise, if you think that pressing keys like `Home`, `End`, etc. should just work as expected or pressing `Alt Gr` should allow you to type the special characters as printed on your German keyboard then here you will find a solution to your problems!
-To get all automated you can just run the script `system/mac/keyboard/install-mac-keyboard-support.sh` (in `${DEVON_IDE_HOME}`).
+To get all automated you can just run the script `system/mac/keyboard/install-mac-keyboard-support.sh` (in `${IDE_HOME}`).
 If you would like to understand what is going on, you want to customize the keyboard settings to your needs, or you want a keyboard layout other than German ISO, please read on.
 
 === Keyboard Layouts
@@ -42,7 +42,7 @@ To install keyboard layouts simply double-click the `bundle` or copy it to `~/Li
 To actually use them go to `System Preferences` and select `Keyboard`.
 Then, select the tab `Input Sources`.
 With the `+` button you can add a keyboard layout for your daily usage with your Mac.
-Please note that the keyboard layout shipped with `devonfw-ide` is called `German-ISO` and can be found in the `Others` section at the end of the list.
+Please note that the keyboard layout shipped with `IDEasy` is called `German-ISO` and can be found in the `Others` section at the end of the list.
 It can be used as an example or template, if you want to create your own layout.
 
 image::images/keyboard-layouts.png["Keyboard Preferences / Input Sources"]

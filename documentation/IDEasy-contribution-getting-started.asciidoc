@@ -1,21 +1,21 @@
 :toc:
 toc::[]
 
-= Getting started as developer contributing to devonfw-ide
+= Getting started as developer contributing to IDEasy
 
 == Installation
-To start developing devonfw-ide, you must first install it on your computer.
+To start developing IDEasy, you must first install it on your computer.
 Therefore simply follow the link:setup.asciidoc[setup] guide.
-It is important to notice that this installation gives you the latest published version of the devonfw-ide with which you can execute commands like eclipse or docker whose scripts are located inside the "${DEVON_IDE_HOME}$/scripts/command, but for committing code we use a differing folder structure.
+It is important to notice that this installation gives you the latest published version of IDEasy with which you can execute commands like eclipse or docker whose scripts are located inside the "${IDE_HOME}$/scripts/command, but for committing code we use a differing folder structure.
 This will be addressed under xref:Contribution[Contribution].
 
 == Contribution
 To begin, read through the https://github.com/devonfw/.github/blob/master/CONTRIBUTING.asciidoc[Contribution Guidelines], which you should be sure to follow.
 First steps regarding forks or cloning of repos and creating branches, as well as some git commands, can be found in the https://github.com/firstcontributions/first-contributions[first contributions guideline].
-To contribute code or documentation regarding the devonfw-ide at first you need to fork the https://github.com/devonfw/ide[devonfw-ide] repository and then you can clone your fork into the folder `workspaces/main` in your devonfw-ide installation.
-Open git-bash in the cloned fork at `workspaces/main/ide` and run the following command:
+To contribute code or documentation regarding IDEasy at first you need to fork the https://github.com/devonfw/ideasy[IDEasy] repository and then you can clone your fork into the folder `workspaces/main` in your IDEasy installation.
+Open git-bash in the cloned fork at `workspaces/main/IDEasy` and run the following command:
 ```
-git remote add upstream https://github.com/devonfw/ide.git
+git remote add upstream https://github.com/devonfw/ideasy.git
 git fetch upstream
 ```
 Whenever you want to implement a new change first do the following things:
@@ -27,7 +27,7 @@ git checkout -b feature/«issue-id»-«brief-feature-description»
 ```
 Now you can do the changes, improvements, and fixes.
 Once they are tested and seem to work, you can commit them (`git commit -m "#«issue-id»: «description»"`).
-If some days have passed meanwhile you should merge changes that meanwhile happened on the official `ide` repo:
+If some days have passed meanwhile you should merge changes that meanwhile happened on the official `IDEasy` repo:
 ```
 git pull upstream master
 ```
@@ -35,19 +35,19 @@ Once you are complete and everything is merged and comitted, you can push your l
 ```
 git push -u origin feature/«issue-id»-«brief-feature-description»
 ```
-Now you can go to https://github.com/devonfw/ide/pulls and create the pull-request (PR) from your new feature.
+Now you can go to https://github.com/devonfw/ideasy/pulls and create the pull-request (PR) from your new feature.
 Therefore, please click on the right down arrow of the green button and choose `Create draft pull request` and then click on `Draft pull request`.
 When the checks have completed you can check the link:DoD.asciidoc[Definition-of-Done] (DoD).
 Once, all checks of the DoD are addressed, you can go the the very bottom of the PR and click on `Ready for review` what will take the PR out of the draft mode.
 FYI: If you forgot the upstream merge (`git pull upstream/master`) or the upstream changed again while your PR is still open, you will see `This branch is out-of-date with the base branch` at the bottom of your PR and can click on `Update branch`.
 
-For further development and testing, it is recommended to xref:symbolic-links[symlink] the modified scripts into your devonfw-ide installation.
+For further development and testing, it is recommended to xref:symbolic-links[symlink] the modified scripts into your IDEasy installation.
 Alternatively, the scripts can be adapted in the installation folder and then committed to the project.
 For creating a contribution also check the link:DoD.asciidoc[Definition of Done] (DoD).
 
 === ShellCheck
 
-To improve the code quality the https://github.com/koalaman/shellcheck/[ShellCheck] is used for devonfw-ide.
+To improve the code quality the https://github.com/koalaman/shellcheck/[ShellCheck] is used for IDEasy.
 There is a GitHub action _CI build PR_ for this. If this fails at the PR, you can find the error messages in the big logfile under _Build project with Maven_.
 For example, these look like this:
 
@@ -109,12 +109,12 @@ The first part of the script contains the autocompletion, which should return th
 Functions like setup or run or other additional functions follow.
 Finally, it defines which function should be executed depending on the parameter.
 
-Use the `doInstall` method for the installation, which downloads the tool based on the mirrors, unpacks it if necessary and puts it in the software folder in the `devonfw-ide` installation:
+Use the `doInstall` method for the installation, which downloads the tool based on the mirrors, unpacks it if necessary and puts it in the software folder in the `IDEasy` installation:
 ```
 doInstall "-" "«installation-folder»" "«tool-name»" "«tool-version»"
 ```
 
-For standard installations omit `"«installation-folder»"` (use the empty string arg `""`) what will install to `${DEVON_IDE_HOME}/software/«tool-name»`.
+For standard installations omit `"«installation-folder»"` (use the empty string arg `""`) what will install to `${IDE_HOME}/software/«tool-name»`.
 
 === LICENSE
 Find the license for the new tool and add the tool to the table of `Third party components` of the link:LICENSE.asciidoc[LICENSE].
@@ -128,17 +128,17 @@ In the configuration files many link:variables.asciidoc[variables] can be define
 
 == Tips and tricks
 
-The following sub-sections give you some tips and tricks to boost your productivity when developing features for `devonfw-ide`.
+The following sub-sections give you some tips and tricks to boost your productivity when developing features for `IDEasy`.
 
 == Symbolic Links
 With link:advanced-tooling-windows.asciidoc##create-symbolic-links[symbolic links] you can use one file or folder that is located inside one directory in one or multiple other directories, without copying the whole file or folder into the other directories.
 The file is still only saved at the initial location, but can be accessed through the  created links in a much more comfortable way.
 So you are actually just linked to the original file and therefore don't have to worry about differing versions of the file in your directories.
-This is very helpful for testing our devonfw-ide, because e.g. the commandlets folder for testing is not the same as the commandlets folder for git-commits. 
+This is very helpful for testing our IDEasy, because e.g. the commandlets folder for testing is not the same as the commandlets folder for git-commits.
 Install https://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html[link shell extension] and follow the instructions for installation and  usage first. 
 Later on you can make symbolic links of files or folder from your "git folder" and add them into the folder in which the testing is supposed to take place:
 
-So select the folder `${DEVON_IDE_HOME}/workspaces/ide/scripts/src/main/resources/scripts/command/` and choose `Pick Link Source` and then go to `${DEVON_IDE_HOME}/scripts/` delete the `command` folder and re-create it as symbolic link via `Drop as... > Symbolic link`.
+So select the folder `${IDE_HOME}/workspaces/ide/scripts/src/main/resources/scripts/command/` and choose `Pick Link Source` and then go to `${IDE_HOME}/scripts/` delete the `command` folder and re-create it as symbolic link via `Drop as... > Symbolic link`.
 Do the same also for `functions`, `functions-core`, `commandlet-cli`, `environment-project`, `environment-project.bat`, `devon`, `devon.bat`, `autocomplete`, and `devon-autocomplete`.
 Now changes you make in the first mentioned file  will directly be available in your testing environment through the created file-link in the testing environment.
 
@@ -151,13 +151,13 @@ Have a look at https://github.com/devonfw/ide/blob/master/documentation/advanced
 You probably know this black box on Windows (the Command Prompt) that accepts commands like 'dir' that shows the content of the directory you are currently in,
 or 'cd' with which you can change the directory you are currently in and many more commands that allow you to interact with your Windows Operating System in a more direct and eventually faster way.  
 Now for users of a Linux Distribution there is something similar, but way more powerful, usually called "Bourne Again Shell", or in short Bash.
-This Command Line Interface or "Shell" is what we use most often when implementing something new for our Command-Line-Tool with the name devonfw-ide.  https://www.youtube.com/watch?v=I4EWvMFj37g[Have a look at Bash in 150 Seconds.]
+This Command Line Interface or "Shell" is what we use most often when implementing something new for our Command-Line-Tool with the name IDEasy.  https://www.youtube.com/watch?v=I4EWvMFj37g[Have a look at Bash in 150 Seconds.]
 For MacOS you often also use BASH.
 That's why it is often enough to implement code for Mac or Linux (at least to some extend as you'll see soon enough) to be able to use it on both Operating Systems.
 
 Let's get to the practical part of the Bash-usage. 
 
-**If you are using Windows**, make sure that you have git-bash installed, so you can execute the Bash commands mentioned in this introduction. [Here you can find git for windows](https://git-scm.com/download/win). In some cases later on you may want or need to use WSL. Our project teams standard way is to install WSL via Rancher Desktop, which is easily installable with the devonfw-ide by using the command `devon docker setup`. If you don't have the devonfw-ide yet, then you can follow [this guide](https://github.com/devonfw/ide/blob/master/documentation/setup.asciidoc)
+**If you are using Windows**, make sure that you have git-bash installed, so you can execute the Bash commands mentioned in this introduction. [Here you can find git for windows](https://git-scm.com/download/win). In some cases later on you may want or need to use WSL. Our project teams standard way is to install WSL via Rancher Desktop, which is easily installable with the IDEasy by using the command `ide install docker`. If you don't have the IDEasy yet, then you can follow [this guide](https://github.com/devonfw/ide/blob/master/documentation/setup.asciidoc)
 
 The https://www.youtube.com/watch?v=oxuRxtrO2Ag[following video] gives you some important and helpful basics, still you don't need to know all of these commands directly by heart. Instead under the video you'll find a list with the commands mentioned in the video to make a command return to your mind. Also directly play around with those commands while watching the video to learn faster. 
 
@@ -187,4 +187,4 @@ In case you want to get your hands dirty with code that is already in use and co
 There are also some basic exercises related to our project that are not official yet, but you can ask for if you want to try some of them out to learn and challenge yourself a bit.
 
 == Documentation
-Scroll down on https://github.com/devonfw/ide[this site] to get an overview of the documentation sections for the devonfw-ide, e.g. Home, Features, Download & Setup or have a look at https://github.com/devonfw/ide/tree/master/documentation[the documentation files folder].
+Scroll down on https://github.com/devonfw/ideasy[this site] to get an overview of the documentation sections for the IDEasy, e.g. Home, Features, Download & Setup or have a look at https://github.com/devonfw/ideasy/tree/main/documentation[the documentation files folder].
