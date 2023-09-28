@@ -26,16 +26,19 @@ public class SystemPath {
   private final Map<String, Path> tool2pathMap;
 
   private final List<Path> paths;
+  
+  private final IdeContext context;
 
   /**
    * The constructor.
    *
    * @param envPath the value of the PATH variable.
    * @param softwarePath the {@link IdeContext#getSoftwarePath() software path}.
+   * @param context {@link IdeContext} for the output of information.
    */
-  public SystemPath(String envPath, Path softwarePath) {
+  public SystemPath(String envPath, Path softwarePath, IdeContext context) {
 
-    this(envPath, softwarePath, File.pathSeparatorChar);
+    this(envPath, softwarePath, File.pathSeparatorChar, context);
   }
 
   /**
@@ -44,10 +47,12 @@ public class SystemPath {
    * @param envPath the value of the PATH variable.
    * @param softwarePath the {@link IdeContext#getSoftwarePath() software path}.
    * @param pathSeparator the path separator char (';' for Windows and ':' otherwise).
+   * @param context {@link IdeContext} for the output of information.
    */
-  public SystemPath(String envPath, Path softwarePath, char pathSeparator) {
+  public SystemPath(String envPath, Path softwarePath, char pathSeparator, IdeContext context) {
 
     super();
+    this.context = context;
     this.envPath = envPath;
     this.pathSeparator = pathSeparator;
     this.tool2pathMap = new HashMap<>();
@@ -61,7 +66,7 @@ public class SystemPath {
       } else {
         Path duplicate = this.tool2pathMap.putIfAbsent(tool, path);
         if (duplicate != null) {
-          throw new IllegalStateException("Duplicate tool path for " + tool + ":" + path + " and " + duplicate);
+          context.error("Duplicated tool path for tool: {} at path: {} with duplicated path: {}.", tool, path, duplicate);
         }
       }
     }
