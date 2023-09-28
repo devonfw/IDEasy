@@ -68,6 +68,6 @@ public class VariableDefinitionSystemPath extends AbstractVariableDefinition<Sys
   @Override
   public SystemPath fromString(String value, IdeContext context) {
 
-    return new SystemPath(value, context.getSoftwarePath());
+    return new SystemPath(value, context.getSoftwarePath(), context);
   }
 }

@@ -270,7 +270,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   private SystemPath computeSystemPath() {
 
     String systemPath = System.getenv(IdeVariables.PATH.getName());
-    return new SystemPath(systemPath, this.softwarePath);
+    return new SystemPath(systemPath, this.softwarePath, this);
   }
 
   private boolean isIdeHome(Path dir) {
