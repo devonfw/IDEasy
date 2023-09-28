@@ -5,6 +5,9 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 import java.util.Set;
 
+/**
+ * {@link ToolCommandlet} for <a href="https://helm.sh/">Helm</a>, the package manager for Kubernetes.
+ */
 public class Helm extends ToolCommandlet {
   /**
    * The constructor.
