@@ -307,7 +307,7 @@ public class FileAccessImpl implements FileAccess {
         move(tmpDir, targetDir);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir);
+      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
   }
 
