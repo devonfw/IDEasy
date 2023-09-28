@@ -110,17 +110,17 @@
               <configuration>
                 <artifacts>
                   <artifact>
-                    <file>${releaseName}.tar.gz</file>
+                    <file>${releaseName}</file>
                     <type>tar.gz</type>
                     <classifier>linux</classifier>
                   </artifact>
                   <artifact>
-                    <file>${releaseName}.tar.gz</file>
+                    <file>${releaseName}</file>
                     <type>tar.gz</type>
                     <classifier>windows</classifier>
                   </artifact>
                   <artifact>
-                    <file>${releaseName}.tar.gz</file>
+                    <file>${releaseName}</file>
                     <type>tar.gz</type>
                     <classifier>mac</classifier>
                   </artifact>
