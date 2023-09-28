@@ -3,33 +3,33 @@ toc::[]
 
 = Variables
 
-The `devonfw-ide` defines a set of standard variables to your environment for link:configuration.asciidoc[configuration] via `variables[.bat]` files.
+`IDEasy` defines a set of standard variables to your environment for link:configuration.asciidoc[configuration] via `variables[.bat]` files.
 These environment variables are described by the following table.
 Those variables printed *bold* are also exported in your shell (except for windows CMD that does not have such concept). Variables with the value `-` are not set by default but may be set via link:configuration.asciidoc[configuration] to override defaults.
-Please note that we are trying to minimize any potential side-effect from `devonfw-ide` to the outside world by reducing the number of variables and only exporting those that are required.
+Please note that we are trying to minimize any potential side-effect from `IDEasy` to the outside world by reducing the number of variables and only exporting those that are required.
 
-.Variables of devonfw-ide
+.Variables of IDEasy
 [options="header"]
 |=======================
 |*Variable*|*Value*|*Meaning*
-|`DEVON_IDE_HOME`|e.g. `/projects/my-project`|The top level directory of your `devonfw-ide` link:structure.asciidoc[structure].
-|`PATH`|`$PATH:$DEVON_IDE_HOME/software/java:...`|You system path is adjusted by `devon` link:cli.asciidoc[command].
-|`DEVON_HOME_DIR`|`~`|The platform independent home directory of the current user. In some edge-cases (e.g. in cygwin) this differs from `~` to ensure a central home directory for the user on a single machine in any context or environment.
-|`DEVON_IDE_TOOLS`|`(java mvn node npm)`|List of tools that should be installed and upgraded by default for your current IDE.
-|`DEVON_IDE_CUSTOM_TOOLS`|`-`|List of custom tools that should be installed additionally. See link:software.asciidoc#custom[software] for further details.
-|`DEVON_CREATE_START_SCRIPTS`|`(eclipse vscode)`|List of IDEs that shall be used by developers in the project and therefore start-scripts are created on setup.
-|*`DEVON_OLD_PATH`*|`...`|A "backup" of `PATH` before it was extended by `devon` to allow recovering it. Internal variable that should never be set or tweaked.
+|`IDE_HOME`|e.g. `/projects/my-project`|The top level directory of your `IDEasy` link:structure.asciidoc[structure].
+|`PATH`|`$PATH:$IDE_HOME/software/java:...`|You system path is adjusted by `ide` link:cli.asciidoc[command].
+|`HOME_DIR`|`~`|The platform independent home directory of the current user. In some edge-cases (e.g. in cygwin) this differs from `~` to ensure a central home directory for the user on a single machine in any context or environment.
+|`IDE_TOOLS`|`(java mvn node npm)`|List of tools that should be installed and upgraded by default for your current IDE.
+|`IDE_CUSTOM_TOOLS`|`-`|List of custom tools that should be installed additionally. See link:software.asciidoc#custom[software] for further details.
+|`CREATE_START_SCRIPTS`|`(eclipse vscode)`|List of IDEs that shall be used by developers in the project and therefore start-scripts are created on setup.
+|*`IDE_OLD_PATH`*|`...`|A "backup" of `PATH` before it was extended by `ide` to allow recovering it. Internal variable that should never be set or tweaked.
 |*`WORKSPACE`*|`main`|The link:workspaces.asciidoc[workspace] you are currently in. Defaults to `main` if you are not inside a link:workspaces.asciidoc[workspace]. Never touch this variable in any `variables` file.
-|`WORKSPACE_PATH`|`$DEVON_IDE_HOME/workspaces/$WORKSPACE`|Absolute path to current link:workspaces.asciidoc[workspace]. Never touch this variable in any `variables` file.
-|*`JAVA_HOME`*|`$DEVON_IDE_HOME/software/java`|Path to JDK
-|`SETTINGS_PATH`|`$DEVON_IDE_HOME/settings`|Path to your link:settings.asciidoc[settings]. To keep `oasp4j-ide` legacy behaviour set this to `$DEVON_IDE_HOME/workspaces/main/development/settings`.
-|*`M2_REPO`*|`$DEVON_IDE_HOME/conf/.m2/repository`|Path to your local maven repository. For projects without high security demands, you may change this to the maven default `~/.m2/repository` and share your repository among multiple projects.
-|*`MVN_HOME`*|`$DEVON_IDE_HOME/software/mvn`|Path to Maven
-|*`MAVEN_OPTS`*|`-Xmx512m -Duser.home=$DEVON_IDE_HOME/conf`|Maven options
-|*`DOCKER_EDITION`*|e.g. `docker`| If set as `docker` the command `devon docker setup` will setup Docker Desktop globally at the users computer what requires a subscription/license for professional usage. If set to `rancher` or undefined it will install Rancher Desktop instead.
-|*`GRAALVM_HOME`*|`$DEVON_IDE_HOME/software/extra/graalvm`|Path to GraalVM
-|`DEVON_SOFTWARE_REPOSITORY`|`-`|Project specific or custom link:software.asciidoc#repository[software-repository].
-|`DEVON_SOFTWARE_PATH`|`-`|Globally shared user-specific link:software.asciidoc#shared[local software installation location].
+|`WORKSPACE_PATH`|`$IDE_HOME/workspaces/$WORKSPACE`|Absolute path to current link:workspaces.asciidoc[workspace]. Never touch this variable in any `variables` file.
+|*`JAVA_HOME`*|`$IDE_HOME/software/java`|Path to JDK
+|`SETTINGS_PATH`|`$IDE_HOME/settings`|Path to your link:settings.asciidoc[settings]. To keep `oasp4j-ide` legacy behaviour set this to `$IDE_HOME/workspaces/main/development/settings`.
+|*`M2_REPO`*|`$IDE_HOME/conf/.m2/repository`|Path to your local maven repository. For projects without high security demands, you may change this to the maven default `~/.m2/repository` and share your repository among multiple projects.
+|*`MVN_HOME`*|`$IDE_HOME/software/mvn`|Path to Maven
+|*`MAVEN_OPTS`*|`-Xmx512m -Duser.home=$IDE_HOME/conf`|Maven options
+|*`DOCKER_EDITION`*|e.g. `docker`| If set as `docker` the command `ide install docker` will setup Docker Desktop globally at the users computer what requires a subscription/license for professional usage. If set to `rancher` or undefined it will install Rancher Desktop instead.
+|*`GRAALVM_HOME`*|`$IDE_HOME/software/extra/graalvm`|Path to GraalVM
+|`SOFTWARE_REPOSITORY`|`-`|Project specific or custom link:software.asciidoc#repository[software-repository].
+|`SOFTWARE_PATH`|`-`|Globally shared user-specific link:software.asciidoc#shared[local software installation location].
 |`ECLIPSE_VMARGS`|`-Xms128M -Xmx768M -XX:MaxPermSize=256M`|JVM options for Eclipse
 |deprecated: `ECLIPSE_PLUGINS`|`-`|Array with "feature groups" and "update site URLs" to customize required link:eclipse.asciidoc#plugins[eclipse plugins]. Deprecated - see link:eclipse.asciidoc#plugins[Eclipse plugins].
 |`«TOOL»_EDITION`|`-`|The edition of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_EDITION`, `INTELLIJ_EDITION` or `DOCKER_EDITION`)
@@ -37,5 +37,5 @@ Please note that we are trying to minimize any potential side-effect from `devon
 |`EXTRA_JAVA_VERSION`|`-`|An additional (newer) version of link:java.asciidoc[java] that will be used to run java-based IDEs (e.g. link:eclipse.asciidoc[eclipse] or link:intellij.asciidoc[intellij]).
 |`«TOOL»_BUILD_OPTS`|e.g.`clean install`|The arguments provided to the build-tool `«TOOL»` in order to run a build.
 |`«TOOL»_RELEASE_OPTS`|e.g.`clean deploy -Dchangelist= -Pdeploy`|The arguments provided to the build-tool `«TOOL»` in order to perform a release build.
-|`DEVON_IDE_TRACE`||If value is not an empty string, the `devonfw-ide` scripts will trace each script line executed. For bash two lines output: before and again after expansion. *ATTENTION:* This is not a regular variable working via `devon.properties`. Instead manually do `export DEVON_IDE_TRACE=true` in bash or `set DEVON_IDE_TRACE=true` in windows CMD before running a devon command to get a trace log that you can provide to experts in order to trace down a bug and see what went wrong.
+|`IDE_TRACE`||If value is not an empty string, the `IDEasy` scripts will trace each script line executed. For bash two lines output: before and again after expansion. *ATTENTION:* This is not a regular variable working via `ide.properties`. Instead manually do `export IDE_TRACE=true` in bash or `set IDE_TRACE=true` in windows CMD before running an ide command to get a trace log that you can provide to experts in order to trace down a bug and see what went wrong.
 |=======================

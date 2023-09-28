@@ -11,7 +11,7 @@ As this requires some tweaks for IDEs we do support you with this guide in case 
 For eclipse there is a plugin to activate https://projectlombok.org/setup/eclipse[lombok support in eclipse].
 We have this already configured for you in our default link:settings.asciidoc[settings]. So for manual installation after link:setup.asciidoc[setup], you can get it via this command:
 ```
-devon eclipse add-plugin lombok
+ide eclipse add-plugin lombok
 ```
 However, to avoid manual extra effort for lombok based projects you only need to activate this plugin in your project specific link:settings.asciidoc[settings] in https://github.com/devonfw/ide-settings/blob/master/eclipse/plugins/lombok.properties#L3[lombok.properties for eclipse] (replace `false` with `true` for `plugin_active`).
 
@@ -20,7 +20,7 @@ However, to avoid manual extra effort for lombok based projects you only need to
 For VisualStudio Code there is an extension to activate https://projectlombok.org/setup/vscode[lombok support in VS-Code].
 We have this already preconfigured for you in our default link:settings.asciidoc[settings]. So for manual installation after link:setup.asciidoc[setup], you can get it via this command:
 ```
-devon vscode add-plugin lombok
+ide vscode add-plugin lombok
 ```
 However, to avoid manual extra effort for lombok based projects you only need to activate this plugin in your project specific link:settings.asciidoc[settings] in https://github.com/devonfw/ide-settings/blob/master/vscode/plugins/lombok.properties#L2[lombok.properties for vscode] (replace `false` with `true` for `plugin_active`).
 
