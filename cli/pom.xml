@@ -14,8 +14,9 @@
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ide</mainClass>
     <imageName>ide</imageName>
+    <releaseName>${project.artifactId}-${os.detected.classifier}-${os.detected.arch}</releaseName>
     <java.version>17</java.version>
-    <native.maven.plugin.version>0.9.22</native.maven.plugin.version>
+    <native.maven.plugin.version>0.9.23</native.maven.plugin.version>
   </properties>
 
   <dependencies>
@@ -92,6 +93,46 @@
 
   <profiles>
     <profile>
+      <id>deploy</id>
+      <build>
+      <plugins>
+        <plugin>
+          <groupId>org.codehaus.mojo</groupId>
+          <artifactId>build-helper-maven-plugin</artifactId>
+          <version>3.4.0</version>
+          <executions>
+            <execution>
+              <id>attach-artifacts</id>
+              <phase>package</phase>
+              <goals>
+                <goal>attach-artifact</goal>
+              </goals>
+              <configuration>
+                <artifacts>
+                  <artifact>
+                    <file>${releaseName}</file>
+                    <type>tar.gz</type>
+                    <classifier>linux</classifier>
+                  </artifact>
+                  <artifact>
+                    <file>${releaseName}</file>
+                    <type>tar.gz</type>
+                    <classifier>windows</classifier>
+                  </artifact>
+                  <artifact>
+                    <file>${releaseName}</file>
+                    <type>tar.gz</type>
+                    <classifier>mac</classifier>
+                  </artifact>
+                </artifacts>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+      </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>native</id>
       <build>
         <plugins>
@@ -117,17 +158,80 @@
               </execution>
             </executions>
             <configuration>
+              <metadataRepository>
+                <enabled>true</enabled>
+              </metadataRepository>
               <agent>
                 <enabled>true</enabled>
               </agent>
+              <imageName>
+                ${imageName}
+              </imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=https</arg>
-                <arg>--static</arg>
+                <arg>-H:IncludeResources="nls/.*"</arg>
+                <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
               </buildArgs>
             </configuration>
           </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>create-distribution</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <finalName>${releaseName}</finalName>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <descriptors>
+                    <descriptor>/src/main/assembly/exec.xml</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>Windows</id>
+      <activation>
+        <os>
+          <family>Windows</family>
+        </os>
+      </activation>
+      <properties>
+        <os.detected.classifier>windows</os.detected.classifier>
+        <os.detected.arch>x64</os.detected.arch>
+      </properties>
+    </profile>
+    <profile>
+      <id>MacOS</id>
+      <activation>
+        <os>
+          <family>Mac</family>
+        </os>
+      </activation>
+      <properties>
+        <os.detected.classifier>mac</os.detected.classifier>
+        <os.detected.arch>x64</os.detected.arch>
+      </properties>
+    </profile>
+    <profile>
+      <id>Linux</id>
+      <activation>
+        <os>
+          <name>Linux</name>
+        </os>
+      </activation>
+      <properties>
+        <os.detected.classifier>linux</os.detected.classifier>
+        <os.detected.arch>x64</os.detected.arch>
+      </properties>
     </profile>
   </profiles>
 
