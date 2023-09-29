@@ -272,7 +272,15 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       this.context.success("Successfully installed {} in version {} replacing previous version {]", this.tool,
           resolvedVersion, installedVersion);
     }
+    postInstall();
     return true;
+  }
+
+  /**
+   * This method is called after the tool has been newly installed or updated to a new version. Override it to add custom post intallation logic.
+   */
+  protected void postInstall() {
+    // nothing to do by default
   }
 
   /**
