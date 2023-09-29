@@ -277,11 +277,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * Use this method to run commands after installation.
+   * This method is called after the tool has been newly installed or updated to a new version. Override it to add custom post intallation logic.
    */
   protected void postInstall() {
     // nothing to do by default
-  };
+  }
 
   /**
    * Performs the installation of the {@link #getName() tool} managed by this {@link Commandlet} only in the central
