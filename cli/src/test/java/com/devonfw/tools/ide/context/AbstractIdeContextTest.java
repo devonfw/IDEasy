@@ -98,7 +98,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static void assertLogMessage(IdeContext context, IdeLogLevel level, String message, boolean contains) {
 
-    IdeTestLogger logger = (IdeTestLogger) context.level(IdeLogLevel.WARNING);
+    IdeTestLogger logger = (IdeTestLogger) context.level(level);
     ListAssert<String> assertion = assertThat(logger.getMessages()).as(level.name() + "-Log messages");
     if (contains) {
       Condition<String> condition = new Condition<>() {
