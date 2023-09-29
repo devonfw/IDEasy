@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.helm.Helm;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 
@@ -50,6 +51,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new VersionGetCommandlet(context));
     add(new VersionListCommandlet(context));
     add(new Gh(context));
+    add(new Helm(context));
     add(new Java(context));
     add(new Mvn(context));
     add(new Gradle(context));
