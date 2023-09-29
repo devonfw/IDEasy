@@ -157,7 +157,7 @@ public class FileAccessImpl implements FileAccess {
     try {
       Files.move(source, targetDir);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to move " + source + " to " + targetDir);
+      throw new IllegalStateException("Failed to move " + source + " to " + targetDir, e);
     }
   }
 
@@ -220,7 +220,7 @@ public class FileAccessImpl implements FileAccess {
       }
       Files.createSymbolicLink(targetLink, source);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source);
+      throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source, e);
     }
   }
 
