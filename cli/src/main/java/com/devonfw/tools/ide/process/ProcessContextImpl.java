@@ -45,7 +45,7 @@ public final class ProcessContextImpl implements ProcessContext {
     this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
     this.errorHandling = ProcessErrorHandling.THROW;
     Map<String, String> environment = this.processBuilder.environment();
-    for (VariableLine var : this.context.getVariables().collectVariables()) {
+    for (VariableLine var : this.context.getVariables().collectExportedVariables()) {
       if (var.isExport()) {
         environment.put(var.getName(), var.getValue());
       }
