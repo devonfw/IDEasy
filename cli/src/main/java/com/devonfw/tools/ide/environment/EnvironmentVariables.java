@@ -174,6 +174,12 @@ public interface EnvironmentVariables {
   Collection<VariableLine> collectVariables();
 
   /**
+   * @return the {@link Collection} of the {@link VariableLine#isExport() exported} {@link VariableLine}s defined by
+   *         this {@link EnvironmentVariables} including inheritance.
+   */
+  Collection<VariableLine> collectExportedVariables();
+
+  /**
    * @param logger the {@link IdeLogger}.
    * @return the system {@link EnvironmentVariables} building the root of the {@link EnvironmentVariables} hierarchy.
    */
