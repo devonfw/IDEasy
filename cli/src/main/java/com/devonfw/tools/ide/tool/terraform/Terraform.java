@@ -18,7 +18,6 @@ public class Terraform extends ToolCommandlet {
   public Terraform(IdeContext context) {
 
     super(context, "terraform", Set.of(TAG_CLOUD, TAG_IAC));
-
   }
 
   @Override
@@ -26,6 +25,5 @@ public class Terraform extends ToolCommandlet {
 
     super.postInstall();
     runTool(null, "-install-autocomplete");
-
   }
 }
