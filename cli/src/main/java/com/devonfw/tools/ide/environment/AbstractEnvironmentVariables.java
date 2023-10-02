@@ -84,13 +84,26 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   @Override
   public final Collection<VariableLine> collectVariables() {
 
+    return collectVariables(false);
+  }
+
+  @Override
+  public final Collection<VariableLine> collectExportedVariables() {
+
+    return collectVariables(true);
+  }
+
+  private final Collection<VariableLine> collectVariables(boolean onlyExported) {
+
     Set<String> variableNames = new HashSet<>();
     collectVariables(variableNames);
     List<VariableLine> variables = new ArrayList<>(variableNames.size());
     for (String name : variableNames) {
       boolean export = isExported(name);
-      String value = get(name);
-      variables.add(VariableLine.of(export, name, value));
+      if (!onlyExported || export) {
+        String value = get(name);
+        variables.add(VariableLine.of(export, name, value));
+      }
     }
     return variables;
   }
