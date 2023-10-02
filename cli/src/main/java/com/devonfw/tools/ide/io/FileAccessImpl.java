@@ -30,6 +30,7 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -98,19 +99,21 @@ public class FileAccessImpl implements FileAccess {
    * @param target Path of the target directory
    * @param response {@link HttpResponse} to use
    */
-  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) throws IOException {
+  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response)
+      throws IOException {
 
-    String contentLength = response.headers().firstValue("content-length").orElse("undefined");
-    if (contentLength.equals("undefined")) {
-      throw new IllegalStateException("Content-Length was not provided by download source: " + url);
+    long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
+    if (contentLength == 0) {
+      context.warning(
+          "Content-Length was not provided by download source : {} using fallback for the progress bar which will be inaccurate.",
+          url);
+      contentLength = 10000000;
     }
-
-    long size = Long.parseLong(contentLength);
 
     byte[] data = new byte[1024];
     boolean fileComplete = false;
     int count;
-    ProgressBarBuilder pbb = getProgressBarBuilder(size, "Downloading");
+    ProgressBarBuilder pbb = getProgressBarBuilder(contentLength, "Downloading");
 
     try (InputStream body = response.body();
         FileOutputStream fileOutput = new FileOutputStream(target.toFile());
@@ -136,15 +139,15 @@ public class FileAccessImpl implements FileAccess {
    */
   private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
-    try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
+    try (InputStream in = new FileInputStream(source.toFile());
+        OutputStream out = new FileOutputStream(target.toFile())) {
 
       long size = source.toFile().length();
       byte[] buf = new byte[1024];
       int readBytes;
       ProgressBarBuilder pbb = getProgressBarBuilder(size, "Copying");
-      
-      try (ProgressBar pb = pbb.build())
-      {
+
+      try (ProgressBar pb = pbb.build()) {
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
           pb.step();
