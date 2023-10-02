@@ -17,7 +17,7 @@ public class Kotlinc extends ToolCommandlet {
    */
   public Kotlinc(IdeContext context) {
 
-    super(context, "kotlinc", Set.of(TAG_CLOUD, TAG_IAC));
+    super(context, "kotlinc", Set.of(TAG_JAVA, TAG_RUNTIME));
   }
 }
 

@@ -17,6 +17,6 @@ public class KotlincNative extends ToolCommandlet {
    */
   public KotlincNative(IdeContext context) {
 
-    super(context, "kotlincnative", Set.of(TAG_CLOUD, TAG_IAC));
+    super(context, "kotlincnative", Set.of(TAG_JAVA, TAG_RUNTIME));
   }
 }
