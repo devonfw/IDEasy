@@ -20,26 +20,3 @@ public class Kotlinc extends ToolCommandlet {
     super(context, "kotlinc", Set.of(TAG_JAVA, TAG_RUNTIME));
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-}
