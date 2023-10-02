@@ -30,15 +30,12 @@ import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
 
 import me.tongfei.progressbar.ProgressBar;
-import me.tongfei.progressbar.ProgressBarBuilder;
-import me.tongfei.progressbar.ProgressBarStyle;
 
 /**
  * Implementation of {@link FileAccess}.
@@ -113,12 +110,11 @@ public class FileAccessImpl implements FileAccess {
     byte[] data = new byte[1024];
     boolean fileComplete = false;
     int count;
-    ProgressBarBuilder pbb = getProgressBarBuilder(contentLength, "Downloading");
 
     try (InputStream body = response.body();
         FileOutputStream fileOutput = new FileOutputStream(target.toFile());
         BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, 1024);
-        ProgressBar pb = pbb.build()) {
+        ProgressBar pb = context.prepareProgressBar(contentLength, "Downloading")) {
       while (!fileComplete) {
         count = body.read(data, 0, 1024);
         if (count <= 0) {
@@ -145,39 +141,14 @@ public class FileAccessImpl implements FileAccess {
       long size = source.toFile().length();
       byte[] buf = new byte[1024];
       int readBytes;
-      ProgressBarBuilder pbb = getProgressBarBuilder(size, "Copying");
 
-      try (ProgressBar pb = pbb.build()) {
+      try (ProgressBar pb = context.prepareProgressBar(size, "Copying")) {
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
           pb.step();
         }
       }
     }
-  }
-
-  /**
-   * Prepares the {@link ProgressBar}
-   *
-   * @param size of the content
-   * @param taskName name of the task
-   * @return {@link ProgressBarBuilder} to use
-   */
-  private ProgressBarBuilder getProgressBarBuilder(long size, String taskName) {
-
-    ProgressBarBuilder pbb = new ProgressBarBuilder();
-    pbb.setStyle(ProgressBarStyle.COLORFUL_UNICODE_BLOCK);
-    // set different style for Windows systems
-    if (this.context.getSystemInfo().isWindows()) {
-      pbb.setStyle(ProgressBarStyle.ASCII);
-    }
-    pbb.showSpeed();
-    pbb.setTaskName(taskName);
-    pbb.setUnit("MiB", 1048576);
-    pbb.setInitialMax(size);
-    pbb.continuousUpdate();
-    pbb.setUpdateIntervalMillis(1);
-    return pbb;
   }
 
   @Override

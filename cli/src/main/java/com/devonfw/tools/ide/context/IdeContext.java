@@ -18,6 +18,10 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
+import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
+
 /**
  * Interface for interaction with the user allowing to input and output information.
  */
@@ -347,5 +351,33 @@ public interface IdeContext extends IdeLogger {
    * @return a new {@link ProcessContext} to {@link ProcessContext#run() run} external commands.
    */
   ProcessContext newProcess();
+
+  /**
+   * Prepares the {@link ProgressBar}
+   *
+   * @param size of the content
+   * @param taskName name of the task
+   * @return {@link ProgressBar} to use
+   */
+  default ProgressBar prepareProgressBar(long size, String taskName) {
+
+    ProgressBarBuilder pbb = new ProgressBarBuilder();
+    // default (COLORFUL_UNICODE_BLOCK)
+    pbb.setStyle(ProgressBarStyle.builder().refreshPrompt("\r").leftBracket("\u001b[33m│").delimitingSequence("")
+        .rightBracket("│\u001b[0m").block('█').space(' ').fractionSymbols(" ▏▎▍▌▋▊▉").rightSideFractionSymbol(' ')
+        .build());
+    // set different style for Windows systems (ASCII)
+    if (this.getSystemInfo().isWindows()) {
+      pbb.setStyle(ProgressBarStyle.builder().refreshPrompt("\r").leftBracket("[").delimitingSequence("")
+          .rightBracket("]").block('=').space(' ').fractionSymbols(">").rightSideFractionSymbol(' ').build());
+    }
+    pbb.showSpeed();
+    pbb.setTaskName(taskName);
+    pbb.setUnit("MiB", 1048576);
+    pbb.setInitialMax(size);
+    pbb.continuousUpdate();
+    pbb.setUpdateIntervalMillis(1);
+    return pbb.build();
+  }
 
 }
