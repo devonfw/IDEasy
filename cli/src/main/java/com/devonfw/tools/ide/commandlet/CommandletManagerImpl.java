@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.helm.Helm;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 
 /**
@@ -58,6 +59,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Gradle(context));
     add(new Eclipse(context));
     add(new Terraform(context));
+    add(new Oc(context));
   }
 
   private void add(Commandlet commandlet) {
