@@ -23,7 +23,7 @@ import me.tongfei.progressbar.ProgressBar;
 /**
  * Interface for interaction with the user allowing to input and output information.
  */
-public interface IdeContext extends IdeLogger {
+public interface IdeContext extends IdeLogger, ProgressBarContext {
 
   /** The name of the workspaces folder. */
   String FOLDER_WORKSPACES = "workspaces";
@@ -349,14 +349,5 @@ public interface IdeContext extends IdeLogger {
    * @return a new {@link ProcessContext} to {@link ProcessContext#run() run} external commands.
    */
   ProcessContext newProcess();
-
-  /**
-   * Prepares the {@link ProgressBar}
-   *
-   * @param size of the content.
-   * @param taskName name of the task.
-   * @return {@link ProgressBar} to use.
-   */
-  ProgressBar prepareProgressBar(long size, String taskName);
 
 }
