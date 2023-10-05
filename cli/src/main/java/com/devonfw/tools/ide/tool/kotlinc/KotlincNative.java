@@ -6,7 +6,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for kotlincnative CLI (kotlincnative).
+ * {@link ToolCommandlet} for <a href="https://kotlinlang.org/docs/native-overview.html">Kotlin Native</a> (kotlincnative).
  */
 public class KotlincNative extends ToolCommandlet {
 
