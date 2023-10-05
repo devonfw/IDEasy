@@ -64,13 +64,13 @@ jobs:
       - uses: actions/download-artifact@v3
       - name: Make natives available and build project 
         run: |
-          mv ./natives/* ./cli/
+          mv ./natives/* ./cli/target/
           mvn -B -ntp -Dstyle.color=always install
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dstyle.color=always -B -ntp deploy
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dstyle.color=always -B -ntp -P deploy deploy
 
   cancel:
     name: Cancel this workflow 
