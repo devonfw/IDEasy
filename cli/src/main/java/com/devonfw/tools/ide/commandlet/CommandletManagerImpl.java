@@ -18,6 +18,9 @@ import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
+import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
+import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
+
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -60,6 +63,8 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Gradle(context));
     add(new Eclipse(context));
     add(new Terraform(context));
+    add(new Kotlinc(context));
+    add(new KotlincNative(context));
   }
 
   private void add(Commandlet commandlet) {
