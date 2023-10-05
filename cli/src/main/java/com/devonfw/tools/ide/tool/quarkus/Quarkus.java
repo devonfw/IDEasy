@@ -16,7 +16,7 @@ public class Quarkus extends ToolCommandlet {
    */
   public Quarkus(IdeContext context) {
 
-    super(context, "quarkus", Set.of(TAG_CLOUD));
+    super(context, "quarkus", Set.of(TAG_CLOUD, TAG_FRAMEWORK));
   }
 
 }
