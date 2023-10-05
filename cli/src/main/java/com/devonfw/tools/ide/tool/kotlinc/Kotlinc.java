@@ -6,7 +6,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for kotlinc CLI (kotlinc).
+ * {@link ToolCommandlet} for <a href="https://kotlinlang.org/docs/command-line.html">Kotlin command-line compiler</a> (kotlinc).
  */
 public class Kotlinc extends ToolCommandlet {
 
