@@ -1,7 +1,11 @@
 package com.devonfw.tools.ide.context;
 
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
 import java.util.Scanner;
 
+import com.devonfw.tools.ide.io.IdeProgressBar;
+import com.devonfw.tools.ide.io.IdeProgressBarConsole;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLoggerOut;
 
@@ -38,6 +42,28 @@ public class IdeContextConsole extends AbstractIdeContext {
     } else {
       return this.scanner.nextLine();
     }
+  }
+
+  @Override
+  public IdeProgressBar prepareProgressBar(String taskName, long size) {
+
+    ProgressBarBuilder pbb = new ProgressBarBuilder();
+    // default (COLORFUL_UNICODE_BLOCK)
+    pbb.setStyle(ProgressBarStyle.builder().refreshPrompt("\r").leftBracket("\u001b[33m│").delimitingSequence("")
+    .rightBracket("│\u001b[0m").block('█').space(' ').fractionSymbols(" ▏▎▍▌▋▊▉").rightSideFractionSymbol(' ')
+    .build());
+    // set different style for Windows systems (ASCII)
+    if (this.getSystemInfo().isWindows()) {
+      pbb.setStyle(ProgressBarStyle.builder().refreshPrompt("\r").leftBracket("[").delimitingSequence("")
+      .rightBracket("]").block('=').space(' ').fractionSymbols(">").rightSideFractionSymbol(' ').build());
+    }
+    pbb.showSpeed();
+    pbb.setTaskName(taskName);
+    pbb.setUnit("MiB", 1048576);
+    pbb.setInitialMax(size);
+    pbb.continuousUpdate();
+    pbb.setUpdateIntervalMillis(1);
+    return new IdeProgressBarConsole(pbb.build());
   }
 
 }
