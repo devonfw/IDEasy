@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -347,5 +348,14 @@ public interface IdeContext extends IdeLogger {
    * @return a new {@link ProcessContext} to {@link ProcessContext#run() run} external commands.
    */
   ProcessContext newProcess();
+
+  /**
+   * Prepares the {@link IdeProgressBar} initializes task name and maximum size as well as the behaviour and style.
+   *
+   * @param taskName name of the task.
+   * @param size of the content.
+   * @return {@link IdeProgressBar} to use.
+   */
+  IdeProgressBar prepareProgressBar(String taskName, long size);
 
 }
