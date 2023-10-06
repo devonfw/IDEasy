@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
@@ -11,6 +12,7 @@ import com.devonfw.tools.ide.commandlet.CommandletManagerResetter;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
+import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
 
@@ -27,6 +29,9 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   // will not use eclipse-target like done in maven via eclipse profile...
   private static final Path PATH_PROJECTS_COPY = Paths.get("target/test-projects/");
+
+  /** Chunk size to use for progress bars **/
+  private static final int CHUNK_SIZE = 1024;
 
   /**
    * @param projectName the (folder)name of the test project in {@link #PATH_PROJECTS}. E.g. "basic".
@@ -79,6 +84,11 @@ public abstract class AbstractIdeContextTest extends Assertions {
     return context;
   }
 
+  protected static IdeContext newContext(Path projectPath) {
+
+    return new IdeTestContext(projectPath);
+  }
+
   /**
    * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
    * @param level the expected {@link IdeLogLevel}.
@@ -111,6 +121,67 @@ public abstract class AbstractIdeContextTest extends Assertions {
     } else {
       assertion.contains(message);
     }
+  }
+
+  /**
+   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default
+   * behaviour
+   *
+   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
+   * @param taskName name of the task e.g. Downloading.
+   * @param maxSize initial maximum value e.g. file size.
+   * @param chunkSize size of the chunk.
+   * @param chunkCount amount of chunks.
+   * @param restSize remaining size.
+   */
+  protected static void assertProgressBar(IdeContext context, String taskName, long maxSize, long chunkSize,
+      int chunkCount, long restSize) {
+
+    AbstractIdeTestContext testContext = (AbstractIdeTestContext) context;
+    IdeProgressBarTestImpl progressBar = testContext.getProgressBarMap().get(taskName);
+    assertThat(progressBar).as(taskName).isNotNull();
+    assertThat(progressBar.getMaxSize()).isEqualTo(maxSize);
+    List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
+    assertThat(eventList).hasSize(chunkCount + 1);
+    for (int i = 0; i <= chunkCount; i++) {
+      IdeProgressBarTestImpl.ProgressEvent progressEvent = eventList.get(i);
+      long stepSize = chunkSize;
+      if (i == chunkCount) {
+        stepSize = restSize;
+      }
+      assertThat(progressEvent.getStepSize()).isEqualTo(stepSize);
+    }
+  }
+
+  /**
+   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default
+   * behaviour, chunk size is fixed.
+   *
+   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
+   * @param taskName name of the task e.g. Downloading.
+   * @param maxSize initial maximum value e.g. file size.
+   * @param chunkCount amount of chunks.
+   * @param restSize remaining size.
+   */
+  protected static void assertProgressBar(IdeContext context, String taskName, long maxSize, int chunkCount,
+      long restSize) {
+
+    assertProgressBar(context, taskName, maxSize, CHUNK_SIZE, chunkCount, restSize);
+  }
+
+  /**
+   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default
+   * behaviour, chunk size is fixed, chunk count and rest size get automatically calculated.
+   *
+   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
+   * @param taskName name of the task e.g. Downloading.
+   * @param maxSize initial maximum value e.g. file size.
+   */
+  protected static void assertProgressBar(IdeContext context, String taskName, long maxSize) {
+
+    int chunkCount = (int) (maxSize / CHUNK_SIZE);
+    long restSize = maxSize % CHUNK_SIZE;
+    assertProgressBar(context, taskName, maxSize, CHUNK_SIZE, chunkCount, restSize);
   }
 
 }
