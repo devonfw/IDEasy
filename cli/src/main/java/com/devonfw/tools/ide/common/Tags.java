@@ -56,6 +56,9 @@ public interface Tags {
   /** {@link #getTags() Tag} for infrastructure-as-code (IAC) tools. */
   String TAG_IAC = "iac";
 
+  /** {@link #getTags() Tag} for frameworks. */
+  String TAG_FRAMEWORK = "framework";
+
   /**
    * @return a {@link Set} with the tags classifying this object. E.g. for mvn (maven) the tags {@link #TAG_JAVA java}
    *         and {@link #TAG_BUILD build} could be associated.
