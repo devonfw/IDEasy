@@ -1,8 +1,12 @@
 package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 
+import com.devonfw.tools.ide.io.IdeProgressBar;
+import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 
@@ -15,6 +19,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   private int answerIndex;
 
+  private final Map<String, IdeProgressBarTestImpl> progressBarMap;
+
   /**
    * The constructor.
    *
@@ -26,6 +32,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
     super(IdeLogLevel.TRACE, factory, userDir);
     this.answers = answers;
+    this.progressBarMap = new HashMap<>();
   }
 
   @Override
@@ -41,6 +48,23 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       throw new IllegalStateException("End of answers reached!");
     }
     return this.answers[this.answerIndex++];
+  }
+
+  /**
+   * @return Map of progress bars with task name and actual implementation.
+   */
+  public Map<String, IdeProgressBarTestImpl> getProgressBarMap() {
+
+    return progressBarMap;
+  }
+
+  @Override
+  public IdeProgressBar prepareProgressBar(long size, String taskName) {
+
+    IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
+    IdeProgressBarTestImpl duplicate = this.progressBarMap.put(taskName, progressBar);
+    assert duplicate == null;
+    return progressBar;
   }
 
 }

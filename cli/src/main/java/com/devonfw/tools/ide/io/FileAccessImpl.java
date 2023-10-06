@@ -35,8 +35,6 @@ import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
 
-import me.tongfei.progressbar.ProgressBar;
-
 /**
  * Implementation of {@link FileAccess}.
  */
@@ -90,11 +88,11 @@ public class FileAccessImpl implements FileAccess {
   }
 
   /**
-   * Downloads a file while showing a progress bar
+   * Downloads a file while showing a {@link IdeProgressBar}.
    *
-   * @param url the url to download
-   * @param target Path of the target directory
-   * @param response {@link HttpResponse} to use
+   * @param url the url to download.
+   * @param target Path of the target directory.
+   * @param response the {@link HttpResponse} to use.
    */
   private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response)
       throws IOException {
@@ -113,10 +111,10 @@ public class FileAccessImpl implements FileAccess {
 
     try (InputStream body = response.body();
         FileOutputStream fileOutput = new FileOutputStream(target.toFile());
-        BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, 1024);
-        ProgressBar pb = context.prepareProgressBar(contentLength, "Downloading")) {
+        BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, data.length);
+        IdeProgressBar pb = context.prepareProgressBar(contentLength, "Downloading")) {
       while (!fileComplete) {
-        count = body.read(data, 0, 1024);
+        count = body.read(data);
         if (count <= 0) {
           fileComplete = true;
         } else {
@@ -124,6 +122,8 @@ public class FileAccessImpl implements FileAccess {
           pb.stepBy(count);
         }
       }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -142,11 +142,13 @@ public class FileAccessImpl implements FileAccess {
       byte[] buf = new byte[1024];
       int readBytes;
 
-      try (ProgressBar pb = context.prepareProgressBar(size, "Copying")) {
+      try (IdeProgressBar pb = context.prepareProgressBar(size, "Copying")) {
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
-          pb.step();
+          pb.stepByOne();
         }
+      } catch (Exception e) {
+        throw new RuntimeException(e);
       }
     }
   }
