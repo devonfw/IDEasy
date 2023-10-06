@@ -59,7 +59,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  public IdeProgressBar prepareProgressBar(long size, String taskName) {
+  public IdeProgressBar prepareProgressBar(String taskName, long size) {
 
     IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
     IdeProgressBarTestImpl duplicate = this.progressBarMap.put(taskName, progressBar);

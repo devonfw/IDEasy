@@ -112,7 +112,7 @@ public class FileAccessImpl implements FileAccess {
     try (InputStream body = response.body();
         FileOutputStream fileOutput = new FileOutputStream(target.toFile());
         BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, data.length);
-        IdeProgressBar pb = context.prepareProgressBar(contentLength, "Downloading")) {
+        IdeProgressBar pb = context.prepareProgressBar("Downloading", contentLength)) {
       while (!fileComplete) {
         count = body.read(data);
         if (count <= 0) {
@@ -142,7 +142,7 @@ public class FileAccessImpl implements FileAccess {
       byte[] buf = new byte[1024];
       int readBytes;
 
-      try (IdeProgressBar pb = context.prepareProgressBar(size, "Copying")) {
+      try (IdeProgressBar pb = context.prepareProgressBar("Copying", size)) {
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
           pb.stepByOne();

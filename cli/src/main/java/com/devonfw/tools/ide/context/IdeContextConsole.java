@@ -45,7 +45,7 @@ public class IdeContextConsole extends AbstractIdeContext {
   }
 
   @Override
-  public IdeProgressBar prepareProgressBar(long size, String taskName) {
+  public IdeProgressBar prepareProgressBar(String taskName, long size) {
 
     ProgressBarBuilder pbb = new ProgressBarBuilder();
     // default (COLORFUL_UNICODE_BLOCK)

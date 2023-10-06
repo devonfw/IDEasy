@@ -350,12 +350,12 @@ public interface IdeContext extends IdeLogger {
   ProcessContext newProcess();
 
   /**
-   * Prepares the {@link me.tongfei.progressbar.ProgressBar}
+   * Prepares the {@link IdeProgressBar} initializes task name and maximum size as well as the behaviour and style.
    *
-   * @param size of the content.
    * @param taskName name of the task.
-   * @return {@link me.tongfei.progressbar.ProgressBar} to use.
+   * @param size of the content.
+   * @return {@link IdeProgressBar} to use.
    */
-  IdeProgressBar prepareProgressBar(long size, String taskName);
+  IdeProgressBar prepareProgressBar(String taskName, long size);
 
 }
