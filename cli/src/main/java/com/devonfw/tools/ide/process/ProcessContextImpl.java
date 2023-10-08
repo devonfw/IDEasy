@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.process;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
@@ -115,6 +117,16 @@ public final class ProcessContextImpl implements ProcessContext {
     }
     // pragmatic solution to avoid copying lists/arrays
     this.arguments.add(0, this.executable.toString());
+    String executableName = this.executable.toString();
+    String fileExtension = FilenameUtil.getExtension(this.executable.toString());
+    boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(executableName);
+
+    if(isBashScript && this.context.getSystemInfo().isWindows()) {
+      String gitBashPath = findGitBashPath();
+      this.arguments.add(0, gitBashPath);
+    }
+
+
     this.processBuilder.command(this.arguments);
     if (this.context.debug().isEnabled()) {
       String message = createCommandMessage(" ...");
@@ -199,6 +211,20 @@ public final class ProcessContextImpl implements ProcessContext {
     sb.append(suffix);
     String message = sb.toString();
     return message;
+  }
+
+  private boolean hasSheBang(String filePath) {
+    try(BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+      String firstLine = reader.readLine();
+      return firstLine != null && firstLine.startsWith("#!");
+    } catch (IOException e) {
+      return false;
+    }
+  }
+
+  private String findGitBashPath() {
+    // to be implemented
+    return "C:\\Program Files\\Git\\git-bash.exe";
   }
 
 }
