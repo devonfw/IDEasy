@@ -4,6 +4,9 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+
 /**
  * Integration test of {@link VersionSetCommandlet}.
  */
@@ -23,8 +26,10 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
     //act
     versionSet.run();
     //assert
-    //TODO test currently failing due to the IDE.property file being overwritten by ToolCommandlet Line 527
-    //assertThat(context.getSettingsPath().resolve("ide.properties")).hasContent("MVN_VERSION=3.1.0");
-
+      try {
+      assertThat(Files.readAllLines(context.getSettingsPath().resolve("ide.properties")).contains("MVN_VERSION=3.1.0"));
+    } catch (IOException e) {
+      fail("no ide.properties was found");
+    }
   }
 }
