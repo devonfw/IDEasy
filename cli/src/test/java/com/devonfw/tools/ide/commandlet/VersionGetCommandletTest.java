@@ -27,12 +27,11 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest{
         versionGet.run();
       } catch (CliException e) {
         //assert
-        assertThat(e).isInstanceOf(Exception.class)
+        assertThat(e).isInstanceOf(CliException.class)
             .hasMessageContaining("Tool java is not installed!");
         return;
       }
-      //just a false case if versionGet.run() does not throw the Exception
-      assertThat(true).isFalse();
+      failBecauseExceptionWasNotThrown(CliException.class);
     }
 
     /**
