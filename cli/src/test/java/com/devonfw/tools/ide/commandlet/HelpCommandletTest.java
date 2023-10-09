@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +34,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
-    IdeContext context = newContext("basic", path, false);
+    IdeContext context = IdeTestContextMock.get();
     HelpCommandlet help = new HelpCommandlet(context);
     // act
     help.run();
