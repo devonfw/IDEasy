@@ -93,7 +93,7 @@ public abstract class Property<T> {
    */
   public boolean isExpectValue() {
 
-    return !"".equals(this.name);
+    return "".equals(this.name);
   }
 
   /**
