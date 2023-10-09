@@ -27,7 +27,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
     versionSet.run();
     //assert
       try {
-      assertThat(Files.readAllLines(context.getSettingsPath().resolve("ide.properties")).contains("MVN_VERSION=3.1.0"));
+      assertThat(Files.readAllLines(context.getSettingsPath().resolve("ide.properties"))).contains("MVN_VERSION=3.1.0");
     } catch (IOException e) {
       fail("no ide.properties was found");
     }
