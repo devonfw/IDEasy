@@ -195,7 +195,7 @@ public final class Ide {
         endOpts = true;
       } else {
         String arg = currentArgument.get();
-        this.context.trace("Trying to match argument '{}'", argument);
+        this.context.trace("Trying to match argument '{}'", currentArgument);
         if ((currentProperty != null) && (currentProperty.isExpectValue())) {
           currentProperty.setValueAsString(arg);
           if (!currentProperty.isMultiValued()) {
@@ -239,7 +239,9 @@ public final class Ide {
                 return false;
               }
             }
-            currentProperty = null;
+            if ((currentProperty != null) && !currentProperty.isMultiValued()) {
+              currentProperty = null;
+            }
           } else {
             this.context.trace("Found option by name");
             String value = currentArgument.getValue();
