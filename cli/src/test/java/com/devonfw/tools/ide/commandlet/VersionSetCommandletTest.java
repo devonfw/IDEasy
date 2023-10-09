@@ -17,7 +17,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest{
   public void testVersionSetCommandletRun() {
     //arrange
     String path = "workspaces/foo-test/my-git-repo";
-    IdeContext context = newContext("basic", path, false);
+    IdeContext context = newContext("basic", path, true);
     VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
     versionSet.tool.setValueAsString("mvn");
     versionSet.version.setValueAsString("1.0.0");
