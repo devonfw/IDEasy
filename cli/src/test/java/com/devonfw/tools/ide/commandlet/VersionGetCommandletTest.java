@@ -31,8 +31,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest{
             .hasMessageContaining("Tool java is not installed!");
         return;
       }
-      //just a false case if versionGet.run() does not throw the Exception
-      assertThat(true).isFalse();
+      failBecauseExceptionWasNotThrown(CliException.class);
     }
 
     /**

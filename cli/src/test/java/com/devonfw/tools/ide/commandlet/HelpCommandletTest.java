@@ -86,9 +86,6 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
    */
   public void assertLogoMessage(IdeContext context) {
 
-    assertLogMessage(context, IdeLogLevel.INFO,
-        "__       ___ ___  ___\n" + "\\ \\     |_ _|   \\| __|__ _ ____ _\n" + " > >     | || |) | _|/ _` (_-< || |\n"
-            + "/_/ ___ |___|___/|___\\__,_/__/\\_, |\n" + "   |___|                       |__/\n");
-
+    assertLogMessage(context, IdeLogLevel.INFO, HelpCommandlet.LOGO);
   }
 }
