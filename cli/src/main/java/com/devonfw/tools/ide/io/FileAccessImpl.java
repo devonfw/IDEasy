@@ -1,7 +1,11 @@
 package com.devonfw.tools.ide.io;
 
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -60,26 +64,92 @@ public class FileAccessImpl implements FileAccess {
     mkdirs(target.getParent());
     try {
       if (url.startsWith("http")) {
+
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
         HttpResponse<InputStream> response = this.client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+
         if (response.statusCode() == 200) {
-          InputStream body = response.body();
-          // TODO progress marker???
-          Files.copy(body, target);
+          downloadFileWithProgressBar(url, target, response);
         }
       } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
         throw new IllegalArgumentException("Unsupported download URL: " + url);
       } else {
         Path source = Paths.get(url);
         if (isFile(source)) {
-          // TODO progress marker???
-          Files.copy(source, target);
+          // network drive
+          copyFileWithProgressBar(source, target);
         } else {
           throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
         }
       }
     } catch (Exception e) {
       throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, e);
+    }
+  }
+
+  /**
+   * Downloads a file while showing a {@link IdeProgressBar}.
+   *
+   * @param url the url to download.
+   * @param target Path of the target directory.
+   * @param response the {@link HttpResponse} to use.
+   */
+  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response)
+      throws IOException {
+
+    long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
+    if (contentLength == 0) {
+      context.warning(
+          "Content-Length was not provided by download source : {} using fallback for the progress bar which will be inaccurate.",
+          url);
+      contentLength = 10000000;
+    }
+
+    byte[] data = new byte[1024];
+    boolean fileComplete = false;
+    int count;
+
+    try (InputStream body = response.body();
+        FileOutputStream fileOutput = new FileOutputStream(target.toFile());
+        BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, data.length);
+        IdeProgressBar pb = context.prepareProgressBar("Downloading", contentLength)) {
+      while (!fileComplete) {
+        count = body.read(data);
+        if (count <= 0) {
+          fileComplete = true;
+        } else {
+          bufferedOut.write(data, 0, count);
+          pb.stepBy(count);
+        }
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+  }
+
+  /**
+   * Copies a file while displaying a progress bar
+   *
+   * @param source Path of file to copy
+   * @param target Path of target directory
+   */
+  private void copyFileWithProgressBar(Path source, Path target) throws IOException {
+
+    try (InputStream in = new FileInputStream(source.toFile());
+        OutputStream out = new FileOutputStream(target.toFile())) {
+
+      long size = source.toFile().length();
+      byte[] buf = new byte[1024];
+      int readBytes;
+
+      try (IdeProgressBar pb = context.prepareProgressBar("Copying", size)) {
+        while ((readBytes = in.read(buf)) > 0) {
+          out.write(buf, 0, readBytes);
+          pb.stepByOne();
+        }
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
     }
   }
 
