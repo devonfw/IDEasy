@@ -14,9 +14,10 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link VersionSetCommandlet} run.
+   * @throws IOException on error.
    */
   @Test
-  public void testVersionSetCommandletRun() {
+  public void testVersionSetCommandletRun() throws IOException {
     //arrange
     String path = "workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, true);
@@ -26,10 +27,6 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
     //act
     versionSet.run();
     //assert
-      try {
-      assertThat(Files.readAllLines(context.getSettingsPath().resolve("ide.properties"))).contains("MVN_VERSION=3.1.0");
-    } catch (IOException e) {
-      fail("no ide.properties was found");
-    }
+    assertThat(Files.readAllLines(context.getSettingsPath().resolve("ide.properties"))).contains("MVN_VERSION=3.1.0");
   }
 }
