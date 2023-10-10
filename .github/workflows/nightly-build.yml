@@ -48,13 +48,9 @@ jobs:
       - uses: actions/download-artifact@v3
       - name: Make natives available and build project 
         run: |
-          ls
-          ls ./natives
-          ls ./cli/target
+          ls ./cli
           mvn -B -ntp -Dstyle.color=always install
           mv ./natives/* ./cli/target/
-          ls 
-          ls ./cli/target
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
