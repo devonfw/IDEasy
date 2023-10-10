@@ -34,7 +34,6 @@ jobs:
 
   build:
     name: Build Project and Deploy
-    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
