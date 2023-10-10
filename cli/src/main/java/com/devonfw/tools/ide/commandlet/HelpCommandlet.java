@@ -18,7 +18,7 @@ import com.devonfw.tools.ide.version.IdeVersion;
  */
 public final class HelpCommandlet extends Commandlet {
 
-  private static final String LOGO = """
+  protected static final String LOGO = """
       __       ___ ___  ___
       ╲ ╲     |_ _|   ╲| __|__ _ ____ _
        > >     | || |) | _|/ _` (_-< || |
@@ -98,12 +98,12 @@ public final class HelpCommandlet extends Commandlet {
         }
         String name = property.getName();
         if (name.isEmpty()) {
-          assert (property instanceof KeywordProperty);
+          assert !(property instanceof KeywordProperty);
           String key = "<" + property.getAlias() + ">";
           usage.append(key);
           values.add(key, bundle.get(cmd, property));
         } else {
-          assert !(property instanceof KeywordProperty);
+          assert (property instanceof KeywordProperty);
           usage.append(name);
         }
         if (property.isMultiValued()) {
