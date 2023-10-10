@@ -252,7 +252,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     // install configured version of our tool in the software repository if not already installed
     ToolInstallation installation = installInRepo(configuredVersion);
 
-    // check if we have already have this version installed (linked) locally in IDE_HOME/software
+    // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier installedVersion = getInstalledVersion();
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
     if (isInstalledVersion(resolvedVersion, installedVersion, silent)) {
