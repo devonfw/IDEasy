@@ -110,48 +110,48 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
       do {
         line = reader.readLine();
         if (line != null) {
-          VariableLine variableLine = VariableLine.of(DEFAULT_PROPERTIES, this.logger, reader);
+          VariableLine variableLine = VariableLine.of(line, this.logger, reader);
           lines.add(variableLine);
         }
       } while (line != null);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to load existing properties from " + this.propertiesFilePath, e);
     }
-    try (BufferedWriter writer = Files.newBufferedWriter(newPropertiesFilePath, StandardOpenOption.CREATE,
-        StandardOpenOption.TRUNCATE_EXISTING)) {
-      // copy and modify original lines from properties file
-      for (VariableLine line : lines) {
-        VariableLine newLine = migrateLine(line, true);
-        if (newLine == null) {
-          this.logger.debug("Removed variable line '{}' from {}", line, newPropertiesFilePath);
-        } else {
-          if (newLine != line) {
-            this.logger.debug("Changed variable line from '{}' to '{}' in {}", line, newLine, newPropertiesFilePath);
-          }
-          writer.append(line.toString());
-          writer.append(NEWLINE);
-          String name = line.getName();
-          if (name != null) {
-            this.modifiedVariables.remove(name);
-          }
+  try (BufferedWriter writer = Files.newBufferedWriter(newPropertiesFilePath, StandardOpenOption.CREATE,
+      StandardOpenOption.TRUNCATE_EXISTING)) {
+    // copy and modify original lines from properties file
+    for (VariableLine line : lines) {
+      VariableLine newLine = migrateLine(line, true);
+      if (newLine == null) {
+        this.logger.debug("Removed variable line '{}' from {}", line, newPropertiesFilePath);
+      } else {
+        if (newLine != line) {
+          this.logger.debug("Changed variable line from '{}' to '{}' in {}", line, newLine, newPropertiesFilePath);
+        }
+        writer.append(newLine.toString());
+        writer.append(NEWLINE);
+        String name = line.getName();
+        if (name != null) {
+          this.modifiedVariables.remove(name);
         }
       }
-      // append variables that have been newly added
-      for (String name : this.modifiedVariables) {
-        String value = this.variables.get(name);
-        if (value == null) {
-          this.logger.trace("Internal error: removed variable {} was not found in {}", name, this.propertiesFilePath);
-        } else {
-          boolean export = this.exportedVariables.contains(name);
-          VariableLine line = VariableLine.of(export, name, value);
-          writer.append(line.toString());
-          writer.append(NEWLINE);
-        }
-      }
-      this.modifiedVariables.clear();
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to save properties to " + newPropertiesFilePath, e);
     }
+    // append variables that have been newly added
+    for (String name : this.modifiedVariables) {
+      String value = this.variables.get(name);
+      if (value == null) {
+        this.logger.trace("Internal error: removed variable {} was not found in {}", name, this.propertiesFilePath);
+      } else {
+        boolean export = this.exportedVariables.contains(name);
+        VariableLine line = VariableLine.of(export, name, value);
+        writer.append(line.toString());
+        writer.append(NEWLINE);
+      }
+    }
+    this.modifiedVariables.clear();
+  } catch (IOException e) {
+    throw new IllegalStateException("Failed to save properties to " + newPropertiesFilePath, e);
+  }
     this.propertiesFilePath = newPropertiesFilePath;
   }
 
