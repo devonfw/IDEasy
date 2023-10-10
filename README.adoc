@@ -4,7 +4,7 @@
 
 image::documentation/images/logo.png["Logo",align="center",width=60%]
 
-Tool to automate the setup and updates of a development environment for any project (Successor of devonfw-ide).
+Tool to automate the setup and updates of a development environment for any project (Successor of https://github.com/devonfw/ide[devonfw-ide]).
 
 image:https://img.shields.io/github/license/devonfw/IDEasy.svg?label=License["Apache License, Version 2.0",link=https://github.com/devonfw/IDEasy/blob/master/LICENSE]
 image:https://img.shields.io/maven-central/v/com.devonfw.tools.ide/ide-cli.svg?label=Maven%20Central["Maven Central",link=https://search.maven.org/search?q=g:com.devonfw.tools.ide]
