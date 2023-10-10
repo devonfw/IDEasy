@@ -115,7 +115,7 @@
               <configuration>
                 <artifacts>
                   <artifact>
-                    <file>target/${releaseName}</file>
+                    <file>target/${releaseName}.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>linux</classifier>
                   </artifact>
