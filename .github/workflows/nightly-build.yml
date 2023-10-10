@@ -6,7 +6,6 @@ jobs:
   build-natives:
     name: Build native images
     runs-on: ${{ matrix.os }}
-    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
     strategy:
       matrix:
         os: [ubuntu-latest]
