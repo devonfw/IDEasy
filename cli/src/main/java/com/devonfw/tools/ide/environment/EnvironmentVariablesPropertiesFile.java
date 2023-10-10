@@ -110,7 +110,7 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
       do {
         line = reader.readLine();
         if (line != null) {
-          VariableLine variableLine = VariableLine.of(DEFAULT_PROPERTIES, this.logger, reader);
+          VariableLine variableLine = VariableLine.of(line, this.logger, reader);
           lines.add(variableLine);
         }
       } while (line != null);
@@ -128,7 +128,7 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
           if (newLine != line) {
             this.logger.debug("Changed variable line from '{}' to '{}' in {}", line, newLine, newPropertiesFilePath);
           }
-          writer.append(line.toString());
+          writer.append(newLine.toString());
           writer.append(NEWLINE);
           String name = line.getName();
           if (name != null) {
