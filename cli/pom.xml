@@ -125,7 +125,7 @@
                     <classifier>windows</classifier>
                   </artifact>
                   <artifact>
-                    <file>target/${project.artifactId}-mac-x64</file>
+                    <file>target/${project.artifactId}-mac-x64.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>mac</classifier>
                   </artifact>
