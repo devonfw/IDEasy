@@ -18,8 +18,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
   public void testThatHomeIsNotReqired() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
-    IdeContext context = newContext("basic", path, false);
+    IdeContext context = IdeTestContextMock.get();
     // act
     HelpCommandlet help = new HelpCommandlet(context);
     // assert
@@ -33,7 +32,6 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
   public void testRun() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
     IdeContext context = IdeTestContextMock.get();
     HelpCommandlet help = new HelpCommandlet(context);
     // act
