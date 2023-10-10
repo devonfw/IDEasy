@@ -115,17 +115,17 @@
               <configuration>
                 <artifacts>
                   <artifact>
-                    <file>${releaseName}</file>
+                    <file>target/${project.artifactId}-linux-x64.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>linux</classifier>
                   </artifact>
                   <artifact>
-                    <file>${releaseName}</file>
+                    <file>target/${project.artifactId}-windows-x64.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>windows</classifier>
                   </artifact>
                   <artifact>
-                    <file>${releaseName}</file>
+                    <file>target/${project.artifactId}-mac-x64.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>mac</classifier>
                   </artifact>
