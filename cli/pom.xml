@@ -120,12 +120,12 @@
                     <classifier>linux</classifier>
                   </artifact>
                   <artifact>
-                    <file>target/${releaseName}</file>
+                    <file>target/${releaseName}.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>windows</classifier>
                   </artifact>
                   <artifact>
-                    <file>target/${releaseName}</file>
+                    <file>target/${releaseName}.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>mac</classifier>
                   </artifact>
