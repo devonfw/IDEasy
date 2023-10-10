@@ -48,7 +48,7 @@ jobs:
       - uses: actions/download-artifact@v3
       - name: Make natives available and build project 
         run: |
-          ls ./cli
+          ls -R
           mvn -B -ntp -Dstyle.color=always install
           mv ./natives/* ./cli/target/
       - name: Deploy to OSSRH nexus
