@@ -127,7 +127,7 @@ public final class ProcessContextImpl implements ProcessContext {
         bashPath = findPathFor("Cygwin\\setup");
       }
       if (bashPath == null) {
-        throw new IllegalStateException("Could not find bash.");
+        throw new IllegalStateException("Could not find bash. Please install git for Windows and rerun.");
       }
       this.arguments.add(0, bashPath);
     }
