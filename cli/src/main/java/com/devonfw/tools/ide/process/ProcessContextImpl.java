@@ -122,9 +122,9 @@ public final class ProcessContextImpl implements ProcessContext {
     boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(executableName);
 
     if(isBashScript && this.context.getSystemInfo().isWindows()) {
-      String bashPath = findPathFor("GitForWindows");
+      String bashPath = findPathFor("GitForWindows") + "\\git-bash.exe";
       if (bashPath == null) {
-        bashPath = findPathFor("Cygwin\\setup");
+        bashPath = findPathFor("Cygwin\\setup") + "\\bin\\bash.exe";
       }
       if (bashPath == null) {
         throw new IllegalStateException("Could not find bash. Please install git for Windows and rerun.");
@@ -261,7 +261,7 @@ public final class ProcessContextImpl implements ProcessContext {
       int index = regQueryResult.indexOf("REG_SZ");
       if (index != -1) {
         String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
-        return path + "\\git-bash.exe";
+        return path;
       }
     }
     return null;
