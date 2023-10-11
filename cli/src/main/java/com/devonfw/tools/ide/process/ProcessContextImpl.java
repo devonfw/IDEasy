@@ -122,8 +122,14 @@ public final class ProcessContextImpl implements ProcessContext {
     boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(executableName);
 
     if(isBashScript && this.context.getSystemInfo().isWindows()) {
-      String gitBashPath = findGitBashPath();
-      this.arguments.add(0, gitBashPath);
+      String bashPath = findPathFor("GitForWindows");
+      if (bashPath == null) {
+        bashPath = findPathFor("Cygwin\\setup");
+      }
+      if (bashPath == null) {
+        throw new IllegalStateException("Could not find bash.");
+      }
+      this.arguments.add(0, bashPath);
     }
 
 
@@ -218,13 +224,47 @@ public final class ProcessContextImpl implements ProcessContext {
       String firstLine = reader.readLine();
       return firstLine != null && firstLine.startsWith("#!");
     } catch (IOException e) {
-      return false;
+      throw new RuntimeException(createCommandMessage(" failed: could not read the executable!"), e);
     }
   }
 
-  private String findGitBashPath() {
-    // to be implemented
-    return "C:\\Program Files\\Git\\git-bash.exe";
+  private String findPathFor(String bash) {
+    String[] registryKeys = {"HKEY_LOCAL_MACHINE","HKEY_CURRENT_USER"};
+    String regQueryResult = null;
+
+    for (String registryKey : registryKeys) {
+      String command = "reg query \"" + registryKey + "\\Software\\" + bash + "\" /v InstallPath";
+
+      try {
+        Process process = new ProcessBuilder("cmd.exe", "/c", command).start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        StringBuilder output = new StringBuilder();
+        String line;
+
+        while ((line = reader.readLine()) != null) {
+          output.append(line);
+        }
+
+        int exitCode = process.waitFor();
+        if (exitCode != 0) {
+          String msg = createCommandMessage(" failed with exit code " + exitCode + "!");
+          throw new CliException(msg, exitCode);
+        }
+        regQueryResult = output.toString();
+        break;
+      } catch (Exception e) {
+        throw new IllegalStateException(createCommandMessage(" failed: Could not start process!"), e);
+      }
+    }
+
+    if (regQueryResult != null) {
+      int index = regQueryResult.indexOf("REG_SZ");
+      if (index != -1) {
+        String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
+        return path + "\\git-bash.exe";
+      }
+    }
+    return null;
   }
 
 }
