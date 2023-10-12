@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.tool.vscode;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Set;
 
 import com.devonfw.tools.ide.context.IdeContext;
