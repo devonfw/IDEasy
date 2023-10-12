@@ -122,9 +122,9 @@ public final class ProcessContextImpl implements ProcessContext {
     String fileExtension = FilenameUtil.getExtension(this.executable.toString());
     boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(executableName);
     if(isBashScript && this.context.getSystemInfo().isWindows()) {
-      String bashPath = findPathFor("GitForWindows") + "\\git-bash.exe";
+      String bashPath = findPathFor("GitForWindows");
       if (bashPath == null) {
-        bashPath = findPathFor("Cygwin\\setup") + "\\bin\\bash.exe";
+        bashPath = findPathFor("Cygwin\\setup");
       }
       if (bashPath == null) {
         throw new IllegalStateException("Could not find bash. Please install git for Windows and rerun.");
@@ -228,9 +228,6 @@ public final class ProcessContextImpl implements ProcessContext {
   }
 
   private String findPathFor(String bash) {
-    if (!"GitForWindows".equals(bash) && !"Cygwin\\setup".equals(bash)) {
-      throw new IllegalArgumentException("Only Git bash and Cygwin are supported.");
-    }
     String[] registryKeys = {"HKEY_LOCAL_MACHINE","HKEY_CURRENT_USER"};
     String regQueryResult = null;
     String toolValueName = ("GitForWindows".equals(bash)) ? "InstallPath" : "rootdir";
@@ -264,7 +261,7 @@ public final class ProcessContextImpl implements ProcessContext {
       int index = regQueryResult.indexOf("REG_SZ");
       if (index != -1) {
         String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
-        return path;
+        return path + "\\bin\\bash.exe";
       }
     }
     return null;

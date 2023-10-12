@@ -22,13 +22,4 @@ public class Helm extends ToolCommandlet {
 
     super(context, "helm", Set.of(TAG_CLOUD));
   }
-
-  @Override
-  public void runTool(VersionIdentifier toolVersion, String... args) {
-    Path path = Path.of("C:\\Users\\saboucha\\Projects\\TestPrj\\testScript");
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(path)
-        .addArgs(args);
-    pc.run();
-  }
-
 }
