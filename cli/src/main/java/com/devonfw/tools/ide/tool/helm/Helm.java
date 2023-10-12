@@ -1,12 +1,7 @@
 package com.devonfw.tools.ide.tool.helm;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.nio.file.Path;
 import java.util.Set;
 
 /**
@@ -22,5 +17,5 @@ public class Helm extends ToolCommandlet {
 
     super(context, "helm", Set.of(TAG_CLOUD));
   }
-  
+
 }
