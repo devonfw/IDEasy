@@ -112,7 +112,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return binary;
   }
 
-  private boolean isBinary(Path path) {
+  protected boolean isBinary(Path path) {
 
     String filename = path.getFileName().toString();
     if (filename.equals(this.tool)) {
