@@ -461,7 +461,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       } else if ("msi".equals(extension)) {
         this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + targetDir).run();
         // msiexec also creates a copy of the MSI
-        Path msiCopy = targetDir.resolve(targetDir.getFileName());
+        Path msiCopy = targetDir.resolve(file.getFileName());
         fileAccess.delete(msiCopy);
       } else if ("pkg".equals(extension)) {
 
