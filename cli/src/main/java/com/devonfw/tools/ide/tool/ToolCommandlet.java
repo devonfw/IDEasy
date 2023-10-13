@@ -115,13 +115,18 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected boolean isBinary(Path path) {
 
     String filename = path.getFileName().toString();
-    if (filename.equals(this.tool)) {
+    if (filename.equals(getBinaryName())) {
       return true;
-    } else if (filename.startsWith(this.tool)) {
-      String suffix = filename.substring(this.tool.length());
+    } else if (filename.startsWith(getBinaryName())) {
+      String suffix = filename.substring(getBinaryName().length());
       return this.context.getSystemInfo().getOs().isExecutable(suffix);
     }
     return false;
+  }
+
+  protected String getBinaryName() {
+
+    return this.tool;
   }
 
   /**

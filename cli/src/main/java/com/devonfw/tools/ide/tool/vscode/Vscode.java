@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.tool.vscode;
 
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Set;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -23,15 +21,8 @@ public class Vscode extends ToolCommandlet {
   }
 
   @Override
-  protected boolean isBinary(Path path) {
-    String filename = path.getFileName().toString();
-    if (filename.equals("code")) {
-      return true;
-    } else if (filename.startsWith("code")) {
-      String suffix = filename.substring("code".length());
-      return this.context.getSystemInfo().getOs().isExecutable(suffix);
-    }
-    return false;
+  protected String getBinaryName() {
+    return "code";
   }
 
 }
