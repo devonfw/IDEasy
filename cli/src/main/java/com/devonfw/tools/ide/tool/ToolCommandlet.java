@@ -112,16 +112,22 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return binary;
   }
 
-  private boolean isBinary(Path path) {
+  protected boolean isBinary(Path path) {
 
     String filename = path.getFileName().toString();
-    if (filename.equals(this.tool)) {
+    String binaryName = getBinaryName();
+    if (filename.equals(binaryName)) {
       return true;
-    } else if (filename.startsWith(this.tool)) {
-      String suffix = filename.substring(this.tool.length());
+    } else if (filename.startsWith(binaryName)) {
+      String suffix = filename.substring(binaryName.length());
       return this.context.getSystemInfo().getOs().isExecutable(suffix);
     }
     return false;
+  }
+
+  protected String getBinaryName() {
+
+    return this.tool;
   }
 
   /**
@@ -281,7 +287,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * custom post intallation logic.
    */
   protected void postInstall() {
-
+    
     // nothing to do by default
   }
 
