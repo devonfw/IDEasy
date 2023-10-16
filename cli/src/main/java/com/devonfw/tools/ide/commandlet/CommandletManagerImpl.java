@@ -22,6 +22,7 @@ import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
+import com.devonfw.tools.ide.tool.vscode.Vscode;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -69,6 +70,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Kotlinc(context));
     add(new KotlincNative(context));
     add(new CompleteCommandlet(context));
+    add(new Vscode(context));
   }
 
   private void add(Commandlet commandlet) {
