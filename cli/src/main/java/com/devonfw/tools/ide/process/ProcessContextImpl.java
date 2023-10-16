@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.process;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
@@ -127,7 +128,7 @@ public final class ProcessContextImpl implements ProcessContext {
           bash = findBashOnWindowsResult;
         }
       }
-      this.arguments.add(0,bash);
+      this.arguments.add(0, bash);
     }
     this.processBuilder.command(this.arguments);
     if (this.context.debug().isEnabled()) {
