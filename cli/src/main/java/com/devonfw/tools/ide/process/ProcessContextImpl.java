@@ -1,10 +1,13 @@
 package com.devonfw.tools.ide.process;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -113,8 +116,21 @@ public final class ProcessContextImpl implements ProcessContext {
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");
     }
+    String executableName = this.executable.toString();
     // pragmatic solution to avoid copying lists/arrays
-    this.arguments.add(0, this.executable.toString());
+    this.arguments.add(0, executableName);
+    String fileExtension = FilenameUtil.getExtension(executableName);
+    boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(this.executable);
+    if (isBashScript) {
+      String bash = "bash";
+      if (this.context.getSystemInfo().isWindows()) {
+        String findBashOnWindowsResult = findBashOnWindows();
+        if (findBashOnWindowsResult != null) {
+          bash = findBashOnWindowsResult;
+        }
+      }
+      this.arguments.add(0, bash);
+    }
     this.processBuilder.command(this.arguments);
     if (this.context.debug().isEnabled()) {
       String message = createCommandMessage(" ...");
@@ -200,5 +216,70 @@ public final class ProcessContextImpl implements ProcessContext {
     String message = sb.toString();
     return message;
   }
+  
+  private boolean hasSheBang(Path file) {
+
+    try (InputStream in = Files.newInputStream(file)) {
+      byte[] buffer = new byte[2];
+      int read = in.read(buffer);
+      if ((read == 2) && (buffer[0] == '#') && (buffer[1] == '!')) {
+        return true;
+      }
+    } catch (IOException e) {
+      // ignore...
+    }
+    return false;
+  }
+
+  private String findBashOnWindows() {
+    // Check if Git Bash exists in the default location
+    Path defaultPath = Paths.get("C:\\Program Files\\Git\\bin\\bash.exe");
+    if (Files.exists(defaultPath)) {
+      return defaultPath.toString();
+    }
+
+    // If not found in the default location, try the registry query
+    String[] bashVariants = {"GitForWindows", "Cygwin\\setup"};
+    String[] registryKeys = {"HKEY_LOCAL_MACHINE","HKEY_CURRENT_USER"};
+    String regQueryResult;
+    for (String bashVariant : bashVariants) {
+      for (String registryKey : registryKeys) {
+        String toolValueName = ("GitForWindows".equals(bashVariant)) ? "InstallPath" : "rootdir";
+        String command = "reg query " + registryKey + "\\Software\\" + bashVariant + "  /v " + toolValueName + " 2>nul";
+
+        try {
+          Process process = new ProcessBuilder("cmd.exe", "/c", command).start();
+          try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            StringBuilder output = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+              output.append(line);
+            }
+
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+              return null;
+            }
+
+            regQueryResult = output.toString();
+            if (regQueryResult != null) {
+              int index = regQueryResult.indexOf("REG_SZ");
+              if (index != -1) {
+                String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
+                return path + "\\bin\\bash.exe";
+              }
+            }
+
+          }
+        } catch (Exception e) {
+          return null;
+        }
+      }
+    }
+    //no bash found
+    throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
+  }
+
 
 }
