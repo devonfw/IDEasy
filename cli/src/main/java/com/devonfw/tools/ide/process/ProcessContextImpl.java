@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.process;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
@@ -17,7 +18,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.util.FilenameUtil;
-import org.jline.utils.InputStreamReader;
 
 /**
  * Implementation of {@link ProcessContext}.
