@@ -345,18 +345,10 @@ public class FileAccessImpl implements FileAccess {
 
     Path tmpDir = createTempDir("extract-" + file.getFileName());
     this.context.trace("Unpacking archive {} to {}", file, tmpDir);
-    Path toplevelFolder = null;
-    boolean singleToplevelFolder = true;
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
       ArchiveEntry entry = ais.getNextEntry();
       while (entry != null) {
         Path entryName = Paths.get(entry.getName());
-        Path entryRoot = entryName.getName(0);
-        if (toplevelFolder == null) {
-          toplevelFolder = entryRoot;
-        } else if (singleToplevelFolder && !toplevelFolder.equals(entryRoot)) {
-          singleToplevelFolder = false;
-        }
         Path entryPath = tmpDir.resolve(entryName).toAbsolutePath();
         if (!entryPath.startsWith(tmpDir)) {
           throw new IOException("Preventing path traversal attack from " + entryName + " to " + entryPath);
@@ -370,12 +362,7 @@ public class FileAccessImpl implements FileAccess {
         }
         entry = ais.getNextEntry();
       }
-      if (singleToplevelFolder && (toplevelFolder != null) && !toplevelFolder.toString().equals("bin")) {
-        move(tmpDir.resolve(toplevelFolder), targetDir);
-        delete(tmpDir);
-      } else {
-        move(tmpDir, targetDir);
-      }
+      move(tmpDir, targetDir); // TODO extract to targetDir directly?
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }

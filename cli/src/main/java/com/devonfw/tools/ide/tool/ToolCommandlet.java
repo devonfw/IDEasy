@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -287,7 +288,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * custom post intallation logic.
    */
   protected void postInstall() {
-    
+
     // nothing to do by default
   }
 
@@ -481,6 +482,31 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       } else {
         throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + file);
       }
+
+      // collapse single parent directories
+      File currentDir = new File(targetDir.toString());
+      String[] currentSubFiles = currentDir.list();
+      if (currentSubFiles == null) {
+        throw new IllegalStateException("Extracted file does not contain any file or directories");
+      }
+      // TODO add wbin as well? (in case of msi azure installation)
+      while (currentSubFiles != null && currentSubFiles.length == 1 && !currentDir.toString().equals("bin")) {
+        currentDir = new File(String.valueOf(currentDir.toPath().resolve(currentSubFiles[0])));
+        if (!currentDir.isDirectory()) {
+          break;
+        }
+        currentSubFiles = currentDir.list();
+      }
+
+      // TODO instead of extracting (unzip, untar, msi, ...) to targetDir, extract to tmpDir and then move the collapsed
+      // structure to targetDir?
+      Path tmpDir = this.context.getFileAccess().createTempDir("collapsed-" + file.getFileName());
+      this.context.getFileAccess().delete(tmpDir);
+      // TODO add option createTempDir() to only get pathname of tmpDir without making the actual dir?
+      this.context.getFileAccess().move(currentDir.toPath(), tmpDir);
+      // TODO is the deletion of targetDir safe here?
+      this.context.getFileAccess().delete(targetDir);
+      this.context.getFileAccess().move(tmpDir, targetDir);
     } else {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", getName(), file);
       fileAccess.move(file, targetDir);
