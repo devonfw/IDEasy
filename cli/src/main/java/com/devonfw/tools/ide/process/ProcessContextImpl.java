@@ -120,7 +120,7 @@ public final class ProcessContextImpl implements ProcessContext {
     // pragmatic solution to avoid copying lists/arrays
     this.arguments.add(0, executableName);
     String fileExtension = FilenameUtil.getExtension(executableName);
-    boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(executableName);
+    boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(this.executable);
     if (isBashScript) {
       String bash = "bash";
       if (this.context.getSystemInfo().isWindows()) {
@@ -214,14 +214,19 @@ public final class ProcessContextImpl implements ProcessContext {
     String message = sb.toString();
     return message;
   }
+  
+  private boolean hasSheBang(Path file) {
 
-  private boolean hasSheBang(String filePath) {
-    try(BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-      String firstLine = reader.readLine();
-      return firstLine != null && firstLine.startsWith("#!");
+    try (InputStream in = Files.newInputStream(file)) {
+      byte[] buffer = new byte[2];
+      int read = in.read(buffer);
+      if ((read == 2) && (buffer[0] == '#') && (buffer[1] == '!')) {
+        return true;
+      }
     } catch (IOException e) {
-      return false;
+      // ignore...
     }
+    return false;
   }
 
   private String findBashOnWindows() {
