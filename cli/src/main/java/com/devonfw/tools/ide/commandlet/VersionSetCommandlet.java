@@ -27,7 +27,7 @@ public class VersionSetCommandlet extends Commandlet {
   public VersionSetCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(getName());
+    addKeyword("set-version");
     this.tool = add(new ToolProperty("", true, "tool"));
     this.version = add(new VersionProperty("", true, "version"));
   }

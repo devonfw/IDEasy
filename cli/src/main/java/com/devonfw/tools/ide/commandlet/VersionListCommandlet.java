@@ -23,8 +23,9 @@ public class VersionListCommandlet extends Commandlet {
   public VersionListCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(getName());
+    addKeyword("list");
     this.tool = add(new ToolProperty("", true, "tool"));
+    addKeyword("version");
   }
 
   @Override
