@@ -232,9 +232,9 @@ public final class ProcessContextImpl implements ProcessContext {
 
   private String findBashOnWindows() {
     // Check if Git Bash exists in the default location
-    File defaultPath = new File("C:\\Program Files\\Git\\bin\\bash.exe");
-    if (defaultPath.exists()) {
-      return defaultPath.getAbsolutePath();
+    Path defaultPath = Paths.get("C:\\Program Files\\Git\\bin\\bash.exe");
+    if (Files.exists(defaultPath)) {
+      return defaultPath.toString();
     }
 
     // If not found in the default location, try the registry query
