@@ -125,7 +125,9 @@ public final class ProcessContextImpl implements ProcessContext {
       String bash = "bash";
       if (this.context.getSystemInfo().isWindows()) {
         String findBashOnWindowsResult = findBashOnWindows();
-        bash = findBashOnWindowsResult != null ? findBashOnWindowsResult : "bash";
+        if (findBashOnWindowsResult != null) {
+          bash = findBashOnWindowsResult;
+        }
       }
       this.arguments.add(0,bash);
     }
