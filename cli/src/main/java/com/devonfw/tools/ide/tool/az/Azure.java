@@ -30,12 +30,9 @@ public class Azure extends ToolCommandlet {
     super.postInstall();
 
     EnvironmentVariables variables = this.context.getVariables();
-    EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.WORKSPACE);
-    // TODO oder EnvironmentVariablesType.CONF
-    // TODO I think there is nothing written to a file, just the env var exported and thereby only active in current
-    // session. Should this env var be written to a file?
-    settingsVariables.set("AZURE_CONFIG_DIR", this.context.getConfPath().resolve(".azure").toString(), true);
-
+    EnvironmentVariables typeVariables = variables.getByType(EnvironmentVariablesType.CONF);
+    typeVariables.set("AZURE_CONFIG_DIR", this.context.getConfPath().resolve(".azure").toString(), true);
+    typeVariables.save();
     this.context.getFileAccess().symlink(Paths.get("wbin"), this.getToolPath().resolve("bin"));
   }
 }
