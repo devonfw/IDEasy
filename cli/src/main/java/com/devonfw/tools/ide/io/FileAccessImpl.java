@@ -343,14 +343,13 @@ public class FileAccessImpl implements FileAccess {
 
   private void unpack(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
-    Path tmpDir = createTempDir("extract-" + file.getFileName());
-    this.context.trace("Unpacking archive {} to {}", file, tmpDir);
+    this.context.trace("Unpacking archive {} to {}", file, targetDir);
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
       ArchiveEntry entry = ais.getNextEntry();
       while (entry != null) {
         Path entryName = Paths.get(entry.getName());
-        Path entryPath = tmpDir.resolve(entryName).toAbsolutePath();
-        if (!entryPath.startsWith(tmpDir)) {
+        Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
+        if (!entryPath.startsWith(targetDir)) {
           throw new IOException("Preventing path traversal attack from " + entryName + " to " + entryPath);
         }
         if (entry.isDirectory()) {
@@ -362,7 +361,6 @@ public class FileAccessImpl implements FileAccess {
         }
         entry = ais.getNextEntry();
       }
-      move(tmpDir, targetDir); // TODO extract to targetDir directly?
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
