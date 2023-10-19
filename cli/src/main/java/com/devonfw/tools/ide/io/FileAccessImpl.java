@@ -35,6 +35,8 @@ import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
 
+import static com.devonfw.tools.ide.os.OperatingSystem.WINDOWS;
+
 /**
  * Implementation of {@link FileAccess}.
  */
@@ -288,7 +290,12 @@ public class FileAccessImpl implements FileAccess {
         this.context.debug("Deleting symbolic link to be re-created at {}", targetLink);
         Files.delete(targetLink);
       }
-      Files.createSymbolicLink(targetLink, source);
+      if (this.context.getSystemInfo().getOs().equals(WINDOWS)) {
+        Runtime rt = Runtime.getRuntime();
+        rt.exec("cmd //c 'mklink /D /J $(cygpath -w " + source + ") $(cygpath -w" + targetLink + ")");
+      } else {
+        Files.createSymbolicLink(targetLink, source);
+      }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source, e);
     }
