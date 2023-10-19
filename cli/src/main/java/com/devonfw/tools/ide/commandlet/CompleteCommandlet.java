@@ -1,21 +1,27 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.nio.file.Path;
+import java.util.function.Supplier;
 
 import org.fusesource.jansi.AnsiConsole;
-import org.jline.reader.Completer;
+import org.jline.console.SystemRegistry;
+import org.jline.console.impl.Builtins;
+import org.jline.console.impl.SystemRegistryImpl;
+import org.jline.keymap.KeyMap;
+import org.jline.reader.Binding;
+import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.MaskingCallback;
 import org.jline.reader.Parser;
+import org.jline.reader.Reference;
+import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
-import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
+import org.jline.widget.AutosuggestionWidgets;
+import org.jline.widget.TailTipWidgets;
 
 import com.devonfw.tools.ide.context.IdeContext;
 
@@ -52,49 +58,69 @@ public class CompleteCommandlet extends Commandlet {
 
     AnsiConsole.systemInstall();
 
-    try (Terminal terminal = TerminalBuilder.terminal()) {
-      Collection<Commandlet> commandletCollection = context.getCommandletManager().getCommandlets();
-      Iterator<Commandlet> iterator = commandletCollection.iterator();
+    try {
+      Supplier<Path> workDir = context::getCwd;
+      // set up JLine built-in commands
+//      Builtins builtins = new Builtins(workDir, null, null);
+//      builtins.rename(Builtins.Command.TTOP, "top");
+//      builtins.alias("zle", "widget");
+//      builtins.alias("bindkey", "keymap");
 
-      List<String> commandList = new ArrayList<>();
+      CommandletRegistry commandletRegistry = new CommandletRegistry(context);
 
-      while (iterator.hasNext()) {
-        commandList.add(iterator.next().getName());
-      }
-
-      Completer commandletsCompleter = new StringsCompleter(commandList);
       Parser parser = new DefaultParser();
-      LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(commandletsCompleter).parser(parser)
-          .build();
+      try (Terminal terminal = TerminalBuilder.builder().build()) {
 
-      String prompt = "prompt> ";
-      String rightPrompt = null;
-      String line;
+        SystemRegistry systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, null);
+        systemRegistry.setCommandRegistries(commandletRegistry);
+//        systemRegistry.setCommandRegistries(builtins, commandletRegistry);
+//        systemRegistry.register("help", commandletRegistry);
 
-      while (true) {
-        line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
+        LineReader reader = LineReaderBuilder.builder()
+        .terminal(terminal)
+        .completer(systemRegistry.completer())
+        .parser(parser)
+        .variable(LineReader.LIST_MAX, 50)
+        .build();
 
-        if (line == null || line.equalsIgnoreCase("exit")) {
-          break;
+        // Create autosuggestion widgets
+        AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
+        // Enable autosuggestions
+        autosuggestionWidgets.enable();
+
+        // TODO: fix these on
+//        TailTipWidgets widgets = new TailTipWidgets(reader, systemRegistry::commandDescription, 5, TailTipWidgets.TipType.COMPLETER);
+//        widgets.enable();
+        KeyMap<Binding> keyMap = reader.getKeyMaps().get("main");
+        keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
+
+        String prompt = "prompt> ";
+        String rightPrompt = null;
+        String line;
+
+        while (true) {
+          try {
+            systemRegistry.cleanUp();
+            line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
+            systemRegistry.execute(line);
+          } catch (UserInterruptException e) {
+            // Ignore
+            context.warning("User canceled with CTRL+C", e);
+          } catch (EndOfFileException e) {
+            context.warning("User canceled with CTRL+D", e);
+            return;
+          } catch (Exception e) {
+            systemRegistry.trace(e);
+          }
         }
 
-        reader.getHistory().add(line);
-
-        if (line.equalsIgnoreCase("help")) {
-          context.info("help");
-          context.getCommandletManager().getCommandlet("help").run();
-        } else if (line.equalsIgnoreCase("install")) {
-          context.info("install");
-        } else {
-          context.warning("Unknown command: {}", line);
-        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
-
-    } catch (IOException e) {
+    } catch (Throwable e) {
       throw new RuntimeException(e);
     } finally {
       AnsiConsole.systemUninstall();
     }
-
   }
 }
