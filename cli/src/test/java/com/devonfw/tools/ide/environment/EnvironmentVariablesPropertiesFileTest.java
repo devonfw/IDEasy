@@ -10,8 +10,6 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeSlf4jRootLogger;
 
 /**
@@ -65,9 +63,7 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     linesToWrite.add("# 5th comment");
     linesToWrite.add("var9=9");
 
-    IdeContext context = new IdeTestContext(null);
-    Path tmpDir = context.getFileAccess().createTempDir("tmp-EnvironmentVariablesPropertiesFileTest");
-    Path propertiesFilePath = tmpDir.resolve("ide.properties");
+    Path propertiesFilePath = Path.of("target/tmp-EnvironmentVariablesPropertiesFileTest-ide.properties");
     try {
       Files.write(propertiesFilePath, linesToWrite, StandardOpenOption.CREATE_NEW);
     } catch (IOException e) {
@@ -131,6 +127,10 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     }
 
     // clean up
-    context.getFileAccess().delete(tmpDir);
+    try {
+      Files.delete(propertiesFilePath);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
