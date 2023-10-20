@@ -1,0 +1,56 @@
+name: Native Image
+on: push
+    
+jobs:
+
+  build-natives:
+    name: Build native images
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest]
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+          ref: feature/release-workflow
+          
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: '21'
+          distribution: 'graalvm'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          native-image-job-reports: 'true'
+          
+      - name: Build native images with nativ maven plugin and extract in tar.gz
+        shell: bash
+        run: |
+          mvn -B -ntp -Pnative -DskipTests=true package
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: natives
+          path: cli/target/*.tar.gz
+
+  build:
+    name: Build Project and Deploy
+    needs: [build-natives]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '21'
+      - uses: actions/download-artifact@v3
+      - name: Make natives available and build project 
+        run: |
+          mv ./natives/* ./cli/target/
+          gh release create test ./cli/target/*.tar.gz
+
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
