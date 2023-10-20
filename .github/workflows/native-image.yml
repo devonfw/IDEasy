@@ -49,8 +49,7 @@ jobs:
       - uses: actions/download-artifact@v3
       - name: Make natives available and build project 
         run: |
-          mv ./natives/* ./cli/target/
-          gh release create test ./cli/target/*.tar.gz
+          gh release create test ./natives/* 
 
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
