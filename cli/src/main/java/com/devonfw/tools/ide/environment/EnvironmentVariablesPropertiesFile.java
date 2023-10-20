@@ -220,7 +220,8 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
   public String set(String name, String value, boolean export) {
 
     String oldValue = this.variables.put(name, value);
-    if (Objects.equals(value, oldValue)) {
+    boolean flagChanged = export != this.exportedVariables.contains(name);
+    if (Objects.equals(value, oldValue) && !flagChanged) {
       this.logger.trace("Set valiable '{}={}' caused no change in {}", name, value, this.propertiesFilePath);
     } else {
       this.logger.debug("Set valiable '{}={}' in {}", name, value, this.propertiesFilePath);
