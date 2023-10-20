@@ -161,12 +161,6 @@
                 </goals>
                 <phase>test</phase>
               </execution>
-              <execution>
-                  <id>add-reachability-metadata</id>
-                  <goals>
-                      <goal>add-reachability-metadata</goal>
-                  </goals>
-              </execution>
             </executions>
             <configuration>
               <metadataRepository>
