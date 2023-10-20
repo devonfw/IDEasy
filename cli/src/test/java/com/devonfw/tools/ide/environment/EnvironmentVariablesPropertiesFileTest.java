@@ -10,6 +10,8 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeSlf4jRootLogger;
 
 /**
@@ -63,8 +65,9 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     linesToWrite.add("# 5th comment");
     linesToWrite.add("var9=9");
 
-    Path propertiesFilePath = Path.of("src/test/resources/com/devonfw/tools/ide/env/var/ide.properties");
-    // Write to the file only if it does not exist
+    IdeContext context = new IdeTestContext(null);
+    Path tmpDir = context.getFileAccess().createTempDir("tmp-EnvironmentVariablesPropertiesFileTest");
+    Path propertiesFilePath = tmpDir.resolve("ide.properties");
     try {
       Files.write(propertiesFilePath, linesToWrite, StandardOpenOption.CREATE_NEW);
     } catch (IOException e) {
@@ -83,10 +86,10 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     AbstractEnvironmentVariables parent = null;
     EnvironmentVariablesType type = EnvironmentVariablesType.SETTINGS;
 
-    // act
     EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(parent, type,
         propertiesFilePath, LOGGER);
 
+    // act
     variables.set("var5", "5", true);
     variables.set("var1", "1.0", false);
     variables.set("var10", "10", false);
@@ -128,10 +131,6 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     }
 
     // clean up
-    try {
-      Files.delete(propertiesFilePath);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    context.getFileAccess().delete(tmpDir);
   }
 }
