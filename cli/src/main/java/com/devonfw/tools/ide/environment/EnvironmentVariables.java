@@ -145,6 +145,7 @@ public interface EnvironmentVariables {
    */
   default void save() {
 
+    throw new UnsupportedOperationException("Not yet implemented!");
   }
 
   /**

@@ -10,18 +10,19 @@ import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.helm.Helm;
 import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
+import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
-import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
-import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 
 /**
@@ -70,6 +71,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Kotlinc(context));
     add(new KotlincNative(context));
     add(new Vscode(context));
+    add(new Azure(context));
   }
 
   private void add(Commandlet commandlet) {
