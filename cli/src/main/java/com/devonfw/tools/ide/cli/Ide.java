@@ -1,8 +1,25 @@
 package com.devonfw.tools.ide.cli;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.function.Supplier;
+
+import org.fusesource.jansi.AnsiConsole;
+import org.jline.console.SystemRegistry;
+import org.jline.console.impl.SystemRegistryImpl;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.MaskingCallback;
+import org.jline.reader.Parser;
+import org.jline.reader.UserInterruptException;
+import org.jline.reader.impl.DefaultParser;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.widget.AutosuggestionWidgets;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
@@ -94,6 +111,11 @@ public final class Ide {
    */
   public int runOrThrow(String... args) {
 
+    if (args.length == 0) {
+      initializeJlineCompletion();
+      return 1;
+    }
+
     CliArgument first = CliArgument.of(args);
     CliArgument current = initContext(first);
     if (current == null) {
@@ -122,6 +144,83 @@ public final class Ide {
     }
     context().getCommandletManager().getCommandlet(HelpCommandlet.class).run();
     return 1;
+  }
+
+  /**
+   * Initializes jline3 autocompletion.
+   */
+  private void initializeJlineCompletion() {
+
+    AnsiConsole.systemInstall();
+
+    try {
+      ContextCommandlet init = new ContextCommandlet();
+      init.run();
+      this.context = init.getIdeContext();
+
+      Supplier<Path> workDir = context::getCwd;
+      // set up JLine built-in commands
+      // TODO: fix BuiltIns or remove
+      // Builtins builtins = new Builtins(workDir, null, null);
+      // builtins.rename(Builtins.Command.TTOP, "top");
+      // builtins.alias("zle", "widget");
+      // builtins.alias("bindkey", "keymap");
+
+      CommandletRegistry commandletRegistry = new CommandletRegistry(init, this, context);
+
+      Parser parser = new DefaultParser();
+      try (Terminal terminal = TerminalBuilder.builder().build()) {
+
+        SystemRegistry systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, null);
+        systemRegistry.setCommandRegistries(commandletRegistry);
+
+        // systemRegistry.setCommandRegistries(builtins, commandletRegistry);
+        // systemRegistry.register("help", commandletRegistry);
+
+        LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(systemRegistry.completer())
+            .parser(parser).variable(LineReader.LIST_MAX, 50).build();
+
+        // Create autosuggestion widgets
+        AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
+        // Enable autosuggestions
+        autosuggestionWidgets.enable();
+
+        // TODO: implement TailTipWidgets
+        // TailTipWidgets widgets = new TailTipWidgets(reader, systemRegistry::commandDescription, 5,
+        // TailTipWidgets.TipType.COMPLETER);
+        // widgets.enable();
+        // TODO: add own KeyMap
+        // KeyMap<Binding> keyMap = reader.getKeyMaps().get("main");
+        // keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
+
+        String prompt = "prompt> ";
+        String rightPrompt = null;
+        String line;
+
+        while (true) {
+          try {
+            systemRegistry.cleanUp();
+            line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
+            systemRegistry.execute(line);
+          } catch (UserInterruptException e) {
+            // Ignore
+            context.warning("User canceled with CTRL+C", e);
+          } catch (EndOfFileException e) {
+            context.warning("User canceled with CTRL+D", e);
+            return;
+          } catch (Exception e) {
+            systemRegistry.trace(e);
+          }
+        }
+
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    } catch (Throwable e) {
+      throw new RuntimeException(e);
+    } finally {
+      AnsiConsole.systemUninstall();
+    }
   }
 
   private CliArgument initContext(CliArgument first) {
@@ -161,7 +260,7 @@ public final class Ide {
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
    *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
-  private boolean applyAndRun(CliArgument current, Commandlet commandlet) {
+  protected boolean applyAndRun(CliArgument current, Commandlet commandlet) {
 
     boolean matches = apply(current, commandlet);
     if (matches) {
