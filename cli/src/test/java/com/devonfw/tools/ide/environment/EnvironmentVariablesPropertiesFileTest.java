@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.environment;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -43,7 +42,7 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
   }
 
   @Test
-  void testSave() {
+  void testSave() throws Exception {
 
     // arrange
     List<String> linesToWrite = new ArrayList<>();
@@ -64,20 +63,10 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     linesToWrite.add("var9=9");
 
     Path propertiesFilePath = Path.of("target/tmp-EnvironmentVariablesPropertiesFileTest-ide.properties");
-    try {
-      Files.write(propertiesFilePath, linesToWrite, StandardOpenOption.CREATE_NEW);
-    } catch (IOException e) {
-      System.err.println("File already exists or an error occurred: " + e.getMessage());
-    }
+    Files.write(propertiesFilePath, linesToWrite, StandardOpenOption.CREATE_NEW);
     // check if this writing was correct
-    try {
-      List<String> lines = Files.readAllLines(propertiesFilePath);
-      for (int i = 0; i < lines.size(); i++) {
-        assertThat(lines.get(i)).isEqualTo(linesToWrite.get(i));
-      }
-    } catch (IOException e) {
-      System.err.println("An error occurred: " + e.getMessage());
-    }
+    List<String> lines = Files.readAllLines(propertiesFilePath);
+    assertThat(lines).containsExactlyElementsOf(linesToWrite);
 
     AbstractEnvironmentVariables parent = null;
     EnvironmentVariablesType type = EnvironmentVariablesType.SETTINGS;
@@ -117,20 +106,10 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     linesAfterSave.add("var9=9");
     linesAfterSave.add("var10=10");
     linesAfterSave.add("export var11=11");
-    try {
-      List<String> lines = Files.readAllLines(propertiesFilePath);
-      for (int i = 0; i < lines.size(); i++) {
-        assertThat(lines.get(i)).isEqualTo(linesAfterSave.get(i));
-      }
-    } catch (IOException e) {
-      System.err.println("An error occurred: " + e.getMessage());
-    }
 
+    lines = Files.readAllLines(propertiesFilePath);
+    assertThat(lines).containsExactlyElementsOf(linesAfterSave);
     // clean up
-    try {
-      Files.delete(propertiesFilePath);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    Files.delete(propertiesFilePath);
   }
 }
