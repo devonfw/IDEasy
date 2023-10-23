@@ -17,6 +17,19 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject> {
   }
 
   @Override
+  protected String mapVersion(String version) {
+
+    // remove the suffix "-LTS", this is necessary for java version 21+35-LTS
+    if (version.length() > 4) {
+      String lastFourChars = version.substring(version.length() - 4);
+      if (lastFourChars.equals("-LTS")) {
+        version = version.substring(0, version.length() - 4);
+      }
+    }
+    return super.mapVersion(version);
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     String mirror = "https://github.com/adoptium/temurin";
