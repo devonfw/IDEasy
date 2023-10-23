@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.File;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,34 +73,31 @@ public final class ProcessContextImpl implements ProcessContext {
   }
 
   @Override
-  public ProcessContext executable(Path command) {
+  public ProcessContext executable(Path toolPath, String tool) {
 
     if (!this.arguments.isEmpty()) {
       throw new IllegalStateException("Arguments already present - did you forget to call run for previous call?");
     }
-    Path exe = command;
-    if (exe.isAbsolute()) {
-      Path parent = command.getParent();
-      String filename = command.getFileName().toString();
-      String extension = FilenameUtil.getExtension(filename);
-      if (extension == null) {
-        if (this.context.getSystemInfo().isWindows()) {
-          Path cmd = parent.resolve(filename + ".cmd");
-          if (Files.exists(cmd)) {
-            exe = cmd;
-          } else {
-            cmd = parent.resolve(filename + ".bat");
-            if (Files.exists(cmd)) {
-              exe = cmd;
-            }
-          }
+
+    String[] possibleExtensions = { ".exe", ".cmd", ".bat", ".msi", ".ps1", "" };
+
+    Path executable = toolPath;
+    if (executable.isAbsolute()) {
+      for (String extension : possibleExtensions) {
+
+        File fileToExecute = new File(toolPath + "\\" + tool + extension);
+
+        if (fileToExecute.exists()) {
+          executable = fileToExecute.toPath();
+          break;
         }
       }
     }
-    if (!exe.equals(command)) {
-      this.context.debug("Using " + exe.getFileName() + " for " + command);
+    if (!executable.isAbsolute()) {
+      this.context.debug("Using " + executable.getFileName() + "for " + tool);
     }
-    this.executable = exe;
+
+    this.executable = executable;
     return this;
   }
 

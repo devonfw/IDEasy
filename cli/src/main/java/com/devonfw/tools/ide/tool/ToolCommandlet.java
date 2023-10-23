@@ -88,41 +88,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public void runTool(VersionIdentifier toolVersion, String... args) {
 
     Path binary;
+
     if (toolVersion == null) {
       install(true);
-      binary = getToolBinary();
+          binary = getToolBinPath();
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binary)
-        .addArgs(args);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING)
+        .executable(binary, getBinaryName()).addArgs(args);
     pc.run();
-  }
-
-  /**
-   * @return the {@link Path} where the main executable file of this tool is installed.
-   */
-  public Path getToolBinary() {
-
-    Path binPath = getToolBinPath();
-    Path binary = this.context.getFileAccess().findFirst(binPath, this::isBinary, false);
-    if (binary == null) {
-      throw new IllegalStateException("Could not find executable binary for " + getName() + " in " + binPath);
-    }
-    return binary;
-  }
-
-  protected boolean isBinary(Path path) {
-
-    String filename = path.getFileName().toString();
-    String binaryName = getBinaryName();
-    if (filename.equals(binaryName)) {
-      return true;
-    } else if (filename.startsWith(binaryName)) {
-      String suffix = filename.substring(binaryName.length());
-      return this.context.getSystemInfo().getOs().isExecutable(suffix);
-    }
-    return false;
   }
 
   protected String getBinaryName() {

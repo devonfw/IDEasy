@@ -52,12 +52,12 @@ public class Eclipse extends IdeToolCommandlet {
    */
   protected ProcessResult runEclipse(boolean log, String... args) {
 
-    Path binary = getToolBinary();
+    Path toolPath = getToolBinPath();
     ProcessContext pc = this.context.newProcess();
     if (log) {
       pc.errorHandling(ProcessErrorHandling.ERROR);
     }
-    pc.executable(binary);
+    pc.executable(toolPath, getBinaryName());
     Path configurationPath = getPluginsInstallationPath().resolve("configuration");
     this.context.getFileAccess().mkdirs(configurationPath);
     if (log) {
@@ -69,7 +69,7 @@ public class Eclipse extends IdeToolCommandlet {
     }
     pc.addArg("-configuration").addArg(configurationPath);
     // TODO ability to use different Java version
-    Path javaPath = getCommandlet(Java.class).getToolBinary();
+    Path javaPath = getCommandlet(Java.class).getToolBinPath();
     pc.addArg("-vm").addArg(javaPath);
     pc.addArgs(args);
     return pc.run(log);
