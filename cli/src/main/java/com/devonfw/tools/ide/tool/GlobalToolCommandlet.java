@@ -77,7 +77,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(target);
     pc.run();
     this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
-    // TODO: create a toolVersionFile? If so, in binDir or rootDir?
+    //TODO: create a toolVersionFile? If so, in binDir or rootDir? If so, in binDir or rootDir? if not, how do we retrieve the version so that getInstalledVersion works?
     postInstall();
     return true;
   }
