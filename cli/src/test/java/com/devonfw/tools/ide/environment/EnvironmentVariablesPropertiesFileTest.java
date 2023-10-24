@@ -9,15 +9,13 @@ import java.util.List;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.log.IdeSlf4jRootLogger;
+import com.devonfw.tools.ide.context.IdeTestContextMock;
 
 /**
  * Test of {@link EnvironmentVariablesPropertiesFile}.
  */
 @SuppressWarnings("javadoc")
 class EnvironmentVariablesPropertiesFileTest extends Assertions {
-
-  private static final IdeSlf4jRootLogger LOGGER = IdeSlf4jRootLogger.of();
 
   /**
    * Test of {@link EnvironmentVariablesPropertiesFile} including legacy support.
@@ -31,7 +29,7 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     EnvironmentVariablesType type = EnvironmentVariablesType.SETTINGS;
     // act
     EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(parent, type,
-        propertiesFilePath, LOGGER);
+        propertiesFilePath, IdeTestContextMock.get());
     // assert
     assertThat(variables.getType()).isSameAs(type);
     assertThat(variables.get("MVN_VERSION")).isEqualTo("3.9.0");
@@ -72,7 +70,7 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     EnvironmentVariablesType type = EnvironmentVariablesType.SETTINGS;
 
     EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(parent, type,
-        propertiesFilePath, LOGGER);
+        propertiesFilePath, IdeTestContextMock.get());
 
     // act
     variables.set("var5", "5", true);
