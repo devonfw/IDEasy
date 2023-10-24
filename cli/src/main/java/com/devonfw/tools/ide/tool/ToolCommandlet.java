@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -441,9 +442,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     try (Stream<Path> stream = Files.list(path)) {
       Path[] subFiles = stream.toArray(Path[]::new);
       if (subFiles.length == 0) {
-        throw new IllegalStateException("The directory " + path + " does not contain any files.");
-      } else if (subFiles.length == 1 && !subFiles[0].toString().equals("bin") && Files.isDirectory(subFiles[0])) {
-        return getProperInstallationSubDirOf(subFiles[0]);
+        throw new CliException("The downloaded package for the tool " + this.tool
+            + " seems to be empty as you can check in the extracted folder " + path);
+      } else if (subFiles.length == 1) {
+        String filename = subFiles[0].getFileName().toString();
+        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS)
+            && !filename.endsWith(".app") && Files.isDirectory(subFiles[0])) {
+          return getProperInstallationSubDirOf(subFiles[0]);
+        }
       }
       return path;
     } catch (IOException e) {
@@ -504,8 +510,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       } else {
         throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + file);
       }
-      this.context.getFileAccess().move(getProperInstallationSubDirOf(tmpDir), targetDir);
-      this.context.getFileAccess().delete(tmpDir);
+      fileAccess.move(getProperInstallationSubDirOf(tmpDir), targetDir);
+      fileAccess.delete(tmpDir);
     } else {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", getName(), file);
       fileAccess.move(file, targetDir);
