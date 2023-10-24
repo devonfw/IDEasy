@@ -145,7 +145,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     Integer errorCode = urlStatus.getError().getCode();
 
     assertThat(errorCode).isEqualTo(404);
-    assertThat(errorTimestamp).isGreaterThan(successTimestamp);
+    assertThat(errorTimestamp).isAfter(successTimestamp);
 
     stubFor(
         any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain")));
@@ -165,7 +165,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     errorCode = urlStatus.getError().getCode();
 
     assertThat(errorCode).isEqualTo(200);
-    assertThat(errorTimestamp).isGreaterThan(successTimestamp);
+    assertThat(errorTimestamp).isAfter(successTimestamp);
 
   }
 
