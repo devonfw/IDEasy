@@ -150,9 +150,6 @@ public final class Ide {
    * Initializes jline3 autocompletion.
    */
   private void initializeJlineCompletion() {
-
-    AnsiConsole.systemInstall();
-
     try {
       ContextCommandlet init = new ContextCommandlet();
       init.run();
@@ -218,8 +215,6 @@ public final class Ide {
       }
     } catch (Throwable e) {
       throw new RuntimeException(e);
-    } finally {
-      AnsiConsole.systemUninstall();
     }
   }
 

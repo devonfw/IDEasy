@@ -18,6 +18,7 @@ import org.jline.utils.AttributedString;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
+import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.CommandletProperty;
 import com.devonfw.tools.ide.property.Property;
@@ -79,12 +80,11 @@ public class CommandletRegistry implements CommandRegistry {
 
   @Override
   public List<String> commandInfo(String command) {
-
+    // TODO: disable this functionality?
     List<String> out = new ArrayList<>();
     // TODO: take command and get help from Ide
-    Commandlet helpCommandlet = context.getCommandletManager().getCommandlet("help");
-    Property<?> property = new CommandletProperty(command, false, "");
-    // helpCommandlet.add(property);
+    HelpCommandlet helpCommandlet = context.getCommandletManager().getCommandlet(HelpCommandlet.class);
+    helpCommandlet.commandlet.setValueAsString(command);
     helpCommandlet.run();
     // TODO: add our own description for each commandlet here
     String description = "placeholder description";
