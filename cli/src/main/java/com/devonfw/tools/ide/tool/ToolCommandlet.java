@@ -275,7 +275,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     if (installedVersion == null) {
       this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
     } else {
-      this.context.success("Successfully installed {} in version {} replacing previous version {]", this.tool,
+      this.context.success("Successfully installed {} in version {} replacing previous version {}", this.tool,
           resolvedVersion, installedVersion);
     }
     postInstall();
@@ -287,7 +287,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * custom post intallation logic.
    */
   protected void postInstall() {
-    
+
     // nothing to do by default
   }
 
