@@ -45,8 +45,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
 
   public Path getToolPath() {
-
-    return getToolBinary();
+     //TODO: get rootDir of global tool? is RootDir accessible from BinDir (getToolBinary())?
+    return null;
   }
 
     /**
