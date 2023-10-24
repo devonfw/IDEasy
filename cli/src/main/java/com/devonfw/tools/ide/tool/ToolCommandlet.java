@@ -104,6 +104,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public abstract Path getToolBinary();
 
+  /**
+   * @return the {@link Path} where the tool is located (installed).
+   */
   public abstract Path getToolPath();
 
 
@@ -124,6 +127,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     return getToolWithEdition(getName(), getEdition());
   }
+
 
   /**
    * @param tool the tool name.
