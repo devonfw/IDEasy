@@ -5,7 +5,7 @@ import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Locale;
 
-import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -181,12 +181,12 @@ public interface EnvironmentVariables {
   Collection<VariableLine> collectExportedVariables();
 
   /**
-   * @param logger the {@link IdeLogger}.
+   * @param context the {@link IdeContext}.
    * @return the system {@link EnvironmentVariables} building the root of the {@link EnvironmentVariables} hierarchy.
    */
-  static AbstractEnvironmentVariables ofSystem(IdeLogger logger) {
+  static AbstractEnvironmentVariables ofSystem(IdeContext context) {
 
-    return EnvironmentVariablesSystem.of(logger);
+    return EnvironmentVariablesSystem.of(context);
   }
 
   /**

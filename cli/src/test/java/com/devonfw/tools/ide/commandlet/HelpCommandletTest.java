@@ -1,10 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
 
 /**
  * Integration test of {@link HelpCommandlet}.
@@ -32,7 +34,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
   public void testRun() {
 
     // arrange
-    IdeContext context = IdeTestContextMock.get();
+    IdeTestContext context = IdeTestContext.of();
     HelpCommandlet help = new HelpCommandlet(context);
     // act
     help.run();
@@ -50,7 +52,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
-    IdeContext context = newContext("basic", path, true);
+    IdeTestContext context = newContext("basic", path, true);
     HelpCommandlet help = context.getCommandletManager().getCommandlet(HelpCommandlet.class);
     help.commandlet.setValueAsString("mvn");
     // act
@@ -65,7 +67,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
   /**
    * Assertion for the options that should be displayed.
    */
-  public void assertOptionLogMessages(IdeContext context) {
+  private void assertOptionLogMessages(IdeTestContext context) {
 
     assertLogMessage(context, IdeLogLevel.INFO, "--locale        the locale (e.g. 'de' for German language)");
     assertLogMessage(context, IdeLogLevel.INFO, "-b | --batch    enable batch mode (non-interactive)");
@@ -82,7 +84,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
   /**
    * Assertion for the IDE-Logo that should be displayed.
    */
-  public void assertLogoMessage(IdeContext context) {
+  private void assertLogoMessage(IdeTestContext context) {
 
     assertLogMessage(context, IdeLogLevel.INFO, HelpCommandlet.LOGO);
   }

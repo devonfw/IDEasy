@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.environment;
 
 import java.util.Map;
 
-import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Implementation of {@link EnvironmentVariables}.
@@ -13,11 +13,11 @@ abstract class EnvironmentVariablesMap extends AbstractEnvironmentVariables {
    * The constructor.
    *
    * @param parent the parent {@link EnvironmentVariables} to inherit from.
-   * @param logger the {@link IdeLogger}.
+   * @param context the {@link IdeContext}.
    */
-  EnvironmentVariablesMap(AbstractEnvironmentVariables parent, IdeLogger logger) {
+  EnvironmentVariablesMap(AbstractEnvironmentVariables parent, IdeContext context) {
 
-    super(parent, logger);
+    super(parent, context);
   }
 
   /**
@@ -31,9 +31,9 @@ abstract class EnvironmentVariablesMap extends AbstractEnvironmentVariables {
 
     String value = getVariables().get(name);
     if (value == null) {
-      this.logger.trace("{}: Variable {} is undefined.", getSource(), name);
+      this.context.trace("{}: Variable {} is undefined.", getSource(), name);
     } else {
-      this.logger.trace("{}: Variable {}={}", getSource(), name, value);
+      this.context.trace("{}: Variable {}={}", getSource(), name, value);
     }
     return value;
   }

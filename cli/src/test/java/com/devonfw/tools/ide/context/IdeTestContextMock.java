@@ -7,7 +7,7 @@ import java.nio.file.Paths;
  *
  * @see #get()
  */
-public class IdeTestContextMock extends IdeTestContext {
+public class IdeTestContextMock extends IdeSlf4jContext {
 
   private static final IdeTestContextMock INSTANCE = new IdeTestContextMock();
 

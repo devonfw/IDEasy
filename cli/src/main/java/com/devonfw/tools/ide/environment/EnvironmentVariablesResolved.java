@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.environment;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
 
@@ -24,7 +23,7 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
    */
   EnvironmentVariablesResolved(AbstractEnvironmentVariables parent) {
 
-    super(parent, parent.logger);
+    super(parent, parent.context);
   }
 
   @Override
@@ -51,12 +50,10 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
 
   private String getValue(String name) {
 
-    // this is an intended hack but only allowed here...
-    IdeContext context = (IdeContext) this.logger;
     VariableDefinition<?> var = IdeVariables.get(name);
     String value;
     if ((var != null) && var.isForceDefaultValue()) {
-      value = var.getDefaultValueAsString(context);
+      value = var.getDefaultValueAsString(this.context);
     } else {
       value = this.parent.get(name);
     }
@@ -66,11 +63,11 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
         value = this.parent.get(key);
       }
       if (value != null) {
-        value = var.getDefaultValueAsString(context);
+        value = var.getDefaultValueAsString(this.context);
       }
     }
     if ((value != null) && (value.startsWith("~/"))) {
-      value = context.getUserHome() + value.substring(1);
+      value = this.context.getUserHome() + value.substring(1);
     }
     return value;
   }
@@ -94,7 +91,7 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
       String variableName = matcher.group(2);
       String variableValue = getValue(variableName);
       if (variableValue == null) {
-        this.logger.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, name, value, rootName,
+        this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, name, value, rootName,
             rootValue);
       } else {
         String replacement = resolve(variableValue, variableName, recursion, rootName, rootValue);

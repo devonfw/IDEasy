@@ -1,7 +1,9 @@
 package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
 
 /**
@@ -18,6 +20,20 @@ public class IdeTestContext extends AbstractIdeTestContext {
   public IdeTestContext(Path userDir, String... answers) {
 
     super(level -> new IdeTestLogger(level), userDir, answers);
+  }
+
+  @Override
+  public IdeTestLogger level(IdeLogLevel level) {
+
+    return (IdeTestLogger) super.level(level);
+  }
+
+  /**
+   * @return a dummy {@link IdeTestContext}.
+   */
+  public static IdeTestContext of() {
+
+    return new IdeTestContext(Paths.get("/"));
   }
 
 }
