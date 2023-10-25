@@ -21,6 +21,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.StringListProperty;
 import com.devonfw.tools.ide.repo.ToolRepository;
+import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -260,6 +261,15 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier installedVersion = getInstalledVersion();
+
+    UrlSecurityFile securityFile = this.context.getUrls().getEdition(this.tool, this.getEdition()).getSecurityFile();
+    // I do not want to use the installed version here, as I want to warn the user whether the tool is installed or not.
+    VersionIdentifier currentVersion = this.context.getUrls().getVersion(this.tool, this.getEdition(), configuredVersion);
+    if (securityFile.contains(currentVersion)) {
+      this.context.warning("Version {} of tool {} is known to have security issues!", currentVersion,
+          getToolWithEdition());
+    }
+
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
     if (isInstalledVersion(resolvedVersion, installedVersion, silent)) {
       return false;
