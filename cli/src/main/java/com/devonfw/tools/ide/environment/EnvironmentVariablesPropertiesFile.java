@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
-import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
 
@@ -41,13 +41,13 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
    * @param parent the parent {@link EnvironmentVariables} to inherit from.
    * @param type the {@link #getType() type}.
    * @param source the {@link #getSource() source}.
-   * @param logger the {@link IdeLogger}.
+   * @param context the {@link IdeContext}.
    * @param variables the underlying variables.
    */
   EnvironmentVariablesPropertiesFile(AbstractEnvironmentVariables parent, EnvironmentVariablesType type,
-      Path propertiesFilePath, IdeLogger logger) {
+      Path propertiesFilePath, IdeContext context) {
 
-    super(parent, logger);
+    super(parent, context);
     Objects.requireNonNull(type);
     assert (type != EnvironmentVariablesType.RESOLVED);
     this.type = type;
@@ -64,16 +64,16 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
       return;
     }
     if (!Files.exists(this.propertiesFilePath)) {
-      this.logger.trace("Properties not found at {}", this.propertiesFilePath);
+      this.context.trace("Properties not found at {}", this.propertiesFilePath);
       return;
     }
-    this.logger.trace("Loading properties from {}", this.propertiesFilePath);
+    this.context.trace("Loading properties from {}", this.propertiesFilePath);
     try (BufferedReader reader = Files.newBufferedReader(this.propertiesFilePath)) {
       String line;
       do {
         line = reader.readLine();
         if (line != null) {
-          VariableLine variableLine = VariableLine.of(line, this.logger, this.propertiesFilePath);
+          VariableLine variableLine = VariableLine.of(line, this.context, this.propertiesFilePath);
           String name = variableLine.getName();
           if (name != null) {
             variableLine = migrateLine(variableLine, false);
@@ -95,14 +95,14 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
   public void save() {
 
     if (this.modifiedVariables.isEmpty()) {
-      this.logger.trace("No changes to save in properties file {}", this.propertiesFilePath);
+      this.context.trace("No changes to save in properties file {}", this.propertiesFilePath);
       return;
     }
     Path newPropertiesFilePath = this.propertiesFilePath;
     String propertiesFileName = this.propertiesFilePath.getFileName().toString();
     if (LEGACY_PROPERTIES.equals(propertiesFileName)) {
       newPropertiesFilePath = this.propertiesFilePath.getParent().resolve(DEFAULT_PROPERTIES);
-      this.logger.info("Converting legacy properties to {}", newPropertiesFilePath);
+      this.context.info("Converting legacy properties to {}", newPropertiesFilePath);
     }
     List<VariableLine> lines = new ArrayList<>();
     try (BufferedReader reader = Files.newBufferedReader(this.propertiesFilePath)) {
@@ -110,7 +110,7 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
       do {
         line = reader.readLine();
         if (line != null) {
-          VariableLine variableLine = VariableLine.of(line, this.logger, reader);
+          VariableLine variableLine = VariableLine.of(line, this.context, reader);
           lines.add(variableLine);
         }
       } while (line != null);
@@ -123,10 +123,10 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
       for (VariableLine line : lines) {
         VariableLine newLine = migrateLine(line, true);
         if (newLine == null) {
-          this.logger.debug("Removed variable line '{}' from {}", line, newPropertiesFilePath);
+          this.context.debug("Removed variable line '{}' from {}", line, newPropertiesFilePath);
         } else {
           if (newLine != line) {
-            this.logger.debug("Changed variable line from '{}' to '{}' in {}", line, newLine, newPropertiesFilePath);
+            this.context.debug("Changed variable line from '{}' to '{}' in {}", line, newLine, newPropertiesFilePath);
           }
           writer.append(newLine.toString());
           writer.append(NEWLINE);
@@ -140,7 +140,7 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
       for (String name : this.modifiedVariables) {
         String value = this.variables.get(name);
         if (value == null) {
-          this.logger.trace("Internal error: removed variable {} was not found in {}", name, this.propertiesFilePath);
+          this.context.trace("Internal error: removed variable {} was not found in {}", name, this.propertiesFilePath);
         } else {
           boolean export = this.exportedVariables.contains(name);
           VariableLine line = VariableLine.of(export, name, value);
@@ -220,10 +220,11 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
   public String set(String name, String value, boolean export) {
 
     String oldValue = this.variables.put(name, value);
-    if (Objects.equals(value, oldValue)) {
-      this.logger.trace("Set valiable '{}={}' caused no change in {}", name, value, this.propertiesFilePath);
+    boolean flagChanged = export != this.exportedVariables.contains(name);
+    if (Objects.equals(value, oldValue) && !flagChanged) {
+      this.context.trace("Set valiable '{}={}' caused no change in {}", name, value, this.propertiesFilePath);
     } else {
-      this.logger.debug("Set valiable '{}={}' in {}", name, value, this.propertiesFilePath);
+      this.context.debug("Set valiable '{}={}' in {}", name, value, this.propertiesFilePath);
       this.modifiedVariables.add(name);
       if (export && (value != null)) {
         this.exportedVariables.add(name);

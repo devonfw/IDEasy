@@ -38,9 +38,9 @@ sudo yum install git-core curl
 
 === Install
 
-** Download the latest version of `devonfw-ide` from https://github.com/devonfw/ide/releases[here] and extract it to a folder of your choice.
+** Download the latest version of `devonfw-ide` from https://github.com/devonfw/IDEasy/releases[here] and extract it to a folder of your choice.
 +
-(You can find all Releases in https://repo.maven.apache.org/maven2/com/devonfw/tools/ide/devonfw-ide-scripts/[Maven Central])
+(You can find all Releases in https://repo.maven.apache.org/maven2/com/devonfw/tools/IDEasy/ide-cli/[Maven Central])
 ** Run the `setup` in this folder (On Windows you can double click on `setup.bat`)
 +
 A command prompt will open and the setup will start. The setup will ask for a settings URL. In case you do not have a settings URL for your project, you can just press enter to use the default settings.
