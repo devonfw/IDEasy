@@ -89,16 +89,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void runTool(VersionIdentifier toolVersion, String... args) {
 
-    Path binary;
-
+    Path binaryPath;
+    Path toolPath = getToolBinPath().resolve(getBinaryName());
     if (toolVersion == null) {
       install(true);
-          binary = getToolBinPath();
+      binaryPath = toolPath;
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING)
-        .executable(binary, getBinaryName()).addArgs(args);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
+        .addArgs(args);
     pc.run();
   }
 

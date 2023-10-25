@@ -52,12 +52,12 @@ public class Eclipse extends IdeToolCommandlet {
    */
   protected ProcessResult runEclipse(boolean log, String... args) {
 
-    Path toolPath = getToolBinPath();
+    Path toolPath = getToolBinPath().resolve(getBinaryName());
     ProcessContext pc = this.context.newProcess();
     if (log) {
       pc.errorHandling(ProcessErrorHandling.ERROR);
     }
-    pc.executable(toolPath, getBinaryName());
+    pc.executable(toolPath);
     Path configurationPath = getPluginsInstallationPath().resolve("configuration");
     this.context.getFileAccess().mkdirs(configurationPath);
     if (log) {

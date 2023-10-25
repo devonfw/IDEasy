@@ -30,32 +30,32 @@ public interface ProcessContext {
    *        called via CMD shell on windows while a *.sh file will be called via Bash, etc.
    * @return this {@link ProcessContext} for fluent API calls.
    */
-  ProcessContext executable(Path executable, String tool);
+  ProcessContext executable(Path executable);
 
   /**
    * Sets the executable command to be {@link #run()}.
    *
    * @param executable the command to be executed by {@link #run()}.
    * @return this {@link ProcessContext} for fluent API calls.
-   * @see #executable(Path, String)
+   * @see #executable(Path)
    */
   default ProcessContext executable(String executable) {
 
-    return executable(Paths.get(executable), "");
+    return executable(Paths.get(executable));
   }
 
   /**
-   * Adds a single argument for {@link #executable(Path, String) command}.
+   * Adds a single argument for {@link #executable(Path) command}.
    *
-   * @param arg the next argument for {@link #executable(Path, String) command} to be added.
+   * @param arg the next argument for {@link #executable(Path) command} to be added.
    * @return this {@link ProcessContext} for fluent API calls.
    */
   ProcessContext addArg(String arg);
 
   /**
-   * Adds a single argument for {@link #executable(Path, String) command}.
+   * Adds a single argument for {@link #executable(Path) command}.
    *
-   * @param arg the next argument for {@link #executable(Path, String) command} to be added.
+   * @param arg the next argument for {@link #executable(Path) command} to be added.
    * @return this {@link ProcessContext} for fluent API calls.
    */
   default ProcessContext addArg(Object arg) {
@@ -65,12 +65,12 @@ public interface ProcessContext {
   }
 
   /**
-   * Adds the given arguments for {@link #executable(Path, String) command}. E.g. for {@link #executable(Path, String) command} "mvn"
+   * Adds the given arguments for {@link #executable(Path) command}. E.g. for {@link #executable(Path) command} "mvn"
    * the arguments "clean" and "install" may be added here to run "mvn clean install". If this method would be called
    * again with "-Pmyprofile" and "-X" before {@link #run()} gets called then "mvn clean install -Pmyprofile -X" would
    * be run.
    *
-   * @param args the arguments for {@link #executable(Path, String) command} to be added.
+   * @param args the arguments for {@link #executable(Path) command} to be added.
    * @return this {@link ProcessContext} for fluent API calls.
    */
   default ProcessContext addArgs(String... args) {
@@ -82,10 +82,10 @@ public interface ProcessContext {
   }
 
   /**
-   * Adds the given arguments for {@link #executable(Path, String) command} as arbitrary Java objects. It will add the
+   * Adds the given arguments for {@link #executable(Path) command} as arbitrary Java objects. It will add the
    * {@link Object#toString() string representation} of these arguments to the command.
    *
-   * @param args the arguments for {@link #executable(Path, String) command} to be added.
+   * @param args the arguments for {@link #executable(Path) command} to be added.
    * @return this {@link ProcessContext} for fluent API calls.
    */
   default ProcessContext addArgs(Object... args) {
@@ -97,10 +97,10 @@ public interface ProcessContext {
   }
 
   /**
-   * Adds the given arguments for {@link #executable(Path, String) command} as arbitrary Java objects. It will add the
+   * Adds the given arguments for {@link #executable(Path) command} as arbitrary Java objects. It will add the
    * {@link Object#toString() string representation} of these arguments to the command.
    *
-   * @param args the {@link List} of arguments for {@link #executable(Path, String) command} to be added.
+   * @param args the {@link List} of arguments for {@link #executable(Path) command} to be added.
    * @return this {@link ProcessContext} for fluent API calls.
    */
   default ProcessContext addArgs(List<?>... args) {
@@ -112,8 +112,8 @@ public interface ProcessContext {
   }
 
   /**
-   * Runs the previously configured {@link #executable(Path, String) command} with the configured {@link #addArgs(String...)
-   * arguments}. Will reset the {@link #addArgs(String...) arguments} but not the {@link #executable(Path, String) command} for
+   * Runs the previously configured {@link #executable(Path) command} with the configured {@link #addArgs(String...)
+   * arguments}. Will reset the {@link #addArgs(String...) arguments} but not the {@link #executable(Path) command} for
    * sub-sequent calls.
    *
    * @return the exit code. Will be {@link ProcessResult#SUCCESS} on successful completion of the {@link Process}.
@@ -124,8 +124,8 @@ public interface ProcessContext {
   }
 
   /**
-   * Runs the previously configured {@link #executable(Path, String) command} with the configured {@link #addArgs(String...)
-   * arguments}. Will reset the {@link #addArgs(String...) arguments} but not the {@link #executable(Path, String) command} for
+   * Runs the previously configured {@link #executable(Path) command} with the configured {@link #addArgs(String...)
+   * arguments}. Will reset the {@link #addArgs(String...) arguments} but not the {@link #executable(Path) command} for
    * sub-sequent calls.
    *
    * @param capture - {@code true} to capture standard {@link ProcessResult#getOut() out} and

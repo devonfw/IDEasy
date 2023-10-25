@@ -35,6 +35,8 @@ public final class ProcessContextImpl implements ProcessContext {
 
   private ProcessErrorHandling errorHandling;
 
+  private final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
+
   /**
    * The constructor.
    *
@@ -73,28 +75,27 @@ public final class ProcessContextImpl implements ProcessContext {
   }
 
   @Override
-  public ProcessContext executable(Path toolPath, String tool) {
+  public ProcessContext executable(Path toolPath) {
 
     if (!this.arguments.isEmpty()) {
       throw new IllegalStateException("Arguments already present - did you forget to call run for previous call?");
     }
 
-    String[] possibleExtensions = { ".exe", ".cmd", ".bat", ".msi", ".ps1", "" };
-
     Path executable = toolPath;
+
     if (executable.isAbsolute()) {
-      for (String extension : possibleExtensions) {
+      for (String extension : EXTENSION_PRIORITY) {
 
-        File fileToExecute = new File(toolPath + "\\" + tool + extension);
+        Path fileToExecute = Paths.get(toolPath + extension);
 
-        if (fileToExecute.exists()) {
-          executable = fileToExecute.toPath();
+        if (Files.exists(fileToExecute)) {
+          executable = fileToExecute;
           break;
         }
       }
     }
     if (!executable.isAbsolute()) {
-      this.context.debug("Using " + executable.getFileName() + "for " + tool);
+      this.context.debug("Using " + executable.getFileName() + "for " + executable);
     }
 
     this.executable = executable;
