@@ -11,6 +11,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,7 +36,7 @@ import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
 
-import static com.devonfw.tools.ide.os.OperatingSystem.WINDOWS;
+import static com.devonfw.tools.ide.logging.Log.info;
 
 /**
  * Implementation of {@link FileAccess}.
@@ -290,11 +291,19 @@ public class FileAccessImpl implements FileAccess {
         this.context.debug("Deleting symbolic link to be re-created at {}", targetLink);
         Files.delete(targetLink);
       }
-      if (this.context.getSystemInfo().getOs().equals(WINDOWS)) {
-        Runtime rt = Runtime.getRuntime();
-        rt.exec("cmd //c 'mklink /D /J $(cygpath -w " + source + ") $(cygpath -w" + targetLink + ")");
-      } else {
-        Files.createSymbolicLink(targetLink, source);
+      Files.createSymbolicLink(targetLink, source);
+    } catch (FileSystemException e) {
+      info(
+          "Failed to create native symlink due to lack of permissions. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for further details. Error was {}"
+              + e.getMessage());
+      if (this.context.getSystemInfo().isWindows()) {
+        try {
+          Runtime rt = Runtime.getRuntime();
+          rt.exec("cmd //c 'mklink /D /J $(cygpath -w " + source + ") $(cygpath -w" + targetLink + ")");
+        } catch (IOException ex) {
+          throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source,
+              e);
+        }
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source, e);
