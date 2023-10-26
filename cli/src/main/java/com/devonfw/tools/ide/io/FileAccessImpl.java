@@ -291,20 +291,15 @@ public class FileAccessImpl implements FileAccess {
         this.context.debug("Deleting symbolic link to be re-created at {}", targetLink);
         Files.delete(targetLink);
       }
-      Files.createSymbolicLink(targetLink, source);
+      if (this.context.getSystemInfo().isWindows()) {
+        context.newProcess().executable("sh").addArgs("//c", "mklink", "/D", source, targetLink).run();
+      } else {
+        Files.createSymbolicLink(targetLink, source);
+      }
     } catch (FileSystemException e) {
       info(
-          "Failed to create native symlink due to lack of permissions. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for further details. Error was {}"
+          "Failed to create native symlink due to lack of permissions. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for further details. Error was:"
               + e.getMessage());
-      if (this.context.getSystemInfo().isWindows()) {
-        try {
-          Runtime rt = Runtime.getRuntime();
-          rt.exec("cmd //c 'mklink /D /J $(cygpath -w " + source + ") $(cygpath -w" + targetLink + ")");
-        } catch (IOException ex) {
-          throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source,
-              e);
-        }
-      }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source, e);
     }
