@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.IOException;
-import java.io.File;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,8 +33,6 @@ public final class ProcessContextImpl implements ProcessContext {
   private Path executable;
 
   private ProcessErrorHandling errorHandling;
-
-  private final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
 
   /**
    * The constructor.
@@ -75,30 +72,13 @@ public final class ProcessContextImpl implements ProcessContext {
   }
 
   @Override
-  public ProcessContext executable(Path toolPath) {
+  public ProcessContext executable(Path command) {
 
     if (!this.arguments.isEmpty()) {
       throw new IllegalStateException("Arguments already present - did you forget to call run for previous call?");
     }
 
-    Path executable = toolPath;
-
-    if (executable.isAbsolute()) {
-      for (String extension : EXTENSION_PRIORITY) {
-
-        Path fileToExecute = Paths.get(toolPath + extension);
-
-        if (Files.exists(fileToExecute)) {
-          executable = fileToExecute;
-          break;
-        }
-      }
-    }
-    if (!executable.isAbsolute()) {
-      this.context.debug("Using " + executable.getFileName() + "for " + executable);
-    }
-
-    this.executable = executable;
+    this.executable = this.context.getPath().findBinary(command);
     return this;
   }
 

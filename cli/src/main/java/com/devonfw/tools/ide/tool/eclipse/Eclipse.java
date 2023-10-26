@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.eclipse;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
@@ -52,7 +53,7 @@ public class Eclipse extends IdeToolCommandlet {
    */
   protected ProcessResult runEclipse(boolean log, String... args) {
 
-    Path toolPath = getToolBinPath().resolve(getBinaryName());
+    Path toolPath = Paths.get(getBinaryName());
     ProcessContext pc = this.context.newProcess();
     if (log) {
       pc.errorHandling(ProcessErrorHandling.ERROR);

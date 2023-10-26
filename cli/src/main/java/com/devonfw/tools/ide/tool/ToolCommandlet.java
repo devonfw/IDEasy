@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Set;
@@ -90,7 +91,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public void runTool(VersionIdentifier toolVersion, String... args) {
 
     Path binaryPath;
-    Path toolPath = getToolBinPath().resolve(getBinaryName());
+    Path toolPath = Paths.get(getBinaryName());
     if (toolVersion == null) {
       install(true);
       binaryPath = toolPath;
