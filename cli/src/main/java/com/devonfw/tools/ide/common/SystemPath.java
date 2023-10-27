@@ -29,6 +29,8 @@ public class SystemPath {
   
   private final IdeContext context;
 
+  private static final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
+
   /**
    * The constructor.
    *
@@ -89,6 +91,7 @@ public class SystemPath {
             if (Files.isDirectory(bin)) {
               toolPath = bin;
             }
+            this.paths.add(0, toolPath);
             this.tool2pathMap.put(child.getFileName().toString(), toolPath);
           }
         }
@@ -110,6 +113,41 @@ public class SystemPath {
       }
     }
     return null;
+  }
+
+  private Path findBinaryInOrder(Path path, String tool) {
+
+    for (String extension : EXTENSION_PRIORITY) {
+
+      Path fileToExecute = path.resolve(tool + extension);
+
+      if (Files.exists(fileToExecute)) {
+        return fileToExecute;
+      }
+    }
+
+    return null;
+  }
+
+  public Path findBinary(Path toolPath) {
+    Path parent = toolPath.getParent();
+    String fileName = toolPath.getFileName().toString();
+
+    if (parent == null) {
+      for (Path path : this.paths) {
+        Path binaryPath = findBinaryInOrder(path, fileName);
+        if (binaryPath != null) {
+          return binaryPath;
+        }
+      }
+    } else {
+      Path binaryPath = findBinaryInOrder(parent, fileName);
+      if (binaryPath != null) {
+        return binaryPath;
+      }
+    }
+
+    return toolPath;
   }
 
   /**

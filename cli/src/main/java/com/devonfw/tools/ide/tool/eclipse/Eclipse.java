@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.eclipse;
 
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
@@ -52,12 +53,12 @@ public class Eclipse extends IdeToolCommandlet {
    */
   protected ProcessResult runEclipse(boolean log, String... args) {
 
-    Path binary = getToolBinary();
+    Path toolPath = Paths.get(getBinaryName());
     ProcessContext pc = this.context.newProcess();
     if (log) {
       pc.errorHandling(ProcessErrorHandling.ERROR);
     }
-    pc.executable(binary);
+    pc.executable(toolPath);
     Path configurationPath = getPluginsInstallationPath().resolve("configuration");
     this.context.getFileAccess().mkdirs(configurationPath);
     if (log) {
@@ -69,7 +70,7 @@ public class Eclipse extends IdeToolCommandlet {
     }
     pc.addArg("-configuration").addArg(configurationPath);
     // TODO ability to use different Java version
-    Path javaPath = getCommandlet(Java.class).getToolBinary();
+    Path javaPath = getCommandlet(Java.class).getToolBinPath();
     pc.addArg("-vm").addArg(javaPath);
     pc.addArgs(args);
     return pc.run(log);

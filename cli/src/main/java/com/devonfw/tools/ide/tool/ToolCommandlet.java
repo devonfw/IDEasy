@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Set;
@@ -89,42 +90,17 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void runTool(VersionIdentifier toolVersion, String... args) {
 
-    Path binary;
+    Path binaryPath;
+    Path toolPath = Paths.get(getBinaryName());
     if (toolVersion == null) {
       install(true);
-      binary = getToolBinary();
+      binaryPath = toolPath;
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binary)
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
         .addArgs(args);
     pc.run();
-  }
-
-  /**
-   * @return the {@link Path} where the main executable file of this tool is installed.
-   */
-  public Path getToolBinary() {
-
-    Path binPath = getToolBinPath();
-    Path binary = this.context.getFileAccess().findFirst(binPath, this::isBinary, false);
-    if (binary == null) {
-      throw new IllegalStateException("Could not find executable binary for " + getName() + " in " + binPath);
-    }
-    return binary;
-  }
-
-  protected boolean isBinary(Path path) {
-
-    String filename = path.getFileName().toString();
-    String binaryName = getBinaryName();
-    if (filename.equals(binaryName)) {
-      return true;
-    } else if (filename.startsWith(binaryName)) {
-      String suffix = filename.substring(binaryName.length());
-      return this.context.getSystemInfo().getOs().isExecutable(suffix);
-    }
-    return false;
   }
 
   protected String getBinaryName() {
