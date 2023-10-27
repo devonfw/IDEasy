@@ -54,6 +54,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
 
   /**
+   * Override this if the global tool comes with a zip file.
    * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.
    */
   @Override
