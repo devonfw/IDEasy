@@ -7,9 +7,11 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Set;
 
 public abstract class GlobalToolCommandlet extends ToolCommandlet {
@@ -53,6 +55,16 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return null;
   }
 
+
+  /**
+   * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.
+   */
+  @Override
+  protected boolean isExtract() {
+
+    return false;
+  }
+
   /**
    * Installs or updates the managed {@link #getName() tool}.
    *
@@ -63,23 +75,30 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   @Override
   protected boolean doInstall(boolean silent) {
 
+    Path binaryPath = getToolBinary();
+    if (Files.exists(binaryPath) && !this.context.isForceMode()) {
+      // tool already installed
+      this.context.debug("{} is already installed at {}", this.tool, binaryPath);
+      return false;
+    }
     String edition = getEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion);
-    Path binaryPath = getToolBinary();
-    if (Files.exists(binaryPath)) {
-      // TODO: check whether resolvedVersion is different than installedVersion, if so update the tool?
-      return false;
-    }
     // download and install the global tool
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
+
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(target);
-    pc.run();
-    this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
-    //TODO: create a toolVersionFile? If so, in binDir or rootDir? if not, how do we retrieve the version so that getInstalledVersion works?
+    if (pc.run() == 0) {
+      this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
+    } else {
+      this.context.warning("{} in version {} was not successfully installed", this.tool, resolvedVersion);
+      return false;
+    }
     postInstall();
     return true;
   }
+
+
 
 }

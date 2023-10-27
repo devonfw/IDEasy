@@ -37,7 +37,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /** The commandline arguments to pass to the tool. */
   public final StringListProperty arguments;
 
-  protected MacOsHelper macOsHelper;
+  private MacOsHelper macOsHelper;
 
   /**
    * The constructor.
@@ -219,6 +219,80 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected void postInstall() {
     
     // nothing to do by default
+  }
+
+  /**
+   * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.
+   */
+  protected boolean isExtract() {
+
+    return true;
+  }
+
+  /**
+   * @param file the {@link Path} to the file to extract.
+   * @param targetDir the {@link Path} to the directory where to extract (or copy) the file.
+   */
+  protected void extract(Path file, Path targetDir) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (isExtract()) {
+      this.context.trace("Trying to extract the downloaded file {} to {}.", file, targetDir);
+      String extension = FilenameUtil.getExtension(file.getFileName().toString());
+      this.context.trace("Determined file extension {}", extension);
+      TarCompression tarCompression = TarCompression.of(extension);
+      if (tarCompression != null) {
+        fileAccess.untar(file, targetDir, tarCompression);
+      } else if ("zip".equals(extension) || "jar".equals(extension)) {
+        fileAccess.unzip(file, targetDir);
+      } else if ("dmg".equals(extension)) {
+        assert this.context.getSystemInfo().isMac();
+        Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
+        fileAccess.mkdirs(mountPath);
+        ProcessContext pc = this.context.newProcess();
+        pc.executable("hdiutil");
+        pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
+        pc.run();
+        Path appPath = fileAccess.findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
+        if (appPath == null) {
+          throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
+        }
+        fileAccess.copy(appPath, targetDir);
+        pc.addArgs("detach", "-force", mountPath);
+        pc.run();
+        // if [ -e "${target_dir}/Applications" ]
+        // then
+        // rm "${target_dir}/Applications"
+        // fi
+      } else if ("msi".equals(extension)) {
+        this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + targetDir).run();
+        // msiexec also creates a copy of the MSI
+        Path msiCopy = targetDir.resolve(file.getFileName());
+        fileAccess.delete(msiCopy);
+      } else if ("pkg".equals(extension)) {
+
+        Path tmpDir = fileAccess.createTempDir("ide-pkg-");
+        ProcessContext pc = this.context.newProcess();
+        // we might also be able to use cpio from commons-compression instead of external xar...
+        pc.executable("xar").addArgs("-C", tmpDir, "-xf", file).run();
+        Path contentPath = fileAccess.findFirst(tmpDir, p -> p.getFileName().toString().equals("Payload"), true);
+        fileAccess.untar(contentPath, targetDir, TarCompression.GZ);
+        fileAccess.delete(tmpDir);
+      } else {
+        throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + file);
+      }
+    } else {
+      this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", getName(), file);
+      fileAccess.move(file, targetDir);
+    }
+  }
+
+  protected MacOsHelper getMacOsHelper() {
+
+    if (this.macOsHelper == null) {
+      this.macOsHelper = new MacOsHelper(this.context);
+    }
+    return this.macOsHelper;
   }
 
   /**
