@@ -7,11 +7,9 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
 import java.util.Set;
 
 public abstract class GlobalToolCommandlet extends ToolCommandlet {
@@ -51,7 +49,6 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   @Override
   public Path getToolPath() {
 
-    // TODO: get rootDir of global tool? is RootDir accessible from BinDir (getToolBinary())?
     return null;
   }
 
@@ -66,7 +63,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Installs or updates the managed {@link #getName() tool}.
+   * Installs {@link #getName() tool}, if force mode is enabled it proceeds with the installation.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
@@ -87,7 +84,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion);
     // download and install the global tool
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
-
+    //TODO: (Eventually) extract the file -> where?
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(target);
     if (pc.run() == 0) {
       this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
