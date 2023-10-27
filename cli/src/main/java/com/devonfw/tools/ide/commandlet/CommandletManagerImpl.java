@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gh.Gh;
@@ -72,6 +73,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new KotlincNative(context));
     add(new Vscode(context));
     add(new Azure(context));
+    add(new Aws(context));
   }
 
   private void add(Commandlet commandlet) {
