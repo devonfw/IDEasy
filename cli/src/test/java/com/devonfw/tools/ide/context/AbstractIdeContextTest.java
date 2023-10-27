@@ -35,9 +35,9 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   /**
    * @param projectName the (folder)name of the test project in {@link #PATH_PROJECTS}. E.g. "basic".
-   * @return the {@link IdeContext} pointing to that project.
+   * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected IdeContext newContext(String projectName) {
+  protected IdeTestContext newContext(String projectName) {
 
     return newContext(projectName, null, true);
   }
@@ -45,9 +45,9 @@ public abstract class AbstractIdeContextTest extends Assertions {
   /**
    * @param projectName the (folder)name of the test project in {@link #PATH_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
-   * @return the {@link IdeContext} pointing to that project.
+   * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeContext newContext(String projectName, String projectPath) {
+  protected static IdeTestContext newContext(String projectName, String projectPath) {
 
     return newContext(projectName, projectPath, true);
   }
@@ -58,9 +58,9 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
    *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
    *        in that project.
-   * @return the {@link IdeContext} pointing to that project.
+   * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeContext newContext(String projectName, String projectPath, boolean copyForMutation) {
+  protected static IdeTestContext newContext(String projectName, String projectPath, boolean copyForMutation) {
 
     Path sourceDir = PATH_PROJECTS.resolve(projectName);
     Path userDir = sourceDir;
@@ -68,7 +68,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
       userDir = sourceDir.resolve(projectPath);
     }
     CommandletManagerResetter.reset();
-    IdeContext context;
+    IdeTestContext context;
     if (copyForMutation) {
       Path projectDir = PATH_PROJECTS_COPY.resolve(projectName);
       FileAccess fileAccess = new FileAccessImpl(IdeTestContextMock.get());
@@ -84,7 +84,11 @@ public abstract class AbstractIdeContextTest extends Assertions {
     return context;
   }
 
-  protected static IdeContext newContext(Path projectPath) {
+  /**
+   * @param projectPath the relative path inside the test project where to create the context.
+   * @return the {@link IdeTestContext} pointing to that project.
+   */
+  protected static IdeTestContext newContext(Path projectPath) {
 
     return new IdeTestContext(projectPath);
   }
@@ -94,7 +98,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param level the expected {@link IdeLogLevel}.
    * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
    */
-  protected static void assertLogMessage(IdeContext context, IdeLogLevel level, String message) {
+  protected static void assertLogMessage(IdeTestContext context, IdeLogLevel level, String message) {
 
     assertLogMessage(context, level, message, false);
   }
@@ -106,9 +110,9 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param contains - {@code true} if the given {@code message} may only be a sub-string of the log-message to assert,
    *        {@code false} otherwise (the entire log message including potential parameters being filled in is asserted).
    */
-  protected static void assertLogMessage(IdeContext context, IdeLogLevel level, String message, boolean contains) {
+  protected static void assertLogMessage(IdeTestContext context, IdeLogLevel level, String message, boolean contains) {
 
-    IdeTestLogger logger = (IdeTestLogger) context.level(level);
+    IdeTestLogger logger = context.level(level);
     ListAssert<String> assertion = assertThat(logger.getMessages()).as(level.name() + "-Log messages");
     if (contains) {
       Condition<String> condition = new Condition<>() {
@@ -125,7 +129,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   /**
    * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default
-   * behaviour
+   * behavior
    *
    * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
    * @param taskName name of the task e.g. Downloading.

@@ -343,22 +343,13 @@ public class FileAccessImpl implements FileAccess {
 
   private void unpack(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
-    Path tmpDir = createTempDir("extract-" + file.getFileName());
-    this.context.trace("Unpacking archive {} to {}", file, tmpDir);
-    Path toplevelFolder = null;
-    boolean singleToplevelFolder = true;
+    this.context.trace("Unpacking archive {} to {}", file, targetDir);
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
       ArchiveEntry entry = ais.getNextEntry();
       while (entry != null) {
         Path entryName = Paths.get(entry.getName());
-        Path entryRoot = entryName.getName(0);
-        if (toplevelFolder == null) {
-          toplevelFolder = entryRoot;
-        } else if (singleToplevelFolder && !toplevelFolder.equals(entryRoot)) {
-          singleToplevelFolder = false;
-        }
-        Path entryPath = tmpDir.resolve(entryName).toAbsolutePath();
-        if (!entryPath.startsWith(tmpDir)) {
+        Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
+        if (!entryPath.startsWith(targetDir)) {
           throw new IOException("Preventing path traversal attack from " + entryName + " to " + entryPath);
         }
         if (entry.isDirectory()) {
@@ -369,12 +360,6 @@ public class FileAccessImpl implements FileAccess {
           Files.copy(ais, entryPath);
         }
         entry = ais.getNextEntry();
-      }
-      if (singleToplevelFolder && (toplevelFolder != null) && !toplevelFolder.toString().equals("bin")) {
-        move(tmpDir.resolve(toplevelFolder), targetDir);
-        delete(tmpDir);
-      } else {
-        move(tmpDir, targetDir);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);

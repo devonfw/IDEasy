@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.environment;
 
 import java.util.Map;
 
-import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Implementation of {@link EnvironmentVariables} using {@link System#getenv()}.
@@ -11,9 +11,9 @@ import com.devonfw.tools.ide.log.IdeLogger;
  */
 public final class EnvironmentVariablesSystem extends EnvironmentVariablesMap {
 
-  private EnvironmentVariablesSystem(IdeLogger logger) {
+  private EnvironmentVariablesSystem(IdeContext context) {
 
-    super(null, logger);
+    super(null, context);
   }
 
   @Override
@@ -29,12 +29,12 @@ public final class EnvironmentVariablesSystem extends EnvironmentVariablesMap {
   }
 
   /**
-   * @param logger the {@link IdeLogger}.
+   * @param context the {@link IdeContext}.
    * @return the {@link EnvironmentVariablesSystem} instance.
    */
-  static EnvironmentVariablesSystem of(IdeLogger logger) {
+  static EnvironmentVariablesSystem of(IdeContext context) {
 
-    return new EnvironmentVariablesSystem(logger);
+    return new EnvironmentVariablesSystem(context);
   }
 
 }

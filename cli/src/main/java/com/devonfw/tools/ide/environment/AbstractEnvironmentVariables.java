@@ -7,7 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Abstract base implementation of {@link EnvironmentVariables}.
@@ -17,8 +17,8 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   /** @see #getParent() */
   protected final AbstractEnvironmentVariables parent;
 
-  /** The {@link IdeLogger} instance. */
-  protected final IdeLogger logger;
+  /** The {@link IdeContext} instance. */
+  protected final IdeContext context;
 
   private String source;
 
@@ -26,19 +26,19 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    * The constructor.
    *
    * @param parent the parent {@link EnvironmentVariables} to inherit from.
-   * @param logger the {@link IdeLogger}.
+   * @param context the {@link IdeContext}.
    */
-  public AbstractEnvironmentVariables(AbstractEnvironmentVariables parent, IdeLogger logger) {
+  public AbstractEnvironmentVariables(AbstractEnvironmentVariables parent, IdeContext context) {
 
     super();
     this.parent = parent;
-    if (logger == null) {
+    if (context == null) {
       if (parent == null) {
         throw new IllegalArgumentException("parent and logger must not both be null!");
       }
-      this.logger = parent.logger;
+      this.context = parent.context;
     } else {
-      this.logger = logger;
+      this.context = context;
     }
   }
 
@@ -126,7 +126,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    */
   public AbstractEnvironmentVariables extend(Path propertiesFilePath, EnvironmentVariablesType type) {
 
-    return new EnvironmentVariablesPropertiesFile(this, type, propertiesFilePath, this.logger);
+    return new EnvironmentVariablesPropertiesFile(this, type, propertiesFilePath, this.context);
   }
 
   /**
