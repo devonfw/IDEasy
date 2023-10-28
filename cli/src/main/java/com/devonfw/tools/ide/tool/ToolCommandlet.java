@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -86,14 +87,15 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void runTool(VersionIdentifier toolVersion, String... args) {
 
-    Path binary;
+    Path binaryPath;
+    Path toolPath = Paths.get(getName());
     if (toolVersion == null) {
       install(true);
-      binary = getToolBinary();
+      binaryPath = toolPath;
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binary)
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
         .addArgs(args);
     pc.run();
   }
@@ -106,7 +108,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @return the {@link Path} where the tool is located (installed).
    */
-  public abstract Path getToolPath();
 
 
   /**
@@ -127,7 +128,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return getToolWithEdition(getName(), getEdition());
   }
 
-
   /**
    * @param tool the tool name.
    * @param edition the edition.
@@ -140,6 +140,29 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       return tool;
     }
     return tool + "/" + edition;
+  }
+
+  /**
+   * @return the {@link Path} where the tool is located (installed).
+   */
+  public Path getToolPath() {
+
+    return this.context.getSoftwarePath().resolve(getName());
+  }
+
+  /**
+   * @return the {@link Path} where the executables of the tool can be found. Typically a "bin" folder inside
+   *         {@link #getToolPath() tool path}.
+   */
+  public Path getToolBinPath() {
+
+    Path toolPath = getToolPath();
+    Path binPath = this.context.getFileAccess().findFirst(toolPath, path -> path.getFileName().toString().equals("bin"),
+        false);
+    if ((binPath != null) && Files.isDirectory(binPath)) {
+      return binPath;
+    }
+    return toolPath;
   }
 
   /**

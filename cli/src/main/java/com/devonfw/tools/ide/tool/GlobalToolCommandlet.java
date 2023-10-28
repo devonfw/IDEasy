@@ -64,8 +64,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Installs {@link #getName() tool}, if force mode is enabled it proceeds with the installation.
-   *
+   * Installs {@link #getName() tool}, if force mode is enabled it proceeds with the installation even if the tool
+   * is already installed
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
    *         nothing has changed.
@@ -75,8 +75,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
     Path binaryPath = getToolBinary();
     if (Files.exists(binaryPath) && !this.context.isForceMode()) {
-      // tool already installed
-      this.context.debug("{} is already installed at {}", this.tool, binaryPath);
+      if (silent) {
+        this.context.debug("{} is already installed at {}", this.tool, binaryPath);
+      }
       return false;
     }
     String edition = getEdition();
@@ -85,7 +86,11 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion);
     // download and install the global tool
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
-    //TODO: (Eventually) extract the file -> where?
+    if (isExtract()) {
+      Path extracted = this.context.getTempPath();
+      extract(target, extracted);
+      target = extracted;
+    }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(target);
     if (pc.run() == 0) {
       this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
