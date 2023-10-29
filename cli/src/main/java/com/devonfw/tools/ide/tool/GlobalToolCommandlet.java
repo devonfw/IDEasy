@@ -84,11 +84,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion);
     // download and install the global tool
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
-    if (isExtract()) {
-      Path extracted = this.context.getTempPath();
-      extract(target, extracted);
-      target = extracted;
-    }
+    extract(target, null);
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(target);
     if (pc.run() == 0) {
       this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
