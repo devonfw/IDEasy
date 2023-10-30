@@ -53,7 +53,7 @@ public class Eclipse extends IdeToolCommandlet {
    */
   protected ProcessResult runEclipse(boolean log, String... args) {
 
-    Path toolPath = Paths.get(getName());
+    Path toolPath = Paths.get(getBinaryName());
     ProcessContext pc = this.context.newProcess();
     if (log) {
       pc.errorHandling(ProcessErrorHandling.ERROR);

@@ -65,6 +65,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return this.tool;
   }
 
+  protected String getBinaryName() {
+
+    return this.tool;
+  }
+
   @Override
   public final Set<String> getTags() {
 
@@ -88,7 +93,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public void runTool(VersionIdentifier toolVersion, String... args) {
 
     Path binaryPath;
-    Path toolPath = Paths.get(getName());
+    Path toolPath = Paths.get(getBinaryName());
     if (toolVersion == null) {
       install(true);
       binaryPath = toolPath;

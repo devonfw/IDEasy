@@ -28,22 +28,6 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * @return the {@link Path} where the main executable file of this tool is installed.
-   */
-  public Path getToolBinary() {
-
-    String path = System.getenv("PATH");
-    String[] pathDirs = path.split(File.pathSeparator);
-    for (String dir : pathDirs) {
-      Path toolPath = Paths.get(dir, getName());
-      if (Files.isExecutable(toolPath)) {
-        return toolPath;
-      }
-    }
-    return null;
-  }
-
-  /**
    * Override this if the global tool comes with a file that has to be extracted.
    * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.
    */
@@ -63,7 +47,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   @Override
   protected boolean doInstall(boolean silent) {
 
-    Path binaryPath = getToolBinary();
+    Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
     if (binaryPath != null && Files.exists(binaryPath) && !this.context.isForceMode()) {
       this.context.debug("{} is already installed at {}", this.tool, binaryPath);
       return false;

@@ -22,7 +22,8 @@ public class Vscode extends LocalToolCommandlet {
   }
 
   @Override
-  public String getName() {
+  protected String getBinaryName() {
+
     return "code";
   }
 
