@@ -76,12 +76,12 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     Path target = Path.of("C:\\Users\\saboucha\\Downloads\\devonfw-ide\\terraform-1.6.2-windows.zip");
     //Path target = toolRepository.download(this.tool, edition, resolvedVersion);
-    //Path tmpPath = this.context.getTempDownloadPath().resolve(target.getFileName());
-    //Path tmpPath = fileAccess.createTempDir(target.getFileName().toString());
-    //this.context.getFileAccess().delete(tmpPath);
-    //extract(target, tmpPath);
     Path tmpPath = this.context.getTempPath().resolve(target.getFileName());
     extract(target, tmpPath);
+    if (isExtract()) {
+      //TODO: look for .exe inside tmpPath
+      tmpPath = null;
+    }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(tmpPath);
     int exitCode = pc.run();
     fileAccess.delete(tmpPath);
