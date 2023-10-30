@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.commandlet;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.ToolProperty;
+import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -38,7 +40,10 @@ public class VersionGetCommandlet extends Commandlet {
   public void run() {
 
     ToolCommandlet commandlet = this.tool.getValue();
-    VersionIdentifier installedVersion = commandlet.getInstalledVersion();
+    if (commandlet instanceof GlobalToolCommandlet) {
+      throw new UnsupportedOperationException("Not yet implemented!");
+    }
+    VersionIdentifier installedVersion = ((LocalToolCommandlet)commandlet).getInstalledVersion();
     if (installedVersion == null) {
       throw new CliException("Tool " + commandlet.getName() + " is not installed!", 4);
     }

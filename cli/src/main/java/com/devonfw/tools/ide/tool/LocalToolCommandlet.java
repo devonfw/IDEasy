@@ -31,33 +31,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     super(context, tool, tags);
   }
 
-  /**
-   * @return the {@link Path} where the main executable file of this tool is installed.
-   */
-
-  @Override
-  public Path getToolBinary() {
-
-    Path binPath = getToolBinPath();
-    Path binary = this.context.getFileAccess().findFirst(binPath, this::isBinary, false);
-    if (binary == null) {
-      throw new IllegalStateException("Could not find executable binary for " + getName() + " in " + binPath);
-    }
-    return binary;
-  }
-
-  protected boolean isBinary(Path path) {
-
-    String filename = path.getFileName().toString();
-    String binaryName = super.getName();
-    if (filename.equals(binaryName)) {
-      return true;
-    } else if (filename.startsWith(binaryName)) {
-      String suffix = filename.substring(binaryName.length());
-      return this.context.getSystemInfo().getOs().isExecutable(suffix);
-    }
-    return false;
-  }
 
   /**
    * @return the {@link Path} where the tool is located (installed).
@@ -199,6 +172,35 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
     }
     return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion);
+  }
+
+  /**
+   * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
+   */
+  public VersionIdentifier getInstalledVersion() {
+
+    Path toolPath = getToolPath();
+    if (!Files.isDirectory(toolPath)) {
+      this.context.trace("Tool {} not installed in {}", getName(), toolPath);
+      return null;
+    }
+    Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    if (!Files.exists(toolVersionFile)) {
+      Path legacyToolVersionFile = toolPath.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION);
+      if (Files.exists(legacyToolVersionFile)) {
+        toolVersionFile = legacyToolVersionFile;
+      } else {
+        this.context.warning("Tool {} is missing version file in {}", getName(), toolVersionFile);
+        return null;
+      }
+    }
+    try {
+      String version = Files.readString(toolVersionFile).trim();
+      return VersionIdentifier.of(version);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read file " + toolVersionFile, e);
+    }
+
   }
 
   /**

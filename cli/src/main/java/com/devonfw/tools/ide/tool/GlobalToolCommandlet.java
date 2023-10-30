@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.repo.ToolRepository;
@@ -29,7 +30,6 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   /**
    * @return the {@link Path} where the main executable file of this tool is installed.
    */
-  @Override
   public Path getToolBinary() {
 
     String path = System.getenv("PATH");
@@ -44,23 +44,13 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * @return the {@link Path} where the tool is located (installed).
-   */
-  @Override
-  public Path getToolPath() {
-
-    return null;
-  }
-
-
-  /**
-   * Override this if the global tool comes with a zip file.
+   * Override this if the global tool comes with a file that has to be extracted.
    * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.
    */
   @Override
   protected boolean isExtract() {
 
-    return false;
+    return true;
   }
 
   /**
@@ -74,7 +64,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   protected boolean doInstall(boolean silent) {
 
     Path binaryPath = getToolBinary();
-    if (Files.exists(binaryPath) && !this.context.isForceMode()) {
+    if (binaryPath != null && Files.exists(binaryPath) && !this.context.isForceMode()) {
       this.context.debug("{} is already installed at {}", this.tool, binaryPath);
       return false;
     }
@@ -83,10 +73,19 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion);
     // download and install the global tool
-    Path target = toolRepository.download(this.tool, edition, resolvedVersion);
-    extract(target, null);
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(target);
-    if (pc.run() == 0) {
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path target = Path.of("C:\\Users\\saboucha\\Downloads\\devonfw-ide\\terraform-1.6.2-windows.zip");
+    //Path target = toolRepository.download(this.tool, edition, resolvedVersion);
+    //Path tmpPath = this.context.getTempDownloadPath().resolve(target.getFileName());
+    //Path tmpPath = fileAccess.createTempDir(target.getFileName().toString());
+    //this.context.getFileAccess().delete(tmpPath);
+    //extract(target, tmpPath);
+    Path tmpPath = this.context.getTempPath().resolve(target.getFileName());
+    extract(target, tmpPath);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(tmpPath);
+    int exitCode = pc.run();
+    fileAccess.delete(tmpPath);
+    if (exitCode == 0) {
       this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
     } else {
       this.context.warning("{} in version {} was not successfully installed", this.tool, resolvedVersion);

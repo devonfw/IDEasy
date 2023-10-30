@@ -101,16 +101,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * @return the {@link Path} where the main executable file of this tool is installed.
-   */
-  public abstract Path getToolBinary();
-
-  /**
-   * @return the {@link Path} where the tool is located (installed).
-   */
-
-
-  /**
    * @return the {@link EnvironmentVariables#getToolEdition(String) tool edition}.
    */
   protected String getEdition() {
@@ -143,63 +133,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * @return the {@link Path} where the tool is located (installed).
-   */
-  public Path getToolPath() {
-
-    return this.context.getSoftwarePath().resolve(getName());
-  }
-
-  /**
-   * @return the {@link Path} where the executables of the tool can be found. Typically a "bin" folder inside
-   *         {@link #getToolPath() tool path}.
-   */
-  public Path getToolBinPath() {
-
-    Path toolPath = getToolPath();
-    Path binPath = this.context.getFileAccess().findFirst(toolPath, path -> path.getFileName().toString().equals("bin"),
-        false);
-    if ((binPath != null) && Files.isDirectory(binPath)) {
-      return binPath;
-    }
-    return toolPath;
-  }
-
-  /**
    * @return the {@link EnvironmentVariables#getToolVersion(String) tool version}.
    */
   public VersionIdentifier getConfiguredVersion() {
 
     return this.context.getVariables().getToolVersion(getName());
-  }
-
-  /**
-   * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
-   */
-  public VersionIdentifier getInstalledVersion() {
-
-    Path toolPath = getToolPath();
-    if (!Files.isDirectory(toolPath)) {
-      this.context.trace("Tool {} not installed in {}", getName(), toolPath);
-      return null;
-    }
-    Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
-    if (!Files.exists(toolVersionFile)) {
-      Path legacyToolVersionFile = toolPath.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION);
-      if (Files.exists(legacyToolVersionFile)) {
-        toolVersionFile = legacyToolVersionFile;
-      } else {
-        this.context.warning("Tool {} is missing version file in {}", getName(), toolVersionFile);
-        return null;
-      }
-    }
-    try {
-      String version = Files.readString(toolVersionFile).trim();
-      return VersionIdentifier.of(version);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to read file " + toolVersionFile, e);
-    }
-
   }
 
   /**
@@ -244,56 +182,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.
-   */
-  protected boolean isExtract() {
-
-    return true;
-  }
-
-  /**
-   * @return the currently installed tool version or {@code null} if not found (tool not installed).
-   */
-  protected String getInstalledToolVersion() {
-
-    Path toolPath = getToolPath();
-    if (!Files.isDirectory(toolPath)) {
-      this.context.debug("Tool {} not installed in {}", getName(), toolPath);
-      return null;
-    }
-    Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
-    if (!Files.exists(toolVersionFile)) {
-      Path legacyToolVersionFile = toolPath.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION);
-      if (Files.exists(legacyToolVersionFile)) {
-        toolVersionFile = legacyToolVersionFile;
-      } else {
-        this.context.warning("Tool {} is missing version file in {}", getName(), toolVersionFile);
-        return null;
-      }
-    }
-    try {
-      return Files.readString(toolVersionFile).trim();
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to read file " + toolVersionFile, e);
-    }
-  }
-
-  private boolean isInstalledVersion(VersionIdentifier expectedVersion, VersionIdentifier installedVersion,
-      boolean silent) {
-
-    if (expectedVersion.equals(installedVersion)) {
-      IdeLogLevel level = IdeLogLevel.INFO;
-      if (silent) {
-        level = IdeLogLevel.DEBUG;
-      }
-      this.context.level(level).log("Version {} of tool {} is already installed", installedVersion,
-          getToolWithEdition());
-      return true;
-    }
-    return false;
-  }
-
-  /**
    * @param path the {@link Path} to start the recursive search from.
    * @return the deepest subdir {@code s} of the passed path such that all directories between {@code s} and the passed
    *         path (including {@code s}) are the sole item in their respective directory and {@code s} is not named
@@ -325,9 +213,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   protected void extract(Path file, Path targetDir) {
 
-    Path tmpDir = this.context.getFileAccess().createTempDir("extract-" + file.getFileName());
     FileAccess fileAccess = this.context.getFileAccess();
     if (isExtract()) {
+      Path tmpDir = this.context.getFileAccess().createTempDir("extract-" + file.getFileName());
       this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", file, tmpDir, targetDir);
       String extension = FilenameUtil.getExtension(file.getFileName().toString());
       this.context.trace("Determined file extension {}", extension);
@@ -378,6 +266,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", getName(), file);
       fileAccess.move(file, targetDir);
     }
+  }
+
+  /**
+   * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.
+   */
+  protected boolean isExtract() {
+
+    return true;
   }
 
   protected MacOsHelper getMacOsHelper() {
