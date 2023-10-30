@@ -3,14 +3,14 @@ toc::[]
 
 = Symlink
 
-The creation of symlinks on windows, with the given function from java requires the user to have administration rights. While we use a workaround in wich we call the mklink command in a command prompt, permissions to create symbolic links can be given to non administrator manually.
-Opening `Local Security Policy` (`secpol.msc`) select `Local Policies`/`User Rights Assignment`
+The creation of real symbolic links on Windows, requires the user to have according permissions.
+In order to grant these permissions to yourself, run `secpol.msc` (`Local Security Policy`) and select `Local Policies/User Rights Assignment`
 
-1. Right click `Create Symbolic Link`, to open `Propertys` and `Add User or Group`
+1. Right click `Create Symbolic Link`, to open `Properties` and `Add User or Group`
 +
 image::images/LocalSecurityPolicy.png[LocalSecurityPolicy]
 +
-2. Add the User who should gain the permissions, you might need to be connected to a VPN depending on the company settings.
+2. Add your own user account. To do so you might need to be connected to a VPN depending on the company settings.
 
 [cols="3,1a,1a,3", frame=none, grid=none]
 |===
