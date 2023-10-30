@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.io;
 
+import static com.devonfw.tools.ide.logging.Log.info;
+
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -11,6 +13,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -289,6 +292,17 @@ public class FileAccessImpl implements FileAccess {
         Files.delete(targetLink);
       }
       Files.createSymbolicLink(targetLink, source);
+    } catch (FileSystemException e) {
+      if (this.context.getSystemInfo().isWindows()) {
+        info(
+            "Due to lack of permissions, Microsofts mklink with junction had to be used to create a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for further details. Error was: "
+                + e.getMessage());
+
+        context.newProcess().executable("cmd")
+            .addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), source.toString()).run();
+      } else {
+        throw new RuntimeException(e);
+      }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source, e);
     }
