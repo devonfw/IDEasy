@@ -7,10 +7,8 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Set;
 
 public abstract class GlobalToolCommandlet extends ToolCommandlet {
@@ -34,7 +32,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   @Override
   protected boolean isExtract() {
 
-    return true;
+    return false;
   }
 
   /**
@@ -50,7 +48,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
     if (binaryPath != null && Files.exists(binaryPath) && !this.context.isForceMode()) {
       this.context.debug("{} is already installed at {}", this.tool, binaryPath);
-      return false;
+      //return false;
     }
     String edition = getEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
@@ -59,14 +57,16 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
-    Path tmpPath = this.context.getTempPath().resolve(target.getFileName());
-    extract(target, tmpPath);
+    Path tmpPath = fileAccess.createTempDir(getName());
+    Path downloadBinaryPath = tmpPath.resolve(target.getFileName());
+    extract(target, downloadBinaryPath);
     if (isExtract()) {
-      //TODO: look for .exe inside tmpPath
+      downloadBinaryPath = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(tmpPath);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(downloadBinaryPath);
     int exitCode = pc.run();
     fileAccess.delete(tmpPath);
+    fileAccess.delete(target);
     if (exitCode == 0) {
       this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
     } else {
@@ -75,6 +75,22 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
     postInstall();
     return true;
+  }
+
+  /**
+   * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
+   */
+  @Override
+  public VersionIdentifier getInstalledVersion() {
+    return null;
+  }
+
+  /**
+   * @return the currently installed tool version or {@code null} if not found (tool not installed).
+   */
+  @Override
+  protected String getInstalledToolVersion() {
+    return null;
   }
 
 

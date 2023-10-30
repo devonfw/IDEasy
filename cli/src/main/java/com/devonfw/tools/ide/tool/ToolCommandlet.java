@@ -16,7 +16,6 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.TarCompression;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -179,7 +178,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /**
    * This method is called after the tool has been newly installed or updated to a new version. Override it to add
-   * custom post intallation logic.
+   * custom post installation logic.
    */
   protected void postInstall() {
 
@@ -288,6 +287,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
     return this.macOsHelper;
   }
+
+  /**
+   * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
+   */
+  public abstract VersionIdentifier getInstalledVersion();
+
+  /**
+   * @return the currently installed tool version or {@code null} if not found (tool not installed).
+   */
+  protected abstract String getInstalledToolVersion();
 
   /**
    * List the available versions of this tool.
