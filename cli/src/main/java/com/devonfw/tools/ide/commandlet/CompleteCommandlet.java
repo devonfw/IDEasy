@@ -6,7 +6,6 @@ import java.util.function.Supplier;
 
 import org.fusesource.jansi.AnsiConsole;
 import org.jline.console.SystemRegistry;
-import org.jline.console.impl.Builtins;
 import org.jline.console.impl.SystemRegistryImpl;
 import org.jline.keymap.KeyMap;
 import org.jline.reader.Binding;
@@ -21,8 +20,8 @@ import org.jline.reader.impl.DefaultParser;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.widget.AutosuggestionWidgets;
-import org.jline.widget.TailTipWidgets;
 
+import com.devonfw.tools.ide.cli.CommandletRegistry;
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
@@ -66,7 +65,7 @@ public class CompleteCommandlet extends Commandlet {
 //      builtins.alias("zle", "widget");
 //      builtins.alias("bindkey", "keymap");
 
-      CommandletRegistry commandletRegistry = new CommandletRegistry(context);
+      CommandletRegistry commandletRegistry = new CommandletRegistry(null, null, context);
 
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {

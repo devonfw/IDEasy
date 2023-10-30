@@ -5,11 +5,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Iterator;
+import java.util.List;
 import java.util.function.Supplier;
 
-import org.fusesource.jansi.AnsiConsole;
-import org.jline.console.SystemRegistry;
-import org.jline.console.impl.SystemRegistryImpl;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -112,8 +110,12 @@ public final class Ide {
   public int runOrThrow(String... args) {
 
     if (args.length == 0) {
-      initializeJlineCompletion();
-      return 1;
+      try {
+        initializeJlineCompletion();
+        return ProcessResult.SUCCESS;
+      } catch (RuntimeException e) {
+        return 1;
+      }
     }
 
     CliArgument first = CliArgument.of(args);
@@ -150,6 +152,7 @@ public final class Ide {
    * Initializes jline3 autocompletion.
    */
   private void initializeJlineCompletion() {
+
     try {
       ContextCommandlet init = new ContextCommandlet();
       init.run();
@@ -163,18 +166,13 @@ public final class Ide {
       // builtins.alias("zle", "widget");
       // builtins.alias("bindkey", "keymap");
 
-      CommandletRegistry commandletRegistry = new CommandletRegistry(init, this, context);
-
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
 
-        SystemRegistry systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, null);
-        systemRegistry.setCommandRegistries(commandletRegistry);
+        // initialize our own completer here
+        IdeCompleter completer = new IdeCompleter(init, context);
 
-        // systemRegistry.setCommandRegistries(builtins, commandletRegistry);
-        // systemRegistry.register("help", commandletRegistry);
-
-        LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(systemRegistry.completer())
+        LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer)
             .parser(parser).variable(LineReader.LIST_MAX, 50).build();
 
         // Create autosuggestion widgets
@@ -196,9 +194,9 @@ public final class Ide {
 
         while (true) {
           try {
-            systemRegistry.cleanUp();
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
-            systemRegistry.execute(line);
+            reader.getHistory().add(line);
+            runCommand(line);
           } catch (UserInterruptException e) {
             // Ignore
             context.warning("User canceled with CTRL+C", e);
@@ -206,7 +204,7 @@ public final class Ide {
             context.warning("User canceled with CTRL+D", e);
             return;
           } catch (Exception e) {
-            systemRegistry.trace(e);
+            throw new RuntimeException("An error occurred while using autocompletion", e);
           }
         }
 
@@ -216,6 +214,68 @@ public final class Ide {
     } catch (Throwable e) {
       throw new RuntimeException(e);
     }
+  }
+
+  private int runCommand(String args) {
+
+    String[] arguments = args.split(" ", 0);
+    CliArgument first = CliArgument.of(arguments);
+    CliArgument current = retrieveContext(first);
+    if (current == null) {
+      // exit with success after --version has been printed...
+      return ProcessResult.SUCCESS;
+    }
+    String keyword = current.get();
+    Commandlet firstCandidate = this.context.getCommandletManager().getCommandletByFirstKeyword(keyword);
+    boolean matches;
+    if (firstCandidate != null) {
+      matches = applyAndRun(current, firstCandidate);
+      if (matches) {
+        return ProcessResult.SUCCESS;
+      }
+    }
+    for (Commandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
+      if (commandlet != firstCandidate) {
+        matches = applyAndRun(current, commandlet);
+        if (matches) {
+          return ProcessResult.SUCCESS;
+        }
+      }
+    }
+    if (!current.isEnd()) {
+      context().error("Invalid arguments: {}", current.getArgs());
+    }
+    context().getCommandletManager().getCommandlet(HelpCommandlet.class).run();
+    return 1;
+  }
+
+  private CliArgument retrieveContext(CliArgument first) {
+
+    ContextCommandlet init = new ContextCommandlet();
+    CliArgument current = first;
+    while (!current.isEnd()) {
+      String key = current.getKey();
+      Property<?> property = init.getOption(key);
+      if (property == null) {
+        break;
+      }
+      String value = current.getValue();
+      if (value == null) {
+        if (property instanceof FlagProperty) {
+          ((FlagProperty) property).setValue(Boolean.TRUE);
+        } else {
+          this.context.error("Missing value for option " + key);
+        }
+      } else {
+        property.setValueAsString(value);
+      }
+      current = current.getNext(true);
+    }
+    init.run();
+    if (init.version.isTrue()) {
+      return null;
+    }
+    return current;
   }
 
   private CliArgument initContext(CliArgument first) {
