@@ -3,10 +3,13 @@ package com.devonfw.tools.ide.tool;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -87,42 +90,17 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void runTool(VersionIdentifier toolVersion, String... args) {
 
-    Path binary;
+    Path binaryPath;
+    Path toolPath = Paths.get(getBinaryName());
     if (toolVersion == null) {
       install(true);
-      binary = getToolBinary();
+      binaryPath = toolPath;
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binary)
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
         .addArgs(args);
     pc.run();
-  }
-
-  /**
-   * @return the {@link Path} where the main executable file of this tool is installed.
-   */
-  public Path getToolBinary() {
-
-    Path binPath = getToolBinPath();
-    Path binary = this.context.getFileAccess().findFirst(binPath, this::isBinary, false);
-    if (binary == null) {
-      throw new IllegalStateException("Could not find executable binary for " + getName() + " in " + binPath);
-    }
-    return binary;
-  }
-
-  protected boolean isBinary(Path path) {
-
-    String filename = path.getFileName().toString();
-    String binaryName = getBinaryName();
-    if (filename.equals(binaryName)) {
-      return true;
-    } else if (filename.startsWith(binaryName)) {
-      String suffix = filename.substring(binaryName.length());
-      return this.context.getSystemInfo().getOs().isExecutable(suffix);
-    }
-    return false;
   }
 
   protected String getBinaryName() {
@@ -430,21 +408,48 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * @param path the {@link Path} to start the recursive search from.
+   * @return the deepest subdir {@code s} of the passed path such that all directories between {@code s} and the passed
+   *         path (including {@code s}) are the sole item in their respective directory and {@code s} is not named
+   *         "bin".
+   */
+  private Path getProperInstallationSubDirOf(Path path) {
+
+    try (Stream<Path> stream = Files.list(path)) {
+      Path[] subFiles = stream.toArray(Path[]::new);
+      if (subFiles.length == 0) {
+        throw new CliException("The downloaded package for the tool " + this.tool
+            + " seems to be empty as you can check in the extracted folder " + path);
+      } else if (subFiles.length == 1) {
+        String filename = subFiles[0].getFileName().toString();
+        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS)
+            && !filename.endsWith(".app") && Files.isDirectory(subFiles[0])) {
+          return getProperInstallationSubDirOf(subFiles[0]);
+        }
+      }
+      return path;
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to get sub-files of " + path);
+    }
+  }
+
+  /**
    * @param file the {@link Path} to the file to extract.
    * @param targetDir the {@link Path} to the directory where to extract (or copy) the file.
    */
   protected void extract(Path file, Path targetDir) {
 
+    Path tmpDir = this.context.getFileAccess().createTempDir("extract-" + file.getFileName());
     FileAccess fileAccess = this.context.getFileAccess();
     if (isExtract()) {
-      this.context.trace("Trying to extract the downloaded file {} to {}.", file, targetDir);
+      this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", file, tmpDir, targetDir);
       String extension = FilenameUtil.getExtension(file.getFileName().toString());
       this.context.trace("Determined file extension {}", extension);
       TarCompression tarCompression = TarCompression.of(extension);
       if (tarCompression != null) {
-        fileAccess.untar(file, targetDir, tarCompression);
+        fileAccess.untar(file, tmpDir, tarCompression);
       } else if ("zip".equals(extension) || "jar".equals(extension)) {
-        fileAccess.unzip(file, targetDir);
+        fileAccess.unzip(file, tmpDir);
       } else if ("dmg".equals(extension)) {
         assert this.context.getSystemInfo().isMac();
         Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
@@ -457,7 +462,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         if (appPath == null) {
           throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
         }
-        fileAccess.copy(appPath, targetDir);
+        fileAccess.copy(appPath, tmpDir);
         pc.addArgs("detach", "-force", mountPath);
         pc.run();
         // if [ -e "${target_dir}/Applications" ]
@@ -465,22 +470,24 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         // rm "${target_dir}/Applications"
         // fi
       } else if ("msi".equals(extension)) {
-        this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + targetDir).run();
+        this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + tmpDir).run();
         // msiexec also creates a copy of the MSI
-        Path msiCopy = targetDir.resolve(file.getFileName());
+        Path msiCopy = tmpDir.resolve(file.getFileName());
         fileAccess.delete(msiCopy);
       } else if ("pkg".equals(extension)) {
 
-        Path tmpDir = fileAccess.createTempDir("ide-pkg-");
+        Path tmpDirPkg = fileAccess.createTempDir("ide-pkg-");
         ProcessContext pc = this.context.newProcess();
         // we might also be able to use cpio from commons-compression instead of external xar...
-        pc.executable("xar").addArgs("-C", tmpDir, "-xf", file).run();
-        Path contentPath = fileAccess.findFirst(tmpDir, p -> p.getFileName().toString().equals("Payload"), true);
-        fileAccess.untar(contentPath, targetDir, TarCompression.GZ);
-        fileAccess.delete(tmpDir);
+        pc.executable("xar").addArgs("-C", tmpDirPkg, "-xf", file).run();
+        Path contentPath = fileAccess.findFirst(tmpDirPkg, p -> p.getFileName().toString().equals("Payload"), true);
+        fileAccess.untar(contentPath, tmpDir, TarCompression.GZ);
+        fileAccess.delete(tmpDirPkg);
       } else {
         throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + file);
       }
+      fileAccess.move(getProperInstallationSubDirOf(tmpDir), targetDir);
+      fileAccess.delete(tmpDir);
     } else {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", getName(), file);
       fileAccess.move(file, targetDir);
