@@ -11,6 +11,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
+/**
+ * {@link ToolCommandlet} that are installed globally.
+ */
 public abstract class GlobalToolCommandlet extends ToolCommandlet {
   /**
    * The constructor.

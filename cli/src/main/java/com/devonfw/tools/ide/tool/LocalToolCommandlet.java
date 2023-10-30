@@ -14,6 +14,9 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Set;
 
+/**
+ * {@link ToolCommandlet} that are installed locally.
+ */
 public abstract class LocalToolCommandlet extends ToolCommandlet {
   /**
    * The constructor.
