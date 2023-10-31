@@ -51,7 +51,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
     if (binaryPath != null && Files.exists(binaryPath) && !this.context.isForceMode()) {
       this.context.debug("{} is already installed at {}", this.tool, binaryPath);
-      //return false;
+      return false;
     }
     String edition = getEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
