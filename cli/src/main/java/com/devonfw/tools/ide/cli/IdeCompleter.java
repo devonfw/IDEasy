@@ -1,6 +1,9 @@
 package com.devonfw.tools.ide.cli;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -15,6 +18,7 @@ import org.jline.utils.AttributedString;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
+import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.Property;
@@ -78,7 +82,6 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
     String word = commandLine.word();
     List<String> words = commandLine.words();
     // TODO: implement rest of this
-    Commandlet sub = findSubcommandlet(words, commandLine.wordIndex());
     // first layer
     if (words.size() == 1) {
       if (word.startsWith("-")) {
@@ -99,64 +102,49 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
         addCandidates(candidates, this.commandlets); // adds all commandlets
       } else {
         Commandlet commandlet = context.getCommandletManager().getCommandlet(words.get(0));
-        List<Property<?>> properties = commandlet.getProperties();
-        for (Property<?> property : properties) {
-          if (property instanceof ToolProperty) {
-            addCandidates(candidates, this.toolCommandlets);
+        if (commandlet != null) {
+          List<Property<?>> properties = commandlet.getProperties();
+          for (Property<?> property : properties) {
+            if (property instanceof ToolProperty) {
+              addCandidates(candidates, this.toolCommandlets);
+            }
+            if (commandlet instanceof HelpCommandlet) { // help completion
+              Set<String> commandletsWithoutHelp;
+              commandletsWithoutHelp = this.commandlets;
+              commandletsWithoutHelp.remove(commandlet.getName());
+              addCandidates(candidates, commandletsWithoutHelp);
+            }
           }
+        } else {
+          return;
         }
       }
       // 3rd layer
     } else if (words.size() == 3) {
       Commandlet commandlet = context.getCommandletManager().getCommandlet(words.get(0));
-      List<Property<?>> properties = commandlet.getProperties();
-      for (Property<?> property : properties) {
-        if (property instanceof VersionProperty) {
-          Commandlet subCommandlet = context.getCommandletManager().getCommandlet(words.get(1));
-          if (subCommandlet != null) {
-            String toolEdition = context.getVariables().getToolEdition(subCommandlet.getName());
-            List<VersionIdentifier> versions = context.getUrls().getSortedVersions(subCommandlet.getName(),
-                toolEdition);
-            Set<String> versionNames = new HashSet<>();
-            for (VersionIdentifier vi : versions) {
-              versionNames.add(vi.toString());
+      if (commandlet != null) {
+        List<Property<?>> properties = commandlet.getProperties();
+        for (Property<?> property : properties) {
+          if (property instanceof VersionProperty) { // add version numbers
+            Commandlet subCommandlet = context.getCommandletManager().getCommandlet(words.get(1));
+            if (subCommandlet != null) {
+              String toolEdition = context.getVariables().getToolEdition(subCommandlet.getName());
+              List<VersionIdentifier> versions = context.getUrls().getSortedVersions(subCommandlet.getName(),
+                  toolEdition);
+              List<String> versionNames = new ArrayList<>();
+              for (VersionIdentifier vi : versions) {
+                versionNames.add(vi.toString());
+              }
+              // TODO: sort versions descending
+              addCandidates(candidates, versionNames);
             }
-            // TODO: sort versions descending
-            addCandidates(candidates, versionNames);
-          }
 
+          }
         }
+      } else {
+        return;
       }
     }
-    if (sub == null) {
-      return;
-    }
-    // if (word.startsWith("-")) {
-    // String buffer = word.substring(0, commandLine.wordCursor());
-    // int eq = buffer.indexOf('=');
-    // for (OptionSpec option : sub.getCommandSpec().options()) {
-    // if (option.hidden()) continue;
-    // if (option.arity().max() == 0 && eq < 0) {
-    // addCandidates(candidates, Arrays.asList(option.names()));
-    // } else {
-    // if (eq > 0) {
-    // String opt = buffer.substring(0, eq);
-    // if (Arrays.asList(option.names()).contains(opt) && option.completionCandidates() != null) {
-    // addCandidates(candidates, option.completionCandidates(), buffer.substring(0, eq + 1), "", true);
-    // }
-    // } else {
-    // addCandidates(candidates, Arrays.asList(option.names()), "", "=", false);
-    // }
-    // }
-    // }
-    // } else {
-    // addCandidates(candidates, sub.getSubcommands().keySet());
-    // for (Commandlet s : sub.getSubcommands().values()) {
-    // if (!s.getCommandSpec().usageMessage().hidden()) {
-    // addCandidates(candidates, Arrays.asList(s.getCommandSpec().aliases()));
-    // }
-    // }
-    // }
   }
 
   private void addCandidates(List<Candidate> candidates, Iterable<String> cands) {
@@ -169,39 +157,9 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
 
     for (String s : cands) {
       candidates
-          .add(new Candidate(AttributedString.stripAnsi(preFix + s + postFix), s, null, null, null, null, complete));
+      .add(new Candidate(AttributedString.stripAnsi(preFix + s + postFix), s, null, null, null, null, complete, 3));
+//      candidates
+//          .add(new Candidate(AttributedString.stripAnsi(preFix + s + postFix), s, null, null, null, null, complete));
     }
-  }
-
-  protected Commandlet findSubcommandlet(List<String> args, int lastIdx) {
-
-    Commandlet out = cmd;
-    for (int i = 0; i < lastIdx; i++) {
-      if (!args.get(i).startsWith("-")) {
-        out = findSubcommandlet(out, args.get(i));
-        if (out == null) {
-          break;
-        }
-      }
-    }
-    return out;
-  }
-
-  private Commandlet findSubcommandlet(Commandlet cmdlet, String command) {
-
-    Commandlet commandlet = context.getCommandletManager().getCommandlet(command);
-    List<Property<?>> properties = commandlet.getProperties();
-    for (Property<?> property : properties) {
-      if (property.getValue() instanceof ToolCommandlet) {
-        return null;
-
-      }
-    }
-    // for (Commandlet s : cmdlet.getSubcommands().values()) {
-    // if (s.getCommandName().equals(command) || Arrays.asList(s.getCommandSpec().aliases()).contains(command)) {
-    // return s;
-    // }
-    // }
-    return null;
   }
 }
