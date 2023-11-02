@@ -5,7 +5,6 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Iterator;
-import java.util.List;
 import java.util.function.Supplier;
 
 import org.jline.reader.EndOfFileException;
@@ -172,8 +171,8 @@ public final class Ide {
         // initialize our own completer here
         IdeCompleter completer = new IdeCompleter(init, context);
 
-        LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer)
-            .parser(parser).variable(LineReader.LIST_MAX, 50).build();
+        LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)
+            .variable(LineReader.LIST_MAX, 50).build();
 
         // Create autosuggestion widgets
         AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
@@ -196,7 +195,7 @@ public final class Ide {
           try {
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
             reader.getHistory().add(line);
-            runCommand(line);
+            runCommand(line, init);
           } catch (UserInterruptException e) {
             // Ignore
             context.warning("User canceled with CTRL+C", e);
@@ -216,11 +215,11 @@ public final class Ide {
     }
   }
 
-  private int runCommand(String args) {
+  private int runCommand(String args, ContextCommandlet contextCommandlet) {
 
     String[] arguments = args.split(" ", 0);
     CliArgument first = CliArgument.of(arguments);
-    CliArgument current = retrieveContext(first);
+    CliArgument current = retrieveContext(first, contextCommandlet);
     if (current == null) {
       // exit with success after --version has been printed...
       return ProcessResult.SUCCESS;
@@ -249,13 +248,13 @@ public final class Ide {
     return 1;
   }
 
-  private CliArgument retrieveContext(CliArgument first) {
+  // TODO: refactor this
+  private CliArgument retrieveContext(CliArgument first, ContextCommandlet contextCommandlet) {
 
-    ContextCommandlet init = new ContextCommandlet();
     CliArgument current = first;
     while (!current.isEnd()) {
       String key = current.getKey();
-      Property<?> property = init.getOption(key);
+      Property<?> property = contextCommandlet.getOption(key);
       if (property == null) {
         break;
       }
@@ -271,8 +270,7 @@ public final class Ide {
       }
       current = current.getNext(true);
     }
-    init.run();
-    if (init.version.isTrue()) {
+    if (contextCommandlet.version.isTrue()) {
       return null;
     }
     return current;
@@ -309,7 +307,7 @@ public final class Ide {
   }
 
   /**
-   * @param argument the current {@link CliArgument} (position) to match.
+   * @param current the current {@link CliArgument} (position) to match.
    * @param commandlet the potential {@link Commandlet} to {@link #apply(CliArgument, Commandlet) apply} and
    *        {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
