@@ -1,9 +1,6 @@
 package com.devonfw.tools.ide.cli;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,12 +57,14 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
     Collection<Commandlet> commandletCollection = context.getCommandletManager().getCommandlets();
 
     for (Commandlet commandlet : commandletCollection) {
+      // TODO: add more logic to remove unused keyword
       commandlets.add(commandlet.getName());
       commandlets.add(commandlet.getKeyword());
     }
 
     for (Commandlet commandlet : commandletCollection) {
       if (commandlet instanceof ToolCommandlet) {
+        // TODO: add more logic to remove unused keyword
         toolCommandlets.add(commandlet.getName());
         toolCommandlets.add(commandlet.getKeyword());
       }
@@ -92,10 +91,16 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
       // 2nd layer..
       if (words.get(0).startsWith("-")) { // options
         Set<String> cleanedOptions = new HashSet<>();
-        for (String option : this.commandletOptions) {
-          // TODO: remove aliases and vice versa too (--trace removes -t too)
-          if (!option.equals(words.get(0))) {
-            cleanedOptions.add(option);
+        Property<?> commandletOption = cmd.getOption(words.get(0));
+        if (commandletOption != null) {
+          for (Property property: cmd.getProperties()){
+            if (property instanceof FlagProperty) {
+              // removes aliases and vice versa too (--trace removes -t too)
+              if (!property.getNameOrAlias().equals(commandletOption.getName()) ) {
+                cleanedOptions.add(property.getName());
+                cleanedOptions.add(property.getAlias());
+              }
+            }
           }
         }
         addCandidates(candidates, cleanedOptions); // adds rest of options without used option
@@ -131,14 +136,14 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
               String toolEdition = context.getVariables().getToolEdition(subCommandlet.getName());
               List<VersionIdentifier> versions = context.getUrls().getSortedVersions(subCommandlet.getName(),
                   toolEdition);
-              List<String> versionNames = new ArrayList<>();
+              int sort = 0;
+              // adds version numbers in sorted order (descending)
               for (VersionIdentifier vi : versions) {
-                versionNames.add(vi.toString());
+                sort++;
+                String versionName = vi.toString();
+                candidates.add(new Candidate(versionName, versionName, null, null, null, null, true, sort));
               }
-              // TODO: sort versions descending
-              addCandidates(candidates, versionNames);
             }
-
           }
         }
       } else {
@@ -147,19 +152,17 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
     }
   }
 
-  private void addCandidates(List<Candidate> candidates, Iterable<String> cands) {
+  public void addCandidates(List<Candidate> candidates, Iterable<String> cands) {
 
     addCandidates(candidates, cands, "", "", true);
   }
 
-  private void addCandidates(List<Candidate> candidates, Iterable<String> cands, String preFix, String postFix,
+  public void addCandidates(List<Candidate> candidates, Iterable<String> cands, String preFix, String postFix,
       boolean complete) {
 
     for (String s : cands) {
       candidates
-      .add(new Candidate(AttributedString.stripAnsi(preFix + s + postFix), s, null, null, null, null, complete, 3));
-//      candidates
-//          .add(new Candidate(AttributedString.stripAnsi(preFix + s + postFix), s, null, null, null, null, complete));
+          .add(new Candidate(AttributedString.stripAnsi(preFix + s + postFix), s, null, null, null, null, complete));
     }
   }
 }

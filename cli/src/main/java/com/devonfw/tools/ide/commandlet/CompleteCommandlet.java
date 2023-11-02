@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.function.Supplier;
 
-import org.fusesource.jansi.AnsiConsole;
 import org.jline.console.SystemRegistry;
 import org.jline.console.impl.SystemRegistryImpl;
 import org.jline.keymap.KeyMap;
@@ -55,15 +54,15 @@ public class CompleteCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    AnsiConsole.systemInstall();
+    // AnsiConsole.systemInstall();
 
     try {
       Supplier<Path> workDir = context::getCwd;
       // set up JLine built-in commands
-//      Builtins builtins = new Builtins(workDir, null, null);
-//      builtins.rename(Builtins.Command.TTOP, "top");
-//      builtins.alias("zle", "widget");
-//      builtins.alias("bindkey", "keymap");
+      // Builtins builtins = new Builtins(workDir, null, null);
+      // builtins.rename(Builtins.Command.TTOP, "top");
+      // builtins.alias("zle", "widget");
+      // builtins.alias("bindkey", "keymap");
 
       CommandletRegistry commandletRegistry = new CommandletRegistry(null, null, context);
 
@@ -72,15 +71,11 @@ public class CompleteCommandlet extends Commandlet {
 
         SystemRegistry systemRegistry = new SystemRegistryImpl(parser, terminal, workDir, null);
         systemRegistry.setCommandRegistries(commandletRegistry);
-//        systemRegistry.setCommandRegistries(builtins, commandletRegistry);
-//        systemRegistry.register("help", commandletRegistry);
+        // systemRegistry.setCommandRegistries(builtins, commandletRegistry);
+        // systemRegistry.register("help", commandletRegistry);
 
-        LineReader reader = LineReaderBuilder.builder()
-        .terminal(terminal)
-        .completer(systemRegistry.completer())
-        .parser(parser)
-        .variable(LineReader.LIST_MAX, 50)
-        .build();
+        LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(systemRegistry.completer())
+            .parser(parser).variable(LineReader.LIST_MAX, 50).build();
 
         // Create autosuggestion widgets
         AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
@@ -88,8 +83,9 @@ public class CompleteCommandlet extends Commandlet {
         autosuggestionWidgets.enable();
 
         // TODO: fix these on
-//        TailTipWidgets widgets = new TailTipWidgets(reader, systemRegistry::commandDescription, 5, TailTipWidgets.TipType.COMPLETER);
-//        widgets.enable();
+        // TailTipWidgets widgets = new TailTipWidgets(reader, systemRegistry::commandDescription, 5,
+        // TailTipWidgets.TipType.COMPLETER);
+        // widgets.enable();
         KeyMap<Binding> keyMap = reader.getKeyMaps().get("main");
         keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
 
@@ -119,7 +115,7 @@ public class CompleteCommandlet extends Commandlet {
     } catch (Throwable e) {
       throw new RuntimeException(e);
     } finally {
-      AnsiConsole.systemUninstall();
+      // AnsiConsole.systemUninstall();
     }
   }
 }
