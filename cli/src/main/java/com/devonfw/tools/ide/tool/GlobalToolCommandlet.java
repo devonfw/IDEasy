@@ -12,9 +12,10 @@ import java.nio.file.Path;
 import java.util.Set;
 
 /**
- * {@link ToolCommandlet} that are installed globally.
+ * {@link ToolCommandlet} that is installed globally.
  */
 public abstract class GlobalToolCommandlet extends ToolCommandlet {
+
   /**
    * The constructor.
    *
@@ -28,27 +29,17 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     super(context, tool, tags);
   }
 
-  /**
-   * Override this if the global tool comes with a file that has to be extracted.
-   * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.
-   */
   @Override
   protected boolean isExtract() {
-
+    // for global tools we usually download installers and do not want to extract them (e.g. installer.msi file shall not be extracted)
     return false;
   }
 
-  /**
-   * Installs {@link #getName() tool}, if force mode is enabled it proceeds with the installation even if the tool
-   * is already installed
-   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   *         nothing has changed.
-   */
   @Override
   protected boolean doInstall(boolean silent) {
 
     Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
+    //if force mode is enabled, go through with the installation even if the tool is already installed
     if (binaryPath != null && Files.exists(binaryPath) && !this.context.isForceMode()) {
       this.context.debug("{} is already installed at {}", this.tool, binaryPath);
       return false;
@@ -60,15 +51,15 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
-    Path tmpPath = fileAccess.createTempDir(getName());
-    Path downloadBinaryPath = tmpPath.resolve(target.getFileName());
+    Path tmpDir = fileAccess.createTempDir(getName());
+    Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
     extract(target, downloadBinaryPath);
     if (isExtract()) {
       downloadBinaryPath = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(downloadBinaryPath);
     int exitCode = pc.run();
-    fileAccess.delete(tmpPath);
+    fileAccess.delete(tmpDir);
     fileAccess.delete(target);
     if (exitCode == 0) {
       this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
@@ -79,23 +70,5 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     postInstall();
     return true;
   }
-
-  /**
-   * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
-   */
-  @Override
-  public VersionIdentifier getInstalledVersion() {
-    return null;
-  }
-
-  /**
-   * @return the currently installed tool version or {@code null} if not found (tool not installed).
-   */
-  @Override
-  protected String getInstalledToolVersion() {
-    return null;
-  }
-
-
 
 }

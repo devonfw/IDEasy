@@ -64,6 +64,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return this.tool;
   }
 
+  /**
+   *
+   * @return the name of the binary
+   */
   protected String getBinaryName() {
 
     return this.tool;
@@ -177,8 +181,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected abstract boolean doInstall(boolean silent);
 
   /**
-   * This method is called after the tool has been newly installed or updated to a new version. Override it to add
-   * custom post installation logic.
+   * This method is called after the tool has been newly installed or updated to a new version.
    */
   protected void postInstall() {
 
@@ -291,12 +294,37 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
    */
-  public abstract VersionIdentifier getInstalledVersion();
+  public VersionIdentifier getInstalledVersion() {
+
+    return getInstalledVersion(this.context.getSoftwarePath().resolve(getName()));
+  }
 
   /**
-   * @return the currently installed tool version or {@code null} if not found (tool not installed).
+   * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
    */
-  protected abstract String getInstalledToolVersion();
+  protected VersionIdentifier getInstalledVersion(Path toolPath) {
+
+    if (!Files.isDirectory(toolPath)) {
+      this.context.debug("Tool {} not installed in {}", getName(), toolPath);
+      return null;
+    }
+    Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    if (!Files.exists(toolVersionFile)) {
+      Path legacyToolVersionFile = toolPath.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION);
+      if (Files.exists(legacyToolVersionFile)) {
+        toolVersionFile = legacyToolVersionFile;
+      } else {
+        this.context.warning("Tool {} is missing version file in {}", getName(), toolVersionFile);
+        return null;
+      }
+    }
+    try {
+      String version = Files.readString(toolVersionFile).trim();
+      return VersionIdentifier.of(version);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read file " + toolVersionFile, e);
+    }
+  }
 
   /**
    * List the available versions of this tool.

@@ -15,9 +15,10 @@ import java.nio.file.StandardOpenOption;
 import java.util.Set;
 
 /**
- * {@link ToolCommandlet} that are installed locally.
+ * {@link ToolCommandlet} that is installed locally into the IDE.
  */
 public abstract class LocalToolCommandlet extends ToolCommandlet {
+
   /**
    * The constructor.
    *
@@ -54,14 +55,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     return toolPath;
   }
-
-  /**
-   * Installs or updates the managed {@link #getName() tool}.
-   *
-   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   *         nothing has changed.
-   */
 
   @Override
   protected boolean doInstall(boolean silent) {
@@ -172,62 +165,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
     }
     return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion);
-  }
-
-  /**
-   * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
-   */
-  public VersionIdentifier getInstalledVersion() {
-
-    Path toolPath = getToolPath();
-    if (!Files.isDirectory(toolPath)) {
-      this.context.trace("Tool {} not installed in {}", getName(), toolPath);
-      return null;
-    }
-    Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
-    if (!Files.exists(toolVersionFile)) {
-      Path legacyToolVersionFile = toolPath.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION);
-      if (Files.exists(legacyToolVersionFile)) {
-        toolVersionFile = legacyToolVersionFile;
-      } else {
-        this.context.warning("Tool {} is missing version file in {}", getName(), toolVersionFile);
-        return null;
-      }
-    }
-    try {
-      String version = Files.readString(toolVersionFile).trim();
-      return VersionIdentifier.of(version);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to read file " + toolVersionFile, e);
-    }
-
-  }
-
-  /**
-   * @return the currently installed tool version or {@code null} if not found (tool not installed).
-   */
-  protected String getInstalledToolVersion() {
-
-    Path toolPath = getToolPath();
-    if (!Files.isDirectory(toolPath)) {
-      this.context.debug("Tool {} not installed in {}", getName(), toolPath);
-      return null;
-    }
-    Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
-    if (!Files.exists(toolVersionFile)) {
-      Path legacyToolVersionFile = toolPath.resolve(IdeContext.FILE_LEGACY_SOFTWARE_VERSION);
-      if (Files.exists(legacyToolVersionFile)) {
-        toolVersionFile = legacyToolVersionFile;
-      } else {
-        this.context.warning("Tool {} is missing version file in {}", getName(), toolVersionFile);
-        return null;
-      }
-    }
-    try {
-      return Files.readString(toolVersionFile).trim();
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to read file " + toolVersionFile, e);
-    }
   }
 
   private boolean isInstalledVersion(VersionIdentifier expectedVersion, VersionIdentifier installedVersion,
