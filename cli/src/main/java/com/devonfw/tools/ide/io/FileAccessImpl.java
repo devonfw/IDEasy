@@ -283,6 +283,10 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
+  public void relativeSymlink(Path link, Path source) {
+    symlink(link.getParent().relativize(source), link);
+  }
+  @Override
   public void symlink(Path source, Path targetLink) {
 
     this.context.trace("Creating symbolic link {} pointing to {}", targetLink, source);
@@ -392,7 +396,9 @@ public class FileAccessImpl implements FileAccess {
       if (Files.isSymbolicLink(path)) {
         Files.delete(path);
       }
-      deleteRecursive(path);
+      else {
+        deleteRecursive(path);
+      }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to delete " + path, e);
     }

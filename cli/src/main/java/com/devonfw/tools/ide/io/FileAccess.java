@@ -52,6 +52,14 @@ public interface FileAccess {
   void move(Path source, Path targetDir);
 
   /**
+   * Creates a symbolic relative link.
+   *
+   * @param source the source {@link Path} to link to.
+   * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
+   */
+  void relativeSymlink(Path targetLink, Path source);
+
+  /**
    * @param source the source {@link Path} to link to.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
    */

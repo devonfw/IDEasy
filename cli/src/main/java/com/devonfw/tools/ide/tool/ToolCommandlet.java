@@ -267,12 +267,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       } else {
         throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + file);
       }
-      fileAccess.move(getProperInstallationSubDirOf(tmpDir), targetDir);
+      moveAndProcessExtraction(getProperInstallationSubDirOf(tmpDir), targetDir);
       fileAccess.delete(tmpDir);
     } else {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", getName(), file);
       fileAccess.move(file, targetDir);
     }
+  }
+
+  protected void moveAndProcessExtraction(Path from, Path to) {
+    this.context.getFileAccess().move(from, to);
   }
 
   /**
