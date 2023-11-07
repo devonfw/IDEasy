@@ -32,22 +32,21 @@ The settings folder (see `link:variables.asciidoc[SETTINGS_PATH]`) has to follow
 │  │  └──/ https://github.com/devonfw/ide-settings/tree/master/eclipse/workspace/update[update]
 │  ├── https://github.com/devonfw/ide-settings/blob/master/eclipse/lifecycle-mapping-metadata.xml[lifecycle-mapping-metadata.xml]
 │  └── https://github.com/devonfw/ide-settings/blob/master/eclipse/project.dictionary[project.dictionary]
-├──/ ...
-├──/ https://github.com/devonfw/ide-settings/tree/master/sonarqube[sonarqube]
-│  └──/ https://github.com/devonfw/ide-settings/tree/master/sonarqube/profiles[profiles]
-│     ├── Devon-C#.xml
-│     ├── ...
-│     └── Devon-XML.xml
+├──/ https://github.com/devonfw/ide-settings/tree/master/intellij[intellij]
+│  └──/ https://github.com/devonfw/ide-settings/tree/master/intellij/workspace[workspace]
+│     ├──/ https://github.com/devonfw/ide-settings/tree/master/intellij/workspace/setup[setup]
+│     └──/ https://github.com/devonfw/ide-settings/tree/master/intellij/workspace/update[update]
 ├──/ https://github.com/devonfw/ide-settings/tree/master/vscode[vscode]
 │  └──/ https://github.com/devonfw/ide-settings/tree/master/vscode/workspace[workspace]
 │     ├──/ https://github.com/devonfw/ide-settings/tree/master/vscode/workspace/setup[setup]
 │     └──/ https://github.com/devonfw/ide-settings/tree/master/vscode/workspace/update[update]
+├──/ ...
 └── https://github.com/devonfw/ide-settings/blob/master/devon.properties[ide.properties]
 ----
 
 As you can see, the `settings` folder contains sub-folders for tools of the IDE.
 So the `devon` folder contains `ide.properties` files for the link:configuration.asciidoc[configuration] of your environment.
-Further, for the IDEs such as link:eclipse.asciidoc[eclipse] or link:vscode.asciidoc[vscode], the according folders contain the templates to manage the workspace via our link:configurator.asciidoc[configurator].
+Further, for the IDEs such as https://www.eclipse.org/[Eclipse], https://code.visualstudio.com/[VSCode], or https://www.jetbrains.com/idea/[IntelliJ] the according folders contain the templates to manage the workspace via our link:configurator.asciidoc[configurator].
 
 == Configuration Philosophy
 Different tools and configuration files require a different handling:
@@ -55,7 +54,7 @@ Different tools and configuration files require a different handling:
 * Where suitable, we directly use these configurations from your `settings` (e.g. for `eclipse/lifecycle-mapping-metadata.xml`, or `eclipse/project.dictionary`).
 * The `devon` folder in `settings` contains templates for configuration files. There are copied to the `IDEasy` installation during link:setup.asciidoc[setup] (if no such file already exists). In this way the `settings` repository can provide reasonable defaults but allows the user to take over control and customize to his personal needs (e.g. `.m2/settings.xml`).
 * Other configurations need to be imported manually. To avoid manual steps and simplify use we try to automate as much as possible. This currently applies to `sonarqube` profiles but will be automated with https://github.com/devonfw/sonar-devon4j-plugin[sonar-devon4j-plugin] in the future.
-* For tools with complex configuration structures like link:eclipse.asciidoc[eclipse], link:intellij..asciidoc[intellij], or link:vscode.asciidoc[vscode] we provide a smart mechanism via our link:configurator.asciidoc[configurator].
+* For tools with complex configuration structures like Eclipse, IntelliJ, or VScode we provide a smart mechanism via our link:configurator.asciidoc[configurator].
 
 == Customize Settings
 You can easily customize these settings for the requirements of your project. We suggest that one team member is responsible to ensure that everything stays consistent and works.
