@@ -392,7 +392,9 @@ public class FileAccessImpl implements FileAccess {
       if (Files.isSymbolicLink(path)) {
         Files.delete(path);
       }
-      deleteRecursive(path);
+      else {
+        deleteRecursive(path);
+      }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to delete " + path, e);
     }
