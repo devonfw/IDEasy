@@ -20,8 +20,6 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.CommandletProperty;
-import com.devonfw.tools.ide.property.Property;
 
 /**
  * Implements the {@link CommandRegistry} for jline3.
@@ -80,6 +78,7 @@ public class CommandletRegistry implements CommandRegistry {
 
   @Override
   public List<String> commandInfo(String command) {
+
     // TODO: disable this functionality?
     List<String> out = new ArrayList<>();
     // TODO: take command and get help from Ide
@@ -150,12 +149,6 @@ public class CommandletRegistry implements CommandRegistry {
 
   @Override
   public CmdDesc commandDescription(List<String> list) {
-
-    Commandlet sub = ideCompleter.findSubcommandlet(list, list.size());
-
-    if (sub == null) {
-      return null;
-    }
 
     List<AttributedString> main = new ArrayList<>();
     Map<String, List<AttributedString>> options = new HashMap<>();
