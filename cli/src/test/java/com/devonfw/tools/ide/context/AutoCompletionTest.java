@@ -47,11 +47,11 @@ public class AutoCompletionTest extends ReaderTestSupport{
   }
 
   @Test
-  public void testIdeCompleter() throws IOException {
+  public void testIdeCompleterHelp() throws IOException {
     ContextCommandlet contextCommandlet = new ContextCommandlet();
     IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
     reader.setCompleter(new IdeCompleter(contextCommandlet, ideContext));
-    assertBuffer("help ", new TestBuffer("he").tab());
+    assertBuffer("help", new TestBuffer("he").tab().tab().tab());
   }
 
   @Test
@@ -84,7 +84,7 @@ public class AutoCompletionTest extends ReaderTestSupport{
     ContextCommandlet contextCommandlet = new ContextCommandlet();
     IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
     reader.setCompleter(new IdeCompleter(contextCommandlet, ideContext));
-    assertBuffer(" ", new TestBuffer("-t -t").tab());
+    assertBuffer("-t --t", new TestBuffer("-t --t").tab());
 
   }
 

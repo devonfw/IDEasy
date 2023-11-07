@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.cli;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -18,6 +19,7 @@ import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.FlagProperty;
+import com.devonfw.tools.ide.property.LocaleProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.property.VersionProperty;
@@ -37,7 +39,7 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
 
   private final Set<String> toolCommandlets = new HashSet<>();
 
-  private final Set<String> commandletOptions = new HashSet<>();
+  private final Set<Property<?>> commandletOptions = new HashSet<>();
 
   public IdeCompleter(ContextCommandlet cmd, IdeContext context) {
 
@@ -49,8 +51,7 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
 
     for (Property option : options) {
       if (option instanceof FlagProperty) {
-        commandletOptions.add(option.getName());
-        commandletOptions.add(option.getAlias());
+        commandletOptions.add(option);
       }
     }
 
@@ -81,31 +82,45 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
     String word = commandLine.word();
     List<String> words = commandLine.words();
     // TODO: implement rest of this
-    // first layer
-    if (words.size() == 1) {
-      if (word.startsWith("-")) {
-        addCandidates(candidates, this.commandletOptions); // adds all options
+    if (word.startsWith("-")) { // options
+      List<Property<?>> optionList = new ArrayList<>();
+      for (String singleWord : words) {
+        if (singleWord.startsWith("-")) {
+          Property<?> commandletOption = cmd.getOption(singleWord);
+          if (commandletOption != null) {
+            optionList.add(commandletOption);
+          }
+        }
       }
-      addCandidates(candidates, this.commandlets); // adds all commandlets
-    } else if (words.size() == 2) {
-      // 2nd layer..
-      if (words.get(0).startsWith("-")) { // options
+      // each word is an option
+      if (optionList.size() == words.size() - 1) {
         Set<String> cleanedOptions = new HashSet<>();
-        Property<?> commandletOption = cmd.getOption(words.get(0));
-        if (commandletOption != null) {
-          for (Property property: cmd.getProperties()){
-            if (property instanceof FlagProperty) {
-              // removes aliases and vice versa too (--trace removes -t too)
-              if (!property.getNameOrAlias().equals(commandletOption.getName()) ) {
-                cleanedOptions.add(property.getName());
-                cleanedOptions.add(property.getAlias());
-              }
-            }
+        List<Property<?>> properties = cmd.getProperties();
+        Set<Property<?>> options = new HashSet<>(properties);
+        for (Property<?> option : optionList) {
+          // removes aliases and vice versa too (--trace removes -t too)
+          options.remove(option);
+        }
+        for (Property<?> option : options) {
+          if (option instanceof FlagProperty) {
+            cleanedOptions.add(option.getName());
+            cleanedOptions.add(option.getAlias());
+          }
+          if (option instanceof LocaleProperty) {
+            cleanedOptions.add(option.getName());
           }
         }
         addCandidates(candidates, cleanedOptions); // adds rest of options without used option
+        return;
+      }
+    } else {
+      // TODO: check if options were used and only start counting words after last option
+      // first layer
+      if (words.size() == 1) {
         addCandidates(candidates, this.commandlets); // adds all commandlets
-      } else {
+      } else if (words.size() == 2) {
+        // 2nd layer..
+
         Commandlet commandlet = context.getCommandletManager().getCommandlet(words.get(0));
         if (commandlet != null) {
           List<Property<?>> properties = commandlet.getProperties();
@@ -123,31 +138,33 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
         } else {
           return;
         }
-      }
-      // 3rd layer
-    } else if (words.size() == 3) {
-      Commandlet commandlet = context.getCommandletManager().getCommandlet(words.get(0));
-      if (commandlet != null) {
-        List<Property<?>> properties = commandlet.getProperties();
-        for (Property<?> property : properties) {
-          if (property instanceof VersionProperty) { // add version numbers
-            Commandlet subCommandlet = context.getCommandletManager().getCommandlet(words.get(1));
-            if (subCommandlet != null) {
-              String toolEdition = context.getVariables().getToolEdition(subCommandlet.getName());
-              List<VersionIdentifier> versions = context.getUrls().getSortedVersions(subCommandlet.getName(),
-                  toolEdition);
-              int sort = 0;
-              // adds version numbers in sorted order (descending)
-              for (VersionIdentifier vi : versions) {
-                sort++;
-                String versionName = vi.toString();
-                candidates.add(new Candidate(versionName, versionName, null, null, null, null, true, sort));
+        // 3rd layer
+      } else if (words.size() == 3) {
+        Commandlet commandlet = context.getCommandletManager().getCommandlet(words.get(0));
+        if (commandlet != null) {
+          List<Property<?>> properties = commandlet.getProperties();
+          for (Property<?> property : properties) {
+            if (property instanceof VersionProperty) { // add version numbers
+              Commandlet subCommandlet = context.getCommandletManager().getCommandlet(words.get(1));
+              if (subCommandlet != null) {
+                String toolEdition = context.getVariables().getToolEdition(subCommandlet.getName());
+                List<VersionIdentifier> versions = context.getUrls().getSortedVersions(subCommandlet.getName(),
+                    toolEdition);
+                int sort = 0;
+                // adds version numbers in sorted order (descending)
+                for (VersionIdentifier vi : versions) {
+                  sort++;
+                  String versionName = vi.toString();
+                  candidates.add(new Candidate(versionName, versionName, null, null, null, null, true, sort));
+                }
               }
             }
           }
+        } else {
+          return;
         }
       } else {
-        return;
+        addCandidates(candidates, this.commandlets);
       }
     }
   }
