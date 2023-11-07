@@ -3,9 +3,7 @@ package com.devonfw.tools.ide.cli;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.Iterator;
-import java.util.function.Supplier;
 
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
@@ -121,32 +119,7 @@ public final class Ide {
 
     CliArgument first = CliArgument.of(args);
     CliArgument current = initContext(first);
-    if (current == null) {
-      // exit with success after --version has been printed...
-      return ProcessResult.SUCCESS;
-    }
-    String keyword = current.get();
-    Commandlet firstCandidate = this.context.getCommandletManager().getCommandletByFirstKeyword(keyword);
-    boolean matches;
-    if (firstCandidate != null) {
-      matches = applyAndRun(current, firstCandidate);
-      if (matches) {
-        return ProcessResult.SUCCESS;
-      }
-    }
-    for (Commandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
-      if (commandlet != firstCandidate) {
-        matches = applyAndRun(current, commandlet);
-        if (matches) {
-          return ProcessResult.SUCCESS;
-        }
-      }
-    }
-    if (!current.isEnd()) {
-      context().error("Invalid arguments: {}", current.getArgs());
-    }
-    context().getCommandletManager().getCommandlet(HelpCommandlet.class).run();
-    return 1;
+    return processCliArgument(current);
   }
 
   /**
@@ -159,7 +132,7 @@ public final class Ide {
       init.run();
       this.context = init.getIdeContext();
 
-      Supplier<Path> workDir = context::getCwd;
+      // Supplier<Path> workDir = context::getCwd;
       // set up JLine built-in commands
       // TODO: fix BuiltIns or remove
       // Builtins builtins = new Builtins(workDir, null, null);
@@ -217,11 +190,23 @@ public final class Ide {
     }
   }
 
+  /**
+   * Converts String of arguments to array and runs the command
+   *
+   * @param args String of arguments
+   * @param contextCommandlet {@link ContextCommandlet}
+   * @return status code
+   */
   private int runCommand(String args, ContextCommandlet contextCommandlet) {
 
     String[] arguments = args.split(" ", 0);
     CliArgument first = CliArgument.of(arguments);
-    CliArgument current = retrieveContext(first, contextCommandlet);
+    CliArgument current = retrieveCliArgumentByContext(first, contextCommandlet);
+    return processCliArgument(current);
+  }
+
+  private int processCliArgument(CliArgument current) {
+
     if (current == null) {
       // exit with success after --version has been printed...
       return ProcessResult.SUCCESS;
@@ -250,8 +235,7 @@ public final class Ide {
     return 1;
   }
 
-  // TODO: refactor this
-  private CliArgument retrieveContext(CliArgument first, ContextCommandlet contextCommandlet) {
+  private CliArgument retrieveCliArgument(CliArgument first, ContextCommandlet contextCommandlet) {
 
     CliArgument current = first;
     while (!current.isEnd()) {
@@ -272,6 +256,12 @@ public final class Ide {
       }
       current = current.getNext(true);
     }
+    return current;
+  }
+
+  private CliArgument retrieveCliArgumentByContext(CliArgument first, ContextCommandlet contextCommandlet) {
+
+    CliArgument current = retrieveCliArgument(first, contextCommandlet);
     if (contextCommandlet.version.isTrue()) {
       return null;
     }
@@ -281,25 +271,7 @@ public final class Ide {
   private CliArgument initContext(CliArgument first) {
 
     ContextCommandlet init = new ContextCommandlet();
-    CliArgument current = first;
-    while (!current.isEnd()) {
-      String key = current.getKey();
-      Property<?> property = init.getOption(key);
-      if (property == null) {
-        break;
-      }
-      String value = current.getValue();
-      if (value == null) {
-        if (property instanceof FlagProperty) {
-          ((FlagProperty) property).setValue(Boolean.TRUE);
-        } else {
-          this.context.error("Missing value for option " + key);
-        }
-      } else {
-        property.setValueAsString(value);
-      }
-      current = current.getNext(true);
-    }
+    CliArgument current = retrieveCliArgument(first, init);
     init.run();
     this.context = init.getIdeContext();
     if (init.version.isTrue()) {
@@ -315,7 +287,7 @@ public final class Ide {
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
    *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
-  protected boolean applyAndRun(CliArgument current, Commandlet commandlet) {
+  private boolean applyAndRun(CliArgument current, Commandlet commandlet) {
 
     boolean matches = apply(current, commandlet);
     if (matches) {

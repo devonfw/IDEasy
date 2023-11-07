@@ -22,7 +22,7 @@ import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
- * Implements the {@link CommandRegistry} for jline3.
+ * Implements the {@link CommandRegistry} for jline3. Inspired by: picocli
  */
 public class CommandletRegistry implements CommandRegistry {
 
@@ -125,7 +125,8 @@ public class CommandletRegistry implements CommandRegistry {
     String[] convertedArgs = arguments.toArray(new String[0]);
     CliArgument first = CliArgument.of(convertedArgs);
     Commandlet firstCandidate = this.context.getCommandletManager().getCommandletByFirstKeyword(command);
-    ide.applyAndRun(first, firstCandidate);
+    // TODO: find better way to run the command
+    // ide.applyAndRun(first, firstCandidate);
   }
 
   // @Override This method was removed in JLine 3.16.0; keep it in case this component is used with an older version of
