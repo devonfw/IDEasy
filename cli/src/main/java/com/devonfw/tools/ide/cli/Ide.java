@@ -40,6 +40,8 @@ public final class Ide {
 
   private static final String INVALID_ARGUMENT_WITH_CAUSE = INVALID_ARGUMENT + ":{}";
 
+  private static final int AUTOCOMPLETER_MAX_RESULTS = 50;
+
   private AbstractIdeContext context;
 
   /**
@@ -172,7 +174,7 @@ public final class Ide {
         IdeCompleter completer = new IdeCompleter(init, context);
 
         LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)
-            .variable(LineReader.LIST_MAX, 50).build();
+            .variable(LineReader.LIST_MAX, AUTOCOMPLETER_MAX_RESULTS).build();
 
         // Create autosuggestion widgets
         AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
