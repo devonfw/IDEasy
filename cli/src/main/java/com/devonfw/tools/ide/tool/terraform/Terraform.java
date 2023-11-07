@@ -3,12 +3,13 @@ package com.devonfw.tools.ide.tool.terraform;
 import java.util.Set;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
  * {@link ToolCommandlet} for terraform CLI (terraform).
  */
-public class Terraform extends ToolCommandlet {
+public class Terraform extends LocalToolCommandlet {
 
   /**
    * The constructor.

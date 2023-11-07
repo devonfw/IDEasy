@@ -3,12 +3,13 @@ package com.devonfw.tools.ide.tool.gh;
 import java.util.Set;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
  * {@link ToolCommandlet} for github CLI (gh).
  */
-public class Gh extends ToolCommandlet {
+public class Gh extends LocalToolCommandlet {
 
   /**
    * The constructor.

@@ -6,13 +6,14 @@ import java.util.Set;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
  * {@link ToolCommandlet} for azure CLI (azure).
  */
 
-public class Azure extends ToolCommandlet {
+public class Azure extends LocalToolCommandlet {
 
   /**
    * The constructor.
