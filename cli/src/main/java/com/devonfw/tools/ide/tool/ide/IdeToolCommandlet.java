@@ -14,12 +14,13 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
  * {@link ToolCommandlet} for an IDE (integrated development environment).
  */
-public abstract class IdeToolCommandlet extends ToolCommandlet {
+public abstract class IdeToolCommandlet extends LocalToolCommandlet {
 
   private Map<String, PluginDescriptor> pluginsMap;
 

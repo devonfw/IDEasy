@@ -51,7 +51,7 @@ public class ToolProperty extends Property<ToolCommandlet> {
   public ToolCommandlet parse(String valueAsString) {
 
     // needs to be initialized before calling this...
-    return CommandletManagerImpl.of(null).getToolCommandlet(valueAsString);
+    return CommandletManagerImpl.get().getToolCommandlet(valueAsString);
   }
 
 }

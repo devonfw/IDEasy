@@ -77,29 +77,8 @@ public final class ProcessContextImpl implements ProcessContext {
     if (!this.arguments.isEmpty()) {
       throw new IllegalStateException("Arguments already present - did you forget to call run for previous call?");
     }
-    Path exe = command;
-    if (exe.isAbsolute()) {
-      Path parent = command.getParent();
-      String filename = command.getFileName().toString();
-      String extension = FilenameUtil.getExtension(filename);
-      if (extension == null) {
-        if (this.context.getSystemInfo().isWindows()) {
-          Path cmd = parent.resolve(filename + ".cmd");
-          if (Files.exists(cmd)) {
-            exe = cmd;
-          } else {
-            cmd = parent.resolve(filename + ".bat");
-            if (Files.exists(cmd)) {
-              exe = cmd;
-            }
-          }
-        }
-      }
-    }
-    if (!exe.equals(command)) {
-      this.context.debug("Using " + exe.getFileName() + " for " + command);
-    }
-    this.executable = exe;
+
+    this.executable = this.context.getPath().findBinary(command);
     return this;
   }
 

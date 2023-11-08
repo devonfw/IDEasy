@@ -51,7 +51,7 @@ public class CommandletProperty extends Property<Commandlet> {
   public Commandlet parse(String valueAsString) {
 
     // needs to be initialized before calling this...
-    Commandlet commandlet = CommandletManagerImpl.of(null).getCommandlet(valueAsString);
+    Commandlet commandlet = CommandletManagerImpl.get().getCommandlet(valueAsString);
     if (commandlet == null) {
       throw new IllegalArgumentException(valueAsString);
     }
