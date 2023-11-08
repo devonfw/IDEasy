@@ -1,31 +1,33 @@
-package com.devonfw.tools.ide.configurator;
+package com.devonfw.tools.ide.merge;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.time.Instant;
 import java.util.Map.Entry;
 import java.util.Properties;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.configurator.merge.PropertiesMerger;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
+
+import ch.qos.logback.classic.spi.Configurator;
 
 /**
- * Test of {@link Configurator}.
+ * Test of {@link DirectoryMerger}.
  */
-public class ConfiguratorTest extends Assertions {
+public class DirectoryMergerTest extends AbstractIdeContextTest {
 
-  private static final String DEVON_IDE_HOME = new File("").getAbsolutePath().replace("\\", "/");
+  private static final String IDE_HOME = PATH_PROJECTS.resolve(PROJECT_BASIC).toAbsolutePath().toString().replace('\\',
+      '/');
 
   private static final Prop JAVA_VERSION = new Prop("java.version", "1.11");
 
-  private static final Prop JAVA_HOME = new Prop("java.home", DEVON_IDE_HOME + "/software/java");
+  private static final Prop JAVA_HOME = new Prop("java.home", IDE_HOME + "/software/java");
 
   private static final Prop THEME = new Prop("theme", "dark");
 
@@ -51,58 +53,62 @@ public class ConfiguratorTest extends Assertions {
   @Test
   public void testConfigurator() throws Exception {
 
-    // given
-    Configurator configurator = new Configurator();
-    String tmp = System.getProperty("java.io.tmpdir");
-    File tmpDir = new File(tmp);
-    File workspaceDir = createUniqueFolder(tmpDir, ".test.workspace");
-    String clientEnvHome = DEVON_IDE_HOME;
+    // arrange
+    Path workspaceDir = Files.createTempDirectory("IDEasy-DirectoryMergerTest");
 
-    // when
-    int exitCode = configurator.run("-t", "src/test/resources/templates", "-w", workspaceDir.getAbsolutePath(), "-u");
+    // act
+    IdeContext context = newContext(PROJECT_BASIC, null, false);
+    DirectoryMerger merger = context.getWorkspaceMerger();
+    Path templates = Paths.get("src/test/resources/templates");
+    Path setup = templates.resolve(IdeContext.FOLDER_SETUP);
+    Path update = templates.resolve(IdeContext.FOLDER_UPDATE);
+    merger.merge(setup, update, context.getVariables(), workspaceDir);
 
-    // then
-    assertThat(exitCode).isEqualTo(0);
-    File mainPrefsFile = new File(workspaceDir, "main.prefs");
+    // assert
+    Path mainPrefsFile = workspaceDir.resolve("main.prefs");
     Properties mainPrefs = PropertiesMerger.load(mainPrefsFile);
     assertThat(mainPrefs).containsOnly(JAVA_VERSION, JAVA_HOME, THEME, UI);
-    File jsonFolder = new File(workspaceDir, "json");
+    Path jsonFolder = workspaceDir.resolve("json");
     assertThat(jsonFolder).isDirectory();
-    assertThat(new File(jsonFolder, "settings.json")).hasContent("\n" // this newline is rather a bug of JSON-P impl
-        + "{\n" //
-        + "    \"java.home\": \"" + DEVON_IDE_HOME + "/software/java\",\n" //
-        + "    \"tslint.autoFixOnSave\": true,\n" //
-        + "    \"object\": {\n" //
-        + "        \"bar\": \"" + DEVON_IDE_HOME + "/bar\",\n" //
-        + "        \"array\": [\n" //
-        + "            \"a\",\n" //
-        + "            \"b\",\n" //
-        + "            \"" + DEVON_IDE_HOME + "\"\n" //
-        + "        ],\n" //
-        + "        \"foo\": \"" + DEVON_IDE_HOME + "/foo\"\n" //
-        + "    }\n" //
-        + "}");
-    assertThat(new File(jsonFolder, "update.json")).hasContent("\n" // this newline is rather a bug of JSON-P impl
-        + "{\n" //
-        + "    \"key\": \"value\"\n" //
-        + "}");
+    assertThat(jsonFolder.resolve("settings.json")).hasContent("""
 
-    File configFolder = new File(workspaceDir, "config");
+        {
+            "java.home": "${IDE_HOME}/software/java",
+            "tslint.autoFixOnSave": true,
+            "object": {
+                "bar": "${IDE_HOME}/bar",
+                "array": [
+                    "a",
+                    "b",
+                    "${IDE_HOME}"
+                ],
+                "foo": "${IDE_HOME}/foo"
+            }
+        }
+        """.replace("${IDE_HOME}", IDE_HOME));
+    assertThat(jsonFolder.resolve("update.json")).hasContent("""
+
+        {
+            "key": "value"
+        }
+        """);
+
+    Path configFolder = workspaceDir.resolve("config");
     assertThat(configFolder).isDirectory();
-    File indentFile = new File(configFolder, "indent.properties");
+    Path indentFile = configFolder.resolve("indent.properties");
     Properties indent = PropertiesMerger.load(indentFile);
     assertThat(indent).containsOnly(INDENTATION);
-    assertThat(new File(configFolder, "layout.xml")).hasContent("" //
-        + "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>" // here a newline would be reasonable...
-        + "<layout>\n" //
-        + "  <left>navigator</left>\n" //
-        + "  <right>debugger</right>\n" //
-        + "  <top>editor</top>\n" //
-        + "  <bottom>console</bottom>\n" //
-        + "  <test path=\"" + clientEnvHome + "\">" + clientEnvHome + "</test>\n" //
-        + "</layout>");
+    assertThat(configFolder.resolve("layout.xml")).hasContent("""
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?><layout>
+          <left>navigator</left>
+          <right>debugger</right>
+          <top>editor</top>
+          <bottom>console</bottom>
+          <test path="${IDE_HOME}">${IDE_HOME}</test>
+        </layout>
+            """.replace("${IDE_HOME}", IDE_HOME));
 
-    // and after
+    // and arrange
     EDITOR.apply(mainPrefs);
     JAVA_VERSION_HACKED.apply(mainPrefs);
     UI_HACKED.apply(mainPrefs);
@@ -110,25 +116,15 @@ public class ConfiguratorTest extends Assertions {
     INDENTATION_HACKED.apply(mainPrefs);
     PropertiesMerger.save(mainPrefs, mainPrefsFile);
 
-    // when
-    configurator = new Configurator();
-    exitCode = configurator.run("-t", "src/test/resources/templates", "-w", workspaceDir.getAbsolutePath(), "-u");
+    // act
+    merger.merge(setup, update, context.getVariables(), workspaceDir);
 
-    // then
+    // assert
     mainPrefs = PropertiesMerger.load(mainPrefsFile);
     assertThat(mainPrefs).containsOnly(JAVA_VERSION, JAVA_HOME, THEME_HACKED, UI_HACKED, EDITOR, INDENTATION_HACKED);
 
-    // finally cleanup
-    delete(workspaceDir.toPath());
-  }
-
-  private File createUniqueFolder(File tmpDir, String string) {
-
-    File folder = new File(tmpDir, string);
-    File uniqueFolder = new File(folder, Instant.now().toString().replace(':', '_'));
-    boolean success = uniqueFolder.mkdirs();
-    assert success : uniqueFolder.getAbsolutePath();
-    return uniqueFolder;
+    // after (cleanup)
+    delete(workspaceDir);
   }
 
   private static void delete(Path path) throws IOException {

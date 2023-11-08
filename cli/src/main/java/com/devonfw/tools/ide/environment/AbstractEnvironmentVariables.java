@@ -6,13 +6,26 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.variable.VariableDefinition;
 
 /**
  * Abstract base implementation of {@link EnvironmentVariables}.
  */
 public abstract class AbstractEnvironmentVariables implements EnvironmentVariables {
+
+  // Variable surrounded with "${" and "}" such as "${JAVA_HOME}" 1......2........
+  private static final Pattern VARIABLE_SYNTAX = Pattern.compile("(\\$\\{([^}]+)})");
+
+  private static final int MAX_RECURSION = 9;
+
+  private static final String VARIABLE_PREFIX = "${";
+
+  private static final String VARIABLE_SUFFIX = "}";
 
   /** @see #getParent() */
   protected final AbstractEnvironmentVariables parent;
@@ -136,6 +149,97 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   public EnvironmentVariables resolved() {
 
     return new EnvironmentVariablesResolved(this);
+  }
+
+  @Override
+  public String resolve(String string, Object src) {
+
+    return resolve(string, src, 0, src, string);
+  }
+
+  private String resolve(String value, Object src, int recursion, Object rootSrc, String rootValue) {
+
+    if (value == null) {
+      return null;
+    }
+    if (recursion > MAX_RECURSION) {
+      throw new IllegalStateException("Reached maximum recursion resolving " + value + " for root valiable " + rootSrc
+          + " with value '" + rootValue + "'.");
+    }
+    recursion++;
+    Matcher matcher = VARIABLE_SYNTAX.matcher(value);
+    if (!matcher.find()) {
+      return value;
+    }
+    StringBuilder sb = new StringBuilder(value.length() + 8);
+    do {
+      String variableName = matcher.group(2);
+      String variableValue = getValue(variableName);
+      if (variableValue == null) {
+        this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, src, value, rootSrc,
+            rootValue);
+      } else {
+        String replacement = resolve(variableValue, variableName, recursion, rootSrc, rootValue);
+        matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+      }
+    } while (matcher.find());
+    matcher.appendTail(sb);
+    String resolved = sb.toString();
+    return resolved;
+  }
+
+  /**
+   * Like {@link #get(String)} but with higher-level features including to resolve {@link IdeVariables} with their
+   * default values.
+   *
+   * @param name the name of the variable to get.
+   * @return the value of the variable.
+   */
+  protected String getValue(String name) {
+
+    VariableDefinition<?> var = IdeVariables.get(name);
+    String value;
+    if ((var != null) && var.isForceDefaultValue()) {
+      value = var.getDefaultValueAsString(this.context);
+    } else {
+      value = this.parent.get(name);
+    }
+    if ((value == null) && (var != null)) {
+      String key = var.getName();
+      if (!name.equals(key)) {
+        value = this.parent.get(key);
+      }
+      if (value != null) {
+        value = var.getDefaultValueAsString(this.context);
+      }
+    }
+    if ((value != null) && (value.startsWith("~/"))) {
+      value = this.context.getUserHome() + value.substring(1);
+    }
+    return value;
+  }
+
+  @Override
+  public String inverseResolve(String string, Object src) {
+
+    String result = string;
+    // TODO add more variables to IdeVariables like JAVA_HOME
+    for (VariableDefinition<?> variable : IdeVariables.VARIABLES) {
+      if (variable != IdeVariables.PATH) {
+        String name = variable.getName();
+        String value = get(name);
+        if (value == null) {
+          value = variable.getDefaultValueAsString(this.context);
+        }
+        if (value != null) {
+          result = result.replace(value, VARIABLE_PREFIX + name + VARIABLE_SUFFIX);
+        }
+      }
+    }
+    if (!result.equals(string)) {
+      this.context.trace("Inverse resolved '{}' to '{}' from {}.", string, result, src);
+    }
+    return result;
   }
 
   @Override

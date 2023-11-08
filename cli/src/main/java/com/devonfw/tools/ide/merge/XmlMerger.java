@@ -1,6 +1,8 @@
-package com.devonfw.tools.ide.configurator.merge;
+package com.devonfw.tools.ide.merge;
 
-import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -17,15 +19,13 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import com.devonfw.tools.ide.configurator.resolve.VariableResolver;
-import com.devonfw.tools.ide.logging.Log;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 /**
- * Implementation of {@link FileTypeMerger} for XML.
- *
- * @since 3.0.0
+ * Implementation of {@link FileMerger} for XML files.
  */
-public class XmlMerger extends FileTypeMerger {
+public class XmlMerger extends FileMerger {
 
   private static final DocumentBuilder DOCUMENT_BUILDER;
 
@@ -44,35 +44,37 @@ public class XmlMerger extends FileTypeMerger {
 
   /**
    * The constructor.
+   *
+   * @param context the {@link #context}.
    */
-  public XmlMerger() {
+  public XmlMerger(IdeContext context) {
 
-    super();
+    super(context);
   }
 
   @Override
-  public void merge(File setupFile, File updateFile, VariableResolver resolver, File workspaceFile) {
+  public void merge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
 
     Document document = null;
-    boolean updateFileExists = updateFile.exists();
-    if (workspaceFile.exists()) {
+    boolean updateFileExists = Files.exists(update);
+    if (Files.exists(workspace)) {
       if (!updateFileExists) {
         return; // nothing to do ...
       }
-      document = load(workspaceFile);
-    } else if (setupFile.exists()) {
-      document = load(setupFile);
+      document = load(workspace);
+    } else if (Files.exists(setup)) {
+      document = load(setup);
     }
     if (updateFileExists) {
       if (document == null) {
-        document = load(updateFile);
+        document = load(update);
       } else {
-        Document updateDocument = load(updateFile);
+        Document updateDocument = load(update);
         merge(updateDocument, document, true, true);
       }
     }
-    resolve(document, resolver, false);
-    save(document, workspaceFile);
+    resolve(document, resolver, false, workspace.getFileName());
+    save(document, workspace);
   }
 
   private void merge(Document sourceDocument, Document targetDocument, boolean override, boolean add) {
@@ -120,27 +122,27 @@ public class XmlMerger extends FileTypeMerger {
   }
 
   @Override
-  public void inverseMerge(File workspaceFile, VariableResolver resolver, boolean addNewProperties, File updateFile) {
+  public void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update) {
 
-    if (!workspaceFile.exists() || !updateFile.exists()) {
+    if (!Files.exists(workspace) || !Files.exists(update)) {
       return;
     }
-    Document updateDocument = load(updateFile);
-    Document workspaceDocument = load(workspaceFile);
+    Document updateDocument = load(update);
+    Document workspaceDocument = load(workspace);
     merge(workspaceDocument, updateDocument, true, addNewProperties);
-    resolve(updateDocument, resolver, true);
-    save(updateDocument, updateFile);
-    Log.debug("Saved changes in " + workspaceFile.getName() + " to: " + updateFile.getAbsolutePath());
+    resolve(updateDocument, variables, true, workspace.getFileName());
+    save(updateDocument, update);
+    this.context.debug("Saved changes in {} to {}", workspace.getFileName(), update);
   }
 
   /**
-   * @param file the {@link File} to load.
+   * @param file the {@link Path} to load.
    * @return the loaded XML {@link Document}.
    */
-  public static Document load(File file) {
+  public static Document load(Path file) {
 
-    try {
-      return DOCUMENT_BUILDER.parse(file);
+    try (InputStream in = Files.newInputStream(file)) {
+      return DOCUMENT_BUILDER.parse(in);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to load XML from: " + file, e);
     }
@@ -148,15 +150,15 @@ public class XmlMerger extends FileTypeMerger {
 
   /**
    * @param document the XML {@link Document} to save.
-   * @param file the {@link File} to save to.
+   * @param file the {@link Path} to save to.
    */
-  public static void save(Document document, File file) {
+  public static void save(Document document, Path file) {
 
     ensureParentDirecotryExists(file);
     try {
       Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
       DOMSource source = new DOMSource(document);
-      StreamResult result = new StreamResult(file);
+      StreamResult result = new StreamResult(file.toFile());
       transformer.transform(source, result);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to save XML to file: " + file, e);
@@ -164,18 +166,18 @@ public class XmlMerger extends FileTypeMerger {
 
   }
 
-  private void resolve(Document document, VariableResolver resolver, boolean inverse) {
+  private void resolve(Document document, EnvironmentVariables resolver, boolean inverse, Object src) {
 
     NodeList nodeList = document.getElementsByTagName("*");
     for (int i = 0; i < nodeList.getLength(); i++) {
       Element element = (Element) nodeList.item(i);
-      resolve(element, resolver, inverse);
+      resolve(element, resolver, inverse, src);
     }
   }
 
-  private void resolve(Element element, VariableResolver resolver, boolean inverse) {
+  private void resolve(Element element, EnvironmentVariables variables, boolean inverse, Object src) {
 
-    resolve(element.getAttributes(), resolver, inverse);
+    resolve(element.getAttributes(), variables, inverse, src);
     NodeList nodeList = element.getChildNodes();
 
     for (int i = 0; i < nodeList.getLength(); i++) {
@@ -185,25 +187,25 @@ public class XmlMerger extends FileTypeMerger {
         String value = text.getNodeValue();
         String resolvedValue;
         if (inverse) {
-          resolvedValue = resolver.inverseResolve(value);
+          resolvedValue = variables.inverseResolve(value, src);
         } else {
-          resolvedValue = resolver.resolve(value);
+          resolvedValue = variables.resolve(value, src);
         }
         text.setNodeValue(resolvedValue);
       }
     }
   }
 
-  private void resolve(NamedNodeMap attributes, VariableResolver resolver, boolean inverse) {
+  private void resolve(NamedNodeMap attributes, EnvironmentVariables variables, boolean inverse, Object src) {
 
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
       String value = attribute.getValue();
       String resolvedValue;
       if (inverse) {
-        resolvedValue = resolver.inverseResolve(value);
+        resolvedValue = variables.inverseResolve(value, src);
       } else {
-        resolvedValue = resolver.resolve(value);
+        resolvedValue = variables.resolve(value, src);
       }
       attribute.setValue(resolvedValue);
     }

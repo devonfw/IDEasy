@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
@@ -71,6 +72,33 @@ public interface IdeContext extends IdeLogger {
    * {@link #getSettingsPath() settings} (e.g. settings/eclipse/plugins).
    */
   String FOLDER_PLUGINS = "plugins";
+
+  /**
+   * The name of the workspace folder inside the IDE specific {@link #FOLDER_SETTINGS settings} containing the
+   * configuration templates in #FOLDER_SETUP #FOLDER_UPDATE.
+   */
+  String FOLDER_WORKSPACE = "workspace";
+
+  /**
+   * The name of the setup folder inside the {@link #FOLDER_WORKSPACE workspace} folder containing the templates for the
+   * configuration templates for the initial setup of a workspace. This is closely realted with the
+   * {@link #FOLDER_UPDATE update} folder.
+   */
+  String FOLDER_SETUP = "setup";
+
+  /**
+   * The name of the update folder inside the {@link #FOLDER_WORKSPACE workspace} folder containing the templates for
+   * the configuration templates for the update of a workspace. Configurations in this folder will be applied every time
+   * the IDE is started. They will override the settings the user may have manually configured every time. This is only
+   * for settings that have to be the same for every developer in the project. An example would be the number of spaces
+   * used for indentation and other code-formatting settings. If all developers in a project team use the same formatter
+   * settings, this will actively prevent diff-wars. However, the entire team needs to agree on these settings.<br>
+   * Never configure aspects inside this update folder that may be of personal flavor such as the color theme. Otherwise
+   * developers will hate you as you actively take away their freedom to customize the IDE to their personal needs and
+   * wishes. Therefore do all "biased" or "flavored" configurations in {@link #FOLDER_SETUP setup} so these are only
+   * pre-configured but can be changed by the user as needed.
+   */
+  String FOLDER_UPDATE = "update";
 
   /** The file where the installed software version is written to as plain text. */
   String FILE_SOFTWARE_VERSION = ".ide.software.version";
@@ -357,5 +385,11 @@ public interface IdeContext extends IdeLogger {
    * @return {@link IdeProgressBar} to use.
    */
   IdeProgressBar prepareProgressBar(String taskName, long size);
+
+  /**
+   * @return the {@link DirectoryMerger} used to configure and merge the workspace for an
+   *         {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
+   */
+  DirectoryMerger getWorkspaceMerger();
 
 }
