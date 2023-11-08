@@ -10,16 +10,16 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 
 
 /**
- * {@link ToolCommandlet} for AWS CLI (aws).
+ * {@link LocalToolCommandlet} for AWS CLI (aws).
  *
  * @see <a href="https://docs.aws.amazon.com/cli/">AWS CLI homepage</a>
  */
 
-public class Aws extends ToolCommandlet {
+public class Aws extends LocalToolCommandlet {
 
   /**
    * The constructor.
