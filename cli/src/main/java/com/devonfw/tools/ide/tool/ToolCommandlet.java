@@ -246,6 +246,98 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return doInstall(silent);
   }
 
+  protected String question(String question, String ... options) {
+    question += " Do you want to";
+    for (int i = 0; i < options.length - 1; i++) {
+      options[i] += " or";
+    }
+    options[options.length - 1] += "?";
+    return this.context.question(question, options);
+  }
+  protected VersionIdentifier securityRiskInteraction(VersionIdentifier configuredVersion) {
+
+    // TODO vielleicht security file auch neu als json file wenn 1.2 > 2.9 nicht ausreicht
+    // TODO vielleicht auch zusätzlich das tool scannen sobald es installiert ist,
+
+    // TODO webpage:\nhttps://github.com/devonfw/ide/blob/master/documentation/vulnerabilities.asciidoc\n\n";
+
+    UrlSecurityFile securityFile = this.context.getUrls().getEdition(this.tool, this.getEdition()).getSecurityFile();
+    VersionIdentifier current = this.context.getUrls().getVersion(this.tool, this.getEdition(),
+            configuredVersion);
+    if (!securityFile.contains(current)) {
+      return configuredVersion;
+    }
+
+    List<VersionIdentifier> allVersions = this.context.getUrls().getSortedVersions(this.tool, this.getEdition());
+    VersionIdentifier latest = allVersions.get(0);
+
+    // currentVersion = VersionIdentifier.of("4.9.52");
+
+    int currentVersionIndex = allVersions.indexOf(current);
+
+   // VersionIdentifier nextVersion = currentVersionIndex == 0 ? null : allVersions.get(allVersions.indexOf(currentVersion) - 1);
+    VersionIdentifier nextSafe = null;
+    for (int i = currentVersionIndex - 1; i >= 0; i--) {
+      if (!securityFile.contains(allVersions.get(i))) {
+        nextSafe = allVersions.get(i);
+        break;
+      }
+    }
+    VersionIdentifier latestSafe = null;
+    for (int i = 0; i < allVersions.size(); i++) {
+      if (!securityFile.contains(allVersions.get(i))) {
+        latestSafe = allVersions.get(i);
+        break;
+      }
+    }
+    VersionIdentifier previousSafe = null;
+    for (int i = currentVersionIndex + 1; i < allVersions.size(); i++) {
+      if (!securityFile.contains(allVersions.get(i))) {
+        previousSafe = allVersions.get(i);
+        break;
+      }
+    }
+
+    String currentIsUnsafe = "Currently, version " + current + " of " + this.getName() + " is installed, "
+            + "which is has a vulnerability.";
+    String stay = "stay with the current unsafe version  (" + current + ")";
+    String installLatestSafe = "install the latest safe version (" + latestSafe + ")";
+    String installSafeLatest = "install the (safe) latest version (" + latestSafe + ")";
+    String installNextSafe = "install the next safe version (" + nextSafe+ ")";
+
+    if (current.equals(latest)) {
+      String answer = question(currentIsUnsafe, stay, installLatestSafe);
+      return answer.startsWith(stay) ? current : latestSafe;
+
+    } else if (nextSafe == null) {
+      // TODO also allow selection of next or previous version, even if they are unsafe?
+      String answer = question(currentIsUnsafe + " All newer versions are also not safe.",
+              stay, installLatestSafe);
+      return answer.startsWith(stay) ? current : latestSafe;
+
+    } else if (nextSafe.equals(latest)) {
+      String answer = question( currentIsUnsafe + " Of the newer versions, only the latest is safe.",
+              stay, installSafeLatest);
+      return answer.startsWith(stay) ? current : latestSafe;
+
+    } else if (nextSafe.equals(latestSafe)) {
+      String answer = question(currentIsUnsafe +" Of the newer versions, only the version "
+              + nextSafe + " is safe.", stay,  "Install the safe version (" + nextSafe + ")");
+      return answer.startsWith(stay) ? current : nextSafe;
+
+    } else {
+      if (latest.equals(latestSafe)) {
+        String answer = question(currentIsUnsafe, stay, installNextSafe, installSafeLatest);
+        return answer.startsWith(stay) ? current
+                : answer.startsWith(installNextSafe) ? nextSafe : latestSafe;
+
+      } else {
+        String answer = question(currentIsUnsafe, stay, installNextSafe, installLatestSafe);
+        return answer.startsWith(stay) ? current : answer.startsWith(installNextSafe) ? nextSafe : latestSafe;
+      }
+    }
+  }
+
   /**
    * Installs or updates the managed {@link #getName() tool}.
    *
@@ -256,19 +348,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected boolean doInstall(boolean silent) {
 
     VersionIdentifier configuredVersion = getConfiguredVersion();
+
+    VersionIdentifier chosenVersion = securityRiskInteraction(configuredVersion);
+    setVersion(chosenVersion, silent);
+    // configuredVersion = chosenVersion;
+
     // install configured version of our tool in the software repository if not already installed
     ToolInstallation installation = installInRepo(configuredVersion);
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier installedVersion = getInstalledVersion();
-
-    UrlSecurityFile securityFile = this.context.getUrls().getEdition(this.tool, this.getEdition()).getSecurityFile();
-    // I do not want to use the installed version here, as I want to warn the user whether the tool is installed or not.
-    VersionIdentifier currentVersion = this.context.getUrls().getVersion(this.tool, this.getEdition(), configuredVersion);
-    if (securityFile.contains(currentVersion)) {
-      this.context.warning("Version {} of tool {} is known to have security issues!", currentVersion,
-          getToolWithEdition());
-    }
 
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
     if (isInstalledVersion(resolvedVersion, installedVersion, silent)) {
@@ -294,7 +383,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /**
    * This method is called after the tool has been newly installed or updated to a new version. Override it to add
-   * custom post intallation logic.
+   * custom post installation logic.
    */
   protected void postInstall() {
 
