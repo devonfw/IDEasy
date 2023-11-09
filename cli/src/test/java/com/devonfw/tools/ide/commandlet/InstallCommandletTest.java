@@ -38,14 +38,20 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     server.shutdownServer();
   }
 
-  private void mockWebServer() {
+private void mockWebServer() {
 
-    Path filePath = Paths.get(
-        "src\\test\\resources\\__files\\java-17.0.6-windows-x64.zip");
-    String length = filePath.toFile().length() + "";
+    Path windowsFilePath = Paths.get("src\\test\\resources\\__files\\java-17.0.6-windows-x64.zip");
+    String windowsLength = windowsFilePath.toFile().length() + "";
     server.stubFor(
-        get(urlPathEqualTo("/installTest")).willReturn(aResponse().withHeader("Content-Type", "application/zip")
-            .withHeader("Content-Length", length).withStatus(200).withBodyFile("java-17.0.6-windows-x64.zip")));
+        get(urlPathEqualTo("/installTest/windows")).willReturn(aResponse().withHeader("Content-Type", "application/zip")
+            .withHeader("Content-Length", windowsLength).withStatus(200).withBodyFile("java-17.0.6-windows-x64.zip")));
+
+    Path linuxFilePath = Paths.get("src\\test\\resources\\__files\\java-17.0.6-linux-x64.tar.gz");
+    String linuxLength = linuxFilePath.toFile().length() + "";
+    server.stubFor(get(urlPathEqualTo("/installTest/linux"))
+        .willReturn(aResponse().withHeader("Content-Type", "application/tar.gz")
+            .withHeader("Content-Length", linuxLength).withStatus(200).withBodyFile("java-17.0.6-linux-x64.tar.gz")));
+
   }
 
   /**
