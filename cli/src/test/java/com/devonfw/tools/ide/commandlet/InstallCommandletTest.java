@@ -49,7 +49,7 @@ private void mockWebServer() {
     Path linuxFilePath = Paths.get("src\\test\\resources\\__files\\java-17.0.6-linux-x64.tar.gz");
     String linuxLength = linuxFilePath.toFile().length() + "";
     server.stubFor(get(urlPathEqualTo("/installTest/linux"))
-        .willReturn(aResponse().withHeader("Content-Type", "application/tar.gz")
+        .willReturn(aResponse().withHeader("Content-Type", "application/gz")
             .withHeader("Content-Length", linuxLength).withStatus(200).withBodyFile("java-17.0.6-linux-x64.tar.gz")));
 
   }
