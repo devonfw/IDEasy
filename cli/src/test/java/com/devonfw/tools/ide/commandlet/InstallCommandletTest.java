@@ -26,6 +26,8 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
 
   private static WireMockServer server;
 
+  private static Path resourcePath = Paths.get("src/test/resources");
+
   @BeforeAll
   static void setUp() throws IOException {
 
@@ -39,21 +41,18 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     server.shutdownServer();
   }
 
-private void mockWebServer() throws IOException {
+  private void mockWebServer() throws IOException {
 
-    Path windowsFilePath = Paths.get("src/test/resources/__files/java-17.0.6-windows-x64.zip");
-    String windowsLength = Files.size(windowsFilePath) + "";
-
-  server.stubFor(
+    Path windowsFilePath = resourcePath.resolve("__files").resolve("java-17.0.6-windows-x64.zip");
+    String windowsLength = String.valueOf(Files.size(windowsFilePath));
+    server.stubFor(
         get(urlPathEqualTo("/installTest/windows")).willReturn(aResponse().withHeader("Content-Type", "application/zip")
             .withHeader("Content-Length", windowsLength).withStatus(200).withBodyFile("java-17.0.6-windows-x64.zip")));
 
-    Path linuxFilePath = Paths.get("src/test/resources/__files/java-17.0.6-linux-x64.tgz");
-    String linuxLength = Files.size(linuxFilePath) + "";
-    String test= String.valueOf(Files.size(linuxFilePath));
+    Path linuxFilePath = resourcePath.resolve("__files").resolve("java-17.0.6-linux-x64.tgz");
+    String linuxLength = String.valueOf(Files.size(linuxFilePath));
     server.stubFor(
-        get(urlPathEqualTo("/installTest/linux"))
-        .willReturn(aResponse().withHeader("Content-Type", "application/tgz")
+        get(urlPathEqualTo("/installTest/linux")).willReturn(aResponse().withHeader("Content-Type", "application/tgz")
             .withHeader("Content-Length", linuxLength).withStatus(200).withBodyFile("java-17.0.6-linux-x64.tgz")));
 
   }
@@ -62,15 +61,15 @@ private void mockWebServer() throws IOException {
    * Test of {@link InstallCommandlet} run, when Installed Version is null.
    */
   @Test
-  public void testInstallCommandletRunWithVersion() {
+  public void testInstallCommandletRunWithVersion() throws IOException {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, true);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java");
-    // act
     mockWebServer();
+    // act
     install.run();
     // assert
     assertThat(context.getSoftwarePath().resolve("java")).exists();
@@ -83,7 +82,7 @@ private void mockWebServer() throws IOException {
    * Test of {@link InstallCommandlet} run, when Installed Version is set.
    */
   @Test
-  public void testInstallCommandletRunWithVersionAndVersionIdentifier() {
+  public void testInstallCommandletRunWithVersionAndVersionIdentifier() throws IOException {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
@@ -91,8 +90,9 @@ private void mockWebServer() throws IOException {
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java");
     install.version.setValueAsString("17.0.6");
-    // act
     mockWebServer();
+
+    // act
     install.run();
     // assert
     assertThat(context.getSoftwarePath().resolve("java")).exists();
