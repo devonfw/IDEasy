@@ -46,7 +46,7 @@ private void mockWebServer() {
         get(urlPathEqualTo("/installTest/windows")).willReturn(aResponse().withHeader("Content-Type", "application/zip")
             .withHeader("Content-Length", windowsLength).withStatus(200).withBodyFile("java-17.0.6-windows-x64.zip")));
 
-    Path linuxFilePath = Paths.get("src\\test\\resources\\__files\\java-17.0.6-linux-x64.tar.tgz");
+    Path linuxFilePath = Paths.get("src\\test\\resources\\__files\\java-17.0.6-linux-x64.tgz");
     String linuxLength = linuxFilePath.toFile().length() + "";
     server.stubFor(get(urlPathEqualTo("/installTest/linux"))
         .willReturn(aResponse().withHeader("Content-Type", "application/tgz")
