@@ -36,7 +36,7 @@ public class PropertiesMerger extends FileMerger {
     boolean updateFileExists = Files.exists(update);
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
-        Log.trace("Nothing to do as update file does not exist: " + update);
+        Log.trace("Nothing to do as update file does not exist: {}", update);
         return; // nothing to do ...
       }
       load(properties, workspace);
@@ -48,7 +48,7 @@ public class PropertiesMerger extends FileMerger {
     }
     resolve(properties, resolver, workspace.getFileName());
     save(properties, workspace);
-    Log.trace("Saved merged properties to: " + workspace);
+    Log.trace("Saved merged properties to: {}", workspace);
   }
 
   /**
@@ -73,7 +73,7 @@ public class PropertiesMerger extends FileMerger {
       if (Files.exists(file)) {
         load(properties, file);
       } else {
-        Log.trace("Properties file does not exist: " + file);
+        Log.trace("Properties file does not exist: {}", file);
       }
     }
     return properties;
@@ -85,7 +85,7 @@ public class PropertiesMerger extends FileMerger {
    */
   public static void load(Properties properties, Path file) {
 
-    Log.trace("Loading properties file " + file);
+    Log.trace("Loading properties file: {}", file);
     try (Reader reader = Files.newBufferedReader(file)) {
       properties.load(reader);
     } catch (IOException e) {
@@ -108,7 +108,7 @@ public class PropertiesMerger extends FileMerger {
    */
   public static void save(Properties properties, Path file) {
 
-    Log.trace("Saving properties file " + file);
+    Log.trace("Saving properties file: {}", file);
     ensureParentDirectoryExists(file);
     try (Writer writer = Files.newBufferedWriter(file)) {
       properties.store(writer, null);
@@ -121,11 +121,11 @@ public class PropertiesMerger extends FileMerger {
   public void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update) {
 
     if (!Files.exists(workspace)) {
-      Log.trace("Workspace file does not exist: " + workspace);
+      Log.trace("Workspace file does not exist: {}", workspace);
       return;
     }
     if (!Files.exists(update)) {
-      Log.trace("Update file does not exist: " + update);
+      Log.trace("Update file does not exist: {}", update);
       return;
     }
     Object src = workspace.getFileName();
@@ -151,9 +151,9 @@ public class PropertiesMerger extends FileMerger {
     }
     if (updated) {
       save(mergedProperties, update);
-      Log.debug("Saved changes from " + workspace.getFileName() + " to " + update);
+      Log.debug("Saved changes from: {} to: {}", workspace.getFileName(), update);
     } else {
-      Log.trace("No changes for " + update);
+      Log.trace("No changes for: {}", update);
     }
   }
 

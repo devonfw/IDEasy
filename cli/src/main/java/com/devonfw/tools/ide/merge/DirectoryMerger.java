@@ -73,9 +73,9 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     String filename = file.getFileName().toString();
     String extension = FilenameUtil.getExtension(filename);
     if (extension == null) {
-      this.context.debug("No extension for " + file);
+      this.context.debug("No extension for {}", file);
     } else {
-      this.context.trace("Extension is " + extension);
+      this.context.trace("Extension is {}", extension);
       FileMerger merger = this.extension2mergerMap.get(extension);
       if (merger != null) {
         return merger;
@@ -89,10 +89,10 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
 
     if (Files.isDirectory(update)) {
       if (!Files.isDirectory(workspace)) {
-        Log.warn("Workspace is missing directory: " + workspace);
+        Log.warn("Workspace is missing directory: {}", workspace);
         return;
       }
-      Log.trace("Traversing directory " + update);
+      Log.trace("Traversing directory: {}", update);
       try {
         Iterator<Path> iterator = Files.list(update).iterator();
         while (iterator.hasNext()) {
@@ -105,12 +105,12 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
       }
 
     } else if (Files.exists(workspace)) {
-      Log.debug("Start merging of changes from workspace back to file " + update);
+      Log.debug("Start merging of changes from workspace back to file: {}", update);
       FileMerger merger = getMerger(workspace);
-      Log.trace("Using merger " + merger.getClass().getSimpleName());
+      Log.trace("Using merger {}", merger.getClass().getSimpleName());
       merger.inverseMerge(workspace, variables, addNewProperties, update);
     } else {
-      Log.warn("No such file or directory: " + update);
+      Log.warn("No such file or directory: {}", update);
     }
   }
 
