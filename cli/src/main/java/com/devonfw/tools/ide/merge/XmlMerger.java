@@ -154,7 +154,7 @@ public class XmlMerger extends FileMerger {
    */
   public static void save(Document document, Path file) {
 
-    ensureParentDirecotryExists(file);
+    ensureParentDirectoryExists(file);
     try {
       Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
       DOMSource source = new DOMSource(document);

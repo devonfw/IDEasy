@@ -44,7 +44,7 @@ public class FallbackMerger extends FileMerger {
 
   private void copy(Path sourceFile, Path targetFile) {
 
-    ensureParentDirecotryExists(targetFile);
+    ensureParentDirectoryExists(targetFile);
     try {
       Files.copy(sourceFile, targetFile, StandardCopyOption.REPLACE_EXISTING);
     } catch (Exception e) {

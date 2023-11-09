@@ -83,7 +83,7 @@ public class JsonMerger extends FileMerger {
 
   private static void save(JsonStructure json, Path file) {
 
-    ensureParentDirecotryExists(file);
+    ensureParentDirectoryExists(file);
     try (OutputStream out = Files.newOutputStream(file)) {
 
       Map<String, Object> config = new HashMap<>();

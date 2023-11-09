@@ -109,7 +109,7 @@ public class PropertiesMerger extends FileMerger {
   public static void save(Properties properties, Path file) {
 
     Log.trace("Saving properties file " + file);
-    ensureParentDirecotryExists(file);
+    ensureParentDirectoryExists(file);
     try (Writer writer = Files.newBufferedWriter(file)) {
       properties.store(writer, null);
     } catch (IOException e) {

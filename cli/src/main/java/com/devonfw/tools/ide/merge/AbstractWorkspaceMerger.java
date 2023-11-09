@@ -28,10 +28,10 @@ public abstract class AbstractWorkspaceMerger implements WorkspaceMerger {
   }
 
   /**
-   * @param file the {@link Path} for which the {@link Path#getParent() parent directory} needs to exists and will be
+   * @param file the {@link Path} for which the {@link Path#getParent() parent directory} needs to exist and will be
    *        created if absent by this method.
    */
-  protected static void ensureParentDirecotryExists(Path file) {
+  protected static void ensureParentDirectoryExists(Path file) {
 
     Path parentDir = file.getParent();
     if (!Files.exists(parentDir)) {
