@@ -81,7 +81,7 @@ public interface IdeContext extends IdeLogger {
 
   /**
    * The name of the setup folder inside the {@link #FOLDER_WORKSPACE workspace} folder containing the templates for the
-   * configuration templates for the initial setup of a workspace. This is closely realted with the
+   * configuration templates for the initial setup of a workspace. This is closely related with the
    * {@link #FOLDER_UPDATE update} folder.
    */
   String FOLDER_SETUP = "setup";
