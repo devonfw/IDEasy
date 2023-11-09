@@ -41,7 +41,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
   private void mockWebServer() {
 
     Path filePath = Paths.get(
-        "C:\\Users\\molanger\\ide\\workspaces\\main\\newtest\\IDEasy\\cli\\src\\test\\resources\\__files\\java-17.0.6-windows-x64.zip");
+        "src\\test\\resources\\__files\\java-17.0.6-windows-x64.zip");
     String length = filePath.toFile().length() + "";
     server.stubFor(
         get(urlPathEqualTo("/installTest")).willReturn(aResponse().withHeader("Content-Type", "application/zip")
