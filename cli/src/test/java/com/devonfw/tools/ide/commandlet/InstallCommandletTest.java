@@ -71,8 +71,8 @@ private void mockWebServer() {
     install.run();
     // assert
     assertThat(context.getSoftwarePath().resolve("java")).exists();
-    assertThat(context.getSoftwarePath().resolve("java\\InstallTest.txt")).hasContent("This is a test file.");
-    assertThat(context.getSoftwarePath().resolve("java\\bin\\HelloWorld.txt")).hasContent("Hello World!");
+    assertThat(context.getSoftwarePath().resolve("java/InstallTest.txt")).hasContent("This is a test file.");
+    assertThat(context.getSoftwarePath().resolve("java/bin/HelloWorld.txt")).hasContent("Hello World!");
 
   }
 
@@ -93,8 +93,8 @@ private void mockWebServer() {
     install.run();
     // assert
     assertThat(context.getSoftwarePath().resolve("java")).exists();
-    assertThat(context.getSoftwarePath().resolve("java\\InstallTest.txt")).hasContent("This is a test file.");
-    assertThat(context.getSoftwarePath().resolve("java\\bin\\HelloWorld.txt")).hasContent("Hello World!");
+    assertThat(context.getSoftwarePath().resolve("java/InstallTest.txt")).hasContent("This is a test file.");
+    assertThat(context.getSoftwarePath().resolve("java/bin/HelloWorld.txt")).hasContent("Hello World!");
 
   }
 }
