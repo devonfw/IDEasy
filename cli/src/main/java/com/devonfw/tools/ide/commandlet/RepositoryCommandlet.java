@@ -1,19 +1,23 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.FolderProperty;
 import com.devonfw.tools.ide.property.PathProperty;
 import com.devonfw.tools.ide.property.StringProperty;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.util.FilenameUtil;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Properties;
 
 public class RepositoryCommandlet extends Commandlet {
 
-
-  private StringProperty setup;
-
-  private PathProperty project;
+  private PathProperty repository;
 
   /**
    * The constructor.
@@ -24,8 +28,8 @@ public class RepositoryCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.setup = add(new StringProperty("setup", true, null));
-    this.project = add(new PathProperty("", false, "project"));
+    add(new StringProperty("setup", true, null));
+    this.repository = add(new PathProperty("", false, "repository"));
   }
 
   @Override
@@ -40,33 +44,116 @@ public class RepositoryCommandlet extends Commandlet {
     Path repositoriesPath = this.context.getSettingsPath().resolve("repositories");
     Path legacyRepositoriesPath = this.context.getSettingsPath().resolve("projects");
 
-    if (project != null) {
-      Path projectFile = project.getValue();
-      if (!Files.exists(projectFile)) {
-        projectFile = repositoriesPath.resolve(projectFile);
+    if (repository != null) {
+      // Handle the case when a specific repository is provided
+      Path repositoryFile = repository.getValue();
+      if (!Files.exists(repositoryFile)) {
+        repositoryFile = repositoriesPath.resolve(repositoryFile);
       }
-      if (!Files.exists(projectFile)) {
-        Path legacyProjectFile = legacyRepositoriesPath.resolve(projectFile);
-        if (Files.exists(legacyProjectFile)) {
-          projectFile = legacyProjectFile;
+      //
+      repositoryFile = Path.of(repositoryFile.toString() + ".properties");
+      if (!Files.exists(repositoryFile)) {
+        Path legacyRepositoryFile = Path.of(legacyRepositoriesPath.resolve(repositoryFile.getFileName()).toString());
+        if (Files.exists(legacyRepositoryFile)) {
+          repositoryFile = legacyRepositoryFile;
         } else {
-          this.context.warning("Could not find " + projectFile);
+          this.context.warning("Could not find " + repositoryFile);
           return;
         }
       }
-      doImportProject(projectFile, true);
+      doImportRepository(repositoryFile, true);
     } else {
-      //if no project was given, check whether repositoriesPath exists, if not check the legacy repositoriesPath, if not return.
-      Path repositories = Files.exists(repositoriesPath) ? repositoriesPath : Files.exists(legacyRepositoriesPath) ? legacyRepositoriesPath : null;
+      // If no specific repository is provided, check for repositories folder
+      Path repositories = Files.exists(repositoriesPath) ? repositoriesPath :
+          Files.exists(legacyRepositoriesPath) ? legacyRepositoriesPath : null;
+
       if (repositories == null) return;
 
-      //iterate through repositories and import all active projects
+      List <Path> propertiesFiles = this.context.getFileAccess().getFilesInDir(repositories,
+          path -> "properties".equals(FilenameUtil.getExtension(path.getFileName().toString())));
+
+      if (propertiesFiles != null) {
+        boolean forceMode = this.context.isForceMode();
+        for (Path propertiesFile : propertiesFiles) {
+          doImportRepository(propertiesFile, forceMode);
+        }
+      }
     }
   }
 
-  private void doImportProject(Path projectFile, boolean force) {
+  private void doImportRepository(Path repositoryFile, boolean forceMode) {
 
+    //TODO: unnecessary?
+    if (!Files.exists(repositoryFile)) {
+      return;
+    }
 
+    this.context.info("Importing from {} ...", repositoryFile.toString());
+    RepositoryConfig repositoryConfig = loadProperties(repositoryFile);
 
+    if (!repositoryConfig.active()) {
+      this.context.info("Repository is not active by default.");
+      if (forceMode) {
+        this.context.info("Repository setup is forced, hence proceeding ...");
+      } else {
+        this.context.info("Skipping repository - use force (-f) to setup all repositories ...");
+      }
+    }
+
+    String repository = repositoryConfig.path();
+    String gitUrl = repositoryConfig.gitUrl();
+    if (repository == null || ( repository != null && repository.isEmpty()) || gitUrl == null || (gitUrl != null && gitUrl.isEmpty())) {
+      this.context.warning("Invalid repository configuration {} - both 'path' and 'git-url' have to be defined."
+          , repositoryFile);
+      return;
+    }
+
+    this.context.debug(repositoryConfig.toString());
+    this.context.debug("Pull or clone git repository {} ...", repository);
+
+    String workspace = repositoryConfig.workspace() != null ? repositoryConfig.workspace() : "main";
+    Path repositoryWorkspacePath = this.context.getIdeHome().resolve("workspaces").resolve(workspace);
+    this.context.getFileAccess().mkdirs(repositoryWorkspacePath);
+
+    String targetGitUrl = repositoryConfig.gitUrl();
+    if (repositoryConfig.gitBranch() != null && !repositoryConfig.gitBranch().isEmpty()) {
+      targetGitUrl = targetGitUrl + "#" + repositoryConfig.gitBranch();
+    }
+
+    Path repositoryPath = repositoryWorkspacePath.resolve(repository);
+    this.context.gitPullOrClone(repositoryPath, targetGitUrl);
+
+    String buildCmd = repositoryConfig.buildCmd();
+    this.context.debug("Building project with ide command: {}", buildCmd);
+    if (buildCmd != null && !buildCmd.isEmpty()) {
+      List<String> command = List.of(buildCmd.split("\\s+"));
+      String commandlet = command.get(0);
+      command.remove(0);
+      ToolCommandlet tc = (ToolCommandlet) this.context.getCommandletManager().getCommandlet(commandlet);
+      tc.runTool(null, command.toArray(new String[0]));
+    }
   }
+
+
+  private RepositoryConfig loadProperties(Path filePath) {
+
+    Properties properties = new Properties();
+    try (InputStream input = new FileInputStream(filePath.toString())) {
+      properties.load(input);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read file: " + filePath, e);
+    }
+
+    return new RepositoryConfig(
+        properties.getProperty("path"),
+        properties.getProperty("workingsets"),
+        properties.getProperty("workspace"),
+        properties.getProperty("git_url"),
+        properties.getProperty("git_branch"),
+        properties.getProperty("build_cmd"),
+        properties.getProperty("eclipse"),
+        Boolean.parseBoolean(properties.getProperty("active"))
+    );
+  }
+
 }
