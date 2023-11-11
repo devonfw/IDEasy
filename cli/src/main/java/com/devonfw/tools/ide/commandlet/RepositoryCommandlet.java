@@ -4,7 +4,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.PathProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.util.FilenameUtil;
 
 import java.io.FileInputStream;
@@ -16,6 +15,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class RepositoryCommandlet extends Commandlet {
+
 
   private PathProperty repository;
 
@@ -43,17 +43,15 @@ public class RepositoryCommandlet extends Commandlet {
 
     Path repositoriesPath = this.context.getSettingsPath().resolve("repositories");
     Path legacyRepositoriesPath = this.context.getSettingsPath().resolve("projects");
+    Path repositoryFile = repository.getValue();
 
-    if (repository != null) {
+    if (repositoryFile != null) {
       // Handle the case when a specific repository is provided
-      Path repositoryFile = repository.getValue();
       if (!Files.exists(repositoryFile)) {
-        repositoryFile = repositoriesPath.resolve(repositoryFile);
+        repositoryFile = repositoriesPath.resolve(repositoryFile.toString() + ".properties");
       }
-      //
-      repositoryFile = Path.of(repositoryFile.toString() + ".properties");
       if (!Files.exists(repositoryFile)) {
-        Path legacyRepositoryFile = Path.of(legacyRepositoriesPath.resolve(repositoryFile.getFileName()).toString());
+        Path legacyRepositoryFile = legacyRepositoriesPath.resolve(repositoryFile.getFileName().toString());
         if (Files.exists(legacyRepositoryFile)) {
           repositoryFile = legacyRepositoryFile;
         } else {
@@ -83,11 +81,6 @@ public class RepositoryCommandlet extends Commandlet {
 
   private void doImportRepository(Path repositoryFile, boolean forceMode) {
 
-    //TODO: unnecessary?
-    if (!Files.exists(repositoryFile)) {
-      return;
-    }
-
     this.context.info("Importing from {} ...", repositoryFile.toString());
     RepositoryConfig repositoryConfig = loadProperties(repositoryFile);
 
@@ -97,6 +90,7 @@ public class RepositoryCommandlet extends Commandlet {
         this.context.info("Repository setup is forced, hence proceeding ...");
       } else {
         this.context.info("Skipping repository - use force (-f) to setup all repositories ...");
+        return;
       }
     }
 
@@ -126,11 +120,13 @@ public class RepositoryCommandlet extends Commandlet {
     String buildCmd = repositoryConfig.buildCmd();
     this.context.debug("Building project with ide command: {}", buildCmd);
     if (buildCmd != null && !buildCmd.isEmpty()) {
-      List<String> command = List.of(buildCmd.split("\\s+"));
-      String commandlet = command.get(0);
-      command.remove(0);
-      ToolCommandlet tc = (ToolCommandlet) this.context.getCommandletManager().getCommandlet(commandlet);
-      tc.runTool(null, command.toArray(new String[0]));
+      //TODO: build repository build path
+    } else {
+      this.context.info("Build command not set. Skipping build for repository.");
+    }
+
+    if ("import".equals(repositoryConfig.eclipse()) && !Files.exists(repositoryPath.resolve(".project"))) {
+      //TODO: import repository to eclipse
     }
   }
 
