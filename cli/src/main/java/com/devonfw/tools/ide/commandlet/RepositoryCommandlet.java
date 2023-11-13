@@ -51,7 +51,7 @@ public class RepositoryCommandlet extends Commandlet {
     if (repositoryFile != null) {
       // Handle the case when a specific repository is provided
       if (!Files.exists(repositoryFile)) {
-        repositoryFile = repositoriesPath.resolve(repositoryFile.toString() + ".properties");
+        repositoryFile = repositoriesPath.resolve(repositoryFile.getFileName().toString() + ".properties");
       }
       if (!Files.exists(repositoryFile)) {
         Path legacyRepositoryFile = legacyRepositoriesPath.resolve(repositoryFile.getFileName().toString());
@@ -112,13 +112,12 @@ public class RepositoryCommandlet extends Commandlet {
     Path repositoryWorkspacePath = this.context.getIdeHome().resolve("workspaces").resolve(workspace);
     this.context.getFileAccess().mkdirs(repositoryWorkspacePath);
 
-    String targetGitUrl = gitUrl;
     if (repositoryConfig.gitBranch() != null && !repositoryConfig.gitBranch().isEmpty()) {
-      targetGitUrl = targetGitUrl + "#" + repositoryConfig.gitBranch();
+      gitUrl = gitUrl + "#" + repositoryConfig.gitBranch();
     }
 
     Path repositoryPath = repositoryWorkspacePath.resolve(repository);
-    this.context.gitPullOrClone(repositoryPath, targetGitUrl);
+    this.context.gitPullOrClone(repositoryPath, gitUrl);
 
     String buildCmd = repositoryConfig.buildCmd();
     this.context.debug("Building project with ide command: {}", buildCmd);
