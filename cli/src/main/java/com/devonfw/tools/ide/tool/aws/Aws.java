@@ -46,7 +46,7 @@ public class Aws extends LocalToolCommandlet {
   }
 
   @Override
-  protected void moveAndProcessExtraction(Path to, Path from) {
+  protected void moveAndProcessExtraction(Path from, Path to) {
 
     if (!this.context.getSystemInfo().isLinux()) {
       this.context.getFileAccess().move(from, to);
