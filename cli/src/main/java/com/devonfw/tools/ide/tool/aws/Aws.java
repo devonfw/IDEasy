@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 
-
 /**
  * {@link LocalToolCommandlet} for AWS CLI (aws).
  *
@@ -30,7 +29,9 @@ public class Aws extends LocalToolCommandlet {
 
     super(context, "aws", Set.of(TAG_CLOUD));
   }
+
   private void makeExecutable(Path file) {
+
     // TODO this can be removed if issue #132 is fixed
     Set<PosixFilePermission> permissions = null;
     try {
@@ -45,19 +46,18 @@ public class Aws extends LocalToolCommandlet {
   }
 
   @Override
-  protected void moveAndProcessExtraction(Path from, Path to) {
+  protected void moveAndProcessExtraction(Path to, Path from) {
+
     if (!this.context.getSystemInfo().isLinux()) {
       this.context.getFileAccess().move(from, to);
     } else {
-      // make binary executable using java nio
-      // because unpacking didn't preserve the file permissions
+      // make binary executable using java nio because unpacking didn't preserve the file permissions
       Path awsInDistPath = from.resolve("dist").resolve("aws");
       Path awsCompleterInDistPath = from.resolve("dist").resolve("aws_completer");
 
       // TODO this can be removed if issue #132 is fixed
       makeExecutable(awsInDistPath);
       makeExecutable(awsCompleterInDistPath);
-
       // running the install-script that aws shipped
       ProcessContext pc = this.context.newProcess();
       Path linuxInstallScript = from.resolve("install");
@@ -66,17 +66,11 @@ public class Aws extends LocalToolCommandlet {
       pc.run();
 
       // the install-script that aws ships creates symbolic links to binaries but using absolute paths
-      // since the current process happens in a temporary dir these links wouldn't be valid after moving the installation
-      // files to the target dir. So the absolute paths are replaced by relative ones.
-      for (String file : new String[]{"aws", "aws_completer", Path.of("v2").resolve("current").toString()}) {
-        try {
-          Path link = from.resolve(file);
-          Path linkTarget = link.toRealPath();
-          this.context.getFileAccess().delete(link); // delete old absolute link
-          this.context.getFileAccess().relativeSymlink(link, linkTarget); // and replace it by the new relative link
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+      // since the current process happens in a temporary dir these links wouldn't be valid after moving the
+      // installation files to the target dir. So the absolute paths are replaced by relative ones.
+      for (String file : new String[] { "aws", "aws_completer", Path.of("v2").resolve("current").toString() }) {
+        Path link = from.resolve(file);
+        this.context.getFileAccess().makeSymlinkRelative(link, true);
       }
       this.context.getFileAccess().delete(linuxInstallScript);
       this.context.getFileAccess().delete(from.resolve("dist"));
