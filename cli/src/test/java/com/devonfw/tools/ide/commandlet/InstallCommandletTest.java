@@ -72,9 +72,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     // act
     install.run();
     // assert
-    assertThat(context.getSoftwarePath().resolve("java")).exists();
-    assertThat(context.getSoftwarePath().resolve("java/InstallTest.txt")).hasContent("This is a test file.");
-    assertThat(context.getSoftwarePath().resolve("java/bin/HelloWorld.txt")).hasContent("Hello World!");
+    assertTestInstall(context);
 
   }
 
@@ -95,6 +93,12 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     // act
     install.run();
     // assert
+    assertTestInstall(context);
+
+  }
+
+  public void assertTestInstall(IdeContext context) {
+
     assertThat(context.getSoftwarePath().resolve("java")).exists();
     assertThat(context.getSoftwarePath().resolve("java/InstallTest.txt")).hasContent("This is a test file.");
     assertThat(context.getSoftwarePath().resolve("java/bin/HelloWorld.txt")).hasContent("Hello World!");
