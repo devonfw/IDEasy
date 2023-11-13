@@ -15,8 +15,10 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -283,25 +285,73 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void relativeSymlink(Path link, Path source) {
-    symlink(link.getParent().relativize(source), link);
+  public void makeSymlinkRelative(Path link) {
+
+    makeSymlinkRelative(link, false);
   }
+
+  @Override
+  public void makeSymlinkRelative(Path link, boolean followTarget) {
+
+    if (!Files.isSymbolicLink(link)) {
+      throw new IllegalStateException(
+          "Can't call makeSymlinkRelative on " + link + " since it is not a symbolic link.");
+    }
+    Path linkTarget = null;
+    try {
+      linkTarget = followTarget ? link.toRealPath() : Files.readSymbolicLink(link);
+    } catch (IOException e) {
+      throw new RuntimeException("For link " + link + " the call to "
+          + (followTarget ? "toRealPath" : "readSymbolicLink") + " in method makeSymlinkRelative failed.", e);
+    }
+    this.context.getFileAccess().delete(link); // delete old absolute link
+    this.context.getFileAccess().relativeSymlink(link, linkTarget); // and replace it by the new relative link
+  }
+
+  @Override
+  public void relativeSymlink(Path link, Path source) {
+
+    Path relativeSource = link.getParent().relativize(source);
+    // to make relative links like this work: dir/link -> dir
+    relativeSource = (relativeSource.toString().isEmpty()) ? Paths.get(".") : relativeSource;
+    symlink(relativeSource, link);
+  }
+
   @Override
   public void symlink(Path source, Path targetLink) {
 
     this.context.trace("Creating symbolic link {} pointing to {}", targetLink, source);
     try {
-      if (Files.exists(targetLink) && Files.isSymbolicLink(targetLink)) {
-        this.context.debug("Deleting symbolic link to be re-created at {}", targetLink);
-        Files.delete(targetLink);
+      if (Files.exists(targetLink)) {
+        if (Files.isSymbolicLink(targetLink)) {
+          this.context.debug("Deleting symbolic link to be re-created at {}", targetLink);
+          Files.delete(targetLink);
+        } else {
+          BasicFileAttributes attr = Files.readAttributes(targetLink, BasicFileAttributes.class,
+              LinkOption.NOFOLLOW_LINKS);
+          if (attr.isOther() && attr.isDirectory()) {
+            this.context.debug("Deleting symbolic link (junction) to be re-created at {}", targetLink);
+            Files.delete(targetLink);
+          }
+        }
       }
       Files.createSymbolicLink(targetLink, source);
     } catch (FileSystemException e) {
       if (this.context.getSystemInfo().isWindows()) {
-        info(
-            "Due to lack of permissions, Microsofts mklink with junction had to be used to create a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for further details. Error was: "
-                + e.getMessage());
-
+        String infoMsg = "Due to lack of permissions, Microsofts mklink with junction had to be used to create "
+            + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for "
+            + "further details. Error was: " + e.getMessage();
+        info(infoMsg);
+        if (!source.isAbsolute()) {
+          throw new IllegalStateException(
+              infoMsg + "\\n These junctions can only point to absolute paths. Please make sure that the targetLink ("
+                  + targetLink + ") is absolute.");
+        }
+        if (!Files.isDirectory(source)) { // if source is a junction. This returns true as well.
+          throw new IllegalStateException(infoMsg
+              + "\\n These junctions can only point to directories or other junctions. Please make sure that the source ("
+              + source + ") is one of these.");
+        }
         context.newProcess().executable("cmd")
             .addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), source.toString()).run();
       } else {
@@ -395,6 +445,8 @@ public class FileAccessImpl implements FileAccess {
     try {
       if (Files.isSymbolicLink(path)) {
         Files.delete(path);
+      } else {
+        deleteRecursive(path);
       }
       else {
         deleteRecursive(path);
