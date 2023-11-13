@@ -104,4 +104,11 @@ public class Eclipse extends IdeToolCommandlet {
     }
   }
 
+  public void importRepository(Path importPath, Path workspacePath, String workingSets) {
+
+    //configureEclipse();
+    //checkAndInstallGroovy();
+
+
+  }
 }

@@ -1,9 +1,11 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.property.PathProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.util.FilenameUtil;
 
 import java.io.FileInputStream;
@@ -11,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
@@ -96,7 +99,7 @@ public class RepositoryCommandlet extends Commandlet {
 
     String repository = repositoryConfig.path();
     String gitUrl = repositoryConfig.gitUrl();
-    if (repository == null || ( repository != null && repository.isEmpty()) || gitUrl == null || (gitUrl != null && gitUrl.isEmpty())) {
+    if (repository == null || "".equals(repository) || gitUrl == null || "".equals(gitUrl)) {
       this.context.warning("Invalid repository configuration {} - both 'path' and 'git-url' have to be defined."
           , repositoryFile);
       return;
@@ -109,7 +112,7 @@ public class RepositoryCommandlet extends Commandlet {
     Path repositoryWorkspacePath = this.context.getIdeHome().resolve("workspaces").resolve(workspace);
     this.context.getFileAccess().mkdirs(repositoryWorkspacePath);
 
-    String targetGitUrl = repositoryConfig.gitUrl();
+    String targetGitUrl = gitUrl;
     if (repositoryConfig.gitBranch() != null && !repositoryConfig.gitBranch().isEmpty()) {
       targetGitUrl = targetGitUrl + "#" + repositoryConfig.gitBranch();
     }
@@ -120,13 +123,24 @@ public class RepositoryCommandlet extends Commandlet {
     String buildCmd = repositoryConfig.buildCmd();
     this.context.debug("Building project with ide command: {}", buildCmd);
     if (buildCmd != null && !buildCmd.isEmpty()) {
-      //TODO: build repository build path
+      String[] command = buildCmd.split("\\s+");
+      ProcessContext pc = this.context.newProcess();
+      pc.executable(command[0]);
+      pc.addArgs(Arrays.copyOfRange(command, 1, command.length));
+      Path buildPath = repositoryPath;
+      if (repositoryConfig.buildPath() != null) {
+        buildPath = buildPath.resolve(repositoryConfig.buildPath());
+      }
+      pc.directory(buildPath);
+      this.context.getCommandletManager().getToolCommandlet(command[0]).install(false);
+      pc.run();
     } else {
       this.context.info("Build command not set. Skipping build for repository.");
     }
 
     if ("import".equals(repositoryConfig.eclipse()) && !Files.exists(repositoryPath.resolve(".project"))) {
       //TODO: import repository to eclipse
+      this.context.getCommandletManager().getCommandlet(Eclipse.class).importRepository(repositoryPath, repositoryWorkspacePath, repositoryConfig.workingSets());
     }
   }
 
@@ -146,6 +160,7 @@ public class RepositoryCommandlet extends Commandlet {
         properties.getProperty("workspace"),
         properties.getProperty("git_url"),
         properties.getProperty("git_branch"),
+        properties.getProperty(("build_path")),
         properties.getProperty("build_cmd"),
         properties.getProperty("eclipse"),
         Boolean.parseBoolean(properties.getProperty("active"))

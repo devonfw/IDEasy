@@ -6,6 +6,7 @@ public record RepositoryConfig(
     String workspace,
     String gitUrl,
     String gitBranch,
+    String buildPath,
     String buildCmd,
     String eclipse,
     boolean active) {
