@@ -18,28 +18,21 @@ import com.devonfw.tools.ide.context.IdeTestContextMock;
 
 public class FileAccessImplTest extends Assertions {
 
-  void arrangetestRelativeSymlinks(Path tempDir, FileAccess fileAccess) {
-
-  }
-
   @Test
   void testSymlink(@TempDir Path tempDir) {
 
     IdeContext context = IdeTestContextMock.get();
     FileAccess fileAccess = new FileAccessImpl(context);
-    // create a new directory
     Path dir = tempDir.resolve("dir");
     fileAccess.mkdirs(dir);
 
-    // create a new file using nio
     Path file = tempDir.resolve("file");
     try {
       Files.write(file, "Hello World!".getBytes());
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException("When preparing testSymlink writing of " + file + " failed. ", e);
     }
 
-    // try to create a symlink to the file using Files.createSymbolicLink
     Path link = tempDir.resolve("link");
     Path linkToLink = tempDir.resolve("linkToLink");
 
@@ -197,7 +190,7 @@ public class FileAccessImplTest extends Assertions {
         }
       }
 
-      // redo move, and check later if symlinks still work
+      // redo move, and check in assert if symlinks still work
       fileAccess.move(parent, parent2);
 
       // assert

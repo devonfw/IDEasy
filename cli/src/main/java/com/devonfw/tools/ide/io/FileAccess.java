@@ -53,7 +53,7 @@ public interface FileAccess {
 
   /**
    * Symbolic links can point to relative or absolute paths. Here the link is converted to be relative. If the target of
-   * the link is again a link, then that lead is followed, until the target is not a link.
+   * the link is again a link, then that lead is not followed.
    *
    * @param link the {@link Path} of the symbolic link.
    */
@@ -64,7 +64,7 @@ public interface FileAccess {
    *
    * @param link the {@link Path} of the symbolic link.
    * @param followTarget - {@code true} if the target of the link is again a link, then that lead is followed, until the
-   *        target is not a link. - {@code false} if the target of the link is again a link, then that lead is no
+   *        target is not a link. - {@code false} if the target of the link is again a link, then that lead is not
    *        followed.
    */
   void makeSymlinkRelative(Path link, boolean followTarget);
