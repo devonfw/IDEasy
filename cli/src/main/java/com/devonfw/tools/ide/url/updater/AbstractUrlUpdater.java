@@ -97,6 +97,18 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     return tool + "/" + edition;
   }
 
+  protected String getCPEVendor() {
+    return "";
+  }
+
+  protected String getCPEProduct() {
+    return "";
+  }
+
+  protected String mapUrlVersionToCPEVersion(String version) {
+    return version;
+  }
+
   /**
    * Retrieves the response body from a given URL.
    *

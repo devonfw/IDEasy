@@ -95,4 +95,10 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
     }
   }
 
+  public String getVendor(String tool) {
+    AbstractUrlUpdater  matchedUpdater = (AbstractUrlUpdater) updaters.stream().filter(updater -> updater.getTool().equals(tool)).toArray()[0];
+    return matchedUpdater.getCPEVendor();
+//    updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst().ifPresent(AbstractUrlUpdater::getVendor);
+  }
+
 }

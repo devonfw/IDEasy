@@ -20,12 +20,6 @@
   </properties>
 
   <dependencies>
-    <!-- Other configurations and properties -->
-    <dependency>
-      <groupId>org.owasp</groupId>
-      <artifactId>dependency-check-core</artifactId>
-      <version>8.4.2</version>
-    </dependency>
     <!-- unpack tar, gzip, bzip2 -->
     <dependency>
       <groupId>org.apache.commons</groupId>

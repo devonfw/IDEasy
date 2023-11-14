@@ -18,6 +18,12 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
+        <!-- Other configurations and properties -->
+        <dependency>
+            <groupId>org.owasp</groupId>
+            <artifactId>dependency-check-core</artifactId>
+            <version>8.4.2</version>
+        </dependency>
         <dependency>
             <groupId>com.devonfw.tools.IDEasy</groupId>
             <artifactId>ide-cli</artifactId>

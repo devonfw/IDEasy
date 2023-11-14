@@ -26,6 +26,18 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject> {
     return super.mapVersion(version);
   }
 
+  protected String getCPEVendor() {
+    return "eclipse";
+  }
+
+  protected String getCPEProduct() {
+    return "temurin";
+  }
+
+
+
+
+
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
