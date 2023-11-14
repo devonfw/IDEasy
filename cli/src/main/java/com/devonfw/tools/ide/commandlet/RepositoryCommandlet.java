@@ -4,8 +4,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.property.PathProperty;
 import com.devonfw.tools.ide.property.StringProperty;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.util.FilenameUtil;
 
 import java.io.FileInputStream;
@@ -17,10 +15,13 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+/**
+ * {@link Commandlet} to setup a repository
+ */
 public class RepositoryCommandlet extends Commandlet {
 
-
-  private PathProperty repository;
+  /** the repository to setup. */
+  public final PathProperty repository;
 
   /**
    * The constructor.
@@ -109,20 +110,21 @@ public class RepositoryCommandlet extends Commandlet {
     this.context.debug("Pull or clone git repository {} ...", repository);
 
     String workspace = repositoryConfig.workspace() != null ? repositoryConfig.workspace() : "main";
-    Path repositoryWorkspacePath = this.context.getIdeHome().resolve("workspaces").resolve(workspace);
-    this.context.getFileAccess().mkdirs(repositoryWorkspacePath);
+    Path workspacePath = this.context.getIdeHome().resolve("workspaces").resolve(workspace);
+    this.context.getFileAccess().mkdirs(workspacePath);
 
     if (repositoryConfig.gitBranch() != null && !repositoryConfig.gitBranch().isEmpty()) {
       gitUrl = gitUrl + "#" + repositoryConfig.gitBranch();
     }
 
-    Path repositoryPath = repositoryWorkspacePath.resolve(repository);
+    Path repositoryPath = workspacePath.resolve(repository);
     this.context.gitPullOrClone(repositoryPath, gitUrl);
 
     String buildCmd = repositoryConfig.buildCmd();
     this.context.debug("Building project with ide command: {}", buildCmd);
     if (buildCmd != null && !buildCmd.isEmpty()) {
       String[] command = buildCmd.split("\\s+");
+      this.context.getCommandletManager().getToolCommandlet(command[0]).install(true);
       ProcessContext pc = this.context.newProcess();
       pc.executable(command[0]);
       pc.addArgs(Arrays.copyOfRange(command, 1, command.length));
@@ -131,7 +133,6 @@ public class RepositoryCommandlet extends Commandlet {
         buildPath = buildPath.resolve(repositoryConfig.buildPath());
       }
       pc.directory(buildPath);
-      this.context.getCommandletManager().getToolCommandlet(command[0]).install(false);
       pc.run();
     } else {
       this.context.info("Build command not set. Skipping build for repository.");
@@ -139,7 +140,6 @@ public class RepositoryCommandlet extends Commandlet {
 
     if ("import".equals(repositoryConfig.eclipse()) && !Files.exists(repositoryPath.resolve(".project"))) {
       //TODO: import repository to eclipse
-      this.context.getCommandletManager().getCommandlet(Eclipse.class).importRepository(repositoryPath, repositoryWorkspacePath, repositoryConfig.workingSets());
     }
   }
 
