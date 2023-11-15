@@ -57,13 +57,14 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
   private final UrlRepository urlRepository;
 
   private final List<AbstractUrlUpdater> updaters = Arrays.asList(new AndroidStudioUrlUpdater(), new AwsUrlUpdater(),
-      new AzureUrlUpdater(), new CobigenUrlUpdater(), new DockerDesktopUrlUpdater() , new DotNetUrlUpdater(), new EclipseCppUrlUpdater(),
-      new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(), new GcViewerUrlUpdater(), new GhUrlUpdater(),
-      new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(), new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(),
-      new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(),
-      new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(),
-      new PipUrlUpdater(), new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(),
-      new SonarUrlUpdater(), new TerraformUrlUpdater(), new TomcatUrlUpdater(), new VsCodeUrlUpdater());
+      new AzureUrlUpdater(), new CobigenUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
+      new EclipseCppUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(), new GcViewerUrlUpdater(),
+      new GhUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(), new GradleUrlUpdater(),
+      new HelmUrlUpdater(), new IntellijUrlUpdater(), new JavaUrlUpdater(), new JenkinsUrlUpdater(),
+      new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(),
+      new MvnUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PipUrlUpdater(),
+      new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
+      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new VsCodeUrlUpdater());
 
   /**
    * The constructor.
@@ -95,10 +96,22 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
     }
   }
 
-  public String getVendor(String tool) {
-    AbstractUrlUpdater  matchedUpdater = (AbstractUrlUpdater) updaters.stream().filter(updater -> updater.getTool().equals(tool)).toArray()[0];
-    return matchedUpdater.getCPEVendor();
-//    updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst().ifPresent(AbstractUrlUpdater::getVendor);
+  public String getCpeVendor(String tool) {
+
+    return updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst()
+        .map(AbstractUrlUpdater::getCpeVendor).orElse(null);
+  }
+
+  public String getCpeProduct(String tool) {
+
+    return updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst()
+        .map(AbstractUrlUpdater::getCpeProduct).orElse(null);
+  }
+
+  public String mapUrlVersionToCpeVersion(String tool, String urlVersion) {
+
+    return updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst()
+        .map(updater -> updater.mapUrlVersionToCpeVersion(urlVersion)).orElse(null);
   }
 
 }
