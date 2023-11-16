@@ -50,7 +50,7 @@ public interface IdeVariables {
   VariableDefinitionString GRAALVM_EDITION = new VariableDefinitionString("GRAALVM_EDITION", null, c -> "community");
 
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
-  Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, IDE_ROOT, IDE_HOME, WORKSPACE, WORKSPACE_PATH,
+  Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE,
       IDE_TOOLS, CREATE_START_SCRIPTS, IDE_MIN_VERSION, MVN_VERSION, DOCKER_EDITION, GRAALVM_EDITION);
 
   /**

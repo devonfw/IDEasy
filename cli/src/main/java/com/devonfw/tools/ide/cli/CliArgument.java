@@ -213,4 +213,37 @@ public class CliArgument {
     return first;
   }
 
+  /**
+   * @param firstArgs the first arguments.
+   * @param nextArgs the additional arguments to append after {@code args}.
+   * @return a {@link String} array with the values from {@code firstArgs} followed by the values from {@code nextArgs}.
+   */
+  public static String[] append(String[] firstArgs, String... nextArgs) {
+
+    return join(firstArgs, false, nextArgs);
+  }
+
+  /**
+   * @param nextArgs the arguments to append after {@code firstArgs}.
+   * @param firstArgs the first arguments.
+   * @return a {@link String} array with the values from {@code firstArgs} followed by the values from {@code nextArgs}.
+   */
+  public static String[] prepend(String[] nextArgs, String... firstArgs) {
+
+    return join(nextArgs, false, firstArgs);
+  }
+
+  private static String[] join(String[] args, boolean prefix, String... extraArgs) {
+
+    String[] result = new String[args.length + extraArgs.length];
+    int argsStart = 0;
+    int extraArgsStart = args.length;
+    if (prefix) {
+      argsStart = extraArgs.length;
+      extraArgsStart = 0;
+    }
+    System.arraycopy(args, 0, result, argsStart, args.length);
+    System.arraycopy(extraArgs, 0, result, extraArgsStart, extraArgs.length);
+    return result;
+  }
 }
