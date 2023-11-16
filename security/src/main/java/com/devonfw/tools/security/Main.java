@@ -1,12 +1,20 @@
 package com.devonfw.tools.security;
 
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeContextConsole;
+import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.url.model.file.SecurityEntry;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionRange;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
 import org.owasp.dependencycheck.analyzer.FileNameAnalyzer;
@@ -49,31 +57,101 @@ public class Main {
     float minV3Severity = 0.0f;
 
     for (Dependency dependency : engine.getDependencies()) {
-      List<Vulnerability> noSeverity = dependency.getVulnerabilities(true).stream()
-          .filter(v -> v.getCvssV2() == null && v.getCvssV3() == null).collect(Collectors.toList());
-      List<Vulnerability> onlyV2Severity = dependency.getVulnerabilities(true).stream()
-          .filter(v -> v.getCvssV2() != null && v.getCvssV3() == null).collect(Collectors.toList());
-      List<Vulnerability> hasV3Severity = dependency.getVulnerabilities(true).stream()
-          .filter(v -> v.getCvssV3() != null).collect(Collectors.toList());
+      Set<Vulnerability> vulnerabilities = dependency.getVulnerabilities(true);
 
-      if (!noSeverity.isEmpty()) {
-        System.out.println("no severity is not empty: " + dependency.getFileName());
-        System.exit(1);
-      }
+      String filePath = dependency.getFilePath();
+      Path parent = Paths.get(filePath).getParent();
+      String tool = parent.getParent().getParent().getFileName().toString();
+      String edition = parent.getParent().getFileName().toString();
+      List<VersionIdentifier> sortedVersions = ideContext.getUrls().getSortedVersions(tool, edition);
 
-      onlyV2Severity.removeIf(v -> v.getCvssV2().getScore() < minV3Severity);
-      hasV3Severity.removeIf(v -> v.getCvssV3().getBaseScore() < minV2Severity);
-
-      System.out.println("There were vulnerabilities found in: " + dependency.getFileName());
-      onlyV2Severity.forEach(v -> System.out.println("V2: " + v.getName() + " " + v.getCvssV2().getScore()));
-      hasV3Severity.forEach(v -> System.out.println("V3: " + v.getName() + " " + v.getCvssV3().getBaseScore()));
-
-      // TODO read min levels from console
+      // TODO read min levels from console or args[]
       // TODO list all vulnerabilities, so maybe description, all fields of cvssv3 and cvssv2, cve name, source,
       // url of vulnerabilityIds, and vulnerableSoftware
       // TODO take all vulnerabilities, or ask for another min level und update the numbers of vulnerabilities
       // TODO write vulnerabilities to file -> new format? that includes CVE name?
 
+      //      List<SecurityEntry> foundVulnerabilities = new ArrayList<>();
+
+      for (Vulnerability vulnerability : vulnerabilities) {
+
+        if (vulnerability.getCvssV2() == null && vulnerability.getCvssV3() == null) {
+          throw new RuntimeException("Vulnerability without severity found: " + vulnerability.getName());
+        }
+        boolean hasV3Severity = vulnerability.getCvssV3() != null;
+        double severity = hasV3Severity
+            ? vulnerability.getCvssV3().getBaseScore()
+            : vulnerability.getCvssV2().getScore();
+        String severityVersion = hasV3Severity ? "v3" : "v2";
+        String cveName = vulnerability.getName();
+        String description = vulnerability.getDescription();
+
+        boolean toLowSeverity = hasV3Severity ? severity < minV3Severity : severity < minV2Severity;
+        if (toLowSeverity) {
+          continue;
+        }
+
+        VersionRange versionRange = getVersionRangeFromVulnerability(sortedVersions, vulnerability);
+        SecurityEntry securityEntry = new SecurityEntry(versionRange, severity, severityVersion, cveName, description,
+            null);
+        ObjectMapper mapper = JsonMapping.create();
+        try {
+          String jsonString = mapper.writeValueAsString(securityEntry);
+          System.out.println(jsonString);
+        } catch (JsonProcessingException e) {
+          throw new RuntimeException(e);
+        }
+      }
     }
+    engine.close();
+  }
+
+  static VersionRange getVersionRangeFromInterval(List<VersionIdentifier> sortedVersions, String vStartExcluding, String vStartIncluding,
+      String vEndIncluding, String vEndExcluding) {
+
+    VersionIdentifier max = null;
+    if (vEndIncluding != null) {
+      max = VersionIdentifier.of(vEndIncluding); // this allows that max is not part of the available versions, this has no impact on the contains method but maybe confusing
+    } else if (vEndExcluding != null) {
+      VersionIdentifier end = VersionIdentifier.of(vEndExcluding);
+      for (VersionIdentifier version : sortedVersions) {
+        if (version.isLess(end)) {
+          max = version;
+          break;
+        }
+      }
+    }
+
+    VersionIdentifier min = null;
+    if (vStartIncluding != null) {
+      min = VersionIdentifier.of(vStartIncluding);
+    } else if (vStartExcluding != null) {
+      for (int i = sortedVersions.size() - 1; i >= 0; i--) {
+        VersionIdentifier version = sortedVersions.get(i);
+        if (version.isGreater(VersionIdentifier.of(vStartExcluding))) {
+          min = version;
+          break;
+        }
+      }
+    }
+    return new VersionRange(min, max);
+  }
+
+  static VersionRange getVersionRangeFromVulnerability(List<VersionIdentifier> sortedVersions,
+      Vulnerability vulnerability) {
+
+    VulnerableSoftware matchedVulnerableSoftware = vulnerability.getMatchedVulnerableSoftware();
+    String vEndExcluding = matchedVulnerableSoftware.getVersionEndExcluding();
+    String vEndIncluding = matchedVulnerableSoftware.getVersionEndIncluding();
+    String vStartExcluding = matchedVulnerableSoftware.getVersionStartExcluding();
+    String vStartIncluding = matchedVulnerableSoftware.getVersionStartIncluding();
+
+    if (vEndExcluding == null && vEndIncluding == null && vStartExcluding == null && vStartIncluding == null) {
+      throw new RuntimeException("Vulnerability without version range found: " + vulnerability.getName());
+    }
+
+    return getVersionRangeFromInterval(sortedVersions, vStartExcluding, vStartIncluding, vEndIncluding,
+        vEndExcluding);
   }
 }
+
