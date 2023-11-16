@@ -18,6 +18,13 @@ import com.devonfw.tools.ide.variable.VariableDefinition;
  */
 public abstract class AbstractEnvironmentVariables implements EnvironmentVariables {
 
+  /**
+   * When we replace variable expressions with their value the resulting {@link String} can change in size (shrink or
+   * grow). By adding a bit of extra capacity we reduce the chance that the capacity is too small and a new buffer array
+   * has to be allocated and array-copy has to be performed.
+   */
+  private static final int EXTRA_CAPACITY = 8;
+
   // Variable surrounded with "${" and "}" such as "${JAVA_HOME}" 1......2........
   private static final Pattern VARIABLE_SYNTAX = Pattern.compile("(\\$\\{([^}]+)})");
 
@@ -171,7 +178,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     if (!matcher.find()) {
       return value;
     }
-    StringBuilder sb = new StringBuilder(value.length() + 8);
+    StringBuilder sb = new StringBuilder(value.length() + EXTRA_CAPACITY);
     do {
       String variableName = matcher.group(2);
       String variableValue = getValue(variableName);
