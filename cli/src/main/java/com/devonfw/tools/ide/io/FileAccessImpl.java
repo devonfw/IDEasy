@@ -329,7 +329,7 @@ public class FileAccessImpl implements FileAccess {
         } else {
           BasicFileAttributes attr = Files.readAttributes(targetLink, BasicFileAttributes.class,
               LinkOption.NOFOLLOW_LINKS);
-          if (attr.isOther() && attr.isDirectory()) {
+          if (attr.isOther() && attr.isDirectory() && this.context.getSystemInfo().isWindows()) {
             this.context.debug("Deleting symbolic link (junction) to be re-created at {}", targetLink);
             Files.delete(targetLink);
           }
