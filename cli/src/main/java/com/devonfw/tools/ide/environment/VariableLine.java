@@ -221,7 +221,7 @@ public abstract class VariableLine {
    * Parses a {@link VariableLine} from {@link String}.
    *
    * @param line the {@link VariableLine} as {@link String} to parse.
-   * @param context the {@link IdeLogger}.
+   * @param logger the {@link IdeLogger}.
    * @param source the source where the given {@link String} to parse is from (e.g. the file path).
    * @return the parsed {@link VariableLine}.
    */

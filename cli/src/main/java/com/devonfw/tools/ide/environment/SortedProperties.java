@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.configurator;
+package com.devonfw.tools.ide.environment;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,9 +13,6 @@ import java.util.TreeSet;
 
 /**
  * {@link Properties} that are sorted ascending by their keys.
- *
- * @author trippl
- * @since 3.0.0
  */
 public class SortedProperties extends Properties {
 

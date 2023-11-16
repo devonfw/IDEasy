@@ -35,6 +35,13 @@ public interface FileAccess {
   boolean isFile(Path file);
 
   /**
+   * @param folder the {@link Path} to check.
+   * @return {@code true} if the given {@code folder} points to an existing directory, {@code false} otherwise (a
+   *         warning is logged in this case).
+   */
+  boolean isExpectedFolder(Path folder);
+
+  /**
    * @param file the {@link Path} to compute the checksum of.
    * @return the computed checksum (SHA-266).
    */
