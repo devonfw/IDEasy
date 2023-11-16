@@ -1,11 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
+import java.io.IOException;
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-import java.nio.file.Files;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Integration test of {@link VersionSetCommandlet}.
@@ -14,19 +15,35 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link VersionSetCommandlet} run.
+   *
    * @throws IOException on error.
    */
   @Test
   public void testVersionSetCommandletRun() throws IOException {
-    //arrange
+
+    // arrange
     String path = "workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, true);
     VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
     versionSet.tool.setValueAsString("mvn");
     versionSet.version.setValueAsString("3.1.0");
-    //act
+    // act
     versionSet.run();
-    //assert
-    assertThat(Files.readAllLines(context.getSettingsPath().resolve("ide.properties"))).contains("MVN_VERSION=3.1.0");
+    // assert
+    Path settingsIdeProperties = context.getSettingsPath().resolve("ide.properties");
+    assertThat(settingsIdeProperties).hasContent("""
+        #********************************************************************************
+        # This file contains project specific environment variables
+        #********************************************************************************
+
+        JAVA_VERSION=17*
+        MVN_VERSION=3.1.0
+        ECLIPSE_VERSION=2023-03
+        INTELLIJ_EDITION=ultimate
+
+        IDE_TOOLS=mvn,eclipse
+
+        BAR=bar-${SOME}
+                """);
   }
 }

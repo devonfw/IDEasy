@@ -1,10 +1,16 @@
 package com.devonfw.tools.ide.tool.eclipse;
 
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileLock;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
+import com.devonfw.tools.ide.cli.CliArgument;
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -15,7 +21,7 @@ import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
 
 /**
- * {@link IdeToolCommandlet} for Eclipse IDE.
+ * {@link IdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
  */
 public class Eclipse extends IdeToolCommandlet {
 
@@ -30,10 +36,11 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  public void run() {
+  protected void runIde(String... args) {
 
-    install();
-    runEclipse(false, this.arguments.asArray());
+    install(true);
+    runEclipse(false,
+        CliArgument.prepend(args, "gui", "-showlocation", this.context.getIdeHome().getFileName().toString()));
   }
 
   @Override
@@ -102,6 +109,35 @@ public class Eclipse extends IdeToolCommandlet {
       }
       this.context.level(level).log(line);
     }
+  }
+
+  @Override
+  protected void configureWorkspace() {
+
+    Path lockfile = this.context.getWorkspacePath().resolve(".metadata/.lock");
+    if (isLocked(lockfile)) {
+      throw new CliException("Your workspace is locked at " + lockfile);
+    }
+    super.configureWorkspace();
+  }
+
+  /**
+   * @param lockfile the {@link File} pointing to the lockfile to check.
+   * @return {@code true} if the given {@link File} is locked, {@code false} otherwise.
+   */
+  private static boolean isLocked(Path lockfile) {
+
+    if (Files.isRegularFile(lockfile)) {
+      try (RandomAccessFile raFile = new RandomAccessFile(lockfile.toFile(), "rw")) {
+        FileLock fileLock = raFile.getChannel().tryLock(0, 1, false);
+        // success, file was not locked so we immediately unlock again...
+        fileLock.release();
+        return false;
+      } catch (Exception e) {
+        return true;
+      }
+    }
+    return false;
   }
 
 }
