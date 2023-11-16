@@ -1,16 +1,12 @@
 package com.devonfw.tools.ide.merge;
 
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map.Entry;
 import java.util.Properties;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -48,13 +44,12 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
   /**
    * Test of {@link Configurator}.
    *
+   * @param workspaceDir the temporary folder to use as workspace for this test.
    * @throws Exception on error.
    */
   @Test
-  public void testConfigurator() throws Exception {
-
-    // arrange
-    Path workspaceDir = Files.createTempDirectory("IDEasy-DirectoryMergerTest");
+  // arrange
+  public void testConfigurator(@TempDir Path workspaceDir) throws Exception {
 
     // act
     IdeContext context = newContext(PROJECT_BASIC, null, false);
@@ -122,31 +117,6 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     // assert
     mainPrefs = PropertiesMerger.load(mainPrefsFile);
     assertThat(mainPrefs).containsOnly(JAVA_VERSION, JAVA_HOME, THEME_HACKED, UI_HACKED, EDITOR, INDENTATION_HACKED);
-
-    // after (cleanup)
-    delete(workspaceDir);
-  }
-
-  private static void delete(Path path) throws IOException {
-
-    Files.walkFileTree(path, new SimpleFileVisitor<Path>() {
-      @Override
-      public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-
-        Files.delete(file);
-        return FileVisitResult.CONTINUE;
-      }
-
-      @Override
-      public FileVisitResult postVisitDirectory(Path dir, IOException e) throws IOException {
-
-        if (e != null) {
-          throw e;
-        }
-        Files.delete(dir);
-        return FileVisitResult.CONTINUE;
-      }
-    });
   }
 
   private static class Prop implements Entry<String, String> {
