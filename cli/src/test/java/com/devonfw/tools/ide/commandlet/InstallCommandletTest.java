@@ -55,6 +55,10 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
         get(urlPathEqualTo("/installTest/linux")).willReturn(aResponse().withHeader("Content-Type", "application/tgz")
             .withHeader("Content-Length", linuxLength).withStatus(200).withBodyFile("java-17.0.6-linux-x64.tgz")));
 
+    server.stubFor(
+        get(urlPathEqualTo("/installTest/macOS")).willReturn(aResponse().withHeader("Content-Type", "application/tgz")
+            .withHeader("Content-Length", linuxLength).withStatus(200).withBodyFile("java-17.0.6-linux-x64.tgz")));
+
   }
 
   /**
@@ -102,6 +106,10 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("java")).exists();
     assertThat(context.getSoftwarePath().resolve("java/InstallTest.txt")).hasContent("This is a test file.");
     assertThat(context.getSoftwarePath().resolve("java/bin/HelloWorld.txt")).hasContent("Hello World!");
-
+    if(context.getSystemInfo().isWindows()){
+      assertThat(context.getSoftwarePath().resolve("java/JavaTest.cmd")).exists();
+    } else if (context.getSystemInfo().isLinux() || context.getSystemInfo().isMac()) {
+      assertThat(context.getSoftwarePath().resolve("java/JavaTest.sh")).exists();
+    }
   }
 }
