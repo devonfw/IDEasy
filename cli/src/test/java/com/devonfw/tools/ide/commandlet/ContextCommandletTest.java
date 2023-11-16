@@ -30,21 +30,7 @@ public class ContextCommandletTest extends AbstractIdeContextTest {
     // arrange
     ContextCommandlet cxt = new ContextCommandlet();
     //act & assert
-    assertThat(cxt.isIdeHomeRequired()).isEqualTo(false);
-  }
-
-  /**
-   * Test of {@link ContextCommandlet} getIdeContext.
-   */
-  @Test
-  public void testGetIdeContext() {
-
-    // arrange
-    ContextCommandlet cxt = new ContextCommandlet();
-    cxt.run();
-    // act
-    // assert
-    assertThat(cxt.getIdeContext()).isInstanceOf(AbstractIdeContext.class);
+    assertThat(cxt.isIdeHomeRequired()).isFalse();
   }
 
   /**

@@ -99,6 +99,6 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
     // arrange
     EnvironmentCommandlet env = new EnvironmentCommandlet(IdeTestContextMock.get());
     // act & assert
-    assertThat(env.isIdeHomeRequired()).isEqualTo(false);
+    assertThat(env.isIdeHomeRequired()).isFalse();
   }
 }
