@@ -18,7 +18,7 @@ import com.devonfw.tools.ide.version.IdeVersion;
  */
 public final class HelpCommandlet extends Commandlet {
 
-  protected static final String LOGO = """
+  static final String LOGO = """
       __       ___ ___  ___
       ╲ ╲     |_ _|   ╲| __|__ _ ____ _
        > >     | || |) | _|/ _` (_-< || |
