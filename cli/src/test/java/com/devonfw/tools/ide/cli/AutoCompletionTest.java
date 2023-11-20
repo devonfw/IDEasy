@@ -76,4 +76,24 @@ public class AutoCompletionTest extends ReaderTestSupport {
     assertBuffer("cd ", new TestBuffer("cd ").tab().tab().tab());
 
   }
+
+  @Test
+  public void testIdeCompleterPreventsOptionsAfterCommand() throws IOException {
+
+    ContextCommandlet contextCommandlet = new ContextCommandlet();
+    IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
+    reader.setCompleter(new IdeCompleter(contextCommandlet, ideContext));
+    assertBuffer("-t -f get-version - ", new TestBuffer("-t -f get-version - ").tab());
+
+  }
+
+  @Test
+  public void testIdeCompleterHandlesOptionsBeforeCommand() throws IOException {
+
+    ContextCommandlet contextCommandlet = new ContextCommandlet();
+    IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
+    reader.setCompleter(new IdeCompleter(contextCommandlet, ideContext));
+    assertBuffer("-t -f get-version mvn ", new TestBuffer("-t -f get-version mv").tab().tab());
+
+  }
 }
