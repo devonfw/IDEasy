@@ -77,7 +77,7 @@ public final class Ide {
     } catch (CliException error) {
       exitStatus = error.getExitCode();
       if (context().level(IdeLogLevel.DEBUG).isEnabled()) {
-        context().error(error.getMessage(), error);
+        context().error(error, error.getMessage());
       } else {
         context().error(error.getMessage());
       }
