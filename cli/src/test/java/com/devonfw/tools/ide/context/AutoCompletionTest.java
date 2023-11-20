@@ -1,11 +1,15 @@
-package com.devonfw.tools.ide.cli;
+package com.devonfw.tools.ide.context;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.IdeCompleter;
+import com.devonfw.tools.ide.cli.ReaderTestSupport;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.AbstractIdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
 public class AutoCompletionTest extends ReaderTestSupport {
@@ -61,9 +65,12 @@ public class AutoCompletionTest extends ReaderTestSupport {
   public void testIdeCompleterThirdLayerVersions() throws IOException {
 
     ContextCommandlet contextCommandlet = new ContextCommandlet();
-    IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
+
+    //IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
+    String path = "workspaces/foo-test/my-git-repo";
+    IdeTestContext ideContext = AbstractIdeContextTest.newContext("basic", path, false);
     reader.setCompleter(new IdeCompleter(contextCommandlet, ideContext));
-    assertBuffer("install mvn 3.9.5", new TestBuffer("install mvn").tab().tab().tab());
+    assertBuffer("install mvn 3.2.1", new TestBuffer("install mvn").tab().tab().tab());
 
   }
 
