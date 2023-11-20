@@ -72,7 +72,13 @@ public class ContextCommandlet extends Commandlet {
     } else if (this.quiet.isTrue()) {
       logLevel = IdeLogLevel.WARNING;
     }
-    this.ideContext = new IdeContextConsole(logLevel, null, true);
+
+    if (this.ideContext == null) {
+      this.ideContext = new IdeContextConsole(logLevel, null, true);
+    } else {
+      this.ideContext.setLogLevel(logLevel);
+    }
+
     this.ideContext.setBatchMode(this.batch.isTrue());
     this.ideContext.setForceMode(this.force.isTrue());
     this.ideContext.setQuietMode(this.quiet.isTrue());

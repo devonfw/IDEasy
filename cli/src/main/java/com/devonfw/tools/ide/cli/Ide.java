@@ -202,6 +202,7 @@ public final class Ide {
     String[] arguments = args.split(" ", 0);
     CliArgument first = CliArgument.of(arguments);
     CliArgument current = retrieveCliArgumentByContext(first, contextCommandlet);
+    contextCommandlet.run();
     return processCliArgument(current);
   }
 
