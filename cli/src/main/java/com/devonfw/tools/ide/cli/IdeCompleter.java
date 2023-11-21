@@ -167,12 +167,12 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
     }
   }
 
-  public void addCandidates(List<Candidate> candidates, Iterable<String> cands) {
+  private void addCandidates(List<Candidate> candidates, Iterable<String> cands) {
 
     addCandidates(candidates, cands, "", "", true);
   }
 
-  public void addCandidates(List<Candidate> candidates, Iterable<String> cands, String preFix, String postFix,
+  private void addCandidates(List<Candidate> candidates, Iterable<String> cands, String preFix, String postFix,
       boolean complete) {
 
     for (String s : cands) {
