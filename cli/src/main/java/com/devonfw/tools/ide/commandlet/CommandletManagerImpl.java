@@ -70,7 +70,6 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Quarkus(context));
     add(new Kotlinc(context));
     add(new KotlincNative(context));
-    add(new CompleteCommandlet(context));
     add(new Vscode(context));
     add(new Azure(context));
   }
