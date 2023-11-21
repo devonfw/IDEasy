@@ -6,7 +6,7 @@
  *
  * https://opensource.org/licenses/BSD-3-Clause
  */
-package com.devonfw.tools.ide.cli;
+package com.devonfw.tools.ide.context;
 
 import static org.jline.reader.LineReader.ACCEPT_LINE;
 import static org.jline.reader.LineReader.BACKWARD_CHAR;
@@ -49,7 +49,7 @@ import org.junit.jupiter.api.BeforeEach;
  * Provides support for reader and completion tests.
  * Inspired by jline3
  */
-public abstract class ReaderTestSupport extends Assertions {
+public abstract class AutocompletionReaderTestSupport extends Assertions {
   protected Terminal terminal;
 
   protected TestLineReader reader;

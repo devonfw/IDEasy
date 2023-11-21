@@ -6,13 +6,12 @@ import java.nio.file.Paths;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.IdeCompleter;
-import com.devonfw.tools.ide.cli.ReaderTestSupport;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.AbstractIdeTestContext;
-import com.devonfw.tools.ide.context.IdeTestContext;
 
-public class AutoCompletionTest extends ReaderTestSupport {
+/**
+ * Integration test of {@link IdeCompleter}.
+ */
+public class AutoCompletionTest extends AutocompletionReaderTestSupport {
 
   @Test
   public void testIdeCompleterHelp() throws IOException {
@@ -66,7 +65,6 @@ public class AutoCompletionTest extends ReaderTestSupport {
 
     ContextCommandlet contextCommandlet = new ContextCommandlet();
 
-    //IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
     String path = "workspaces/foo-test/my-git-repo";
     IdeTestContext ideContext = AbstractIdeContextTest.newContext("basic", path, false);
     reader.setCompleter(new IdeCompleter(contextCommandlet, ideContext));
