@@ -23,6 +23,18 @@ public interface EnvironmentVariables {
    * @param name the name of the environment variable to get.
    * @return the value of the variable with the given {@code name}. Will be {@code null} if no such variable is defined.
    */
+  default String get(String name, EnvironmentVariablesType startAt) {
+
+    EnvironmentVariables current = this;
+    while (current.getType() != startAt) {
+      current = current.getParent();
+      if (current == null) {
+        return get(name);
+      }
+    }
+    return current.get(name);
+  }
+
   default String get(String name) {
 
     String value = getFlat(name);
@@ -167,6 +179,29 @@ public interface EnvironmentVariables {
       return parent.findVariable(name);
     }
   }
+  /**
+   * @param name the {@link com.devonfw.tools.ide.variable.VariableDefinition#getName() name} of the variable to search
+   *        for.
+   * @param startAt the {@link EnvironmentVariablesType} where to start the upwards search.
+   * @return the closest {@link EnvironmentVariables} instance that defines the variable with the given {@code name} or
+   *         {@code null} if the variable is not defined.
+   */
+  default EnvironmentVariables findVariable(String name, EnvironmentVariablesType startAt) {
+    EnvironmentVariables current = this;
+    while (current.getType() != startAt) {
+      current = current.getParent();
+    }
+    String value = current.getFlat(name);
+    if (value != null) {
+      return current;
+    }
+    EnvironmentVariables parent = current.getParent();
+    if (parent == null) {
+      return null;
+    } else {
+      return parent.findVariable(name);
+    }
+  }
 
   /**
    * @return the {@link Collection} of the {@link VariableLine}s defined by this {@link EnvironmentVariables} including
@@ -186,7 +221,7 @@ public interface EnvironmentVariables {
    * @param source the source where the {@link String} to resolve originates from. Should have a reasonable
    *        {@link Object#toString() string representation} that will be used in error or log messages if a variable
    *        could not be resolved.
-   * @return the the given {@link String} with the variables resolved.
+   * @return the given {@link String} with the variables resolved.
    * @see com.devonfw.tools.ide.tool.ide.IdeToolCommandlet
    */
   String resolve(String string, Object source);
