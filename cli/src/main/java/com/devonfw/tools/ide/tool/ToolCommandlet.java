@@ -439,7 +439,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         return null;
       }
     } catch (Exception e) {
-      this.context.error("An error occurred: ", e);
+      this.context.error("An error occurred: {}", e);
     }
     return null;
   }
