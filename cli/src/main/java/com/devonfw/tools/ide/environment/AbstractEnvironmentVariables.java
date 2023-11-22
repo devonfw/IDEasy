@@ -140,7 +140,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
 
   /**
    * @param propertiesFilePath the {@link #getPropertiesFilePath() propertiesFilePath} of the child
-   *        {@link EnvironmentVariables}.
+   * {@link EnvironmentVariables}.
    * @param type the {@link #getType() type}.
    * @return the new {@link EnvironmentVariables}.
    */
@@ -163,7 +163,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
 
   /**
    * @return a new child {@link EnvironmentVariables} that will resolve variables recursively or this instance itself if
-   *         already satisfied.
+   * already satisfied.
    */
   public EnvironmentVariables resolved() {
 
@@ -180,6 +180,14 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
 
     return resolve(value, src, recursion, rootSrc, rootValue, EnvironmentVariablesType.CONF);
   }
+
+  /**
+   * @param startAt the {@link EnvironmentVariablesType} from where to start the upwards search when resolving
+   * variables. This is used to avoid infinite loops when resolving variables. E.g. Let PATH=${PATH}:/foo/bar be defined
+   * in {@link EnvironmentVariablesType#CONF}. Then, to resolve ${PATH} the search for the variable has to start at
+   * {@link EnvironmentVariablesType#WORKSPACE} and not at {@link EnvironmentVariablesType#CONF} to avoid infinite
+   * recursion. For the other parameters and return see {@link EnvironmentVariables#resolve(String, Object)}.
+   */
 
   private String resolve(String value, Object src, int recursion, Object rootSrc, String rootValue,
       EnvironmentVariablesType startAt) {
