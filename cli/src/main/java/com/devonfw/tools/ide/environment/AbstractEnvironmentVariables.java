@@ -151,14 +151,18 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
 
   private EnvironmentVariablesType incrementType(EnvironmentVariablesType type) {
 
-    return switch (type) {
-      case RESOLVED -> EnvironmentVariablesType.CONF;
-      case CONF -> EnvironmentVariablesType.WORKSPACE;
-      case WORKSPACE -> EnvironmentVariablesType.SETTINGS;
-      case SETTINGS -> EnvironmentVariablesType.USER;
-      case USER -> EnvironmentVariablesType.SYSTEM;
-      default -> null;
-    };
+    EnvironmentVariables current = this;
+    while (current.getType() != type) {
+      current = current.getParent();
+      if (current == null) {
+        throw new IllegalStateException("Could not find type " + type + " in " + this);
+      }
+    }
+    EnvironmentVariables parent = current.getParent();
+    if (parent == null) {
+      return null;
+    }
+    return parent.getType();
   }
 
   /**
