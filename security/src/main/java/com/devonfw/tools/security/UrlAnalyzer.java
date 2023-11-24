@@ -4,8 +4,6 @@ import java.io.FileFilter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.devonfw.tools.ide.context.IdeContextConsole;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractFileTypeAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
@@ -16,7 +14,6 @@ import org.owasp.dependencycheck.dependency.Evidence;
 import org.owasp.dependencycheck.dependency.EvidenceType;
 import org.owasp.dependencycheck.exception.InitializationException;
 
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
 
 public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
@@ -27,6 +24,7 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
   private static final String ANALYZER_NAME = "UrlAnalyzer";
 
   private final UpdateManager updateManager;
+
   public UrlAnalyzer(UpdateManager updateManager) {
 
     fileFilter = new UrlFileFilter();
@@ -35,8 +33,6 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
 
   @Override
   protected void analyzeDependency(Dependency dependency, Engine engine) throws AnalysisException {
-
-
 
     String filePath = dependency.getFilePath();
     Path parent = Paths.get(filePath).getParent();
@@ -47,16 +43,27 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
 
     // adding vendor evidence
     String vendor = updateManager.getCpeVendor(tool);
-    Evidence evidence = new Evidence(source, "CpeVendor", vendor, Confidence.HIGH);
+    Evidence evidence;
+    if (vendor == null) {
+      vendor = tool;
+    }
+    evidence = new Evidence(source, "CpeVendor", vendor, Confidence.HIGH);
     dependency.addEvidence(EvidenceType.VENDOR, evidence);
 
     // adding product evidence
     String product = updateManager.getCpeProduct(tool);
-    if (product == null) {
+    if (product == null) { // for the product it is reasonable to assume that "tool" is the product in most cases
       product = tool;
     }
     evidence = new Evidence(source, "CpeProduct", product, Confidence.HIGH);
     dependency.addEvidence(EvidenceType.PRODUCT, evidence);
+
+    // adding edition evidence
+    String editionEvidence = updateManager.getCpeEdition(tool);
+    if (editionEvidence != null) {
+      evidence = new Evidence(source, "CpeEdition", editionEvidence, Confidence.HIGH);
+      dependency.addEvidence(EvidenceType.PRODUCT, evidence);
+    }
 
     // adding version evidence
     String version = updateManager.mapUrlVersionToCpeVersion(tool, parent.getFileName().toString());
@@ -72,6 +79,7 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
 
   @Override
   protected String getAnalyzerEnabledSettingKey() {
+
     // whether this Analyzer is enabled or not is not configurable but fixed by isEnabled()
     return null;
   }
@@ -84,6 +92,7 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
 
   @Override
   protected void prepareFileTypeAnalyzer(Engine engine) throws InitializationException {
+
     // nothing to prepare here
   }
 

@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.url.model.folder;
 
 import com.devonfw.tools.ide.url.model.AbstractUrlFolderWithParent;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
+import com.devonfw.tools.ide.url.model.file.json.UrlSecurityJsonFile;
 
 /**
  * An {@link UrlFolder} representing the actual edition of a {@link UrlTool}. The default edition may have the same
@@ -11,6 +12,8 @@ import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
 public class UrlEdition extends AbstractUrlFolderWithParent<UrlTool, UrlVersion> {
 
   private UrlSecurityFile securityFile;
+
+  private UrlSecurityJsonFile securityJsonFile;
 
   /**
    * The constructor.
@@ -46,6 +49,15 @@ public class UrlEdition extends AbstractUrlFolderWithParent<UrlTool, UrlVersion>
       this.securityFile.load(false);
     }
     return this.securityFile;
+  }
+
+  public UrlSecurityJsonFile getSecurityJsonFile() {
+
+    if (this.securityJsonFile == null) {
+      this.securityJsonFile = new UrlSecurityJsonFile(this);
+      this.securityJsonFile.load(false);
+    }
+    return this.securityJsonFile;
   }
 
   @Override

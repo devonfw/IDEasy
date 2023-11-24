@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.version;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Container for a range of versions.
  */
@@ -13,8 +16,9 @@ public final class VersionRange implements Comparable<VersionRange> {
    * The constructor.
    *
    * @param min the {@link #getMin() minimum}.
-   * @param max the {@link #getMax() maximum}.
+   * @param max the {@link #getMax() maximum} (including).
    */
+
   public VersionRange(VersionIdentifier min, VersionIdentifier max) {
 
     super();
@@ -25,6 +29,7 @@ public final class VersionRange implements Comparable<VersionRange> {
   /**
    * @return the minimum {@link VersionIdentifier} or {@code null} for no lower bound.
    */
+  // @JsonBackReference
   public VersionIdentifier getMin() {
 
     return this.min;
@@ -33,6 +38,7 @@ public final class VersionRange implements Comparable<VersionRange> {
   /**
    * @return the maximum {@link VersionIdentifier} or {@code null} for no upper bound.
    */
+  // @JsonBackReference
   public VersionIdentifier getMax() {
 
     return this.max;
@@ -73,6 +79,31 @@ public final class VersionRange implements Comparable<VersionRange> {
   }
 
   @Override
+  public boolean equals(Object obj) {
+
+    if (this == obj)
+      return true;
+
+    if (obj == null || getClass() != obj.getClass())
+      return false;
+
+    VersionRange o = (VersionRange) obj;
+
+    if (this.min == null && this.max == null) {
+      return o.min == null && o.max == null;
+    }
+    if (this.min == null) {
+      return o.min == null && this.max.equals(o.max);
+    }
+    if (this.max == null) {
+      return this.min.equals(o.min) && o.max == null;
+    }
+    return this.min.equals(o.min) && this.max.equals(o.max);
+
+  }
+
+  @Override
+  @JsonValue
   public String toString() {
 
     StringBuilder sb = new StringBuilder();
@@ -90,6 +121,7 @@ public final class VersionRange implements Comparable<VersionRange> {
    * @param value the {@link #toString() string representation} of a {@link VersionRange} to parse.
    * @return the parsed {@link VersionRange}.
    */
+  @JsonCreator
   public static VersionRange of(String value) {
 
     int index = value.indexOf('>');

@@ -99,12 +99,17 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
 
   protected String getCpeVendor() {
 
-    return "";
+    return null;
   }
 
   protected String getCpeProduct() {
 
-    return "";
+    return null;
+  }
+
+  protected String getCpeEdition() {
+
+    return null;
   }
 
   protected String mapUrlVersionToCpeVersion(String version) {
