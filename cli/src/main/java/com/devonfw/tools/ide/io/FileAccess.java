@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.io;
 
+import java.io.IOException;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -130,5 +132,13 @@ public interface FileAccess {
    * @return the first child {@link Path} matching the given {@link Predicate} or {@code null} if no match was found.
    */
   Path findFirst(Path dir, Predicate<Path> filter, boolean recursive);
+
+  /**
+   * Retrieves a list of file paths from the specified directory that satisfy the given predicate.
+   * @param dir the folder to iterate through
+   * @param filter the {@link Predicate} that determines whether a file should be included in the list.
+   * @return a list of paths that satisfy the provided {@link Predicate} or {@code null} if no match was found.
+   */
+  public List<Path> getFilesInDir(Path dir, Predicate<Path> filter);
 
 }

@@ -458,4 +458,24 @@ public class FileAccessImpl implements FileAccess {
     return null;
   }
 
+  @Override
+  public List<Path> getFilesInDir(Path dir, Predicate<Path> filter) {
+    List<Path> files = null;
+    try (Stream<Path> childStream = Files.list(dir)) {
+      Iterator<Path> iterator = childStream.iterator();
+      while (iterator.hasNext()) {
+        Path child = iterator.next();
+        if (filter.test(child)) {
+          if (files == null) {
+            files = new ArrayList<>();
+          }
+          files.add(child);
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to iterate through " + dir, e);
+    }
+    return files;
+  }
+
 }
