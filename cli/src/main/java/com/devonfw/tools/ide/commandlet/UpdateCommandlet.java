@@ -1,16 +1,15 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.StringProperty;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class UpdateCommandlet extends Commandlet {
-
-  public final StringProperty settingsURL;
-
-  private static final String defaultSettingsUrl = "https://github.com/devonfw/ide-settings.git";
 
   /**
    * The constructor.
@@ -21,8 +20,6 @@ public class UpdateCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    settingsURL = add(new StringProperty("", false, "settingsURL"));
-
   }
 
   @Override
@@ -34,51 +31,49 @@ public class UpdateCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    updateSettings();
+   // updateSettings();
     updateSoftware();
     updateRepositories();
 
   }
 
   private void updateRepositories() {
+    this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class).run();
 
   }
 
   private void updateSoftware() {
+
+    // Retrieve all installed software
+    List<Path> softwares = this.context.getFileAccess().getFilesInDir(this.context.getSoftwarePath(), p -> true);
+    Set<ToolCommandlet> toolCommandlets = new HashSet<>();
+    for (Path software : softwares) {
+      toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(software.getFileName().toString()));
+    }
+
+    String regularToolsV = this.context.getVariables().get("IDE_TOOLS");
+    // Split the string based on comma delimiter
+    String[] regularTools = regularToolsV.split(",\\s");
+    for (String regularTool : regularTools) {
+      toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(regularTool));
+    }
+
+    // update/install the toolCommandlets
+    for (ToolCommandlet toolCommandlet : toolCommandlets) {
+      toolCommandlet.install();
+    }
+
 
   }
 
   private void updateSettings() {
 
     Path settingsPath = this.context.getSettingsPath();
-
     if (Files.isDirectory(settingsPath)) {
-      //pull remote settings repo
+      // perform git pull on the settings repo
       this.context.gitPullOrClone(settingsPath, "http");
     } else {
-      //clone given settingsUrl
-      String settingsUrl = this.settingsURL.getValue();
-      if (settingsUrl == null) {
-        if (this.context.isBatchMode()) {
-          settingsUrl = "";
-        } else {
-          this.context.info("Missing your settings at {} and no Settings URL is defined.");
-          this.context.info("Further details can be found here:");
-          this.context.info("https://github.com/devonfw/IDEasy/blob/main/documentation/settings.asciidoc");
-          this.context.info("Please contact the technical lead of your project to get the SETTINGS_URL for your project.");
-          this.context.info("In case you just want to test IDEasy you may simply hit return to install default settings.");
-          //read line settingsUrl = this.context.readLine();
-        }
-      }
-
-      if (settingsUrl.isEmpty()) {
-        settingsUrl = defaultSettingsUrl;
-      }
-      this.context.gitPullOrClone(settingsPath, settingsUrl);
-
+      throw new IllegalStateException("Cannot find settings repository.");
     }
-
-
-
   }
 }
