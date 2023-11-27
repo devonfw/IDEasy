@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -24,8 +22,6 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.StringListProperty;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * {@link Commandlet} for a tool integrated into the IDE.
@@ -390,131 +386,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       this.context.info("To install that version call the following command:");
       this.context.info("ide install {}", this.tool);
     }
-  }
-
-  /**
-   * Method to be overridden so that for each tool the actual dependency name is set.
-   *
-   * @return the dependency name as {@link String}
-   */
-  protected String getDependencyName() {
-    
-    return "";
-  }
-
-  /**
-   * Method to be overridden so that for each tool the actual Json Path of the dependencies is set.
-   *
-   * @return the dependency Json Path as {@link String}
-   */
-  protected String getDependencyJsonPath() {
-
-    return "";
-  }
-
-  /**
-   * Method to get the version of the dependency of a specific tool, after the Json file is read.
-   *
-   * @param toolVersionToCheck the {@link VersionIdentifier} of the version of the tool that should be checked.
-   * @return the Version of the dependency as {@link String}, for the tool that was to be checked or {@code null} if not
-   *         found.
-   */
-  protected VersionIdentifier getDependencyVersion(VersionIdentifier toolVersionToCheck) {
-
-    try {
-      ObjectMapper objectMapper = new ObjectMapper();
-      Path jsonFilePath = Paths.get(getDependencyJsonPath());
-
-      JsonNode toolVersions = objectMapper.readTree(jsonFilePath.toFile());
-
-      VersionIdentifier requiredDependencyVersion = findDependencyVersionFromJson(toolVersions, toolVersionToCheck);
-
-      if (requiredDependencyVersion != null) {
-        this.context.info("The tool {} in version {} requires at least {} in version {} as a dependency", getName(),
-            toolVersionToCheck, getDependencyName(), requiredDependencyVersion);
-        return requiredDependencyVersion;
-      } else {
-        this.context.error("No specific {} version requirement found for {} in version {}", getDependencyName(),
-            getName(), toolVersionToCheck);
-        return null;
-      }
-    } catch (Exception e) {
-      this.context.error("An error occurred: ", e);
-    }
-    return null;
-  }
-
-  /**
-   * Method to find the dependency version that should be installed from the list of the versions in the IDEasy, if the
-   * already installed version of the dependency is not sufficient.
-   *
-   * @param dependencyVersionNumberFound the {@link VersionIdentifier} of the version of the dependency that is found that needs to
-   *        be installed.
-   * @return {@link VersionIdentifier} the Version found from the IDEasy that should be installed.
-   */
-  protected VersionIdentifier findDependencyVersionToInstall(VersionIdentifier dependencyVersionNumberFound) {
-
-    String dependencyEdition = this.context.getVariables().getToolEdition(getDependencyName());
-
-    List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(getDependencyName(), dependencyEdition);
-
-    for (VersionIdentifier vi : versions) {
-      if (vi.compareVersion(dependencyVersionNumberFound).isGreater()) {
-        return vi;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Method to find the dependency version that should be installed from Json file, if the version of the tool is given
-   *
-   * @param toolVersions the {@link JsonNode} that contains the versions of the tool listed in the Json file
-   * @param toolVersionToCheck the {@link VersionIdentifier} of the tool version that is installed and needs to be
-   *        checked in the Json file to find the right version of the dependency to be installed
-   * @return {@link VersionIdentifier} the Version of the dependency with which the tool works correctly.
-   */
-  private VersionIdentifier findDependencyVersionFromJson(JsonNode toolVersions, VersionIdentifier toolVersionToCheck) {
-
-    // Iterate through the fields of the Json file
-    Iterator<Map.Entry<String, JsonNode>> fields = toolVersions.fields();
-
-    while (fields.hasNext()) {
-
-      Map.Entry<String, JsonNode> entry = fields.next();
-      String versionKey = entry.getKey();
-      VersionIdentifier foundToolVersion = VersionIdentifier.of(versionKey);
-
-      if (toolVersionToCheck.getStart().compareVersion(foundToolVersion.getStart()).isGreater()) {
-        return null;
-      } else if (toolVersionToCheck.getStart().compareVersion(foundToolVersion.getStart()).isEqual()) {
-        return searchJsonFile(entry);
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Method to search the Json file
-   *
-   * @param entry the {@link Map.Entry} that contains the next entry in the Json file
-   * @return {@link VersionIdentifier} the Version of the dependency with which the tool works correctly.
-   */
-  private VersionIdentifier searchJsonFile(Map.Entry<String, JsonNode> entry) {
-
-    String dependencyString = "dependency";
-    String MinVersionString = "MinVersion";
-    String MaxVersionString = "MaxVersion";
-
-    JsonNode dependencies = entry.getValue();
-    for (JsonNode dependencyNode : dependencies) {
-      if (getDependencyName().equals(dependencyNode.get(dependencyString).asText())) {
-        return VersionIdentifier.of(dependencyNode.get(MinVersionString).asText());
-        // TODO: Add logic to handle MaxVersion if needed
-      }
-    }
-    return null;
   }
 
 }
