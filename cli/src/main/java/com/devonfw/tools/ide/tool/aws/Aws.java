@@ -48,21 +48,19 @@ public class Aws extends LocalToolCommandlet {
   @Override
   protected void moveAndProcessExtraction(Path from, Path to) {
 
-    if (!this.context.getSystemInfo().isLinux()) {
-      this.context.getFileAccess().move(from, to);
-    } else {
+    if (this.context.getSystemInfo().isLinux()) {
       // make binary executable using java nio because unpacking didn't preserve the file permissions
+      // TODO this can be removed if issue #132 is fixed
       Path awsInDistPath = from.resolve("dist").resolve("aws");
       Path awsCompleterInDistPath = from.resolve("dist").resolve("aws_completer");
-
-      // TODO this can be removed if issue #132 is fixed
       makeExecutable(awsInDistPath);
       makeExecutable(awsCompleterInDistPath);
+
       // running the install-script that aws shipped
       ProcessContext pc = this.context.newProcess();
       Path linuxInstallScript = from.resolve("install");
-      pc.executable("bash");
-      pc.addArgs(linuxInstallScript, "-i", from.toString(), "-b", from.toString());
+      pc.executable(linuxInstallScript);
+      pc.addArgs("-i", from.toString(), "-b", from.toString());
       pc.run();
 
       // the install-script that aws ships creates symbolic links to binaries but using absolute paths
@@ -74,9 +72,8 @@ public class Aws extends LocalToolCommandlet {
       }
       this.context.getFileAccess().delete(linuxInstallScript);
       this.context.getFileAccess().delete(from.resolve("dist"));
-
-      this.context.getFileAccess().move(from, to);
     }
+    super.moveAndProcessExtraction(from, to);
   }
 
   @Override
