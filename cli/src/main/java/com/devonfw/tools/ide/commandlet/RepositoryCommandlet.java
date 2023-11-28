@@ -22,7 +22,7 @@ public class RepositoryCommandlet extends Commandlet {
 
   /** the repository to setup. */
   public final PathProperty repository;
-  
+
   /**
    * The constructor.
    *
