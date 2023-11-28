@@ -22,10 +22,7 @@ public class RepositoryCommandlet extends Commandlet {
 
   /** the repository to setup. */
   public final PathProperty repository;
-
-  public final Path repositoriesPath = context.getSettingsPath().resolve("repositories");
-  Path legacyRepositoriesPath = this.context.getSettingsPath().resolve("projects");
-
+  
   /**
    * The constructor.
    *
