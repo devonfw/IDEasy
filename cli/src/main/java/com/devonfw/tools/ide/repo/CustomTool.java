@@ -88,8 +88,7 @@ public final class CustomTool implements UrlDownloadFileMetadata {
       sb.append(this.arch);
     }
     sb.append(".tgz");
-    //this.url = sb.toString();
-    this.url = repositoryUrl;
+    this.url = sb.toString();
   }
 
   @Override

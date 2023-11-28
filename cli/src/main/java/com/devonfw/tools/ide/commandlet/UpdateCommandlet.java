@@ -9,7 +9,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 
+/**
+ * {@link Commandlet} to update settings, software and repositories
+ */
 public class UpdateCommandlet extends Commandlet {
+
+  private static final String SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings";
 
   /**
    * The constructor.
@@ -36,13 +41,14 @@ public class UpdateCommandlet extends Commandlet {
     updateRepositories();
   }
 
+
   private void updateSettings() {
 
     this.context.info("Updating settings repository ...");
     Path settingsPath = this.context.getSettingsPath();
     if (Files.isDirectory(settingsPath)) {
       // perform git pull on the settings repo
-      this.context.gitPullOrClone(settingsPath, "https://github.com/devonfw/ide-settings");
+      this.context.gitPullOrClone(settingsPath, SETTINGS_REPO_URL);
       this.context.success("Successfully updated settings repository.");
     } else {
       throw new IllegalStateException("Cannot find settings repository.");
@@ -52,17 +58,16 @@ public class UpdateCommandlet extends Commandlet {
   private void updateSoftware() {
 
     Set<ToolCommandlet> toolCommandlets = new HashSet<>();
-    Set<String> failedInstalls = new HashSet<>();
     Map<String, String> tool2Exception = new HashMap<>();
 
-    // installed tools
+    // installed tools in IDE_HOME/software
     List<Path> softwares = this.context.getFileAccess().getFilesInDir(this.context.getSoftwarePath(), p -> true);
     for (Path software : softwares) {
       String toolName = software.getFileName().toString();
       try {
         toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(toolName));
       } catch (IllegalArgumentException e) {
-        //tool is a custom tool, ignore
+        //tool is a custom tool, ignore ...s
       }
     }
 
@@ -90,8 +95,8 @@ public class UpdateCommandlet extends Commandlet {
     }
 
 
-    if (failedInstalls.isEmpty()) {
-      this.context.success("All tools were installed successfully.");
+    if (tool2Exception.isEmpty()) {
+      this.context.success("All tools were successfully installed.");
     } else {
       this.context.warning("Following tools could not be installed:");
       for (String toolName : tool2Exception.keySet())
