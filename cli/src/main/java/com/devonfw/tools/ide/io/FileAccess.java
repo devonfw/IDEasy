@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.io;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.function.Predicate;
@@ -139,6 +138,6 @@ public interface FileAccess {
    * @param filter the {@link Predicate} that determines whether a file should be included in the list.
    * @return a list of paths that satisfy the provided {@link Predicate} or {@code null} if no match was found.
    */
-  public List<Path> getFilesInDir(Path dir, Predicate<Path> filter);
+  List<Path> getFilesInDir(Path dir, Predicate<Path> filter);
 
 }
