@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.io;
 
 import static com.devonfw.tools.ide.logging.Log.info;
+import static com.devonfw.tools.ide.logging.Log.warn;
 
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
@@ -297,30 +298,36 @@ public class FileAccessImpl implements FileAccess {
       throw new IllegalStateException(
           "Can't call makeSymlinkRelative on " + link + " since it is not a symbolic link.");
     }
-    Path linkTarget = null;
+    Path linkTarget;
     try {
       linkTarget = followTarget ? link.toRealPath() : Files.readSymbolicLink(link);
     } catch (IOException e) {
       throw new RuntimeException("For link " + link + " the call to "
           + (followTarget ? "toRealPath" : "readSymbolicLink") + " in method makeSymlinkRelative failed.", e);
     }
-    this.context.getFileAccess().delete(link); // delete old absolute link
-    this.context.getFileAccess().relativeSymlink(link, linkTarget); // and replace it by the new relative link
+    delete(link); // delete old absolute link
+    symlink(link, linkTarget); // and replace it by the new relative link
   }
 
   @Override
-  public void relativeSymlink(Path link, Path source) {
+  public void symlink(Path source, Path targetLink, boolean relative) {
 
-    Path relativeSource = link.getParent().relativize(source);
-    // to make relative links like this work: dir/link -> dir
-    relativeSource = (relativeSource.toString().isEmpty()) ? Paths.get(".") : relativeSource;
-    symlink(relativeSource, link);
-  }
+    if (!source.isAbsolute()) {
+      throw new IllegalStateException("When creating a symbolic link the source (" + source
+          + ") must be an absolute path. If you want to create a relative link, "
+          + "then pass the source as an absolute path and set the relative flag to true.");
+    }
+    Path relativeSource = null;
+    if (relative) {
+      relativeSource = targetLink.getParent().relativize(source);
+      // to make relative links like this work: dir/link -> dir
+      relativeSource = (relativeSource.toString().isEmpty()) ? Paths.get(".") : relativeSource;
+      this.context.trace("Creating a relative symbolic link {} pointing to {}, with absolute path {}", targetLink,
+          relativeSource, source);
+    } else {
+      this.context.trace("Creating symbolic link {} pointing to {}", targetLink, source);
+    }
 
-  @Override
-  public void symlink(Path source, Path targetLink) {
-
-    this.context.trace("Creating symbolic link {} pointing to {}", targetLink, source);
     try {
       if (Files.exists(targetLink)) {
         if (Files.isSymbolicLink(targetLink)) {
@@ -335,17 +342,16 @@ public class FileAccessImpl implements FileAccess {
           }
         }
       }
-      Files.createSymbolicLink(targetLink, source);
+      Files.createSymbolicLink(targetLink, relative ? relativeSource : source);
     } catch (FileSystemException e) {
       if (this.context.getSystemInfo().isWindows()) {
-        String infoMsg = "Due to lack of permissions, Microsofts mklink with junction had to be used to create "
+        String infoMsg = "Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
             + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for "
             + "further details. Error was: " + e.getMessage();
         info(infoMsg);
-        if (!source.isAbsolute()) {
-          throw new IllegalStateException(
-              infoMsg + "\\n These junctions can only point to absolute paths. Please make sure that the targetLink ("
-                  + targetLink + ") is absolute.");
+        if (relative) {
+          warn("You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
+              + "alternative, however, these can not point to relative paths. So the flag \"relative = true\" is ignored.");
         }
         if (!Files.isDirectory(source)) { // if source is a junction. This returns true as well.
           throw new IllegalStateException(infoMsg
@@ -358,7 +364,8 @@ public class FileAccessImpl implements FileAccess {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source, e);
+      throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source
+          + " with the flag \"relative\" set to " + relative, e);
     }
   }
 

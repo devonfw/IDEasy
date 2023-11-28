@@ -70,18 +70,15 @@ public interface FileAccess {
   void makeSymlinkRelative(Path link, boolean followTarget);
 
   /**
-   * Creates a symbolic relative link.
-   *
    * @param source the source {@link Path} to link to.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
    */
-  void relativeSymlink(Path targetLink, Path source);
+  void symlink(Path source, Path targetLink, boolean relative);
 
-  /**
-   * @param source the source {@link Path} to link to.
-   * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
-   */
-  void symlink(Path source, Path targetLink);
+  default void symlink(Path source, Path targetLink) {
+
+    symlink(source, targetLink, true);
+  }
 
   /**
    * @param source the source {@link Path file or folder} to copy.
