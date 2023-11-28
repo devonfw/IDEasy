@@ -7,9 +7,7 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class UpdateCommandlet extends Commandlet {
 
@@ -33,19 +31,9 @@ public class UpdateCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    //updateSettings();
-    //updateSoftware();
-    //updateRepositories();
-    testMethod();
-
-  }
-
-  private void testMethod() {
-
-    for (CustomTool ct : this.context.getCustomToolRepository().getTools()) {
-      this.context.info("Tool: {}, Version: {}, URL: {}", ct.getTool(), ct.getVersion(), ct.getUrl());
-    }
-
+    updateSettings();
+    updateSoftware();
+    updateRepositories();
   }
 
   private void updateSettings() {
@@ -55,6 +43,7 @@ public class UpdateCommandlet extends Commandlet {
     if (Files.isDirectory(settingsPath)) {
       // perform git pull on the settings repo
       this.context.gitPullOrClone(settingsPath, "https://github.com/devonfw/ide-settings");
+      this.context.success("Successfully updated settings repository.");
     } else {
       throw new IllegalStateException("Cannot find settings repository.");
     }
@@ -64,12 +53,17 @@ public class UpdateCommandlet extends Commandlet {
 
     Set<ToolCommandlet> toolCommandlets = new HashSet<>();
     Set<String> failedInstalls = new HashSet<>();
+    Map<String, String> tool2Exception = new HashMap<>();
 
     // installed tools
     List<Path> softwares = this.context.getFileAccess().getFilesInDir(this.context.getSoftwarePath(), p -> true);
     for (Path software : softwares) {
       String toolName = software.getFileName().toString();
-      toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(toolName));
+      try {
+        toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(toolName));
+      } catch (IllegalArgumentException e) {
+        //tool is a custom tool, ignore
+      }
     }
 
     // regular tools in $IDE_TOOLS
@@ -91,21 +85,18 @@ public class UpdateCommandlet extends Commandlet {
         this.context.step("Setting up {}", toolCommandlet.getName());
         toolCommandlet.install(false);
       } catch (Exception e) {
-        failedInstalls.add(toolCommandlet.getName());
+        tool2Exception.put(toolCommandlet.getName(), e.getMessage());
       }
     }
+
 
     if (failedInstalls.isEmpty()) {
       this.context.success("All tools were installed successfully.");
     } else {
-      this.context.warning("Following tools could not be installed: {}", String.join(", ", failedInstalls));
+      this.context.warning("Following tools could not be installed:");
+      for (String toolName : tool2Exception.keySet())
+      this.context.warning("{}: {}", toolName, tool2Exception.get(toolName));
     }
-  }
-
-  private void downloadAndInstall(CustomTool customTool) {
-
-    this.context.getCustomToolRepository().download(customTool.getTool(), customTool.getEdition(), customTool.getVersion());
-
   }
 
   private void updateRepositories() {

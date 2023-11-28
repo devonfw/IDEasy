@@ -26,4 +26,10 @@ public class CustomToolCommandlet extends LocalToolCommandlet {
 
     return installInRepo(version, edition, this.context.getCustomToolRepository());
   }
+
+  @Override
+  public VersionIdentifier getConfiguredVersion() {
+
+    return this.customTool.getVersion();
+  }
 }
