@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.io;
 
-import static com.devonfw.tools.ide.logging.Log.info;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
@@ -57,8 +56,9 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     if (!windowsJunctionsAreUsed(context, tempDir)) {
-      info("Can not check the Test: testSymlinkAbsoluteAsFallback since windows junctions are not used and fallback "
-          + "from relative to absolute paths as link target is not used.");
+      context.info(
+          "Can not check the Test: testSymlinkAbsoluteAsFallback since windows junctions are not used and fallback "
+              + "from relative to absolute paths as link target is not used.");
       return;
     }
     FileAccess fileAccess = new FileAccessImpl(context);
@@ -101,7 +101,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     if (windowsJunctionsAreUsed(context, tempDir)) {
-      info("Can not check the Test: testRelativeLinksWorkAfterMoving since windows junctions are used.");
+      context.info("Can not check the Test: testRelativeLinksWorkAfterMoving since windows junctions are used.");
       return;
     }
     FileAccess fileAccess = new FileAccessImpl(context);
@@ -125,7 +125,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     if (!windowsJunctionsAreUsed(context, tempDir)) {
-      info("Can not check the Test: testWindowsJunctionsCanNotPointToFiles since windows junctions are not used.");
+      context
+          .info("Can not check the Test: testWindowsJunctionsCanNotPointToFiles since windows junctions are not used.");
       return;
     }
     Path file = tempDir.resolve("file");
