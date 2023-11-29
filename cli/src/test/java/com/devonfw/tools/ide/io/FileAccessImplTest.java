@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
@@ -125,8 +126,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     if (!windowsJunctionsAreUsed(context, tempDir)) {
-      context
-          .info("Can not check the Test: testWindowsJunctionsCanNotPointToFiles since windows junctions are not used.");
+      context.info(
+          "Can not check the Test: testWindowsJunctionsCanNotPointToFiles since windows junctions are not used.");
       return;
     }
     Path file = tempDir.resolve("file");
@@ -204,7 +205,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
     if (readLinks) {
       Path readPath = Files.readSymbolicLink(link);
-      if (!Files.exists(readPath)) {
+      if (Files.exists(readPath)) {
         fail("The link target " + readPath + " (from readSymbolicLink) should not exist");
       }
     }
@@ -265,6 +266,10 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
     assertThat(link.resolveSibling(readPath)).existsNoFollowLinks();
     assertThat(link.resolveSibling(readPath)).exists();
-    assertThat(readPath.getFileName()).isEqualTo((trueTarget.getFileName()));
+    try {
+      assertThat(link.resolveSibling(readPath).toRealPath(LinkOption.NOFOLLOW_LINKS)).isEqualTo(trueTarget);
+    } catch (IOException e) {
+      fail("Couldn't link.resolveSibling(readPath).toRealPath() in assertSymlinkRead:", e);
+    }
   }
 }
