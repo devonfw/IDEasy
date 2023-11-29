@@ -1,8 +1,5 @@
 package com.devonfw.tools.ide.io;
 
-import static com.devonfw.tools.ide.logging.Log.info;
-import static com.devonfw.tools.ide.logging.Log.warn;
-
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -106,7 +103,7 @@ public class FileAccessImpl implements FileAccess {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
     if (contentLength == 0) {
-      context.warning(
+      this.context.warning(
           "Content-Length was not provided by download source : {} using fallback for the progress bar which will be inaccurate.",
           url);
       contentLength = 10000000;
@@ -119,7 +116,7 @@ public class FileAccessImpl implements FileAccess {
     try (InputStream body = response.body();
         FileOutputStream fileOutput = new FileOutputStream(target.toFile());
         BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, data.length);
-        IdeProgressBar pb = context.prepareProgressBar("Downloading", contentLength)) {
+        IdeProgressBar pb = this.context.prepareProgressBar("Downloading", contentLength)) {
       while (!fileComplete) {
         count = body.read(data);
         if (count <= 0) {
@@ -149,7 +146,7 @@ public class FileAccessImpl implements FileAccess {
       byte[] buf = new byte[1024];
       int readBytes;
 
-      try (IdeProgressBar pb = context.prepareProgressBar("Copying", size)) {
+      try (IdeProgressBar pb = this.context.prepareProgressBar("Copying", size)) {
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
           pb.stepByOne();
@@ -186,6 +183,16 @@ public class FileAccessImpl implements FileAccess {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public boolean isExpectedFolder(Path folder) {
+
+    if (Files.isDirectory(folder)) {
+      return true;
+    }
+    this.context.warning("Expected folder was not found at {}", folder);
+    return false;
   }
 
   @Override
@@ -328,17 +335,18 @@ public class FileAccessImpl implements FileAccess {
         String infoMsg = "Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
             + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for "
             + "further details. Error was: " + e.getMessage();
-        info(infoMsg);
+        this.context.info(infoMsg);
         if (relative) {
-          warn("You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
-              + "alternative, however, these can not point to relative paths. So the flag \"relative = true\" is ignored.");
+          this.context.warning(
+              "You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
+                  + "alternative, however, these can not point to relative paths. So the flag \"relative = true\" is ignored.");
         }
         if (!Files.isDirectory(source)) { // if source is a junction. This returns true as well.
           throw new IllegalStateException(infoMsg
               + "\\n These junctions can only point to directories or other junctions. Please make sure that the source ("
               + source + ") is one of these.");
         }
-        context.newProcess().executable("cmd")
+        this.context.newProcess().executable("cmd")
             .addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), source.toString()).run();
       } else {
         throw new RuntimeException(e);
