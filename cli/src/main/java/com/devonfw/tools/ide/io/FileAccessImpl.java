@@ -17,6 +17,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -286,30 +287,6 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void makeSymlinkRelative(Path link) {
-
-    makeSymlinkRelative(link, false);
-  }
-
-  @Override
-  public void makeSymlinkRelative(Path link, boolean followTarget) {
-
-    if (!Files.isSymbolicLink(link)) {
-      throw new IllegalStateException(
-          "Can't call makeSymlinkRelative on " + link + " since it is not a symbolic link.");
-    }
-    Path linkTarget;
-    try {
-      linkTarget = followTarget ? link.toRealPath() : Files.readSymbolicLink(link);
-    } catch (IOException e) {
-      throw new RuntimeException("For link " + link + " the call to "
-          + (followTarget ? "toRealPath" : "readSymbolicLink") + " in method makeSymlinkRelative failed.", e);
-    }
-    delete(link); // delete old absolute link
-    symlink(link, linkTarget); // and replace it by the new relative link
-  }
-
-  @Override
   public void symlink(Path source, Path targetLink, boolean relative) {
 
     if (!source.isAbsolute()) {
@@ -333,14 +310,17 @@ public class FileAccessImpl implements FileAccess {
         if (Files.isSymbolicLink(targetLink)) {
           this.context.debug("Deleting symbolic link to be re-created at {}", targetLink);
           Files.delete(targetLink);
-        } else {
-          BasicFileAttributes attr = Files.readAttributes(targetLink, BasicFileAttributes.class,
-              LinkOption.NOFOLLOW_LINKS);
-          if (attr.isOther() && attr.isDirectory() && this.context.getSystemInfo().isWindows()) {
-            this.context.debug("Deleting symbolic link (junction) to be re-created at {}", targetLink);
-            Files.delete(targetLink);
-          }
         }
+      }
+      try { // since broken junctions are not detected by Files.exists(brokenJunction)
+        BasicFileAttributes attr = Files.readAttributes(targetLink, BasicFileAttributes.class,
+            LinkOption.NOFOLLOW_LINKS);
+        if (attr.isOther() && attr.isDirectory() && this.context.getSystemInfo().isWindows()) {
+          this.context.debug("Deleting symbolic link (junction) to be re-created at {}", targetLink);
+          Files.delete(targetLink);
+        }
+      } catch (NoSuchFileException e) {
+        // ignore, since there is no previous file at the location, which is fine
       }
       Files.createSymbolicLink(targetLink, relative ? relativeSource : source);
     } catch (FileSystemException e) {

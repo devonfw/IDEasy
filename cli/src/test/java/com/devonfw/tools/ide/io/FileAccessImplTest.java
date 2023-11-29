@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -39,13 +40,15 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
+    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
+    boolean relative = false;
 
     // act
-    createSymlinks(fileAccess, dir, false);
+    createSymlinks(fileAccess, dir, relative);
 
     // assert
     assertSymlinksExist(dir);
-    assertSymlinksWork(dir, false, false);
+    assertSymlinksWork(dir, readLinks);
   }
 
   @Test
@@ -54,19 +57,22 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     if (!windowsJunctionsAreUsed(context, tempDir)) {
-      info("Can not check the Test: testSymlinkAbsoluteAsFallback since windows junctions are not used.");
+      info("Can not check the Test: testSymlinkAbsoluteAsFallback since windows junctions are not used and fallback "
+          + "from relative to absolute paths as link target is not used.");
       return;
     }
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
+    boolean readLinks = false; // bc windows junctions are used, which can't be read with Files.readSymbolicLink(link);
+    boolean relative = true; // set to true, such that the fallback to absolute paths is used since junctions are used
 
     // act
-    createSymlinks(fileAccess, dir, true);
+    createSymlinks(fileAccess, dir, relative);
 
     // assert
     assertSymlinksExist(dir);
-    assertSymlinksWork(dir, false, false);
+    assertSymlinksWork(dir, readLinks);
   }
 
   @Test
@@ -74,14 +80,11 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    if (windowsJunctionsAreUsed(context, tempDir)) {
-      info("Can not check the Test: testAbsoluteLinksBreakAfterMoving since windows junctions are used.");
-      return;
-    }
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
     createSymlinks(fileAccess, dir, false);
+    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
 
     // act
     Path sibling = dir.resolveSibling("parent2");
@@ -89,7 +92,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
     // assert
     assertSymlinksExist(sibling);
-    assertSymlinksAreBroken(sibling);
+    assertSymlinksAreBroken(sibling, readLinks);
   }
 
   @Test
@@ -105,6 +108,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
     createSymlinks(fileAccess, dir, true);
+    boolean readLinks = true; // junctions are not used, so links can be read with Files.readSymbolicLink(link);
 
     // act
     Path sibling = dir.resolveSibling("parent2");
@@ -112,14 +116,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
     // assert
     assertSymlinksExist(sibling);
-    assertSymlinksWork(sibling, true, false);
-  }
-
-  public void testMakeSymlinksRelative(@TempDir Path tempDir) {
-
-    // test follow target true and false
-
-    // test on junctions, dir and file,
+    assertSymlinksWork(sibling, readLinks);
   }
 
   @Test
@@ -180,37 +177,42 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(dir.resolve("link10")).existsNoFollowLinks();
   }
 
-  private void assertSymlinksAreBroken(Path dir) throws IOException {
+  private void assertSymlinksAreBroken(Path dir, boolean readLinks) throws IOException {
 
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link1"));
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link2"));
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link3"));
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link4"));
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link5"));
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link6"));
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link7"));
-    assertSymlinkIsBroken(dir.resolve("d2/d22/link8"));
-    assertSymlinkIsBroken(dir.resolve("d2/link9"));
-    assertSymlinkIsBroken(dir.resolve("link10"));
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link1"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link2"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link3"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link4"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link5"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link6"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link7"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d2/d22/link8"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d2/link9"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("link10"), readLinks);
   }
 
-  private void assertSymlinkIsBroken(Path link) throws IOException {
+  private void assertSymlinkIsBroken(Path link, boolean readLinks) throws IOException {
 
-    Path realPath = link.toRealPath();
-    if (Files.exists(realPath)) {
-      fail("The link target " + realPath + " (from toRealPath) should not exist");
+    try {
+      Path realPath = link.toRealPath();
+      if (Files.exists(realPath)) {
+        fail("The link target " + realPath + " (from toRealPath) should not exist");
+      }
+    } catch (IOException e) { // toRealPath() throws exception for junctions
+      assertThat(e).isInstanceOf(NoSuchFileException.class);
     }
-    Path readPath = Files.readSymbolicLink(link);
-    if (!Files.exists(readPath)) {
-      fail("The link target " + readPath + " (from readSymbolicLink) should not exist");
+    if (readLinks) {
+      Path readPath = Files.readSymbolicLink(link);
+      if (!Files.exists(readPath)) {
+        fail("The link target " + readPath + " (from readSymbolicLink) should not exist");
+      }
     }
   }
 
-  /***
-   *
-   * @param readLinks - {@code true} only pass this when junctions are not used.
+  /*
+   * only pass readLinks = true when junctions are not used.
    */
-  private void assertSymlinksWork(Path dir, boolean readLinks, boolean followTarget) {
+  private void assertSymlinksWork(Path dir, boolean readLinks) {
 
     assertSymlinkToRealPath(dir.resolve("d1/d11/link1"), dir.resolve("d1"));
     assertSymlinkToRealPath(dir.resolve("d1/d11/link2"), dir.resolve("d1/d11"));
@@ -231,15 +233,9 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
       assertSymlinkRead(dir.resolve("d1/d11/link5"), dir.resolve("d2"));
       assertSymlinkRead(dir.resolve("d1/d11/link6"), dir.resolve("d2/d22"));
       assertSymlinkRead(dir.resolve("d1/d11/link7"), dir.resolve("d2/d22/d222"));
-      if (followTarget) {
-        assertSymlinkRead(dir.resolve("d2/d22/link8"), dir.resolve("d1"));
-        assertSymlinkRead(dir.resolve("d2/link9"), dir.resolve("d1"));
-        assertSymlinkRead(dir.resolve("link10"), dir.resolve("d1"));
-      } else {
-        assertSymlinkRead(dir.resolve("d2/d22/link8"), dir.resolve("d1/d11/link1"));
-        assertSymlinkRead(dir.resolve("d2/link9"), dir.resolve("d1/d11/link1"));
-        assertSymlinkRead(dir.resolve("link10"), dir.resolve("d2/link9"));
-      }
+      assertSymlinkRead(dir.resolve("d2/d22/link8"), dir.resolve("d1/d11/link1"));
+      assertSymlinkRead(dir.resolve("d2/link9"), dir.resolve("d1/d11/link1"));
+      assertSymlinkRead(dir.resolve("link10"), dir.resolve("d2/link9"));
     }
   }
 
@@ -249,18 +245,16 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     try {
       realPath = link.toRealPath();
     } catch (IOException e) {
-      fail("Could not call toRealPath on link: " + link, e); // TODO this may also be moved to method declarations
-      // "throws IOException"
+      fail("Could not call toRealPath on link: " + link, e);
     }
     assertThat(realPath).exists();
     assertThat(realPath).existsNoFollowLinks();
     assertThat(realPath).isEqualTo(trueTarget);
-
   }
 
   private void assertSymlinkRead(Path link, Path trueTarget) {
 
-    // only call this on relative links
+    // only call this method if junctions are not used
 
     Path readPath = null;
     try {
