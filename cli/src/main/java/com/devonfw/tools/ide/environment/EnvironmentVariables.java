@@ -181,6 +181,34 @@ public interface EnvironmentVariables {
   Collection<VariableLine> collectExportedVariables();
 
   /**
+   * @param string the {@link String} that potentially contains variables in the syntax "${«variable«}". Those will be
+   *        resolved by this method and replaced with their {@link #get(String) value}.
+   * @param source the source where the {@link String} to resolve originates from. Should have a reasonable
+   *        {@link Object#toString() string representation} that will be used in error or log messages if a variable
+   *        could not be resolved.
+   * @return the the given {@link String} with the variables resolved.
+   * @see com.devonfw.tools.ide.tool.ide.IdeToolCommandlet
+   */
+  String resolve(String string, Object source);
+
+  /**
+   * The inverse operation of {@link #resolve(String, Object)}. Please note that the {@link #resolve(String, Object)
+   * resolve} operation is not fully bijective. There may be multiple variables holding the same {@link #get(String)
+   * value} or there may be static text that can be equal to a {@link #get(String) variable value}. This method does its
+   * best to implement the inverse resolution based on some heuristics.
+   *
+   * @param string the {@link String} where to find {@link #get(String) variable values} and replace them with according
+   *        "${«variable«}" expressions.
+   * @param source the source where the {@link String} to inverse resolve originates from. Should have a reasonable
+   *        {@link Object#toString() string representation} that will be used in error or log messages if the inverse
+   *        resolving was not working as expected.
+   * @return the given {@link String} with {@link #get(String) variable values} replaced with according "${«variable«}"
+   *         expressions.
+   * @see com.devonfw.tools.ide.tool.ide.IdeToolCommandlet
+   */
+  String inverseResolve(String string, Object source);
+
+  /**
    * @param context the {@link IdeContext}.
    * @return the system {@link EnvironmentVariables} building the root of the {@link EnvironmentVariables} hierarchy.
    */

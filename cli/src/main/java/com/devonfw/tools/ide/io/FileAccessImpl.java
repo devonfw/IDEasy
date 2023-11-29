@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.io;
 
-import static com.devonfw.tools.ide.logging.Log.info;
-
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -16,6 +14,7 @@ import java.net.http.HttpResponse;
 import java.nio.file.FileSystemException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -104,7 +103,7 @@ public class FileAccessImpl implements FileAccess {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
     if (contentLength == 0) {
-      context.warning(
+      this.context.warning(
           "Content-Length was not provided by download source : {} using fallback for the progress bar which will be inaccurate.",
           url);
       contentLength = 10000000;
@@ -117,7 +116,7 @@ public class FileAccessImpl implements FileAccess {
     try (InputStream body = response.body();
         FileOutputStream fileOutput = new FileOutputStream(target.toFile());
         BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, data.length);
-        IdeProgressBar pb = context.prepareProgressBar("Downloading", contentLength)) {
+        IdeProgressBar pb = this.context.prepareProgressBar("Downloading", contentLength)) {
       while (!fileComplete) {
         count = body.read(data);
         if (count <= 0) {
@@ -147,7 +146,7 @@ public class FileAccessImpl implements FileAccess {
       byte[] buf = new byte[1024];
       int readBytes;
 
-      try (IdeProgressBar pb = context.prepareProgressBar("Copying", size)) {
+      try (IdeProgressBar pb = this.context.prepareProgressBar("Copying", size)) {
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
           pb.stepByOne();
@@ -184,6 +183,16 @@ public class FileAccessImpl implements FileAccess {
       return false;
     }
     return true;
+  }
+
+  @Override
+  public boolean isExpectedFolder(Path folder) {
+
+    if (Files.isDirectory(folder)) {
+      return true;
+    }
+    this.context.warning("Expected folder was not found at {}", folder);
+    return false;
   }
 
   @Override
@@ -285,80 +294,66 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void makeSymlinkRelative(Path link) {
+  public void symlink(Path source, Path targetLink, boolean relative) {
 
-    makeSymlinkRelative(link, false);
-  }
-
-  @Override
-  public void makeSymlinkRelative(Path link, boolean followTarget) {
-
-    if (!Files.isSymbolicLink(link)) {
-      throw new IllegalStateException(
-          "Can't call makeSymlinkRelative on " + link + " since it is not a symbolic link.");
+    if (!source.isAbsolute()) {
+      throw new IllegalStateException("When creating a symbolic link the source (" + source
+          + ") must be an absolute path. If you want to create a relative link, "
+          + "then pass the source as an absolute path and set the flag \"relative\" to true.");
     }
-    Path linkTarget = null;
-    try {
-      linkTarget = followTarget ? link.toRealPath() : Files.readSymbolicLink(link);
-    } catch (IOException e) {
-      throw new RuntimeException("For link " + link + " the call to "
-          + (followTarget ? "toRealPath" : "readSymbolicLink") + " in method makeSymlinkRelative failed.", e);
+    Path relativeSource = null;
+    if (relative) {
+      relativeSource = targetLink.getParent().relativize(source);
+      // to make relative links like this work: dir/link -> dir
+      relativeSource = (relativeSource.toString().isEmpty()) ? Paths.get(".") : relativeSource;
+      this.context.trace("Creating a relative symbolic link {} pointing to {}, with absolute path {}", targetLink,
+          relativeSource, source);
+    } else {
+      this.context.trace("Creating symbolic link {} pointing to {}", targetLink, source);
     }
-    this.context.getFileAccess().delete(link); // delete old absolute link
-    this.context.getFileAccess().relativeSymlink(link, linkTarget); // and replace it by the new relative link
-  }
 
-  @Override
-  public void relativeSymlink(Path link, Path source) {
-
-    Path relativeSource = link.getParent().relativize(source);
-    // to make relative links like this work: dir/link -> dir
-    relativeSource = (relativeSource.toString().isEmpty()) ? Paths.get(".") : relativeSource;
-    symlink(relativeSource, link);
-  }
-
-  @Override
-  public void symlink(Path source, Path targetLink) {
-
-    this.context.trace("Creating symbolic link {} pointing to {}", targetLink, source);
     try {
       if (Files.exists(targetLink)) {
         if (Files.isSymbolicLink(targetLink)) {
           this.context.debug("Deleting symbolic link to be re-created at {}", targetLink);
           Files.delete(targetLink);
-        } else {
-          BasicFileAttributes attr = Files.readAttributes(targetLink, BasicFileAttributes.class,
-              LinkOption.NOFOLLOW_LINKS);
-          if (attr.isOther() && attr.isDirectory()) {
-            this.context.debug("Deleting symbolic link (junction) to be re-created at {}", targetLink);
-            Files.delete(targetLink);
-          }
         }
       }
-      Files.createSymbolicLink(targetLink, source);
+      try { // since broken junctions are not detected by Files.exists(brokenJunction)
+        BasicFileAttributes attr = Files.readAttributes(targetLink, BasicFileAttributes.class,
+            LinkOption.NOFOLLOW_LINKS);
+        if (attr.isOther() && attr.isDirectory() && this.context.getSystemInfo().isWindows()) {
+          this.context.debug("Deleting symbolic link (junction) to be re-created at {}", targetLink);
+          Files.delete(targetLink);
+        }
+      } catch (NoSuchFileException e) {
+        // ignore, since there is no previous file at the location, which is fine
+      }
+      Files.createSymbolicLink(targetLink, relative ? relativeSource : source);
     } catch (FileSystemException e) {
       if (this.context.getSystemInfo().isWindows()) {
-        String infoMsg = "Due to lack of permissions, Microsofts mklink with junction had to be used to create "
+        String infoMsg = "Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
             + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for "
             + "further details. Error was: " + e.getMessage();
-        info(infoMsg);
-        if (!source.isAbsolute()) {
-          throw new IllegalStateException(
-              infoMsg + "\\n These junctions can only point to absolute paths. Please make sure that the targetLink ("
-                  + targetLink + ") is absolute.");
+        this.context.info(infoMsg);
+        if (relative) {
+          this.context.warning(
+              "You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
+                  + "alternative, however, these can not point to relative paths. So the flag \"relative = true\" is ignored.");
         }
         if (!Files.isDirectory(source)) { // if source is a junction. This returns true as well.
           throw new IllegalStateException(infoMsg
               + "\\n These junctions can only point to directories or other junctions. Please make sure that the source ("
               + source + ") is one of these.");
         }
-        context.newProcess().executable("cmd")
+        this.context.newProcess().executable("cmd")
             .addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), source.toString()).run();
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source, e);
+      throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source
+          + " with the flag \"relative\" set to " + relative, e);
     }
   }
 

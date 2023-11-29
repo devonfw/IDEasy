@@ -68,7 +68,12 @@ public class Aws extends LocalToolCommandlet {
       // installation files to the target dir. So the absolute paths are replaced by relative ones.
       for (String file : new String[] { "aws", "aws_completer", Path.of("v2").resolve("current").toString() }) {
         Path link = from.resolve(file);
-        this.context.getFileAccess().makeSymlinkRelative(link, true);
+        try {
+          this.context.getFileAccess().symlink(link.toRealPath(), link);
+        } catch (IOException e) {
+          throw new RuntimeException(
+              "Failed to replace absolute link (" + link + ") provided by AWS install script with relative link.", e);
+        }
       }
       this.context.getFileAccess().delete(linuxInstallScript);
       this.context.getFileAccess().delete(from.resolve("dist"));

@@ -33,6 +33,13 @@ public interface FileAccess {
   boolean isFile(Path file);
 
   /**
+   * @param folder the {@link Path} to check.
+   * @return {@code true} if the given {@code folder} points to an existing directory, {@code false} otherwise (a
+   *         warning is logged in this case).
+   */
+  boolean isExpectedFolder(Path folder);
+
+  /**
    * @param file the {@link Path} to compute the checksum of.
    * @return the computed checksum (SHA-266).
    */
@@ -52,36 +59,15 @@ public interface FileAccess {
   void move(Path source, Path targetDir);
 
   /**
-   * Symbolic links can point to relative or absolute paths. Here the link is converted to be relative. If the target of
-   * the link is again a link, then that lead is not followed.
-   *
-   * @param link the {@link Path} of the symbolic link.
-   */
-  void makeSymlinkRelative(Path link);
-
-  /**
-   * Symbolic links can point to relative or absolute paths. Here the link is converted to be relative.
-   *
-   * @param link the {@link Path} of the symbolic link.
-   * @param followTarget - {@code true} if the target of the link is again a link, then that lead is followed, until the
-   *        target is not a link. - {@code false} if the target of the link is again a link, then that lead is not
-   *        followed.
-   */
-  void makeSymlinkRelative(Path link, boolean followTarget);
-
-  /**
-   * Creates a symbolic relative link.
-   *
    * @param source the source {@link Path} to link to.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
    */
-  void relativeSymlink(Path targetLink, Path source);
+  void symlink(Path source, Path targetLink, boolean relative);
 
-  /**
-   * @param source the source {@link Path} to link to.
-   * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
-   */
-  void symlink(Path source, Path targetLink);
+  default void symlink(Path source, Path targetLink) {
+
+    symlink(source, targetLink, true);
+  }
 
   /**
    * @param source the source {@link Path file or folder} to copy.

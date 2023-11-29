@@ -1,2 +1,2 @@
 java.version=1.11
-java.home=${client.env.home}/software/java
+java.home=${IDE_HOME}/software/java
