@@ -5,6 +5,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+import org.fusesource.jansi.AnsiConsole;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -166,6 +167,7 @@ public final class Ide {
         String rightPrompt = null;
         String line;
 
+        AnsiConsole.systemInstall();
         while (true) {
           try {
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
@@ -179,6 +181,8 @@ public final class Ide {
             return;
           } catch (Exception e) {
             throw new RuntimeException("An error occurred while using autocompletion", e);
+          } finally {
+            AnsiConsole.systemUninstall();
           }
         }
 
