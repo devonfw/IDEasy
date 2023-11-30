@@ -58,7 +58,6 @@ public class UpdateCommandlet extends Commandlet {
   private void updateSoftware() {
 
     Set<ToolCommandlet> toolCommandlets = new HashSet<>();
-    Map<String, String> tool2exception = new HashMap<>();
 
     // installed tools in IDE_HOME/software
     List<Path> softwares = this.context.getFileAccess().getFilesInDir(this.context.getSoftwarePath(), path -> true);
@@ -85,6 +84,7 @@ public class UpdateCommandlet extends Commandlet {
     }
 
     // update/install the toolCommandlets
+    Map<String, String> tool2exception = new HashMap<>();
     for (ToolCommandlet toolCommandlet : toolCommandlets) {
       try {
         this.context.step("Setting up {}", toolCommandlet.getName());
@@ -93,7 +93,6 @@ public class UpdateCommandlet extends Commandlet {
         tool2exception.put(toolCommandlet.getName(), e.getMessage());
       }
     }
-
 
     if (tool2exception.isEmpty()) {
       this.context.success("All tools were successfully installed.");
