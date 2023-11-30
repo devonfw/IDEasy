@@ -58,16 +58,16 @@ public class UpdateCommandlet extends Commandlet {
   private void updateSoftware() {
 
     Set<ToolCommandlet> toolCommandlets = new HashSet<>();
-    Map<String, String> tool2Exception = new HashMap<>();
+    Map<String, String> tool2exception = new HashMap<>();
 
     // installed tools in IDE_HOME/software
-    List<Path> softwares = this.context.getFileAccess().getFilesInDir(this.context.getSoftwarePath(), p -> true);
+    List<Path> softwares = this.context.getFileAccess().getFilesInDir(this.context.getSoftwarePath(), path -> true);
     for (Path software : softwares) {
       String toolName = software.getFileName().toString();
       try {
         toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(toolName));
       } catch (IllegalArgumentException e) {
-        //tool is a custom tool, ignore ...s
+        //tool is a custom tool, ignore ...
       }
     }
 
@@ -90,17 +90,17 @@ public class UpdateCommandlet extends Commandlet {
         this.context.step("Setting up {}", toolCommandlet.getName());
         toolCommandlet.install(false);
       } catch (Exception e) {
-        tool2Exception.put(toolCommandlet.getName(), e.getMessage());
+        tool2exception.put(toolCommandlet.getName(), e.getMessage());
       }
     }
 
 
-    if (tool2Exception.isEmpty()) {
+    if (tool2exception.isEmpty()) {
       this.context.success("All tools were successfully installed.");
     } else {
       this.context.warning("Following tools could not be installed:");
-      for (String toolName : tool2Exception.keySet())
-      this.context.warning("{}: {}", toolName, tool2Exception.get(toolName));
+      for (String toolName : tool2exception.keySet())
+      this.context.warning("{}: {}", toolName, tool2exception.get(toolName));
     }
   }
 
