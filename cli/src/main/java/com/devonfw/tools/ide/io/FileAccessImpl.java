@@ -460,15 +460,12 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public List<Path> getFilesInDir(Path dir, Predicate<Path> filter) {
-    List<Path> files = null;
+    List<Path> files = new ArrayList<>();
     try (Stream<Path> childStream = Files.list(dir)) {
       Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
         Path child = iterator.next();
         if (filter.test(child)) {
-          if (files == null) {
-            files = new ArrayList<>();
-          }
           files.add(child);
         }
       }
