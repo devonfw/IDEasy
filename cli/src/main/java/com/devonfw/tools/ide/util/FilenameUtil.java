@@ -28,6 +28,12 @@ public final class FilenameUtil {
       lastSlash = 0;
     }
     int lastDot = path.lastIndexOf('.');
+
+    // workaround for sourceforge urls
+    if (path.contains("sourceforge") && path.endsWith("download")) {
+      return path.substring(lastDot + 1, lastDot + 4);
+    }
+
     if (lastDot < lastSlash) {
       return null;
     }
