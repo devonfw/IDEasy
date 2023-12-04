@@ -96,9 +96,6 @@ public abstract class AutocompletionReaderTestSupport extends Assertions {
     in.setIn(new ByteArrayInputStream(buffer.getBytes()));
 
     // run it through the reader
-    // String line;
-    // while ((line = reader.readLine((String) null)) != null) {
-    // System.err.println("Read line: " + line);
     try {
       while (true) {
         reader.readLine(null, null, mask, null);
@@ -106,9 +103,6 @@ public abstract class AutocompletionReaderTestSupport extends Assertions {
     } catch (EndOfFileException e) {
       // noop
     }
-    // while ((reader.readLine(null, null, mask, null)) != null) {
-    // noop
-    // }
 
     assertThat(reader.getBuffer().toString()).isEqualTo(expected);
   }
