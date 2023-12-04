@@ -64,9 +64,6 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
     Path sourceDir = PATH_PROJECTS.resolve(projectName);
     Path userDir = sourceDir;
-    if (projectPath != null) {
-      userDir = sourceDir.resolve(projectPath);
-    }
     CommandletManagerResetter.reset();
     IdeTestContext context;
     if (copyForMutation) {
@@ -77,10 +74,12 @@ public abstract class AbstractIdeContextTest extends Assertions {
       fileAccess.copy(sourceDir, projectDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
       fileAccess.copy(PATH_PROJECTS.resolve(IdeContext.FOLDER_IDE), PATH_PROJECTS_COPY.resolve(IdeContext.FOLDER_IDE),
           FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-      context = new IdeTestContext(projectDir.resolve(projectPath));
-    } else {
-      context = new IdeTestContext(userDir);
+      userDir = projectDir;
     }
+    if (projectPath != null) {
+      userDir = userDir.resolve(projectPath);
+    }
+    context = new IdeTestContext(userDir);
     return context;
   }
 
