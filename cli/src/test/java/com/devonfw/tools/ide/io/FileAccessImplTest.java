@@ -15,6 +15,9 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 
+/**
+ * Test of {@link FileAccessImpl}.
+ */
 public class FileAccessImplTest extends AbstractIdeContextTest {
 
   private boolean windowsJunctionsAreUsed(IdeContext context, Path dir) {
@@ -30,6 +33,9 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     return false;
   }
 
+  /**
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = false".
+   */
   @Test
   public void testSymlinkNotRelative(@TempDir Path tempDir) {
 
@@ -51,6 +57,10 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertSymlinksWork(dir, readLinks);
   }
 
+  /**
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = true". But Windows junctions are used
+   * and therefore the fallback from relative to absolute paths is tested.
+   */
   @Test
   public void testSymlinkAbsoluteAsFallback(@TempDir Path tempDir) {
 
@@ -76,6 +86,10 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertSymlinksWork(dir, readLinks);
   }
 
+  /**
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = false". Furthermore, it is tested that
+   * the links are broken after moving them.
+   */
   @Test
   public void testAbsoluteLinksBreakAfterMoving(@TempDir Path tempDir) throws IOException {
 
@@ -84,7 +98,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
-    createSymlinks(fileAccess, dir, false);
+    boolean relative = false;
+    createSymlinks(fileAccess, dir, relative);
     boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
 
     // act
@@ -96,6 +111,10 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertSymlinksAreBroken(sibling, readLinks);
   }
 
+  /**
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = true". Furthermore, it is tested that
+   * the links still work after moving them.
+   */
   @Test
   public void testRelativeLinksWorkAfterMoving(@TempDir Path tempDir) {
 
@@ -108,7 +127,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
-    createSymlinks(fileAccess, dir, true);
+    boolean relative = true;
+    createSymlinks(fileAccess, dir, relative);
     boolean readLinks = true; // junctions are not used, so links can be read with Files.readSymbolicLink(link);
 
     // act
@@ -120,6 +140,10 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertSymlinksWork(sibling, readLinks);
   }
 
+  /**
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} when Windows junctions are used and the source is a
+   * file.
+   */
   @Test
   public void testWindowsJunctionsCanNotPointToFiles(@TempDir Path tempDir) throws IOException {
 
