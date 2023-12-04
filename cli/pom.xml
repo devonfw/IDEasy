@@ -18,6 +18,7 @@
     <java.version>17</java.version>
     <native.maven.plugin.version>0.9.28</native.maven.plugin.version>
     <jline.version>3.24.1</jline.version>
+    <jansi.version>2.4.0</jansi.version>
   </properties>
 
   <dependencies>
@@ -84,7 +85,7 @@
     <dependency>
       <groupId>org.fusesource.jansi</groupId>
       <artifactId>jansi</artifactId>
-      <version>2.4.0</version>
+      <version>${jansi.version}</version>
     </dependency>
   </dependencies>
 
