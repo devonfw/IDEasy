@@ -114,7 +114,7 @@ public class CommandletRegistry implements CommandRegistry {
 
     List<String> arguments = new ArrayList<>();
     arguments.add(command);
-    arguments.addAll(Arrays.stream(args).map(Object::toString).collect(Collectors.toList()));
+    arguments.addAll(Arrays.stream(args).map(Object::toString).toList());
     // TODO: run our commandlet here
     runCommand(command, arguments);
     return null;
