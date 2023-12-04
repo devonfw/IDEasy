@@ -36,12 +36,19 @@ public class Mvn extends IdeToolCommandlet {
 
     for (PluginDescriptor plugin : super.getConfiguredPlugins()) {
 
-      Path mavenPlugin = this.context.getSoftwarePath().resolve(this.tool).resolve(createPluginPath(plugin.getName()));
-      this.context.getFileAccess().download(plugin.getUrl(), mavenPlugin);
-      this.context.success("Successfully added {} to {}", plugin.getName(), mavenPlugin.toString());
-
-      super.postInstall();
+      if (plugin.isActive()) {
+        Path mavenPlugin = this.context.getSoftwarePath().resolve(this.tool)
+            .resolve(createPluginPath(plugin.getName()));
+        this.context.getFileAccess().download(plugin.getUrl(), mavenPlugin);
+        if (Files.exists(mavenPlugin)) {
+          this.context.success("Successfully added {} to {}", plugin.getName(), mavenPlugin.toString());
+        } else {
+          this.context.warning("Plugin " + mavenPlugin.getFileName() + " has wrong properties\n" //
+              + "Please check the plugin properties file in");
+        }
+      }
     }
+    super.postInstall();
   }
 
   private String createPluginPath(String pluginName) {
