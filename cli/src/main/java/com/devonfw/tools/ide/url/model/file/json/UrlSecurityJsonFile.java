@@ -2,10 +2,10 @@ package com.devonfw.tools.ide.url.model.file.json;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -29,7 +29,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
 
   private static final Logger LOG = LoggerFactory.getLogger(UrlSecurityJsonFile.class);
 
-  List<UrlSecurityMatch> matches;
+  Set<UrlSecurityWarning> warnings;
 
   /**
    * The constructor.
@@ -39,63 +39,62 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   public UrlSecurityJsonFile(UrlEdition parent) {
 
     super(parent, FILENAME_SECURITY);
-    this.matches = new ArrayList<>();
+    this.warnings = new HashSet<>();
   }
 
-  public boolean addSecurityMatch(VersionRange versionRange, double severity, String severityVersion, String cveName,
+  /***
+   * Adds a new security warning to the security json file.
+   *
+   * @param versionRange the version range, specifying the versions of the tool to which the security risk applies
+   * @param severity the severity of the security risk.
+   * @param severityVersion Indicating from which version the {@code severity} was obtained. As of December 2023, this
+   * is either v2 or v3.
+   * @param cveName the name of the CVE (Common Vulnerabilities and Exposures).
+   * @param description the description of the CVE.
+   * @param nistUrl the url to the CVE on the NIST website.
+   * @param referenceUrl the urls where additional information about the CVE can be found.
+   * @return {@code true} if the security match was added, {@code false} if it was already present.
+   */
+  public boolean addSecurityWarning(VersionRange versionRange, BigDecimal severity, String severityVersion, String cveName,
       String description, String nistUrl, List<String> referenceUrl) {
 
-    UrlSecurityWarning newWarning = new UrlSecurityWarning(severity, severityVersion, cveName, description, nistUrl,
+    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, severity, severityVersion, cveName, description, nistUrl,
         referenceUrl);
-    for (UrlSecurityMatch match : matches) {
-      if (match.getVersionRange().equals(versionRange)) {
-        boolean added = match.addWarning(newWarning);
-        this.modified = this.modified || added;
-        return added;
-      }
-    }
-    UrlSecurityMatch newMatch = new UrlSecurityMatch(versionRange);
-    newMatch.addWarning(newWarning);
-    this.modified = true;
-    return matches.add(newMatch);
+    boolean added = warnings.add(newWarning);
+    this.modified = this.modified || added;
+    return added;
   }
 
-  public boolean removeSecurityMatch(VersionRange versionRange) {
-
-    for (UrlSecurityMatch match : matches) {
-      if (match.getVersionRange().equals(versionRange)) {
-        boolean removed = matches.remove(match);
-        this.modified = this.modified || removed;
-        return removed;
-      }
-    }
-    return false;
-  }
-
+  /***
+   * For a given version, returns whether there is a security risk by locking at the warnings in the security json file.
+   *
+   * @param version the version to check for security risks.
+   * @return {@code true} if there is a security risk for the given version, {@code false} otherwise.
+   */
   public boolean contains(VersionIdentifier version) {
 
-    for (UrlSecurityMatch match : matches) {
-      if (match.getVersionRange().contains(version)) {
+    for (UrlSecurityWarning warning : this.warnings) {
+      if (warning.versionRange().contains(version)) {
         return true;
       }
     }
     return false;
   }
 
-  public Set<UrlSecurityWarning> getSecurityWarnings(VersionIdentifier version) {
+  public Set<UrlSecurityWarning> getMatchingSecurityWarnings(VersionIdentifier version) {
 
-    Set<UrlSecurityWarning> warnings = new HashSet<>();
-    for (UrlSecurityMatch match : matches) {
-      if (match.getVersionRange().contains(version)) {
-        warnings.addAll(match.getWarnings());
+    Set<UrlSecurityWarning> matchedWarnings = new HashSet<>();
+    for (UrlSecurityWarning warning : this.warnings) {
+      if (warning.versionRange().contains(version)) {
+        matchedWarnings.add(warning);
       }
     }
-    return warnings;
+    return matchedWarnings;
   }
 
-  public void clearSecurityMatches() {
+  public void clearSecurityWarnings() {
 
-    this.matches.clear();
+    this.warnings.clear();
   }
 
   @Override
@@ -106,7 +105,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
     }
     ObjectMapper mapper = JsonMapping.create();
     try {
-      matches = mapper.readValue(getPath().toFile(), new TypeReference<List<UrlSecurityMatch>>() {
+      warnings = mapper.readValue(getPath().toFile(), new TypeReference<Set<UrlSecurityWarning>>() {
       });
     } catch (IOException e) {
       throw new IllegalStateException("The UrlSecurityJsonFile " + getPath() + " could not be parsed.", e);
@@ -119,13 +118,13 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
     Path path = getPath();
     ObjectMapper mapper = JsonMapping.create();
 
-    if (this.matches.isEmpty() && !Files.exists(path)) {
+    if (this.warnings.isEmpty() && !Files.exists(path)) {
       return;
     }
 
     String jsonString;
     try {
-      jsonString = mapper.writeValueAsString(matches);
+      jsonString = mapper.writeValueAsString(warnings);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
@@ -139,43 +138,6 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   }
 }
 
-class UrlSecurityMatch {
-  private final VersionRange versionRange;
-
-  private final Set<UrlSecurityWarning> warnings;
-
-  public UrlSecurityMatch() {
-
-    // this constructor is needed for jackson deserialization
-    this.versionRange = null;
-    this.warnings = new HashSet<>();
-  }
-
-  public UrlSecurityMatch(VersionRange versionRange) {
-
-    this.versionRange = versionRange;
-    this.warnings = new HashSet<>();
-  }
-
-  public VersionRange getVersionRange() {
-
-    return versionRange;
-  }
-
-  public Set<UrlSecurityWarning> getWarnings() {
-
-    return warnings;
-  }
-
-  public boolean addWarning(UrlSecurityWarning warning) {
-
-    return this.warnings.add(warning);
-  }
-
-}
-
-// severity could be java.math.BigDecimal; instead of double (unsing BigDecimal("123.4").setScale(1,
-// BigDecimal.ROUND_HALF_UP);)
-record UrlSecurityWarning(double severity, String severityVersion, String cveName, String description, String nistUrl,
+record UrlSecurityWarning(VersionRange versionRange, BigDecimal severity, String severityVersion, String cveName, String description, String nistUrl,
     List<String> referenceUrl) {
 };

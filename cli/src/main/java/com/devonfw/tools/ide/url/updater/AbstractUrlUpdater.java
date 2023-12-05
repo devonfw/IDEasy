@@ -97,22 +97,35 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     return tool + "/" + edition;
   }
 
-  protected String getCpeVendor() {
+  /***
+   *
+   * @return the vendor of the tool as specified in the CPE (Common Platform Enumeration)
+   */
+  public String getCpeVendor() {
+
+    return null;
+  }
+  /***
+   * @return the product name of the tool as specified in the CPE (Common Platform Enumeration)
+   */
+  public String getCpeProduct() {
 
     return null;
   }
 
-  protected String getCpeProduct() {
+  /***
+   * @return the edition of the tool as specified in the CPE (Common Platform Enumeration)
+   */
+  public String getCpeEdition() {
 
     return null;
   }
 
-  protected String getCpeEdition() {
-
-    return null;
-  }
-
-  protected String mapUrlVersionToCpeVersion(String version) {
+  /***
+   * @return maps the version as specified by the directory name in the url repository to the version as specified in
+   * the CPE (Common Platform Enumeration).
+   */
+  public String mapUrlVersionToCpeVersion(String version) {
 
     return version;
   }

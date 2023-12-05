@@ -96,28 +96,9 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
     }
   }
 
-  public String getCpeVendor(String tool) {
+  public AbstractUrlUpdater getUrlUpdater(String tool) {
 
-    return updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst()
-        .map(AbstractUrlUpdater::getCpeVendor).orElse(null);
-  }
-
-  public String getCpeProduct(String tool) {
-
-    return updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst()
-        .map(AbstractUrlUpdater::getCpeProduct).orElse(null);
-  }
-
-  public String getCpeEdition(String tool) {
-
-    return updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst()
-        .map(AbstractUrlUpdater::getCpeEdition).orElse(null);
-  }
-
-  public String mapUrlVersionToCpeVersion(String tool, String urlVersion) {
-
-    return updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst()
-        .map(updater -> updater.mapUrlVersionToCpeVersion(urlVersion)).orElse(null);
+    return updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst().orElse(null);
   }
 
 }

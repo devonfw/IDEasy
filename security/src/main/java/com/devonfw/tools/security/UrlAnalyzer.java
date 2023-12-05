@@ -4,6 +4,8 @@ import java.io.FileFilter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
+import com.devonfw.tools.ide.url.updater.UrlUpdater;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractFileTypeAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
@@ -39,10 +41,12 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
     String tool = parent.getParent().getParent().getFileName().toString();
     String edition = parent.getParent().getFileName().toString();
 
+    AbstractUrlUpdater urlUpdater = updateManager.getUrlUpdater(tool);
+
     String source = "UrlAnalyzer";
 
     // adding vendor evidence
-    String vendor = updateManager.getCpeVendor(tool);
+    String vendor = urlUpdater.getCpeVendor();
     Evidence evidence;
     if (vendor == null) {
       vendor = tool;
@@ -51,7 +55,7 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
     dependency.addEvidence(EvidenceType.VENDOR, evidence);
 
     // adding product evidence
-    String product = updateManager.getCpeProduct(tool);
+    String product = urlUpdater.getCpeProduct();
     if (product == null) { // for the product it is reasonable to assume that "tool" is the product in most cases
       product = tool;
     }
@@ -59,14 +63,14 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
     dependency.addEvidence(EvidenceType.PRODUCT, evidence);
 
     // adding edition evidence
-    String editionEvidence = updateManager.getCpeEdition(tool);
+    String editionEvidence = urlUpdater.getCpeEdition();
     if (editionEvidence != null) {
       evidence = new Evidence(source, "CpeEdition", editionEvidence, Confidence.HIGH);
       dependency.addEvidence(EvidenceType.PRODUCT, evidence);
     }
 
     // adding version evidence
-    String version = updateManager.mapUrlVersionToCpeVersion(tool, parent.getFileName().toString());
+    String version = urlUpdater.mapUrlVersionToCpeVersion(parent.getFileName().toString());
     evidence = new Evidence(source, "CpeVersion", version, Confidence.HIGH);
     dependency.addEvidence(EvidenceType.VERSION, evidence);
   }

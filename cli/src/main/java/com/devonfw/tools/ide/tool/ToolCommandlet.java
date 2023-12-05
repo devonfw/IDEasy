@@ -16,15 +16,13 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.TarCompression;
-import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.StringListProperty;
-import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
+import com.devonfw.tools.ide.url.model.file.json.UrlSecurityJsonFile;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * {@link Commandlet} for a tool integrated into the IDE.
@@ -68,7 +66,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   *
    * @return the name of the binary
    */
   protected String getBinaryName() {
@@ -92,7 +89,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
    * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
-   *        is installed and use that one. Otherwise the specified version will be installed in the software repository
+   *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
    *        without touching and IDE installation and used to run.
    * @param args the commandline arguments to run the tool.
    */
@@ -174,7 +171,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return doInstall(silent);
   }
 
-  protected String question(String question, String... options) {
+  protected String securityRiskInteractionQuestion(String question, String... options) {
 
     question += " Do you want to";
     for (int i = 0; i < options.length - 1; i++) {
@@ -184,18 +181,27 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return this.context.question(question, options);
   }
 
+  /**
+   * Checks if the given {@link VersionIdentifier} has a matching security warning in the {@link UrlSecurityJsonFile}.
+   *
+   * @param configuredVersion the {@link VersionIdentifier} to be checked.
+   * @return the {@link VersionIdentifier} to be used for installation. If the configured version is safe or there are
+   * no save versions the potentially unresolved configured version is simply returned. Otherwise, a resolved version is
+   * returned.
+   */
   protected VersionIdentifier securityRiskInteraction(VersionIdentifier configuredVersion) {
 
-    // TODO vielleicht security file auch neu als json file wenn 1.2 > 2.9 nicht ausreicht
+    // TODO maybe instead of returning current return configuredVersion if the users chooses "stay"
+
     // TODO webpage:\nhttps://github.com/devonfw/ide/blob/master/documentation/vulnerabilities.asciidoc\n\n";
 
-    // TODO if no version is save, find a version that has lowest security risk, or suggest multiple ones, such that the
-    // user can choose
-
-    UrlSecurityFile securityFile = this.context.getUrls().getEdition(this.tool, this.getEdition()).getSecurityFile();
-    ObjectMapper mapper = JsonMapping.create();
+    UrlSecurityJsonFile securityFile = this.context.getUrls().getEdition(this.tool, this.getEdition())
+        .getSecurityJsonFile();
 
     VersionIdentifier current = this.context.getUrls().getVersion(this.tool, this.getEdition(), configuredVersion);
+    // TODO oder doch eher sowas wie VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool,
+    // edition, selectedVersion); sollte immer das selbe ergeben
+
     if (!securityFile.contains(current)) {
       return configuredVersion;
     }
@@ -203,12 +209,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     List<VersionIdentifier> allVersions = this.context.getUrls().getSortedVersions(this.tool, this.getEdition());
     VersionIdentifier latest = allVersions.get(0);
 
-    // currentVersion = VersionIdentifier.of("4.9.52");
-
     int currentVersionIndex = allVersions.indexOf(current);
 
-    // VersionIdentifier nextVersion = currentVersionIndex == 0 ? null :
-    // allVersions.get(allVersions.indexOf(currentVersion) - 1);
     VersionIdentifier nextSafe = null;
     for (int i = currentVersionIndex - 1; i >= 0; i--) {
       if (!securityFile.contains(allVersions.get(i))) {
@@ -223,48 +225,50 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         break;
       }
     }
-    VersionIdentifier previousSafe = null;
-    for (int i = currentVersionIndex + 1; i < allVersions.size(); i++) {
-      if (!securityFile.contains(allVersions.get(i))) {
-        previousSafe = allVersions.get(i);
-        break;
-      }
-    }
 
     String currentIsUnsafe = "Currently, version " + current + " of " + this.getName() + " is installed, "
-        + "which is has a vulnerability:\n" + " TODOODODO" + "\n\n";
+        + "which is has a vulnerability:\n" + " TODO list vulnerability" + "\n\n (See also " + securityFile.getPath()
+        + ")";
 
-    String stay = "stay with the current unsafe version  (" + current + ")";
+    String stay = "stay with the current unsafe version (" + current + ")";
     String installLatestSafe = "install the latest safe version (" + latestSafe + ")";
     String installSafeLatest = "install the (safe) latest version (" + latestSafe + ")";
     String installNextSafe = "install the next safe version (" + nextSafe + ")";
+    // I don't need to offer "install latest which is unsafe" as option since the user can set to the latest and choose "stay"
+
+    if (latestSafe == null) {
+      this.context.warning(currentIsUnsafe + "There is no safe version available.");
+      return configuredVersion;
+    }
 
     if (current.equals(latest)) {
-      String answer = question(currentIsUnsafe, stay, installLatestSafe);
+      String answer = securityRiskInteractionQuestion(currentIsUnsafe + "There are no updates available.", stay,
+          installLatestSafe);
       return answer.startsWith(stay) ? current : latestSafe;
 
     } else if (nextSafe == null) {
-      // TODO also allow selection of next or previous version, even if they are unsafe?
-      String answer = question(currentIsUnsafe + " All newer versions are also not safe.", stay, installLatestSafe);
+      String answer = securityRiskInteractionQuestion(currentIsUnsafe + " All newer versions are also not safe.", stay,
+          installLatestSafe);
       return answer.startsWith(stay) ? current : latestSafe;
 
     } else if (nextSafe.equals(latest)) {
-      String answer = question(currentIsUnsafe + " Of the newer versions, only the latest is safe.", stay,
-          installSafeLatest);
+      String answer = securityRiskInteractionQuestion(
+          currentIsUnsafe + " Of the newer versions, only the latest is safe.", stay, installSafeLatest);
       return answer.startsWith(stay) ? current : latestSafe;
 
     } else if (nextSafe.equals(latestSafe)) {
-      String answer = question(currentIsUnsafe + " Of the newer versions, only the version " + nextSafe + " is safe.",
-          stay, "Install the safe version (" + nextSafe + ")");
+      String answer = securityRiskInteractionQuestion(
+          currentIsUnsafe + " Of the newer versions, only the version " + nextSafe
+              + " is safe, Which is not the latest.", stay, "Install the safe version (" + nextSafe + ")");
       return answer.startsWith(stay) ? current : nextSafe;
 
     } else {
-      if (latest.equals(latestSafe)) {
-        String answer = question(currentIsUnsafe, stay, installNextSafe, installSafeLatest);
+      if (latestSafe.equals(latest)) {
+        String answer = securityRiskInteractionQuestion(currentIsUnsafe, stay, installNextSafe, installSafeLatest);
         return answer.startsWith(stay) ? current : answer.startsWith(installNextSafe) ? nextSafe : latestSafe;
 
       } else {
-        String answer = question(currentIsUnsafe, stay, installNextSafe, installLatestSafe);
+        String answer = securityRiskInteractionQuestion(currentIsUnsafe, stay, installNextSafe, installLatestSafe);
         return answer.startsWith(stay) ? current : answer.startsWith(installNextSafe) ? nextSafe : latestSafe;
       }
     }

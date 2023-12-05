@@ -60,7 +60,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    *        in that project.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String projectName, String projectPath, boolean copyForMutation) {
+  protected static IdeTestContext newContext(String projectName, String projectPath, boolean copyForMutation, String ... answers) {
 
     Path sourceDir = PATH_PROJECTS.resolve(projectName);
     Path userDir = sourceDir;
@@ -77,9 +77,9 @@ public abstract class AbstractIdeContextTest extends Assertions {
       fileAccess.copy(sourceDir, projectDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
       fileAccess.copy(PATH_PROJECTS.resolve(IdeContext.FOLDER_IDE), PATH_PROJECTS_COPY.resolve(IdeContext.FOLDER_IDE),
           FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-      context = new IdeTestContext(projectDir.resolve(projectPath));
+      context = new IdeTestContext(projectDir.resolve(projectPath), answers);
     } else {
-      context = new IdeTestContext(userDir);
+      context = new IdeTestContext(userDir, answers);
     }
     return context;
   }
