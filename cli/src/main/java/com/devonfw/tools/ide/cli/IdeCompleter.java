@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
@@ -30,6 +32,9 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * Implements the {@link Completer} for jline3 autocompletion. Inspired by picocli
  */
 public class IdeCompleter extends ArgumentCompleter implements Completer {
+
+  /** Pattern which should stop autocompletion e.g. 'get-version mvn -' (prevents options after tool commands) */
+  private static final String INVALID_PATTERN = "([\\s][a-z]*[\\s][\\-](\\s)*.*$)|([a-z][\\-][a-z]*[\\s][\\-](\\s)*.*$)|(^[a-z]*(\\s)[\\-](\\s)*.*$)";
 
   private final ContextCommandlet cmd;
 
@@ -109,6 +114,7 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
       }
     }
 
+    // adds non options to list
     List<String> wordsWithoutOptions = new ArrayList<>();
     for (String singleWord : words) {
       if (!singleWord.startsWith("-")) {
@@ -116,9 +122,13 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
       }
     }
 
-    // extra case to prevent options after tool commands
     if (word.startsWith("-") && wordsWithoutOptions.isEmpty()) {
       addCandidates(candidates, cleanedOptions); // adds rest of options without used option
+    }
+
+    // extra check to prevent options after tool commands
+    if (checkInvalidPattern(commandLine)) {
+      return;
     }
 
     if (wordsWithoutOptions.size() == 1) {
@@ -165,6 +175,14 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
         }
       }
     }
+  }
+
+  private boolean checkInvalidPattern(ParsedLine commandLine) {
+
+    Pattern pattern = Pattern.compile(INVALID_PATTERN, Pattern.MULTILINE);
+    Matcher matcher = pattern.matcher(commandLine.line());
+
+    return matcher.find();
   }
 
   private void addCandidates(List<Candidate> candidates, Iterable<String> cands) {

@@ -83,12 +83,13 @@ public class AutoCompletionTest extends AutocompletionReaderTestSupport {
   }
 
   @Test
-  public void testIdeCompleterPreventsOptionsAfterCommand() throws IOException {
+  public void testIdeCompleterPreventsOptionsAfterCommandWithMinus() throws IOException {
 
     ContextCommandlet contextCommandlet = new ContextCommandlet();
     IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
     reader.setCompleter(new IdeCompleter(contextCommandlet, ideContext));
-    assertBuffer("-t -f get-version - ", new TestBuffer("-t -f get-version - ").tab());
+    assertBuffer("-t -f get-version -", new TestBuffer("-t -f get-version -").tab().tab());
+    assertBuffer("-t -f get-version - ", new TestBuffer("-t -f get-version - ").tab().tab());
 
   }
 
