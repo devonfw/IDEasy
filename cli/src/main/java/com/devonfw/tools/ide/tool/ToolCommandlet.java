@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -20,7 +21,8 @@ import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.StringListProperty;
-import com.devonfw.tools.ide.url.model.file.json.UrlSecurityJsonFile;
+import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
+import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile.UrlSecurityWarning;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -173,7 +175,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   protected String securityRiskInteractionQuestion(String question, String... options) {
 
-    question += " Do you want to";
+    question += "Do you want to";
     for (int i = 0; i < options.length - 1; i++) {
       options[i] += " or";
     }
@@ -186,8 +188,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @param configuredVersion the {@link VersionIdentifier} to be checked.
    * @return the {@link VersionIdentifier} to be used for installation. If the configured version is safe or there are
-   * no save versions the potentially unresolved configured version is simply returned. Otherwise, a resolved version is
-   * returned.
+   *         no save versions the potentially unresolved configured version is simply returned. Otherwise, a resolved
+   *         version is returned.
    */
   protected VersionIdentifier securityRiskInteraction(VersionIdentifier configuredVersion) {
 
@@ -225,16 +227,17 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         break;
       }
     }
-
-    String currentIsUnsafe = "Currently, version " + current + " of " + this.getName() + " is installed, "
-        + "which is has a vulnerability:\n" + " TODO list vulnerability" + "\n\n (See also " + securityFile.getPath()
-        + ")";
+    String cves = securityFile.getMatchingSecurityWarnings(current).stream().map(UrlSecurityWarning::cveName)
+        .collect(Collectors.joining(", "));
+    String currentIsUnsafe = "Currently, version " + current + " of " + this.getName() + " is selected, "
+        + "which is has one or more vulnerabilities:\n\n" + cves + "\n\n(See also " + securityFile.getPath() + ")\n\n";
 
     String stay = "stay with the current unsafe version (" + current + ")";
     String installLatestSafe = "install the latest safe version (" + latestSafe + ")";
     String installSafeLatest = "install the (safe) latest version (" + latestSafe + ")";
     String installNextSafe = "install the next safe version (" + nextSafe + ")";
-    // I don't need to offer "install latest which is unsafe" as option since the user can set to the latest and choose "stay"
+    // I don't need to offer "install latest which is unsafe" as option since the user can set to the latest and choose
+    // "stay"
 
     if (latestSafe == null) {
       this.context.warning(currentIsUnsafe + "There is no safe version available.");
@@ -257,9 +260,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       return answer.startsWith(stay) ? current : latestSafe;
 
     } else if (nextSafe.equals(latestSafe)) {
-      String answer = securityRiskInteractionQuestion(
-          currentIsUnsafe + " Of the newer versions, only the version " + nextSafe
-              + " is safe, Which is not the latest.", stay, "Install the safe version (" + nextSafe + ")");
+      String answer = securityRiskInteractionQuestion(currentIsUnsafe + " Of the newer versions, only the version "
+          + nextSafe + " is safe, Which is not the latest.", stay, "Install the safe version (" + nextSafe + ")");
       return answer.startsWith(stay) ? current : nextSafe;
 
     } else {

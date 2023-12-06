@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.url.model.file.json;
+package com.devonfw.tools.ide.url.model.file;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -14,7 +14,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
-import com.devonfw.tools.ide.url.model.file.AbstractUrlFile;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
@@ -22,14 +21,33 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * {@link UrlFile} for the "security.json" file.
+ */
 public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
+
+  /***
+   * A simple container with the information about a security warning.
+   *
+   * @param versionRange the version range, specifying the versions of the tool to which the security risk applies.
+   * @param severity the severity of the security risk.
+   * @param severityVersion Indicating from which version the {@code severity} was obtained. As of December 2023, this
+   *        is either v2 or v3.
+   * @param cveName the name of the CVE (Common Vulnerabilities and Exposures).
+   * @param description the description of the CVE.
+   * @param nistUrl the url to the CVE on the NIST website.
+   * @param referenceUrl the urls where additional information about the CVE can be found.
+   */
+  public record UrlSecurityWarning(VersionRange versionRange, BigDecimal severity, String severityVersion,
+      String cveName, String description, String nistUrl, List<String> referenceUrl) {
+  };
 
   /** {@link #getName() Name} of security json file. */
   public static final String FILENAME_SECURITY = "security.json";
 
   private static final Logger LOG = LoggerFactory.getLogger(UrlSecurityJsonFile.class);
 
-  Set<UrlSecurityWarning> warnings;
+  private Set<UrlSecurityWarning> warnings;
 
   /**
    * The constructor.
@@ -45,21 +63,21 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   /***
    * Adds a new security warning to the security json file.
    *
-   * @param versionRange the version range, specifying the versions of the tool to which the security risk applies
+   * @param versionRange the version range, specifying the versions of the tool to which the security risk applies.
    * @param severity the severity of the security risk.
    * @param severityVersion Indicating from which version the {@code severity} was obtained. As of December 2023, this
-   * is either v2 or v3.
+   *        is either v2 or v3.
    * @param cveName the name of the CVE (Common Vulnerabilities and Exposures).
    * @param description the description of the CVE.
    * @param nistUrl the url to the CVE on the NIST website.
    * @param referenceUrl the urls where additional information about the CVE can be found.
    * @return {@code true} if the security match was added, {@code false} if it was already present.
    */
-  public boolean addSecurityWarning(VersionRange versionRange, BigDecimal severity, String severityVersion, String cveName,
-      String description, String nistUrl, List<String> referenceUrl) {
+  public boolean addSecurityWarning(VersionRange versionRange, BigDecimal severity, String severityVersion,
+      String cveName, String description, String nistUrl, List<String> referenceUrl) {
 
-    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, severity, severityVersion, cveName, description, nistUrl,
-        referenceUrl);
+    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, severity, severityVersion, cveName,
+        description, nistUrl, referenceUrl);
     boolean added = warnings.add(newWarning);
     this.modified = this.modified || added;
     return added;
@@ -137,7 +155,3 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
     }
   }
 }
-
-record UrlSecurityWarning(VersionRange versionRange, BigDecimal severity, String severityVersion, String cveName, String description, String nistUrl,
-    List<String> referenceUrl) {
-};

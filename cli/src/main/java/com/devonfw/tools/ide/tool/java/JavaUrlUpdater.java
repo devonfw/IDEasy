@@ -27,24 +27,15 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject> {
   }
 
   @Override
-  protected String getCpeVendor() {
+  public String getCpeVendor() {
 
-    //    return "vikwp";
-    return "eclipse";
+     return "eclipse";
   }
 
   @Override
-  protected String getCpeProduct() {
+  public String getCpeProduct() {
 
-    //    return "vik_booking";
-    return "temurin";
-  }
-
-  @Override
-  protected String mapUrlVersionToCpeVersion(String version) {
-
-    //    return "1.5.8";
-    return version;
+     return "temurin";
   }
 
   @Override

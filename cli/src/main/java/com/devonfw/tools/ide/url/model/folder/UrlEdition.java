@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.url.model.folder;
 
 import com.devonfw.tools.ide.url.model.AbstractUrlFolderWithParent;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
-import com.devonfw.tools.ide.url.model.file.json.UrlSecurityJsonFile;
+import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
 
 /**
  * An {@link UrlFolder} representing the actual edition of a {@link UrlTool}. The default edition may have the same

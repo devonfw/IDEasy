@@ -1,23 +1,20 @@
 package com.devonfw.tools.security;
 
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
-
 import java.io.FileFilter;
+
+import static com.devonfw.tools.ide.url.model.file.UrlStatusFile.STATUS_JSON;
+
 public class UrlFileFilter implements FileFilter {
 
-    final private SystemInfo systemInfo;
-    private final String os;
+  public UrlFileFilter() {
 
-    public UrlFileFilter() {
-        this.systemInfo = new SystemInfoImpl();
-        this.os = this.systemInfo.getOs().toString();
-    }
+  }
 
-    @Override
-    public boolean accept(java.io.File pathname) {
-        boolean isUrlFile = pathname.toString().endsWith(".urls");
-        boolean isCorrectOs = pathname.toString().contains(this.os);
-        return isUrlFile && isCorrectOs;
-    }
+  @Override
+  public boolean accept(java.io.File pathname) {
+
+//    System.out.println("UrlFileFilter.accept()" +  pathname.getName().equals(STATUS_JSON));
+//    return pathname.getName().endsWith("urls") && pathname.getName().startsWith("windows");
+    return pathname.getName().equals(STATUS_JSON);
+  }
 }

@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
-import com.devonfw.tools.ide.url.updater.UrlUpdater;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractFileTypeAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;

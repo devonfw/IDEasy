@@ -47,10 +47,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     String edition = getEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
-
     VersionIdentifier selectedVersion = securityRiskInteraction(configuredVersion);
-    System.out.println("Selected version: " + selectedVersion);
-
+    setVersion(selectedVersion, silent);
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, selectedVersion);
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();

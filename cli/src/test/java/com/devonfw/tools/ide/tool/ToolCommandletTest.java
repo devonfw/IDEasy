@@ -1,16 +1,16 @@
 package com.devonfw.tools.ide.tool;
 
-import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.url.model.file.json.UrlSecurityJsonFile;
-import com.devonfw.tools.ide.version.VersionRange;
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.tool.az.Azure;
+import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.nio.file.Path;
+import com.devonfw.tools.ide.version.VersionRange;
 
 /***
  * Test of {@link ToolCommandlet}.
@@ -215,9 +215,11 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
   /***
    * Creates the context and data for the tests of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)}.
    *
-   * @param dummyTool the dummy tool to be used for the tests. The {@link com.devonfw.tools.ide.url.model.folder.UrlVersion folders}
-   * representing the versions of the dummy tool are created here.
-   * @param answers the answers to be used for the interaction in  {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)}.
+   * @param dummyTool the dummy tool to be used for the tests. The
+   *        {@link com.devonfw.tools.ide.url.model.folder.UrlVersion folders} representing the versions of the dummy
+   *        tool are created here.
+   * @param answers the answers to be used for the interaction in
+   *        {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)}.
    * @return the {@link IdeTestContext} to be used for the tests.
    */
   private IdeContext getContextForSecurityJsonTests(Class<? extends ToolCommandlet> dummyTool, String... answers) {
@@ -234,5 +236,3 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     return context;
   }
 }
-
-
