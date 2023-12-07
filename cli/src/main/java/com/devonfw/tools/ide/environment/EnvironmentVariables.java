@@ -21,6 +21,7 @@ public interface EnvironmentVariables {
 
   /**
    * @param name the name of the environment variable to get.
+   * @param startAt the {@link EnvironmentVariablesType} where to start the upwards search.
    * @return the value of the variable with the given {@code name}. Will be {@code null} if no such variable is defined.
    */
   default String get(String name, EnvironmentVariablesType startAt) {

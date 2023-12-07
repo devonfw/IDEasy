@@ -253,6 +253,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    * default values.
    *
    * @param name the name of the variable to get.
+   * @param startAt the {@link EnvironmentVariablesType} from where to start the upwards search.
    * @return the value of the variable.
    */
   protected String getValue(String name, EnvironmentVariablesType startAt) {
