@@ -31,7 +31,7 @@ public final class FilenameUtil {
 
     // workaround for sourceforge urls
     if (path.contains("sourceforge") && path.endsWith("download")) {
-      return path.substring(lastDot + 1, lastDot + 4);
+      return path.substring(lastDot + 1, lastSlash);
     }
 
     if (lastDot < lastSlash) {
