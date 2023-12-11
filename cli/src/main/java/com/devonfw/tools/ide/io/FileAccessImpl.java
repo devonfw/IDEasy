@@ -335,7 +335,7 @@ public class FileAccessImpl implements FileAccess {
    *
    * @param source the {@link Path} to adapt.
    * @param targetLink the {@link Path} used to calculate the relative path to the {@code source} if {@code relative} is
-   * set to {@code true}.
+   *        set to {@code true}.
    * @param relative the {@code relative} flag.
    * @return the adapted {@link Path}.
    */
@@ -351,6 +351,33 @@ public class FileAccessImpl implements FileAccess {
 
     }
     return source;
+  }
+
+  private void createWindowsJunction(Path source, Path targetLink) {
+
+    Path fallbackPath = null;
+    if (!source.isAbsolute()) {
+      try {
+        fallbackPath = targetLink.resolveSibling(source).toRealPath();
+      } catch (IOException ioe) {
+        throw new IllegalStateException("Failed to create fallback symlink at " + fallbackPath, ioe);
+      }
+      this.context.warning(
+          "You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
+              + "alternative, however, these can not point to relative paths. So the source (" + source
+              + ") is interpreted as " + "absolute path (" + fallbackPath + ").");
+
+    } else {
+      fallbackPath = source;
+    }
+    if (!Files.isDirectory(fallbackPath)) { // if source is a junction. This returns true as well.
+      // TODO this if does not recognize broken junctions
+      throw new IllegalStateException(
+          "These junctions can only point to directories or other junctions. Please make sure that the source ("
+              + source.toAbsolutePath() + ") is one of these.");
+    }
+    this.context.newProcess().executable("cmd")
+        .addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), fallbackPath.toString()).run();
   }
 
   @Override
@@ -370,31 +397,16 @@ public class FileAccessImpl implements FileAccess {
       Files.createSymbolicLink(targetLink, adaptedSource);
     } catch (FileSystemException e) {
       if (this.context.getSystemInfo().isWindows()) {
-        String infoMsg = "Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
+        this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
             + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for "
-            + "further details. Error was: " + e.getMessage();
-        this.context.info(infoMsg);
-        if (!adaptedSource.isAbsolute()) {
-          this.context.warning(
-              "You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
-                  + "alternative, however, these can not point to relative paths. So the source (" + adaptedSource
-                  + ") is interpreted as " + "absolute path (" + adaptedSource.toAbsolutePath() + ").");
-        }
-        if (!Files.isDirectory(adaptedSource.toAbsolutePath())) { // if source is a junction. This returns true as well.
-          throw new IllegalStateException(infoMsg
-              + "\\n These junctions can only point to directories or other junctions. Please make sure that the source ("
-              + adaptedSource.toAbsolutePath() + ") is one of these.");
-        }
-        this.context.newProcess().executable("cmd")
-            .addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), adaptedSource.toAbsolutePath().toString())
-            .run();
+            + "further details. Error was: " + e.getMessage());
+        createWindowsJunction(adaptedSource, targetLink);
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException(
-          "Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative") + "symbolic link " + targetLink
-              + " pointing to " + source, e);
+      throw new IllegalStateException("Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative")
+          + "symbolic link " + targetLink + " pointing to " + source, e);
     }
   }
 
