@@ -58,7 +58,6 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     server.stubFor(
         get(urlPathEqualTo("/installTest/macOS")).willReturn(aResponse().withHeader("Content-Type", "application/tgz")
             .withHeader("Content-Length", linuxLength).withStatus(200).withBodyFile("java-17.0.6-linux-x64.tgz")));
-
   }
 
   /**
@@ -77,7 +76,6 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     install.run();
     // assert
     assertTestInstall(context);
-
   }
 
   /**
@@ -98,10 +96,9 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     install.run();
     // assert
     assertTestInstall(context);
-
   }
 
-  public void assertTestInstall(IdeContext context) {
+  private void assertTestInstall(IdeContext context) {
 
     assertThat(context.getSoftwarePath().resolve("java")).exists();
     assertThat(context.getSoftwarePath().resolve("java/InstallTest.txt")).hasContent("This is a test file.");
