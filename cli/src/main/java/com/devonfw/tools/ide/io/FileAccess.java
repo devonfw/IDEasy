@@ -61,6 +61,7 @@ public interface FileAccess {
   /**
    * @param source the source {@link Path} to link to.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
+   * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
    */
   void symlink(Path source, Path targetLink, boolean relative);
 
