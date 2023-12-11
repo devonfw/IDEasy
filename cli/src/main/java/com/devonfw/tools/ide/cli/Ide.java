@@ -173,14 +173,14 @@ public final class Ide {
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
             reader.getHistory().add(line);
             runCommand(line, init);
+            init.resetRunParams();
           } catch (UserInterruptException e) {
-            // Ignore
-            context.warning("User canceled with CTRL+C", e);
+            // Ignore CTRL+C
           } catch (EndOfFileException e) {
-            context.warning("User canceled with CTRL+D", e);
+            // CTRL+D
             return;
-          } catch (Exception e) {
-            throw new RuntimeException("An error occurred while using autocompletion", e);
+          } catch (CliException e) {
+            context.error("An error occurred while using autocompletion: {}", e);
           } finally {
             AnsiConsole.systemUninstall();
           }

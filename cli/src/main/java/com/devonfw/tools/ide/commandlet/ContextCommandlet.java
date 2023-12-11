@@ -97,4 +97,20 @@ public class ContextCommandlet extends Commandlet {
     return this.ideContext;
   }
 
+  /**
+   * Resets the {@link ContextCommandlet} run params.
+   */
+  public void resetRunParams() {
+
+    this.ideContext.setLogLevel(IdeLogLevel.INFO);
+    this.ideContext.setBatchMode(false);
+    this.ideContext.setForceMode(false);
+    this.ideContext.setQuietMode(false);
+    this.ideContext.setOfflineMode(false);
+    this.version.setValue(false);
+    this.trace.setValue(false);
+    this.debug.setValue(false);
+    this.quiet.setValue(false);
+  }
+
 }
