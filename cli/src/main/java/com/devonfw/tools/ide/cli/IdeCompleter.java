@@ -34,7 +34,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class IdeCompleter extends ArgumentCompleter implements Completer {
 
   /** Pattern which should stop autocompletion e.g. 'get-version mvn -' (prevents options after tool commands) */
-  private static final String INVALID_PATTERN = "([\\s][a-z]*[\\s][\\-](\\s)*.*$)|([a-z][\\-][a-z]*[\\s][\\-](\\s)*.*$)|(^[a-z]*(\\s)[\\-](\\s)*.*$)";
+  private static final String INVALID_PATTERN = "([\\-](\\s)*.*$)|([\\s][a-z]*[\\s][\\-](\\s)*.*$)|([a-z][\\-][a-z]*[\\s][\\-](\\s)*.*$)|(^[a-z]*(\\s)[\\-](\\s)*.*$)";
 
   private final ContextCommandlet cmd;
 

@@ -94,6 +94,18 @@ public class AutoCompletionTest extends AutocompletionReaderTestSupport {
   }
 
   @Test
+  public void testIdeCompleterWithInvalidInputDoesNothing() throws IOException {
+
+    ContextCommandlet contextCommandlet = new ContextCommandlet();
+    IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
+    reader.setCompleter(new IdeCompleter(contextCommandlet, ideContext));
+    assertBuffer("get-version -t ", new TestBuffer("get-version -t ").tab().tab());
+    assertBuffer("- get-version ", new TestBuffer("- get-version ").tab().tab());
+    assertBuffer(" - get-version", new TestBuffer(" - get-version").tab().tab());
+
+  }
+
+  @Test
   public void testIdeCompleterHandlesOptionsBeforeCommand() throws IOException {
 
     ContextCommandlet contextCommandlet = new ContextCommandlet();
