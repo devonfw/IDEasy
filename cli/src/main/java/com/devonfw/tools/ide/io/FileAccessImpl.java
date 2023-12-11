@@ -297,52 +297,58 @@ public class FileAccessImpl implements FileAccess {
    * Deletes the given {@link Path} if it is a symbolic link or a Windows junction. And throws an
    * {@link IllegalStateException} if there is a file at the given {@link Path} that is neither a symbolic link nor a
    * Windows junction.
-   * 
+   *
    * @param path the {@link Path} to delete.
    * @throws IOException if the actual {@link Files#delete(Path) deletion} fails.
    */
   private void deleteLinkIfExists(Path path) throws IOException {
 
-    if (Files.exists(path) && Files.isSymbolicLink(path)) {
-      this.context.debug("Deleting symbolic link to be re-created at {}", path);
-      Files.delete(path);
-      return;
-    }
+    boolean exists = false;
+    boolean isJunction = false;
     if (this.context.getSystemInfo().isWindows()) {
       try { // since broken junctions are not detected by Files.exists(brokenJunction)
         BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-        if (attr.isOther() && attr.isDirectory()) {
-          this.context.debug("Deleting symbolic link (junction) to be re-created at {}", path);
-          Files.delete(path);
-          return;
-        }
+        exists = true;
+        isJunction = attr.isOther() && attr.isDirectory();
       } catch (NoSuchFileException e) {
         // ignore, since there is no previous file at the location, so nothing to delete
-        return;
       }
     }
-    throw new IllegalStateException(
-        "Failed to delete " + path + " as it is not a symbolic link or a Windows junction.");
+    exists = exists || Files.exists(path); // since broken junctions are not detected by Files.exists(brokenJunction)
+    boolean isSymlink = exists && Files.isSymbolicLink(path);
+
+    assert !(isSymlink && isJunction);
+
+    if (exists) {
+      if (isJunction || isSymlink) {
+        this.context.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
+        Files.delete(path);
+      } else {
+        throw new IllegalStateException(
+            "The file at " + path + " was not deleted since it is not a symlink or a Windows junction");
+      }
+    }
   }
 
   /**
    * Adapts the given {@link Path} to be relative or absolute depending on the given {@code relative} flag.
-   * 
+   *
    * @param source the {@link Path} to adapt.
    * @param targetLink the {@link Path} used to calculate the relative path to the {@code source} if {@code relative} is
-   *        set to {@code true}.
+   * set to {@code true}.
    * @param relative the {@code relative} flag.
    * @return the adapted {@link Path}.
    */
   private Path adaptPath(Path source, Path targetLink, boolean relative) {
 
     if (relative && source.isAbsolute()) {
-      return source.toAbsolutePath();
-    }
-    if (!relative && !source.isAbsolute()) {
       source = targetLink.getParent().relativize(source);
       // to make relative links like this work: dir/link -> dir
       return (source.toString().isEmpty()) ? Paths.get(".") : source;
+    }
+    if (!relative && !source.isAbsolute()) {
+      return source.toAbsolutePath();
+
     }
     return source;
   }
@@ -386,8 +392,9 @@ public class FileAccessImpl implements FileAccess {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative")
-          + "symbolic link " + targetLink + " pointing to " + source, e);
+      throw new IllegalStateException(
+          "Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative") + "symbolic link " + targetLink
+              + " pointing to " + source, e);
     }
   }
 

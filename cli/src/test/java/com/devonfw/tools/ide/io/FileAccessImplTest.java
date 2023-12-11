@@ -235,9 +235,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
   }
 
-  /*
-   * only pass readLinks = true when junctions are not used.
-   */
+
+   // only pass readLinks = true when junctions are not used.
   private void assertSymlinksWork(Path dir, boolean readLinks) {
 
     assertSymlinkToRealPath(dir.resolve("d1/d11/link1"), dir.resolve("d1"));
