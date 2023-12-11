@@ -299,7 +299,7 @@ public class FileAccessImpl implements FileAccess {
    * Windows junction.
    * 
    * @param path the {@link Path} to delete.
-   * @throws IOException if the actual {@link Files#delete deletion} fails.
+   * @throws IOException if the actual {@link Files#delete(Path) deletion} fails.
    */
   private void deleteLinkIfExists(Path path) throws IOException {
 
