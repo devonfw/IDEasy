@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.variable;
 
+import java.nio.file.Path;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.VariableLine;
@@ -71,6 +73,8 @@ public interface VariableDefinition<V> {
 
     if (value == null) {
       return "";
+    } else if (value instanceof Path) {
+      return value.toString().replace('\\', '/');
     }
     return value.toString();
   }
