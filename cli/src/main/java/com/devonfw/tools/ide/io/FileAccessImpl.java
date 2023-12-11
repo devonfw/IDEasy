@@ -347,7 +347,13 @@ public class FileAccessImpl implements FileAccess {
       return (source.toString().isEmpty()) ? Paths.get(".") : source;
     }
     if (!relative && !source.isAbsolute()) {
-      return source.toAbsolutePath();
+      try {
+        source = targetLink.resolveSibling(source).toRealPath();
+      } catch (IOException e) {
+        throw new IllegalStateException(
+            "Failed to create fallback symlink from " + source + " with target link " + targetLink, e);
+      }
+      // TODO maybe in the two off cases also call toRealPath to collapse paths like ../d1/../d2
 
     }
     return source;

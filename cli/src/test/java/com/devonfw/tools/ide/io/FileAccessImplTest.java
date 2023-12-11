@@ -34,7 +34,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = false".
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = false". Passing absolute paths as
+   * source
    */
   @Test
   public void testSymlinkNotRelative(@TempDir Path tempDir) {
@@ -51,6 +52,31 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
     // act
     createSymlinks(fileAccess, dir, relative);
+
+    // assert
+    assertSymlinksExist(dir);
+    assertSymlinksWork(dir, readLinks);
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = false". Passing relative paths as
+   * source
+   */
+  @Test
+  public void testSymlinkNotRelativeWithRelativeSource(@TempDir Path tempDir) {
+
+    // relative links are checked in testRelativeLinksWorkAfterMoving
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    FileAccess fileAccess = new FileAccessImpl(context);
+    Path dir = tempDir.resolve("parent");
+    createDirs(fileAccess, dir);
+    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
+    boolean relative = false;
+
+    // act
+    createSymlinksByPassingRelativeSource(fileAccess, dir, relative);
 
     // assert
     assertSymlinksExist(dir);
@@ -113,6 +139,35 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = true". Furthermore, it is tested that
+   * the links still work after moving them. Passing relative paths as source.
+   */
+  @Test
+  public void testRelativeLinksWorkAfterMovingWithRelativeSource(@TempDir Path tempDir) {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    if (windowsJunctionsAreUsed(context, tempDir)) {
+      context.info("Can not check the Test: testRelativeLinksWorkAfterMoving since windows junctions are used.");
+      return;
+    }
+    FileAccess fileAccess = new FileAccessImpl(context);
+    Path dir = tempDir.resolve("parent");
+    createDirs(fileAccess, dir);
+    boolean relative = true;
+    createSymlinksByPassingRelativeSource(fileAccess, dir, relative);
+    boolean readLinks = true; // junctions are not used, so links can be read with Files.readSymbolicLink(link);
+
+    // act
+    Path sibling = dir.resolveSibling("parent2");
+    fileAccess.move(dir, sibling);
+
+    // assert
+    assertSymlinksExist(sibling);
+    assertSymlinksWork(sibling, readLinks);
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = true". Furthermore, it is tested that
    * the links still work after moving them.
    */
   @Test
@@ -150,8 +205,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     if (!windowsJunctionsAreUsed(context, tempDir)) {
-      context.info(
-          "Can not check the Test: testWindowsJunctionsCanNotPointToFiles since windows junctions are not used.");
+      context
+          .info("Can not check the Test: testWindowsJunctionsCanNotPointToFiles since windows junctions are not used.");
       return;
     }
     Path file = tempDir.resolve("file");
@@ -169,6 +224,24 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
     fileAccess.mkdirs(dir.resolve("d1/d11/d111/d1111"));
     fileAccess.mkdirs(dir.resolve("d2/d22/d222"));
+  }
+
+  private void createSymlinksByPassingRelativeSource(FileAccess fa, Path dir, boolean relative) {
+
+    fa.symlink(Path.of("."), dir.resolve("d1/d11/link1"), relative);
+    // test if symbolic links or junctions can be overwritten with symlink()
+    fa.symlink(Path.of(".."), dir.resolve("d1/d11/link1"), relative);
+
+    fa.symlink(Path.of("."), dir.resolve("d1/d11/link2"), relative);
+    fa.symlink(Path.of("d111"), dir.resolve("d1/d11/link3"), relative);
+    fa.symlink(Path.of("d111/d1111"), dir.resolve("d1/d11/link4"), relative);
+    fa.symlink(Path.of("../../d2"), dir.resolve("d1/d11/link5"), relative);
+    fa.symlink(Path.of("../../d2/d22"), dir.resolve("d1/d11/link6"), relative);
+    fa.symlink(Path.of("../../d2/d22/d222"), dir.resolve("d1/d11/link7"), relative);
+
+    fa.symlink(Path.of("../../d1/d11/link1"), dir.resolve("d2/d22/link8"), relative);
+    fa.symlink(Path.of("../d1/d11/link1"), dir.resolve("d2/link9"), relative);
+    fa.symlink(Path.of("d2/link9"), dir.resolve("link10"), relative);
   }
 
   private void createSymlinks(FileAccess fa, Path dir, boolean relative) {
@@ -235,8 +308,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
   }
 
-
-   // only pass readLinks = true when junctions are not used.
+  // only pass readLinks = true when junctions are not used.
   private void assertSymlinksWork(Path dir, boolean readLinks) {
 
     assertSymlinkToRealPath(dir.resolve("d1/d11/link1"), dir.resolve("d1"));
