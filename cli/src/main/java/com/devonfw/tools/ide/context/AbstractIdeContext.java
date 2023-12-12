@@ -180,7 +180,6 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (Files.isDirectory(rootPath)) {
           if (!ideRootPath.equals(rootPath)) {
             warning("Variable IDE_ROOT is set to '{}' but for your project '{}' would have been expected.");
-            ideRootPath = rootPath;
           }
           ideRootPath = this.ideHome.getParent();
         } else {
@@ -259,10 +258,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public boolean isTest() {
 
-    if (isMock()) {
-      return true;
-    }
-    return false;
+    return isMock();
   }
 
   /**
@@ -559,7 +555,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     try {
       int timeout = 1000;
       online = InetAddress.getByName("github.com").isReachable(timeout);
-    } catch (Exception e) {
+    } catch (Exception ignored) {
 
     }
     return online;
@@ -591,8 +587,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public ProcessContext newProcess() {
 
-    ProcessContext processContext = new ProcessContextImpl(this);
-    return processContext;
+    return new ProcessContextImpl(this);
   }
 
   @Override
@@ -655,7 +650,6 @@ public abstract class AbstractIdeContext implements IdeContext {
       pc.addArg("clone");
       if (isQuietMode()) {
         pc.addArg("-q");
-      } else {
       }
       pc.addArgs("--recursive", gitRepoUrl, "--config", "core.autocrlf=false", ".");
       pc.run();
