@@ -339,19 +339,35 @@ public class FileAccessImpl implements FileAccess {
    * @param relative the {@code relative} flag.
    * @return the adapted {@link Path}.
    */
-  private Path adaptPath(Path source, Path targetLink, boolean relative) {
+  private Path adaptPath(Path source, Path targetLink, boolean relative) throws IOException {
 
-    if (relative && source.isAbsolute()) {
-      source = targetLink.getParent().relativize(source);
-      // to make relative links like this work: dir/link -> dir
-      return (source.toString().isEmpty()) ? Paths.get(".") : source;
-    }
-    if (!relative && !source.isAbsolute()) {
+    if (source.isAbsolute()) {
       try {
-        source = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
+        source = source.toRealPath(LinkOption.NOFOLLOW_LINKS); // to transform ../d1/../d2 to ../d2
       } catch (IOException e) {
-        throw new IllegalStateException(
-            "Failed to create fallback symlink from " + source + " with target link " + targetLink, e);
+        throw new IOException("source.toRealPath() failed for source " + source, e);
+      }
+      if (relative) {
+        source = targetLink.getParent().relativize(source);
+        // to make relative links like this work: dir/link -> dir
+        source = (source.toString().isEmpty()) ? Paths.get(".") : source;
+      }
+    } else { // source is relative
+      if (relative) {
+        // even though the source is already relative, toRealPath should be called to transform paths like
+        // this ../d1/../d2 to ../d2
+        source = targetLink.getParent()
+            .relativize(targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS));
+        source = (source.toString().isEmpty()) ? Paths.get(".") : source;
+      } else { // !relative
+        try {
+          source = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
+        } catch (IOException e) {
+          throw new IOException(
+              "targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS) failed for source " + source
+                  + " and target link " + targetLink,
+              e);
+        }
       }
     }
     return source;
@@ -362,7 +378,7 @@ public class FileAccessImpl implements FileAccess {
     Path fallbackPath = null;
     if (!source.isAbsolute()) {
       try {
-        fallbackPath = targetLink.resolveSibling(source).toRealPath();
+        fallbackPath = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
       } catch (IOException ioe) {
         throw new IllegalStateException("Failed to create fallback symlink at " + fallbackPath, ioe);
       }
@@ -387,7 +403,13 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void symlink(Path source, Path targetLink, boolean relative) {
 
-    Path adaptedSource = adaptPath(source, targetLink, relative);
+    Path adaptedSource = null;
+    try {
+      adaptedSource = adaptPath(source, targetLink, relative);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to adapt source for source (" + source + ") target (" + targetLink
+          + ") and relative (" + relative + ")", e);
+    }
     this.context.trace("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative",
         targetLink, adaptedSource);
 

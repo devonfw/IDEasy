@@ -220,6 +220,37 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(e1).hasMessageContaining("These junctions can only point to directories or other junctions");
   }
 
+  @Test
+  public void testSymlinkShortcutPaths(@TempDir Path tempDir) {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    FileAccess fileAccess = new FileAccessImpl(context);
+    Path dir = tempDir.resolve("parent");
+    createDirs(fileAccess, dir);
+    fileAccess.mkdirs(dir.resolve("d3"));
+    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
+
+    // act
+    fileAccess.symlink(dir.resolve("d3/../d1"), dir.resolve("link1"), false);
+    fileAccess.symlink(Path.of("d3/../d1"), dir.resolve("link2"), false);
+    fileAccess.symlink(dir.resolve("d3/../d1"), dir.resolve("link3"), true);
+    fileAccess.symlink(Path.of("d3/../d1"), dir.resolve("link4"), true);
+    fileAccess.delete(dir.resolve("d3"));
+
+    // assert
+    assertSymlinkToRealPath(dir.resolve("link1"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("link2"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("link3"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("link4"), dir.resolve("d1"));
+    if (readLinks) {
+      assertSymlinkRead(dir.resolve("link1"), dir.resolve("d1"));
+      assertSymlinkRead(dir.resolve("link2"), dir.resolve("d1"));
+      assertSymlinkRead(dir.resolve("link3"), dir.resolve("d1"));
+      assertSymlinkRead(dir.resolve("link4"), dir.resolve("d1"));
+    }
+  }
+
   private void createDirs(FileAccess fileAccess, Path dir) {
 
     fileAccess.mkdirs(dir.resolve("d1/d11/d111/d1111"));
@@ -235,7 +266,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     fa.symlink(Path.of("."), dir.resolve("d1/d11/link_to_d11"), relative);
     fa.symlink(Path.of("d111"), dir.resolve("d1/d11/link_to_d111"), relative);
     fa.symlink(Path.of("d111/d1111"), dir.resolve("d1/d11/link_to_d1111"), relative);
-    fa.symlink(Path.of("../nonExistingDir/../../d2"), dir.resolve("d1/d11/link_to_d2"), relative);
+    fa.symlink(Path.of("../../d1/../d2"), dir.resolve("d1/d11/link_to_d2"), relative);
     fa.symlink(Path.of("../../d2/d22"), dir.resolve("d1/d11/link_to_d22"), relative);
     fa.symlink(Path.of("../../d2/d22/d222"), dir.resolve("d1/d11/link_to_d222"), relative);
 
@@ -253,7 +284,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     fa.symlink(dir.resolve("d1/d11"), dir.resolve("d1/d11/link_to_d11"), relative);
     fa.symlink(dir.resolve("d1/d11/d111"), dir.resolve("d1/d11/link_to_d111"), relative);
     fa.symlink(dir.resolve("d1/d11/d111/d1111"), dir.resolve("d1/d11/link_to_d1111"), relative);
-    fa.symlink(dir.resolve("nonExistingDir/../d2"), dir.resolve("d1/d11/link_to_d2"), relative);
+    fa.symlink(dir.resolve("d1/../d2"), dir.resolve("d1/d11/link_to_d2"), relative);
     fa.symlink(dir.resolve("d2/d22"), dir.resolve("d1/d11/link_to_d22"), relative);
     fa.symlink(dir.resolve("d2/d22/d222"), dir.resolve("d1/d11/link_to_d222"), relative);
 
