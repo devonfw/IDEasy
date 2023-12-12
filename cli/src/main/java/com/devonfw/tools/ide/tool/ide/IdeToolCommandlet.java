@@ -1,25 +1,32 @@
 package com.devonfw.tools.ide.tool.ide;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.tool.PluginBasedCommandlet;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Set;
-
 /**
  * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or
  * {@link Intellij}.
  */
-public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
+public abstract class IdeToolCommandlet extends LocalToolCommandlet {
+
+  private Map<String, PluginDescriptor> pluginsMap;
 
   private Collection<PluginDescriptor> configuredPlugins;
 
@@ -37,6 +44,44 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     assert (tags.contains(TAG_IDE));
   }
 
+  private Map<String, PluginDescriptor> getPluginsMap() {
+
+    if (this.pluginsMap == null) {
+      Map<String, PluginDescriptor> map = new HashMap<>();
+      Path pluginsPath = getPluginsConfigPath();
+      if (Files.isDirectory(pluginsPath)) {
+        try (Stream<Path> childStream = Files.list(pluginsPath)) {
+          Iterator<Path> iterator = childStream.iterator();
+          while (iterator.hasNext()) {
+            Path child = iterator.next();
+            String filename = child.getFileName().toString();
+            if (filename.endsWith(IdeContext.EXT_PROPERTIES) && Files.exists(child)) {
+              PluginDescriptor descriptor = PluginDescriptorImpl.of(child, this.context, isPluginUrlNeeded());
+              map.put(descriptor.getName(), descriptor);
+            }
+          }
+        } catch (IOException e) {
+          throw new IllegalStateException("Failed to list children of directory " + pluginsPath, e);
+        }
+      }
+      this.pluginsMap = map;
+    }
+    return this.pluginsMap;
+  }
+
+  private Path getPluginsConfigPath() {
+
+    return this.context.getSettingsPath().resolve(this.tool).resolve(IdeContext.FOLDER_PLUGINS);
+  }
+
+  /**
+   * @return {@code true} if {@link PluginDescriptor#getUrl() plugin URL} property is needed, {@code false} otherwise.
+   */
+  protected boolean isPluginUrlNeeded() {
+
+    return false;
+  }
+
   /**
    * @return the immutable {@link Collection} of {@link PluginDescriptor}s configured for this IDE tool.
    */
@@ -49,7 +94,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   }
 
   /**
-   * @return the {@link Path} where the plugins of this {@link PluginBasedCommandlet} shall be installed.
+   * @return the {@link Path} where the plugins of this {@link IdeToolCommandlet} shall be installed.
    */
   public Path getPluginsInstallationPath() {
 
