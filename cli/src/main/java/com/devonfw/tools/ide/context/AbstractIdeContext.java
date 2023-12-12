@@ -42,6 +42,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public abstract class AbstractIdeContext implements IdeContext {
 
+  private static final String IDE_URLS_GIT = "https://github.com/devonfw/ide-urls.git";
+
   private final Map<IdeLogLevel, IdeSubLogger> loggers;
 
   private final Path ideHome;
@@ -487,7 +489,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        gitPullOrClone(this.urlsPath, "https://github.com/devonfw/ide-urls.git", true);
+        gitPullOrClone(this.urlsPath, IDE_URLS_GIT, true);
       }
       this.urlMetadata = new UrlMetadata(this);
     }
