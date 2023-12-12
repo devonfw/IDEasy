@@ -348,13 +348,11 @@ public class FileAccessImpl implements FileAccess {
     }
     if (!relative && !source.isAbsolute()) {
       try {
-        source = targetLink.resolveSibling(source).toRealPath();
+        source = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
       } catch (IOException e) {
         throw new IllegalStateException(
             "Failed to create fallback symlink from " + source + " with target link " + targetLink, e);
       }
-      // TODO maybe in the two off cases also call toRealPath to collapse paths like ../d1/../d2
-
     }
     return source;
   }

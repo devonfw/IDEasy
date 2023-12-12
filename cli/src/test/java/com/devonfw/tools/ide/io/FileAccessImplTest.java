@@ -38,7 +38,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * source
    */
   @Test
-  public void testSymlinkNotRelative(@TempDir Path tempDir) {
+  public void testSymlinkAbsoluteLinks(@TempDir Path tempDir) {
 
     // relative links are checked in testRelativeLinksWorkAfterMoving
 
@@ -63,7 +63,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * source
    */
   @Test
-  public void testSymlinkNotRelativeWithRelativeSource(@TempDir Path tempDir) {
+  public void testSymlinkAbsolutePassingRelativeSource(@TempDir Path tempDir) {
 
     // relative links are checked in testRelativeLinksWorkAfterMoving
 
@@ -117,7 +117,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * the links are broken after moving them.
    */
   @Test
-  public void testAbsoluteLinksBreakAfterMoving(@TempDir Path tempDir) throws IOException {
+  public void testSymlinkAbsoluteBreakAfterMoving(@TempDir Path tempDir) throws IOException {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -142,7 +142,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * the links still work after moving them. Passing relative paths as source.
    */
   @Test
-  public void testRelativeLinksWorkAfterMovingWithRelativeSource(@TempDir Path tempDir) {
+  public void testSymlinkRelativeWorkAfterMovingPassingRelativeSource(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -171,7 +171,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * the links still work after moving them.
    */
   @Test
-  public void testRelativeLinksWorkAfterMoving(@TempDir Path tempDir) {
+  public void testSymlinkRelativeWorkAfterMoving(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -200,7 +200,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * file.
    */
   @Test
-  public void testWindowsJunctionsCanNotPointToFiles(@TempDir Path tempDir) throws IOException {
+  public void testSymlinkWindowsJunctionsCanNotPointToFiles(@TempDir Path tempDir) throws IOException {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -228,66 +228,67 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
   private void createSymlinksByPassingRelativeSource(FileAccess fa, Path dir, boolean relative) {
 
-    fa.symlink(Path.of("."), dir.resolve("d1/d11/link1"), relative);
+    fa.symlink(Path.of("."), dir.resolve("d1/d11/link_to_d1"), relative);
     // test if symbolic links or junctions can be overwritten with symlink()
-    fa.symlink(Path.of(".."), dir.resolve("d1/d11/link1"), relative);
+    fa.symlink(Path.of(".."), dir.resolve("d1/d11/link_to_d1"), relative);
 
-    fa.symlink(Path.of("."), dir.resolve("d1/d11/link2"), relative);
-    fa.symlink(Path.of("d111"), dir.resolve("d1/d11/link3"), relative);
-    fa.symlink(Path.of("d111/d1111"), dir.resolve("d1/d11/link4"), relative);
-    fa.symlink(Path.of("../../d2"), dir.resolve("d1/d11/link5"), relative);
-    fa.symlink(Path.of("../../d2/d22"), dir.resolve("d1/d11/link6"), relative);
-    fa.symlink(Path.of("../../d2/d22/d222"), dir.resolve("d1/d11/link7"), relative);
+    fa.symlink(Path.of("."), dir.resolve("d1/d11/link_to_d11"), relative);
+    fa.symlink(Path.of("d111"), dir.resolve("d1/d11/link_to_d111"), relative);
+    fa.symlink(Path.of("d111/d1111"), dir.resolve("d1/d11/link_to_d1111"), relative);
+    fa.symlink(Path.of("../nonExistingDir/../../d2"), dir.resolve("d1/d11/link_to_d2"), relative);
+    fa.symlink(Path.of("../../d2/d22"), dir.resolve("d1/d11/link_to_d22"), relative);
+    fa.symlink(Path.of("../../d2/d22/d222"), dir.resolve("d1/d11/link_to_d222"), relative);
 
-    fa.symlink(Path.of("../../d1/d11/link1"), dir.resolve("d2/d22/link8"), relative);
-    fa.symlink(Path.of("../d1/d11/link1"), dir.resolve("d2/link9"), relative);
-    fa.symlink(Path.of("d2/link9"), dir.resolve("link10"), relative);
+    fa.symlink(Path.of("../../d1/d11/link_to_d1"), dir.resolve("d2/d22/link_to_link_to_d1"), relative);
+    fa.symlink(Path.of("../d1/d11/link_to_d1"), dir.resolve("d2/another_link_to_link_to_d1"), relative);
+    fa.symlink(Path.of("d2/another_link_to_link_to_d1"), dir.resolve("link_to_another_link_to_link_to_d1"), relative);
   }
 
   private void createSymlinks(FileAccess fa, Path dir, boolean relative) {
 
-    fa.symlink(dir.resolve("d1/d11"), dir.resolve("d1/d11/link1"), relative);
+    fa.symlink(dir.resolve("d1/d11"), dir.resolve("d1/d11/link_to_d1"), relative);
     // test if symbolic links or junctions can be overwritten with symlink()
-    fa.symlink(dir.resolve("d1"), dir.resolve("d1/d11/link1"), relative);
+    fa.symlink(dir.resolve("d1"), dir.resolve("d1/d11/link_to_d1"), relative);
 
-    fa.symlink(dir.resolve("d1/d11"), dir.resolve("d1/d11/link2"), relative);
-    fa.symlink(dir.resolve("d1/d11/d111"), dir.resolve("d1/d11/link3"), relative);
-    fa.symlink(dir.resolve("d1/d11/d111/d1111"), dir.resolve("d1/d11/link4"), relative);
-    fa.symlink(dir.resolve("d2"), dir.resolve("d1/d11/link5"), relative);
-    fa.symlink(dir.resolve("d2/d22"), dir.resolve("d1/d11/link6"), relative);
-    fa.symlink(dir.resolve("d2/d22/d222"), dir.resolve("d1/d11/link7"), relative);
+    fa.symlink(dir.resolve("d1/d11"), dir.resolve("d1/d11/link_to_d11"), relative);
+    fa.symlink(dir.resolve("d1/d11/d111"), dir.resolve("d1/d11/link_to_d111"), relative);
+    fa.symlink(dir.resolve("d1/d11/d111/d1111"), dir.resolve("d1/d11/link_to_d1111"), relative);
+    fa.symlink(dir.resolve("nonExistingDir/../d2"), dir.resolve("d1/d11/link_to_d2"), relative);
+    fa.symlink(dir.resolve("d2/d22"), dir.resolve("d1/d11/link_to_d22"), relative);
+    fa.symlink(dir.resolve("d2/d22/d222"), dir.resolve("d1/d11/link_to_d222"), relative);
 
-    fa.symlink(dir.resolve("d1/d11/link1"), dir.resolve("d2/d22/link8"), relative);
-    fa.symlink(dir.resolve("d1/d11/link1"), dir.resolve("d2/link9"), relative);
-    fa.symlink(dir.resolve("d2/link9"), dir.resolve("link10"), relative);
+    fa.symlink(dir.resolve("d1/d11/link_to_d1"), dir.resolve("d2/d22/link_to_link_to_d1"), relative);
+    fa.symlink(dir.resolve("d1/d11/link_to_d1"), dir.resolve("d2/another_link_to_link_to_d1"), relative);
+    fa.symlink(dir.resolve("d2/another_link_to_link_to_d1"), dir.resolve("link_to_another_link_to_link_to_d1"),
+        relative);
   }
 
   private void assertSymlinksExist(Path dir) {
 
-    assertThat(dir.resolve("d1/d11/link1")).existsNoFollowLinks();
-    assertThat(dir.resolve("d1/d11/link2")).existsNoFollowLinks();
-    assertThat(dir.resolve("d1/d11/link3")).existsNoFollowLinks();
-    assertThat(dir.resolve("d1/d11/link4")).existsNoFollowLinks();
-    assertThat(dir.resolve("d1/d11/link5")).existsNoFollowLinks();
-    assertThat(dir.resolve("d1/d11/link6")).existsNoFollowLinks();
-    assertThat(dir.resolve("d1/d11/link7")).existsNoFollowLinks();
-    assertThat(dir.resolve("d2/d22/link8")).existsNoFollowLinks();
-    assertThat(dir.resolve("d2/link9")).existsNoFollowLinks();
-    assertThat(dir.resolve("link10")).existsNoFollowLinks();
+    assertThat(dir.resolve("d1/d11/link_to_d1")).existsNoFollowLinks();
+    assertThat(dir.resolve("d1/d11/link_to_d11")).existsNoFollowLinks();
+    assertThat(dir.resolve("d1/d11/link_to_d111")).existsNoFollowLinks();
+    assertThat(dir.resolve("d1/d11/link_to_d1111")).existsNoFollowLinks();
+    assertThat(dir.resolve("d1/d11/link_to_d2")).existsNoFollowLinks();
+    assertThat(dir.resolve("d1/d11/link_to_d22")).existsNoFollowLinks();
+    assertThat(dir.resolve("d1/d11/link_to_d222")).existsNoFollowLinks();
+    assertThat(dir.resolve("d2/d22/link_to_link_to_d1")).existsNoFollowLinks();
+    assertThat(dir.resolve("d2/another_link_to_link_to_d1")).existsNoFollowLinks();
+    assertThat(dir.resolve("link_to_another_link_to_link_to_d1")).existsNoFollowLinks();
   }
 
   private void assertSymlinksAreBroken(Path dir, boolean readLinks) throws IOException {
 
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link1"), readLinks);
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link2"), readLinks);
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link3"), readLinks);
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link4"), readLinks);
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link5"), readLinks);
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link6"), readLinks);
-    assertSymlinkIsBroken(dir.resolve("d1/d11/link7"), readLinks);
-    assertSymlinkIsBroken(dir.resolve("d2/d22/link8"), readLinks);
-    assertSymlinkIsBroken(dir.resolve("d2/link9"), readLinks);
-    assertSymlinkIsBroken(dir.resolve("link10"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link_to_d1"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link_to_d11"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link_to_d111"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link_to_d1111"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link_to_d2"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link_to_d22"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d1/d11/link_to_d222"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d2/d22/link_to_link_to_d1"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("d2/another_link_to_link_to_d1"), readLinks);
+    assertSymlinkIsBroken(dir.resolve("link_to_another_link_to_link_to_d1"), readLinks);
   }
 
   private void assertSymlinkIsBroken(Path link, boolean readLinks) throws IOException {
@@ -311,28 +312,29 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   // only pass readLinks = true when junctions are not used.
   private void assertSymlinksWork(Path dir, boolean readLinks) {
 
-    assertSymlinkToRealPath(dir.resolve("d1/d11/link1"), dir.resolve("d1"));
-    assertSymlinkToRealPath(dir.resolve("d1/d11/link2"), dir.resolve("d1/d11"));
-    assertSymlinkToRealPath(dir.resolve("d1/d11/link3"), dir.resolve("d1/d11/d111"));
-    assertSymlinkToRealPath(dir.resolve("d1/d11/link4"), dir.resolve("d1/d11/d111/d1111"));
-    assertSymlinkToRealPath(dir.resolve("d1/d11/link5"), dir.resolve("d2"));
-    assertSymlinkToRealPath(dir.resolve("d1/d11/link6"), dir.resolve("d2/d22"));
-    assertSymlinkToRealPath(dir.resolve("d1/d11/link7"), dir.resolve("d2/d22/d222"));
-    assertSymlinkToRealPath(dir.resolve("d2/d22/link8"), dir.resolve("d1"));
-    assertSymlinkToRealPath(dir.resolve("d2/link9"), dir.resolve("d1"));
-    assertSymlinkToRealPath(dir.resolve("link10"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("d1/d11/link_to_d1"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("d1/d11/link_to_d11"), dir.resolve("d1/d11"));
+    assertSymlinkToRealPath(dir.resolve("d1/d11/link_to_d111"), dir.resolve("d1/d11/d111"));
+    assertSymlinkToRealPath(dir.resolve("d1/d11/link_to_d1111"), dir.resolve("d1/d11/d111/d1111"));
+    assertSymlinkToRealPath(dir.resolve("d1/d11/link_to_d2"), dir.resolve("d2"));
+    assertSymlinkToRealPath(dir.resolve("d1/d11/link_to_d22"), dir.resolve("d2/d22"));
+    assertSymlinkToRealPath(dir.resolve("d1/d11/link_to_d222"), dir.resolve("d2/d22/d222"));
+    assertSymlinkToRealPath(dir.resolve("d2/d22/link_to_link_to_d1"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("d2/another_link_to_link_to_d1"), dir.resolve("d1"));
+    assertSymlinkToRealPath(dir.resolve("link_to_another_link_to_link_to_d1"), dir.resolve("d1"));
 
     if (readLinks) {
-      assertSymlinkRead(dir.resolve("d1/d11/link1"), dir.resolve("d1"));
-      assertSymlinkRead(dir.resolve("d1/d11/link2"), dir.resolve("d1/d11"));
-      assertSymlinkRead(dir.resolve("d1/d11/link3"), dir.resolve("d1/d11/d111"));
-      assertSymlinkRead(dir.resolve("d1/d11/link4"), dir.resolve("d1/d11/d111/d1111"));
-      assertSymlinkRead(dir.resolve("d1/d11/link5"), dir.resolve("d2"));
-      assertSymlinkRead(dir.resolve("d1/d11/link6"), dir.resolve("d2/d22"));
-      assertSymlinkRead(dir.resolve("d1/d11/link7"), dir.resolve("d2/d22/d222"));
-      assertSymlinkRead(dir.resolve("d2/d22/link8"), dir.resolve("d1/d11/link1"));
-      assertSymlinkRead(dir.resolve("d2/link9"), dir.resolve("d1/d11/link1"));
-      assertSymlinkRead(dir.resolve("link10"), dir.resolve("d2/link9"));
+      assertSymlinkRead(dir.resolve("d1/d11/link_to_d1"), dir.resolve("d1"));
+      assertSymlinkRead(dir.resolve("d1/d11/link_to_d11"), dir.resolve("d1/d11"));
+      assertSymlinkRead(dir.resolve("d1/d11/link_to_d111"), dir.resolve("d1/d11/d111"));
+      assertSymlinkRead(dir.resolve("d1/d11/link_to_d1111"), dir.resolve("d1/d11/d111/d1111"));
+      assertSymlinkRead(dir.resolve("d1/d11/link_to_d2"), dir.resolve("d2"));
+      assertSymlinkRead(dir.resolve("d1/d11/link_to_d22"), dir.resolve("d2/d22"));
+      assertSymlinkRead(dir.resolve("d1/d11/link_to_d222"), dir.resolve("d2/d22/d222"));
+      assertSymlinkRead(dir.resolve("d2/d22/link_to_link_to_d1"), dir.resolve("d1/d11/link_to_d1"));
+      assertSymlinkRead(dir.resolve("d2/another_link_to_link_to_d1"), dir.resolve("d1/d11/link_to_d1"));
+      assertSymlinkRead(dir.resolve("link_to_another_link_to_link_to_d1"),
+          dir.resolve("d2/another_link_to_link_to_d1"));
     }
   }
 
