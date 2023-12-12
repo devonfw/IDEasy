@@ -487,7 +487,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        gitPullOrClone(this.urlsPath, "https://github.com/devonfw/ide-urls.git");
+        gitPullOrClone(this.urlsPath, "https://github.com/devonfw/ide-urls.git", true);
       }
       this.urlMetadata = new UrlMetadata(this);
     }
@@ -594,7 +594,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public void gitPullOrClone(Path target, String gitRepoUrl) {
+  public void gitPullOrClone(Path target, String gitRepoUrl, boolean force) {
 
     Objects.requireNonNull(target);
     Objects.requireNonNull(gitRepoUrl);
@@ -611,7 +611,19 @@ public abstract class AbstractIdeContext implements IdeContext {
         askToContinue(message);
       } else {
         pc.errorHandling(ProcessErrorHandling.WARNING);
-        result = pc.addArg("pull").run(false);
+        if (isOnline()) {
+          result = pc.addArg("fetch").addArg("origin").addArg("master").run(false);
+          if (!result.isSuccessful()) {
+            warning("Git failed to fetch from origin master");
+          }
+        }
+        if (force) {
+          result = pc.addArg("reset").addArg("--hard").addArg("HEAD~").run(false);
+          if (!result.isSuccessful()) {
+            warning("Git failed to reset to head");
+          }
+          result = pc.addArg("clean").addArg("-df").run(false);
+        }
         if (!result.isSuccessful()) {
           String message = "Failed to update git repository at " + target;
           if (this.offlineMode) {

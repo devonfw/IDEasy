@@ -369,8 +369,9 @@ public interface IdeContext extends IdeLogger {
    *        that will contain the ".git" subfolder.
    * @param gitRepoUrl the git remote URL to clone from. May be suffixed with a hash-sign ('#') followed by the branch
    *        name to check-out.
+   * @param force boolean true enforces a git hard reset and cleanup of added files
    */
-  void gitPullOrClone(Path target, String gitRepoUrl);
+  void gitPullOrClone(Path target, String gitRepoUrl, boolean force);
 
   /**
    * @return a new {@link ProcessContext} to {@link ProcessContext#run() run} external commands.
