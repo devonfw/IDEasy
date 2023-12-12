@@ -33,8 +33,24 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class IdeCompleter extends ArgumentCompleter implements Completer {
 
+  /** Checks for invalid pattern e.g. '- foo foobar' */
+  private static final String INVALID_PATTERN_PART1 = "([\\-](\\s)+.*$";
+
+  /** Checks for invalid pattern e.g. ' foo - ' or ' - foo' */
+  private static final String INVALID_PATTERN_PART2 = "([\\s][a-z]*[\\s][\\-](\\s)*.*$)";
+
+  /** Checks for invalid pattern e.g. 'get-version foobar - foobar' */
+  private static final String INVALID_PATTERN_PART3 = "([a-z][\\-][a-z]*[\\s][\\-](\\s)*.*$))";
+
+  /** Checks for invalid pattern e.g. 'foo-bar - foobar' */
+  private static final String INVALID_PATTERN_PART4 = "(^[a-z]*(\\s)[\\-](\\s)*.*$)";
+
   /** Pattern which should stop autocompletion e.g. 'get-version mvn -' (prevents options after tool commands) */
-  private static final String INVALID_PATTERN = "([\\-](\\s)+.*$)|([\\s][a-z]*[\\s][\\-](\\s)*.*$)|([a-z][\\-][a-z]*[\\s][\\-](\\s)*.*$)|(^[a-z]*(\\s)[\\-](\\s)*.*$)";
+  private static final String INVALID_PATTERN = INVALID_PATTERN_PART1 + "|" + INVALID_PATTERN_PART2 + "|" + INVALID_PATTERN_PART3
+  + "|" + INVALID_PATTERN_PART4;
+
+  /** Pre-compiled pattern for better usage */
+  private static final Pattern patternCompiled = Pattern.compile(INVALID_PATTERN, Pattern.MULTILINE);
 
   private final ContextCommandlet cmd;
 
@@ -127,7 +143,7 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
     }
 
     // extra check to prevent options after tool commands
-    if (checkInvalidPattern(commandLine)) {
+    if (checkInvalidPattern(commandLine.line())) {
       return;
     }
 
@@ -177,10 +193,9 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
     }
   }
 
-  private boolean checkInvalidPattern(ParsedLine commandLine) {
+  private boolean checkInvalidPattern(String commandLine) {
 
-    Pattern pattern = Pattern.compile(INVALID_PATTERN, Pattern.MULTILINE);
-    Matcher matcher = pattern.matcher(commandLine.line());
+    Matcher matcher = patternCompiled.matcher(commandLine);
 
     return matcher.find();
   }
