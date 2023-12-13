@@ -13,6 +13,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import static com.devonfw.tools.ide.commandlet.RepositoryConfig.loadProperties;
+
 /**
  * {@link Commandlet} to setup a repository
  */
@@ -136,32 +138,10 @@ public class RepositoryCommandlet extends Commandlet {
       this.context.info("Build command not set. Skipping build for repository.");
     }
 
-    if ("import".equals(repositoryConfig.eclipse()) && !Files.exists(repositoryPath.resolve(".project"))) {
-      //TODO: import repository to eclipse
+    if (!Files.exists(repositoryPath.resolve(".project"))) {
+      for (String ideCommandlet : repositoryConfig.imports()) {
+        //TODO: import repository to ideCommandlet
+      }
     }
   }
-
-
-  private RepositoryConfig loadProperties(Path filePath) {
-
-    Properties properties = new Properties();
-    try (InputStream input = new FileInputStream(filePath.toString())) {
-      properties.load(input);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to read file: " + filePath, e);
-    }
-
-    return new RepositoryConfig(
-        properties.getProperty("path"),
-        properties.getProperty("workingsets"),
-        properties.getProperty("workspace"),
-        properties.getProperty("git_url"),
-        properties.getProperty("git_branch"),
-        properties.getProperty(("build_path")),
-        properties.getProperty("build_cmd"),
-        properties.getProperty("eclipse"),
-        Boolean.parseBoolean(properties.getProperty("active"))
-    );
-  }
-
 }
