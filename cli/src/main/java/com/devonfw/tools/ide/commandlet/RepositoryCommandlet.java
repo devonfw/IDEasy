@@ -124,16 +124,13 @@ public class RepositoryCommandlet extends Commandlet {
     this.context.debug("Building project with ide command: {}", buildCmd);
     if (buildCmd != null && !buildCmd.isEmpty()) {
       String[] command = buildCmd.split("\\s+");
-      this.context.getCommandletManager().getToolCommandlet(command[0]).install(true);
-      ProcessContext pc = this.context.newProcess();
-      pc.executable(command[0]);
-      pc.addArgs(Arrays.copyOfRange(command, 1, command.length));
-      Path buildPath = repositoryPath;
-      if (repositoryConfig.buildPath() != null) {
-        buildPath = buildPath.resolve(repositoryConfig.buildPath());
+      ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
+      List<String> args = new java.util.ArrayList<>(command.length - 1);
+      for (int i = 1; i < command.length; i++) {
+        args.add(command[i]);
       }
-      pc.directory(buildPath);
-      pc.run();
+      commandlet.arguments.setValue(args);
+      commandlet.run();
     } else {
       this.context.info("Build command not set. Skipping build for repository.");
     }
