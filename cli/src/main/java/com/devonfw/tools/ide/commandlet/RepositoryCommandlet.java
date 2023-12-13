@@ -1,17 +1,15 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.property.PathProperty;
-import com.devonfw.tools.ide.property.StringProperty;
-import com.devonfw.tools.ide.util.FilenameUtil;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
@@ -76,7 +74,7 @@ public class RepositoryCommandlet extends Commandlet {
         return;
       }
 
-      List <Path> propertiesFiles = this.context.getFileAccess().getFilesInDir(repositories,
+      List <Path> propertiesFiles = this.context.getFileAccess().getChildrenInDir(repositories,
           path -> path.getFileName().toString().endsWith(".properties"));
 
       boolean forceMode = this.context.isForceMode();
@@ -124,11 +122,11 @@ public class RepositoryCommandlet extends Commandlet {
     this.context.gitPullOrClone(repositoryPath, gitUrl);
 
     String buildCmd = repositoryConfig.buildCmd();
-    this.context.debug("Building project with ide command: {}", buildCmd);
+    this.context.debug("Building repository with ide command: {}", buildCmd);
     if (buildCmd != null && !buildCmd.isEmpty()) {
       String[] command = buildCmd.split("\\s+");
       ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
-      List<String> args = new java.util.ArrayList<>(command.length - 1);
+      List<String> args = new ArrayList<>(command.length - 1);
       for (int i = 1; i < command.length; i++) {
         args.add(command[i]);
       }
