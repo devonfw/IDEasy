@@ -31,8 +31,11 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
     String TEST_ARGS8 = variables.get("TEST_ARGS8");
     String TEST_ARGS9 = variables.get("TEST_ARGS9");
     String TEST_ARGS10 = variables.get("TEST_ARGS10");
+    // some more advanced cases
     String TEST_ARGSa = variables.get("TEST_ARGSa");
     String TEST_ARGSb = variables.get("TEST_ARGSb");
+    String TEST_ARGSc = variables.get("TEST_ARGSc");
+    String TEST_ARGSd = variables.get("TEST_ARGSd");
 
     // assert
     assertThat(TEST_ARGS1).isEqualTo(" user1 settings1 workspace1 conf1");
@@ -51,5 +54,7 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(TEST_ARGSb)
         .isEqualTo("user10 workspace10 settingsb  user1 settings1 workspace1 conf1  user3 workspace3 confa userb");
 
+    assertThat(TEST_ARGSc).isEqualTo(" user1 settings1 workspace1 conf1 userc settingsc confc");
+    assertThat(TEST_ARGSd).isEqualTo(" user1 settings1 workspace1 conf1 userd workspaced");
   }
 }

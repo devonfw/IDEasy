@@ -185,15 +185,10 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     StringBuilder sb = new StringBuilder(value.length() + EXTRA_CAPACITY);
     do {
       String variableName = matcher.group(2);
-      String variableValue = getValue(variableName);
+      String variableValue = resolvedVars.getValue(variableName);
       if (variableValue == null) {
-        if (!this.getType().equals(EnvironmentVariablesType.RESOLVED)) {
-          // a self referencing variable is currently resolved but not found up the hierarchy
-          matcher.appendReplacement(sb, Matcher.quoteReplacement(SELF_REFERENCING_NOT_FOUND));
-        } else {
-          this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, src, value, rootSrc,
-              rootValue);
-        }
+        this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, src, value, rootSrc,
+            rootValue);
         continue;
       }
       EnvironmentVariables lowestFound = findVariable(variableName); // for DirectoryMergerTest this returned false when
@@ -202,12 +197,10 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
 
       if (isNotSelfReferencing) {
         // looking for "variableName" starting from resolved upwards the hierarchy
-        variableValue = resolvedVars.getValue(variableName); // should never be zero since
-                                                             // getValue(variableName); != null
         String replacement = resolvedVars.resolve(variableValue, variableName, recursion, rootSrc, rootValue,
             resolvedVars);
         matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
-      } else {
+      } else { // is self referencing
         // finding next occurrence of "variableName" up the hierarchy
         EnvironmentVariables next = lowestFound.getParent();
         while (next != null) {
