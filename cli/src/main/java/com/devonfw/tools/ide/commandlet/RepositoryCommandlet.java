@@ -72,7 +72,7 @@ public class RepositoryCommandlet extends Commandlet {
       if (repositories == null) return;
 
       List <Path> propertiesFiles = this.context.getFileAccess().getFilesInDir(repositories,
-          path -> "properties".equals(FilenameUtil.getExtension(path.getFileName().toString())));
+          path -> path.getFileName().toString().endsWith(".properties")));
 
       if (propertiesFiles != null) {
         boolean forceMode = this.context.isForceMode();
