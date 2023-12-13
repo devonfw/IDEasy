@@ -19,23 +19,6 @@ public interface EnvironmentVariables {
   /** Filename of the legacy variable configuration file. {@value} */
   String LEGACY_PROPERTIES = "devon.properties";
 
-  /**
-   * @param name the name of the environment variable to get.
-   * @param startAt the {@link EnvironmentVariablesType} where to start the upwards search.
-   * @return the value of the variable with the given {@code name}. Will be {@code null} if no such variable is defined.
-   */
-  default String get(String name, EnvironmentVariablesType startAt) {
-
-    EnvironmentVariables current = this;
-    while (current.getType() != startAt) {
-      current = current.getParent();
-      if (current == null) {
-        return get(name);
-      }
-    }
-    return current.get(name);
-  }
-
   default String get(String name) {
 
     String value = getFlat(name);
@@ -180,6 +163,7 @@ public interface EnvironmentVariables {
       return parent.findVariable(name);
     }
   }
+
   /**
    * @param name the {@link com.devonfw.tools.ide.variable.VariableDefinition#getName() name} of the variable to search
    *        for.
@@ -188,6 +172,7 @@ public interface EnvironmentVariables {
    *         {@code null} if the variable is not defined.
    */
   default EnvironmentVariables findVariable(String name, EnvironmentVariablesType startAt) {
+
     EnvironmentVariables current = this;
     while (current.getType() != startAt) {
       current = current.getParent();

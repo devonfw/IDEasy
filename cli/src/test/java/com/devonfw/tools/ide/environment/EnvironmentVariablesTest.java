@@ -14,6 +14,7 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
     EnvironmentVariables variables = context.getVariables();
 
     // act
+    String foo = variables.get("FOO");
     String TEST_ARGS1 = variables.get("TEST_ARGS1");
     String TEST_ARGS2 = variables.get("TEST_ARGS2");
     String TEST_ARGS3 = variables.get("TEST_ARGS3");

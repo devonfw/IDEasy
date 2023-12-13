@@ -149,24 +149,6 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     return new EnvironmentVariablesPropertiesFile(this, type, propertiesFilePath, this.context);
   }
 
-  private EnvironmentVariablesType incrementType(EnvironmentVariablesType type, Object rootSrc) {
-
-    EnvironmentVariables current = this;
-    while (current.getType() != type) {
-      current = current.getParent();
-      if (current == null) {
-        this.context.warning("During resolving of rootSrc {} the type {} was not found. The variable might not "
-            + "be resolved correctly", rootSrc, type);
-        return null;
-      }
-    }
-    EnvironmentVariables parent = current.getParent();
-    if (parent == null) {
-      return null;
-    }
-    return parent.getType();
-  }
-
   /**
    * @return a new child {@link EnvironmentVariables} that will resolve variables recursively or this instance itself if
    *         already satisfied.
@@ -179,12 +161,10 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   @Override
   public String resolve(String string, Object src) {
 
-    // return resolve(string, src, 0, src, string, EnvironmentVariablesType.CONF);
-
     return resolve(string, src, 0, src, string, this);
   }
 
-  public String resolve(String value, Object src, int recursion, Object rootSrc, String rootValue,
+  private String resolve(String value, Object src, int recursion, Object rootSrc, String rootValue,
       AbstractEnvironmentVariables resolvedVars) {
 
     if (value == null) {
@@ -194,7 +174,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
       throw new IllegalStateException("Reached maximum recursion resolving " + value + " for root variable " + rootSrc
           + " with value '" + rootValue + "'.");
     }
-    recursion++; // TODO protected method to count recursions
+    recursion++;
 
     Matcher matcher = VARIABLE_SYNTAX.matcher(value);
     if (!matcher.find()) {
@@ -206,21 +186,23 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
 
       EnvironmentVariables lowestFound = findVariable(variableName);
       if (lowestFound == null) {
-        matcher.appendReplacement(sb, Matcher.quoteReplacement(""));
+        if (!this.getType().equals(EnvironmentVariablesType.RESOLVED)) {
+          matcher.appendReplacement(sb, Matcher.quoteReplacement(""));
+        } else {
+          this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, src, value, rootSrc,
+              rootValue);
+        }
         continue;
       }
 
       boolean isSelfReferencing = lowestFound.getFlat(variableName).equals(value);
 
       if (!isSelfReferencing) {
-        String variableValue = resolvedVars.getValue(variableName);
-        if (variableValue == null) {
-          this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, src, value, rootSrc,
-              rootValue);
-        } else {
-          String replacement = resolvedVars.resolve(variableValue, variableName, recursion, rootSrc, rootValue, resolvedVars);
-          matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
-        }
+        String variableValue = resolvedVars.getValue(variableName); // should never be zero since
+                                                                    // findVariable(variableName) != null
+        String replacement = resolvedVars.resolve(variableValue, variableName, recursion, rootSrc, rootValue,
+            resolvedVars);
+        matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
       } else {
         // finding next lowest found up the hierarchy
         EnvironmentVariables next = lowestFound.getParent();
@@ -234,91 +216,25 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
           matcher.appendReplacement(sb, Matcher.quoteReplacement(""));
           continue;
         }
-        AbstractEnvironmentVariables nextA = (AbstractEnvironmentVariables) next;
-        String replacement = nextA.resolve(next.getFlat(variableName), variableName, recursion, rootSrc, rootValue, resolvedVars);
+        String replacement = ((AbstractEnvironmentVariables) next).resolve(next.getFlat(variableName), variableName,
+            recursion, rootSrc, rootValue, resolvedVars);
         matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
 
       }
-      // return resolve(value, src, recursion, rootSrc, rootValue, EnvironmentVariablesType.CONF);
     } while (matcher.find());
     matcher.appendTail(sb);
 
     String resolved = sb.toString();
     return resolved;
   }
-
-  /**
-   * @param startAt the {@link EnvironmentVariablesType} from where to start the upwards search when resolving
-   *        variables. This is used to avoid infinite loops when resolving variables. E.g. Let PATH=${PATH}:/foo/bar be
-   *        defined in {@link EnvironmentVariablesType#CONF}. Then, to resolve ${PATH} the search for the variable has
-   *        to start at {@link EnvironmentVariablesType#WORKSPACE} and not at {@link EnvironmentVariablesType#CONF} to
-   *        avoid infinite recursion. For the other parameters and return see
-   *        {@link EnvironmentVariables#resolve(String, Object)}.
-   */
-
-  private String resolve(String value, Object src, int recursion, Object rootSrc, String rootValue,
-      EnvironmentVariablesType startAt) {
-
-    if (value == null) {
-      return null;
-    }
-    if (recursion > MAX_RECURSION) {
-      throw new IllegalStateException("Reached maximum recursion resolving " + value + " for root variable " + rootSrc
-          + " with value '" + rootValue + "'.");
-    }
-    recursion++;
-    Matcher matcher = VARIABLE_SYNTAX.matcher(value);
-    if (!matcher.find()) {
-      return value;
-    }
-    StringBuilder sb = new StringBuilder(value.length() + EXTRA_CAPACITY);
-    do {
-      String variableName = matcher.group(2);
-      String variableValue = "";
-      if (src.toString().equals(variableName)) {
-        EnvironmentVariables variables = findVariable(variableName, startAt);
-        // variables is never null, because src exists and its String representation equal to variableName
-        startAt = incrementType(variables.getType(), rootSrc);
-        // variableValue = getValue(variableName, startAt);
-        variableValue = getValue(variableName);
-        if (variableValue == null) {
-          String replacement = "";
-          matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
-        } else {
-          String replacement = resolve(variableValue, variableName, recursion, rootSrc, rootValue, startAt);
-          matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
-        }
-      } else {
-        variableValue = getValue(variableName);
-        if (variableValue == null) {
-          this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, src, value, rootSrc,
-              rootValue);
-        } else {
-//          String replacement = resolve(variableValue, variableName, recursion, rootSrc, rootValue);
-//          matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
-        }
-      }
-    } while (matcher.find());
-    matcher.appendTail(sb);
-
-    String resolved = sb.toString();
-    return resolved;
-  }
-
-  // protected String getValue(String name) {
-  //
-  // return getValue(name, EnvironmentVariablesType.RESOLVED);
-  // }
 
   /**
    * Like {@link #get(String)} but with higher-level features including to resolve {@link IdeVariables} with their
    * default values.
    *
    * @param name the name of the variable to get.
-   * @param startAt the {@link EnvironmentVariablesType} from where to start the upwards search.
    * @return the value of the variable.
    */
-  // protected String getValue(String name, EnvironmentVariablesType startAt) {
   protected String getValue(String name) {
 
     VariableDefinition<?> var = IdeVariables.get(name);
@@ -326,7 +242,6 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     if ((var != null) && var.isForceDefaultValue()) {
       value = var.getDefaultValueAsString(this.context);
     } else {
-      // value = this.parent.get(name, startAt);
       value = this.parent.get(name);
     }
     if ((value == null) && (var != null)) {
