@@ -85,7 +85,7 @@ public class RepositoryCommandlet extends Commandlet {
 
   private void doImportRepository(Path repositoryFile, boolean forceMode) {
 
-    this.context.info("Importing from {} ...", repositoryFile.toString());
+    this.context.info("Importing repository from {} ...", repositoryFile.getFileName().toString());
     RepositoryConfig repositoryConfig = loadProperties(repositoryFile);
 
     if (!repositoryConfig.active()) {
