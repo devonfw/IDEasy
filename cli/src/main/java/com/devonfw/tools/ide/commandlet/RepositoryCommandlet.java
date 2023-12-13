@@ -45,8 +45,8 @@ public class RepositoryCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    Path repositoriesPath = this.context.getSettingsPath().resolve("repositories");
-    Path legacyRepositoriesPath = this.context.getSettingsPath().resolve("projects");
+    Path repositoriesPath = this.context.getSettingsPath().resolve(context.FOLDER_REPOSITORIES);
+    Path legacyRepositoriesPath = this.context.getSettingsPath().resolve(context.FOLDER_LEGACY_REPOSITORIES);
     Path repositoryFile = repository.getValue();
 
     if (repositoryFile != null) {
@@ -66,19 +66,22 @@ public class RepositoryCommandlet extends Commandlet {
       doImportRepository(repositoryFile, true);
     } else {
       // If no specific repository is provided, check for repositories folder
-      Path repositories = Files.exists(repositoriesPath) ? repositoriesPath :
-          Files.exists(legacyRepositoriesPath) ? legacyRepositoriesPath : null;
-
-      if (repositories == null) return;
+      Path repositories;
+      if (Files.exists(repositoriesPath)) {
+        repositories = repositoriesPath;
+      } else if (Files.exists(legacyRepositoriesPath)) {
+        repositories = legacyRepositoriesPath;
+      } else {
+        this.context.warning("Cannot find repositories folder nor projects folder.");
+        return;
+      }
 
       List <Path> propertiesFiles = this.context.getFileAccess().getFilesInDir(repositories,
           path -> "properties".equals(FilenameUtil.getExtension(path.getFileName().toString())));
 
-      if (propertiesFiles != null) {
-        boolean forceMode = this.context.isForceMode();
-        for (Path propertiesFile : propertiesFiles) {
-          doImportRepository(propertiesFile, forceMode);
-        }
+      boolean forceMode = this.context.isForceMode();
+      for (Path propertiesFile : propertiesFiles) {
+        doImportRepository(propertiesFile, forceMode);
       }
     }
   }
