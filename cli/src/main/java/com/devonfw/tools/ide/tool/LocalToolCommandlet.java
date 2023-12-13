@@ -287,7 +287,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * installed
    *
    * @param dependencyRepositoryPath the {@link Path} of the dependency repository
-   * @param dependencyVersionRangeFound the {@link VersionIdentifier} of the dependency version to be installed
+   * @param dependencyVersionRangeFound the {@link VersionRange} of the dependency version to be installed
    *
    * @return the {@code true} if such version exists in repository already, or {@code false} otherwise
    */
