@@ -32,7 +32,7 @@ public class RepositoryCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    add(new StringProperty("setup", true, null));
+    addKeyword("setup");
     this.repository = add(new PathProperty("", false, "repository"));
   }
 
@@ -77,7 +77,7 @@ public class RepositoryCommandlet extends Commandlet {
       }
 
       List <Path> propertiesFiles = this.context.getFileAccess().getFilesInDir(repositories,
-          path -> "properties".equals(FilenameUtil.getExtension(path.getFileName().toString())));
+          path -> path.getFileName().toString().endsWith(".properties")));
 
       boolean forceMode = this.context.isForceMode();
       for (Path propertiesFile : propertiesFiles) {
@@ -88,7 +88,7 @@ public class RepositoryCommandlet extends Commandlet {
 
   private void doImportRepository(Path repositoryFile, boolean forceMode) {
 
-    this.context.info("Importing from {} ...", repositoryFile.toString());
+    this.context.info("Importing repository from {} ...", repositoryFile.getFileName().toString());
     RepositoryConfig repositoryConfig = loadProperties(repositoryFile);
 
     if (!repositoryConfig.active()) {
