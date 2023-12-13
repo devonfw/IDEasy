@@ -4,7 +4,14 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import org.junit.jupiter.api.Test;
 
+/**
+ * Test of {@link EnvironmentVariables}.
+ */
 public class EnvironmentVariablesTest extends AbstractIdeContextTest {
+
+  /**
+   * Test of {@link EnvironmentVariables#resolve(String, Object)} with self referencing variables.
+   */
   @Test
   public void testProperEvaluationOfVariables() {
 
@@ -14,7 +21,6 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
     EnvironmentVariables variables = context.getVariables();
 
     // act
-    String foo = variables.get("FOO");
     String TEST_ARGS1 = variables.get("TEST_ARGS1");
     String TEST_ARGS2 = variables.get("TEST_ARGS2");
     String TEST_ARGS3 = variables.get("TEST_ARGS3");
@@ -42,8 +48,8 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(TEST_ARGS10).isEqualTo("user10 workspace10");
 
     assertThat(TEST_ARGSa).isEqualTo(" user1 settings1 workspace1 conf1  user3 workspace3 confa");
-    assertThat(TEST_ARGSb).isEqualTo(
-        "user10 workspace10 settingsb  user1 settings1 workspace1 conf1  user3 workspace3 confa userb");
+    assertThat(TEST_ARGSb)
+        .isEqualTo("user10 workspace10 settingsb  user1 settings1 workspace1 conf1  user3 workspace3 confa userb");
 
   }
 }

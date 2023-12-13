@@ -28,6 +28,8 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   // Variable surrounded with "${" and "}" such as "${JAVA_HOME}" 1......2........
   private static final Pattern VARIABLE_SYNTAX = Pattern.compile("(\\$\\{([^}]+)})");
 
+  private static final String SELF_REFERENCING_NOT_FOUND = "";
+
   private static final int MAX_RECURSION = 9;
 
   private static final String VARIABLE_PREFIX = "${";
@@ -183,28 +185,30 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     StringBuilder sb = new StringBuilder(value.length() + EXTRA_CAPACITY);
     do {
       String variableName = matcher.group(2);
-
-      EnvironmentVariables lowestFound = findVariable(variableName);
-      if (lowestFound == null) {
+      String variableValue = getValue(variableName);
+      if (variableValue == null) {
         if (!this.getType().equals(EnvironmentVariablesType.RESOLVED)) {
-          matcher.appendReplacement(sb, Matcher.quoteReplacement(""));
+          // a self referencing variable is currently resolved but not found up the hierarchy
+          matcher.appendReplacement(sb, Matcher.quoteReplacement(SELF_REFERENCING_NOT_FOUND));
         } else {
           this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, src, value, rootSrc,
               rootValue);
         }
         continue;
       }
+      EnvironmentVariables lowestFound = findVariable(variableName); // for DirectoryMergerTest this returned false when
+                                                                     // resolving IDE_HOME
+      boolean isNotSelfReferencing = lowestFound == null || !lowestFound.getFlat(variableName).equals(value);
 
-      boolean isSelfReferencing = lowestFound.getFlat(variableName).equals(value);
-
-      if (!isSelfReferencing) {
-        String variableValue = resolvedVars.getValue(variableName); // should never be zero since
-                                                                    // findVariable(variableName) != null
+      if (isNotSelfReferencing) {
+        // looking for "variableName" starting from resolved upwards the hierarchy
+        variableValue = resolvedVars.getValue(variableName); // should never be zero since
+                                                             // getValue(variableName); != null
         String replacement = resolvedVars.resolve(variableValue, variableName, recursion, rootSrc, rootValue,
             resolvedVars);
         matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
       } else {
-        // finding next lowest found up the hierarchy
+        // finding next occurrence of "variableName" up the hierarchy
         EnvironmentVariables next = lowestFound.getParent();
         while (next != null) {
           if (next.getFlat(variableName) != null) {
@@ -213,7 +217,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
           next = next.getParent();
         }
         if (next == null) {
-          matcher.appendReplacement(sb, Matcher.quoteReplacement(""));
+          matcher.appendReplacement(sb, Matcher.quoteReplacement(SELF_REFERENCING_NOT_FOUND));
           continue;
         }
         String replacement = ((AbstractEnvironmentVariables) next).resolve(next.getFlat(variableName), variableName,
