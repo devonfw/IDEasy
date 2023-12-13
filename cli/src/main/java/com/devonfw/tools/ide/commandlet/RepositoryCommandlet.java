@@ -32,7 +32,7 @@ public class RepositoryCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    add(new StringProperty("setup", true, null));
+    addKeyword("setup");
     this.repository = add(new PathProperty("", false, "repository"));
   }
 
