@@ -31,7 +31,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
-  private static final String dependencyFileName = "dependencies.json";
+  private static final String DEPENDENCY_FILENAME = "dependencies.json";
 
   /**
    * The constructor.
@@ -208,25 +208,26 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    */
   private Path getDependencyJsonPath() {
 
-    Path URLspath = this.context.getUrlsPath();
-    Path toolPath = URLspath.resolve(getName()).resolve(getEdition());
-    return toolPath.resolve(dependencyFileName);
+    Path urlsPath = this.context.getUrlsPath();
+    Path toolPath = urlsPath.resolve(getName()).resolve(getEdition());
+    return toolPath.resolve(DEPENDENCY_FILENAME);
   }
 
   private void installDependency() {
 
     List<DependencyInfo> dependencies = readJson();
 
-    try {
       for (DependencyInfo dependencyInfo : dependencies) {
         VersionRange dependencyVersionRangeFound = VersionRange.of(dependencyInfo.getVersionRange());
         String dependencyName = dependencyInfo.getDependency();
         ToolCommandlet dependencyTool = this.context.getCommandletManager().getToolCommandlet(dependencyName);
         VersionIdentifier dependencyVersionToInstall = findDependencyVersionToInstall(dependencyVersionRangeFound,
             dependencyName);
-
-        String DefaultToolRepositoryID = this.context.getDefaultToolRepository().getId();
-        Path dependencyRepository = this.context.getSoftwareRepositoryPath().resolve(DefaultToolRepositoryID)
+        if (dependencyVersionToInstall == null) {
+          this.context.error("No dependency Version to install was found in the urls folder.");
+        }
+        String defaultToolRepositoryId = this.context.getDefaultToolRepository().getId();
+        Path dependencyRepository = this.context.getSoftwareRepositoryPath().resolve(defaultToolRepositoryId)
             .resolve(dependencyName).resolve(dependencyTool.getEdition());
 
         if (versionExistsInRepository(dependencyRepository, dependencyVersionRangeFound)) {
@@ -241,9 +242,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
               dependencyVersionToInstall, dependencyName);
         }
       }
-    } catch (Exception e) {
-      this.context.error("Error occurred: {}", e);
-    }
   }
 
   private List<DependencyInfo> readJson() {
@@ -253,8 +251,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     try (BufferedReader reader = Files.newBufferedReader(dependencyJsonPath)) {
       DependencyJson dependencyJson = MAPPER.readValue(reader, DependencyJson.class);
       return findDependenciesFromJson(dependencyJson.getDependencies(), getConfiguredVersion());
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to load " + dependencyJsonPath, e);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -287,7 +285,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * installed
    *
    * @param dependencyRepositoryPath the {@link Path} of the dependency repository
-   * @param dependencyVersionRangeFound the {@link VersionIdentifier} of the dependency version to be installed
+   * @param dependencyVersionRangeFound the {@link VersionRange} of the dependency version to be installed
    *
    * @return the {@code true} if such version exists in repository already, or {@code false} otherwise
    */
