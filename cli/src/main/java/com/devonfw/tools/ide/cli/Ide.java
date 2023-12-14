@@ -172,8 +172,12 @@ public final class Ide {
           try {
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
             reader.getHistory().add(line);
-            runCommand(line, init);
-            init.resetRunParams();
+            try {
+              runCommand(line, init);
+              init.resetRunParams();
+            } catch (Exception e) {
+              context.error("An error occurred while running the CLI command:{} {}", line, e);
+            }
           } catch (UserInterruptException e) {
             // Ignore CTRL+C
           } catch (EndOfFileException e) {
