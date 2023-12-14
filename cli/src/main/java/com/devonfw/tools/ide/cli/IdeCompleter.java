@@ -100,6 +100,12 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
 
     assert commandLine != null;
     assert candidates != null;
+
+    // extra check to prevent options after tool commands
+    if (checkInvalidPattern(commandLine.line())) {
+      return;
+    }
+
     String word = commandLine.word();
     List<String> words = commandLine.words();
     // options
@@ -140,11 +146,6 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
 
     if (word.startsWith("-") && wordsWithoutOptions.isEmpty()) {
       addCandidates(candidates, cleanedOptions); // adds rest of options without used option
-    }
-
-    // extra check to prevent options after tool commands
-    if (checkInvalidPattern(commandLine.line())) {
-      return;
     }
 
     if (wordsWithoutOptions.size() == 1) {
