@@ -179,7 +179,7 @@ public final class Ide {
           } catch (EndOfFileException e) {
             // CTRL+D
             return;
-          } catch (CliException e) {
+          } catch (Exception e) {
             context.error("An error occurred while using autocompletion: {}", e);
           } finally {
             AnsiConsole.systemUninstall();
