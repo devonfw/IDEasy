@@ -13,8 +13,6 @@ public class UrlFileFilter implements FileFilter {
   @Override
   public boolean accept(java.io.File pathname) {
 
-//    System.out.println("UrlFileFilter.accept()" +  pathname.getName().equals(STATUS_JSON));
-//    return pathname.getName().endsWith("urls") && pathname.getName().startsWith("windows");
     return pathname.getName().equals(STATUS_JSON);
   }
 }

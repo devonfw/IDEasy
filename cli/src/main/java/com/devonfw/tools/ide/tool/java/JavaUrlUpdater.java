@@ -29,13 +29,13 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject> {
   @Override
   public String getCpeVendor() {
 
-     return "eclipse";
+    return "eclipse";
   }
 
   @Override
   public String getCpeProduct() {
 
-     return "temurin";
+    return "temurin";
   }
 
   @Override

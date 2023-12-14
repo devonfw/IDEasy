@@ -18,6 +18,58 @@ import com.devonfw.tools.ide.version.VersionRange;
 public class ToolCommandletTest extends AbstractIdeContextTest {
 
   /***
+   * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where no safe version is available. But
+   * there is a warning that affects all versions. This warning is then ignored, but the other warnings are considered.
+   */
+  @Test
+  public void testSecurityRiskInteractionAllVersionAffectedBySingleWarning() {
+
+    // arrange
+    Class<? extends ToolCommandlet> dummyTool = Azure.class;
+    String[] answers = {"1", "2", "3"};
+    IdeContext context = getContextForSecurityJsonTests(dummyTool, answers);
+    ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
+    UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
+        .getSecurityJsonFile();
+
+    securityFile.addSecurityWarning(VersionRange.of(">"));
+    securityFile.addSecurityWarning(VersionRange.of("2>5"));
+
+    // act & assert
+    // no answer required
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("1"))).isEqualTo(VersionIdentifier.of("1"));
+    // answer to the interaction is 1
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("2"))).isEqualTo(VersionIdentifier.of("2"));
+    // answer to the interaction is 2
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("2"))).isEqualTo(VersionIdentifier.of("6"));
+    // answer to the interaction is 3
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("2"))).isEqualTo(VersionIdentifier.of("9"));
+  }
+
+
+  /***
+   * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where no safe version is available. Only
+   * the warnings all considered together cover all versions and there is no single warning that affects all versions.
+   */
+  @Test
+  public void testSecurityRiskInteractionAllVersionAffectedByMultipleWarning() {
+
+    // arrange
+    Class<? extends ToolCommandlet> dummyTool = Azure.class;
+    IdeContext context = getContextForSecurityJsonTests(dummyTool);
+    ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
+    UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
+        .getSecurityJsonFile();
+    securityFile.addSecurityWarning(VersionRange.of("1>5"));
+    securityFile.addSecurityWarning(VersionRange.of("6>"));
+
+    // act & assert
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("6"))).isEqualTo(VersionIdentifier.of("6"));
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("1"))).isEqualTo(VersionIdentifier.of("1"));
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("9"))).isEqualTo(VersionIdentifier.of("9"));
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("*"))).isEqualTo(VersionIdentifier.of("*"));
+  }
+  /***
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where the set version is the latest but
    * vulnerable.
    */
@@ -31,8 +83,8 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("2>5"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("7>9"), null, null, null, null, null, null);
+    securityFile.addSecurityWarning(VersionRange.of("2>5"));
+    securityFile.addSecurityWarning(VersionRange.of("7>9"));
 
     // act & assert
     // answer to the interaction is 1
@@ -55,9 +107,9 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("3>3"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("6>7"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("8>"), null, null, null, null, null, null);
+    securityFile.addSecurityWarning(VersionRange.of("3>3"));
+    securityFile.addSecurityWarning(VersionRange.of("6>7"));
+    securityFile.addSecurityWarning(VersionRange.of("8>"));
 
     // act & assert
     // answer to the interaction is 1
@@ -80,9 +132,9 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("3>3"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("6>7"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("8>8"), null, null, null, null, null, null);
+    securityFile.addSecurityWarning(VersionRange.of("3>3"));
+    securityFile.addSecurityWarning(VersionRange.of("6>7"));
+    securityFile.addSecurityWarning(VersionRange.of("8>8"));
 
     // act & assert
     // answer to the interaction is 1
@@ -105,9 +157,9 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("3>3"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("5>6"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("8>9"), null, null, null, null, null, null);
+    securityFile.addSecurityWarning(VersionRange.of("3>3"));
+    securityFile.addSecurityWarning(VersionRange.of("5>6"));
+    securityFile.addSecurityWarning(VersionRange.of("8>9"));
 
     // act & assert
     // answer to the interaction is 1
@@ -130,9 +182,9 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("3>3"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("5>6"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("8>8"), null, null, null, null, null, null);
+    securityFile.addSecurityWarning(VersionRange.of("3>3"));
+    securityFile.addSecurityWarning(VersionRange.of("5>6"));
+    securityFile.addSecurityWarning(VersionRange.of("8>8"));
 
     // act & assert
     // answer to the interaction is 1
@@ -157,9 +209,9 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("3>3"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("6>6"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("8>9"), null, null, null, null, null, null);
+    securityFile.addSecurityWarning(VersionRange.of("3>3"));
+    securityFile.addSecurityWarning(VersionRange.of("6>6"));
+    securityFile.addSecurityWarning(VersionRange.of("8>9"));
 
     // act & assert
     // answer to the interaction is 1
@@ -182,35 +234,15 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("1>5"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("7>8"), null, null, null, null, null, null);
+    securityFile.addSecurityWarning(VersionRange.of("1>5"));
+    securityFile.addSecurityWarning(VersionRange.of("7>8"));
 
     // act & assert
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("6"))).isEqualTo(VersionIdentifier.of("6"));
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("9"))).isEqualTo(VersionIdentifier.of("9"));
   }
 
-  /***
-   * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where no safe version is available.
-   */
-  @Test
-  public void testSecurityRiskInteractionNoSafeVersionFound() {
 
-    // arrange
-    Class<? extends ToolCommandlet> dummyTool = Azure.class;
-    IdeContext context = getContextForSecurityJsonTests(dummyTool);
-    ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
-    UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
-        .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("1>5"), null, null, null, null, null, null);
-    securityFile.addSecurityWarning(VersionRange.of("6>"), null, null, null, null, null, null);
-
-    // act & assert
-    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("6"))).isEqualTo(VersionIdentifier.of("6"));
-    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("1"))).isEqualTo(VersionIdentifier.of("1"));
-    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("9"))).isEqualTo(VersionIdentifier.of("9"));
-    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("*"))).isEqualTo(VersionIdentifier.of("*"));
-  }
 
   /***
    * Creates the context and data for the tests of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)}.

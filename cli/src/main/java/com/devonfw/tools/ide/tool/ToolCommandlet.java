@@ -204,7 +204,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     // TODO oder doch eher sowas wie VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool,
     // edition, selectedVersion); sollte immer das selbe ergeben
 
-    if (!securityFile.contains(current)) {
+    if (!securityFile.contains(current, true, this.context)) {
       return configuredVersion;
     }
 
@@ -215,26 +215,26 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     VersionIdentifier nextSafe = null;
     for (int i = currentVersionIndex - 1; i >= 0; i--) {
-      if (!securityFile.contains(allVersions.get(i))) {
+      if (!securityFile.contains(allVersions.get(i), true, this.context)) {
         nextSafe = allVersions.get(i);
         break;
       }
     }
     VersionIdentifier latestSafe = null;
     for (int i = 0; i < allVersions.size(); i++) {
-      if (!securityFile.contains(allVersions.get(i))) {
+      if (!securityFile.contains(allVersions.get(i), true, this.context)) {
         latestSafe = allVersions.get(i);
         break;
       }
     }
-    String cves = securityFile.getMatchingSecurityWarnings(current).stream().map(UrlSecurityWarning::cveName)
+    String cves = securityFile.getMatchingSecurityWarnings(current).stream().map(UrlSecurityWarning::getCveName)
         .collect(Collectors.joining(", "));
     String currentIsUnsafe = "Currently, version " + current + " of " + this.getName() + " is selected, "
         + "which is has one or more vulnerabilities:\n\n" + cves + "\n\n(See also " + securityFile.getPath() + ")\n\n";
 
     String stay = "stay with the current unsafe version (" + current + ")";
     String installLatestSafe = "install the latest safe version (" + latestSafe + ")";
-    String installSafeLatest = "install the (safe) latest version (" + latestSafe + ")";
+    String installSafeLatest = "install the (safe) latest version (" + latest + ")";
     String installNextSafe = "install the next safe version (" + nextSafe + ")";
     // I don't need to offer "install latest which is unsafe" as option since the user can set to the latest and choose
     // "stay"

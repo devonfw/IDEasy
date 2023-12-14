@@ -33,4 +33,17 @@ public class MvnUrlUpdater extends WebsiteUrlUpdater {
 
     return Pattern.compile("(\\d\\.\\d\\.\\d)");
   }
+
+  @Override
+  public String getCpeVendor() {
+
+    return "apache";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "maven";
+  }
+
 }

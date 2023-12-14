@@ -101,4 +101,9 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
     return updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst().orElse(null);
   }
 
+  public UrlRepository getUrlRepository() {
+
+    return this.urlRepository;
+  }
+
 }

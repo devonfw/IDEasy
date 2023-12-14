@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link GithubUrlUpdater} for terraform.
  */
 public class TerraformUrlUpdater extends GithubUrlUpdater {
-  
+
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.1.0");
 
   @Override
@@ -42,4 +42,18 @@ public class TerraformUrlUpdater extends GithubUrlUpdater {
     }
   }
 
+  @Override
+  public String getCpeVendor() {
+
+    return "hashicorp";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "terraform";
+  }
+  // add matche cpe the the warning and print it in ide, to to wether the vul maybe oinly applies to the enterprise
+  // edition
+  // or can I filter this enterpsrise version by adding overriding the eidtion methiod with the normal edition string?
 }

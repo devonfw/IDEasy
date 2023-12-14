@@ -4,7 +4,6 @@ import java.io.FileFilter;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractFileTypeAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
@@ -15,12 +14,13 @@ import org.owasp.dependencycheck.dependency.Evidence;
 import org.owasp.dependencycheck.dependency.EvidenceType;
 import org.owasp.dependencycheck.exception.InitializationException;
 
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
 
 public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
 
   // The file filter is used to filter supported files.
-  private FileFilter fileFilter = null;
+  private final FileFilter fileFilter;
 
   private static final String ANALYZER_NAME = "UrlAnalyzer";
 
@@ -33,7 +33,7 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
   }
 
   @Override
-  protected void analyzeDependency(Dependency dependency, Engine engine) throws AnalysisException {
+  protected void analyzeDependency(Dependency dependency, Engine engine) {
 
     String filePath = dependency.getFilePath();
     Path parent = Paths.get(filePath).getParent();
@@ -42,35 +42,28 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
 
     AbstractUrlUpdater urlUpdater = updateManager.getUrlUpdater(tool);
 
-    String source = "UrlAnalyzer";
-
     // adding vendor evidence
-    String vendor = urlUpdater.getCpeVendor();
-    Evidence evidence;
-    if (vendor == null) {
-      vendor = tool;
+    String cpeVendor = urlUpdater.getCpeVendor();
+    String cpeProduct = urlUpdater.getCpeProduct();
+    String cpeEdition = urlUpdater.getCpeEdition();
+    String cpeVersion = urlUpdater.mapUrlVersionToCpeVersion(parent.getFileName().toString());
+
+    if (cpeVendor == null || cpeProduct == null) {
+      return;
     }
-    evidence = new Evidence(source, "CpeVendor", vendor, Confidence.HIGH);
+    Evidence evidence;
+    evidence = new Evidence(ANALYZER_NAME, "CpeVendor", cpeVendor, Confidence.HIGH);
     dependency.addEvidence(EvidenceType.VENDOR, evidence);
 
-    // adding product evidence
-    String product = urlUpdater.getCpeProduct();
-    if (product == null) { // for the product it is reasonable to assume that "tool" is the product in most cases
-      product = tool;
-    }
-    evidence = new Evidence(source, "CpeProduct", product, Confidence.HIGH);
+    evidence = new Evidence(ANALYZER_NAME, "CpeProduct", cpeProduct, Confidence.HIGH);
     dependency.addEvidence(EvidenceType.PRODUCT, evidence);
 
-    // adding edition evidence
-    String editionEvidence = urlUpdater.getCpeEdition();
-    if (editionEvidence != null) {
-      evidence = new Evidence(source, "CpeEdition", editionEvidence, Confidence.HIGH);
+    if (cpeEdition != null) {
+      evidence = new Evidence(ANALYZER_NAME, "CpeEdition", cpeEdition, Confidence.HIGH);
       dependency.addEvidence(EvidenceType.PRODUCT, evidence);
     }
 
-    // adding version evidence
-    String version = urlUpdater.mapUrlVersionToCpeVersion(parent.getFileName().toString());
-    evidence = new Evidence(source, "CpeVersion", version, Confidence.HIGH);
+    evidence = new Evidence(ANALYZER_NAME, "CpeVersion", cpeVersion, Confidence.HIGH);
     dependency.addEvidence(EvidenceType.VERSION, evidence);
   }
 

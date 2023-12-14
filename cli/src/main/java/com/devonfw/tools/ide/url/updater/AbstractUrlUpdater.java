@@ -351,7 +351,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     if (success) {
       if (checksum == null || checksum.isEmpty()) {
         String contentType = response.headers().firstValue("content-type").orElse("undefined");
-        checksum = doGenerateChecksum(doGetResponseAsStream(url), url, version, contentType);
+        checksum = doGenerateChecksum(doGetResponseAsStream( url), url, version, contentType);
       }
 
       success = isChecksumStillValid(url, urlVersion, os, architecture, checksum, tool, version);
