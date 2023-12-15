@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.PathProperty;
+import com.devonfw.tools.ide.property.RepositoryProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 import java.io.FileInputStream;
@@ -21,7 +22,7 @@ import static com.devonfw.tools.ide.commandlet.RepositoryConfig.loadProperties;
 public class RepositoryCommandlet extends Commandlet {
 
   /** the repository to setup. */
-  public final PathProperty repository;
+  public final RepositoryProperty repository;
 
   /**
    * The constructor.
@@ -33,7 +34,7 @@ public class RepositoryCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     addKeyword("setup");
-    this.repository = add(new PathProperty("", false, "repository"));
+    this.repository = add(new RepositoryProperty("", false, "repository"));
   }
 
   @Override
@@ -47,22 +48,10 @@ public class RepositoryCommandlet extends Commandlet {
 
     Path repositoriesPath = this.context.getSettingsPath().resolve(context.FOLDER_REPOSITORIES);
     Path legacyRepositoriesPath = this.context.getSettingsPath().resolve(context.FOLDER_LEGACY_REPOSITORIES);
-    Path repositoryFile = repository.getValue();
+    Path repositoryFile = repository.getValueAsPath(context);
 
     if (repositoryFile != null) {
       // Handle the case when a specific repository is provided
-      if (!Files.exists(repositoryFile)) {
-        repositoryFile = repositoriesPath.resolve(repositoryFile.getFileName().toString() + ".properties");
-      }
-      if (!Files.exists(repositoryFile)) {
-        Path legacyRepositoryFile = legacyRepositoriesPath.resolve(repositoryFile.getFileName().toString());
-        if (Files.exists(legacyRepositoryFile)) {
-          repositoryFile = legacyRepositoryFile;
-        } else {
-          this.context.warning("Could not find " + repositoryFile);
-          return;
-        }
-      }
       doImportRepository(repositoryFile, true);
     } else {
       // If no specific repository is provided, check for repositories folder
