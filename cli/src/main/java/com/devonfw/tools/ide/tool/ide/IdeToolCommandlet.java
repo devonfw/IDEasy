@@ -21,8 +21,6 @@ import java.util.Set;
  */
 public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
-  private Collection<PluginDescriptor> configuredPlugins;
-
   /**
    * The constructor.
    *
@@ -35,47 +33,6 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
     super(context, tool, tags);
     assert (tags.contains(TAG_IDE));
-  }
-
-  /**
-   * @return the immutable {@link Collection} of {@link PluginDescriptor}s configured for this IDE tool.
-   */
-  public Collection<PluginDescriptor> getConfiguredPlugins() {
-
-    if (this.configuredPlugins == null) {
-      this.configuredPlugins = Collections.unmodifiableCollection(getPluginsMap().values());
-    }
-    return this.configuredPlugins;
-  }
-
-  /**
-   * @return the {@link Path} where the plugins of this {@link PluginBasedCommandlet} shall be installed.
-   */
-  public Path getPluginsInstallationPath() {
-
-    // TODO add edition???
-    return this.context.getPluginsPath().resolve(this.tool);
-  }
-
-  /**
-   * @param key the filename of the properties file configuring the requested plugin (typically excluding the
-   *        ".properties" extension).
-   * @return the {@link PluginDescriptor} for the given {@code key}.
-   */
-  public PluginDescriptor getPlugin(String key) {
-
-    if (key == null) {
-      return null;
-    }
-    if (key.endsWith(IdeContext.EXT_PROPERTIES)) {
-      key = key.substring(0, key.length() - IdeContext.EXT_PROPERTIES.length());
-    }
-    PluginDescriptor pluginDescriptor = getPluginsMap().get(key);
-    if (pluginDescriptor == null) {
-      throw new CliException(
-          "Could not find plugin " + key + " at " + getPluginsConfigPath().resolve(key) + ".properties");
-    }
-    return pluginDescriptor;
   }
 
   @Override

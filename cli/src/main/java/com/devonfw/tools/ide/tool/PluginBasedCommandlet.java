@@ -87,7 +87,7 @@ public class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private Path getUserHomePluginsConfigPath() {
 
-    return Paths.get(System.getProperty("user.home"), ".ide", "settings", this.tool, IdeContext.FOLDER_PLUGINS);
+    return context.getUserHome().resolve(Paths.get(".ide", "settings", this.tool, IdeContext.FOLDER_PLUGINS));
   }
 
 
@@ -107,7 +107,6 @@ public class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   public Path getPluginsInstallationPath() {
 
-    // TODO add edition???
     return this.context.getPluginsPath().resolve(this.tool);
   }
 
