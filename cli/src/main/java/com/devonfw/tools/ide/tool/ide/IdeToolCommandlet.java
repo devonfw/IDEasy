@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.ide;
 
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.tool.PluginBasedCommandlet;
@@ -11,8 +10,6 @@ import com.devonfw.tools.ide.tool.vscode.Vscode;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
 /**
