@@ -39,7 +39,7 @@ public class UpdateCommandlet extends Commandlet {
 
     updateSettings();
     updateSoftware();
-    //updateRepositories();
+    updateRepositories();
   }
 
 
