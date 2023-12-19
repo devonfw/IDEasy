@@ -60,7 +60,7 @@ public class UpdateCommandlet extends Commandlet {
     Set<ToolCommandlet> toolCommandlets = new HashSet<>();
 
     // installed tools in IDE_HOME/software
-    List<Path> softwares = this.context.getFileAccess().getFilesInDir(this.context.getSoftwarePath(), path -> true);
+    List<Path> softwares = this.context.getFileAccess().getFilesInDir(this.context.getSoftwarePath(), Files::isDirectory);
     for (Path software : softwares) {
       String toolName = software.getFileName().toString();
       try {
