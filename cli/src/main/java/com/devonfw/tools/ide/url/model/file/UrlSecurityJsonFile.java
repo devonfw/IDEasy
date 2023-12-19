@@ -302,9 +302,9 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
       VersionRange versionRange = warning.getVersionRange();
       if (ignoreWarningsThatAffectAllVersions) {
         boolean includesOldestVersion = versionRange.getMin() == null
-            || sortedVersions.get(sortedVersions.size() - 1).equals(versionRange.getMin());
+            || warning.getVersionRange().contains(sortedVersions.get(sortedVersions.size() - 1));
         boolean includesNewestVersion = versionRange.getMax() == null
-            || sortedVersions.get(0).equals(versionRange.getMax());
+            || warning.getVersionRange().contains(sortedVersions.get(0));
         if (includesOldestVersion && includesNewestVersion) {
           continue;
         }

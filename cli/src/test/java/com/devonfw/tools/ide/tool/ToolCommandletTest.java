@@ -32,7 +32,8 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
 
-    securityFile.addSecurityWarning(VersionRange.of(">"));
+    securityFile.addSecurityWarning(VersionRange.of(">")); // should get ignored
+    securityFile.addSecurityWarning(VersionRange.of("0>11")); // should get ignored
     securityFile.addSecurityWarning(VersionRange.of("2>5"));
 
     // act & assert
