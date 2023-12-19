@@ -71,8 +71,7 @@ public class UpdateCommandlet extends Commandlet {
     }
 
     // regular tools in $IDE_TOOLS
-    String regularToolsString = this.context.getVariables().get("IDE_TOOLS");
-    String[] regularTools = regularToolsString.split(",\\s");
+    List<String> regularTools =  IdeVariables.IDE_TOOLS.get(this.context);
     for (String regularTool : regularTools) {
       toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(regularTool));
     }
