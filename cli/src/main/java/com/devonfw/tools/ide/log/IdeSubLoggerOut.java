@@ -23,7 +23,7 @@ public class IdeSubLoggerOut extends AbstractIdeSubLogger {
 
     super(level);
     if (out == null) {
-      // this is on of the very rare excuses where System.out or System.err is allowed to be used!
+      // this is one of the very rare excuses where System.out or System.err is allowed to be used!
       if (level == IdeLogLevel.ERROR) {
         this.out = System.err;
       } else {

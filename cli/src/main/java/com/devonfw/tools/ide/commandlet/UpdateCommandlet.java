@@ -4,6 +4,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.repo.CustomTool;
 import com.devonfw.tools.ide.tool.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,7 +39,7 @@ public class UpdateCommandlet extends Commandlet {
 
     updateSettings();
     updateSoftware();
-    updateRepositories();
+    //updateRepositories();
   }
 
 
@@ -60,19 +61,17 @@ public class UpdateCommandlet extends Commandlet {
     Set<ToolCommandlet> toolCommandlets = new HashSet<>();
 
     // installed tools in IDE_HOME/software
-    List<Path> softwares = this.context.getFileAccess().getChildrenInDir(this.context.getSoftwarePath(), path -> true);
+    List<Path> softwares = this.context.getFileAccess().getChildrenInDir(this.context.getSoftwarePath(), Files::isDirectory);
     for (Path software : softwares) {
       String toolName = software.getFileName().toString();
-      try {
-        toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(toolName));
-      } catch (IllegalArgumentException e) {
-        //tool is a custom tool, ignore ...
+      ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandletOrNull(toolName);
+      if (toolCommandlet != null) {
+        toolCommandlets.add(this.context.getCommandletManager().getToolCommandletOrNull(toolName));
       }
     }
 
     // regular tools in $IDE_TOOLS
-    String regularToolsString = this.context.getVariables().get("IDE_TOOLS");
-    String[] regularTools = regularToolsString.split(",\\s");
+    List<String> regularTools =  IdeVariables.IDE_TOOLS.get(this.context);
     for (String regularTool : regularTools) {
       toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(regularTool));
     }
@@ -84,23 +83,18 @@ public class UpdateCommandlet extends Commandlet {
     }
 
     // update/install the toolCommandlets
-    Map<String, String> tool2exception = new HashMap<>();
+    StepContainer container = new StepContainer(this.context);
     for (ToolCommandlet toolCommandlet : toolCommandlets) {
       try {
-        this.context.step("Setting up {}", toolCommandlet.getName());
+        container.startStep(toolCommandlet.getName());
         toolCommandlet.install(false);
+        container.endStep(toolCommandlet.getName(), true, null);
       } catch (Exception e) {
-        tool2exception.put(toolCommandlet.getName(), e.getMessage());
+        container.endStep(toolCommandlet.getName(), false, e);
       }
     }
-
-    if (tool2exception.isEmpty()) {
-      this.context.success("All tools were successfully installed.");
-    } else {
-      this.context.warning("Following tools could not be installed:");
-      for (String toolName : tool2exception.keySet())
-      this.context.warning("{}: {}", toolName, tool2exception.get(toolName));
-    }
+    // summary
+    container.complete();
   }
 
   private void updateRepositories() {

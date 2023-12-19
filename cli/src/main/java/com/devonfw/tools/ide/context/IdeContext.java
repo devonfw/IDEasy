@@ -6,6 +6,7 @@ import java.util.Locale;
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
+import com.devonfw.tools.ide.commandlet.StepContainer;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;

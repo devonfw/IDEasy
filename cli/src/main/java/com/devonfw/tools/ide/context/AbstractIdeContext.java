@@ -14,6 +14,7 @@ import java.util.function.Function;
 
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
+import com.devonfw.tools.ide.commandlet.StepContainer;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
@@ -86,6 +87,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final FileAccess fileAccess;
 
+  private final StepContainer stepContainer;
+
   private final CommandletManager commandletManager;
 
   private final ToolRepository defaultToolRepository;
@@ -129,6 +132,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.systemInfo = new SystemInfoImpl();
     this.commandletManager = CommandletManagerImpl.getOrCreate(this);
     this.fileAccess = new FileAccessImpl(this);
+    this.stepContainer = new StepContainer(this);
     String workspace = WORKSPACE_MAIN;
     if (userDir == null) {
       this.cwd = Paths.get(System.getProperty("user.dir"));
