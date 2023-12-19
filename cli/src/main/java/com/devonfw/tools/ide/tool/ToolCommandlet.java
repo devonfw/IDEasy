@@ -68,7 +68,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * @return the name of the binary
+   * @return the name of the binary executable for this tool.
    */
   protected String getBinaryName() {
 
@@ -392,6 +392,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return true;
   }
 
+  /**
+   * @return the {@link MacOsHelper} instance.
+   */
   protected MacOsHelper getMacOsHelper() {
 
     if (this.macOsHelper == null) {
@@ -409,6 +412,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * @param toolPath the installation {@link Path} where to find the version file.
    * @return the currently installed {@link VersionIdentifier version} of this tool or {@code null} if not installed.
    */
   protected VersionIdentifier getInstalledVersion(Path toolPath) {

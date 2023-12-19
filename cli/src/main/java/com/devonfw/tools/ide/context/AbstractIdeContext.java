@@ -23,6 +23,7 @@ import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.log.IdeSubLoggerNone;
+import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -91,6 +92,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final CustomToolRepository customToolRepository;
 
+  private final DirectoryMerger workspaceMerger;
+
   private boolean offlineMode;
 
   private boolean forceMode;
@@ -130,7 +133,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (userDir == null) {
       this.cwd = Paths.get(System.getProperty("user.dir"));
     } else {
-      this.cwd = userDir;
+      this.cwd = userDir.toAbsolutePath();
     }
     // detect IDE_HOME and WORKSPACE
     Path currentDir = this.cwd;
@@ -224,6 +227,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.path = computeSystemPath();
     this.defaultToolRepository = new DefaultToolRepository(this);
     this.customToolRepository = CustomToolRepositoryImpl.of(this);
+    this.workspaceMerger = new DirectoryMerger(this);
   }
 
   private String getMessageIdeHomeFound() {
@@ -574,6 +578,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   public void setLocale(Locale locale) {
 
     this.locale = locale;
+  }
+
+  @Override
+  public DirectoryMerger getWorkspaceMerger() {
+
+    return this.workspaceMerger;
   }
 
   @Override
