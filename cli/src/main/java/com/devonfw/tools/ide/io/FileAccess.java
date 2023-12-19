@@ -136,8 +136,8 @@ public interface FileAccess {
    * Retrieves a list of file paths from the specified directory that satisfy the given predicate.
    * @param dir the folder to iterate through
    * @param filter the {@link Predicate} that determines whether a file should be included in the list.
-   * @return a list of paths that satisfy the provided {@link Predicate} or {@code null} if no match was found.
+   * @return a list of paths that satisfy the provided {@link Predicate}. Will be {@link List#isEmpty() empty} if no match was found but is never {@code null}.
    */
-  List<Path> getFilesInDir(Path dir, Predicate<Path> filter);
+  List<Path> getChildrenInDir(Path dir, Predicate<Path> filter);
 
 }

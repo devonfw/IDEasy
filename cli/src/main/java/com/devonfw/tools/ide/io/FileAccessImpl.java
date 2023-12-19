@@ -399,7 +399,9 @@ public class FileAccessImpl implements FileAccess {
       if (Files.isSymbolicLink(path)) {
         Files.delete(path);
       }
-      deleteRecursive(path);
+      else {
+        deleteRecursive(path);
+      }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to delete " + path, e);
     }
@@ -459,7 +461,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public List<Path> getFilesInDir(Path dir, Predicate<Path> filter) {
+  public List<Path> getChildrenInDir(Path dir, Predicate<Path> filter) {
     List<Path> files = new ArrayList<>();
     try (Stream<Path> childStream = Files.list(dir)) {
       Iterator<Path> iterator = childStream.iterator();
