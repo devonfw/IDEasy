@@ -87,8 +87,6 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final FileAccess fileAccess;
 
-  private final StepContainer stepContainer;
-
   private final CommandletManager commandletManager;
 
   private final ToolRepository defaultToolRepository;
@@ -132,7 +130,6 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.systemInfo = new SystemInfoImpl();
     this.commandletManager = CommandletManagerImpl.getOrCreate(this);
     this.fileAccess = new FileAccessImpl(this);
-    this.stepContainer = new StepContainer(this);
     String workspace = WORKSPACE_MAIN;
     if (userDir == null) {
       this.cwd = Paths.get(System.getProperty("user.dir"));
