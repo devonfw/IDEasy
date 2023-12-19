@@ -18,13 +18,47 @@ public final class VersionRange implements Comparable<VersionRange> {
 
   private final boolean rightIsExclusive;
 
+  private static final String VERSION_SEPARATOR = ">";
+
+  private static final String START_EXCLUDING_PREFIX = "(";
+
+  private static final String START_INCLUDING_PREFIX = "[";
+
+  private static final String END_EXCLUDING_SUFFIX = ")";
+
+  private static final String END_INCLUDING_SUFFIX = "]";
+
+  public static String getVersionSeparator() {
+
+    return VERSION_SEPARATOR;
+  }
+
+  public static String getStartExcludingPrefix() {
+
+    return START_EXCLUDING_PREFIX;
+  }
+
+  public static String getStartIncludingPrefix() {
+
+    return START_INCLUDING_PREFIX;
+  }
+
+  public static String getEndExcludingSuffix() {
+
+    return END_EXCLUDING_SUFFIX;
+  }
+
+  public static String getEndIncludingSuffix() {
+
+    return END_INCLUDING_SUFFIX;
+  }
+
   /**
    * The constructor.
    *
    * @param min the {@link #getMin() minimum}.
-   * @param max the {@link #getMax() maximum} (including).
+   * @param max the {@link #getMax() maximum}.
    */
-
   public VersionRange(VersionIdentifier min, VersionIdentifier max) {
 
     super();
@@ -71,7 +105,6 @@ public final class VersionRange implements Comparable<VersionRange> {
   /**
    * @return the minimum {@link VersionIdentifier} or {@code null} for no lower bound.
    */
-  // @JsonBackReference
   public VersionIdentifier getMin() {
 
     return this.min;
@@ -80,7 +113,6 @@ public final class VersionRange implements Comparable<VersionRange> {
   /**
    * @return the maximum {@link VersionIdentifier} or {@code null} for no upper bound.
    */
-  // @JsonBackReference
   public VersionIdentifier getMax() {
 
     return this.max;
@@ -193,15 +225,15 @@ public final class VersionRange implements Comparable<VersionRange> {
   public String toString() {
 
     StringBuilder sb = new StringBuilder();
-    sb.append(this.leftIsExclusive ? '(' : '[');
+    sb.append(this.leftIsExclusive ? START_EXCLUDING_PREFIX : START_INCLUDING_PREFIX);
     if (this.min != null) {
       sb.append(this.min);
     }
-    sb.append('>');
+    sb.append(VERSION_SEPARATOR);
     if (this.max != null) {
       sb.append(this.max);
     }
-    sb.append(this.rightIsExclusive ? ')' : ']');
+    sb.append(this.rightIsExclusive ? END_EXCLUDING_SUFFIX : END_INCLUDING_SUFFIX);
     return sb.toString();
   }
 
@@ -215,22 +247,22 @@ public final class VersionRange implements Comparable<VersionRange> {
     boolean leftIsExclusive = false;
     boolean rightIsExclusive = false;
 
-    if (value.startsWith("(")) {
+    if (value.startsWith(START_EXCLUDING_PREFIX)) {
       leftIsExclusive = true;
-      value = value.substring(1);
+      value = value.substring(START_EXCLUDING_PREFIX.length());
     }
-    if (value.startsWith("[")) {
-      value = value.substring(1);
+    if (value.startsWith(START_INCLUDING_PREFIX)) {
+      value = value.substring(START_INCLUDING_PREFIX.length());
     }
-    if (value.endsWith(")")) {
+    if (value.endsWith(END_EXCLUDING_SUFFIX)) {
       rightIsExclusive = true;
-      value = value.substring(0, value.length() - 1);
+      value = value.substring(0, value.length() - END_EXCLUDING_SUFFIX.length());
     }
-    if (value.endsWith("]")) {
-      value = value.substring(0, value.length() - 1);
+    if (value.endsWith(END_INCLUDING_SUFFIX)) {
+      value = value.substring(0, value.length() - END_EXCLUDING_SUFFIX.length());
     }
 
-    int index = value.indexOf('>');
+    int index = value.indexOf(VERSION_SEPARATOR);
     if (index == -1) {
       return null; // log warning?
     }

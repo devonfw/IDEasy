@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.version;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
 import java.util.Objects;
 
 /**
@@ -191,6 +194,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   }
 
   @Override
+  @JsonSerialize
   public String toString() {
 
     StringBuilder sb = new StringBuilder();
@@ -206,6 +210,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
    * @param version the {@link #toString() string representation} of the {@link VersionIdentifier} to parse.
    * @return the parsed {@link VersionIdentifier}.
    */
+  @JsonCreator
   public static VersionIdentifier of(String version) {
 
     if (version.equals("latest")) {

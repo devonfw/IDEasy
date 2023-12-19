@@ -3,10 +3,10 @@ package com.devonfw.tools.security;
 import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -50,7 +50,6 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 
 // TODO Doesn't yet work with versions defined like this /<tool>/<edition>/latest
@@ -126,14 +125,9 @@ public class BuildSecurityJsonFile {
         securityFile.clearSecurityWarnings();
       }
 
-      List<VersionIdentifier> sortedVersions = context.getUrls().getSortedVersions(tool, edition);
-      List<VersionIdentifier> sortedCpeVersions = sortedVersions.stream().map(VersionIdentifier::toString)
-          .map(urlUpdater::mapUrlVersionToCpeVersion).map(VersionIdentifier::of)
-          .collect(Collectors.toCollection(ArrayList::new));
-
       Set<Vulnerability> vulnerabilities = dependency.getVulnerabilities(true);
       for (Vulnerability vulnerability : vulnerabilities) {
-        addVulnerabilityToSecurityFile(vulnerability, securityFile, sortedVersions, sortedCpeVersions);
+        addVulnerabilityToSecurityFile(vulnerability, securityFile, urlUpdater);
       }
       securityFile.save();
     }
@@ -165,7 +159,7 @@ public class BuildSecurityJsonFile {
   }
 
   private static void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityJsonFile securityFile,
-      List<VersionIdentifier> sortedVersions, List<VersionIdentifier> sortedCpeVersions) {
+      AbstractUrlUpdater urlUpdater) {
 
     if (vulnerability.getCvssV2() == null && vulnerability.getCvssV3() == null) {
       // if this ever happens, add a case that handles this
@@ -196,7 +190,7 @@ public class BuildSecurityJsonFile {
     if (toLowSeverity) {
       return;
     }
-    VersionRange versionRange = getVersionRangeFromVulnerability(sortedVersions, sortedCpeVersions, vulnerability);
+    VersionRange versionRange = getVersionRangeFromVulnerability(vulnerability, urlUpdater);
     if (versionRange == null) {
       logger.info(
           "Vulnerability {} seems to be irrelevant because its affected versions have no overlap with the versions "
@@ -223,125 +217,61 @@ public class BuildSecurityJsonFile {
   /***
    * From the vulnerability determine the {@link VersionRange versionRange} to which the vulnerability applies.
    *
-   * @param sortedVersions sorted versions of the tool available through IDEasy.
-   * @param sortedCpeVersions sorted versions of the tool. Must match the format of the CPE versions. See
-   *        {@link AbstractUrlUpdater#mapUrlVersionToCpeVersion(String)}.
    * @param vulnerability the vulnerability determined by OWASP dependency check.
+   * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to which the vulnerability applies. TODOO
    * @return the {@link VersionRange versionRange} to which the vulnerability applies.
    */
-  static VersionRange getVersionRangeFromVulnerability(List<VersionIdentifier> sortedVersions,
-      List<VersionIdentifier> sortedCpeVersions, Vulnerability vulnerability) {
+  static VersionRange getVersionRangeFromVulnerability(Vulnerability vulnerability, AbstractUrlUpdater urlUpdater) {
 
     VulnerableSoftware matchedVulnerableSoftware = vulnerability.getMatchedVulnerableSoftware();
-    String vEndExcluding = matchedVulnerableSoftware.getVersionEndExcluding();
-    String vEndIncluding = matchedVulnerableSoftware.getVersionEndIncluding();
+
     String vStartExcluding = matchedVulnerableSoftware.getVersionStartExcluding();
     String vStartIncluding = matchedVulnerableSoftware.getVersionStartIncluding();
+    String vEndExcluding = matchedVulnerableSoftware.getVersionEndExcluding();
+    String vEndIncluding = matchedVulnerableSoftware.getVersionEndIncluding();
+    String singleVersion = matchedVulnerableSoftware.getVersion();
 
-    if (vEndExcluding == null && vEndIncluding == null && vStartExcluding == null && vStartIncluding == null) {
-      String singleAffectedVersion = vulnerability.getMatchedVulnerableSoftware().getVersion();
-      return VersionRange.of(singleAffectedVersion + ">" + singleAffectedVersion);
+    vEndExcluding = Optional.ofNullable(vEndExcluding).map(urlUpdater::mapCpeVersionToUrlVersion).orElse(null);
+    vEndIncluding = Optional.ofNullable(vEndIncluding).map(urlUpdater::mapCpeVersionToUrlVersion).orElse(null);
+    vStartExcluding = Optional.ofNullable(vStartExcluding).map(urlUpdater::mapCpeVersionToUrlVersion).orElse(null);
+    vStartIncluding = Optional.ofNullable(vStartIncluding).map(urlUpdater::mapCpeVersionToUrlVersion).orElse(null);
+    singleVersion = Optional.ofNullable(singleVersion).map(urlUpdater::mapCpeVersionToUrlVersion).orElse(null);
+
+    VersionRange affectedRange = null;
+    try {
+      affectedRange = getVersionRangeFromInterval(vStartIncluding, vStartExcluding, vEndExcluding, vEndIncluding,
+          singleVersion);
+    } catch (IllegalStateException e) {
+      throw new IllegalStateException(
+          "Getting the VersionRange for the vulnerability " + vulnerability.getName() + " failed.", e);
     }
 
-    return getVersionRangeFromInterval(sortedVersions, sortedCpeVersions, vStartExcluding, vStartIncluding,
-        vEndIncluding, vEndExcluding);
+    return affectedRange;
+
   }
 
-  static VersionRange getVersionRangeFromInterval(List<VersionIdentifier> sortedVersions, String vStartExcluding,
-      String vStartIncluding, String vEndIncluding, String vEndExcluding) {
+  public static VersionRange getVersionRangeFromInterval(String si, String se, String ee, String ei, String s)
+      throws IllegalStateException {
 
-    return getVersionRangeFromInterval(sortedVersions, sortedVersions, vStartExcluding, vStartIncluding, vEndIncluding,
-        vEndExcluding);
-  }
-
-  /***
-   * From the interval determine the {@link VersionRange versionRange} to which the vulnerability applies. Since the
-   * versions as specified in the vulnerability might not be in the {@code sortedVersions} list, the
-   * {@link VersionRange} is determined by finding the versions in the {@code sortedVersions} list that, when selected,
-   * cover all affected versions correctly.
-   */
-  static VersionRange getVersionRangeFromInterval(List<VersionIdentifier> sortedVersions,
-      List<VersionIdentifier> sortedCpeVersions, String vStartExcluding, String vStartIncluding, String vEndIncluding,
-      String vEndExcluding) {
-
-    VersionIdentifier min = null;
-    if (vStartExcluding != null) {
-      min = findMinFromStartExcluding(sortedVersions, sortedCpeVersions, vStartExcluding);
-      if (min == null) {
-        return null;
+    if (ee == null && ei == null && se == null && si == null) {
+      if (s == null) {
+        throw new IllegalStateException(
+            "Vulnerability has no interval of affected versions or single affected version.");
       }
-    } else if (vStartIncluding != null) {
-      min = findMinFromStartIncluding(sortedVersions, sortedCpeVersions, vStartIncluding);
-      if (min == null) {
-        return null;
-      }
+      return VersionRange.of(s + ">" + s);
     }
+    se = Optional.ofNullable(se).orElse("");
+    si = Optional.ofNullable(si).orElse("");
+    ee = Optional.ofNullable(ee).orElse("");
+    ei = Optional.ofNullable(ei).orElse("");
 
-    VersionIdentifier max = null;
-    if (vEndIncluding != null) {
-      max = findMaxFromEndIncluding(sortedVersions, sortedCpeVersions, vEndIncluding);
-      if (max == null) {
-        return null;
-      }
-    } else if (vEndExcluding != null) {
-      max = findMaxFromEndExcluding(sortedVersions, sortedCpeVersions, vEndExcluding);
-      if (max == null) {
-        return null;
-      }
-    }
-    return new VersionRange(min, max);
-  }
+    String leftBoundary = se.isEmpty() ? VersionRange.getStartIncludingPrefix() + si
+        : VersionRange.getStartExcludingPrefix() + se;
 
-  private static VersionIdentifier findMinFromStartExcluding(List<VersionIdentifier> sortedVs,
-      List<VersionIdentifier> sortedCpeVs, String vStartExcluding) {
+    String rightBoundary = ee.isEmpty() ? ei + VersionRange.getEndIncludingSuffix()
+        : ee + VersionRange.getEndExcludingSuffix();
 
-    VersionIdentifier startExcl = VersionIdentifier.of(vStartExcluding);
-    for (int i = sortedCpeVs.size() - 1; i >= 0; i--) {
-      VersionIdentifier version = sortedCpeVs.get(i);
-      if (version.isGreater(startExcl) && !version.compareVersion(startExcl).isUnsafe()) {
-        return sortedVs.get(i);
-      }
-    }
-    return null;
-  }
-
-  private static VersionIdentifier findMinFromStartIncluding(List<VersionIdentifier> sortedVs,
-      List<VersionIdentifier> sortedCpeVs, String vStartIncluding) {
-
-    VersionIdentifier startIncl = VersionIdentifier.of(vStartIncluding);
-    for (int i = sortedCpeVs.size() - 1; i >= 0; i--) {
-      VersionIdentifier version = sortedCpeVs.get(i);
-      if (version.compareTo(startIncl) >= 0) {
-        return sortedVs.get(i);
-      }
-    }
-    return null;
-  }
-
-  private static VersionIdentifier findMaxFromEndIncluding(List<VersionIdentifier> sortedVs,
-      List<VersionIdentifier> sortedCpeVs, String vEndIncluding) {
-
-    VersionIdentifier endIncl = VersionIdentifier.of(vEndIncluding);
-    for (int i = 0; i < sortedCpeVs.size(); i++) {
-      VersionIdentifier version = sortedCpeVs.get(i);
-      if (version.compareTo(endIncl) <= 0) {
-        return sortedVs.get(i);
-      }
-    }
-    return null;
-  }
-
-  private static VersionIdentifier findMaxFromEndExcluding(List<VersionIdentifier> sortedVs,
-      List<VersionIdentifier> sortedCpeVs, String vEndExcluding) {
-
-    VersionIdentifier endExl = VersionIdentifier.of(vEndExcluding);
-    for (int i = 0; i < sortedCpeVs.size(); i++) {
-      VersionIdentifier version = sortedCpeVs.get(i);
-      if (version.isLess(endExl)) {
-        return sortedVs.get(i);
-      }
-    }
-    return null;
+    return VersionRange.of(leftBoundary + VersionRange.getVersionSeparator() + rightBoundary);
   }
 
   private static void printAllOwaspAnalyzers(Engine engine) {

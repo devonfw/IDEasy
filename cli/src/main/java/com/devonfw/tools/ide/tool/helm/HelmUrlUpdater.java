@@ -47,6 +47,11 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
     return version.substring(getVersionPrefixToRemove().length());
   }
 
+  public String mapCpeVersionToUrlVersion(String version) {
+
+    return getVersionPrefixToRemove() + version;
+  }
+
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
