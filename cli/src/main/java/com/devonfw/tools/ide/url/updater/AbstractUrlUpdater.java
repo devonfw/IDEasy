@@ -21,6 +21,8 @@ import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.url.model.UrlErrorReport;
+import com.devonfw.tools.ide.url.model.UrlErrorState;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlFile;
@@ -69,6 +71,9 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected final HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
 
   private static final Logger logger = LoggerFactory.getLogger(AbstractUrlUpdater.class);
+
+  protected UrlErrorState urlErrorState = UrlErrorReport.getErrorState(getToolWithEdition());
+
 
   /**
    * @return the name of the {@link UrlTool tool} handled by this updater.
@@ -441,6 +446,9 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
 
       logger.info("For tool {} and version {} the download verification succeeded with status code {} for URL {}.", tool,
           version, code, url);
+
+      urlErrorState.updateVerifications(true);
+
     } else {
       if (status != null) {
         if (errorStatus == null) {
@@ -466,6 +474,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       }
       logger.warn("For tool {} and version {} the download verification failed with status code {} for URL {}.", tool,
           version, code, url);
+
+      urlErrorState.updateVerifications(false);
     }
     if (modified) {
       urlStatusFile.setStatusJson(statusJson); // hack to set modified (better solution welcome)
@@ -518,7 +528,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
 
     UrlTool tool = urlRepository.getOrCreateChild(getTool());
     UrlEdition edition = tool.getOrCreateChild(getEdition());
-    updateExistingVersions(edition);
+    //updateExistingVersions(edition);
     Set<String> versions = getVersions();
     String toolWithEdition = getToolWithEdition();
     logger.info("For tool {} we found the following versions : {}", toolWithEdition, versions);
@@ -535,8 +545,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
           urlVersion = edition.getOrCreateChild(version);
           addVersion(urlVersion);
           urlVersion.save();
+          urlErrorState.updateAdditions(true);
         } catch (Exception e) {
           logger.error("For tool {} we failed to add version {}.", toolWithEdition, version, e);
+          urlErrorState.updateAdditions(false);
         }
       }
     }

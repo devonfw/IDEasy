@@ -8,6 +8,7 @@ import java.time.format.DateTimeParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.url.model.UrlErrorReport;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
 
 /**
@@ -54,5 +55,7 @@ public class UpdateInitiator {
 
     UpdateManager updateManager = new UpdateManager(repoPath, expirationTime);
     updateManager.updateAll();
+
+    logger.warn(UrlErrorReport.getReport());
   }
 }
