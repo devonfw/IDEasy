@@ -1,8 +1,6 @@
 name: Update URLS
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 3 * * *'
+  push
 jobs:
   updateURLS:
     runs-on: ubuntu-latest
@@ -14,7 +12,7 @@ jobs:
       - name: Checkout ide-urls
         uses: actions/checkout@v3
         with:
-          repository: devonfw/ide-urls
+          repository: alfeilex/ide-urls
           path: ide-urls
           token: ${{ secrets.ACTION_PUSH_TOKEN }}
       - name: Set up Java
@@ -27,7 +25,9 @@ jobs:
         run: |
           cd cli
           mvn -B -ntp -Dstyle.color=always install
-          mvn -B -ntp -Dstyle.color=always exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="../ide-urls PT5H30M"
+          mvn -B -ntp -Dstyle.color=always exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="../ide-urls PT5H30M" | tee log.txt
+          sed -n '/ERROR REPORT FROM/,/ERROR REPORT ENDS/p' log.txt > error_report.txt
+          cat error_report.txt
       - name: Commit and push to ide-urls
         run: |
           cd ide-urls
