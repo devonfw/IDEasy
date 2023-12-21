@@ -53,7 +53,4 @@ public class TerraformUrlUpdater extends GithubUrlUpdater {
 
     return "terraform";
   }
-  // add matche cpe the the warning and print it in ide, to to wether the vul maybe oinly applies to the enterprise
-  // edition
-  // or can I filter this enterpsrise version by adding overriding the eidtion methiod with the normal edition string?
 }

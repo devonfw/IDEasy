@@ -12,12 +12,12 @@ import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 
-/***
+/**
  * Test of {@link ToolCommandlet}.
  */
 public class ToolCommandletTest extends AbstractIdeContextTest {
 
-  /***
+  /**
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where no safe version is available. But
    * there is a warning that affects all versions. This warning is then ignored, but the other warnings are considered.
    */
@@ -26,7 +26,7 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     Class<? extends ToolCommandlet> dummyTool = Azure.class;
-    String[] answers = {"1", "2", "3"};
+    String[] answers = { "1", "2", "3" };
     IdeContext context = getContextForSecurityJsonTests(dummyTool, answers);
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
@@ -44,11 +44,10 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     // answer to the interaction is 2
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("2"))).isEqualTo(VersionIdentifier.of("6"));
     // answer to the interaction is 3
-    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("2"))).isEqualTo(VersionIdentifier.of("9"));
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("2"))).isEqualTo(VersionIdentifier.of("*"));
   }
 
-
-  /***
+  /**
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where no safe version is available. Only
    * the warnings all considered together cover all versions and there is no single warning that affects all versions.
    */
@@ -70,7 +69,8 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("9"))).isEqualTo(VersionIdentifier.of("9"));
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("*"))).isEqualTo(VersionIdentifier.of("*"));
   }
-  /***
+
+  /**
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where the set version is the latest but
    * vulnerable.
    */
@@ -89,12 +89,12 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
 
     // act & assert
     // answer to the interaction is 1
-    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("*"))).isEqualTo(VersionIdentifier.of("9"));
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("*"))).isEqualTo(VersionIdentifier.of("*"));
     // answer to the interaction is 2
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("*"))).isEqualTo(VersionIdentifier.of("6"));
   }
 
-  /***
+  /**
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where there are no newer versions that
    * are safe, but there is a previous version that is safe.
    */
@@ -119,7 +119,7 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("6"))).isEqualTo(VersionIdentifier.of("5"));
   }
 
-  /***
+  /**
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where the next safe version is also the
    * latest.
    */
@@ -141,10 +141,10 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     // answer to the interaction is 1
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("7"))).isEqualTo(VersionIdentifier.of("7"));
     // answer to the interaction is 2
-    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("7"))).isEqualTo(VersionIdentifier.of("9"));
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("7"))).isEqualTo(VersionIdentifier.of("*"));
   }
 
-  /***
+  /**
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where the next safe version is also the
    * latest safe version, and the overall latest version is not safe.
    */
@@ -169,7 +169,7 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("5"))).isEqualTo(VersionIdentifier.of("7"));
   }
 
-  /***
+  /**
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where the next safe version differs from
    * the latest safe, which is also the overall latest version.
    */
@@ -193,10 +193,10 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     // answer to the interaction is 2
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("5"))).isEqualTo(VersionIdentifier.of("7"));
     // answer to the interaction is 3
-    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("5"))).isEqualTo(VersionIdentifier.of("9"));
+    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("5"))).isEqualTo(VersionIdentifier.of("*"));
   }
 
-  /***
+  /**
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where the next safe version differs from
    * the latest safe, and the overall latest version is not safe.
    */
@@ -223,7 +223,7 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("3"))).isEqualTo(VersionIdentifier.of("7"));
   }
 
-  /***
+  /**
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where set version is safe.
    */
   @Test
@@ -243,9 +243,7 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("9"))).isEqualTo(VersionIdentifier.of("9"));
   }
 
-
-
-  /***
+  /**
    * Creates the context and data for the tests of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)}.
    *
    * @param dummyTool the dummy tool to be used for the tests. The

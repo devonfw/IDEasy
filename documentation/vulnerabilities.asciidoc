@@ -1,0 +1,45 @@
+:toc:
+toc::[]
+
+= Vulnerabilities
+
+We support you with automatic downloads and "installations" of arbitrary software.
+However, security is also very important, and therefore we implemented various security features like e.g. verification of checksums (SHA-256) of downloaded files from a different source to prevent man-in-the-middle attacks.
+Also, a tool version that you want to use for your project may have severe https://owasp.org/www-community/vulnerabilities/[vulnerabilities].
+Therefore, we maintain a list of known https://en.wikipedia.org/wiki/Common_Vulnerabilities_and_Exposures[CVEs] for the tools we support. Take a look at the `_ide/urls/«tool»/«edition»/security.json` file.
+In case you are reading this page, you most probably got a security warning because you are using a vulnerable software.
+In that case your attention and action is required, and you should consider an update as soon as possible and follow the suggestions prompted by IDEasy.
+
+Please note that if you are using the vulnerable tool on your own behalf you alone are responsible (e.g. for central tools like `git` or tools that you did setup by yourself via our IDE product).
+However, in case you are team-mate of a project and did not choose the tool and its version yourself, you should first run `update` to ensure you have the latest settings and tool versions.
+If that already fixes the security warnings, you are done.
+Otherwise, contact your IDE-admin, who is responsible for maintaining your settings git repository.
+NOTE: You can find it in the `settings` folder of your IDE installation next to the `workspaces` folder.
+You may open a shell in this settings folder and call `git remote -v` to figure out the git URL and navigate there to find our your IDE-admin.
+
+Please note that for each tool that is setup via our IDE product, you can call `set-version «tool» latest` to configure it to the latest version.
+Also note that you can use the asterisk in a tool version.
+So e.g. if you do `set-version java  17*` you will configure to always get the latest `17.x` version of `java`.
+Further, do not forget to call `install «tool»` after you have configured a new version to actually install the update.
+If you are an IDE admin you then should test your changes and after some QA process push them to the settings git repo.
+After that, instruct your team to run `update` so all developers get the updates automatically and the vulnerabilities are gone for your team.
+Thank you for caring about IT security and keeping us safe!!!
+
+== Git
+
+Git is a link:setup.asciidoc#prerequisites[prerequisite] of our IDE product and therefore not managed by it.
+In other words: You have installed Git on your machine, and you alone are responsible for installing updates.
+To update your git client simply go to https://git-scm.com/downloads[git downloads] and download the latest version for your operating system and run the installer.
+This will automatically update your existing installation.
+For security consider the philosophy of "latest is greatest".
+Git also does a great job in keeping downward compatible so newer versions typically are better and more secure.
+
+You can find CVEs for git https://www.cvedetails.com/vulnerability-list/vendor_id-4008/GIT.html[here].
+Please be aware that CVEs like https://www.cvedetails.com/cve/CVE-2022-25648/[CVE-2022-25648] can allow remote code execution and therefore have to be fixed urgently.
+
+== Maven
+
+CVEs for maven can be found https://maven.apache.org/security.html[here].
+Maven is not always downward compatible.
+Therefore, when changing the major or minor version, please do according testing and QA before pushing changes to your team.
+

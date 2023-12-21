@@ -173,16 +173,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return doInstall(silent);
   }
 
-  protected String securityRiskInteractionQuestion(String question, String... options) {
-
-    question += "Do you want to";
-    for (int i = 0; i < options.length - 1; i++) {
-      options[i] += " or";
-    }
-    options[options.length - 1] += "?";
-    return this.context.question(question, options);
-  }
-
   /**
    * Checks if the given {@link VersionIdentifier} has a matching security warning in the {@link UrlSecurityJsonFile}.
    *
@@ -193,16 +183,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   protected VersionIdentifier securityRiskInteraction(VersionIdentifier configuredVersion) {
 
-    // TODO maybe instead of returning current return configuredVersion if the users chooses "stay"
-
-    // TODO webpage:\nhttps://github.com/devonfw/ide/blob/master/documentation/vulnerabilities.asciidoc\n\n";
-
     UrlSecurityJsonFile securityFile = this.context.getUrls().getEdition(this.tool, this.getEdition())
         .getSecurityJsonFile();
 
     VersionIdentifier current = this.context.getUrls().getVersion(this.tool, this.getEdition(), configuredVersion);
-    // TODO oder doch eher sowas wie VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool,
-    // edition, selectedVersion); sollte immer das selbe ergeben
 
     if (!securityFile.contains(current, true, this.context)) {
       return configuredVersion;
@@ -212,7 +196,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     VersionIdentifier latest = allVersions.get(0);
 
     int currentVersionIndex = allVersions.indexOf(current);
-
     VersionIdentifier nextSafe = null;
     for (int i = currentVersionIndex - 1; i >= 0; i--) {
       if (!securityFile.contains(allVersions.get(i), true, this.context)) {
@@ -232,10 +215,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     String currentIsUnsafe = "Currently, version " + current + " of " + this.getName() + " is selected, "
         + "which is has one or more vulnerabilities:\n\n" + cves + "\n\n(See also " + securityFile.getPath() + ")\n\n";
 
-    String stay = "stay with the current unsafe version (" + current + ")";
-    String installLatestSafe = "install the latest safe version (" + latestSafe + ")";
-    String installSafeLatest = "install the (safe) latest version (" + latest + ")";
-    String installNextSafe = "install the next safe version (" + nextSafe + ")";
+    String ask = "Which version do you want to install?";
+
+    String stay = "Stay with the current unsafe version (" + current + ").";
+    String installLatestSafe = "Install the latest safe version (" + latestSafe + ").";
+    String installSafeLatest = "Install the (safe) latest version (" + latest + ").";
+    String installNextSafe = "Install the next safe version (" + nextSafe + ").";
     // I don't need to offer "install latest which is unsafe" as option since the user can set to the latest and choose
     // "stay"
 
@@ -245,38 +230,38 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
 
     if (current.equals(latest)) {
-      String answer = securityRiskInteractionQuestion(currentIsUnsafe + "There are no updates available.", stay,
+      String answer = this.context.question(currentIsUnsafe + "There are no updates available. " + ask, stay,
           installLatestSafe);
-      return answer.startsWith(stay) ? current : latestSafe;
+      return answer.equals(stay) ? configuredVersion : latestSafe;
 
-    } else if (nextSafe == null) {
-      String answer = securityRiskInteractionQuestion(currentIsUnsafe + " All newer versions are also not safe.", stay,
+    } else if (nextSafe == null) { // install an older version that is safe or stay with the current unsafe version
+      String answer = this.context.question(currentIsUnsafe + " All newer versions are also not safe. " + ask, stay,
           installLatestSafe);
-      return answer.startsWith(stay) ? current : latestSafe;
+      return answer.equals(stay) ? configuredVersion : latestSafe;
 
     } else if (nextSafe.equals(latest)) {
-      String answer = securityRiskInteractionQuestion(
-          currentIsUnsafe + " Of the newer versions, only the latest is safe.", stay, installSafeLatest);
-      return answer.startsWith(stay) ? current : latestSafe;
+      String answer = this.context.question(currentIsUnsafe + " Of the newer versions, only the latest is safe. " + ask,
+          stay, installSafeLatest);
+      return answer.equals(stay) ? configuredVersion : VersionIdentifier.LATEST;
 
     } else if (nextSafe.equals(latestSafe)) {
-      String answer = securityRiskInteractionQuestion(currentIsUnsafe + " Of the newer versions, only the version "
-          + nextSafe + " is safe, Which is not the latest.", stay, "Install the safe version (" + nextSafe + ")");
-      return answer.startsWith(stay) ? current : nextSafe;
+      String answer = this.context.question(
+          currentIsUnsafe + " Of the newer versions, only the version " + nextSafe
+              + " is safe, which is however not the latest." + ask,
+          stay, "Install the safe version (" + nextSafe + ")");
+      return answer.equals(stay) ? configuredVersion : nextSafe;
 
     } else {
       if (latestSafe.equals(latest)) {
-        String answer = securityRiskInteractionQuestion(currentIsUnsafe, stay, installNextSafe, installSafeLatest);
-        return answer.startsWith(stay) ? current : answer.startsWith(installNextSafe) ? nextSafe : latestSafe;
+        String answer = this.context.question(currentIsUnsafe + ask, stay, installNextSafe, installSafeLatest);
+        return answer.equals(stay) ? configuredVersion
+            : answer.equals(installNextSafe) ? nextSafe : VersionIdentifier.LATEST;
 
       } else {
-        String answer = securityRiskInteractionQuestion(currentIsUnsafe, stay, installNextSafe, installLatestSafe);
-        return answer.startsWith(stay) ? current : answer.startsWith(installNextSafe) ? nextSafe : latestSafe;
+        String answer = this.context.question(currentIsUnsafe + ask, stay, installNextSafe, installLatestSafe);
+        return answer.equals(stay) ? configuredVersion : answer.equals(installNextSafe) ? nextSafe : latestSafe;
       }
     }
-
-    // VersionIdentifier chosenVersion = securityRiskInteraction(configuredVersion);
-    // setVersion(chosenVersion, silent);
   }
 
   /**

@@ -28,9 +28,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
  */
 public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
 
-  /***
+  /**
    * A simple container with the information about a security warning.
-   *
    */
   public static class UrlSecurityWarning {
 
@@ -62,6 +61,8 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
      *
      * @param versionRange the version range, specifying the versions of the tool to which the security risk applies.
      * @param matchedCpe the matched CPE.
+     * @param interval the interval of vulnerability that was used to determine the {@link VersionRange}. This is used
+     *        to check if the mapping from CPE version to UrlVersion was correct.
      * @param severity the severity of the security risk.
      * @param severityVersion Indicating from which version the {@code severity} was obtained. As of December 2023, this
      *        is either v2 or v3.
@@ -258,12 +259,13 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
     return added;
   }
 
-  /***
+  /**
    * Adds a new security warning to the security json file.
    *
    * @param versionRange the version range, specifying the versions of the tool to which the security risk applies.
    * @param matchedCpe the matched CPE.
-   * @param interval the interval of vulnerability that was used to determine the version range.
+   * @param interval the interval of vulnerability that was used to determine the {@link VersionRange}. This is used to
+   *        check if the mapping from CPE version to UrlVersion was correct.
    * @param severity the severity of the security risk.
    * @param severityVersion Indicating from which version the {@code severity} was obtained. As of December 2023, this
    *        is either v2 or v3.
@@ -283,7 +285,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
     return added;
   }
 
-  /***
+  /**
    * For a given version, returns whether there is a security risk by locking at the warnings in the security json file.
    *
    * @param version the version to check for security risks.

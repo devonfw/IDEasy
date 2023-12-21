@@ -97,8 +97,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     return tool + "/" + edition;
   }
 
-  /***
-   *
+  /**
    * @return the vendor of the tool as specified in the CPE (Common Platform Enumeration)
    */
   public String getCpeVendor() {
@@ -106,7 +105,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     return null;
   }
 
-  /***
+  /**
    * @return the product name of the tool as specified in the CPE (Common Platform Enumeration)
    */
   public String getCpeProduct() {
@@ -114,7 +113,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     return null;
   }
 
-  /***
+  /**
    * @return the edition of the tool as specified in the CPE (Common Platform Enumeration)
    */
   public String getCpeEdition() {
@@ -132,7 +131,13 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @return maps the cpe version to the version as specified in the CPE (Common Platform Enumeration).
+   * This method is only used as fallback if the passed version is not in the image of
+   * {@link #mapUrlVersionToCpeVersion(String)}. This doesn't have to be inverse of
+   * {@link #mapUrlVersionToCpeVersion(String)}. It must only be sufficient to get the correct VersionRange from the
+   * matched vulnerable software.
+   *
+   * @return maps the version as specified in the CPE (Common Platform Enumeration) to the version as specified by the
+   *         directory name in the url repository
    */
   public String mapCpeVersionToUrlVersion(String version) {
 

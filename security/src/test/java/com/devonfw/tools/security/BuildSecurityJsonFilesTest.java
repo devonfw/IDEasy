@@ -4,15 +4,15 @@ import com.devonfw.tools.ide.version.VersionRange;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static com.devonfw.tools.security.BuildSecurityJsonFile.getVersionRangeFromInterval;
+import static com.devonfw.tools.security.BuildSecurityJsonFiles.getVersionRangeFromInterval;
 
 /**
- * Test of {@link BuildSecurityJsonFile}.
+ * Test of {@link BuildSecurityJsonFiles}.
  */
-public class BuildSecurityJsonFileTest extends Assertions {
+public class BuildSecurityJsonFilesTest extends Assertions {
 
   /**
-   * Test of {@link BuildSecurityJsonFile#getVersionRangeFromInterval(String, String, String, String, String)}.
+   * Test of {@link BuildSecurityJsonFiles#getVersionRangeFromInterval(String, String, String, String, String)}.
    */
   @Test
   public void testGetVersionRangeFromInterval() {
