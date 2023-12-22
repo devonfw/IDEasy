@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tags;
@@ -22,7 +23,6 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.StringListProperty;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
-import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile.UrlSecurityWarning;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -188,7 +188,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     VersionIdentifier current = this.context.getUrls().getVersion(this.tool, this.getEdition(), configuredVersion);
 
-    if (!securityFile.contains(current, true, this.context)) {
+    if (!securityFile.contains(current, true, this.context, securityFile.getParent())) {
       return configuredVersion;
     }
 
@@ -198,14 +198,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     int currentVersionIndex = allVersions.indexOf(current);
     VersionIdentifier nextSafe = null;
     for (int i = currentVersionIndex - 1; i >= 0; i--) {
-      if (!securityFile.contains(allVersions.get(i), true, this.context)) {
+      if (!securityFile.contains(allVersions.get(i), true, this.context, securityFile.getParent())) {
         nextSafe = allVersions.get(i);
         break;
       }
     }
     VersionIdentifier latestSafe = null;
     for (int i = 0; i < allVersions.size(); i++) {
-      if (!securityFile.contains(allVersions.get(i), true, this.context)) {
+      if (!securityFile.contains(allVersions.get(i), true, this.context, securityFile.getParent())) {
         latestSafe = allVersions.get(i);
         break;
       }

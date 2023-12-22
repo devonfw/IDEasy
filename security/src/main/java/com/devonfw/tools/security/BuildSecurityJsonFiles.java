@@ -218,10 +218,11 @@ public class BuildSecurityJsonFiles {
     // the fields of cpe2.3 are:
     // cpe2.3 part, vendor, product, version, update, edition, language, swEdition, targetSw, targetHw, other;
     String interval = String.format(
-        "start excluding = %s, start including = %s, end including = %s, end excluding = %s, is the interval provided by "
-            + "OWASP. Manually double check whether the VersionRange was correctly determined.",
+        "start excluding = %s, start including = %s, end including = %s, end excluding = %s, single version = %s, is "
+            + "the interval provided by OWASP. Manually double check whether the VersionRange was correctly determined.",
         matchedVulnerableSoftware.getVersionStartExcluding(), matchedVulnerableSoftware.getVersionStartIncluding(),
-        matchedVulnerableSoftware.getVersionEndIncluding(), matchedVulnerableSoftware.getVersionEndExcluding());
+        matchedVulnerableSoftware.getVersionEndIncluding(), matchedVulnerableSoftware.getVersionEndExcluding(),
+        matchedVulnerableSoftware.getVersion());
 
     securityFile.addSecurityWarning(versionRange, matchedCpe, interval, severity, severityVersion, cveName, description,
         nistUrl, referenceUrls);
@@ -264,15 +265,17 @@ public class BuildSecurityJsonFiles {
     return affectedRange;
   }
 
-  private static String getUrlVersion(String cpeVersion, AbstractUrlUpdater urlUpdater, Map<String, String> cpeToUrlVersion) {
+  private static String getUrlVersion(String cpeVersion, AbstractUrlUpdater urlUpdater,
+      Map<String, String> cpeToUrlVersion) {
+
     String urlVersion = null;
     if (cpeVersion != null) {
       if (cpeToUrlVersion.containsKey(cpeVersion)) {
         urlVersion = cpeToUrlVersion.get(cpeVersion);
-        System.out.println("tool mapped using map cpe " + cpeVersion + " -> url " +urlVersion);
+        System.out.println("tool mapped using map cpe " + cpeVersion + " -> url " + urlVersion);
       } else {
         urlVersion = urlUpdater.mapCpeVersionToUrlVersion(cpeVersion);
-        System.out.println("tool mapped using mapCpeVersionToUrlVersion cpe " + cpeVersion + " -> url " +urlVersion);
+        System.out.println("tool mapped using mapCpeVersionToUrlVersion cpe " + cpeVersion + " -> url " + urlVersion);
 
       }
     }
