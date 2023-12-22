@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
-import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarningsJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
+import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
+import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarningsJson;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
@@ -177,7 +177,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
 
     String jsonString;
     try {
-      jsonString = mapper.writeValueAsString(this.urlSecurityWarningsJson.getWarnings());
+      jsonString = mapper.writeValueAsString(this.urlSecurityWarningsJson);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }

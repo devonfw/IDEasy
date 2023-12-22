@@ -13,9 +13,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.util.MapUtil;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
@@ -54,8 +51,11 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
+import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
+import com.devonfw.tools.ide.util.MapUtil;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 
 // TODO Doesn't yet work with versions defined like this /<tool>/<edition>/latest
@@ -123,9 +123,6 @@ public class BuildSecurityJsonFiles {
       String tool = parent.getParent().getParent().getFileName().toString();
       String edition = parent.getParent().getFileName().toString();
       AbstractUrlUpdater urlUpdater = updateManager.getUrlUpdater(tool);
-
-      System.out.println(tool + ", " + edition);
-
       UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool, edition).getSecurityJsonFile();
       boolean newlyAdded = foundToolsAndEditions.add(new Pair<>(tool, edition));
       if (newlyAdded) { // to assure that the file is cleared only once per tool and edition
@@ -272,10 +269,8 @@ public class BuildSecurityJsonFiles {
     if (cpeVersion != null) {
       if (cpeToUrlVersion.containsKey(cpeVersion)) {
         urlVersion = cpeToUrlVersion.get(cpeVersion);
-        System.out.println("tool mapped using map cpe " + cpeVersion + " -> url " + urlVersion);
       } else {
         urlVersion = urlUpdater.mapCpeVersionToUrlVersion(cpeVersion);
-        System.out.println("tool mapped using mapCpeVersionToUrlVersion cpe " + cpeVersion + " -> url " + urlVersion);
 
       }
     }

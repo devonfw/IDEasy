@@ -114,9 +114,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @return the edition of the tool as specified in the CPE (Common Platform Enumeration)
+   * @param urlEdition the {@link UrlEdition} to get the CPE (Common Platform Enumeration) edition for.
+   * @return the edition as specified in the CPE.
    */
-  public String getCpeEdition() {
+  public String getCpeEdition(String urlEdition) {
 
     return null;
   }

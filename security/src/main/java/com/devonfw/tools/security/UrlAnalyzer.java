@@ -45,7 +45,7 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
     // adding vendor evidence
     String cpeVendor = urlUpdater.getCpeVendor();
     String cpeProduct = urlUpdater.getCpeProduct();
-    String cpeEdition = urlUpdater.getCpeEdition();
+    String cpeEdition = urlUpdater.getCpeEdition(edition);
     String cpeVersion = urlUpdater.mapUrlVersionToCpeVersion(parent.getFileName().toString());
 
     if (cpeVendor == null || cpeProduct == null) {

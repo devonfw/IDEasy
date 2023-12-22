@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Utility class for operations on maps.
+ * Utility class for operations with maps.
  */
 public class MapUtil {
 
