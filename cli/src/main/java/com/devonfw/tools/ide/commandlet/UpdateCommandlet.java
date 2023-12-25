@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.common.StepContainer;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.repo.CustomTool;
 import com.devonfw.tools.ide.tool.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -16,7 +17,9 @@ import java.util.*;
  */
 public class UpdateCommandlet extends Commandlet {
 
-  private static final String SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings";
+  private static final String DEFAULT_SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings";
+
+  private final StringProperty settingsRepo;
 
   /**
    * The constructor.
@@ -27,6 +30,7 @@ public class UpdateCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
+    settingsRepo = add(new StringProperty("", false, "settingsRepository"));
   }
 
   @Override
@@ -39,8 +43,8 @@ public class UpdateCommandlet extends Commandlet {
   public void run() {
 
     updateSettings();
-    updateSoftware();
-    updateRepositories();
+    //updateSoftware();
+    //updateRepositories();
   }
 
 
@@ -50,10 +54,28 @@ public class UpdateCommandlet extends Commandlet {
     Path settingsPath = this.context.getSettingsPath();
     if (Files.isDirectory(settingsPath)) {
       // perform git pull on the settings repo
-      this.context.gitPullOrClone(settingsPath, SETTINGS_REPO_URL);
+      this.context.gitPullOrClone(settingsPath, DEFAULT_SETTINGS_REPO_URL);
       this.context.success("Successfully updated settings repository.");
     } else {
-      throw new IllegalStateException("Cannot find settings repository.");
+      // check if a settings repository is given then clone, otherwise prompt user for a repository.
+      String repository = settingsRepo.getValue();
+      if (repository == null) {
+        if (this.context.isBatchMode()) {
+          repository = DEFAULT_SETTINGS_REPO_URL;
+        } else {
+          this.context.info("Missing your settings at {} and no SETTINGS_URL is defined.", settingsPath);
+          this.context.info("Further details can be found here:");
+          this.context.info("https://github.com/devonfw/IDEasy/blob/main/documentation/settings.asciidoc");
+          this.context.info("Please contact the technical lead of your project to get the SETTINGS_URL for your project.");
+          this.context.info("In case you just want to test IDEasy you may simply hit return to install the default settings.");
+          this.context.info();
+          repository = this.context.read("Settings URL [" + DEFAULT_SETTINGS_REPO_URL +"]: ");
+        }
+      }
+      if (repository.isBlank()) {
+        repository = DEFAULT_SETTINGS_REPO_URL;
+      }
+      this.context.gitPullOrClone(settingsPath, repository);
     }
   }
 

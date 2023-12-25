@@ -698,6 +698,14 @@ public abstract class AbstractIdeContext implements IdeContext {
     return option;
   }
 
+
+  public String read(String msg) {
+
+    interaction(msg);
+    return readLine();
+  }
+
+
   /**
    * @return the input from the end-user (e.g. read from the console).
    */

@@ -177,6 +177,8 @@ public interface IdeContext extends IdeLogger {
   @SuppressWarnings("unchecked")
   <O> O question(String question, O... options);
 
+  String read(String message);
+
   /**
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue.
    * Otherwise if the user answers with "no" an exception is thrown to abort further processing.
