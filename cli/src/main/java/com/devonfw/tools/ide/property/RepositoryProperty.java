@@ -51,6 +51,8 @@ public class RepositoryProperty extends Property<String> {
     Path legacyRepositoriesPath = context.getSettingsPath().resolve(context.FOLDER_LEGACY_REPOSITORIES);
 
     Path repositoryFile = Path.of(super.getValue());
+    if (repositoryFile == null) return null;
+    
     if (!Files.exists(repositoryFile)) {
       repositoryFile = repositoriesPath.resolve(repositoryFile.getFileName().toString() + ".properties");
     }
