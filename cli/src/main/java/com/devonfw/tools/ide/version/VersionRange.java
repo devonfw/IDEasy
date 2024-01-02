@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.version;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 /**
  * Container for a range of versions. The lower and upper bounds can be exclusive or inclusive. If a bound is null, it
  * means that this direction is unbounded. The boolean defining whether this bound is inclusive or exclusive is ignored
@@ -24,6 +27,31 @@ public final class VersionRange implements Comparable<VersionRange> {
   private static final String END_EXCLUDING_SUFFIX = ")";
 
   private static final String END_INCLUDING_SUFFIX = "]";
+
+  public static String getVersionSeparator() {
+
+    return VERSION_SEPARATOR;
+  }
+
+  public static String getStartExcludingPrefix() {
+
+    return START_EXCLUDING_PREFIX;
+  }
+
+  public static String getStartIncludingPrefix() {
+
+    return START_INCLUDING_PREFIX;
+  }
+
+  public static String getEndExcludingSuffix() {
+
+    return END_EXCLUDING_SUFFIX;
+  }
+
+  public static String getEndIncludingSuffix() {
+
+    return END_INCLUDING_SUFFIX;
+  }
 
   /**
    * The constructor.
@@ -193,6 +221,7 @@ public final class VersionRange implements Comparable<VersionRange> {
   }
 
   @Override
+  @JsonValue
   public String toString() {
 
     StringBuilder sb = new StringBuilder();
@@ -212,6 +241,7 @@ public final class VersionRange implements Comparable<VersionRange> {
    * @param value the {@link #toString() string representation} of a {@link VersionRange} to parse.
    * @return the parsed {@link VersionRange}.
    */
+  @JsonCreator
   public static VersionRange of(String value) {
 
     boolean leftIsExclusive = false;
@@ -247,31 +277,6 @@ public final class VersionRange implements Comparable<VersionRange> {
       max = VersionIdentifier.of(maxString);
     }
     return new VersionRange(min, max, leftIsExclusive, rightIsExclusive);
-  }
-
-  public static String getVersionSeparator() {
-
-    return VERSION_SEPARATOR;
-  }
-
-  public static String getStartExcludingPrefix() {
-
-    return START_EXCLUDING_PREFIX;
-  }
-
-  public static String getStartIncludingPrefix() {
-
-    return START_INCLUDING_PREFIX;
-  }
-
-  public static String getEndExcludingSuffix() {
-
-    return END_EXCLUDING_SUFFIX;
-  }
-
-  public static String getEndIncludingSuffix() {
-
-    return END_INCLUDING_SUFFIX;
   }
 
 }
