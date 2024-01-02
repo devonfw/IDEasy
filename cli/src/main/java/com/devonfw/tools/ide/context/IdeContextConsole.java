@@ -35,7 +35,7 @@ public class IdeContextConsole extends AbstractIdeContext {
   }
 
   @Override
-  protected String readLine() {
+  public String readLine() {
 
     if (this.scanner == null) {
       return System.console().readLine();

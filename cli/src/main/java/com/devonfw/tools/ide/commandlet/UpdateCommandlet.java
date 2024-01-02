@@ -43,8 +43,8 @@ public class UpdateCommandlet extends Commandlet {
   public void run() {
 
     updateSettings();
-    //updateSoftware();
-    //updateRepositories();
+    updateSoftware();
+    updateRepositories();
   }
 
 
@@ -68,8 +68,9 @@ public class UpdateCommandlet extends Commandlet {
           this.context.info("https://github.com/devonfw/IDEasy/blob/main/documentation/settings.asciidoc");
           this.context.info("Please contact the technical lead of your project to get the SETTINGS_URL for your project.");
           this.context.info("In case you just want to test IDEasy you may simply hit return to install the default settings.");
-          this.context.info();
-          repository = this.context.read("Settings URL [" + DEFAULT_SETTINGS_REPO_URL +"]: ");
+          this.context.info("");
+          this.context.info("Settings URL [{}]:", DEFAULT_SETTINGS_REPO_URL);
+          repository = this.context.readLine();
         }
       }
       if (repository.isBlank()) {

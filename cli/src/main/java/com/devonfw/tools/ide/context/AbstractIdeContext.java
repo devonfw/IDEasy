@@ -699,18 +699,6 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
 
-  public String read(String msg) {
-
-    interaction(msg);
-    return readLine();
-  }
-
-
-  /**
-   * @return the input from the end-user (e.g. read from the console).
-   */
-  protected abstract String readLine();
-
   private static <O> void addMapping(Map<String, O> mapping, String key, O option) {
 
     O duplicate = mapping.put(key, option);

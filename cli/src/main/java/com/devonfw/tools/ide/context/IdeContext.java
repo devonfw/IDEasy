@@ -177,7 +177,10 @@ public interface IdeContext extends IdeLogger {
   @SuppressWarnings("unchecked")
   <O> O question(String question, O... options);
 
-  String read(String message);
+  /**
+   * @return the input from the end-user (e.g. read from the console).
+   */
+   String readLine();
 
   /**
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue.
