@@ -64,8 +64,8 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
    *
    * @param versionRange the version range, specifying the versions of the tool to which the security risk applies.
    * @param matchedCpe the matched CPE.
-   * @param interval the interval of vulnerability that was used to determine the {@link VersionRange}. This is used to
-   *        check if the mapping from CPE version to UrlVersion was correct.
+   * @param interval the interval of vulnerability that was used to determine the {@link VersionRange}. This can be used
+   *        to manually check if the mapping from CPE version to UrlVersion was correct.
    * @param severity the severity of the security risk.
    * @param severityVersion Indicating from which version the {@code severity} was obtained. As of December 2023, this
    *        is either v2 or v3.

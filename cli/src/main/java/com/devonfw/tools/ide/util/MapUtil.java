@@ -14,7 +14,7 @@ public class MapUtil {
    * Creates a {@link HashMap} with the given {@code keys} and {@code values} which are passed as {@link List lists}.
    * The map is populated by iterating through both lists simultaneously until one of the list is exhausted.
    */
-  public static <K, V> Map<K, V> createMapWithLists(List<K> keys, List<V> values) {
+  public static <K, V> Map<K, V> createMapfromLists(List<K> keys, List<V> values) {
 
     Map<K, V> resultMap = new HashMap<>();
 

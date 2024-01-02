@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -59,6 +59,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 
 // TODO Doesn't yet work with versions defined like this /<tool>/<edition>/latest
+// TODO Sometimes when running this class is takes a long time to finish. Maybe this is because of the OWASP package, which
+// is updating the vulnerabilities. A dirty fix is to stop the program and restart it. 
 
 /**
  * This class is used to build the {@link UrlSecurityJsonFile} files for IDEasy. It scans the
@@ -133,7 +135,7 @@ public class BuildSecurityJsonFiles {
           .map(VersionIdentifier::toString).toList();
       List<String> sortedCpeVersions = sortedVersions.stream().map(urlUpdater::mapUrlVersionToCpeVersion)
           .collect(Collectors.toList());
-      Map<String, String> cpeToUrlVersion = MapUtil.createMapWithLists(sortedCpeVersions, sortedVersions);
+      Map<String, String> cpeToUrlVersion = MapUtil.createMapfromLists(sortedCpeVersions, sortedVersions);
 
       Set<Vulnerability> vulnerabilities = dependency.getVulnerabilities(true);
       for (Vulnerability vulnerability : vulnerabilities) {
@@ -174,7 +176,8 @@ public class BuildSecurityJsonFiles {
 
     if (vulnerability.getCvssV2() == null && vulnerability.getCvssV3() == null) {
       // TODO if this ever happens, add a case that handles this
-      throw new RuntimeException("Vulnerability without severity found: " + vulnerability.getName());
+      throw new RuntimeException("Vulnerability without severity found: " + vulnerability.getName() + "\\n"
+          + " Please contact https://github.com/devonfw/IDEasy and make a request to get this feature implemented.");
     }
     boolean hasV3Severity = vulnerability.getCvssV3() != null;
     double severityDouble = hasV3Severity ? vulnerability.getCvssV3().getBaseScore()
@@ -287,15 +290,11 @@ public class BuildSecurityJsonFiles {
       }
       return VersionRange.of(s + VersionRange.getVersionSeparator() + s);
     }
-    se = Optional.ofNullable(se).orElse("");
-    si = Optional.ofNullable(si).orElse("");
-    ee = Optional.ofNullable(ee).orElse("");
-    ei = Optional.ofNullable(ei).orElse("");
 
-    String leftBoundary = se.isEmpty() ? VersionRange.getStartIncludingPrefix() + si
+    String leftBoundary = se == null ? VersionRange.getStartIncludingPrefix() + Objects.toString(si, "")
         : VersionRange.getStartExcludingPrefix() + se;
 
-    String rightBoundary = ee.isEmpty() ? ei + VersionRange.getEndIncludingSuffix()
+    String rightBoundary = ee == null ? Objects.toString(ei, "") + VersionRange.getEndIncludingSuffix()
         : ee + VersionRange.getEndExcludingSuffix();
 
     return VersionRange.of(leftBoundary + VersionRange.getVersionSeparator() + rightBoundary);
