@@ -269,14 +269,12 @@ public final class VersionRange implements Comparable<VersionRange> {
 
     if (value.startsWith(START_EXCLUDING_PREFIX)) {
       value = value.substring(START_EXCLUDING_PREFIX.length());
-    }
-    if (value.startsWith(START_INCLUDING_PREFIX)) {
+    } else if (value.startsWith(START_INCLUDING_PREFIX)) {
       value = value.substring(START_INCLUDING_PREFIX.length());
     }
     if (value.endsWith(END_EXCLUDING_SUFFIX)) {
       value = value.substring(0, value.length() - END_EXCLUDING_SUFFIX.length());
-    }
-    if (value.endsWith(END_INCLUDING_SUFFIX)) {
+    } else if (value.endsWith(END_INCLUDING_SUFFIX)) {
       value = value.substring(0, value.length() - END_EXCLUDING_SUFFIX.length());
     }
     return value;
