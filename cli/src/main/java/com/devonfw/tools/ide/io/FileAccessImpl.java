@@ -477,4 +477,18 @@ public class FileAccessImpl implements FileAccess {
     return files;
   }
 
+  @Override
+  public List<Path> getChildrenInDir(Path dir) {
+
+    return getChildrenInDir(dir, path -> true);
+  }
+
+  @Override
+  public boolean isEmptyDir(Path dir) {
+
+    return getChildrenInDir(dir).isEmpty();
+  }
+
+
+
 }
