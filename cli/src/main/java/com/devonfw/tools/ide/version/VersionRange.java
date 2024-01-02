@@ -244,23 +244,9 @@ public final class VersionRange implements Comparable<VersionRange> {
   @JsonCreator
   public static VersionRange of(String value) {
 
-    boolean leftIsExclusive = false;
-    boolean rightIsExclusive = false;
-
-    if (value.startsWith(START_EXCLUDING_PREFIX)) {
-      leftIsExclusive = true;
-      value = value.substring(START_EXCLUDING_PREFIX.length());
-    }
-    if (value.startsWith(START_INCLUDING_PREFIX)) {
-      value = value.substring(START_INCLUDING_PREFIX.length());
-    }
-    if (value.endsWith(END_EXCLUDING_SUFFIX)) {
-      rightIsExclusive = true;
-      value = value.substring(0, value.length() - END_EXCLUDING_SUFFIX.length());
-    }
-    if (value.endsWith(END_INCLUDING_SUFFIX)) {
-      value = value.substring(0, value.length() - END_EXCLUDING_SUFFIX.length());
-    }
+    boolean leftIsExclusive = value.startsWith(START_EXCLUDING_PREFIX);
+    boolean rightIsExclusive = value.endsWith(END_EXCLUDING_SUFFIX);
+    value = removeAffixes(value);
 
     int index = value.indexOf(VERSION_SEPARATOR);
     if (index == -1) {
@@ -277,6 +263,21 @@ public final class VersionRange implements Comparable<VersionRange> {
       max = VersionIdentifier.of(maxString);
     }
     return new VersionRange(min, max, leftIsExclusive, rightIsExclusive);
+  }
+
+  private static String removeAffixes(String value) {
+
+    if (value.startsWith(START_EXCLUDING_PREFIX)) {
+      value = value.substring(START_EXCLUDING_PREFIX.length());
+    } else if (value.startsWith(START_INCLUDING_PREFIX)) {
+      value = value.substring(START_INCLUDING_PREFIX.length());
+    }
+    if (value.endsWith(END_EXCLUDING_SUFFIX)) {
+      value = value.substring(0, value.length() - END_EXCLUDING_SUFFIX.length());
+    } else if (value.endsWith(END_INCLUDING_SUFFIX)) {
+      value = value.substring(0, value.length() - END_EXCLUDING_SUFFIX.length());
+    }
+    return value;
   }
 
 }
