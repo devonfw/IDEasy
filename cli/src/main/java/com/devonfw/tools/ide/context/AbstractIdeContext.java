@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
@@ -487,7 +488,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        gitPullOrClone(this.urlsPath, "https://github.com/devonfw/ide-urls.git");
+        gitPullOrCloneIfNeeded(this.urlsPath, "https://github.com/devonfw/ide-urls.git");
       }
       this.urlMetadata = new UrlMetadata(this);
     }
@@ -651,6 +652,47 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
   }
+
+  /**
+   * Checks if the Git repository in the specified target folder needs an update by
+   * inspecting the modification time of a magic file.
+   *
+   * @param urlsPath The Path to the Urls repository.
+   * @param repoUrl The git remote URL of the Urls repository.
+   */
+
+  private void gitPullOrCloneIfNeeded(Path urlsPath, String repoUrl) {
+
+    Path magicFilePath = urlsPath.resolve(".git").resolve("HEAD");
+    long deltaThreshold = 5 * 60 * 1000; // 5 minutes in milliseconds
+
+    // Check if the .git directory exists
+    Path gitDirectory = urlsPath.resolve(".git");
+    if (Files.isDirectory(gitDirectory)) {
+      long currentTime = System.currentTimeMillis();
+      // Get the modification time of the magic file
+      long fileMTime;
+      try {
+        fileMTime = Files.getLastModifiedTime(magicFilePath).toMillis();
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not read " + magicFilePath, e);
+      }
+
+      // Check if the file modification time is older than the delta threshold
+      if (currentTime - fileMTime > deltaThreshold) {
+        gitPullOrClone(urlsPath, repoUrl);
+        try {
+          Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
+        } catch (IOException e) {
+          throw new IllegalStateException("Could not read " + magicFilePath, e);
+        }
+      }
+    } else {
+      // If the .git directory does not exist, perform git clone
+      gitPullOrClone(urlsPath, repoUrl);
+    }
+  }
+
 
   @Override
   public IdeSubLogger level(IdeLogLevel level) {
