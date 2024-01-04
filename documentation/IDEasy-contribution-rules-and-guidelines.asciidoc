@@ -8,15 +8,15 @@ The IDEasy *Project Board* with its Columns should be used as followed:
 refined
 * *Backlog*: [.underline]#Issues# that are refined but not yet being
 worked on
-* *Research*: [.underline]#Issues# that are blocked or needs complex
+* *Research*: [.underline]#Issues# that are blocked or need complex
 research/analysis to make progress. Typically, these are issues that
 somebody tried to solve but it turned out to be hard to make progress
 and find a solution.
 * *In Progress*: [.underline]#Issues# that are currently being worked
-on, they must be assigned to the person or People working on it. You can
+on, they must be assigned to the person (or people) working on it. You can
 see on the board if there is a pull-request linked to it. If not, the
 developer is still working on the story “in the dark”. Otherwise, there
-is already a solution implemented. If may be in draft state and
+is already a solution implemented. The PR may be in draft state, 
 otherwise the PR should be in one of the following two columns.
 * *Team Review*: [.underline]#Pull Request# that is to be or currently
 under review by a member of the dev team. The reviewer is the assignee
@@ -29,8 +29,8 @@ in the project.
 * *Done*: [.underline]#Issues# and [.underline]#Pull Request# that have
 been completed and merged.
 
-To better organize the board, and not overload the Review Columns, only
-Pull Request are allowed in these Columns, Issues remain in Progress.
+To better organize the board and avoid overload, only pull request are allowed in the review columns.
+Issues remain `in progress` until completed via merge of PR.
 
 General conventions for contributions to devonfw can be found
 https://github.com/devonfw/.github/blob/master/CONTRIBUTING.asciidoc#code-changes[here].
@@ -101,9 +101,8 @@ resolved.
 * After completing the review, the owner of the PR should be assigned.
 * After the team review is finished the PO (hohwille) should be
 assigned.
-* While reviewing a useful tool is the web ide given by github, to
-access simply open the “files changed” tab and press “.” on the
-keyboard.
+* While reviewing a useful tool is the web ide provided by github.
+Simply open the `files changed` tab and press `.` on the keyboard.
 * Another useful tool is to use the feature “insert a suggestion” while
 writing a comment (for more detail see
 https://haacked.com/archive/2019/06/03/suggested-changes/) (This feature
