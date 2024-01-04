@@ -93,7 +93,7 @@ public class VersionIdentifierTest extends Assertions {
     for (String version : illegalVersions) {
       try {
         VersionIdentifier.of(version);
-        fail("Illegal verion '" + version + "' did not cause an exception!");
+        fail("Illegal version '" + version + "' did not cause an exception!");
       } catch (Exception e) {
         assertThat(e).isInstanceOf(IllegalArgumentException.class);
         assertThat(e).hasMessageContaining(version);
