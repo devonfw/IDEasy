@@ -19,6 +19,10 @@ public interface EnvironmentVariables {
   /** Filename of the legacy variable configuration file. {@value} */
   String LEGACY_PROPERTIES = "devon.properties";
 
+  /**
+   * @param name the name of the environment variable to get.
+   * @return the value of the variable with the given {@code name}. Will be {@code null} if no such variable is defined.
+   */
   default String get(String name) {
 
     String value = getFlat(name);
