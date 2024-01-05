@@ -30,6 +30,29 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
+  public String getCpeVendor() {
+
+    return "helm";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "helm";
+  }
+
+  @Override
+  public String mapUrlVersionToCpeVersion(String version) {
+
+    return version.substring(getVersionPrefixToRemove().length());
+  }
+
+  public String mapCpeVersionToUrlVersion(String version) {
+
+    return getVersionPrefixToRemove() + version;
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
@@ -48,6 +71,5 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
 
     return super.mapVersion("v" + version);
   }
-
 
 }

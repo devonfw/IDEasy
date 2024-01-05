@@ -60,9 +60,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   protected boolean doInstall(boolean silent) {
 
     VersionIdentifier configuredVersion = getConfiguredVersion();
+    VersionIdentifier selectedVersion = securityRiskInteraction(configuredVersion);
+    setVersion(selectedVersion, silent);
     // install configured version of our tool in the software repository if not already installed
-    ToolInstallation installation = installInRepo(configuredVersion);
-
+    ToolInstallation installation = installInRepo(selectedVersion);
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier installedVersion = getInstalledVersion();
     VersionIdentifier resolvedVersion = installation.resolvedVersion();

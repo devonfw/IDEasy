@@ -6,8 +6,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tags;
@@ -20,6 +22,7 @@ import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.StringListProperty;
+import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -88,7 +91,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
    * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
-   *        is installed and use that one. Otherwise the specified version will be installed in the software repository
+   *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
    *        without touching and IDE installation and used to run.
    * @param args the commandline arguments to run the tool.
    */
@@ -171,6 +174,97 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * Checks if the given {@link VersionIdentifier} has a matching security warning in the {@link UrlSecurityJsonFile}.
+   *
+   * @param configuredVersion the {@link VersionIdentifier} to be checked.
+   * @return the {@link VersionIdentifier} to be used for installation. If the configured version is safe or there are
+   *         no save versions the potentially unresolved configured version is simply returned. Otherwise, a resolved
+   *         version is returned.
+   */
+  protected VersionIdentifier securityRiskInteraction(VersionIdentifier configuredVersion) {
+
+    UrlSecurityJsonFile securityFile = this.context.getUrls().getEdition(this.tool, this.getEdition())
+        .getSecurityJsonFile();
+
+    VersionIdentifier current = this.context.getUrls().getVersion(this.tool, this.getEdition(), configuredVersion);
+
+    if (!securityFile.contains(current, true, this.context, securityFile.getParent())) {
+      return configuredVersion;
+    }
+
+    List<VersionIdentifier> allVersions = this.context.getUrls().getSortedVersions(this.tool, this.getEdition());
+    VersionIdentifier latest = allVersions.get(0);
+
+    int currentVersionIndex = allVersions.indexOf(current);
+    VersionIdentifier nextSafe = null;
+    for (int i = currentVersionIndex - 1; i >= 0; i--) {
+      if (!securityFile.contains(allVersions.get(i), true, this.context, securityFile.getParent())) {
+        nextSafe = allVersions.get(i);
+        break;
+      }
+    }
+    VersionIdentifier latestSafe = null;
+    for (int i = 0; i < allVersions.size(); i++) {
+      if (!securityFile.contains(allVersions.get(i), true, this.context, securityFile.getParent())) {
+        latestSafe = allVersions.get(i);
+        break;
+      }
+    }
+    String cves = securityFile.getMatchingSecurityWarnings(current).stream().map(UrlSecurityWarning::getCveName)
+        .collect(Collectors.joining(", "));
+    String currentIsUnsafe = "Currently, version " + current + " of " + this.getName() + " is selected, "
+        + "which is has one or more vulnerabilities:\n\n" + cves + "\n\n(See also " + securityFile.getPath() + ")\n\n";
+
+    String ask = "Which version do you want to install?";
+
+    String stay = "Stay with the current unsafe version (" + current + ").";
+    String installLatestSafe = "Install the latest safe version (" + latestSafe + ").";
+    String installSafeLatest = "Install the (safe) latest version (" + latest + ").";
+    String installNextSafe = "Install the next safe version (" + nextSafe + ").";
+    // I don't need to offer "install latest which is unsafe" as option since the user can set to the latest and choose
+    // "stay"
+
+    if (latestSafe == null) {
+      this.context.warning(currentIsUnsafe + "There is no safe version available.");
+      return configuredVersion;
+    }
+
+    if (current.equals(latest)) {
+      String answer = this.context.question(currentIsUnsafe + "There are no updates available. " + ask, stay,
+          installLatestSafe);
+      return answer.equals(stay) ? configuredVersion : latestSafe;
+
+    } else if (nextSafe == null) { // install an older version that is safe or stay with the current unsafe version
+      String answer = this.context.question(currentIsUnsafe + " All newer versions are also not safe. " + ask, stay,
+          installLatestSafe);
+      return answer.equals(stay) ? configuredVersion : latestSafe;
+
+    } else if (nextSafe.equals(latest)) {
+      String answer = this.context.question(currentIsUnsafe + " Of the newer versions, only the latest is safe. " + ask,
+          stay, installSafeLatest);
+      return answer.equals(stay) ? configuredVersion : VersionIdentifier.LATEST;
+
+    } else if (nextSafe.equals(latestSafe)) {
+      String answer = this.context.question(
+          currentIsUnsafe + " Of the newer versions, only the version " + nextSafe
+              + " is safe, which is however not the latest." + ask,
+          stay, "Install the safe version (" + nextSafe + ")");
+      return answer.equals(stay) ? configuredVersion : nextSafe;
+
+    } else {
+      if (latestSafe.equals(latest)) {
+        String answer = this.context.question(currentIsUnsafe + ask, stay, installNextSafe, installSafeLatest);
+        return answer.equals(stay) ? configuredVersion
+            : answer.equals(installNextSafe) ? nextSafe : VersionIdentifier.LATEST;
+
+      } else {
+        String answer = this.context.question(currentIsUnsafe + ask, stay, installNextSafe, installLatestSafe);
+        return answer.equals(stay) ? configuredVersion : answer.equals(installNextSafe) ? nextSafe : latestSafe;
+      }
+    }
+  }
+
+  /**
    * Installs or updates the managed {@link #getName() tool}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
@@ -180,7 +274,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected abstract boolean doInstall(boolean silent);
 
   /**
-   * This method is called after the tool has been newly installed or updated to a new version.
+   * This method is called after the tool has been newly installed or updated to a new version. Override it to add
+   * custom post installation logic.
    */
   protected void postInstall() {
 

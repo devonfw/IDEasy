@@ -98,6 +98,54 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
+   * @return the vendor of the tool as specified in the CPE (Common Platform Enumeration)
+   */
+  public String getCpeVendor() {
+
+    return null;
+  }
+
+  /**
+   * @return the product name of the tool as specified in the CPE (Common Platform Enumeration)
+   */
+  public String getCpeProduct() {
+
+    return null;
+  }
+
+  /**
+   * @param urlEdition the {@link UrlEdition} to get the CPE (Common Platform Enumeration) edition for.
+   * @return the edition as specified in the CPE.
+   */
+  public String getCpeEdition(String urlEdition) {
+
+    return null;
+  }
+
+  /**
+   * @return maps the version as specified by the directory name in the url repository to the version as specified in
+   *         the CPE (Common Platform Enumeration).
+   */
+  public String mapUrlVersionToCpeVersion(String version) {
+
+    return version;
+  }
+
+  /**
+   * This method is only used as fallback if the passed version is not in the image of
+   * {@link #mapUrlVersionToCpeVersion(String)}. This doesn't have to be inverse of
+   * {@link #mapUrlVersionToCpeVersion(String)}. It must only be sufficient to get the correct VersionRange from the
+   * matched vulnerable software.
+   *
+   * @return maps the version as specified in the CPE (Common Platform Enumeration) to the version as specified by the
+   *         directory name in the url repository
+   */
+  public String mapCpeVersionToUrlVersion(String version) {
+
+    return version;
+  }
+
+  /**
    * Retrieves the response body from a given URL.
    *
    * @param url the URL to retrieve the response body from.
@@ -261,9 +309,9 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     if (isSuccess(response)) {
       String contentType = response.headers().firstValue("content-type").orElse("undefined");
       boolean isValidContentType = isValidContentType(contentType);
-      if (!isValidContentType){
+      if (!isValidContentType) {
         logger.error("For tool {} and version {} the download has an invalid content type {} for URL {}", tool, version,
-        contentType, url);
+            contentType, url);
         return false;
       }
       return true;
@@ -273,7 +321,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * Checks if the content type was not of type text (this method is required because {@link com.devonfw.tools.ide.tool.pip.PipUrlUpdater} returns text and needs to be overridden)
+   * Checks if the content type was not of type text (this method is required because
+   * {@link com.devonfw.tools.ide.tool.pip.PipUrlUpdater} returns text and needs to be overridden)
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
@@ -439,8 +488,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
         modified = true;
       }
 
-      logger.info("For tool {} and version {} the download verification succeeded with status code {} for URL {}.", tool,
-          version, code, url);
+      logger.info("For tool {} and version {} the download verification succeeded with status code {} for URL {}.",
+          tool, version, code, url);
     } else {
       if (status != null) {
         if (errorStatus == null) {
