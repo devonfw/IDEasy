@@ -191,8 +191,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
             rootValue);
         continue;
       }
-      EnvironmentVariables lowestFound = findVariable(variableName); // for DirectoryMergerTest this returned false when
-                                                                     // resolving IDE_HOME
+      EnvironmentVariables lowestFound = findVariable(variableName);
       boolean isNotSelfReferencing = lowestFound == null || !lowestFound.getFlat(variableName).equals(value);
 
       if (isNotSelfReferencing) {
