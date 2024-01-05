@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.common;
 import java.util.Set;
 
 /**
- * Factory of {@link Tag} instances and predefined taxonomy of standard tags.
+ * Interface for an object that {@link #getTags() has} {@link Tag}s.
  */
 public interface Tags {
 
