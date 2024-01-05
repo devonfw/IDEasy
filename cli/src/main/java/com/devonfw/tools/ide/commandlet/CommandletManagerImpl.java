@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.helm.Helm;
+import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
@@ -58,6 +59,8 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new VersionSetCommandlet(context));
     add(new VersionGetCommandlet(context));
     add(new VersionListCommandlet(context));
+    add(new RepositoryCommandlet(context));
+    add(new UpdateCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));
@@ -72,6 +75,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new KotlincNative(context));
     add(new Vscode(context));
     add(new Azure(context));
+    add(new Intellij(context));
   }
 
   private void add(Commandlet commandlet) {

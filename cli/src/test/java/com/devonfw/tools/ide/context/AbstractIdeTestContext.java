@@ -42,7 +42,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  protected String readLine() {
+  public String readLine() {
 
     if (this.answerIndex >= this.answers.length) {
       throw new IllegalStateException("End of answers reached!");

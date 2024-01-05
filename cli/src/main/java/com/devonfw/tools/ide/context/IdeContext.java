@@ -58,6 +58,12 @@ public interface IdeContext extends IdeLogger {
   /** The name of the bin folder where executable files are found by default. */
   String FOLDER_BIN = "bin";
 
+  /** The name of the repositories folder where properties files are stores for each repository */
+  String FOLDER_REPOSITORIES = "repositories";
+
+  /** The name of the repositories folder where properties files are stores for each repository */
+  String FOLDER_LEGACY_REPOSITORIES = "projects";
+
   /** The name of the Contents folder inside a MacOS app. */
   String FOLDER_CONTENTS = "Contents";
 
@@ -170,6 +176,11 @@ public interface IdeContext extends IdeLogger {
    */
   @SuppressWarnings("unchecked")
   <O> O question(String question, O... options);
+
+  /**
+   * @return the input from the end-user (e.g. read from the console).
+   */
+   String readLine();
 
   /**
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue.

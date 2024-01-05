@@ -155,7 +155,7 @@ public final class Ide {
   }
 
   /**
-   * @param argument the current {@link CliArgument} (position) to match.
+   * @param current the current {@link CliArgument} (position) to match.
    * @param commandlet the potential {@link Commandlet} to {@link #apply(CliArgument, Commandlet) apply} and
    *        {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
