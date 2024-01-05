@@ -169,31 +169,6 @@ public interface EnvironmentVariables {
   }
 
   /**
-   * @param name the {@link com.devonfw.tools.ide.variable.VariableDefinition#getName() name} of the variable to search
-   *        for.
-   * @param startAt the {@link EnvironmentVariablesType} where to start the upwards search.
-   * @return the closest {@link EnvironmentVariables} instance that defines the variable with the given {@code name} or
-   *         {@code null} if the variable is not defined.
-   */
-  default EnvironmentVariables findVariable(String name, EnvironmentVariablesType startAt) {
-
-    EnvironmentVariables current = this;
-    while (current.getType() != startAt) {
-      current = current.getParent();
-    }
-    String value = current.getFlat(name);
-    if (value != null) {
-      return current;
-    }
-    EnvironmentVariables parent = current.getParent();
-    if (parent == null) {
-      return null;
-    } else {
-      return parent.findVariable(name);
-    }
-  }
-
-  /**
    * @return the {@link Collection} of the {@link VariableLine}s defined by this {@link EnvironmentVariables} including
    *         inheritance.
    */
