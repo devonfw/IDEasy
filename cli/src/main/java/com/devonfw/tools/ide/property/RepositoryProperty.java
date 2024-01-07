@@ -47,8 +47,8 @@ public class RepositoryProperty extends Property<String> {
 
   public Path getValueAsPath(IdeContext context) {
 
-    Path repositoriesPath = context.getSettingsPath().resolve(context.FOLDER_REPOSITORIES);
-    Path legacyRepositoriesPath = context.getSettingsPath().resolve(context.FOLDER_LEGACY_REPOSITORIES);
+    Path repositoriesPath = context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES);
+    Path legacyRepositoriesPath = context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_REPOSITORIES);
 
     Path repositoryFile;
     if (super.getValue() != null) {
