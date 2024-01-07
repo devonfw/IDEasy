@@ -57,7 +57,7 @@ public class RepositoryProperty extends Property<String> {
     Path repositoryFile = Path.of(value);
     
     if (!Files.exists(repositoryFile)) {
-      repositoryFile = repositoriesPath.resolve(repositoryFile.getFileName().toString() + ".properties");
+      repositoryFile = repositoriesPath.resolve(value + ".properties");
     }
     if (!Files.exists(repositoryFile)) {
       Path legacyRepositoryFile = legacyRepositoriesPath.resolve(repositoryFile.getFileName().toString());
