@@ -17,7 +17,7 @@ import java.util.Properties;
 import static com.devonfw.tools.ide.commandlet.RepositoryConfig.loadProperties;
 
 /**
- * {@link Commandlet} to setup a repository
+ * {@link Commandlet} to setup one or multiple GIT repositories for development.
  */
 public class RepositoryCommandlet extends Commandlet {
 
