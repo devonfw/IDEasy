@@ -46,8 +46,8 @@ public class RepositoryCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    Path repositoriesPath = this.context.getSettingsPath().resolve(context.FOLDER_REPOSITORIES);
-    Path legacyRepositoriesPath = this.context.getSettingsPath().resolve(context.FOLDER_LEGACY_REPOSITORIES);
+    Path repositoriesPath = this.context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES);
+    Path legacyRepositoriesPath = this.context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_REPOSITORIES);
     Path repositoryFile = repository.getValueAsPath(context);
 
     if (repositoryFile != null) {
