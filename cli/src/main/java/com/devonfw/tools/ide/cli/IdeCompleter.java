@@ -79,14 +79,14 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
     Collection<Commandlet> commandletCollection = context.getCommandletManager().getCommandlets();
 
     for (Commandlet commandlet : commandletCollection) {
-      // TODO: add more logic to remove unused keyword
+      // TODO: add more logic to remove unused keyword, see: https://github.com/devonfw/IDEasy/issues/167
       commandlets.add(commandlet.getName());
       commandlets.add(commandlet.getKeyword());
     }
 
     for (Commandlet commandlet : commandletCollection) {
       if (commandlet instanceof ToolCommandlet) {
-        // TODO: add more logic to remove unused keyword
+        // TODO: add more logic to remove unused keyword, see: https://github.com/devonfw/IDEasy/issues/167
         toolCommandlets.add(commandlet.getName());
         toolCommandlets.add(commandlet.getKeyword());
       }

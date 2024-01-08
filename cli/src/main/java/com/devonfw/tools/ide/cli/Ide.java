@@ -104,42 +104,34 @@ public final class Ide {
   /**
    * Like {@link #run(String...)} but does not catch {@link Throwable}s so you can handle them yourself.
    *
-   * @param args the command-line arguments.
+   * @param args the command-line arguments. If no args are provided, the interactive autocompletion will be run.
    * @return the exit code.
    */
   public int runOrThrow(String... args) {
 
     if (args.length == 0) {
-      try {
-        runWithInteractiveCompletion();
-        return ProcessResult.SUCCESS;
-      } catch (RuntimeException e) {
-        return 1;
-      }
+      return runWithInteractiveCompletion();
+    } else {
+      CliArgument first = CliArgument.of(args);
+      CliArgument current = initContext(first);
+      return processCliArgument(current);
     }
 
-    CliArgument first = CliArgument.of(args);
-    CliArgument current = initContext(first);
-    return processCliArgument(current);
   }
 
   /**
    * Runs jline3 with interactive autocompletion.
+   *
+   * @return
    */
-  private void runWithInteractiveCompletion() {
+  private int runWithInteractiveCompletion() {
 
     try {
       ContextCommandlet init = new ContextCommandlet();
       init.run();
       this.context = init.getIdeContext();
 
-      // Supplier<Path> workDir = context::getCwd;
-      // set up JLine built-in commands
-      // TODO: fix BuiltIns or remove
-      // Builtins builtins = new Builtins(workDir, null, null);
-      // builtins.rename(Builtins.Command.TTOP, "top");
-      // builtins.alias("zle", "widget");
-      // builtins.alias("bindkey", "keymap");
+      // TODO: add BuiltIns here, see: https://github.com/devonfw/IDEasy/issues/168
 
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
@@ -155,13 +147,7 @@ public final class Ide {
         // Enable autosuggestions
         autosuggestionWidgets.enable();
 
-        // TODO: implement TailTipWidgets
-        // TailTipWidgets widgets = new TailTipWidgets(reader, systemRegistry::commandDescription, 5,
-        // TailTipWidgets.TipType.COMPLETER);
-        // widgets.enable();
-        // TODO: add own KeyMap
-        // KeyMap<Binding> keyMap = reader.getKeyMaps().get("main");
-        // keyMap.bind(new Reference("tailtip-toggle"), KeyMap.alt("s"));
+        // TODO: implement TailTipWidgets, see: https://github.com/devonfw/IDEasy/issues/169
 
         String prompt = "prompt> ";
         String rightPrompt = null;
@@ -177,14 +163,15 @@ public final class Ide {
               init.resetRunParams();
             } catch (Exception e) {
               context.error("An error occurred while running the CLI command:{} {}", line, e);
+              return 1;
             }
           } catch (UserInterruptException e) {
             // Ignore CTRL+C
           } catch (EndOfFileException e) {
             // CTRL+D
-            return;
           } catch (Exception e) {
             context.error("An error occurred while using autocompletion: {}", e);
+            return 1;
           } finally {
             AnsiConsole.systemUninstall();
           }
