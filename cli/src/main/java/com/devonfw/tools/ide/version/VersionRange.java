@@ -198,26 +198,21 @@ public final class VersionRange implements Comparable<VersionRange> {
   @Override
   public boolean equals(Object obj) {
 
-    if (this == obj)
+    if (this == obj) {
       return true;
-
-    if (obj == null || getClass() != obj.getClass())
+    } else if ((obj == null) || (getClass() != obj.getClass())) {
       return false;
-
+    }
     VersionRange o = (VersionRange) obj;
-
     if (this.min == null && this.max == null) {
       return o.min == null && o.max == null;
-    }
-    if (this.min == null) {
+    } else if (this.min == null) {
       return o.min == null && this.max.equals(o.max) && this.rightIsExclusive == o.rightIsExclusive;
-    }
-    if (this.max == null) {
+    } else if (this.max == null) {
       return this.min.equals(o.min) && o.max == null && this.leftIsExclusive == o.leftIsExclusive;
     }
     return this.min.equals(o.min) && this.leftIsExclusive == o.leftIsExclusive && this.max.equals(o.max)
         && this.rightIsExclusive == o.rightIsExclusive;
-
   }
 
   @Override
