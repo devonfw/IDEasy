@@ -157,9 +157,9 @@ public class CommandletRegistry implements CommandRegistry {
     // AttributedString.stripAnsi(spec.usageMessage().sectionMap().get("synopsis").render(cmdhelp).toString());
     // main.add(Options.HelpException.highlightSyntax(synopsis.trim(), Options.HelpException.defaultStyle()));
 
-    AttributedString attributedString = new AttributedString("test");
+    AttributedString attributedString = new AttributedString("PlaceHolderCommandletName");
     main.add(attributedString);
-    options.put("test", main);
+    options.put("PlaceHolderCommandletName", main);
     // for (OptionSpec o : spec.options()) {
     // String key = Arrays.stream(o.names()).collect(Collectors.joining(" "));
     // List<AttributedString> val = new ArrayList<>();
@@ -173,6 +173,6 @@ public class CommandletRegistry implements CommandRegistry {
     // }
     // return new CmdDesc(main, ArgDesc.doArgNames(Arrays.asList("")), options);
     // TODO: implement this
-    return new CmdDesc(main, ArgDesc.doArgNames(Arrays.asList("description")), options);
+    return new CmdDesc(main, ArgDesc.doArgNames(Arrays.asList("PlaceHolderCommandletDescription")), options);
   }
 }
