@@ -59,10 +59,28 @@ public interface FileAccess {
   void move(Path source, Path targetDir);
 
   /**
-   * @param source the source {@link Path} to link to.
+   * Creates a symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a Windows
+   * junction, it will be replaced. In case of missing privileges, Windows Junctions may be used as fallback, which must
+   * point to absolute paths. Therefore, the created link will be absolute instead of relative.
+   * 
+   * @param source the source {@link Path} to link to, may be relative or absolute.
+   * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
+   * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
+   */
+  void symlink(Path source, Path targetLink, boolean relative);
+
+  /**
+   * Creates a relative symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a
+   * Windows junction, it will be replaced. In case of missing privileges, Windows Junctions may be used as fallback,
+   * which must point to absolute paths. Therefore, the created link will be absolute instead of relative.
+   * 
+   * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
    */
-  void symlink(Path source, Path targetLink);
+  default void symlink(Path source, Path targetLink) {
+
+    symlink(source, targetLink, true);
+  }
 
   /**
    * @param source the source {@link Path file or folder} to copy.
