@@ -15,7 +15,6 @@ import org.junit.jupiter.api.io.TempDir;
 /**
  * Test of {@link EnvironmentVariablesPropertiesFile}.
  */
-@SuppressWarnings("javadoc")
 class EnvironmentVariablesPropertiesFileTest extends Assertions {
 
   /**
@@ -77,7 +76,7 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     variables.set("var5", "5", true);
     variables.set("var1", "1.0", false);
     variables.set("var10", "10", false);
-    variables.set("var11", "11", true); // var11 must be set after var 10, the other lines can be shuffled
+    variables.set("var11", "11", true);
     variables.set("var3", "3", false);
     variables.set("var7", "7", true);
     variables.set("var6", "6.0", true);
