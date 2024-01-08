@@ -315,8 +315,8 @@ public class FileAccessImpl implements FileAccess {
         return;
       }
     }
-    exists = exists || Files.exists(path); // "||" since broken junctions are not detected by
-    // Files.exists(brokenJunction)
+    // "||" since broken junctions are not detected by Files.exists(brokenJunction)
+    exists = exists || Files.exists(path);
     boolean isSymlink = exists && Files.isSymbolicLink(path);
 
     assert !(isSymlink && isJunction);
