@@ -88,7 +88,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
    * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
-   *        is installed and use that one. Otherwise the specified version will be installed in the software repository
+   *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
    *        without touching and IDE installation and used to run.
    * @param args the commandline arguments to run the tool.
    */
@@ -266,12 +266,17 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       } else {
         throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + file);
       }
-      fileAccess.move(getProperInstallationSubDirOf(tmpDir), targetDir);
+      moveAndProcessExtraction(getProperInstallationSubDirOf(tmpDir), targetDir);
       fileAccess.delete(tmpDir);
     } else {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", getName(), file);
       fileAccess.move(file, targetDir);
     }
+  }
+
+  protected void moveAndProcessExtraction(Path from, Path to) {
+
+    this.context.getFileAccess().move(from, to);
   }
 
   /**

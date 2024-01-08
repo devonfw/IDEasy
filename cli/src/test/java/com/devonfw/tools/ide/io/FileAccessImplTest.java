@@ -325,7 +325,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
   /**
    * Checks if the symlinks exist. This is used by the tests of {@link FileAccessImpl#symlink(Path, Path, boolean)}.
-   * 
+   *
    * @param dir the {@link Path} to the directory where the symlinks are expected.
    */
   private void assertSymlinksExist(Path dir) {
