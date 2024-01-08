@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.io;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Predicate;
 
 /**
@@ -148,5 +149,22 @@ public interface FileAccess {
    * @return the first child {@link Path} matching the given {@link Predicate} or {@code null} if no match was found.
    */
   Path findFirst(Path dir, Predicate<Path> filter, boolean recursive);
+
+  /**
+   * Retrieves a list of file paths from the specified directory that satisfy the given predicate.
+   * @param dir the folder to iterate through
+   * @param filter the {@link Predicate} that determines whether a file should be included in the list.
+   * @return a list of paths that satisfy the provided {@link Predicate}. Will be {@link List#isEmpty() empty} if no match was found but is never {@code null}.
+   */
+  List<Path> getChildrenInDir(Path dir, Predicate<Path> filter);
+
+  /**
+   * Finds the existing file with the specified name in the given list of directories.
+   *
+   * @param fileName      The name of the file to find.
+   * @param searchDirs    The list of directories to search for the file.
+   * @return              The {@code Path} of the existing file, or {@code null} if the file is not found.
+   */
+  Path findExistingFile(String fileName, List<Path> searchDirs);
 
 }
