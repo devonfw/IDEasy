@@ -158,18 +158,18 @@ public final class VersionRange implements Comparable<VersionRange> {
   public boolean contains(VersionIdentifier version) {
 
     if (this.min != null) {
-      if (this.min.equals(version)) {
-        return !this.leftIsExclusive;
-      }
-      if (version.isLess(this.min)) {
+      VersionComparisonResult compareMin = version.compareVersion(this.min);
+      if (compareMin.isLess()) {
+        return false;
+      } else if (compareMin.isEqual() && !this.leftIsExclusive) {
         return false;
       }
     }
     if (this.max != null) {
-      if (this.max.equals(version)) {
-        return !this.rightIsExclusive;
-      }
-      if (version.isGreater(this.max)) {
+      VersionComparisonResult compareMax = version.compareVersion(this.max);
+      if (compareMax.isGreater()) {
+        return false;
+      } else if (compareMax.isEqual() && !this.rightIsExclusive) {
         return false;
       }
     }
