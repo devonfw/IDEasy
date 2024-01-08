@@ -20,6 +20,7 @@ import org.jline.widget.AutosuggestionWidgets;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.HelpCommandlet;
+import com.devonfw.tools.ide.commandlet.VersionCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeContextConsole;
@@ -169,6 +170,7 @@ public final class Ide {
             // Ignore CTRL+C
           } catch (EndOfFileException e) {
             // CTRL+D
+            return 0;
           } catch (Exception e) {
             context.error("An error occurred while using autocompletion: {}", e);
             return 1;
@@ -258,9 +260,6 @@ public final class Ide {
   private CliArgument retrieveCliArgumentByContext(CliArgument first, ContextCommandlet contextCommandlet) {
 
     CliArgument current = initContext(first, contextCommandlet);
-    if (contextCommandlet.version.isTrue()) {
-      return null;
-    }
     return current;
   }
 
@@ -270,9 +269,6 @@ public final class Ide {
     CliArgument current = initContext(first, init);
     init.run();
     this.context = init.getIdeContext();
-    if (init.version.isTrue()) {
-      return null;
-    }
     return current;
   }
 

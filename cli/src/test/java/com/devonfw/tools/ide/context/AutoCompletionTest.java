@@ -23,6 +23,15 @@ public class AutoCompletionTest extends AutocompletionReaderTestSupport {
   }
 
   @Test
+  public void testIdeCompleterVersion() throws IOException {
+
+    ContextCommandlet contextCommandlet = new ContextCommandlet();
+    IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
+    reader.setCompleter(new IdeCompleter(contextCommandlet, ideContext));
+    assertBuffer("IDEasy-version ", new TestBuffer("IDE").tab().tab());
+  }
+
+  @Test
   public void testIdeCompleterInstall() throws IOException {
 
     ContextCommandlet contextCommandlet = new ContextCommandlet();

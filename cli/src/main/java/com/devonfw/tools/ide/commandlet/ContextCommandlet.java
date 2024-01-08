@@ -26,9 +26,6 @@ public class ContextCommandlet extends Commandlet {
 
   private final FlagProperty offline;
 
-  /** The flag to print the version and exit. */
-  public final FlagProperty version;
-
   private final LocaleProperty locale;
 
   private AbstractIdeContext ideContext;
@@ -45,7 +42,6 @@ public class ContextCommandlet extends Commandlet {
     this.debug = add(new FlagProperty("--debug", false, "-d"));
     this.quiet = add(new FlagProperty("--quiet", false, "-q"));
     this.offline = add(new FlagProperty("--offline", false, "-o"));
-    this.version = add(new FlagProperty("--version", false, "-v"));
     this.locale = add(new LocaleProperty("--locale", false, null));
   }
 
@@ -84,9 +80,6 @@ public class ContextCommandlet extends Commandlet {
     this.ideContext.setQuietMode(this.quiet.isTrue());
     this.ideContext.setOfflineMode(this.offline.isTrue());
     this.ideContext.setLocale(this.locale.getValue());
-    if (this.version.isTrue()) {
-      this.ideContext.info(IdeVersion.get());
-    }
   }
 
   /**
@@ -107,7 +100,6 @@ public class ContextCommandlet extends Commandlet {
     this.ideContext.setForceMode(false);
     this.ideContext.setQuietMode(false);
     this.ideContext.setOfflineMode(false);
-    this.version.setValue(false);
     this.trace.setValue(false);
     this.debug.setValue(false);
     this.quiet.setValue(false);
