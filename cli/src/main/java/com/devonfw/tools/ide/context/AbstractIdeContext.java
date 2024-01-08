@@ -120,15 +120,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     super();
     this.loggerFactory = factory;
     this.loggers = new HashMap<>();
-    for (IdeLogLevel level : IdeLogLevel.values()) {
-      IdeSubLogger logger;
-      if (level.ordinal() < minLogLevel.ordinal()) {
-        logger = new IdeSubLoggerNone(level);
-      } else {
-        logger = factory.apply(level);
-      }
-      this.loggers.put(level, logger);
-    }
+    setLogLevel(minLogLevel);
     this.systemInfo = new SystemInfoImpl();
     this.commandletManager = CommandletManagerImpl.getOrCreate(this);
     this.fileAccess = new FileAccessImpl(this);
