@@ -181,7 +181,7 @@ public abstract class AbstractIdeContext implements IdeContext {
           if (!ideRootPath.equals(rootPath)) {
             warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", root, this.ideHome.getFileName(), ideRootPath);
           }
-          ideRootPath = this.ideHome.getParent();
+          ideRootPath = rootPath;
         } else {
           warning("Variable IDE_ROOT is not set to a valid directory '{}'." + root);
           ideRootPath = null;
