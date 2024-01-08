@@ -15,6 +15,7 @@ import org.junit.jupiter.api.io.TempDir;
 /**
  * Test of {@link EnvironmentVariablesPropertiesFile}.
  */
+@SuppressWarnings("javadoc")
 class EnvironmentVariablesPropertiesFileTest extends Assertions {
 
   /**
