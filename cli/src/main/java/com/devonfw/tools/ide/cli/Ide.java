@@ -111,7 +111,7 @@ public final class Ide {
 
     if (args.length == 0) {
       try {
-        initializeJlineCompletion();
+        runWithInteractiveCompletion();
         return ProcessResult.SUCCESS;
       } catch (RuntimeException e) {
         return 1;
@@ -124,9 +124,9 @@ public final class Ide {
   }
 
   /**
-   * Initializes jline3 autocompletion.
+   * Runs jline3 with interactive autocompletion.
    */
-  private void initializeJlineCompletion() {
+  private void runWithInteractiveCompletion() {
 
     try {
       ContextCommandlet init = new ContextCommandlet();
