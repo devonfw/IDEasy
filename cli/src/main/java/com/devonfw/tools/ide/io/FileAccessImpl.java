@@ -293,67 +293,158 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
+  /**
+   * Deletes the given {@link Path} if it is a symbolic link or a Windows junction. And throws an
+   * {@link IllegalStateException} if there is a file at the given {@link Path} that is neither a symbolic link nor a
+   * Windows junction.
+   *
+   * @param path the {@link Path} to delete.
+   * @throws IOException if the actual {@link Files#delete(Path) deletion} fails.
+   */
+  private void deleteLinkIfExists(Path path) throws IOException {
+
+    boolean exists = false;
+    boolean isJunction = false;
+    if (this.context.getSystemInfo().isWindows()) {
+      try { // since broken junctions are not detected by Files.exists(brokenJunction)
+        BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+        exists = true;
+        isJunction = attr.isOther() && attr.isDirectory();
+      } catch (NoSuchFileException e) {
+        // ignore, since there is no previous file at the location, so nothing to delete
+        return;
+      }
+    }
+    exists = exists || Files.exists(path); // "||" since broken junctions are not detected by
+    // Files.exists(brokenJunction)
+    boolean isSymlink = exists && Files.isSymbolicLink(path);
+
+    assert !(isSymlink && isJunction);
+
+    if (exists) {
+      if (isJunction || isSymlink) {
+        this.context.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
+        Files.delete(path);
+      } else {
+        throw new IllegalStateException(
+            "The file at " + path + " was not deleted since it is not a symlink or a Windows junction");
+      }
+    }
+  }
+
+  /**
+   * Adapts the given {@link Path} to be relative or absolute depending on the given {@code relative} flag.
+   * Additionally, {@link Path#toRealPath(LinkOption...)} is applied to {@code source}.
+   *
+   * @param source the {@link Path} to adapt.
+   * @param targetLink the {@link Path} used to calculate the relative path to the {@code source} if {@code relative} is
+   *        set to {@code true}.
+   * @param relative the {@code relative} flag.
+   * @return the adapted {@link Path}.
+   * @see FileAccessImpl#symlink(Path, Path, boolean)
+   */
+  private Path adaptPath(Path source, Path targetLink, boolean relative) throws IOException {
+
+    if (source.isAbsolute()) {
+      try {
+        source = source.toRealPath(LinkOption.NOFOLLOW_LINKS); // to transform ../d1/../d2 to ../d2
+      } catch (IOException e) {
+        throw new IOException(
+            "Calling toRealPath() on the source (" + source + ") in method FileAccessImpl.adaptPath() failed.", e);
+      }
+      if (relative) {
+        source = targetLink.getParent().relativize(source);
+        // to make relative links like this work: dir/link -> dir
+        source = (source.toString().isEmpty()) ? Paths.get(".") : source;
+      }
+    } else { // source is relative
+      if (relative) {
+        // even though the source is already relative, toRealPath should be called to transform paths like
+        // this ../d1/../d2 to ../d2
+        source = targetLink.getParent()
+            .relativize(targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS));
+        source = (source.toString().isEmpty()) ? Paths.get(".") : source;
+      } else { // !relative
+        try {
+          source = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
+        } catch (IOException e) {
+          throw new IOException("Calling toRealPath() on " + targetLink + ".resolveSibling(" + source
+              + ") in method FileAccessImpl.adaptPath() failed.", e);
+        }
+      }
+    }
+    return source;
+  }
+
+  /**
+   * Creates a Windows junction at {@code targetLink} pointing to {@code source}.
+   *
+   * @param source must be another Windows junction or a directory.
+   * @param targetLink the location of the Windows junction.
+   */
+  private void createWindowsJunction(Path source, Path targetLink) {
+
+    this.context.trace("Creating a Windows junction at " + targetLink + " with " + source + " as source.");
+    Path fallbackPath;
+    if (!source.isAbsolute()) {
+      this.context.warning(
+          "You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
+              + "alternative, however, these can not point to relative paths. So the source (" + source
+              + ") is interpreted as an absolute path.");
+      try {
+        fallbackPath = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
+      } catch (IOException e) {
+        throw new IllegalStateException(
+            "Since Windows junctions are used, the source must be an absolute path. The transformation of the passed "
+                + "source (" + source + ") to an absolute path failed.",
+            e);
+      }
+
+    } else {
+      fallbackPath = source;
+    }
+    if (!Files.isDirectory(fallbackPath)) { // if source is a junction. This returns true as well.
+      throw new IllegalStateException(
+          "These junctions can only point to directories or other junctions. Please make sure that the source ("
+              + fallbackPath + ") is one of these.");
+    }
+    this.context.newProcess().executable("cmd")
+        .addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), fallbackPath.toString()).run();
+  }
+
   @Override
   public void symlink(Path source, Path targetLink, boolean relative) {
 
-    if (!source.isAbsolute()) {
-      throw new IllegalStateException("When creating a symbolic link the source (" + source
-          + ") must be an absolute path. If you want to create a relative link, "
-          + "then pass the source as an absolute path and set the flag \"relative\" to true.");
+    Path adaptedSource = null;
+    try {
+      adaptedSource = adaptPath(source, targetLink, relative);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to adapt source for source (" + source + ") target (" + targetLink
+          + ") and relative (" + relative + ")", e);
     }
-    Path relativeSource = null;
-    if (relative) {
-      relativeSource = targetLink.getParent().relativize(source);
-      // to make relative links like this work: dir/link -> dir
-      relativeSource = (relativeSource.toString().isEmpty()) ? Paths.get(".") : relativeSource;
-      this.context.trace("Creating a relative symbolic link {} pointing to {}, with absolute path {}", targetLink,
-          relativeSource, source);
-    } else {
-      this.context.trace("Creating symbolic link {} pointing to {}", targetLink, source);
+    this.context.trace("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative",
+        targetLink, adaptedSource);
+
+    try {
+      deleteLinkIfExists(targetLink);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to delete previous symlink or Windows junction at " + targetLink, e);
     }
 
     try {
-      if (Files.exists(targetLink)) {
-        if (Files.isSymbolicLink(targetLink)) {
-          this.context.debug("Deleting symbolic link to be re-created at {}", targetLink);
-          Files.delete(targetLink);
-        }
-      }
-      try { // since broken junctions are not detected by Files.exists(brokenJunction)
-        BasicFileAttributes attr = Files.readAttributes(targetLink, BasicFileAttributes.class,
-            LinkOption.NOFOLLOW_LINKS);
-        if (attr.isOther() && attr.isDirectory() && this.context.getSystemInfo().isWindows()) {
-          this.context.debug("Deleting symbolic link (junction) to be re-created at {}", targetLink);
-          Files.delete(targetLink);
-        }
-      } catch (NoSuchFileException e) {
-        // ignore, since there is no previous file at the location, which is fine
-      }
-      Files.createSymbolicLink(targetLink, relative ? relativeSource : source);
+      Files.createSymbolicLink(targetLink, adaptedSource);
     } catch (FileSystemException e) {
       if (this.context.getSystemInfo().isWindows()) {
-        String infoMsg = "Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
+        this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
             + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for "
-            + "further details. Error was: " + e.getMessage();
-        this.context.info(infoMsg);
-        if (relative) {
-          this.context.warning(
-              "You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
-                  + "alternative, however, these can not point to relative paths. So the flag \"relative = true\" is ignored.");
-        }
-        if (!Files.isDirectory(source)) { // if source is a junction. This returns true as well.
-          throw new IllegalStateException(infoMsg
-              + "\\n These junctions can only point to directories or other junctions. Please make sure that the source ("
-              + source + ") is one of these.");
-        }
-        this.context.newProcess().executable("cmd")
-            .addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), source.toString()).run();
+            + "further details. Error was: " + e.getMessage());
+        createWindowsJunction(adaptedSource, targetLink);
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a symbolic link " + targetLink + " pointing to " + source
-          + " with the flag \"relative\" set to " + relative, e);
+      throw new IllegalStateException("Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative")
+          + "symbolic link " + targetLink + " pointing to " + source, e);
     }
   }
 

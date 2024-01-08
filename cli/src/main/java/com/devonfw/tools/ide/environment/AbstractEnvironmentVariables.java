@@ -28,6 +28,8 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   // Variable surrounded with "${" and "}" such as "${JAVA_HOME}" 1......2........
   private static final Pattern VARIABLE_SYNTAX = Pattern.compile("(\\$\\{([^}]+)})");
 
+  private static final String SELF_REFERENCING_NOT_FOUND = "";
+
   private static final int MAX_RECURSION = 9;
 
   private static final String VARIABLE_PREFIX = "${";
@@ -161,19 +163,44 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   @Override
   public String resolve(String string, Object src) {
 
-    return resolve(string, src, 0, src, string);
+    return resolve(string, src, 0, src, string, this);
   }
 
-  private String resolve(String value, Object src, int recursion, Object rootSrc, String rootValue) {
+  /**
+   * This method is called recursively. This allows you to resolve variables that are defined by other variables.
+   *
+   * @param value the {@link String} that potentially contains variables in the syntax "${«variable«}". Those will be
+   *        resolved by this method and replaced with their {@link #get(String) value}.
+   * @param src the source where the {@link String} to resolve originates from. Should have a reasonable
+   *        {@link Object#toString() string representation} that will be used in error or log messages if a variable
+   *        could not be resolved.
+   * @param recursion the current recursion level. This is used to interrupt endless recursion.
+   * @param rootSrc the root source where the {@link String} to resolve originates from.
+   * @param rootValue the root value to resolve.
+   * @param resolvedVars this is a reference to an object of {@link EnvironmentVariablesResolved} being the lowest level
+   *        in the {@link EnvironmentVariablesType hierarchy} of variables. In case of a self-referencing variable
+   *        {@code x} the resolving has to continue one level higher in the {@link EnvironmentVariablesType hierarchy}
+   *        to avoid endless recursion. The {@link EnvironmentVariablesResolved} is then used if another variable
+   *        {@code y} must be resolved, since resolving this variable has to again start at the lowest level. For
+   *        example: For levels {@code l1, l2} with {@code l1 < l2} and {@code x=${x} foo} and {@code y=bar} defined at
+   *        level {@code l1} and {@code x=test ${y}} defined at level {@code l2}, {@code x} is first resolved at level
+   *        {@code l1} and then up the {@link EnvironmentVariablesType hierarchy} at {@code l2} to avoid endless
+   *        recursion. However, {@code y} must be resolved starting from the lowest level in the
+   *        {@link EnvironmentVariablesType hierarchy} and therefore {@link EnvironmentVariablesResolved} is used.
+   * @return the given {@link String} with the variables resolved.
+   */
+  private String resolve(String value, Object src, int recursion, Object rootSrc, String rootValue,
+      AbstractEnvironmentVariables resolvedVars) {
 
     if (value == null) {
       return null;
     }
     if (recursion > MAX_RECURSION) {
-      throw new IllegalStateException("Reached maximum recursion resolving " + value + " for root valiable " + rootSrc
+      throw new IllegalStateException("Reached maximum recursion resolving " + value + " for root variable " + rootSrc
           + " with value '" + rootValue + "'.");
     }
     recursion++;
+
     Matcher matcher = VARIABLE_SYNTAX.matcher(value);
     if (!matcher.find()) {
       return value;
@@ -181,16 +208,43 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     StringBuilder sb = new StringBuilder(value.length() + EXTRA_CAPACITY);
     do {
       String variableName = matcher.group(2);
-      String variableValue = getValue(variableName);
+      String variableValue = resolvedVars.getValue(variableName);
       if (variableValue == null) {
         this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, src, value, rootSrc,
             rootValue);
-      } else {
-        String replacement = resolve(variableValue, variableName, recursion, rootSrc, rootValue);
+        continue;
+      }
+      EnvironmentVariables lowestFound = findVariable(variableName);
+      boolean isNotSelfReferencing = lowestFound == null || !lowestFound.getFlat(variableName).equals(value);
+
+      if (isNotSelfReferencing) {
+        // looking for "variableName" starting from resolved upwards the hierarchy
+        String replacement = resolvedVars.resolve(variableValue, variableName, recursion, rootSrc, rootValue,
+            resolvedVars);
         matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+      } else { // is self referencing
+        // finding next occurrence of "variableName" up the hierarchy of EnvironmentVariablesType
+        EnvironmentVariables next = lowestFound.getParent();
+        while (next != null) {
+          if (next.getFlat(variableName) != null) {
+            break;
+          }
+          next = next.getParent();
+        }
+        if (next == null) {
+          matcher.appendReplacement(sb, Matcher.quoteReplacement(SELF_REFERENCING_NOT_FOUND));
+          continue;
+        }
+        // resolving a self referencing variable one level up the hierarchy of EnvironmentVariablesType, i.e. at "next",
+        // to avoid endless recursion
+        String replacement = ((AbstractEnvironmentVariables) next).resolve(next.getFlat(variableName), variableName,
+            recursion, rootSrc, rootValue, resolvedVars);
+        matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
+
       }
     } while (matcher.find());
     matcher.appendTail(sb);
+
     String resolved = sb.toString();
     return resolved;
   }

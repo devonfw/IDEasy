@@ -63,13 +63,13 @@ public class Aws extends LocalToolCommandlet {
       pc.addArgs("-i", from.toString(), "-b", from.toString());
       pc.run();
 
-      // the install-script that aws ships creates symbolic links to binaries but using absolute paths
-      // since the current process happens in a temporary dir these links wouldn't be valid after moving the
+      // The install-script that aws ships creates symbolic links to binaries but using absolute paths.
+      // Since the current process happens in a temporary dir, these links wouldn't be valid after moving the
       // installation files to the target dir. So the absolute paths are replaced by relative ones.
       for (String file : new String[] { "aws", "aws_completer", Path.of("v2").resolve("current").toString() }) {
         Path link = from.resolve(file);
         try {
-          this.context.getFileAccess().symlink(link.toRealPath(), link);
+          this.context.getFileAccess().symlink(link.toRealPath(), link, true);
         } catch (IOException e) {
           throw new RuntimeException(
               "Failed to replace absolute link (" + link + ") provided by AWS install script with relative link.", e);
