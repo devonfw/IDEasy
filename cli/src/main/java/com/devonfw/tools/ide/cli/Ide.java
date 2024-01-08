@@ -180,8 +180,8 @@ public final class Ide {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-    } catch (Throwable e) {
-      throw new RuntimeException(e);
+    } catch (Exception e) {
+      throw new RuntimeException("Unexpected error during interactive auto-completion", e);
     }
   }
 
@@ -231,7 +231,7 @@ public final class Ide {
     return 1;
   }
 
-  private CliArgument retrieveCliArgument(CliArgument first, ContextCommandlet contextCommandlet) {
+  private CliArgument initContext(CliArgument first, ContextCommandlet contextCommandlet) {
 
     CliArgument current = first;
     while (!current.isEnd()) {
@@ -257,7 +257,7 @@ public final class Ide {
 
   private CliArgument retrieveCliArgumentByContext(CliArgument first, ContextCommandlet contextCommandlet) {
 
-    CliArgument current = retrieveCliArgument(first, contextCommandlet);
+    CliArgument current = initContext(first, contextCommandlet);
     if (contextCommandlet.version.isTrue()) {
       return null;
     }
@@ -267,7 +267,7 @@ public final class Ide {
   private CliArgument initContext(CliArgument first) {
 
     ContextCommandlet init = new ContextCommandlet();
-    CliArgument current = retrieveCliArgument(first, init);
+    CliArgument current = initContext(first, init);
     init.run();
     this.context = init.getIdeContext();
     if (init.version.isTrue()) {
