@@ -603,13 +603,13 @@ public abstract class AbstractIdeContext implements IdeContext {
       ProcessResult result = pc.addArg("remote").run(true);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
-        String message = "This is a local git repo with no remote - if you did this for testing, you may continue...\n"
+        String message = target + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
             + "Do you want to ignore the problem and continue anyhow?";
         askToContinue(message);
       } else {
         pc.errorHandling(ProcessErrorHandling.WARNING);
         if (isOnline()) {
-          result = pc.addArg("fetch").addArg("origin").addArg("master").run(false);
+          result = pc.addArg("fetch").addArg("origin").addArg("master:master").run(false);
           if (!result.isSuccessful()) {
             warning("Git failed to fetch from origin master");
           }
@@ -617,9 +617,12 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (force) {
           result = pc.addArg("reset").addArg("--hard").addArg("HEAD~").run(false);
           if (!result.isSuccessful()) {
-            warning("Git failed to reset to head");
+            warning("Git failed to reset: {} to HEAD.", target);
           }
           result = pc.addArg("clean").addArg("-df").run(false);
+          if (!result.isSuccessful()) {
+            warning("Git failed to clean the repository: {}.", target);
+          }
         }
         if (!result.isSuccessful()) {
           String message = "Failed to update git repository at " + target;
