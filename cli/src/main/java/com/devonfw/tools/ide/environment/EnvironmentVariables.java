@@ -186,7 +186,7 @@ public interface EnvironmentVariables {
    * @param source the source where the {@link String} to resolve originates from. Should have a reasonable
    *        {@link Object#toString() string representation} that will be used in error or log messages if a variable
    *        could not be resolved.
-   * @return the the given {@link String} with the variables resolved.
+   * @return the given {@link String} with the variables resolved.
    * @see com.devonfw.tools.ide.tool.ide.IdeToolCommandlet
    */
   String resolve(String string, Object source);

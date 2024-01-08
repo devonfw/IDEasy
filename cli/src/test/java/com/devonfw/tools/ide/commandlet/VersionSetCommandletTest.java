@@ -44,6 +44,15 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
         IDE_TOOLS=mvn,eclipse
 
         BAR=bar-${SOME}
-                """);
+        
+        TEST_ARGS1=${TEST_ARGS1} settings1
+        TEST_ARGS4=${TEST_ARGS4} settings4
+        TEST_ARGS5=${TEST_ARGS5} settings5
+        TEST_ARGS6=${TEST_ARGS6} settings6
+        TEST_ARGS7=${TEST_ARGS7} settings7
+        TEST_ARGS8=settings8
+        TEST_ARGS9=settings9
+        TEST_ARGSb=${TEST_ARGS10} settingsb ${TEST_ARGSa} ${TEST_ARGSb}
+        TEST_ARGSc=${TEST_ARGSc} settingsc""");
   }
 }
