@@ -24,6 +24,7 @@ import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
+import com.devonfw.tools.ide.tool.cobigen.Cobigen;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -72,6 +73,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new KotlincNative(context));
     add(new Vscode(context));
     add(new Azure(context));
+    add(new Cobigen(context));
   }
 
   private void add(Commandlet commandlet) {
