@@ -161,7 +161,7 @@ public final class VersionRange implements Comparable<VersionRange> {
       VersionComparisonResult compareMin = version.compareVersion(this.min);
       if (compareMin.isLess()) {
         return false;
-      } else if (compareMin.isEqual() && !this.leftIsExclusive) {
+      } else if (compareMin.isEqual() && this.leftIsExclusive) {
         return false;
       }
     }
@@ -169,7 +169,7 @@ public final class VersionRange implements Comparable<VersionRange> {
       VersionComparisonResult compareMax = version.compareVersion(this.max);
       if (compareMax.isGreater()) {
         return false;
-      } else if (compareMax.isEqual() && !this.rightIsExclusive) {
+      } else if (compareMax.isEqual() && this.rightIsExclusive) {
         return false;
       }
     }
