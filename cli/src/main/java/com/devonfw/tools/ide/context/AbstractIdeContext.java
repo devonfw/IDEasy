@@ -616,7 +616,7 @@ public abstract class AbstractIdeContext implements IdeContext {
           if (!result.isSuccessful()) {
             warning("Git failed to fetch from origin master.");
           }
-          result = pc.addArg("pull").addArg("--no-pager").run(false);
+          result = pc.addArg("--no-pager").addArg("pull").run(false);
           if (!result.isSuccessful()) {
             warning("Git failed to pull from origin master.");
           }
