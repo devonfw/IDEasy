@@ -127,10 +127,10 @@ public class TagTest extends Assertions {
   public void testGetParents() {
 
     assertThat(Tag.ROOT.getParentCount()).isZero();
-    assertThat(Tag.DOCUMNETATION.getParentCount()).isOne();
-    assertThat(Tag.DOCUMNETATION.getParent(0)).isSameAs(Tag.ROOT);
+    assertThat(Tag.DOCUMENTATION.getParentCount()).isOne();
+    assertThat(Tag.DOCUMENTATION.getParent(0)).isSameAs(Tag.ROOT);
     assertThat(Tag.ASCII_DOC.getParentCount()).isEqualTo(2);
     assertThat(Tag.ASCII_DOC.getParent(0)).isSameAs(Tag.FORMAT);
-    assertThat(Tag.ASCII_DOC.getParent(1)).isSameAs(Tag.DOCUMNETATION);
+    assertThat(Tag.ASCII_DOC.getParent(1)).isSameAs(Tag.DOCUMENTATION);
   }
 }

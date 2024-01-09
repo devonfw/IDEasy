@@ -10,7 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * A {@link Tag} represents a classifier or category. Tool and plugin can be associated with {@link Tag}s allowing end
+ * A {@link Tag} represents a classifier or category. A tool and plugin can be associated with {@link Tag}s allowing end
  * users to find them.
  */
 public final class Tag {
@@ -148,7 +148,7 @@ public final class Tag {
   public static final Tag LINTING = create("linter", QA, false, "lint", "linting");
 
   /** {@link Tag} for everything related to documentation. */
-  public static final Tag DOCUMNETATION = create("documentation", ROOT, false, "doc");
+  public static final Tag DOCUMENTATION = create("documentation", ROOT, false, "doc");
 
   /** {@link #getParent() Parent} for file formats. */
   public static final Tag FORMAT = create("format", ROOT, true);
@@ -166,16 +166,16 @@ public final class Tag {
   public static final Tag PROPERTIES = create("properties", FORMAT);
 
   /** {@link Tag} for AsciiDoc. */
-  public static final Tag ASCII_DOC = create("ascii-doc", FORMAT, false, new String[] { "adoc" }, DOCUMNETATION);
+  public static final Tag ASCII_DOC = create("ascii-doc", FORMAT, false, new String[] { "adoc" }, DOCUMENTATION);
 
   /** {@link Tag} for MarkDown. */
-  public static final Tag MARK_DOWN = create("markdown", DOCUMNETATION, false, new String[] { "md" }, DOCUMNETATION);
+  public static final Tag MARK_DOWN = create("markdown", DOCUMENTATION, false, new String[] { "md" }, DOCUMENTATION);
 
   /** {@link Tag} for YAML. */
-  public static final Tag PDF = create("pdf", FORMAT, false, null, DOCUMNETATION);
+  public static final Tag PDF = create("pdf", FORMAT, false, null, DOCUMENTATION);
 
   /** {@link Tag} for HTML. */
-  public static final Tag HTML = create("html", FORMAT, false, null, DOCUMNETATION);
+  public static final Tag HTML = create("html", FORMAT, false, null, DOCUMENTATION);
 
   /** {@link Tag} for machine-learning. */
   public static final Tag MACHINE_LEARNING = create("machine-learning", ROOT, false, "ml");
@@ -194,7 +194,7 @@ public final class Tag {
   public static final Tag ARCHITECTURE = create("architecture", ROOT);
 
   /** {@link Tag} for AsciiDoc. */
-  public static final Tag UML = create("uml", ARCHITECTURE, false, null, DOCUMNETATION);
+  public static final Tag UML = create("uml", ARCHITECTURE, false, null, DOCUMENTATION);
 
   /** {@link #Tag} for security. */
   public static final Tag SECURITY = create("security", ROOT, false, "cve");
