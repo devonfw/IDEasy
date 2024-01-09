@@ -115,7 +115,10 @@ public class UrlMetadata {
 
     VersionIdentifier resolvedVersion = getVersion(tool, edition, version);
     UrlVersion urlVersion = getEdition(tool, edition).getChild(resolvedVersion.toString());
-    Objects.requireNonNull(urlVersion);
+    if (urlVersion == null) {
+      throw new IllegalArgumentException(
+          "Version " + version + " for tool " + tool + " does not exist in edition " + edition + ".");
+    }
     return urlVersion;
   }
 
