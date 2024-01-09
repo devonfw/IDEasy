@@ -42,6 +42,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public abstract class AbstractIdeContext implements IdeContext {
 
+  private static final String IDE_URLS_GIT = "https://github.com/devonfw/ide-urls.git";
+
   private final Map<IdeLogLevel, IdeSubLogger> loggers;
 
   private final Path ideHome;
@@ -177,10 +179,11 @@ public abstract class AbstractIdeContext implements IdeContext {
         Path rootPath = Paths.get(root);
         if (Files.isDirectory(rootPath)) {
           if (!ideRootPath.equals(rootPath)) {
-            warning("Variable IDE_ROOT is set to '{}' but for your project '{}' would have been expected.");
-            ideRootPath = rootPath;
+            warning(
+                "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
+                root, this.ideHome.getFileName(), ideRootPath);
           }
-          ideRootPath = this.ideHome.getParent();
+          ideRootPath = rootPath;
         } else {
           warning("Variable IDE_ROOT is not set to a valid directory '{}'." + root);
           ideRootPath = null;
@@ -257,10 +260,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public boolean isTest() {
 
-    if (isMock()) {
-      return true;
-    }
-    return false;
+    return isMock();
   }
 
   /**
@@ -487,7 +487,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        gitPullOrClone(this.urlsPath, "https://github.com/devonfw/ide-urls.git");
+        gitPullOrClone(this.urlsPath, IDE_URLS_GIT, true);
       }
       this.urlMetadata = new UrlMetadata(this);
     }
@@ -557,7 +557,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     try {
       int timeout = 1000;
       online = InetAddress.getByName("github.com").isReachable(timeout);
-    } catch (Exception e) {
+    } catch (Exception ignored) {
 
     }
     return online;
@@ -589,12 +589,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public ProcessContext newProcess() {
 
-    ProcessContext processContext = new ProcessContextImpl(this);
-    return processContext;
+    return new ProcessContextImpl(this);
   }
 
   @Override
-  public void gitPullOrClone(Path target, String gitRepoUrl) {
+  public void gitPullOrClone(Path target, String gitRepoUrl, boolean force) {
 
     Objects.requireNonNull(target);
     Objects.requireNonNull(gitRepoUrl);
@@ -606,12 +605,32 @@ public abstract class AbstractIdeContext implements IdeContext {
       ProcessResult result = pc.addArg("remote").run(true);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
-        String message = "This is a local git repo with no remote - if you did this for testing, you may continue...\n"
+        String message = target
+            + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
             + "Do you want to ignore the problem and continue anyhow?";
         askToContinue(message);
       } else {
         pc.errorHandling(ProcessErrorHandling.WARNING);
-        result = pc.addArg("pull").run(false);
+        if (isOnline()) {
+          result = pc.addArg("fetch").addArg("origin").addArg("master").run(false);
+          if (!result.isSuccessful()) {
+            warning("Git failed to fetch from origin master.");
+          }
+          result = pc.addArg("--no-pager").addArg("pull").run(false);
+          if (!result.isSuccessful()) {
+            warning("Git failed to pull from origin master.");
+          }
+        }
+        if (force) {
+          result = pc.addArg("reset").addArg("--hard").addArg("origin/master").run(false);
+          if (!result.isSuccessful()) {
+            warning("Git failed to reset: {} to 'origin/master'.", target);
+          }
+          result = pc.addArg("clean").addArg("-df").run(false);
+          if (!result.isSuccessful()) {
+            warning("Git failed to clean the repository: {}.", target);
+          }
+        }
         if (!result.isSuccessful()) {
           String message = "Failed to update git repository at " + target;
           if (this.offlineMode) {
@@ -641,7 +660,6 @@ public abstract class AbstractIdeContext implements IdeContext {
       pc.addArg("clone");
       if (isQuietMode()) {
         pc.addArg("-q");
-      } else {
       }
       pc.addArgs("--recursive", gitRepoUrl, "--config", "core.autocrlf=false", ".");
       pc.run();
