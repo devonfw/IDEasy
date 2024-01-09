@@ -12,6 +12,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
@@ -38,10 +39,9 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
    *        method.
    */
-  public IdeToolCommandlet(IdeContext context, String tool, Set<String> tags) {
+  public IdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
-    assert (tags.contains(TAG_IDE));
   }
 
   private Map<String, PluginDescriptor> getPluginsMap() {

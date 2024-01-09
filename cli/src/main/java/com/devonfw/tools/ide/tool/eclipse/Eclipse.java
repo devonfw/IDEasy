@@ -11,6 +11,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -32,7 +33,7 @@ public class Eclipse extends IdeToolCommandlet {
    */
   public Eclipse(IdeContext context) {
 
-    super(context, "eclipse", Set.of(TAG_JAVA, TAG_IDE));
+    super(context, "eclipse", Set.of(Tag.ECLIPSE));
   }
 
   @Override
