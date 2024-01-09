@@ -609,13 +609,13 @@ public abstract class AbstractIdeContext implements IdeContext {
       } else {
         pc.errorHandling(ProcessErrorHandling.WARNING);
         if (isOnline()) {
-          result = pc.addArg("fetch").addArg("origin").addArg("master:master").run(false);
+          result = pc.addArg("fetch").addArg("origin").addArg("master").run(false);
           if (!result.isSuccessful()) {
             warning("Git failed to fetch from origin master");
           }
         }
         if (force) {
-          result = pc.addArg("reset").addArg("--hard").addArg("HEAD~").run(false);
+          result = pc.addArg("reset").addArg("--hard").addArg("origin/master").run(false);
           if (!result.isSuccessful()) {
             warning("Git failed to reset: {} to HEAD.", target);
           }
