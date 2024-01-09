@@ -179,7 +179,9 @@ public abstract class AbstractIdeContext implements IdeContext {
         Path rootPath = Paths.get(root);
         if (Files.isDirectory(rootPath)) {
           if (!ideRootPath.equals(rootPath)) {
-            warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", root, this.ideHome.getFileName(), ideRootPath);
+            warning(
+                "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
+                root, this.ideHome.getFileName(), ideRootPath);
           }
           ideRootPath = rootPath;
         } else {
@@ -603,7 +605,8 @@ public abstract class AbstractIdeContext implements IdeContext {
       ProcessResult result = pc.addArg("remote").run(true);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
-        String message = target + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
+        String message = target
+            + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
             + "Do you want to ignore the problem and continue anyhow?";
         askToContinue(message);
       } else {
@@ -611,7 +614,11 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (isOnline()) {
           result = pc.addArg("fetch").addArg("origin").addArg("master").run(false);
           if (!result.isSuccessful()) {
-            warning("Git failed to fetch from origin master");
+            warning("Git failed to fetch from origin master.");
+          }
+          result = pc.addArg("pull").addArg("--non-interactive").addArg("--no-pager").run(false);
+          if (!result.isSuccessful()) {
+            warning("Git failed to pull from origin master.");
           }
         }
         if (force) {
