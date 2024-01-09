@@ -94,6 +94,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final DirectoryMerger workspaceMerger;
 
+  private final Function<IdeLogLevel, IdeSubLogger> loggerFactory;
+
   private boolean offlineMode;
 
   private boolean forceMode;
@@ -116,16 +118,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir) {
 
     super();
+    this.loggerFactory = factory;
     this.loggers = new HashMap<>();
-    for (IdeLogLevel level : IdeLogLevel.values()) {
-      IdeSubLogger logger;
-      if (level.ordinal() < minLogLevel.ordinal()) {
-        logger = new IdeSubLoggerNone(level);
-      } else {
-        logger = factory.apply(level);
-      }
-      this.loggers.put(level, logger);
-    }
+    setLogLevel(minLogLevel);
     this.systemInfo = new SystemInfoImpl();
     this.commandletManager = CommandletManagerImpl.getOrCreate(this);
     this.fileAccess = new FileAccessImpl(this);
@@ -711,4 +706,20 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
   }
 
+  /**
+   * Sets the log level (currently used only for autocompletion)
+   *
+   * @param logLevel {@link IdeLogLevel}
+   */
+  public void setLogLevel(IdeLogLevel logLevel) {
+    for (IdeLogLevel level : IdeLogLevel.values()) {
+      IdeSubLogger logger;
+      if (level.ordinal() < logLevel.ordinal()) {
+        logger = new IdeSubLoggerNone(level);
+      } else {
+        logger = loggerFactory.apply(level);
+      }
+      this.loggers.put(level, logger);
+    }
+  }
 }

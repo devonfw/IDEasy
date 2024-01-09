@@ -26,9 +26,6 @@ public class ContextCommandlet extends Commandlet {
 
   private final FlagProperty offline;
 
-  /** The flag to print the version and exit. */
-  public final FlagProperty version;
-
   private final LocaleProperty locale;
 
   private AbstractIdeContext ideContext;
@@ -45,7 +42,6 @@ public class ContextCommandlet extends Commandlet {
     this.debug = add(new FlagProperty("--debug", false, "-d"));
     this.quiet = add(new FlagProperty("--quiet", false, "-q"));
     this.offline = add(new FlagProperty("--offline", false, "-o"));
-    this.version = add(new FlagProperty("--version", false, "-v"));
     this.locale = add(new LocaleProperty("--locale", false, null));
   }
 
@@ -72,15 +68,18 @@ public class ContextCommandlet extends Commandlet {
     } else if (this.quiet.isTrue()) {
       logLevel = IdeLogLevel.WARNING;
     }
-    this.ideContext = new IdeContextConsole(logLevel, null, true);
+
+    if (this.ideContext == null) {
+      this.ideContext = new IdeContextConsole(logLevel, null, true);
+    } else {
+      this.ideContext.setLogLevel(logLevel);
+    }
+
     this.ideContext.setBatchMode(this.batch.isTrue());
     this.ideContext.setForceMode(this.force.isTrue());
     this.ideContext.setQuietMode(this.quiet.isTrue());
     this.ideContext.setOfflineMode(this.offline.isTrue());
     this.ideContext.setLocale(this.locale.getValue());
-    if (this.version.isTrue()) {
-      this.ideContext.info(IdeVersion.get());
-    }
   }
 
   /**
@@ -89,6 +88,21 @@ public class ContextCommandlet extends Commandlet {
   public AbstractIdeContext getIdeContext() {
 
     return this.ideContext;
+  }
+
+  /**
+   * Resets the {@link ContextCommandlet} run params.
+   */
+  public void resetRunParams() {
+
+    this.ideContext.setLogLevel(IdeLogLevel.INFO);
+    this.ideContext.setBatchMode(false);
+    this.ideContext.setForceMode(false);
+    this.ideContext.setQuietMode(false);
+    this.ideContext.setOfflineMode(false);
+    this.trace.setValue(false);
+    this.debug.setValue(false);
+    this.quiet.setValue(false);
   }
 
 }

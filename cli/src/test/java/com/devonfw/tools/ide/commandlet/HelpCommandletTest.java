@@ -78,7 +78,6 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     assertLogMessage(context, IdeLogLevel.INFO,
         "-q | --quiet    disable info logging (only log success, warning or error)");
     assertLogMessage(context, IdeLogLevel.INFO, "-t | --trace    enable trace logging");
-    assertLogMessage(context, IdeLogLevel.INFO, "-v | --version  Print the IDE version and exit.");
   }
 
   /**

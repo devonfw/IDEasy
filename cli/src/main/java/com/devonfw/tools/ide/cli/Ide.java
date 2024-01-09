@@ -1,12 +1,26 @@
 package com.devonfw.tools.ide.cli;
 
+import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
+import org.fusesource.jansi.AnsiConsole;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.MaskingCallback;
+import org.jline.reader.Parser;
+import org.jline.reader.UserInterruptException;
+import org.jline.reader.impl.DefaultParser;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import org.jline.widget.AutosuggestionWidgets;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.HelpCommandlet;
+import com.devonfw.tools.ide.commandlet.VersionCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeContextConsole;
@@ -25,6 +39,8 @@ public final class Ide {
   private static final String INVALID_ARGUMENT = "Invalid CLI argument '{}' for property '{}' of commandlet '{}'";
 
   private static final String INVALID_ARGUMENT_WITH_CAUSE = INVALID_ARGUMENT + ":{}";
+
+  private static final int AUTOCOMPLETER_MAX_RESULTS = 50;
 
   private AbstractIdeContext context;
 
@@ -89,13 +105,106 @@ public final class Ide {
   /**
    * Like {@link #run(String...)} but does not catch {@link Throwable}s so you can handle them yourself.
    *
-   * @param args the command-line arguments.
+   * @param args the command-line arguments. If no args are provided, the interactive autocompletion will be run.
    * @return the exit code.
    */
   public int runOrThrow(String... args) {
 
-    CliArgument first = CliArgument.of(args);
-    CliArgument current = initContext(first);
+    if (args.length == 0) {
+      return runWithInteractiveCompletion();
+    } else {
+      CliArgument first = CliArgument.of(args);
+      CliArgument current = initContext(first);
+      return processCliArgument(current);
+    }
+
+  }
+
+  /**
+   * Runs jline3 with interactive autocompletion.
+   *
+   * @return
+   */
+  private int runWithInteractiveCompletion() {
+
+    try {
+      ContextCommandlet init = new ContextCommandlet();
+      init.run();
+      this.context = init.getIdeContext();
+
+      // TODO: add BuiltIns here, see: https://github.com/devonfw/IDEasy/issues/168
+
+      Parser parser = new DefaultParser();
+      try (Terminal terminal = TerminalBuilder.builder().build()) {
+
+        // initialize our own completer here
+        IdeCompleter completer = new IdeCompleter(init, context);
+
+        LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)
+            .variable(LineReader.LIST_MAX, AUTOCOMPLETER_MAX_RESULTS).build();
+
+        // Create autosuggestion widgets
+        AutosuggestionWidgets autosuggestionWidgets = new AutosuggestionWidgets(reader);
+        // Enable autosuggestions
+        autosuggestionWidgets.enable();
+
+        // TODO: implement TailTipWidgets, see: https://github.com/devonfw/IDEasy/issues/169
+
+        String prompt = "prompt> ";
+        String rightPrompt = null;
+        String line;
+
+        AnsiConsole.systemInstall();
+        while (true) {
+          try {
+            line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
+            reader.getHistory().add(line);
+            try {
+              runCommand(line, init);
+              init.resetRunParams();
+            } catch (Exception e) {
+              context.error("An error occurred while running the CLI command:{} {}", line, e);
+              return 1;
+            }
+          } catch (UserInterruptException e) {
+            // Ignore CTRL+C
+          } catch (EndOfFileException e) {
+            // CTRL+D
+            return 0;
+          } catch (Exception e) {
+            context.error("An error occurred while using autocompletion: {}", e);
+            return 1;
+          } finally {
+            AnsiConsole.systemUninstall();
+          }
+        }
+
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Unexpected error during interactive auto-completion", e);
+    }
+  }
+
+  /**
+   * Converts String of arguments to array and runs the command
+   *
+   * @param args String of arguments
+   * @param contextCommandlet {@link ContextCommandlet}
+   * @return status code
+   */
+  private int runCommand(String args, ContextCommandlet contextCommandlet) {
+
+    String[] arguments = args.split(" ", 0);
+    CliArgument first = CliArgument.of(arguments);
+    CliArgument current = retrieveCliArgumentByContext(first, contextCommandlet);
+    contextCommandlet.run();
+    return processCliArgument(current);
+  }
+
+  private int processCliArgument(CliArgument current) {
+
     if (current == null) {
       // exit with success after --version has been printed...
       return ProcessResult.SUCCESS;
@@ -124,13 +233,12 @@ public final class Ide {
     return 1;
   }
 
-  private CliArgument initContext(CliArgument first) {
+  private CliArgument initContext(CliArgument first, ContextCommandlet contextCommandlet) {
 
-    ContextCommandlet init = new ContextCommandlet();
     CliArgument current = first;
     while (!current.isEnd()) {
       String key = current.getKey();
-      Property<?> property = init.getOption(key);
+      Property<?> property = contextCommandlet.getOption(key);
       if (property == null) {
         break;
       }
@@ -146,16 +254,26 @@ public final class Ide {
       }
       current = current.getNext(true);
     }
+    return current;
+  }
+
+  private CliArgument retrieveCliArgumentByContext(CliArgument first, ContextCommandlet contextCommandlet) {
+
+    CliArgument current = initContext(first, contextCommandlet);
+    return current;
+  }
+
+  private CliArgument initContext(CliArgument first) {
+
+    ContextCommandlet init = new ContextCommandlet();
+    CliArgument current = initContext(first, init);
     init.run();
     this.context = init.getIdeContext();
-    if (init.version.isTrue()) {
-      return null;
-    }
     return current;
   }
 
   /**
-   * @param argument the current {@link CliArgument} (position) to match.
+   * @param current the current {@link CliArgument} (position) to match.
    * @param commandlet the potential {@link Commandlet} to {@link #apply(CliArgument, Commandlet) apply} and
    *        {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
