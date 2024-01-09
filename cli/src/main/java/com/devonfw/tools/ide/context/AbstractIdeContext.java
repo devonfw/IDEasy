@@ -617,7 +617,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (force) {
           result = pc.addArg("reset").addArg("--hard").addArg("origin/master").run(false);
           if (!result.isSuccessful()) {
-            warning("Git failed to reset: {} to HEAD.", target);
+            warning("Git failed to reset: {} to 'origin/master'.", target);
           }
           result = pc.addArg("clean").addArg("-df").run(false);
           if (!result.isSuccessful()) {
