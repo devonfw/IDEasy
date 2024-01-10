@@ -663,11 +663,11 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private void gitPullOrCloneIfNeeded(Path urlsPath, String repoUrl) {
 
-    Path magicFilePath = urlsPath.resolve(".git").resolve("HEAD");
-    long deltaThreshold = 5 * 60 * 1000; // 5 minutes in milliseconds
+    Path gitDirectory = urlsPath.resolve(".git");
+    Path magicFilePath = gitDirectory.resolve("HEAD");
+    long deltaThreshold = 30 * 60 * 1000; // 5 minutes in milliseconds
 
     // Check if the .git directory exists
-    Path gitDirectory = urlsPath.resolve(".git");
     if (Files.isDirectory(gitDirectory)) {
       long currentTime = System.currentTimeMillis();
       // Get the modification time of the magic file
@@ -684,7 +684,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         try {
           Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
         } catch (IOException e) {
-          throw new IllegalStateException("Could not read " + magicFilePath, e);
+          throw new IllegalStateException("Could not read or write in " + magicFilePath, e);
         }
       }
     } else {
