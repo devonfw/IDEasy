@@ -6,7 +6,6 @@ import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.LocaleProperty;
-import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
  * An internal pseudo-commandlet to create the {@link IdeContext}. It shall not be registered in

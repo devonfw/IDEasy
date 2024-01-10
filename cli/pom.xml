@@ -12,8 +12,8 @@
   <artifactId>ide-cli</artifactId>
   <version>${revision}</version>
   <properties>
-    <mainClass>com.devonfw.tools.ide.cli.Ide</mainClass>
-    <imageName>ide</imageName>
+    <mainClass>com.devonfw.tools.ide.cli.Ideasy</mainClass>
+    <imageName>ideasy</imageName>
     <releaseName>${project.artifactId}-${os.detected.classifier}-${os.detected.arch}</releaseName>
     <java.version>17</java.version>
     <native.maven.plugin.version>0.9.28</native.maven.plugin.version>

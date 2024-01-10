@@ -54,7 +54,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     String path = "workspaces/foo-test/my-git-repo";
     IdeTestContext context = newContext("basic", path, true);
     HelpCommandlet help = context.getCommandletManager().getCommandlet(HelpCommandlet.class);
-    help.commandlet.setValueAsString("mvn");
+    help.commandlet.setValueAsString("mvn", context);
     // act
     help.run();
     // assert

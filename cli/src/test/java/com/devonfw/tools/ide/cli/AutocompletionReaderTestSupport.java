@@ -6,23 +6,7 @@
  *
  * https://opensource.org/licenses/BSD-3-Clause
  */
-package com.devonfw.tools.ide.context;
-
-import static org.jline.reader.LineReader.ACCEPT_LINE;
-import static org.jline.reader.LineReader.BACKWARD_CHAR;
-import static org.jline.reader.LineReader.BACKWARD_DELETE_CHAR;
-import static org.jline.reader.LineReader.BACKWARD_KILL_WORD;
-import static org.jline.reader.LineReader.BACKWARD_WORD;
-import static org.jline.reader.LineReader.BEGINNING_OF_LINE;
-import static org.jline.reader.LineReader.COMPLETE_WORD;
-import static org.jline.reader.LineReader.DOWN_HISTORY;
-import static org.jline.reader.LineReader.END_OF_LINE;
-import static org.jline.reader.LineReader.FORWARD_WORD;
-import static org.jline.reader.LineReader.KILL_WORD;
-import static org.jline.reader.LineReader.UP_HISTORY;
-import static org.jline.reader.LineReader.YANK;
-import static org.jline.reader.LineReader.YANK_POP;
-import org.assertj.core.api.Assertions;
+package com.devonfw.tools.ide.cli;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -45,11 +29,15 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.impl.DumbTerminal;
 import org.junit.jupiter.api.BeforeEach;
 
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+
 /**
- * Provides support for reader and completion tests.
- * Inspired by jline3
+ * Provides support for reader and completion tests. Inspired by jline3
  */
-public abstract class AutocompletionReaderTestSupport extends Assertions {
+public abstract class AutocompletionReaderTestSupport extends AbstractIdeContextTest {
+
+  private static final String TAB = "\011";
+
   protected Terminal terminal;
 
   protected TestLineReader reader;
@@ -70,13 +58,13 @@ public abstract class AutocompletionReaderTestSupport extends Assertions {
     // Set the handler log level
     logger.setLevel(Level.INFO);
 
-    in = new EofPipedInputStream();
-    out = new ByteArrayOutputStream();
-    terminal = new DumbTerminal("terminal", "ansi", in, out, StandardCharsets.UTF_8);
-    terminal.setSize(new Size(160, 80));
-    reader = new TestLineReader(terminal, "JLine", null);
-    reader.setKeyMap(LineReaderImpl.EMACS);
-    mask = null;
+    this.in = new EofPipedInputStream();
+    this.out = new ByteArrayOutputStream();
+    this.terminal = new DumbTerminal("terminal", "ansi", this.in, this.out, StandardCharsets.UTF_8);
+    this.terminal.setSize(new Size(160, 80));
+    this.reader = new TestLineReader(this.terminal, "JLine", null);
+    this.reader.setKeyMap(LineReaderImpl.EMACS);
+    this.mask = null;
   }
 
   protected void assertBuffer(final String expected, final TestBuffer buffer) throws IOException {
@@ -88,44 +76,23 @@ public abstract class AutocompletionReaderTestSupport extends Assertions {
 
     // clear current buffer, if any
     if (clear) {
-      reader.getHistory().purge();
+      this.reader.getHistory().purge();
     }
-    reader.list = false;
-    reader.menu = false;
+    this.reader.list = false;
+    this.reader.menu = false;
 
-    in.setIn(new ByteArrayInputStream(buffer.getBytes()));
+    this.in.setIn(new ByteArrayInputStream(buffer.getBytes()));
 
     // run it through the reader
     try {
       while (true) {
-        reader.readLine(null, null, mask, null);
+        this.reader.readLine(null, null, this.mask, null);
       }
     } catch (EndOfFileException e) {
       // noop
     }
 
-    assertThat(reader.getBuffer().toString()).isEqualTo(expected);
-  }
-
-  private String getKeyForAction(final String key) {
-
-    return switch (key) {
-      case BACKWARD_WORD -> "\u001Bb";
-      case FORWARD_WORD -> "\u001Bf";
-      case BEGINNING_OF_LINE -> "\033[H";
-      case END_OF_LINE -> "\u0005";
-      case KILL_WORD -> "\u001Bd";
-      case BACKWARD_KILL_WORD -> "\u0017";
-      case ACCEPT_LINE -> "\n";
-      case UP_HISTORY -> "\033[A";
-      case DOWN_HISTORY -> "\033[B";
-      case BACKWARD_CHAR -> "\u0002";
-      case COMPLETE_WORD -> "\011";
-      case BACKWARD_DELETE_CHAR -> "\010";
-      case YANK -> "\u0019";
-      case YANK_POP -> new String(new char[] { 27, 121 });
-      default -> throw new IllegalArgumentException(key);
-    };
+    assertThat(this.reader.getBuffer().toString()).isEqualTo(expected);
   }
 
   protected class TestBuffer {
@@ -139,22 +106,17 @@ public abstract class AutocompletionReaderTestSupport extends Assertions {
     @Override
     public String toString() {
 
-      return out.toString(StandardCharsets.UTF_8);
+      return this.out.toString(StandardCharsets.UTF_8);
     }
 
     public byte[] getBytes() {
 
-      return out.toByteArray();
-    }
-
-    public TestBuffer op(final String op) {
-
-      return append(getKeyForAction(op));
+      return this.out.toByteArray();
     }
 
     public TestBuffer tab() {
 
-      return op(COMPLETE_WORD);
+      return append(TAB);
     }
 
     public TestBuffer append(final String str) {
@@ -167,7 +129,7 @@ public abstract class AutocompletionReaderTestSupport extends Assertions {
 
     public TestBuffer append(final int i) {
 
-      out.write((byte) i);
+      this.out.write((byte) i);
       return this;
     }
   }
@@ -184,13 +146,13 @@ public abstract class AutocompletionReaderTestSupport extends Assertions {
     @Override
     public int read() throws IOException {
 
-      return in != null ? in.read() : -1;
+      return this.in != null ? this.in.read() : -1;
     }
 
     @Override
     public int available() throws IOException {
 
-      return in != null ? in.available() : 0;
+      return this.in != null ? this.in.available() : 0;
     }
   }
 
@@ -208,7 +170,7 @@ public abstract class AutocompletionReaderTestSupport extends Assertions {
     protected boolean doList(List<Candidate> possible, String completed, boolean runLoop,
         BiFunction<CharSequence, Boolean, CharSequence> escaper) {
 
-      list = true;
+      this.list = true;
       return super.doList(possible, completed, runLoop, escaper);
     }
 
@@ -216,7 +178,7 @@ public abstract class AutocompletionReaderTestSupport extends Assertions {
     protected boolean doMenu(List<Candidate> possible, String completed,
         BiFunction<CharSequence, Boolean, CharSequence> escaper) {
 
-      menu = true;
+      this.menu = true;
       return super.doMenu(possible, completed, escaper);
     }
   }

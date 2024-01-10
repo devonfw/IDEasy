@@ -87,6 +87,18 @@ public abstract class Commandlet {
   }
 
   /**
+   * @param property the keyword {@link Property} to {@link #add(Property) add}.
+   */
+  protected void addKeyword(Property<?> property) {
+
+    if (!this.properties.isEmpty()) {
+      throw new IllegalStateException();
+    }
+    this.firstKeyword = property.getNameOrAlias();
+    add(property);
+  }
+
+  /**
    * @param <P> type of the {@link Property}.
    * @param property the {@link Property} to register.
    * @return the given {@link Property}.

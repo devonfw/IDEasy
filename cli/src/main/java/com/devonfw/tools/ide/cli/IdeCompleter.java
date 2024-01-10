@@ -17,11 +17,8 @@ import org.jline.reader.impl.completer.NullCompleter;
 import org.jline.utils.AttributedString;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.FlagProperty;
-import com.devonfw.tools.ide.property.LocaleProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.property.VersionProperty;
@@ -31,7 +28,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * Implements the {@link Completer} for jline3 autocompletion. Inspired by picocli
  */
-public class IdeCompleter extends ArgumentCompleter implements Completer {
+public class IdeCompleter extends ArgumentCompleter {
 
   /** Checks for invalid pattern e.g. '- foo foobar' */
   private static final String INVALID_PATTERN_PART1 = "([\\-](\\s)+.*$";
@@ -46,13 +43,11 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
   private static final String INVALID_PATTERN_PART4 = "(^[a-z]*(\\s)[\\-](\\s)*.*$)";
 
   /** Pattern which should stop autocompletion e.g. 'get-version mvn -' (prevents options after tool commands) */
-  private static final String INVALID_PATTERN = INVALID_PATTERN_PART1 + "|" + INVALID_PATTERN_PART2 + "|" + INVALID_PATTERN_PART3
-  + "|" + INVALID_PATTERN_PART4;
+  private static final String INVALID_PATTERN = INVALID_PATTERN_PART1 + "|" + INVALID_PATTERN_PART2 + "|"
+      + INVALID_PATTERN_PART3 + "|" + INVALID_PATTERN_PART4;
 
   /** Pre-compiled pattern for better usage */
   private static final Pattern patternCompiled = Pattern.compile(INVALID_PATTERN, Pattern.MULTILINE);
-
-  private final ContextCommandlet cmd;
 
   private final IdeContext context;
 
@@ -62,33 +57,24 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
 
   private final Set<Property<?>> commandletOptions = new HashSet<>();
 
-  public IdeCompleter(ContextCommandlet cmd, IdeContext context) {
+  public IdeCompleter(IdeContext context) {
 
     super(NullCompleter.INSTANCE);
-    this.cmd = cmd;
     this.context = context;
-
-    List<Property<?>> options = cmd.getProperties();
-
-    for (Property option : options) {
-      if (option instanceof FlagProperty) {
-        commandletOptions.add(option);
-      }
-    }
 
     Collection<Commandlet> commandletCollection = context.getCommandletManager().getCommandlets();
 
     for (Commandlet commandlet : commandletCollection) {
       // TODO: add more logic to remove unused keyword, see: https://github.com/devonfw/IDEasy/issues/167
-      commandlets.add(commandlet.getName());
-      commandlets.add(commandlet.getKeyword());
+      this.commandlets.add(commandlet.getName());
+      this.commandlets.add(commandlet.getKeyword());
     }
 
     for (Commandlet commandlet : commandletCollection) {
       if (commandlet instanceof ToolCommandlet) {
         // TODO: add more logic to remove unused keyword, see: https://github.com/devonfw/IDEasy/issues/167
-        toolCommandlets.add(commandlet.getName());
-        toolCommandlets.add(commandlet.getKeyword());
+        this.toolCommandlets.add(commandlet.getName());
+        this.toolCommandlets.add(commandlet.getKeyword());
       }
 
     }
@@ -112,29 +98,14 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
     List<Property<?>> optionList = new ArrayList<>();
     for (String singleWord : words) {
       if (singleWord.startsWith("-")) {
-        Property<?> commandletOption = cmd.getOption(singleWord);
-        if (commandletOption != null) {
-          optionList.add(commandletOption);
-        }
+        // Property<?> commandletOption = this.cmd.getOption(singleWord);
+        // if (commandletOption != null) {
+        // optionList.add(commandletOption);
+        // }
       }
     }
     // cleanup options
     Set<String> cleanedOptions = new HashSet<>();
-    List<Property<?>> properties = cmd.getProperties();
-    Set<Property<?>> options = new HashSet<>(properties);
-    for (Property<?> option : optionList) {
-      // removes aliases and vice versa too (--trace removes -t too)
-      options.remove(option);
-    }
-    for (Property<?> option : options) {
-      if (option instanceof FlagProperty) {
-        cleanedOptions.add(option.getName());
-        cleanedOptions.add(option.getAlias());
-      }
-      if (option instanceof LocaleProperty) {
-        cleanedOptions.add(option.getName());
-      }
-    }
 
     // adds non options to list
     List<String> wordsWithoutOptions = new ArrayList<>();
@@ -153,9 +124,9 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
     } else if (wordsWithoutOptions.size() == 2) {
       // 2nd layer..
 
-      Commandlet commandlet = context.getCommandletManager().getCommandlet(wordsWithoutOptions.get(0));
+      Commandlet commandlet = this.context.getCommandletManager().getCommandlet(wordsWithoutOptions.get(0));
       if (commandlet != null) {
-        properties = commandlet.getProperties();
+        List<Property<?>> properties = commandlet.getProperties();
         for (Property<?> property : properties) {
           if (property instanceof ToolProperty) {
             addCandidates(candidates, this.toolCommandlets);
@@ -170,15 +141,15 @@ public class IdeCompleter extends ArgumentCompleter implements Completer {
       }
       // 3rd layer
     } else if (wordsWithoutOptions.size() == 3) {
-      Commandlet commandlet = context.getCommandletManager().getCommandlet(wordsWithoutOptions.get(0));
+      Commandlet commandlet = this.context.getCommandletManager().getCommandlet(wordsWithoutOptions.get(0));
       if (commandlet != null) {
-        properties = commandlet.getProperties();
+        List<Property<?>> properties = commandlet.getProperties();
         for (Property<?> property : properties) {
           if (property instanceof VersionProperty) { // add version numbers
-            Commandlet subCommandlet = context.getCommandletManager().getCommandlet(wordsWithoutOptions.get(1));
+            Commandlet subCommandlet = this.context.getCommandletManager().getCommandlet(wordsWithoutOptions.get(1));
             if (subCommandlet != null) {
-              String toolEdition = context.getVariables().getToolEdition(subCommandlet.getName());
-              List<VersionIdentifier> versions = context.getUrls().getSortedVersions(subCommandlet.getName(),
+              String toolEdition = this.context.getVariables().getToolEdition(subCommandlet.getName());
+              List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(subCommandlet.getName(),
                   toolEdition);
               int sort = 0;
               // adds version numbers in sorted order (descending)

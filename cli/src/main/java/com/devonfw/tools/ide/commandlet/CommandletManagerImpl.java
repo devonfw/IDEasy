@@ -54,6 +54,8 @@ public final class CommandletManagerImpl implements CommandletManager {
     this.commandlets = Collections.unmodifiableCollection(this.commandletTypeMap.values());
     add(new HelpCommandlet(context));
     add(new EnvironmentCommandlet(context));
+    add(new CompleteCommandlet(context));
+    add(new ShellCommandlet(context));
     add(new InstallCommandlet(context));
     add(new VersionSetCommandlet(context));
     add(new VersionGetCommandlet(context));

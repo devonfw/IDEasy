@@ -6,6 +6,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import com.devonfw.tools.ide.cli.CliArgument;
+import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.context.IdeContext;
+
 /**
  * {@link Property} with {@link #getValueType() value type} {@link String}.
  */
@@ -52,7 +58,7 @@ public class StringListProperty extends Property<List<String>> {
   }
 
   @Override
-  public void setValueAsString(String valueAsString) {
+  public void setValueAsString(String valueAsString, IdeContext context) {
 
     Objects.requireNonNull(valueAsString);
     // pragmatic solution this implementation does not set the list value to the given string
@@ -66,7 +72,7 @@ public class StringListProperty extends Property<List<String>> {
   }
 
   @Override
-  public List<String> parse(String valueAsString) {
+  public List<String> parse(String valueAsString, IdeContext context) {
 
     String[] items = valueAsString.split(" ");
     return Arrays.asList(items);
@@ -82,6 +88,20 @@ public class StringListProperty extends Property<List<String>> {
       return NO_ARGS;
     }
     return list.toArray(new String[list.size()]);
+  }
+
+  @Override
+  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context,
+      Commandlet commandlet, CompletionCandidateCollector collector) {
+
+    this.value = new ArrayList<>();
+    this.value.add(argValue);
+    do {
+      CliArgument arg = args.next();
+      this.value.add(arg.get());
+    } while (args.hasNext());
+    args.next();
+    return true;
   }
 
 }

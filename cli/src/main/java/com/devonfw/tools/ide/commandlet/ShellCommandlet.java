@@ -1,8 +1,6 @@
-package com.devonfw.tools.ide.cli;
+package com.devonfw.tools.ide.commandlet;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Iterator;
 
 import org.fusesource.jansi.AnsiConsole;
@@ -17,14 +15,12 @@ import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.widget.AutosuggestionWidgets;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.commandlet.ContextCommandlet;
-import com.devonfw.tools.ide.commandlet.HelpCommandlet;
-import com.devonfw.tools.ide.commandlet.VersionCommandlet;
+import com.devonfw.tools.ide.cli.CliArgument;
+import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.cli.IdeCompleter;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeContextConsole;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.BooleanProperty;
 import com.devonfw.tools.ide.property.FlagProperty;
@@ -32,113 +28,48 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 
 /**
- * The main program of the CLI (command-line-interface).
+ * {@link Commandlet} for internal interactive shell with build-in auto-completion and help.
  */
-public final class Ide {
-
-  private static final String INVALID_ARGUMENT = "Invalid CLI argument '{}' for property '{}' of commandlet '{}'";
-
-  private static final String INVALID_ARGUMENT_WITH_CAUSE = INVALID_ARGUMENT + ":{}";
+public final class ShellCommandlet extends Commandlet {
 
   private static final int AUTOCOMPLETER_MAX_RESULTS = 50;
 
-  private AbstractIdeContext context;
+  private static final int RC_EXIT = 987654321;
 
   /**
-   * The actual main method of the CLI program.
+   * The constructor.
    *
-   * @param args the command-line arguments.
+   * @param context the {@link IdeContext}.
    */
-  public static void main(String... args) {
+  public ShellCommandlet(IdeContext context) {
 
-    int exitStatus = new Ide().run(args);
-    System.exit(exitStatus);
+    super(context);
+    addKeyword(getName());
   }
 
-  private IdeContext context() {
+  @Override
+  public String getName() {
 
-    if (this.context == null) {
-      // fallback in case of exception before initialization
-      this.context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
-    }
-    return this.context;
+    return "shell";
   }
 
-  /**
-   * Non-static variant of {@link #main(String...) main method} without invoking {@link System#exit(int)} so it can be
-   * tested.
-   *
-   * @param args the command-line arguments.
-   * @return the exit code.
-   */
-  public int run(String... args) {
+  @Override
+  public boolean isIdeHomeRequired() {
 
-    int exitStatus;
-    try {
-      exitStatus = runOrThrow(args);
-    } catch (CliException error) {
-      exitStatus = error.getExitCode();
-      if (context().level(IdeLogLevel.DEBUG).isEnabled()) {
-        context().error(error, error.getMessage());
-      } else {
-        context().error(error.getMessage());
-      }
-    } catch (Throwable error) {
-      exitStatus = 255;
-      String title = error.getMessage();
-      if (title == null) {
-        title = error.getClass().getName();
-      } else {
-        title = error.getClass().getSimpleName() + ": " + title;
-      }
-      String message = "An unexpected error occurred!\n" //
-          + "We are sorry for the inconvenience.\n" //
-          + "Please check the error below, resolve it and try again.\n" //
-          + "If the error is not on your end (network connectivity, lack of permissions, etc.) please file a bug:\n" //
-          + "https://github.com/devonfw/ide/issues/new?assignees=&labels=bug&projects=&template=bug.md&title="
-          + URLEncoder.encode(title, StandardCharsets.UTF_8);
-      context().error(error, message);
-    }
-    return exitStatus;
+    return false;
   }
 
-  /**
-   * Like {@link #run(String...)} but does not catch {@link Throwable}s so you can handle them yourself.
-   *
-   * @param args the command-line arguments. If no args are provided, the interactive autocompletion will be run.
-   * @return the exit code.
-   */
-  public int runOrThrow(String... args) {
-
-    if (args.length == 0) {
-      return runWithInteractiveCompletion();
-    } else {
-      CliArgument first = CliArgument.of(args);
-      CliArgument current = initContext(first);
-      return processCliArgument(current);
-    }
-
-  }
-
-  /**
-   * Runs jline3 with interactive autocompletion.
-   *
-   * @return
-   */
-  private int runWithInteractiveCompletion() {
+  @Override
+  public void run() {
 
     try {
-      ContextCommandlet init = new ContextCommandlet();
-      init.run();
-      this.context = init.getIdeContext();
-
       // TODO: add BuiltIns here, see: https://github.com/devonfw/IDEasy/issues/168
 
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
 
         // initialize our own completer here
-        IdeCompleter completer = new IdeCompleter(init, context);
+        IdeCompleter completer = new IdeCompleter(this.context);
 
         LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)
             .variable(LineReader.LIST_MAX, AUTOCOMPLETER_MAX_RESULTS).build();
@@ -159,21 +90,16 @@ public final class Ide {
           try {
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
             reader.getHistory().add(line);
-            try {
-              runCommand(line, init);
-              init.resetRunParams();
-            } catch (Exception e) {
-              context.error("An error occurred while running the CLI command:{} {}", line, e);
-              return 1;
+            int rc = runCommand(line);
+            if (rc == RC_EXIT) {
+              return;
             }
           } catch (UserInterruptException e) {
             // Ignore CTRL+C
+            return;
           } catch (EndOfFileException e) {
             // CTRL+D
-            return 0;
-          } catch (Exception e) {
-            context.error("An error occurred while using autocompletion: {}", e);
-            return 1;
+            return;
           } finally {
             AnsiConsole.systemUninstall();
           }
@@ -194,13 +120,15 @@ public final class Ide {
    * @param contextCommandlet {@link ContextCommandlet}
    * @return status code
    */
-  private int runCommand(String args, ContextCommandlet contextCommandlet) {
+  private int runCommand(String args) {
 
+    if ("exit".equals(args) || "quit".equals(args)) {
+      return RC_EXIT;
+    }
     String[] arguments = args.split(" ", 0);
-    CliArgument first = CliArgument.of(arguments);
-    CliArgument current = retrieveCliArgumentByContext(first, contextCommandlet);
-    contextCommandlet.run();
-    return processCliArgument(current);
+    CliArguments cliArgs = new CliArguments(arguments);
+    cliArgs.next();
+    return ((AbstractIdeContext) this.context).run(cliArgs);
   }
 
   private int processCliArgument(CliArgument current) {
@@ -227,9 +155,9 @@ public final class Ide {
       }
     }
     if (!current.isEnd()) {
-      context().error("Invalid arguments: {}", current.getArgs());
+      this.context.error("Invalid arguments: {}", current.getArgs());
     }
-    context().getCommandletManager().getCommandlet(HelpCommandlet.class).run();
+    this.context.getCommandletManager().getCommandlet(HelpCommandlet.class).run();
     return 1;
   }
 
@@ -250,7 +178,7 @@ public final class Ide {
           this.context.error("Missing value for option " + key);
         }
       } else {
-        property.setValueAsString(value);
+        property.setValueAsString(value, this.context);
       }
       current = current.getNext(true);
     }
@@ -268,7 +196,7 @@ public final class Ide {
     ContextCommandlet init = new ContextCommandlet();
     CliArgument current = initContext(first, init);
     init.run();
-    this.context = init.getIdeContext();
+    // this.context = init.getIdeContext();
     return current;
   }
 
@@ -285,7 +213,7 @@ public final class Ide {
     if (matches) {
       this.context.debug("Running commandlet {}", commandlet);
       if (commandlet.isIdeHomeRequired() && (this.context.getIdeHome() == null)) {
-        throw new CliException(this.context.getMessageIdeHome());
+        throw new CliException(((AbstractIdeContext) this.context).getMessageIdeHome());
       }
       commandlet.run();
     } else {
@@ -315,7 +243,7 @@ public final class Ide {
         String arg = currentArgument.get();
         this.context.trace("Trying to match argument '{}'", currentArgument);
         if ((currentProperty != null) && (currentProperty.isExpectValue())) {
-          currentProperty.setValueAsString(arg);
+          currentProperty.setValueAsString(arg, this.context);
           if (!currentProperty.isMultiValued()) {
             currentProperty = null;
           }
@@ -341,18 +269,7 @@ public final class Ide {
                 return false;
               }
             } else {
-              boolean success = false;
-              try {
-                currentProperty.setValueAsString(arg);
-                success = true;
-              } catch (RuntimeException e) {
-                String message = INVALID_ARGUMENT_WITH_CAUSE;
-                if (e instanceof IllegalArgumentException) {
-                  message = INVALID_ARGUMENT;
-                }
-                this.context.warning(message, arg, currentProperty.getNameOrAlias(), commandlet.getName(),
-                    e.getMessage());
-              }
+              boolean success = currentProperty.assignValueAsString(arg, this.context, commandlet);
               if (!success && currentProperty.isRequired()) {
                 return false;
               }
@@ -364,7 +281,7 @@ public final class Ide {
             this.context.trace("Found option by name");
             String value = currentArgument.getValue();
             if (value != null) {
-              property.setValueAsString(value);
+              property.setValueAsString(value, this.context);
             } else if (property instanceof BooleanProperty) {
               ((BooleanProperty) property).setValue(Boolean.TRUE);
             } else {
@@ -381,5 +298,4 @@ public final class Ide {
     }
     return commandlet.validate();
   }
-
 }
