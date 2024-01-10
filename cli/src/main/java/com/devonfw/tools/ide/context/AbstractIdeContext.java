@@ -132,7 +132,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.loggers = new HashMap<>();
     setLogLevel(minLogLevel);
     this.systemInfo = new SystemInfoImpl();
-    this.commandletManager = CommandletManagerImpl.getOrCreate(this);
+    this.commandletManager = new CommandletManagerImpl(this);
     this.fileAccess = new FileAccessImpl(this);
     String workspace = WORKSPACE_MAIN;
     if (userDir == null) {

@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
@@ -30,8 +29,6 @@ import com.devonfw.tools.ide.tool.vscode.Vscode;
  */
 public final class CommandletManagerImpl implements CommandletManager {
 
-  private static CommandletManagerImpl INSTANCE;
-
   private final Map<Class<? extends Commandlet>, Commandlet> commandletTypeMap;
 
   private final Map<String, Commandlet> commandletNameMap;
@@ -45,7 +42,7 @@ public final class CommandletManagerImpl implements CommandletManager {
    *
    * @param context the {@link IdeContext}.
    */
-  private CommandletManagerImpl(IdeContext context) {
+  public CommandletManagerImpl(IdeContext context) {
 
     super();
     this.commandletTypeMap = new HashMap<>();
@@ -130,57 +127,6 @@ public final class CommandletManagerImpl implements CommandletManager {
   public Commandlet getCommandletByFirstKeyword(String keyword) {
 
     return this.firstKeywordMap.get(keyword);
-  }
-
-  /**
-   * This method gives global access to the {@link CommandletManager} instance. Typically you should have access to
-   * {@link IdeContext} and use {@link IdeContext#getCommandletManager()} to access the proper instance of
-   * {@link CommandletManager}. Only in very specific cases where there is no {@link IdeContext} available, you may use
-   * this method to access it (e.g. from {@link com.devonfw.tools.ide.property.CommandletProperty})
-   *
-   * @return the static instance of this {@link CommandletManager} implementation that has already been initialized.
-   * @throws IllegalStateException if the instance has not been previously initialized via
-   *         {@link #getOrCreate(IdeContext)}.
-   */
-  public static CommandletManager get() {
-
-    return getOrCreate(null);
-  }
-
-  /**
-   * This method has to be called initially from {@link IdeContext} to create the instance of this
-   * {@link CommandletManager} implementation. It will store that instance internally in a static variable so it can
-   * later be retrieved with {@link #get()}.
-   *
-   * @param context the {@link IdeContext}.
-   * @return the {@link CommandletManager}.
-   */
-  public static CommandletManager getOrCreate(IdeContext context) {
-
-    if (context == null) {
-      if (INSTANCE == null) {
-        throw new IllegalStateException("Not initialized!");
-      }
-    } else {
-      if (context instanceof AbstractIdeContext c) {
-        if (c.isMock()) {
-          return new CommandletManagerImpl(context);
-        }
-      }
-      if (INSTANCE != null) {
-        System.out.println("Multiple initializations!");
-      }
-      INSTANCE = new CommandletManagerImpl(context);
-    }
-    return INSTANCE;
-  }
-
-  /**
-   * Internal method to reset internal instance. May only be used for testing!
-   */
-  static void reset() {
-
-    INSTANCE = null;
   }
 
 }

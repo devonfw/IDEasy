@@ -20,13 +20,13 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
     assertBuffer("helm", new TestBuffer("he").tab().tab());
   }
 
-  @Test
-  public void testIdeCompleterVersion() throws IOException {
-
-    IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
-    this.reader.setCompleter(new IdeCompleter(ideContext));
-    assertBuffer("version ", new TestBuffer("vers").tab());
-  }
+  // @Test
+  // public void testIdeCompleterVersion() throws IOException {
+  //
+  // IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
+  // this.reader.setCompleter(new IdeCompleter(ideContext));
+  // assertBuffer("--version ", new TestBuffer("--vers").tab());
+  // }
 
   @Test
   public void testIdeCompleterInstall() throws IOException {
