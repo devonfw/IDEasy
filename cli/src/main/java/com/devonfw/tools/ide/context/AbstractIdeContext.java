@@ -665,7 +665,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     Path gitDirectory = urlsPath.resolve(".git");
     Path magicFilePath = gitDirectory.resolve("HEAD");
-    long deltaThreshold = 30 * 60 * 1000; // 5 minutes in milliseconds
+    long deltaThreshold = 30 * 60 * 1000; // 30 minutes in milliseconds
 
     // Check if the .git directory exists
     if (Files.isDirectory(gitDirectory)) {
