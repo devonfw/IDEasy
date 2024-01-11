@@ -388,4 +388,20 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
   }
 
+  /**
+   * TODO
+   *
+   * @param edition the edition to set
+   * @param hint - {@code true} to print the installation hint, {@code false} otherwise.
+   */
+  public void setEdition(String edition, boolean hint){
+
+    //TODO if edition is set to something then check if the current set version exists also for this edition
+    EnvironmentVariables variables = this.context.getVariables();
+    EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
+    String name = EnvironmentVariables.getToolEditionVariable(this.tool);
+    settingsVariables.set(name, edition, false);
+    settingsVariables.save();
+  }
+
 }
