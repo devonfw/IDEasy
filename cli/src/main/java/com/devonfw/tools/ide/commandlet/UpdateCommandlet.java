@@ -43,10 +43,17 @@ public class UpdateCommandlet extends Commandlet {
   public void run() {
 
     updateSettings();
+    this.context.getFileAccess().mkdirs(this.context.getWorkspacePath());
+    if (this.context.getConfPath() == null) {
+      createConf();
+    }
     updateSoftware();
     updateRepositories();
   }
 
+  private void createConf() {
+
+  }
 
   private void updateSettings() {
 

@@ -1,18 +1,20 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.PathProperty;
+import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.property.StringProperty;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  * {@link Commandlet} to create a new IDEasy instance
  */
 public class CreateCommandlet extends Commandlet {
 
-  private final PathProperty createPathProperty;
+  private final StringProperty newInstance;
 
   /**
    * The constructor.
@@ -23,7 +25,7 @@ public class CreateCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    createPathProperty = add(new PathProperty("", false, "createPath"));
+    newInstance = add(new StringProperty("", false, "newInstance"));
   }
 
   @Override
@@ -35,20 +37,38 @@ public class CreateCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    Path createPath = createPathProperty.getValue();
-    if (createPath == null || createPath.toString().isBlank()) {
-      // pwd
-      createPath = this.context.getCwd();
-    }
+    String newInstanceName = newInstance.getValue();
+    Path newInstancePath;
 
-    if (!Files.isDirectory(createPath)) {
-      this.context.getFileAccess().mkdirs(createPath);
+    if (newInstanceName == null) {
+      newInstancePath = this.context.getCwd();
+    } else {
+      newInstancePath = this.context.getIdeRoot().resolve(newInstanceName);
+      this.context.getFileAccess().mkdirs(newInstancePath);
     }
-
-    if (!this.context.getFileAccess().isEmptyDir(createPath)) {
+    if (!this.context.getFileAccess().isEmptyDir(newInstancePath)) {
       this.context.askToContinue("Directory is not empty, continue?");
     }
 
-    this.context.getCommandletManager().getCommandlet(UpdateCommandlet.class).run();
+    initializeInstance(newInstancePath);
+    ProcessContext pc = this.context.newProcess().executable(this.context.getIdeRoot().resolve("ide"));
+    pc.addArgs("update");
+    pc.directory(newInstancePath);
+    pc.run();
+    //TODO: update creates workspaces/main, get path of IDEasy in IDEROOT
+  }
+
+  private void initializeInstance(Path newInstancePath) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SOFTWARE));
+    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_UPDATES));
+    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_PLUGINS));
+    fileAccess.mkdirs(newInstancePath.resolve("scripts"));
+    try {
+      Files.createFile(newInstancePath.resolve("setup"));
+    } catch(IOException e) {
+      throw new IllegalStateException("Could not initialize " + newInstancePath, e);
+    }
   }
 }
