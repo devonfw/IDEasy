@@ -808,8 +808,8 @@ public abstract class AbstractIdeContext implements IdeContext {
         property.apply(arguments, this, cc, collector);
       }
     }
-    if (arguments.hasNext()) {
-      CliArgument current = arguments.next();
+    CliArgument current = arguments.current();
+    if (!current.isEnd()) {
       String keyword = current.get();
       Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
       boolean matches = false;
