@@ -32,7 +32,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     super(context, tool, tags);
   }
 
-
   /**
    * @return the {@link Path} where the tool is located (installed).
    */
@@ -66,7 +65,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier installedVersion = getInstalledVersion();
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
-    if (isInstalledVersion(resolvedVersion, installedVersion, silent)) {
+    // check if we already have this edition installed (linked) locally in IDE_HOME/software
+    String installedEdition = getInstalledEdition();
+    if (isInstalledVersion(resolvedVersion, installedVersion, silent) && installedEdition.equals(getEdition())) {
       return false;
     }
     // we need to link the version or update the link.
@@ -178,6 +179,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       if (silent) {
         level = IdeLogLevel.DEBUG;
       }
+      // TODO this prints twice since installInRepo also prints this message
       this.context.level(level).log("Version {} of tool {} is already installed", installedVersion,
           getToolWithEdition());
       return true;

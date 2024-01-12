@@ -7,13 +7,13 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * An internal {@link Commandlet} to set a tool version.
+ * An internal {@link Commandlet} to get the installed edition for a tool.
  *
- * @see ToolCommandlet#setVersion(VersionIdentifier, boolean)
+ * @see ToolCommandlet#getInstalledEdition()
  */
 public class EditionGetCommandlet extends Commandlet {
 
-  /** The tool to get the version of. */
+  /** The tool to get the edition of. */
   public final ToolProperty tool;
 
   /**
@@ -37,15 +37,25 @@ public class EditionGetCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    // i dont want to get the set edition but from the tool which is installed.
+    ToolCommandlet commandlet = this.tool.getValue();
+    VersionIdentifier installedVersion = commandlet.getInstalledVersion();
+    if (installedVersion == null) {
+      throw new CliException("Tool " + commandlet.getName() + " is not installed!", 4);
+    }
 
-//    this.context.getVariables().getToolEdition(this.tool.getName());
-//    String edition = commandlet.getEdition();
-//    VersionIdentifier installedVersion = commandlet.getInstalledVersion();
-//    if (installedVersion == null) {
-//      throw new CliException("Tool " + commandlet.getName() + " is not installed!", 4);
-//    }
-//    this.context.info(installedVersion.toString());
+    String installedEdition = commandlet.getInstalledEdition();
+
+    if (installedEdition == null) {
+      this.context.warning("Couldn't get edition of tool {}.", getName());
+      String configuredEdition = this.context.getVariables().getToolEdition(getName());
+      if (configuredEdition == null) {
+        this.context.info("No edition is configured for tool {}.", getName());
+      } else {
+        this.context.info("Configured edition for tool {} is {}.", getName(), configuredEdition);
+      }
+    } else {
+      this.context.info(installedEdition);
+    }
   }
 
 }

@@ -7,9 +7,9 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * An internal {@link Commandlet} to set a tool version.
+ * An internal {@link Commandlet} to get the installed version for a tool.
  *
- * @see ToolCommandlet#setVersion(VersionIdentifier, boolean)
+ * @see ToolCommandlet#getInstalledVersion()
  */
 public class VersionGetCommandlet extends Commandlet {
 

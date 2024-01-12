@@ -106,9 +106,6 @@ public interface IdeContext extends IdeLogger {
   /** The file where the installed software version is written to as plain text. */
   String FILE_LEGACY_SOFTWARE_VERSION = ".devon.software.version";
 
-  /** The file where the installed software edition is written to as plain text. */
-  String FILE_SOFTWARE_EDITION = ".ide.software.edition";
-
   /** The file extension for a {@link java.util.Properties} file. */
   String EXT_PROPERTIES = ".properties";
 

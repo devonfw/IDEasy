@@ -330,6 +330,47 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * @return the installed edition of this tool or {@code null} if not installed.
+   */
+  public String getInstalledEdition() {
+
+    return getInstalledEdition(this.context.getSoftwarePath().resolve(getName()));
+  }
+
+  /**
+   * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent
+   *        directory of the real path corresponding to the passed {@link Path path} must be the name of the edition.
+   * @return the installed edition of this tool or {@code null} if not installed.
+   */
+  public String getInstalledEdition(Path toolPath) {
+
+    if (!Files.isDirectory(toolPath)) {
+      this.context.debug("Tool {} not installed in {}", getName(), toolPath);
+      return null;
+    }
+    try {
+      String edition = toolPath.toRealPath().getParent().getFileName().toString();
+      return edition;
+    } catch (IOException e) {
+      this.context.debug("When calling getInstalledEdition() for tool " + getName()
+          + " calling toRealPath().getParent() on " + toolPath + " failed. Returning null.");
+      return null;
+    }
+
+  }
+
+  /**
+   * List the available editions of this tool.
+   */
+  public void listEditions() {
+
+    List<String> editions = this.context.getUrls().getSortedEditions(getName());
+    for (String edition : editions) {
+      this.context.info(edition);
+    }
+  }
+
+  /**
    * List the available versions of this tool.
    */
   public void listVersions() {
@@ -388,20 +429,44 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
   }
 
+  public void setEdition(String edition) {
+
+    if ((edition == null) || edition.isBlank()) {
+      throw new IllegalStateException("Edition has to be specified!");
+    }
+
+    if (!Files.exists(this.context.getUrls().getEdition(getName(), edition).getPath())) {
+      this.context.warning("Edition {} seems to be invalid", edition);
+
+    }
+    setEdition(edition, true);
+  }
+
   /**
    * TODO
    *
    * @param edition the edition to set
    * @param hint - {@code true} to print the installation hint, {@code false} otherwise.
    */
-  public void setEdition(String edition, boolean hint){
+  public void setEdition(String edition, boolean hint) {
 
-    //TODO if edition is set to something then check if the current set version exists also for this edition
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
     String name = EnvironmentVariables.getToolEditionVariable(this.tool);
     settingsVariables.set(name, edition, false);
     settingsVariables.save();
+
+    this.context.info("{}={} has been set in {}", name, edition, settingsVariables.getSource());
+    EnvironmentVariables declaringVariables = variables.findVariable(name);
+    if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
+      this.context.warning(
+          "The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
+          name, declaringVariables.getSource());
+    }
+    if (hint) {
+      this.context.info("To install that edition call the following command:");
+      this.context.info("ide install {}", this.tool);
+    }
   }
 
 }
