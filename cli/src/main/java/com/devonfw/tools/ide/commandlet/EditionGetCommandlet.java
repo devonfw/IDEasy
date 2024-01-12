@@ -46,13 +46,9 @@ public class EditionGetCommandlet extends Commandlet {
     String installedEdition = commandlet.getInstalledEdition();
 
     if (installedEdition == null) {
-      this.context.warning("Couldn't get edition of tool {}.", getName());
+      this.context.warning("Couldn't get edition of installed tool {}.", getName());
       String configuredEdition = this.context.getVariables().getToolEdition(getName());
-      if (configuredEdition == null) {
-        this.context.info("No edition is configured for tool {}.", getName());
-      } else {
-        this.context.info("Configured edition for tool {} is {}.", getName(), configuredEdition);
-      }
+      this.context.info("Configured edition for tool {} is {}.", getName(), configuredEdition);
     } else {
       this.context.info(installedEdition);
     }

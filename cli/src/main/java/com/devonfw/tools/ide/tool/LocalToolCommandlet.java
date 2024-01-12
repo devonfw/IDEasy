@@ -131,12 +131,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     Path toolPath = this.context.getSoftwareRepositoryPath().resolve(toolRepository.getId()).resolve(this.tool)
         .resolve(edition).resolve(resolvedVersion.toString());
     Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
-
-    // mattes why is sufficient that the version file exists for it to be: already installed
     FileAccess fileAccess = this.context.getFileAccess();
     if (Files.isDirectory(toolPath)) {
       if (Files.exists(toolVersionFile)) {
-        // mattes this was debug before
         this.context.info("Version {} of tool {} is already installed at {}", resolvedVersion,
             getToolWithEdition(this.tool, edition), toolPath);
         return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
