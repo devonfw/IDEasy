@@ -3,11 +3,7 @@ package com.devonfw.tools.ide.tool;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
 
-import com.devonfw.tools.ide.context.IdeTestContext;
-
-import java.util.Map;
 import java.util.Set;
 
 
