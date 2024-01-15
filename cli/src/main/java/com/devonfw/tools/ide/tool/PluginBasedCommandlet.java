@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptorImpl;
@@ -13,7 +14,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class PluginBasedCommandlet extends LocalToolCommandlet {
+public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private Map<String, PluginDescriptor> pluginsMap;
 
@@ -108,6 +109,32 @@ public class PluginBasedCommandlet extends LocalToolCommandlet {
   public Path getPluginsInstallationPath() {
 
     return this.context.getPluginsPath().resolve(this.tool);
+  }
+
+  /**
+   * @param plugin the {@link PluginDescriptor} to install.
+   */
+  public abstract void installPlugin(PluginDescriptor plugin);
+
+  /**
+   * @param plugin the {@link PluginDescriptor} to uninstall.
+   */
+  public void uninstallPlugin(PluginDescriptor plugin) {
+
+    Path pluginsPath = getPluginsInstallationPath();
+    if (!Files.isDirectory(pluginsPath)) {
+      this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not exist at {}",
+          plugin.getName(), plugin.getId(), pluginsPath);
+      return;
+    }
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path match = fileAccess.findFirst(pluginsPath, p -> p.getFileName().toString().startsWith(plugin.getId()), false);
+    if (match == null) {
+      this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not contain a match at {}",
+          plugin.getName(), plugin.getId(), pluginsPath);
+      return;
+    }
+    fileAccess.delete(match);
   }
 
   /**

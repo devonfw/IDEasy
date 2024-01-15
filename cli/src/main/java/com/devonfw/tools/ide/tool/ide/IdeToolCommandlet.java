@@ -65,32 +65,6 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     this.context.debug("Omitting installation of inactive plugin {} ({}).", plugin.getName(), plugin.getId());
   }
 
-  /**
-   * @param plugin the {@link PluginDescriptor} to install.
-   */
-  public abstract void installPlugin(PluginDescriptor plugin);
-
-  /**
-   * @param plugin the {@link PluginDescriptor} to uninstall.
-   */
-  public void uninstallPlugin(PluginDescriptor plugin) {
-
-    Path pluginsPath = getPluginsInstallationPath();
-    if (!Files.isDirectory(pluginsPath)) {
-      this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not exist at {}",
-          plugin.getName(), plugin.getId(), pluginsPath);
-      return;
-    }
-    FileAccess fileAccess = this.context.getFileAccess();
-    Path match = fileAccess.findFirst(pluginsPath, p -> p.getFileName().toString().startsWith(plugin.getId()), false);
-    if (match == null) {
-      this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not contain a match at {}",
-          plugin.getName(), plugin.getId(), pluginsPath);
-      return;
-    }
-    fileAccess.delete(match);
-  }
-
   @Override
   public void run() {
 
