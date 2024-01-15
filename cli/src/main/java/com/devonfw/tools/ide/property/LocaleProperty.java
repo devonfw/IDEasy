@@ -56,31 +56,8 @@ public class LocaleProperty extends Property<Locale> {
   protected boolean completeValue(String arg, IdeContext context, Commandlet commandlet,
       CompletionCandidateCollector collector) {
 
-    if (arg.isEmpty()) {
-      for (String locale : getAvailableLocales()) {
-        collector.add(locale, this, commandlet);
-      }
-      return true;
-    }
-    boolean match = false;
-    int index = Arrays.binarySearch(getAvailableLocales(), arg);
-    if (index >= 0) {
-      collector.add(availableLocales[index], this, commandlet);
-      index++;
-      match = true;
-    } else {
-      index = -index;
-    }
-    while (index < availableLocales.length) {
-      if (availableLocales[index].startsWith(arg)) {
-        collector.add(availableLocales[index], this, commandlet);
-        match = true;
-      } else {
-        break;
-      }
-      index++;
-    }
-    return match;
+    int count = collector.addAllMatches(arg, getAvailableLocales(), this, commandlet);
+    return count > 0;
   }
 
   private static String[] getAvailableLocales() {

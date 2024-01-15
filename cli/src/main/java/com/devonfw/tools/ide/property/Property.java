@@ -321,6 +321,13 @@ public abstract class Property<V> {
       CompletionCandidateCollector collector) {
 
     boolean match = false;
+    if (this.name.isEmpty()) {
+      match = completeValue(arg, context, commandlet, collector);
+      if (match) {
+        args.next();
+      }
+      return match;
+    }
     if (this.name.startsWith(arg)) {
       collector.add(this.name, this, commandlet);
       match = true;

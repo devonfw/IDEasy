@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.completion;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -35,7 +36,45 @@ public class CompletionCandidateCollector {
    */
   public void add(String text, Property<?> property, Commandlet commandlet) {
 
-    this.candidates.add(new CompletionCandidate(text));
+    CompletionCandidate candidate = new CompletionCandidate(text);
+    this.candidates.add(candidate);
+    this.context.trace("Added {} for auto-completion of property {}.{}", candidate, commandlet, property);
+  }
+
+  /**
+   * @param text the suggested word to add to auto-completion.
+   * @param sortedCandidates the array of candidates sorted in ascending order.
+   * @param property the {@link Property} that triggered this suggestion.
+   * @param commandlet the {@link Commandlet} owning the {@link Property}.
+   * @return the number of {@link CompletionCandidate}s that have been added.
+   */
+  public int addAllMatches(String text, String[] sortedCandidates, Property<?> property, Commandlet commandlet) {
+
+    if (text.isEmpty()) {
+      for (String candidate : sortedCandidates) {
+        add(candidate, property, commandlet);
+      }
+      return sortedCandidates.length;
+    }
+    int count = 0;
+    int index = Arrays.binarySearch(sortedCandidates, text);
+    if (index >= 0) {
+      add(sortedCandidates[index], property, commandlet);
+      index++;
+      count++;
+    } else {
+      index = -index;
+    }
+    while ((index >= 0) && (index < sortedCandidates.length)) {
+      if (sortedCandidates[index].startsWith(text)) {
+        add(sortedCandidates[index], property, commandlet);
+        count++;
+      } else {
+        break;
+      }
+      index++;
+    }
+    return count;
   }
 
   /**

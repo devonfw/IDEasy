@@ -53,7 +53,7 @@ public class VersionProperty extends Property<VersionIdentifier> {
   protected boolean completeValue(String arg, IdeContext context, Commandlet commandlet,
       CompletionCandidateCollector collector) {
 
-    return super.completeValue(arg, context, commandlet, collector);
+    return commandlet.completeVersion(VersionIdentifier.of(arg), collector);
   }
 
 }
