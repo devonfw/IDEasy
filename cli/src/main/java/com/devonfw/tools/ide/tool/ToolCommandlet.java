@@ -429,6 +429,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
   }
 
+  /**
+   * Sets the tool edition in the environment variable configuration file.
+   *
+   * @param edition the edition to set.
+   */
   public void setEdition(String edition) {
 
     if ((edition == null) || edition.isBlank()) {
