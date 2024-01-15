@@ -443,7 +443,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * TODO
+   * Sets the tool edition in the environment variable configuration file.
    *
    * @param edition the edition to set
    * @param hint - {@code true} to print the installation hint, {@code false} otherwise.
