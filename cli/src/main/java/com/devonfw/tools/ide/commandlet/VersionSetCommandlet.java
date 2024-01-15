@@ -1,7 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -70,8 +70,9 @@ public class VersionSetCommandlet extends Commandlet {
       collector.add(text + VersionSegment.PATTERN_MATCH_ANY_VERSION, this.tool, this);
       List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(toolCmd.getName(),
           toolCmd.getEdition());
-      Collections.reverse(versions);
-      String[] sorderCandidates = versions.stream().map(v -> v.toString()).toArray(size -> new String[size]);
+      int size = versions.size();
+      String[] sorderCandidates = IntStream.rangeClosed(1, size).mapToObj(i -> versions.get(size - i).toString())
+          .toArray(s -> new String[s]);
       collector.addAllMatches(text, sorderCandidates, this.version, this);
       return true;
     }
