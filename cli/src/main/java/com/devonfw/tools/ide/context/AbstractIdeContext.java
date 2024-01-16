@@ -606,7 +606,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (!gitRepoUrl.startsWith("http")) {
       throw new IllegalArgumentException("Invalid git URL '" + gitRepoUrl + "'!");
     }
-    ProcessContext pc = newProcess().directory(target).executable("git");
+    ProcessContext pc = newProcess().directory(target).executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0");
     if (Files.isDirectory(target.resolve(".git"))) {
       ProcessResult result = pc.addArg("remote").run(true);
       List<String> remotes = result.getOut();
