@@ -32,7 +32,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     super(context, tool, tags);
   }
 
-
   /**
    * @return the {@link Path} where the tool is located (installed).
    */
@@ -66,7 +65,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier installedVersion = getInstalledVersion();
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
-    if (isInstalledVersion(resolvedVersion, installedVersion, silent)) {
+    if (resolvedVersion.equals(installedVersion)) {
       return false;
     }
     // we need to link the version or update the link.
@@ -165,21 +164,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
     }
     return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion);
-  }
-
-  private boolean isInstalledVersion(VersionIdentifier expectedVersion, VersionIdentifier installedVersion,
-      boolean silent) {
-
-    if (expectedVersion.equals(installedVersion)) {
-      IdeLogLevel level = IdeLogLevel.INFO;
-      if (silent) {
-        level = IdeLogLevel.DEBUG;
-      }
-      this.context.level(level).log("Version {} of tool {} is already installed", installedVersion,
-          getToolWithEdition());
-      return true;
-    }
-    return false;
   }
 
 }
