@@ -388,6 +388,41 @@ public final class Tag {
     return this.isAbstract;
   }
 
+  public boolean isAncestorOf(Tag tag) {
+
+    return isAncestorOf(tag, false);
+  }
+
+  /**
+   * @param tag the {@link Tag} to check.
+   * @param includeAdditionalParents - {@code true} if {@link #getParent(int) additional parents} should be included,
+   *        {@code false} otherwise (only consider {@link #getParent() primary parent}).
+   * @return {@code true} if the given {@link Tag} is an ancestor of this tag, {@code false} otherwise. An ancestor is
+   *         a direct or indirect {@link #getParent() parent}. Therefore, if {@link #ROOT} is given as {@link Tag} parameter,
+   *         this method should always return {@code true}.
+   */
+  public boolean isAncestorOf(Tag tag, boolean includeAdditionalParents) {
+
+    Tag ancestor = this.parent;
+    while (ancestor != null) {
+      if (ancestor == tag) {
+        return true;
+      }
+      ancestor = ancestor.parent;
+    }
+    if (includeAdditionalParents) {
+      for (Tag p : this.additionalParents) {
+        do {
+          if (p == tag) {
+            return true;
+          }
+          p = p.parent;
+        } while (p != null);
+      }
+    }
+    return false;
+  }
+
   @Override
   public String toString() {
 

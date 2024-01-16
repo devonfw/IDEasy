@@ -42,6 +42,17 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
   public IdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
+    assert (hasIde(tags));
+  }
+
+  private boolean hasIde(Set<Tag> tags) {
+
+    for (Tag tag : tags) {
+      if (tag.isAncestorOf(Tag.IDE)) {
+        return true;
+      }
+    }
+    throw new IllegalStateException("Tags of IdeTool hat to be connected with tag IDE: " + tags);
   }
 
   private Map<String, PluginDescriptor> getPluginsMap() {

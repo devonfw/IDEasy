@@ -133,4 +133,19 @@ public class TagTest extends Assertions {
     assertThat(Tag.ASCII_DOC.getParent(0)).isSameAs(Tag.FORMAT);
     assertThat(Tag.ASCII_DOC.getParent(1)).isSameAs(Tag.DOCUMENTATION);
   }
+
+  /**
+   * Test of {@link Tag#isAncestorOf(Tag)}.
+   */
+  @Test
+  public void testIsAncestorOf() {
+
+    assertThat(Tag.QUARKUS.isAncestorOf(Tag.ROOT)).isTrue();
+    assertThat(Tag.QUARKUS.isAncestorOf(Tag.DOCUMENTATION)).isFalse();
+    assertThat(Tag.QUARKUS.isAncestorOf(Tag.JAVA)).isFalse();
+    assertThat(Tag.QUARKUS.isAncestorOf(Tag.QUARKUS)).isFalse();
+    boolean includeAdditionalParents = true;
+    assertThat(Tag.QUARKUS.isAncestorOf(Tag.JAVA, includeAdditionalParents)).isTrue();
+    assertThat(Tag.QUARKUS.isAncestorOf(Tag.LANGUAGE, includeAdditionalParents)).isTrue();
+  }
 }
