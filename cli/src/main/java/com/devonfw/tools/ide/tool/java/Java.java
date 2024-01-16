@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.java;
 
 import java.util.Set;
 
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -18,7 +19,7 @@ public class Java extends LocalToolCommandlet {
    */
   public Java(IdeContext context) {
 
-    super(context, "java", Set.of(TAG_JAVA, TAG_RUNTIME));
+    super(context, "java", Set.of(Tag.JAVA, Tag.RUNTIME));
   }
 
 }

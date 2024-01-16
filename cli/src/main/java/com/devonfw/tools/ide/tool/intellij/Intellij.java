@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.intellij;
 
 import java.util.Set;
 
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
@@ -19,7 +20,7 @@ public class Intellij extends IdeToolCommandlet {
    */
   public Intellij(IdeContext context) {
 
-    super(context, "intellij", Set.of(TAG_JAVA, TAG_IDE));
+    super(context, "intellij", Set.of(Tag.INTELLIJ));
   }
 
   @Override
