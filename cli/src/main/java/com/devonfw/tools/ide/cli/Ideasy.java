@@ -104,7 +104,7 @@ public final class Ideasy {
         if (property instanceof FlagProperty) {
           ((FlagProperty) property).setValue(Boolean.TRUE);
         } else {
-          this.context.error("Missing value for option " + key);
+          this.context.error("Missing value for option {}", key);
         }
       } else {
         property.setValueAsString(value, this.context);
