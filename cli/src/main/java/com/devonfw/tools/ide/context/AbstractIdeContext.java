@@ -769,8 +769,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param current the current {@link CliArgument} (position) to match.
-   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArgument, Commandlet) apply} and
+   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
    *        {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
    *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
