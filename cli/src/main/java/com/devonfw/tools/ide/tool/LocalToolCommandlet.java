@@ -176,7 +176,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       if (silent) {
         level = IdeLogLevel.DEBUG;
       }
-      // TODO this prints twice since installInRepo also prints this message
       this.context.level(level).log("Version {} of tool {} is already installed", installedVersion,
           getToolWithEdition());
       return true;

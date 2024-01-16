@@ -12,6 +12,9 @@ public interface ProcessResult {
   /** Exit code for success. */
   int SUCCESS = 0;
 
+  /** Exit code if the tool is not installed */
+  int TOOL_NOT_INSTALLED = 4;
+
   /**
    * @return the exit code. Will be {@link #SUCCESS} on successful completion of the {@link Process}.
    */

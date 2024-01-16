@@ -350,11 +350,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
     try {
       String edition = toolPath.toRealPath().getParent().getFileName().toString();
+      if (!this.context.getUrls().getSortedEditions(getName()).contains(edition)) {
+        this.context.warning("The determined edition \"{}\" of tool {} is not among the editions provided by IDEasy",
+            edition, getName());
+      }
       return edition;
     } catch (IOException e) {
-      this.context.debug("When calling getInstalledEdition() for tool " + getName()
-          + " calling toRealPath().getParent() on " + toolPath + " failed. Returning null.");
-      return null;
+      throw new IllegalStateException("Couldn't determine the edition of " + getName()
+          + " from the directory structure of its software path " + toolPath
+          + ", assuming the name of the parent directory of the real path of the software path to be the edition "
+          + "of the tool.", e);
     }
 
   }

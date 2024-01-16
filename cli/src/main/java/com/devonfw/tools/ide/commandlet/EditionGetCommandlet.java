@@ -6,6 +6,8 @@ import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+import static com.devonfw.tools.ide.process.ProcessResult.TOOL_NOT_INSTALLED;
+
 /**
  * An internal {@link Commandlet} to get the installed edition for a tool.
  *
@@ -40,17 +42,16 @@ public class EditionGetCommandlet extends Commandlet {
     ToolCommandlet commandlet = this.tool.getValue();
     VersionIdentifier installedVersion = commandlet.getInstalledVersion();
     if (installedVersion == null) {
-      throw new CliException("Tool " + commandlet.getName() + " is not installed!", 4);
+      throw new CliException("Tool " + commandlet.getName() + " is not installed!", TOOL_NOT_INSTALLED);
     }
 
-    String installedEdition = commandlet.getInstalledEdition();
-
-    if (installedEdition == null) {
-      this.context.warning("Couldn't get edition of installed tool {}.", getName());
-      String configuredEdition = this.context.getVariables().getToolEdition(getName());
-      this.context.info("Configured edition for tool {} is {}.", getName(), configuredEdition);
-    } else {
+    try {
+      String installedEdition = commandlet.getInstalledEdition();
       this.context.info(installedEdition);
+    } catch (IllegalStateException e) {
+      String configuredEdition = this.context.getVariables().getToolEdition(getName());
+      this.context.info("The configured edition for tool {} is {}.", getName(), configuredEdition);
+
     }
   }
 
