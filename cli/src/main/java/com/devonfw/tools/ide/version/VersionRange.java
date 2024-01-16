@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.version;
 
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
@@ -14,44 +16,9 @@ public final class VersionRange implements Comparable<VersionRange> {
 
   private final VersionIdentifier max;
 
-  private final boolean leftIsExclusive;
+  private final BoundaryType boundaryType;
 
-  private final boolean rightIsExclusive;
-
-  private static final String VERSION_SEPARATOR = ">";
-
-  private static final String START_EXCLUDING_PREFIX = "(";
-
-  private static final String START_INCLUDING_PREFIX = "[";
-
-  private static final String END_EXCLUDING_SUFFIX = ")";
-
-  private static final String END_INCLUDING_SUFFIX = "]";
-
-  public static String getVersionSeparator() {
-
-    return VERSION_SEPARATOR;
-  }
-
-  public static String getStartExcludingPrefix() {
-
-    return START_EXCLUDING_PREFIX;
-  }
-
-  public static String getStartIncludingPrefix() {
-
-    return START_INCLUDING_PREFIX;
-  }
-
-  public static String getEndExcludingSuffix() {
-
-    return END_EXCLUDING_SUFFIX;
-  }
-
-  public static String getEndIncludingSuffix() {
-
-    return END_INCLUDING_SUFFIX;
-  }
+  private static final String VERSION_SEPARATOR = ",";
 
   /**
    * The constructor.
@@ -61,11 +28,7 @@ public final class VersionRange implements Comparable<VersionRange> {
    */
   public VersionRange(VersionIdentifier min, VersionIdentifier max) {
 
-    super();
-    this.min = min;
-    this.max = max;
-    this.leftIsExclusive = false;
-    this.rightIsExclusive = false;
+    this(min, max, BoundaryType.CLOSED);
   }
 
   /**
@@ -79,27 +42,18 @@ public final class VersionRange implements Comparable<VersionRange> {
   public VersionRange(VersionIdentifier min, VersionIdentifier max, BoundaryType boundaryType) {
 
     super();
+    Objects.requireNonNull(boundaryType);
     this.min = min;
     this.max = max;
-    this.leftIsExclusive = BoundaryType.LEFT_OPEN.equals(boundaryType) || BoundaryType.OPEN.equals(boundaryType);
-    this.rightIsExclusive = BoundaryType.RIGHT_OPEN.equals(boundaryType) || BoundaryType.OPEN.equals(boundaryType);
-  }
+    this.boundaryType = boundaryType;
+    if ((min != null) && (max != null) && min.isGreater(max)) {
+      throw new IllegalArgumentException(toString());
+    } else if ((min == null) && !boundaryType.isLeftExclusive()) {
+      throw new IllegalArgumentException(toString());
+    } else if ((max == null) && !boundaryType.isRightExclusive()) {
+      throw new IllegalArgumentException(toString());
+    }
 
-  /**
-   * The constructor.
-   *
-   * @param min the {@link #getMin() minimum}.
-   * @param max the {@link #getMax() maximum}.
-   * @param leftIsExclusive - {@code true} if the {@link #getMin() minimum} is exclusive, {@code false} otherwise.
-   * @param rightIsExclusive - {@code true} if the {@link #getMax() maximum} is exclusive, {@code false} otherwise.
-   */
-  public VersionRange(VersionIdentifier min, VersionIdentifier max, boolean leftIsExclusive, boolean rightIsExclusive) {
-
-    super();
-    this.min = min;
-    this.max = max;
-    this.leftIsExclusive = leftIsExclusive;
-    this.rightIsExclusive = rightIsExclusive;
   }
 
   /**
@@ -119,35 +73,11 @@ public final class VersionRange implements Comparable<VersionRange> {
   }
 
   /**
-   * @return {@code true} if the {@link #getMin() minimum} is exclusive, {@code false} otherwise.
-   */
-  public boolean isLeftExclusive() {
-
-    return this.leftIsExclusive;
-  }
-
-  /**
-   * @return {@code true} if the {@link #getMax() maximum} is exclusive, {@code false} otherwise.
-   */
-  public boolean isRightExclusive() {
-
-    return this.rightIsExclusive;
-  }
-
-  /**
    * @return the {@link BoundaryType} defining whether the boundaries of the range are inclusive or exclusive.
    */
   public BoundaryType getBoundaryType() {
 
-    if (this.leftIsExclusive && this.rightIsExclusive) {
-      return BoundaryType.OPEN;
-    } else if (this.leftIsExclusive) {
-      return BoundaryType.LEFT_OPEN;
-    } else if (this.rightIsExclusive) {
-      return BoundaryType.RIGHT_OPEN;
-    } else {
-      return BoundaryType.CLOSED;
-    }
+    return this.boundaryType;
   }
 
   /**
@@ -161,7 +91,7 @@ public final class VersionRange implements Comparable<VersionRange> {
       VersionComparisonResult compareMin = version.compareVersion(this.min);
       if (compareMin.isLess()) {
         return false;
-      } else if (compareMin.isEqual() && this.leftIsExclusive) {
+      } else if (compareMin.isEqual() && this.boundaryType.isLeftExclusive()) {
         return false;
       }
     }
@@ -169,7 +99,7 @@ public final class VersionRange implements Comparable<VersionRange> {
       VersionComparisonResult compareMax = version.compareVersion(this.max);
       if (compareMax.isGreater()) {
         return false;
-      } else if (compareMax.isEqual() && this.rightIsExclusive) {
+      } else if (compareMax.isEqual() && this.boundaryType.isRightExclusive()) {
         return false;
       }
     }
@@ -189,7 +119,8 @@ public final class VersionRange implements Comparable<VersionRange> {
     }
     int compareMins = this.min.compareTo(o.min);
     if (compareMins == 0) {
-      return this.leftIsExclusive == o.leftIsExclusive ? 0 : this.leftIsExclusive ? 1 : -1;
+      return this.boundaryType.isLeftExclusive() == o.boundaryType.isLeftExclusive() ? 0
+          : this.boundaryType.isLeftExclusive() ? 1 : -1;
     } else {
       return compareMins;
     }
@@ -204,15 +135,14 @@ public final class VersionRange implements Comparable<VersionRange> {
       return false;
     }
     VersionRange o = (VersionRange) obj;
-    if (this.min == null && this.max == null) {
-      return o.min == null && o.max == null;
-    } else if (this.min == null) {
-      return o.min == null && this.max.equals(o.max) && this.rightIsExclusive == o.rightIsExclusive;
-    } else if (this.max == null) {
-      return this.min.equals(o.min) && o.max == null && this.leftIsExclusive == o.leftIsExclusive;
+    if (this.boundaryType != o.boundaryType) {
+      return false;
+    } else if (!Objects.equals(this.min, o.min)) {
+      return false;
+    } else if (!Objects.equals(this.max, o.max)) {
+      return false;
     }
-    return this.min.equals(o.min) && this.leftIsExclusive == o.leftIsExclusive && this.max.equals(o.max)
-        && this.rightIsExclusive == o.rightIsExclusive;
+    return true;
   }
 
   @Override
@@ -220,7 +150,7 @@ public final class VersionRange implements Comparable<VersionRange> {
   public String toString() {
 
     StringBuilder sb = new StringBuilder();
-    sb.append(this.leftIsExclusive ? START_EXCLUDING_PREFIX : START_INCLUDING_PREFIX);
+    sb.append(this.boundaryType.getPrefix());
     if (this.min != null) {
       sb.append(this.min);
     }
@@ -228,7 +158,7 @@ public final class VersionRange implements Comparable<VersionRange> {
     if (this.max != null) {
       sb.append(this.max);
     }
-    sb.append(this.rightIsExclusive ? END_EXCLUDING_SUFFIX : END_INCLUDING_SUFFIX);
+    sb.append(this.boundaryType.getSuffix());
     return sb.toString();
   }
 
@@ -239,40 +169,45 @@ public final class VersionRange implements Comparable<VersionRange> {
   @JsonCreator
   public static VersionRange of(String value) {
 
-    boolean leftIsExclusive = value.startsWith(START_EXCLUDING_PREFIX);
-    boolean rightIsExclusive = value.endsWith(END_EXCLUDING_SUFFIX);
-    value = removeAffixes(value);
-
-    int index = value.indexOf(VERSION_SEPARATOR);
-    if (index == -1) {
-      return null; // log warning?
+    Boolean isleftExclusive = null;
+    Boolean isRightExclusive = null;
+    if (value.startsWith(BoundaryType.START_EXCLUDING_PREFIX)) {
+      isleftExclusive = Boolean.TRUE;
+      value = value.substring(BoundaryType.START_EXCLUDING_PREFIX.length());
+    } else if (value.startsWith(BoundaryType.START_INCLUDING_PREFIX)) {
+      isleftExclusive = Boolean.FALSE;
+      value = value.substring(BoundaryType.START_INCLUDING_PREFIX.length());
     }
-
+    if (value.endsWith(BoundaryType.END_EXCLUDING_SUFFIX)) {
+      isRightExclusive = Boolean.TRUE;
+      value = value.substring(0, value.length() - BoundaryType.END_EXCLUDING_SUFFIX.length());
+    } else if (value.endsWith(BoundaryType.END_INCLUDING_SUFFIX)) {
+      isRightExclusive = Boolean.FALSE;
+      value = value.substring(0, value.length() - BoundaryType.END_INCLUDING_SUFFIX.length());
+    }
     VersionIdentifier min = null;
-    if (index > 0) {
-      min = VersionIdentifier.of(value.substring(0, index));
-    }
     VersionIdentifier max = null;
-    String maxString = value.substring(index + 1);
-    if (!maxString.isEmpty()) {
-      max = VersionIdentifier.of(maxString);
+    int index = value.indexOf(VERSION_SEPARATOR);
+    if (index < 0) {
+      min = VersionIdentifier.of(value);
+      max = min;
+    } else {
+      String minString = value.substring(0, index);
+      if (!minString.isEmpty()) {
+        min = VersionIdentifier.of(minString);
+      }
+      String maxString = value.substring(index + 1);
+      if (!maxString.isEmpty()) {
+        max = VersionIdentifier.of(maxString);
+      }
     }
-    return new VersionRange(min, max, leftIsExclusive, rightIsExclusive);
-  }
-
-  private static String removeAffixes(String value) {
-
-    if (value.startsWith(START_EXCLUDING_PREFIX)) {
-      value = value.substring(START_EXCLUDING_PREFIX.length());
-    } else if (value.startsWith(START_INCLUDING_PREFIX)) {
-      value = value.substring(START_INCLUDING_PREFIX.length());
+    if (isleftExclusive == null) {
+      isleftExclusive = Boolean.valueOf(min == null);
     }
-    if (value.endsWith(END_EXCLUDING_SUFFIX)) {
-      value = value.substring(0, value.length() - END_EXCLUDING_SUFFIX.length());
-    } else if (value.endsWith(END_INCLUDING_SUFFIX)) {
-      value = value.substring(0, value.length() - END_EXCLUDING_SUFFIX.length());
+    if (isRightExclusive == null) {
+      isRightExclusive = Boolean.valueOf(max == null);
     }
-    return value;
+    return new VersionRange(min, max, BoundaryType.of(isleftExclusive.booleanValue(), isRightExclusive.booleanValue()));
   }
 
 }
