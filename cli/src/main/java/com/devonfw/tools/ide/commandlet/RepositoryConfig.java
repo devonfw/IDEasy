@@ -45,7 +45,7 @@ public record RepositoryConfig(
     return new RepositoryConfig(properties.getProperty("path"), properties.getProperty("workingsets"),
         properties.getProperty("workspace"), properties.getProperty("git_url"), properties.getProperty("git_branch"),
         properties.getProperty(("build_path")), properties.getProperty("build_cmd"), importsSet,
-        Boolean.parseBoolean(properties.getProperty("active")));
+        Boolean.parseBoolean(properties.getProperty("active").trim()));
   }
 
   private static Set<String> getImports(Properties properties) {

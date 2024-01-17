@@ -17,7 +17,7 @@ import java.util.Properties;
 import static com.devonfw.tools.ide.commandlet.RepositoryConfig.loadProperties;
 
 /**
- * {@link Commandlet} to setup a repository
+ * {@link Commandlet} to setup one or multiple GIT repositories for development.
  */
 public class RepositoryCommandlet extends Commandlet {
 
@@ -46,8 +46,6 @@ public class RepositoryCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    Path repositoriesPath = this.context.getSettingsPath().resolve(context.FOLDER_REPOSITORIES);
-    Path legacyRepositoriesPath = this.context.getSettingsPath().resolve(context.FOLDER_LEGACY_REPOSITORIES);
     Path repositoryFile = repository.getValueAsPath(context);
 
     if (repositoryFile != null) {
@@ -55,6 +53,8 @@ public class RepositoryCommandlet extends Commandlet {
       doImportRepository(repositoryFile, true);
     } else {
       // If no specific repository is provided, check for repositories folder
+      Path repositoriesPath = this.context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES);
+      Path legacyRepositoriesPath = this.context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_REPOSITORIES);
       Path repositories;
       if (Files.exists(repositoriesPath)) {
         repositories = repositoriesPath;
@@ -99,7 +99,6 @@ public class RepositoryCommandlet extends Commandlet {
     }
 
     this.context.debug(repositoryConfig.toString());
-    this.context.debug("Pull or clone git repository {} ...", repository);
 
     String workspace = repositoryConfig.workspace() != null ? repositoryConfig.workspace() : "main";
     Path workspacePath = this.context.getIdeHome().resolve("workspaces").resolve(workspace);
@@ -127,10 +126,5 @@ public class RepositoryCommandlet extends Commandlet {
       this.context.info("Build command not set. Skipping build for repository.");
     }
 
-    if (!Files.exists(repositoryPath.resolve(".project"))) {
-      for (String ideCommandlet : repositoryConfig.imports()) {
-        //TODO: import repository to ideCommandlet
-      }
-    }
   }
 }

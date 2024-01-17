@@ -4,6 +4,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class RepositoryProperty extends Property<String> {
@@ -47,26 +48,20 @@ public class RepositoryProperty extends Property<String> {
 
   public Path getValueAsPath(IdeContext context) {
 
-    Path repositoriesPath = context.getSettingsPath().resolve(context.FOLDER_REPOSITORIES);
-    Path legacyRepositoriesPath = context.getSettingsPath().resolve(context.FOLDER_LEGACY_REPOSITORIES);
-
-    Path repositoryFile;
-    if (super.getValue() != null) {
-      repositoryFile = Path.of(super.getValue());
-    } else {
+    String value = getValue();
+    if (value == null) {
       return null;
     }
-    
+
+    Path repositoryFile = Path.of(value);
     if (!Files.exists(repositoryFile)) {
-      repositoryFile = repositoriesPath.resolve(repositoryFile.getFileName().toString() + ".properties");
+      Path repositoriesPath = context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES);
+      Path legacyRepositoriesPath = context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_REPOSITORIES);
+      repositoryFile = context.getFileAccess().findExistingFile(value + ".properties",
+          Arrays.asList(repositoriesPath, legacyRepositoriesPath));
     }
-    if (!Files.exists(repositoryFile)) {
-      Path legacyRepositoryFile = legacyRepositoriesPath.resolve(repositoryFile.getFileName().toString());
-      if (Files.exists(legacyRepositoryFile)) {
-        repositoryFile = legacyRepositoryFile;
-      } else {
-        throw new IllegalStateException("Could not find " + repositoryFile);
-      }
+    if (repositoryFile == null) {
+      throw new IllegalStateException("Could not find " + value);
     }
     return repositoryFile;
   }
