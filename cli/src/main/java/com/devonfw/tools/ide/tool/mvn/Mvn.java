@@ -35,12 +35,6 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   @Override
-  protected void postInstall() {
-
-    super.postInstall();
-  }
-
-  @Override
   public void installPlugin(PluginDescriptor plugin) {
 
     Path mavenPlugin = this.context.getSoftwarePath().resolve(this.tool).resolve("lib/ext/" + plugin.getName() + ".jar");
