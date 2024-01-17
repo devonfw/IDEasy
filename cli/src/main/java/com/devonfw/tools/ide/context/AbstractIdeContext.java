@@ -667,9 +667,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     assert (options.length >= 2);
     interaction(question);
     Map<String, O> mapping = new HashMap<>(options.length);
-    int i = 0;
+    int i = 1;
     for (O option : options) {
-      i++;
       String key = "" + option;
       addMapping(mapping, key, option);
       String numericKey = Integer.toString(i);

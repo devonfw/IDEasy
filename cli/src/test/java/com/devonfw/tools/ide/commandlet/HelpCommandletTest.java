@@ -24,7 +24,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     // act
     HelpCommandlet help = new HelpCommandlet(context);
     // assert
-    assertThat(help.isIdeHomeRequired()).isFalse();
+    assertThat(help.isIdeHomeRequired()).isEqualTo(false);
   }
 
   /**
