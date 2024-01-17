@@ -1,6 +1,18 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.Set;
+import java.io.BufferedReader;
+import java.util.List;
+import java.util.Map;
+import java.util.Iterator;
+import java.util.stream.Stream;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
@@ -12,17 +24,6 @@ import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyJson;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.Set;
-import java.util.List;
-import java.util.Map;
-import java.util.Iterator;
-import java.util.stream.Stream;
 
 /**
  * {@link ToolCommandlet} that is installed locally into the IDE.
@@ -41,7 +42,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
    *        method.
    */
-  public LocalToolCommandlet(IdeContext context, String tool, Set<String> tags) {
+  public LocalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
   }
@@ -99,7 +100,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (installedVersion == null) {
       this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
     } else {
-      this.context.success("Successfully installed {} in version {} replacing previous version {]", this.tool,
+      this.context.success("Successfully installed {} in version {} replacing previous version {}", this.tool,
           resolvedVersion, installedVersion);
     }
     postInstall();

@@ -86,7 +86,7 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected String mapVersion(String version) {
 
-    // TODO remove this hack and get versiosn from reliable API
+    // TODO remove this hack and get versions from reliable API
     return super.mapVersion(version.replace(" ", "-"));
   }
 
