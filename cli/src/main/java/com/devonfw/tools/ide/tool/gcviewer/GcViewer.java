@@ -4,7 +4,6 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
@@ -32,7 +31,7 @@ public class GcViewer extends LocalToolCommandlet {
   public void run() {
 
     install(true);
-    ProcessContext pc = new ProcessContextImpl(this.context);
+    ProcessContext pc = this.context.newProcess();
     pc.directory(getToolPath());
     pc.executable("java");
     pc.addArg("-jar");

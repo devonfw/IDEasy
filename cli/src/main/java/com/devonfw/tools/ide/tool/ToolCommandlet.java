@@ -271,12 +271,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     } else {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", getName(), file);
 
-      try {
-        Files.createDirectories(targetDir);
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to create folder " + targetDir);
+      if (Files.isDirectory(file)) {
+        fileAccess.move(file, targetDir);
+      } else {
+        try {
+          Files.createDirectories(targetDir);
+        } catch (IOException e) {
+          throw new IllegalStateException("Failed to create folder " + targetDir);
+        }
+        fileAccess.move(file, targetDir.resolve(file.getFileName()));
       }
-      fileAccess.move(file, targetDir.resolve(file.getFileName()));
     }
   }
 
