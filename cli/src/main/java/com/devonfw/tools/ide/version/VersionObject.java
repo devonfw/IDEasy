@@ -3,12 +3,11 @@ package com.devonfw.tools.ide.version;
 /**
  * Abstract base interface for a version object such as {@link VersionIdentifier} and {@link VersionSegment}.
  *
- *
  * {@link Comparable} for versions with an extended contract. If two versions are not strictly comparable (e.g.
  * "1.apple" and "1.banana") we fall back to some heuristics (e.g. lexicographical comparison for
- * {@link VersionSegment#getLettersString() letters} that we do not understand (e.g. "apple" < "banana"). Therefore you can
- * use {@link #compareVersion(Object)} to get a {@link VersionComparisonResult} that contains the additional information
- * as {@link VersionComparisonResult#isUnsafe() unsafe} flag.
+ * {@link VersionSegment#getLettersString() letters} that we do not understand (e.g. "apple" < "banana"). Therefore, you
+ * can use {@link #compareVersion(Object)} to get a {@link VersionComparisonResult} that contains the additional
+ * information as {@link VersionComparisonResult#isUnsafe() unsafe} flag.
  *
  * @param <T> type of the object to compare (this class itself).
  */
