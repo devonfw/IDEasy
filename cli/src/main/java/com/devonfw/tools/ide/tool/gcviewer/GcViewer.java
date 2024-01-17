@@ -32,7 +32,7 @@ public class GcViewer extends LocalToolCommandlet {
   public void run() {
 
     install(true);
-    ProcessContext pc = new ProcessContextImpl(this.context);
+    ProcessContext pc = this.context.newProcess();
     pc.directory(getToolPath());
     pc.executable("java");
     pc.addArg("-jar");
