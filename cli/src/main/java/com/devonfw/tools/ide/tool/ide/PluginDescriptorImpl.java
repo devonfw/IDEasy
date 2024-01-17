@@ -21,6 +21,8 @@ public class PluginDescriptorImpl implements PluginDescriptor {
 
   private final String name;
 
+  private final String version;
+
   private final String url;
 
   private final boolean active;
@@ -32,15 +34,17 @@ public class PluginDescriptorImpl implements PluginDescriptor {
    *
    * @param id the {@link #getId() ID}.
    * @param name the {@link #getName() name}.
+   * @param version the {@link #getVersion() URL}.
    * @param url the {@link #getUrl() URL}.
    * @param active the {@link #isActive() active flag}.
    * @param tags the {@link #getTags() tags}.
    */
-  public PluginDescriptorImpl(String id, String name, String url, boolean active, Set<Tag> tags) {
+  public PluginDescriptorImpl(String id, String name, String version, String url, boolean active, Set<Tag> tags) {
 
     super();
     this.id = id;
     this.name = name;
+    this.version = version;
     this.url = url;
     this.active = active;
     this.tags = tags;
@@ -56,6 +60,12 @@ public class PluginDescriptorImpl implements PluginDescriptor {
   public String getName() {
 
     return this.name;
+  }
+
+  @Override
+  public String getVersion() {
+
+    return this.version;
   }
 
   @Override
@@ -94,6 +104,7 @@ public class PluginDescriptorImpl implements PluginDescriptor {
       throw new IllegalStateException("Failed to load properties " + propertiesFile, e);
     }
     String id = getString(properties, "id", "plugin_id");
+    String version = getString(properties, "version", "plugin_version");
     String url = getString(properties, "url", "plugin_url");
     if (needUrl && ((url == null) || url.isBlank())) {
       logger.warning("Missing plugin URL in {}", propertiesFile);
@@ -101,7 +112,7 @@ public class PluginDescriptorImpl implements PluginDescriptor {
     boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile, logger);
     String tagsCsv = getString(properties, "tags", "plugin_tags");
     Set<Tag> tags = Tag.parseCsv(tagsCsv);
-    return new PluginDescriptorImpl(id, name, url, active, tags);
+    return new PluginDescriptorImpl(id, name, version, url, active, tags);
   }
 
   private static boolean getBoolean(Properties properties, String key, String legacyKey, Path propertiesFile,
