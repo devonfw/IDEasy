@@ -8,9 +8,11 @@ import com.devonfw.tools.ide.tool.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * {@link Commandlet} to update settings, software and repositories
@@ -44,14 +46,44 @@ public class UpdateCommandlet extends Commandlet {
 
     updateSettings();
     this.context.getFileAccess().mkdirs(this.context.getWorkspacePath());
-    if (this.context.getConfPath() == null) {
-      createConf();
-    }
+    this.context.getFileAccess().mkdirs(this.context.getConfPath());
+    setupConf(this.context.getSettingsPath().resolve("devon"), this.context.getConfPath());
     updateSoftware();
     updateRepositories();
   }
 
-  private void createConf() {
+  private void setupConf(Path template, Path conf) {
+
+
+    try (Stream<Path> childStream = Files.list(template)) {
+      Iterator<Path> iterator = childStream.iterator();
+      while (iterator.hasNext()) {
+        Path child = iterator.next();
+        String basename = child.getFileName().toString();
+
+        if (!basename.equals(".") && !basename.equals("..") && !basename.equals("*")) {
+          Path confPath = conf.resolve(basename);
+
+          if (Files.isDirectory(child)) {
+            if (!Files.exists(confPath) || !Files.isDirectory(confPath)) {
+              this.context.getFileAccess().mkdirs(confPath);
+            }
+            setupConf(child, confPath);
+          } else if (Files.isRegularFile(child)) {
+            if (Files.isRegularFile(confPath)) {
+              this.context.debug("Configuration {} already exists - skipping to copy from {}", confPath, child);
+            } else {
+              if (!basename.equals("settings.xml")) {
+                this.context.debug("Copying template {} to {}.", child, confPath);
+                this.context.getFileAccess().copy(child, confPath);
+              }
+            }
+          }
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not setup the conf folder.", e);
+    }
 
   }
 

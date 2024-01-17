@@ -46,27 +46,28 @@ public class CreateCommandlet extends Commandlet {
       newInstancePath = this.context.getIdeRoot().resolve(newInstanceName);
       this.context.getFileAccess().mkdirs(newInstancePath);
     }
+
+    this.context.info("Creating new IDEasy instance in {}", newInstancePath);
     if (!this.context.getFileAccess().isEmptyDir(newInstancePath)) {
       this.context.askToContinue("Directory is not empty, continue?");
     }
 
     initializeInstance(newInstancePath);
-    ProcessContext pc = this.context.newProcess().executable(this.context.getIdeRoot().resolve("ide"));
+    ProcessContext pc = this.context.newProcess().executable("IDEasy");
     pc.addArgs("update");
     pc.directory(newInstancePath);
     pc.run();
-    //TODO: update creates workspaces/main, get path of IDEasy in IDEROOT
   }
 
   private void initializeInstance(Path newInstancePath) {
 
-    FileAccess fileAccess = this.context.getFileAccess();
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SOFTWARE));
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_UPDATES));
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_PLUGINS));
-    fileAccess.mkdirs(newInstancePath.resolve("scripts"));
     try {
-      Files.createFile(newInstancePath.resolve("setup"));
+      FileAccess fileAccess = this.context.getFileAccess();
+      fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SOFTWARE));
+      fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_UPDATES));
+      fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_PLUGINS));
+      fileAccess.mkdirs(newInstancePath.resolve("scripts")); // to be removed after isIdeHome is changed
+      Files.createFile(newInstancePath.resolve("setup")); // to be removed after isIdeHome is changed
     } catch(IOException e) {
       throw new IllegalStateException("Could not initialize " + newInstancePath, e);
     }
