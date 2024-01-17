@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
 
 import java.io.IOException;
@@ -56,7 +57,11 @@ public class CreateCommandlet extends Commandlet {
     ProcessContext pc = this.context.newProcess().executable("IDEasy");
     pc.addArgs("update");
     pc.directory(newInstancePath);
-    pc.run();
+    if (pc.run() == ProcessResult.SUCCESS) {
+      this.context.success("IDEasy Instance successfully created in {}", newInstancePath);
+    } else {
+      this.context.warning("Could not created IDEasy Instance.");
+    }
   }
 
   private void initializeInstance(Path newInstancePath) {
@@ -67,7 +72,9 @@ public class CreateCommandlet extends Commandlet {
       fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_UPDATES));
       fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_PLUGINS));
       fileAccess.mkdirs(newInstancePath.resolve("scripts")); // to be removed after isIdeHome is changed
-      Files.createFile(newInstancePath.resolve("setup")); // to be removed after isIdeHome is changed
+      if (!Files.exists(newInstancePath.resolve("setup"))) {
+        Files.createFile(newInstancePath.resolve("setup")); // to be removed after isIdeHome is changed
+      }
     } catch(IOException e) {
       throw new IllegalStateException("Could not initialize " + newInstancePath, e);
     }
