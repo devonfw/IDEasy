@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.io;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 
@@ -62,7 +63,7 @@ public interface FileAccess {
    * Creates a symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a Windows
    * junction, it will be replaced. In case of missing privileges, Windows Junctions may be used as fallback, which must
    * point to absolute paths. Therefore, the created link will be absolute instead of relative.
-   * 
+   *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
    * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
@@ -73,7 +74,7 @@ public interface FileAccess {
    * Creates a relative symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a
    * Windows junction, it will be replaced. In case of missing privileges, Windows Junctions may be used as fallback,
    * which must point to absolute paths. Therefore, the created link will be absolute instead of relative.
-   * 
+   *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
    */
@@ -123,6 +124,13 @@ public interface FileAccess {
    * @return the absolute and physical {@link Path} (without symbolic links).
    */
   Path toRealPath(Path path);
+
+  /**
+   * @param permissionInt The integer as returned by {@link TarArchiveEntry#getMode()} that represents the file
+   *        permissions of a file on a Unix file system.
+   * @return A String representing the file permissions. E.g. "rwxrwxr-x" or "rw-rw-r--"
+   */
+  String generatePermissionString(int permissionInt);
 
   /**
    * Deletes the given {@link Path} idempotent and recursive.

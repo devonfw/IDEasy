@@ -7,6 +7,10 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -325,7 +329,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
   /**
    * Checks if the symlinks exist. This is used by the tests of {@link FileAccessImpl#symlink(Path, Path, boolean)}.
-   * 
+   *
    * @param dir the {@link Path} to the directory where the symlinks are expected.
    */
   private void assertSymlinksExist(Path dir) {
@@ -469,4 +473,44 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
           + " and readPath " + readPath, e);
     }
   }
+
+  /**
+   * Test of {@link FileAccessImpl#untar(Path, Path, TarCompression)} and checks if file permissions are preserved on
+   * Linux
+   */
+  @Test
+  public void testUntarWithFilePermissions(@TempDir Path tempDir) {
+    // TODO test:
+    // NONE -> not yet checked
+    // GZ, -> checked
+    // BZIP2 -> not yet checked
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    // TODO I think these are not relevant on Windows. But what about MacOS?
+    if (!context.getSystemInfo().isLinux()) {
+      return;
+    }
+
+    // act
+    context.getFileAccess().untar(
+        Path.of("src/test/resources/com/devonfw/tools/ide/io").resolve("executable_and_non_executable.tar.gz"), tempDir,
+        TarCompression.GZ);
+
+    // assert
+    assertPosixFilePermissions(tempDir.resolve("executableFile.txt"), "rwxrwxr-x");
+    assertPosixFilePermissions(tempDir.resolve("nonExecutableFile.txt"), "rw-rw-r--");
+  }
+
+  private void assertPosixFilePermissions(Path file, String permissions) {
+
+    try {
+      Set<PosixFilePermission> posixPermissions = Files.getPosixFilePermissions(file);
+      String permissionStr = PosixFilePermissions.toString(posixPermissions);
+      assertThat(permissions).isEqualTo(permissionStr);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
 }
