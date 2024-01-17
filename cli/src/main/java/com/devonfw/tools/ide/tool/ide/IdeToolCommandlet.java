@@ -1,5 +1,9 @@
 package com.devonfw.tools.ide.tool.ide;
 
+import java.nio.file.Path;
+import java.util.Set;
+
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.tool.PluginBasedCommandlet;
@@ -7,10 +11,6 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
 
 /**
  * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or
@@ -26,43 +26,10 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
    *        method.
    */
-  public IdeToolCommandlet(IdeContext context, String tool, Set<String> tags) {
+  public IdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
-    assert (tags.contains(TAG_IDE));
-  }
-
-  @Override
-  protected boolean doInstall(boolean silent) {
-
-    boolean newlyInstalled = super.doInstall(silent);
-    // post installation...
-    boolean installPlugins = newlyInstalled;
-    Path pluginsInstallationPath = getPluginsInstallationPath();
-    if (newlyInstalled) {
-      this.context.getFileAccess().delete(pluginsInstallationPath);
-    } else if (!Files.isDirectory(pluginsInstallationPath)) {
-      installPlugins = true;
-    }
-    if (installPlugins) {
-      for (PluginDescriptor plugin : getPluginsMap().values()) {
-        if (plugin.isActive()) {
-          installPlugin(plugin);
-        } else {
-          handleInstall4InactivePlugin(plugin);
-        }
-      }
-    }
-    return newlyInstalled;
-  }
-
-  /**
-   * @param plugin the in{@link PluginDescriptor#isActive() active} {@link PluginDescriptor} that is skipped for regular
-   *        plugin installation.
-   */
-  protected void handleInstall4InactivePlugin(PluginDescriptor plugin) {
-
-    this.context.debug("Omitting installation of inactive plugin {} ({}).", plugin.getName(), plugin.getId());
+    assert (tags.contains(Tag.IDE));
   }
 
   @Override

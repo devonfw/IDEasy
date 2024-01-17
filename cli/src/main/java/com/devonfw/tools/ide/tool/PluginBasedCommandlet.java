@@ -1,18 +1,24 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptorImpl;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.*;
-import java.util.stream.Stream;
 
 public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
@@ -28,11 +34,10 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
    * method.
    */
-  public PluginBasedCommandlet(IdeContext context, String tool, Set<String> tags) {
+  public PluginBasedCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
   }
-
 
   protected Map<String, PluginDescriptor> getPluginsMap() {
 
@@ -156,5 +161,38 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
           "Could not find plugin " + key + " at " + getPluginsConfigPath().resolve(key) + ".properties");
     }
     return pluginDescriptor;
+  }
+
+  @Override
+  protected boolean doInstall(boolean silent) {
+
+    boolean newlyInstalled = super.doInstall(silent);
+    // post installation...
+    boolean installPlugins = newlyInstalled;
+    Path pluginsInstallationPath = getPluginsInstallationPath();
+    if (newlyInstalled) {
+      this.context.getFileAccess().delete(pluginsInstallationPath);
+    } else if (!Files.isDirectory(pluginsInstallationPath)) {
+      installPlugins = true;
+    }
+    if (installPlugins) {
+      for (PluginDescriptor plugin : getPluginsMap().values()) {
+        if (plugin.isActive()) {
+          installPlugin(plugin);
+        } else {
+          handleInstall4InactivePlugin(plugin);
+        }
+      }
+    }
+    return newlyInstalled;
+  }
+
+  /**
+   * @param plugin the in{@link PluginDescriptor#isActive() active} {@link PluginDescriptor} that is skipped for regular
+   *        plugin installation.
+   */
+  protected void handleInstall4InactivePlugin(PluginDescriptor plugin) {
+
+    this.context.debug("Omitting installation of inactive plugin {} ({}).", plugin.getName(), plugin.getId());
   }
 }

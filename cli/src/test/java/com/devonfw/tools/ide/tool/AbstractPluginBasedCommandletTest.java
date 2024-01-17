@@ -1,10 +1,12 @@
 package com.devonfw.tools.ide.tool;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
-import java.util.Set;
+import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 
 
 public class AbstractPluginBasedCommandletTest extends PluginBasedCommandlet {
@@ -16,7 +18,7 @@ public class AbstractPluginBasedCommandletTest extends PluginBasedCommandlet {
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
    * method.
    */
-  public AbstractPluginBasedCommandletTest(IdeContext context, String tool, Set<String> tags) {
+  public AbstractPluginBasedCommandletTest(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
   }

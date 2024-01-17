@@ -1,14 +1,16 @@
 package com.devonfw.tools.ide.tool;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
+
+import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 
 public class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
@@ -16,7 +18,7 @@ public class PluginBasedCommandletTest extends AbstractIdeContextTest {
    void testGetPluginsMap() {
     IdeTestContext context = newContext(PROJECT_BASIC, "", true);
     String tool = "Eclipse";
-    Set<String> tags = null;
+    Set<Tag> tags = null;
     AbstractPluginBasedCommandletTest pluginBasedCommandlet = new AbstractPluginBasedCommandletTest(context, tool, tags);
 
     Map<String, PluginDescriptor> pluginsMap = pluginBasedCommandlet.getPluginsMap();

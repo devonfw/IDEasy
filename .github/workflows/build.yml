@@ -1,5 +1,5 @@
 name: CI build
-on: 
+on:
   push:
     paths-ignore:
       - 'documentation/**'
@@ -23,3 +23,5 @@ jobs:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dstyle.color=always -B -ntp deploy
+      - name: Coveralls GitHub Action
+        uses: coverallsapp/github-action@v2.2.3
