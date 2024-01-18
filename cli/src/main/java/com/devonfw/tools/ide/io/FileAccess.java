@@ -172,4 +172,13 @@ public interface FileAccess {
    */
   boolean isEmptyDir(Path dir);
 
+  /**
+   * Finds the existing file with the specified name in the given list of directories.
+   *
+   * @param fileName      The name of the file to find.
+   * @param searchDirs    The list of directories to search for the file.
+   * @return              The {@code Path} of the existing file, or {@code null} if the file is not found.
+   */
+  Path findExistingFile(String fileName, List<Path> searchDirs);
+
 }

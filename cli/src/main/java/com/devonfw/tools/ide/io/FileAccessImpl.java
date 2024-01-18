@@ -623,4 +623,20 @@ public class FileAccessImpl implements FileAccess {
 
 
 
+  @Override
+  public Path findExistingFile(String fileName, List<Path> searchDirs) {
+
+    for (Path dir : searchDirs) {
+      Path filePath = dir.resolve(fileName);
+      try {
+        if (Files.exists(filePath)) {
+          return filePath;
+        }
+      } catch (SecurityException e) {
+        throw new IllegalStateException("SecurityException while checking file existence.");
+      }
+    }
+    return null;
+  }
+
 }
