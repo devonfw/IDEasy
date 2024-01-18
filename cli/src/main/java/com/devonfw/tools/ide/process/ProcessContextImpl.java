@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.process;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.IOException;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -86,6 +86,13 @@ public final class ProcessContextImpl implements ProcessContext {
   public ProcessContext addArg(String arg) {
 
     this.arguments.add(arg);
+    return this;
+  }
+
+  @Override
+  public ProcessContext withEnvVar(String key, String value) {
+
+    this.processBuilder.environment().put(key, value);
     return this;
   }
 
@@ -195,7 +202,7 @@ public final class ProcessContextImpl implements ProcessContext {
     String message = sb.toString();
     return message;
   }
-  
+
   private boolean hasSheBang(Path file) {
 
     try (InputStream in = Files.newInputStream(file)) {
@@ -211,6 +218,7 @@ public final class ProcessContextImpl implements ProcessContext {
   }
 
   private String findBashOnWindows() {
+
     // Check if Git Bash exists in the default location
     Path defaultPath = Paths.get("C:\\Program Files\\Git\\bin\\bash.exe");
     if (Files.exists(defaultPath)) {
@@ -218,8 +226,8 @@ public final class ProcessContextImpl implements ProcessContext {
     }
 
     // If not found in the default location, try the registry query
-    String[] bashVariants = {"GitForWindows", "Cygwin\\setup"};
-    String[] registryKeys = {"HKEY_LOCAL_MACHINE","HKEY_CURRENT_USER"};
+    String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
+    String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
     String regQueryResult;
     for (String bashVariant : bashVariants) {
       for (String registryKey : registryKeys) {
@@ -256,9 +264,8 @@ public final class ProcessContextImpl implements ProcessContext {
         }
       }
     }
-    //no bash found
+    // no bash found
     throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
   }
-
 
 }
