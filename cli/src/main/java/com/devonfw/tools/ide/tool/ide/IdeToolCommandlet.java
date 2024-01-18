@@ -1,5 +1,18 @@
 package com.devonfw.tools.ide.tool.ide;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.tool.PluginBasedCommandlet;
@@ -26,10 +39,20 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
    *        method.
    */
-  public IdeToolCommandlet(IdeContext context, String tool, Set<String> tags) {
+  public IdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
-    assert (tags.contains(TAG_IDE));
+    assert (hasIde(tags));
+  }
+
+  private boolean hasIde(Set<Tag> tags) {
+
+    for (Tag tag : tags) {
+      if (tag.isAncestorOf(Tag.IDE)) {
+        return true;
+      }
+    }
+    throw new IllegalStateException("Tags of IdeTool hat to be connected with tag IDE: " + tags);
   }
 
   @Override
