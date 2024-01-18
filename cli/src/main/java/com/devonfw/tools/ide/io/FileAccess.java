@@ -161,7 +161,7 @@ public interface FileAccess {
   /**
    * Retrieves a list of file paths from the specified directory.
    * @param dir the folder to iterate through
-   * @return a list of paths that satisfy the provided {@link Predicate}. Will be {@link List#isEmpty() empty} if no match was found but is never {@code null}.
+   * @return a list of paths. Will be {@link List#isEmpty() empty} if directory is empty but is never {@code null}.
    */
   List<Path> getChildrenInDir(Path dir);
 
