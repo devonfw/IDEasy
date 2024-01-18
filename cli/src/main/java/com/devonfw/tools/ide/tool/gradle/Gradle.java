@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.gradle;
 
 import java.util.Set;
 
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -19,7 +20,7 @@ public class Gradle extends LocalToolCommandlet {
    */
   public Gradle(IdeContext context) {
 
-    super(context, "gradle", Set.of(TAG_JAVA, TAG_BUILD));
+    super(context, "gradle", Set.of(Tag.JAVA, Tag.BUILD));
   }
 
   @Override
