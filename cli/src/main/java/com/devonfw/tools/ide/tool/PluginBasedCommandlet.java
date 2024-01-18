@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -28,7 +29,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
    * method.
    */
-  public PluginBasedCommandlet(IdeContext context, String tool, Set<String> tags) {
+  public PluginBasedCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
   }
