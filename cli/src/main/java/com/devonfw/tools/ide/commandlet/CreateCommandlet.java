@@ -54,7 +54,7 @@ public class CreateCommandlet extends Commandlet {
     }
 
     initializeInstance(newInstancePath);
-    ProcessContext pc = this.context.newProcess().executable("IDEasy");
+    ProcessContext pc = this.context.newProcess().executable("ideasy"); //maybe later in a separate method runIdeCommand
     pc.addArgs("update");
     pc.directory(newInstancePath);
     if (pc.run() == ProcessResult.SUCCESS) {

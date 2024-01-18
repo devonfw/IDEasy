@@ -114,6 +114,7 @@ public class UpdateCommandlet extends Commandlet {
         repository = DEFAULT_SETTINGS_REPO_URL;
       }
       this.context.gitPullOrClone(settingsPath, repository);
+      this.context.success("Successfully cloned settings repository.");
     }
   }
 
@@ -133,8 +134,10 @@ public class UpdateCommandlet extends Commandlet {
 
     // regular tools in $IDE_TOOLS
     List<String> regularTools =  IdeVariables.IDE_TOOLS.get(this.context);
-    for (String regularTool : regularTools) {
-      toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(regularTool));
+    if (regularTools != null) {
+      for (String regularTool : regularTools) {
+        toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(regularTool));
+      }
     }
 
     // custom tools
