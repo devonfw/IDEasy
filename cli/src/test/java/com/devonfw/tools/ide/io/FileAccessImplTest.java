@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.io;
 
+import static com.devonfw.tools.ide.io.FileAccessImpl.generatePermissionString;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
@@ -7,7 +8,6 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
@@ -475,20 +475,38 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link FileAccessImpl#untar(Path, Path, TarCompression)} and checks if file permissions are preserved on
-   * Linux
+   * Test of {@link FileAccessImpl#untar(Path, Path, TarCompression)} with {@link TarCompression#NONE} and checks if
+   * file permissions are preserved on Unix.
    */
   @Test
-  public void testUntarWithFilePermissions(@TempDir Path tempDir) {
-    // TODO test:
-    // NONE -> not yet checked
-    // GZ, -> checked
-    // BZIP2 -> not yet checked
+  public void testUntarWithNoneCompressionWithFilePermissions(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    // TODO I think these are not relevant on Windows. But what about MacOS?
-    if (!context.getSystemInfo().isLinux()) {
+    if (context.getSystemInfo().isWindows()) {
+      return;
+    }
+
+    // act
+    context.getFileAccess().untar(
+        Path.of("src/test/resources/com/devonfw/tools/ide/io").resolve("executable_and_non_executable.tar"), tempDir,
+        TarCompression.NONE);
+
+    // assert
+    assertPosixFilePermissions(tempDir.resolve("executableFile.txt"), "rwxrwxr-x");
+    assertPosixFilePermissions(tempDir.resolve("nonExecutableFile.txt"), "rw-rw-r--");
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#untar(Path, Path, TarCompression)} with {@link TarCompression#GZ} and checks if file
+   * permissions are preserved on Unix.
+   */
+  @Test
+  public void testUntarWithGzCompressionWithFilePermissions(@TempDir Path tempDir) {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    if (context.getSystemInfo().isWindows()) {
       return;
     }
 
@@ -496,6 +514,29 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     context.getFileAccess().untar(
         Path.of("src/test/resources/com/devonfw/tools/ide/io").resolve("executable_and_non_executable.tar.gz"), tempDir,
         TarCompression.GZ);
+
+    // assert
+    assertPosixFilePermissions(tempDir.resolve("executableFile.txt"), "rwxrwxr-x");
+    assertPosixFilePermissions(tempDir.resolve("nonExecutableFile.txt"), "rw-rw-r--");
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#untar(Path, Path, TarCompression)} with {@link TarCompression#BZIP2} and checks if
+   * file permissions are preserved on Unix.
+   */
+  @Test
+  public void testUntarWithBzip2CompressionWithFilePermissions(@TempDir Path tempDir) {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    if (context.getSystemInfo().isWindows()) {
+      return;
+    }
+
+    // act
+    context.getFileAccess().untar(
+        Path.of("src/test/resources/com/devonfw/tools/ide/io").resolve("executable_and_non_executable.tar.bz2"),
+        tempDir, TarCompression.BZIP2);
 
     // assert
     assertPosixFilePermissions(tempDir.resolve("executableFile.txt"), "rwxrwxr-x");
@@ -511,6 +552,20 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#generatePermissionString(int)}.
+   */
+  @Test
+  public void testGeneratePermissionString() {
+
+    assertThat(generatePermissionString(0)).isEqualTo("---------");
+    assertThat(generatePermissionString(436)).isEqualTo("rw-rw-r--");
+    assertThat(generatePermissionString(948)).isEqualTo("rw-rw-r--");
+    assertThat(generatePermissionString(509)).isEqualTo("rwxrwxr-x");
+    assertThat(generatePermissionString(511)).isEqualTo("rwxrwxrwx");
+
   }
 
 }

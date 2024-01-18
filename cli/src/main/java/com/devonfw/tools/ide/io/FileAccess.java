@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.io;
 
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import java.nio.file.Path;
 import java.util.function.Predicate;
 
@@ -124,13 +123,6 @@ public interface FileAccess {
    * @return the absolute and physical {@link Path} (without symbolic links).
    */
   Path toRealPath(Path path);
-
-  /**
-   * @param permissionInt The integer as returned by {@link TarArchiveEntry#getMode()} that represents the file
-   *        permissions of a file on a Unix file system.
-   * @return A String representing the file permissions. E.g. "rwxrwxr-x" or "rw-rw-r--"
-   */
-  String generatePermissionString(int permissionInt);
 
   /**
    * Deletes the given {@link Path} idempotent and recursive.

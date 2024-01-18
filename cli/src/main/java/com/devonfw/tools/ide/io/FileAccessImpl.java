@@ -36,7 +36,6 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -499,7 +498,12 @@ public class FileAccessImpl implements FileAccess {
     unpack(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
   }
 
-  public String generatePermissionString(int permissions) {
+  /**
+   * @param permissions The integer as returned by {@link TarArchiveEntry#getMode()} that represents the file
+   *        permissions of a file on a Unix file system.
+   * @return A String representing the file permissions. E.g. "rwxrwxr-x" or "rw-rw-r--"
+   */
+  public static String generatePermissionString(int permissions) {
 
     // Ensure that only the last 9 bits are considered
     permissions &= 0b111111111;
@@ -521,18 +525,9 @@ public class FileAccessImpl implements FileAccess {
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
       ArchiveEntry entry = ais.getNextEntry();
       boolean isTar = ais instanceof TarArchiveInputStream;
-      boolean isZip = ais instanceof ZipArchiveInputStream;
       while (entry != null) {
         String permissionStr = null;
-        if (isZip) {
-          // TODO ZipArchiveInputStream is unable to fill this field, you must use ZipFile if you want to read entries
-          // using this attribute (getExternalAttributes).
-          int unixMode = ((int) ((ZipArchiveEntry) entry).getExternalAttributes() >> 16) & 0xFFFF;
-          // unixMode always zero since ZipArchiveInputStream does not read getExternalAttributes()
-          System.out.println("File: " + ((ZipArchiveEntry) entry).getName());
-          System.out.println("Unix Mode: " + unixMode);
-          System.out.println("Unix Mode octal: " + Integer.toOctalString(unixMode));
-        } else if (isTar) {
+        if (isTar) {
           int tarMode = ((TarArchiveEntry) entry).getMode();
           permissionStr = generatePermissionString(tarMode);
         }
@@ -549,8 +544,10 @@ public class FileAccessImpl implements FileAccess {
           mkdirs(entryPath.getParent());
           Files.copy(ais, entryPath);
         }
-        Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
-        Files.setPosixFilePermissions(entryPath, permissions);
+        if (isTar) {
+          Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
+          Files.setPosixFilePermissions(entryPath, permissions);
+        }
         entry = ais.getNextEntry();
       }
     } catch (IOException e) {
