@@ -8,9 +8,11 @@ import com.devonfw.tools.ide.tool.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
  * {@link Commandlet} to update settings, software and repositories
@@ -43,10 +45,45 @@ public class UpdateCommandlet extends Commandlet {
   public void run() {
 
     updateSettings();
+    this.context.getFileAccess().mkdirs(this.context.getWorkspacePath());
+    setupConf(this.context.getSettingsPath().resolve("devon"), this.context.getIdeHome());
     updateSoftware();
     updateRepositories();
   }
 
+  private void setupConf(Path template, Path conf) {
+
+    try (Stream<Path> childStream = Files.list(template)) {
+      Iterator<Path> iterator = childStream.iterator();
+      while (iterator.hasNext()) {
+        Path child = iterator.next();
+        String basename = child.getFileName().toString();
+
+        if (!basename.equals(".") && !basename.equals("..") && !basename.equals("*")) {
+          Path confPath = conf.resolve(basename);
+
+          if (Files.isDirectory(child)) {
+            if (!Files.exists(confPath) || !Files.isDirectory(confPath)) {
+              this.context.getFileAccess().mkdirs(confPath);
+            }
+            setupConf(child, confPath);
+          } else if (Files.isRegularFile(child)) {
+            if (Files.isRegularFile(confPath)) {
+              this.context.debug("Configuration {} already exists - skipping to copy from {}", confPath, child);
+            } else {
+              if (!basename.equals("settings.xml")) {
+                this.context.info("Copying template {} to {}.", child, confPath);
+                this.context.getFileAccess().copy(child, confPath);
+              }
+            }
+          }
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not setup the conf folder.", e);
+    }
+
+  }
 
   private void updateSettings() {
 
@@ -77,6 +114,7 @@ public class UpdateCommandlet extends Commandlet {
         repository = DEFAULT_SETTINGS_REPO_URL;
       }
       this.context.gitPullOrClone(settingsPath, repository);
+      this.context.success("Successfully cloned settings repository.");
     }
   }
 
@@ -96,8 +134,10 @@ public class UpdateCommandlet extends Commandlet {
 
     // regular tools in $IDE_TOOLS
     List<String> regularTools =  IdeVariables.IDE_TOOLS.get(this.context);
-    for (String regularTool : regularTools) {
-      toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(regularTool));
+    if (regularTools != null) {
+      for (String regularTool : regularTools) {
+        toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(regularTool));
+      }
     }
 
     // custom tools
