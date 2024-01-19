@@ -2,8 +2,6 @@ package com.devonfw.tools.ide.tool;
 
 import java.util.Set;
 
-import org.junit.jupiter.api.Test;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
@@ -26,10 +24,4 @@ public class DummyEclipseCommandlet extends PluginBasedCommandlet {
   public void installPlugin(PluginDescriptor plugin) {
 
   }
-
-  @Test
-  public void testGetPluginsMap() {
-
-  }
-
 }
