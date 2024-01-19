@@ -8,8 +8,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 
-
-public class AbstractPluginBasedCommandletTest extends PluginBasedCommandlet {
+public class DummyEclipseCommandlet extends PluginBasedCommandlet {
   /**
    * The constructor.
    *
@@ -18,7 +17,7 @@ public class AbstractPluginBasedCommandletTest extends PluginBasedCommandlet {
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
    * method.
    */
-  public AbstractPluginBasedCommandletTest(IdeContext context, String tool, Set<Tag> tags) {
+  public DummyEclipseCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
   }
@@ -30,10 +29,6 @@ public class AbstractPluginBasedCommandletTest extends PluginBasedCommandlet {
 
   @Test
   public void testGetPluginsMap() {
-
-
-
-
 
   }
 
