@@ -19,7 +19,7 @@ public class PluginBasedCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC, "", true);
     String tool = "eclipse";
     Set<Tag> tags = null;
-    DummyEclipseCommandlet pluginBasedCommandlet = new DummyEclipseCommandlet(context, tool, tags);
+    ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, tool, tags);
 
     Map<String, PluginDescriptor> pluginsMap = pluginBasedCommandlet.getPluginsMap();
     assertNotNull(pluginsMap);
