@@ -18,11 +18,6 @@ public interface PluginDescriptor extends Tags {
   String getName();
 
   /**
-   * @return the optional plugin version.
-   */
-  String getVersion();
-
-  /**
    * @return the optional plugin URL (download/update site).
    */
   String getUrl();
