@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
@@ -34,7 +35,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /** @see #getName() */
   protected final String tool;
 
-  private final Set<String> tags;
+  private final Set<Tag> tags;
 
   /** The commandline arguments to pass to the tool. */
   public final StringListProperty arguments;
@@ -49,7 +50,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
    *        method.
    */
-  public ToolCommandlet(IdeContext context, String tool, Set<String> tags) {
+  public ToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context);
     this.tool = tool;
@@ -76,7 +77,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   @Override
-  public final Set<String> getTags() {
+  public final Set<Tag> getTags() {
 
     return this.tags;
   }

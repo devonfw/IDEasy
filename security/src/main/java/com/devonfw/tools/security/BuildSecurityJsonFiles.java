@@ -198,10 +198,10 @@ public class BuildSecurityJsonFiles {
     if (referenceUrls.isEmpty()) {
       referenceUrls.add("No references found, try searching for the CVE name (" + cveName + ") on the web.");
     }
-    boolean toLowSeverity = hasV3Severity ? severity.compareTo(minV3Severity) < 0
+    boolean tooLowSeverity = hasV3Severity ? severity.compareTo(minV3Severity) < 0
         : severity.compareTo(minV2Severity) < 0;
 
-    if (toLowSeverity) {
+    if (tooLowSeverity) {
       return;
     }
     VersionRange versionRange = getVersionRangeFromVulnerability(vulnerability, urlUpdater, cpeToUrlVersion);
@@ -265,6 +265,14 @@ public class BuildSecurityJsonFiles {
     return affectedRange;
   }
 
+  /**
+   * TODO
+   *
+   * @param cpeVersion
+   * @param urlUpdater
+   * @param cpeToUrlVersion
+   * @return
+   */
   private static String getUrlVersion(String cpeVersion, AbstractUrlUpdater urlUpdater,
       Map<String, String> cpeToUrlVersion) {
 
@@ -274,7 +282,6 @@ public class BuildSecurityJsonFiles {
         urlVersion = cpeToUrlVersion.get(cpeVersion);
       } else {
         urlVersion = urlUpdater.mapCpeVersionToUrlVersion(cpeVersion);
-
       }
     }
     return urlVersion;
