@@ -25,7 +25,7 @@
         <dependency>
             <groupId>com.devonfw.tools.IDEasy</groupId>
             <artifactId>ide-cli</artifactId>
-            <version>2024.01.001-SNAPSHOT</version>
+            <version>2024.02.001-alpha-SNAPSHOT</version>
             <scope>compile</scope>
         </dependency>
     </dependencies>

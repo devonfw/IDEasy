@@ -13,6 +13,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.devonfw.tools.ide.version.BoundaryType;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
@@ -295,16 +296,28 @@ public class BuildSecurityJsonFiles {
         throw new IllegalStateException(
             "Vulnerability has no interval of affected versions or single affected version.");
       }
-      return VersionRange.of(s + VersionRange.getVersionSeparator() + s);
+      VersionIdentifier singleAffectedVersion = VersionIdentifier.of(s);
+      return new VersionRange(singleAffectedVersion, singleAffectedVersion, BoundaryType.OPEN);
     }
 
-    String leftBoundary = se == null ? VersionRange.getStartIncludingPrefix() + Objects.toString(si, "")
-        : VersionRange.getStartExcludingPrefix() + se;
+    boolean leftExclusive = si == null;
+    boolean rightExclusive = ei == null;
 
-    String rightBoundary = ee == null ? Objects.toString(ei, "") + VersionRange.getEndIncludingSuffix()
-        : ee + VersionRange.getEndExcludingSuffix();
+    VersionIdentifier min = null;
+    if (si != null) {
+      min = VersionIdentifier.of(si);
+    } else if (se != null) {
+      min = VersionIdentifier.of(se);
+    }
 
-    return VersionRange.of(leftBoundary + VersionRange.getVersionSeparator() + rightBoundary);
+    VersionIdentifier max = null;
+    if (ei != null) {
+      max = VersionIdentifier.of(ei);
+    } else if (ee != null) {
+      max = VersionIdentifier.of(ee);
+    }
+
+    return new VersionRange(min, max, BoundaryType.of(leftExclusive, rightExclusive));
   }
 
   private static void printAffectedVersions(IdeContext context) {
@@ -333,14 +346,14 @@ public class BuildSecurityJsonFiles {
           } else {
             if (min != null) {
               System.out.println("Tool " + tool.getName() + " with edition " + edition.getName() + " and versions "
-                  + new VersionRange(min, version, false, true) + " are affected by vulnerabilities.");
+                  + new VersionRange(min, version, BoundaryType.of(false, true)) + " are affected by vulnerabilities.");
               min = null;
             }
           }
         }
         if (min != null) {
           System.out.println("Tool " + tool.getName() + " with edition " + edition.getName() + " and versions "
-              + new VersionRange(min, null, false, true) + " are affected by vulnerabilities.");
+              + new VersionRange(min, null, BoundaryType.of(false, true)) + " are affected by vulnerabilities.");
         }
       }
     }

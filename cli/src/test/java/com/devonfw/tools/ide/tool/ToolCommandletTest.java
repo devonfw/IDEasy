@@ -42,7 +42,11 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     // then save this also to stay
     // extract method that calcs next safe, latest save
     // and introduce var named latest and make it to *
-    assertThat(tool.securityRiskInteraction(VersionIdentifier.of("1"))).isEqualTo(VersionIdentifier.of("1"));
+
+    // the current version is safe, so no interaction needed and no answer is consumed
+    VersionIdentifier currentVersion = VersionIdentifier.of("1");
+    assertThat(tool.securityRiskInteraction(currentVersion)).isEqualTo(currentVersion);
+
     // answer to the interaction is 1
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("2"))).isEqualTo(VersionIdentifier.of("2"));
     // answer to the interaction is 2
