@@ -12,9 +12,7 @@ import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 
-/**
- * Test of {@link ToolCommandlet}.
- */
+/** Test of {@link ToolCommandlet} */
 public class ToolCommandletTest extends AbstractIdeContextTest {
 
   /**
@@ -32,12 +30,18 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
 
-    securityFile.addSecurityWarning(VersionRange.of(">")); // should get ignored
-    securityFile.addSecurityWarning(VersionRange.of("0>11")); // should get ignored
-    securityFile.addSecurityWarning(VersionRange.of("2>5"));
+    securityFile.addSecurityWarning(VersionRange.of("(,)")); // should get ignored
+    securityFile.addSecurityWarning(VersionRange.of("[0,11]")); // should get ignored
+    securityFile.addSecurityWarning(VersionRange.of("[2,5]"));
 
     // act & assert
     // no answer required
+
+    // TODO move
+    // version of 1 to var namend current
+    // then save this also to stay
+    // extract method that calcs next safe, latest save
+    // and introduce var named latest and make it to *
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("1"))).isEqualTo(VersionIdentifier.of("1"));
     // answer to the interaction is 1
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("2"))).isEqualTo(VersionIdentifier.of("2"));
@@ -60,8 +64,8 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("1>5"));
-    securityFile.addSecurityWarning(VersionRange.of("6>"));
+    securityFile.addSecurityWarning(VersionRange.of("[1,5]"));
+    securityFile.addSecurityWarning(VersionRange.of("[6,)"));
 
     // act & assert
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("6"))).isEqualTo(VersionIdentifier.of("6"));
@@ -84,8 +88,8 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("2>5"));
-    securityFile.addSecurityWarning(VersionRange.of("7>9"));
+    securityFile.addSecurityWarning(VersionRange.of("[2,5]"));
+    securityFile.addSecurityWarning(VersionRange.of("[7,9]"));
 
     // act & assert
     // answer to the interaction is 1
@@ -108,9 +112,9 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("3>3"));
-    securityFile.addSecurityWarning(VersionRange.of("6>7"));
-    securityFile.addSecurityWarning(VersionRange.of("8>"));
+    securityFile.addSecurityWarning(VersionRange.of("[3,3]"));
+    securityFile.addSecurityWarning(VersionRange.of("[6,7]"));
+    securityFile.addSecurityWarning(VersionRange.of("[8,)"));
 
     // act & assert
     // answer to the interaction is 1
@@ -133,9 +137,9 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("3>3"));
-    securityFile.addSecurityWarning(VersionRange.of("6>7"));
-    securityFile.addSecurityWarning(VersionRange.of("8>8"));
+    securityFile.addSecurityWarning(VersionRange.of("[3,3]"));
+    securityFile.addSecurityWarning(VersionRange.of("[6,7]"));
+    securityFile.addSecurityWarning(VersionRange.of("[8,8]"));
 
     // act & assert
     // answer to the interaction is 1
@@ -158,9 +162,9 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("3>3"));
-    securityFile.addSecurityWarning(VersionRange.of("5>6"));
-    securityFile.addSecurityWarning(VersionRange.of("8>9"));
+    securityFile.addSecurityWarning(VersionRange.of("[3,3]"));
+    securityFile.addSecurityWarning(VersionRange.of("[5,6]"));
+    securityFile.addSecurityWarning(VersionRange.of("[8,9]"));
 
     // act & assert
     // answer to the interaction is 1
@@ -183,9 +187,9 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("3>3"));
-    securityFile.addSecurityWarning(VersionRange.of("5>6"));
-    securityFile.addSecurityWarning(VersionRange.of("8>8"));
+    securityFile.addSecurityWarning(VersionRange.of("[3,3]"));
+    securityFile.addSecurityWarning(VersionRange.of("[5,6]"));
+    securityFile.addSecurityWarning(VersionRange.of("[8,8]"));
 
     // act & assert
     // answer to the interaction is 1
@@ -210,9 +214,9 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("3>3"));
-    securityFile.addSecurityWarning(VersionRange.of("6>6"));
-    securityFile.addSecurityWarning(VersionRange.of("8>9"));
+    securityFile.addSecurityWarning(VersionRange.of("[3,3]"));
+    securityFile.addSecurityWarning(VersionRange.of("[6,6]"));
+    securityFile.addSecurityWarning(VersionRange.of("[8,9]"));
 
     // act & assert
     // answer to the interaction is 1
@@ -223,9 +227,7 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("3"))).isEqualTo(VersionIdentifier.of("7"));
   }
 
-  /**
-   * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where set version is safe.
-   */
+  /** Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where set version is safe. */
   @Test
   public void testSecurityRiskInteractionCurrentVersionIsSafe() {
 
@@ -235,8 +237,8 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
-    securityFile.addSecurityWarning(VersionRange.of("1>5"));
-    securityFile.addSecurityWarning(VersionRange.of("7>8"));
+    securityFile.addSecurityWarning(VersionRange.of("[1,5]"));
+    securityFile.addSecurityWarning(VersionRange.of("[7,8]"));
 
     // act & assert
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("6"))).isEqualTo(VersionIdentifier.of("6"));
@@ -261,7 +263,8 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     ToolCommandlet toolCommandlet = context.getCommandletManager().getCommandlet(dummyTool);
     Path eitionPath = context.getUrlsPath().resolve(toolCommandlet.getName()).resolve(toolCommandlet.getEdition());
     context.getFileAccess().delete(eitionPath); // I want to define my own versions for simplicity
-    for (int i = 1; i < 10; i++) {
+    int numberOfVersions = 10;
+    for (int i = 1; i < numberOfVersions; i++) {
       context.getFileAccess().mkdirs(eitionPath.resolve(String.valueOf(i)));
     }
     return context;
