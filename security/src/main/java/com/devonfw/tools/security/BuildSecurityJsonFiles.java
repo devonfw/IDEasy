@@ -297,7 +297,7 @@ public class BuildSecurityJsonFiles {
             "Vulnerability has no interval of affected versions or single affected version.");
       }
       VersionIdentifier singleAffectedVersion = VersionIdentifier.of(s);
-      return new VersionRange(singleAffectedVersion, singleAffectedVersion, BoundaryType.OPEN);
+      return new VersionRange(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED);
     }
 
     boolean leftExclusive = si == null;

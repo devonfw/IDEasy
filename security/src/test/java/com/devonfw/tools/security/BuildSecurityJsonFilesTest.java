@@ -18,11 +18,11 @@ public class BuildSecurityJsonFilesTest extends Assertions {
   public void testGetVersionRangeFromInterval() {
 
     // act & assert
-    assertThat(getVersionRangeFromInterval("1", null, null, null, null)).isEqualTo(VersionRange.of("1>"));
-    assertThat(getVersionRangeFromInterval(null, "1", null, null, null)).isEqualTo(VersionRange.of("(1>"));
-    assertThat(getVersionRangeFromInterval(null, null, "1", null, null)).isEqualTo(VersionRange.of(">1)"));
-    assertThat(getVersionRangeFromInterval(null, null, null, "1", null)).isEqualTo(VersionRange.of(">1"));
-    assertThat(getVersionRangeFromInterval(null, null, null, null, "1")).isEqualTo(VersionRange.of("1>1"));
-    assertThat(getVersionRangeFromInterval(null, "1", null, "2", "1")).isEqualTo(VersionRange.of("(1>2]"));
+    assertThat(getVersionRangeFromInterval("1", null, null, null, null)).isEqualTo(VersionRange.of("[1,)"));
+    assertThat(getVersionRangeFromInterval(null, "1", null, null, null)).isEqualTo(VersionRange.of("(1,)"));
+    assertThat(getVersionRangeFromInterval(null, null, "1", null, null)).isEqualTo(VersionRange.of("(,1)"));
+    assertThat(getVersionRangeFromInterval(null, null, null, "1", null)).isEqualTo(VersionRange.of("(,1]"));
+    assertThat(getVersionRangeFromInterval(null, null, null, null, "1")).isEqualTo(VersionRange.of("[1,1]"));
+    assertThat(getVersionRangeFromInterval(null, "1", null, "2", "1")).isEqualTo(VersionRange.of("(1,2]"));
   }
 }
