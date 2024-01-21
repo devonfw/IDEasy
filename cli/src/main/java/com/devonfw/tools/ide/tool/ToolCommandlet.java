@@ -196,25 +196,36 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     List<VersionIdentifier> allVersions = this.context.getUrls().getSortedVersions(this.tool, this.getEdition());
     VersionIdentifier latest = allVersions.get(0);
 
-    int currentVersionIndex = allVersions.indexOf(current);
-    VersionIdentifier nextSafe = null;
-    for (int i = currentVersionIndex - 1; i >= 0; i--) {
-      if (!securityFile.contains(allVersions.get(i), true, this.context, securityFile.getParent())) {
-        nextSafe = allVersions.get(i);
-        break;
-      }
-    }
-    VersionIdentifier latestSafe = null;
-    for (int i = 0; i < allVersions.size(); i++) {
-      if (!securityFile.contains(allVersions.get(i), true, this.context, securityFile.getParent())) {
-        latestSafe = allVersions.get(i);
-        break;
-      }
-    }
+    VersionIdentifier nextSafe = getNextSafeVersion(current, securityFile, allVersions);
+    VersionIdentifier latestSafe = getLatestSafe(allVersions, securityFile);
+
     String cves = securityFile.getMatchingSecurityWarnings(current).stream().map(UrlSecurityWarning::getCveName)
         .collect(Collectors.joining(", "));
     String currentIsUnsafe = "Currently, version " + current + " of " + this.getName() + " is selected, "
         + "which is has one or more vulnerabilities:\n\n" + cves + "\n\n(See also " + securityFile.getPath() + ")\n\n";
+
+    if (latestSafe == null) {
+      this.context.warning(currentIsUnsafe + "There is no safe version available.");
+      return configuredVersion;
+    }
+
+    return whichVersionDoYouWantToInstall(configuredVersion, current, nextSafe, latestSafe, latest, currentIsUnsafe);
+  }
+
+  /**
+   * Using all the safety information about the versions, this method asks the user which version to install.
+   *
+   * @param configuredVersion the version that was configured in the environment variables.
+   * @param current the current version that was resolved from the configured version.
+   * @param nextSafe the next safe version.
+   * @param latestSafe the latest safe version.
+   * @param latest the latest version.
+   * @param currentIsUnsafe the message that is printed if the current version is unsafe.
+   * @return the version that the user wants to install.
+   */
+  private VersionIdentifier whichVersionDoYouWantToInstall(VersionIdentifier configuredVersion,
+      VersionIdentifier current, VersionIdentifier nextSafe, VersionIdentifier latestSafe, VersionIdentifier latest,
+      String currentIsUnsafe) {
 
     String ask = "Which version do you want to install?";
 
@@ -222,11 +233,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     String installLatestSafe = "Install the latest safe version (" + latestSafe + ").";
     String installSafeLatest = "Install the (safe) latest version (" + latest + ").";
     String installNextSafe = "Install the next safe version (" + nextSafe + ").";
-
-    if (latestSafe == null) {
-      this.context.warning(currentIsUnsafe + "There is no safe version available.");
-      return configuredVersion;
-    }
 
     if (current.equals(latest)) {
       String answer = this.context.question(currentIsUnsafe + "There are no updates available. " + ask, stay,
@@ -261,6 +267,47 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         return answer.equals(stay) ? configuredVersion : answer.equals(installNextSafe) ? nextSafe : latestSafe;
       }
     }
+  }
+
+  /**
+   * Gets the latest safe version from the list of all versions.
+   *
+   * @param allVersions all versions of the tool.
+   * @param securityFile the {@link UrlSecurityJsonFile} to check if a version is safe or not.
+   * @return the latest safe version or {@code null} if there is no safe version.
+   */
+  private VersionIdentifier getLatestSafe(List<VersionIdentifier> allVersions, UrlSecurityJsonFile securityFile) {
+
+    VersionIdentifier latestSafe = null;
+    for (int i = 0; i < allVersions.size(); i++) {
+      if (!securityFile.contains(allVersions.get(i), true, this.context, securityFile.getParent())) {
+        latestSafe = allVersions.get(i);
+        break;
+      }
+    }
+    return latestSafe;
+  }
+
+  /**
+   * Gets the next safe version from the list of all versions starting from the current version.
+   *
+   * @param current the current version.
+   * @param securityFile the {@link UrlSecurityJsonFile} to check if a version is safe or not.
+   * @param allVersions all versions of the tool.
+   * @return the next safe version or {@code null} if there is no safe version.
+   */
+  private VersionIdentifier getNextSafeVersion(VersionIdentifier current, UrlSecurityJsonFile securityFile,
+      List<VersionIdentifier> allVersions) {
+
+    int currentVersionIndex = allVersions.indexOf(current);
+    VersionIdentifier nextSafe = null;
+    for (int i = currentVersionIndex - 1; i >= 0; i--) {
+      if (!securityFile.contains(allVersions.get(i), true, this.context, securityFile.getParent())) {
+        nextSafe = allVersions.get(i);
+        break;
+      }
+    }
+    return nextSafe;
   }
 
   /**

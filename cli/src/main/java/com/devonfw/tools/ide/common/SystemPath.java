@@ -155,16 +155,16 @@ public class SystemPath {
    * @return the {@link Path} to the directory of the tool where the binaries can be found or {@code null} if the tool
    *         is not installed.
    */
-  public Path getPath(String tool) {
+  public Path retrievePath(String tool) {
 
     return this.tool2pathMap.get(tool);
   }
 
   /**
    * @param tool the name of the tool.
-   * @param path the new {@link #getPath(String) tool bin path}.
+   * @param path the new {@link #retrievePath(String) tool bin path}.
    */
-  public void setPath(String tool, Path path) {
+  public void addPath(String tool, Path path) {
 
     this.paths.add(path);
     this.tool2pathMap.put(tool, path);
