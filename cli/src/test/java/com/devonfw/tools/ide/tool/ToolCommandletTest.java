@@ -1,7 +1,9 @@
 package com.devonfw.tools.ide.tool;
 
 import java.nio.file.Path;
+import java.util.List;
 
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -17,7 +19,8 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where no safe version is available. But
-   * there is a warning that affects all versions. This warning is then ignored, but the other warnings are considered.
+   * there is a vulnerability that affects all versions. This vulnerability is then ignored, but the other
+   * vulnerabilities are considered.
    */
   @Test
   public void testSecurityRiskInteractionAllVersionAffectedBySingleWarning() {
@@ -26,6 +29,7 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     Class<? extends ToolCommandlet> dummyTool = Azure.class;
     String[] answers = { "1", "2", "3" };
     IdeContext context = getContextForSecurityJsonTests(dummyTool, answers);
+
     ToolCommandlet tool = context.getCommandletManager().getCommandlet(dummyTool);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool.getName(), tool.getEdition())
         .getSecurityJsonFile();
@@ -35,29 +39,29 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     securityFile.addSecurityWarning(VersionRange.of("[2,5]"));
 
     // act & assert
-    // no answer required
-
-    // TODO move
-    // version of 1 to var namend current
-    // then save this also to stay
-    // extract method that calcs next safe, latest save
-    // and introduce var named latest and make it to *
-
     // the current version is safe, so no interaction needed and no answer is consumed
     VersionIdentifier currentVersion = VersionIdentifier.of("1");
     assertThat(tool.securityRiskInteraction(currentVersion)).isEqualTo(currentVersion);
+    assertThat(((IdeTestContext) context).level(IdeLogLevel.INTERACTION).getMessages()).isEmpty();
 
-    // answer to the interaction is 1
+    // answer to the interaction is option 1
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("2"))).isEqualTo(VersionIdentifier.of("2"));
-    // answer to the interaction is 2
+    List<String> interactions = ((IdeTestContext) context).level(IdeLogLevel.INTERACTION).getMessages();
+    assertThat(interactions.get(0)).contains("which is has one or more vulnerabilities");
+    assertThat(interactions.get(1)).isEqualTo("Option 1: Stay with the current unsafe version (2).");
+    assertThat(interactions.get(2)).isEqualTo("Option 2: Install the next safe version (6).");
+    assertThat(interactions.get(3)).isEqualTo("Option 3: Install the (safe) latest version (9).");
+
+    // answer to the interaction is option 2
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("2"))).isEqualTo(VersionIdentifier.of("6"));
-    // answer to the interaction is 3
+    // answer to the interaction is option 3
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("2"))).isEqualTo(VersionIdentifier.of("*"));
   }
 
   /**
    * Test of {@link ToolCommandlet#securityRiskInteraction(VersionIdentifier)} where no safe version is available. Only
-   * the warnings all considered together cover all versions and there is no single warning that affects all versions.
+   * all the vulnerabilities considered together cover all versions and there is no single vulnerability that affects
+   * all versions.
    */
   @Test
   public void testSecurityRiskInteractionAllVersionAffectedByMultipleWarning() {
@@ -76,6 +80,10 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("1"))).isEqualTo(VersionIdentifier.of("1"));
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("9"))).isEqualTo(VersionIdentifier.of("9"));
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("*"))).isEqualTo(VersionIdentifier.of("*"));
+    assertThat(((IdeTestContext) context).level(IdeLogLevel.INTERACTION).getMessages()).isEmpty();
+    assertThat(((IdeTestContext) context).level(IdeLogLevel.WARNING).getMessages())
+        .allMatch(message -> message.contains("There is no safe version available."));
+
   }
 
   /**
@@ -96,9 +104,15 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     securityFile.addSecurityWarning(VersionRange.of("[7,9]"));
 
     // act & assert
-    // answer to the interaction is 1
+    // answer to the interaction is option 1
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("*"))).isEqualTo(VersionIdentifier.of("*"));
-    // answer to the interaction is 2
+    List<String> interactions = ((IdeTestContext) context).level(IdeLogLevel.INTERACTION).getMessages();
+    assertThat(interactions.get(0)).contains("which is has one or more vulnerabilities");
+    assertThat(interactions.get(0)).contains("There are no updates available.");
+    assertThat(interactions.get(1)).isEqualTo("Option 1: Stay with the current unsafe version (9).");
+    assertThat(interactions.get(2)).isEqualTo("Option 2: Install the latest safe version (6).");
+
+    // answer to the interaction is option 2
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("*"))).isEqualTo(VersionIdentifier.of("6"));
   }
 
@@ -121,9 +135,15 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     securityFile.addSecurityWarning(VersionRange.of("[8,)"));
 
     // act & assert
-    // answer to the interaction is 1
+    // answer to the interaction is option 1
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("6"))).isEqualTo(VersionIdentifier.of("6"));
-    // answer to the interaction is 2
+    List<String> interactions = ((IdeTestContext) context).level(IdeLogLevel.INTERACTION).getMessages();
+    assertThat(interactions.get(0)).contains("which is has one or more vulnerabilities");
+    assertThat(interactions.get(0)).contains("All newer versions are also not safe.");
+    assertThat(interactions.get(1)).isEqualTo("Option 1: Stay with the current unsafe version (6).");
+    assertThat(interactions.get(2)).isEqualTo("Option 2: Install the latest safe version (5).");
+
+    // answer to the interaction is option 2
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("6"))).isEqualTo(VersionIdentifier.of("5"));
   }
 
@@ -146,9 +166,15 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     securityFile.addSecurityWarning(VersionRange.of("[8,8]"));
 
     // act & assert
-    // answer to the interaction is 1
+    // answer to the interaction is option 1
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("7"))).isEqualTo(VersionIdentifier.of("7"));
-    // answer to the interaction is 2
+    List<String> interactions = ((IdeTestContext) context).level(IdeLogLevel.INTERACTION).getMessages();
+    assertThat(interactions.get(0)).contains("which is has one or more vulnerabilities");
+    assertThat(interactions.get(0)).contains("Of the newer versions, only the latest is safe.");
+    assertThat(interactions.get(1)).isEqualTo("Option 1: Stay with the current unsafe version (7).");
+    assertThat(interactions.get(2)).isEqualTo("Option 2: Install the (safe) latest version (9).");
+
+    // answer to the interaction is option 2
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("7"))).isEqualTo(VersionIdentifier.of("*"));
   }
 
@@ -171,9 +197,15 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     securityFile.addSecurityWarning(VersionRange.of("[8,9]"));
 
     // act & assert
-    // answer to the interaction is 1
+    // answer to the interaction is option 1
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("5"))).isEqualTo(VersionIdentifier.of("5"));
-    // answer to the interaction is 2
+    List<String> interactions = ((IdeTestContext) context).level(IdeLogLevel.INTERACTION).getMessages();
+    assertThat(interactions.get(0)).contains("which is has one or more vulnerabilities");
+    assertThat(interactions.get(0))
+        .contains("Of the newer versions, only version 7 is safe, which is however not the latest.");
+    assertThat(interactions.get(1)).isEqualTo("Option 1: Stay with the current unsafe version (5).");
+    assertThat(interactions.get(2)).isEqualTo("Option 2: Install the safe version (7).");
+    // answer to the interaction is option 2
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("5"))).isEqualTo(VersionIdentifier.of("7"));
   }
 
@@ -196,11 +228,17 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     securityFile.addSecurityWarning(VersionRange.of("[8,8]"));
 
     // act & assert
-    // answer to the interaction is 1
+    // answer to the interaction is option 1
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("5"))).isEqualTo(VersionIdentifier.of("5"));
-    // answer to the interaction is 2
+    List<String> interactions = ((IdeTestContext) context).level(IdeLogLevel.INTERACTION).getMessages();
+    assertThat(interactions.get(0)).contains("which is has one or more vulnerabilities");
+    assertThat(interactions.get(1)).isEqualTo("Option 1: Stay with the current unsafe version (5).");
+    assertThat(interactions.get(2)).isEqualTo("Option 2: Install the next safe version (7).");
+    assertThat(interactions.get(3)).isEqualTo("Option 3: Install the (safe) latest version (9).");
+
+    // answer to the interaction is option 2
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("5"))).isEqualTo(VersionIdentifier.of("7"));
-    // answer to the interaction is 3
+    // answer to the interaction is option 3
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("5"))).isEqualTo(VersionIdentifier.of("*"));
   }
 
@@ -223,11 +261,17 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     securityFile.addSecurityWarning(VersionRange.of("[8,9]"));
 
     // act & assert
-    // answer to the interaction is 1
+    // answer to the interaction is option 1
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("3"))).isEqualTo(VersionIdentifier.of("3"));
-    // answer to the interaction is 2
+    List<String> interactions = ((IdeTestContext) context).level(IdeLogLevel.INTERACTION).getMessages();
+    assertThat(interactions.get(0)).contains("which is has one or more vulnerabilities");
+    assertThat(interactions.get(1)).isEqualTo("Option 1: Stay with the current unsafe version (3).");
+    assertThat(interactions.get(2)).isEqualTo("Option 2: Install the next safe version (4).");
+    assertThat(interactions.get(3)).isEqualTo("Option 3: Install the latest safe version (7).");
+
+    // answer to the interaction is option 2
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("3"))).isEqualTo(VersionIdentifier.of("4"));
-    // answer to the interaction is 3
+    // answer to the interaction is option 3
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("3"))).isEqualTo(VersionIdentifier.of("7"));
   }
 
@@ -247,6 +291,7 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     // act & assert
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("6"))).isEqualTo(VersionIdentifier.of("6"));
     assertThat(tool.securityRiskInteraction(VersionIdentifier.of("9"))).isEqualTo(VersionIdentifier.of("9"));
+    assertThat(((IdeTestContext) context).level(IdeLogLevel.INTERACTION).getMessages()).isEmpty();
   }
 
   /**

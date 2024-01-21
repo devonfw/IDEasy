@@ -222,8 +222,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     String installLatestSafe = "Install the latest safe version (" + latestSafe + ").";
     String installSafeLatest = "Install the (safe) latest version (" + latest + ").";
     String installNextSafe = "Install the next safe version (" + nextSafe + ").";
-    // I don't need to offer "install latest which is unsafe" as option since the user can set to the latest and choose
-    // "stay"
 
     if (latestSafe == null) {
       this.context.warning(currentIsUnsafe + "There is no safe version available.");
@@ -236,20 +234,20 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       return answer.equals(stay) ? configuredVersion : latestSafe;
 
     } else if (nextSafe == null) { // install an older version that is safe or stay with the current unsafe version
-      String answer = this.context.question(currentIsUnsafe + " All newer versions are also not safe. " + ask, stay,
+      String answer = this.context.question(currentIsUnsafe + "All newer versions are also not safe. " + ask, stay,
           installLatestSafe);
       return answer.equals(stay) ? configuredVersion : latestSafe;
 
     } else if (nextSafe.equals(latest)) {
-      String answer = this.context.question(currentIsUnsafe + " Of the newer versions, only the latest is safe. " + ask,
+      String answer = this.context.question(currentIsUnsafe + "Of the newer versions, only the latest is safe. " + ask,
           stay, installSafeLatest);
       return answer.equals(stay) ? configuredVersion : VersionIdentifier.LATEST;
 
     } else if (nextSafe.equals(latestSafe)) {
       String answer = this.context.question(
-          currentIsUnsafe + " Of the newer versions, only the version " + nextSafe
-              + " is safe, which is however not the latest." + ask,
-          stay, "Install the safe version (" + nextSafe + ")");
+          currentIsUnsafe + "Of the newer versions, only version " + nextSafe
+              + " is safe, which is however not the latest. " + ask,
+          stay, "Install the safe version (" + nextSafe + ").");
       return answer.equals(stay) ? configuredVersion : nextSafe;
 
     } else {
