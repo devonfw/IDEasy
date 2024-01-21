@@ -4,6 +4,7 @@ import com.devonfw.tools.ide.version.VersionRange;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * A simple container with the information about a security warning.
@@ -25,8 +26,6 @@ public class UrlSecurityWarning {
   private String description;
 
   private String nistUrl;
-
-  private List<String> referenceUrls;
 
   public UrlSecurityWarning() {
 
@@ -61,7 +60,6 @@ public class UrlSecurityWarning {
     this.cveName = cveName;
     this.description = description;
     this.nistUrl = nistUrl;
-    this.referenceUrls = referenceUrl;
   }
 
   // these setters and getters are needed for the jackson (de)serialization
@@ -105,11 +103,6 @@ public class UrlSecurityWarning {
     this.nistUrl = nistUrl;
   }
 
-  public void setReferenceUrl(List<String> referenceUrl) {
-
-    this.referenceUrls = referenceUrl;
-  }
-
   public VersionRange getVersionRange() {
 
     return versionRange;
@@ -150,19 +143,12 @@ public class UrlSecurityWarning {
     return nistUrl;
   }
 
-  public List<String> getReferenceUrl() {
-
-    return referenceUrls;
-  }
-
   @Override
   public int hashCode() {
 
-    String versionRangeString = this.versionRange == null ? "" : this.versionRange.toString();
-    String severity = this.severity == null ? "" : this.severity.toString();
-    String referenceUrls = this.referenceUrls == null ? "" : this.referenceUrls.toString();
-    String s = versionRangeString + severity + this.severityVersion + this.cveName + this.description + this.nistUrl
-        + referenceUrls;
+    String versionRangeString = Optional.ofNullable(this.versionRange).map(Object::toString).orElse("");
+    String severity = Optional.ofNullable(this.severity).map(Object::toString).orElse("");
+    String s = versionRangeString + severity + this.severityVersion + this.cveName + this.description + this.nistUrl;
     return s.hashCode();
 
   }
@@ -194,16 +180,6 @@ public class UrlSecurityWarning {
     }
     if (!this.nistUrl.equals(other.nistUrl)) {
       return false;
-    }
-    for (String url : this.referenceUrls) {
-      if (!other.referenceUrls.contains(url)) {
-        return false;
-      }
-    }
-    for (String url : other.referenceUrls) {
-      if (!this.referenceUrls.contains(url)) {
-        return false;
-      }
     }
 
     return true;

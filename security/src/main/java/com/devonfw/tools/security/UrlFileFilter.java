@@ -2,17 +2,17 @@ package com.devonfw.tools.security;
 
 import java.io.FileFilter;
 
-import static com.devonfw.tools.ide.url.model.file.UrlStatusFile.STATUS_JSON;
+import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
 
+/**
+ * This {@link FileFilter} only accepts files with name {@link UrlStatusFile#STATUS_JSON}. The paths of the accepted
+ * files are then analyzed by the {@link UrlAnalyzer} to detect the available tools, editions and versions.
+ */
 public class UrlFileFilter implements FileFilter {
-
-  public UrlFileFilter() {
-
-  }
 
   @Override
   public boolean accept(java.io.File pathname) {
 
-    return pathname.getName().equals(STATUS_JSON);
+    return pathname.getName().equals(UrlStatusFile.STATUS_JSON);
   }
 }

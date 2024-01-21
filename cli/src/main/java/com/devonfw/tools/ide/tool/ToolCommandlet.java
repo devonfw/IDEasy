@@ -237,34 +237,56 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     if (current.equals(latest)) {
       String answer = this.context.question(currentIsUnsafe + "There are no updates available. " + ask, stay,
           installLatestSafe);
-      return answer.equals(stay) ? configuredVersion : latestSafe;
-
+      if (answer.equals(stay)) {
+        return configuredVersion;
+      } else {
+        return latestSafe;
+      }
     } else if (nextSafe == null) { // install an older version that is safe or stay with the current unsafe version
       String answer = this.context.question(currentIsUnsafe + "All newer versions are also not safe. " + ask, stay,
           installLatestSafe);
-      return answer.equals(stay) ? configuredVersion : latestSafe;
-
+      if (answer.equals(stay)) {
+        return configuredVersion;
+      } else {
+        return latestSafe;
+      }
     } else if (nextSafe.equals(latest)) {
       String answer = this.context.question(currentIsUnsafe + "Of the newer versions, only the latest is safe. " + ask,
           stay, installSafeLatest);
-      return answer.equals(stay) ? configuredVersion : VersionIdentifier.LATEST;
-
+      if (answer.equals(stay)) {
+        return configuredVersion;
+      } else {
+        return VersionIdentifier.LATEST;
+      }
     } else if (nextSafe.equals(latestSafe)) {
       String answer = this.context.question(
           currentIsUnsafe + "Of the newer versions, only version " + nextSafe
               + " is safe, which is however not the latest. " + ask,
           stay, "Install the safe version (" + nextSafe + ").");
-      return answer.equals(stay) ? configuredVersion : nextSafe;
-
+      if (answer.equals(stay)) {
+        return configuredVersion;
+      } else {
+        return nextSafe;
+      }
     } else {
       if (latestSafe.equals(latest)) {
         String answer = this.context.question(currentIsUnsafe + ask, stay, installNextSafe, installSafeLatest);
-        return answer.equals(stay) ? configuredVersion
-            : answer.equals(installNextSafe) ? nextSafe : VersionIdentifier.LATEST;
-
+        if (answer.equals(stay)) {
+          return configuredVersion;
+        } else if (answer.equals(installNextSafe)) {
+          return nextSafe;
+        } else {
+          return VersionIdentifier.LATEST;
+        }
       } else {
         String answer = this.context.question(currentIsUnsafe + ask, stay, installNextSafe, installLatestSafe);
-        return answer.equals(stay) ? configuredVersion : answer.equals(installNextSafe) ? nextSafe : latestSafe;
+        if (answer.equals(stay)) {
+          return configuredVersion;
+        } else if (answer.equals(installNextSafe)) {
+          return nextSafe;
+        } else {
+          return latestSafe;
+        }
       }
     }
   }

@@ -16,6 +16,10 @@ import org.owasp.dependencycheck.exception.InitializationException;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
 
+/**
+ * Analyzes file paths to detect tool, edition and version of software listed in a directory structure like this:
+ * .../<tool>/<edition>/<version>/<file>
+ */
 public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
 
   // The file filter is used to filter supported files.
@@ -25,6 +29,12 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
 
   private final UpdateManager updateManager;
 
+  /**
+   * The constructor which initializes its {@link FileFilter} with a {@link UrlFileFilter}.
+   *
+   * @param updateManager the {@link UpdateManager} used to convert IDEasys tool/edition/version naming to the naming
+   *        conventions of official CPEs.
+   */
   public UrlAnalyzer(UpdateManager updateManager) {
 
     fileFilter = new UrlFileFilter();

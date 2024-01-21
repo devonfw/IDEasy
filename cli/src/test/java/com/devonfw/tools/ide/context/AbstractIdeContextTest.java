@@ -58,6 +58,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
    *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
    *        in that project.
+   * @param answers the answers to use for the {@link IdeTestContext}.
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected static IdeTestContext newContext(String projectName, String projectPath, boolean copyForMutation,

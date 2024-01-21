@@ -31,8 +31,6 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   /** {@link #getName() Name} of security json file. */
   public static final String FILENAME_SECURITY = "security.json";
 
-  private static final Logger LOG = LoggerFactory.getLogger(UrlSecurityJsonFile.class);
-
   private UrlSecurityWarningsJson urlSecurityWarningsJson = new UrlSecurityWarningsJson();
 
   /**
@@ -135,6 +133,12 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
     return contains(version, false, null, null);
   }
 
+  /**
+   * @param version the {@link VersionIdentifier version} to check for security risks listed in the
+   *        {@link UrlSecurityJsonFile}.
+   * @return the {@link UrlSecurityWarning UrlSecurityWarnings} for the given {@code version} or {@code null} if no such
+   *         warnings exist.
+   */
   public Set<UrlSecurityWarning> getMatchingSecurityWarnings(VersionIdentifier version) {
 
     Set<UrlSecurityWarning> matchedWarnings = new HashSet<>();
@@ -146,6 +150,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
     return matchedWarnings;
   }
 
+  /**  Clears all security warnings. */
   public void clearSecurityWarnings() {
 
     this.urlSecurityWarningsJson.getWarnings().clear();
