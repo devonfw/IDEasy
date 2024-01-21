@@ -19,8 +19,6 @@ public class UrlSecurityWarning {
 
   private BigDecimal severity;
 
-  private String severityVersion;
-
   private String cveName;
 
   private String description;
@@ -41,22 +39,18 @@ public class UrlSecurityWarning {
    * @param interval the interval provided by OWASP vulnerability that was used to determine the {@link VersionRange}.
    *        This is used to check if the mapping from CPE version to UrlVersion was correct.
    * @param severity the severity of the security risk.
-   * @param severityVersion Indicating from which version the {@code severity} was obtained. As of December 2023, this
-   *        is either v2 or v3.
    * @param cveName the name of the CVE (Common Vulnerabilities and Exposures).
    * @param description the description of the CVE.
    * @param nistUrl the url to the CVE on the NIST website.
-   * @param referenceUrl the urls where additional information about the CVE can be found.
    */
   public UrlSecurityWarning(VersionRange versionRange, String matchedCpe, String interval, BigDecimal severity,
-      String severityVersion, String cveName, String description, String nistUrl, List<String> referenceUrl) {
+      String cveName, String description, String nistUrl) {
 
     super();
     this.versionRange = versionRange;
     this.matchedCpe = matchedCpe;
     this.interval = interval;
     this.severity = severity;
-    this.severityVersion = severityVersion;
     this.cveName = cveName;
     this.description = description;
     this.nistUrl = nistUrl;
@@ -81,11 +75,6 @@ public class UrlSecurityWarning {
   public void setSeverity(BigDecimal severity) {
 
     this.severity = severity;
-  }
-
-  public void setSeverityVersion(String severityVersion) {
-
-    this.severityVersion = severityVersion;
   }
 
   public void setCveName(String cveName) {
@@ -123,11 +112,6 @@ public class UrlSecurityWarning {
     return severity;
   }
 
-  public String getSeverityVersion() {
-
-    return severityVersion;
-  }
-
   public String getCveName() {
 
     return cveName;
@@ -148,7 +132,7 @@ public class UrlSecurityWarning {
 
     String versionRangeString = Optional.ofNullable(this.versionRange).map(Object::toString).orElse("");
     String severity = Optional.ofNullable(this.severity).map(Object::toString).orElse("");
-    String s = versionRangeString + severity + this.severityVersion + this.cveName + this.description + this.nistUrl;
+    String s = versionRangeString + severity + this.cveName + this.description + this.nistUrl;
     return s.hashCode();
 
   }
@@ -167,9 +151,6 @@ public class UrlSecurityWarning {
       return false;
     }
     if (this.severity.compareTo(other.severity) != 0) {
-      return false;
-    }
-    if (!this.severityVersion.equals(other.severityVersion)) {
       return false;
     }
     if (!this.cveName.equals(other.cveName)) {

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -44,14 +45,12 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   }
 
   /**
-   * A wrapper for
-   * {@link #addSecurityWarning(VersionRange, String, String, BigDecimal, String, String, String, String, List)} used in
-   * the unit tests.
+   * A wrapper for {@link #addSecurityWarning(VersionRange, String, String, BigDecimal, String, String, String)}
+   * used in the unit tests.
    */
   public boolean addSecurityWarning(VersionRange versionRange) {
 
-    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, null, null, null, null, null, null, null,
-        null);
+    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, null, null, null, null, null, null);
     boolean added = this.urlSecurityWarningsJson.getWarnings().add(newWarning);
     this.modified = this.modified || added;
     return added;
@@ -65,19 +64,16 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
    * @param interval the interval of vulnerability that was used to determine the {@link VersionRange}. This can be used
    *        to manually check if the mapping from CPE version to UrlVersion was correct.
    * @param severity the severity of the security risk.
-   * @param severityVersion Indicating from which version the {@code severity} was obtained. As of December 2023, this
-   *        is either v2 or v3.
    * @param cveName the name of the CVE (Common Vulnerabilities and Exposures).
    * @param description the description of the CVE.
    * @param nistUrl the url to the CVE on the NIST website.
-   * @param referenceUrl the urls where additional information about the CVE can be found.
    * @return {@code true} if the security match was added, {@code false} if it was already present.
    */
   public boolean addSecurityWarning(VersionRange versionRange, String matchedCpe, String interval, BigDecimal severity,
-      String severityVersion, String cveName, String description, String nistUrl, List<String> referenceUrl) {
+      String cveName, String description, String nistUrl) {
 
-    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, matchedCpe, interval, severity,
-        severityVersion, cveName, description, nistUrl, referenceUrl);
+    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, matchedCpe, interval, severity, cveName,
+        description, nistUrl);
     boolean added = this.urlSecurityWarningsJson.getWarnings().add(newWarning);
     this.modified = this.modified || added;
     return added;
@@ -150,7 +146,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
     return matchedWarnings;
   }
 
-  /**  Clears all security warnings. */
+  /** Clears all security warnings. */
   public void clearSecurityWarnings() {
 
     this.urlSecurityWarningsJson.getWarnings().clear();

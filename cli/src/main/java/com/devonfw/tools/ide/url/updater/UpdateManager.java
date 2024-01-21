@@ -97,9 +97,17 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
     }
   }
 
-  public AbstractUrlUpdater getUrlUpdater(String tool) {
+  /**
+   * Retrieves the {@link AbstractUrlUpdater updater} that matches the given tool and edition.
+   *
+   * @param tool the tool to retrieve the updater for.
+   * @param edition the edition to retrieve the updater for.
+   * @return the {@link AbstractUrlUpdater updater} that matches the given tool and edition.
+   */
+  public AbstractUrlUpdater retrieveUrlUpdater(String tool, String edition) {
 
-    return updaters.stream().filter(updater -> updater.getTool().equals(tool)).findFirst().orElse(null);
+    return updaters.stream().filter(updater -> updater.getTool().equals(tool) && updater.getEdition().equals(edition))
+        .findFirst().orElse(null);
   }
 
   public UrlRepository getUrlRepository() {

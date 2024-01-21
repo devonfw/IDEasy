@@ -49,7 +49,7 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
     String tool = parent.getParent().getParent().getFileName().toString();
     String edition = parent.getParent().getFileName().toString();
 
-    AbstractUrlUpdater urlUpdater = updateManager.getUrlUpdater(tool);
+    AbstractUrlUpdater urlUpdater = updateManager.retrieveUrlUpdater(tool, edition);
 
     // adding vendor evidence
     String cpeVendor = urlUpdater.getCpeVendor();

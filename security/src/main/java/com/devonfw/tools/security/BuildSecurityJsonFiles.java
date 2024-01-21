@@ -43,8 +43,6 @@ import org.owasp.dependencycheck.dependency.VulnerableSoftware;
 import org.owasp.dependencycheck.exception.ExceptionCollection;
 import org.owasp.dependencycheck.utils.Pair;
 import org.owasp.dependencycheck.utils.Settings;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -58,10 +56,6 @@ import com.devonfw.tools.ide.util.MapUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 
-// TODO Doesn't yet work with versions defined like this /<tool>/<edition>/latest
-// TODO Sometimes when running this class is takes a long time to finish. Maybe this is because of the OWASP package, which
-// is updating the vulnerabilities. A dirty fix is to stop the program and restart it. 
-
 /**
  * This class is used to build the {@link UrlSecurityJsonFile} files for IDEasy. It scans the
  * {@link AbstractIdeContext#getUrlsPath() ide-url} folder for all tools, editions and versions and checks for
@@ -69,10 +63,10 @@ import com.devonfw.tools.ide.version.VersionRange;
  * {@link com.devonfw.tools.ide.url.model.file.UrlStatusFile#STATUS_JSON} must be present in the
  * {@link com.devonfw.tools.ide.url.model.folder.UrlVersion}. If a vulnerability is found, it is added to the
  * {@link UrlSecurityJsonFile} of the corresponding tool and edition. The previous content of the file is overwritten.
+ * Sometimes when running this class is takes a long time to finish. Maybe this is because of the OWASP package, which
+ * is updating the vulnerabilities. A dirty fix is to stop the program and restart it.
  */
 public class BuildSecurityJsonFiles {
-
-  private static final Logger logger = LoggerFactory.getLogger(BuildSecurityJsonFiles.class);
 
   private static final String CVE_BASE_URL = "https://nvd.nist.gov/vuln/detail/";
 
@@ -109,7 +103,6 @@ public class BuildSecurityJsonFiles {
       throw new RuntimeException("These two args could not be parsed as BigDecimal");
     }
     run();
-
   }
 
   private static void run() {
@@ -124,7 +117,7 @@ public class BuildSecurityJsonFiles {
       Path parent = Paths.get(filePath).getParent();
       String tool = parent.getParent().getParent().getFileName().toString();
       String edition = parent.getParent().getFileName().toString();
-      AbstractUrlUpdater urlUpdater = updateManager.getUrlUpdater(tool);
+      AbstractUrlUpdater urlUpdater = updateManager.retrieveUrlUpdater(tool, edition);
       UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool, edition).getSecurityJsonFile();
       boolean newlyAdded = foundToolsAndEditions.add(new Pair<>(tool, edition));
       if (newlyAdded) { // to assure that the file is cleared only once per tool and edition
@@ -143,7 +136,7 @@ public class BuildSecurityJsonFiles {
       }
       securityFile.save();
     }
-    actuallyIgnoredCves.forEach(cve -> context.info("Ignored CVE " + cve + " because it is listed in CVES_TO_IGNORE."));
+    actuallyIgnoredCves.forEach(cve -> context.debug("Ignored CVE " + cve + " because it is listed in CVES_TO_IGNORE."));
     printAffectedVersions(context);
   }
 
@@ -179,12 +172,17 @@ public class BuildSecurityJsonFiles {
       throw new RuntimeException("Vulnerability without severity found: " + vulnerability.getName() + "\\n"
           + " Please contact https://github.com/devonfw/IDEasy and make a request to get this feature implemented.");
     }
+    double severityDouble;
     boolean hasV3Severity = vulnerability.getCvssV3() != null;
-    double severityDouble = hasV3Severity ? vulnerability.getCvssV3().getBaseScore()
-        : vulnerability.getCvssV2().getScore();
+    if (hasV3Severity) {
+      severityDouble = vulnerability.getCvssV3().getCvssData().getBaseScore();
+    } else {
+      severityDouble = vulnerability.getCvssV2().getCvssData().getBaseScore();
+    }
+    vulnerability.getCvssV3().getCvssData().getBaseScore();
+    vulnerability.getCvssV2().getCvssData().getBaseScore();
     String formatted = String.format(Locale.US, "%.1f", severityDouble);
     BigDecimal severity = new BigDecimal(formatted);
-    String severityVersion = hasV3Severity ? "v3" : "v2";
     String cveName = vulnerability.getName();
     if (CVES_TO_IGNORE.contains(cveName)) {
       actuallyIgnoredCves.add(cveName);
@@ -198,15 +196,17 @@ public class BuildSecurityJsonFiles {
     if (referenceUrls.isEmpty()) {
       referenceUrls.add("No references found, try searching for the CVE name (" + cveName + ") on the web.");
     }
-    boolean tooLowSeverity = hasV3Severity ? severity.compareTo(minV3Severity) < 0
-        : severity.compareTo(minV2Severity) < 0;
-
-    if (tooLowSeverity) {
+    if (hasV3Severity) {
+      if (severity.compareTo(minV3Severity) < 0) {
+        return;
+      }
+    } else if (severity.compareTo(minV2Severity) < 0) {
       return;
     }
+
     VersionRange versionRange = getVersionRangeFromVulnerability(vulnerability, urlUpdater, cpeToUrlVersion);
     if (versionRange == null) {
-      logger.info(
+      context.info(
           "Vulnerability {} seems to be irrelevant because its affected versions have no overlap with the versions "
               + "available through IDEasy. If you think the versions should match, see the methode "
               + "mapUrlVersionToCpeVersion() in the UrlUpdater of the tool.",
@@ -224,8 +224,7 @@ public class BuildSecurityJsonFiles {
         matchedVulnerableSoftware.getVersionEndIncluding(), matchedVulnerableSoftware.getVersionEndExcluding(),
         matchedVulnerableSoftware.getVersion());
 
-    securityFile.addSecurityWarning(versionRange, matchedCpe, interval, severity, severityVersion, cveName, description,
-        nistUrl, referenceUrls);
+    securityFile.addSecurityWarning(versionRange, matchedCpe, interval, severity, cveName, description, nistUrl);
 
   }
 
@@ -287,33 +286,44 @@ public class BuildSecurityJsonFiles {
     return urlVersion;
   }
 
-  public static VersionRange getVersionRangeFromInterval(String si, String se, String ee, String ei, String s)
-      throws IllegalStateException {
+  /**
+   * Determines the {@link VersionRange} from the interval provided by OWASP.
+   *
+   * @param startIncluding The {@link String version} of the start of the interval, including this version.
+   * @param startExcluding The {@link String version} of the start of the interval, excluding this version.
+   * @param endExcluding The {@link String version} of the end of the interval, excluding this version.
+   * @param endIncluding The {@link String version} of the end of the interval, including this version.
+   * @param singleVersion If the OWASP vulnerability only affects a single version, this is the {@link String version}.
+   * @return the {@link VersionRange}.
+   * @throws IllegalStateException if all parameters are {@code null}.
+   */
+  public static VersionRange getVersionRangeFromInterval(String startIncluding, String startExcluding,
+      String endExcluding, String endIncluding, String singleVersion) throws IllegalStateException {
 
-    if (ee == null && ei == null && se == null && si == null) {
-      if (s == null) {
+    if (endExcluding == null && endIncluding == null && startExcluding == null && startIncluding == null) {
+      if (singleVersion == null) {
         throw new IllegalStateException(
             "Vulnerability has no interval of affected versions or single affected version.");
       }
-      VersionIdentifier singleAffectedVersion = VersionIdentifier.of(s);
+      VersionIdentifier singleAffectedVersion = VersionIdentifier.of(singleVersion);
       return new VersionRange(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED);
     }
 
-    boolean leftExclusive = si == null;
-    boolean rightExclusive = ei == null;
+    boolean leftExclusive = startIncluding == null;
+    boolean rightExclusive = endIncluding == null;
 
     VersionIdentifier min = null;
-    if (si != null) {
-      min = VersionIdentifier.of(si);
-    } else if (se != null) {
-      min = VersionIdentifier.of(se);
+    if (startIncluding != null) {
+      min = VersionIdentifier.of(startIncluding);
+    } else if (startExcluding != null) {
+      min = VersionIdentifier.of(startExcluding);
     }
 
     VersionIdentifier max = null;
-    if (ei != null) {
-      max = VersionIdentifier.of(ei);
-    } else if (ee != null) {
-      max = VersionIdentifier.of(ee);
+    if (endIncluding != null) {
+      max = VersionIdentifier.of(endIncluding);
+    } else if (endExcluding != null) {
+      max = VersionIdentifier.of(endExcluding);
     }
 
     return new VersionRange(min, max, BoundaryType.of(leftExclusive, rightExclusive));
@@ -344,25 +354,20 @@ public class BuildSecurityJsonFiles {
 
           } else {
             if (min != null) {
-              System.out.println("Tool " + tool.getName() + " with edition " + edition.getName() + " and versions "
+              context.info("Tool " + tool.getName() + " with edition " + edition.getName() + " and versions "
                   + new VersionRange(min, version, BoundaryType.of(false, true)) + " are affected by vulnerabilities.");
               min = null;
             }
           }
         }
         if (min != null) {
-          System.out.println("Tool " + tool.getName() + " with edition " + edition.getName() + " and versions "
+          context.info("Tool " + tool.getName() + " with edition " + edition.getName() + " and versions "
               + new VersionRange(min, null, BoundaryType.of(false, true)) + " are affected by vulnerabilities.");
         }
       }
     }
   }
 
-  private static void printAllOwaspAnalyzers(Engine engine) {
-
-    engine.getMode().getPhases().forEach(phase -> engine.getAnalyzers(phase)
-        .forEach(analyzer -> System.out.println("Phase: " + phase + ", Analyzer: " + analyzer.getName())));
-  }
 
   private static void initCvesToIgnore() {
 

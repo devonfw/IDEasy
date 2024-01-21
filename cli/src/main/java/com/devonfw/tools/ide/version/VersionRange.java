@@ -120,14 +120,14 @@ public final class VersionRange implements Comparable<VersionRange> {
     int compareMins = this.min.compareTo(o.min);
     if (compareMins == 0) {
 
-      if (this.boundaryType.isLeftExclusive()) {
-        if (o.boundaryType.isLeftExclusive()) {
-          return 0;
+      if (this.boundaryType.isLeftExclusive() == o.boundaryType.isLeftExclusive()) {
+        return 0;
+      } else {
+        if (this.boundaryType.isLeftExclusive()) {
+          return 1;
         } else {
           return -1;
         }
-      } else {
-        return 1;
       }
     } else {
       return compareMins;
