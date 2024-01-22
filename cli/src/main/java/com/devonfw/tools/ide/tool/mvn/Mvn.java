@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.mvn;
 
 import java.util.Set;
 
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -19,7 +20,7 @@ public class Mvn extends LocalToolCommandlet {
    */
   public Mvn(IdeContext context) {
 
-    super(context, "mvn", Set.of(TAG_JAVA, TAG_BUILD));
+    super(context, "mvn", Set.of(Tag.JAVA, Tag.BUILD));
   }
 
   @Override
