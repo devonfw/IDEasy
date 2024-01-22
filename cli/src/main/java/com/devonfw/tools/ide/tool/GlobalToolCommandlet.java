@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -25,7 +26,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
    *        method.
    */
-  public GlobalToolCommandlet(IdeContext context, String tool, Set<String> tags) {
+  public GlobalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
   }
