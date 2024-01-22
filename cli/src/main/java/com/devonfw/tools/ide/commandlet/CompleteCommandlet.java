@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.util.Collections;
 import java.util.List;
 
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -44,7 +45,6 @@ public final class CompleteCommandlet extends Commandlet {
   public void run() {
 
     CliArguments arguments = CliArguments.ofCompletion(this.args.asArray());
-    arguments.next();
     List<CompletionCandidate> candidates = ((AbstractIdeContext) this.context).complete(arguments, true);
     for (CompletionCandidate candidate : candidates) {
       System.out.println(candidate.text()); // enforce output via System.out even if logging is disabled

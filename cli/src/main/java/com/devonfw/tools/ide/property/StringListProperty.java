@@ -96,10 +96,10 @@ public class StringListProperty extends Property<List<String>> {
 
     this.value = new ArrayList<>();
     this.value.add(argValue);
-    do {
+    while (args.hasNext()) {
       CliArgument arg = args.next();
       this.value.add(arg.get());
-    } while (args.hasNext());
+    }
     args.next();
     return true;
   }

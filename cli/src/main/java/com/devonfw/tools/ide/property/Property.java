@@ -338,8 +338,7 @@ public abstract class Property<V> {
     if (this.alias != null) {
       if (this.alias.startsWith(arg)) {
         collector.add(this.alias, this, commandlet);
-      } else if ((this.alias.length() == 2) && (this.alias.charAt(0) == '-') && (arg.length() >= 2)
-          && (arg.charAt(0) == '-') && (arg.charAt(1) != '-')) {
+      } else if ((this.alias.length() == 2) && (this.alias.charAt(0) == '-') && argument.isShortOption()) {
         char opt = this.alias.charAt(1); // e.g. arg="-do" and alias="-f" -complete-> "-dof"
         if (arg.indexOf(opt) < 0) {
           collector.add(arg + opt, this, commandlet);

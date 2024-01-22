@@ -5,12 +5,7 @@ import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -801,6 +796,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
 
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
+    if (arguments.current().isStart()) {
+      arguments.next();
+    }
     if (includeContextOptions) {
       ContextCommandlet cc = new ContextCommandlet();
       for (Property<?> property : cc.getProperties()) {
@@ -815,6 +813,8 @@ public abstract class AbstractIdeContext implements IdeContext {
       boolean matches = false;
       if (firstCandidate != null) {
         matches = apply(arguments.copy(), firstCandidate, collector);
+      } else if (current.isCombinedShortOption()) {
+        collector.add(keyword, null, null);
       }
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
@@ -824,7 +824,9 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
     }
-    return collector.getCandidates();
+    List<CompletionCandidate> candidates = collector.getCandidates();
+    Collections.sort(candidates);
+    return candidates;
   }
 
   /**
@@ -839,8 +841,13 @@ public abstract class AbstractIdeContext implements IdeContext {
   public boolean apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
     trace("Trying to match arguments to commandlet {}", cmd.getName());
-    Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     CliArgument currentArgument = arguments.current();
+    Iterator<Property<?>> propertyIterator;
+    if (currentArgument.isCompletion()) {
+      propertyIterator = cmd.getProperties().iterator();
+    } else {
+      propertyIterator = cmd.getValues().iterator();
+    }
     while (!currentArgument.isEnd()) {
       trace("Trying to match argument '{}'", currentArgument);
       Property<?> property = null;
@@ -848,15 +855,15 @@ public abstract class AbstractIdeContext implements IdeContext {
         property = cmd.getOption(currentArgument.getKey());
       }
       if (property == null) {
-        if (!valueIterator.hasNext()) {
+        if (!propertyIterator.hasNext()) {
           trace("No option or next value found");
           return false;
         }
-        property = valueIterator.next();
+        property = propertyIterator.next();
       }
       trace("Next property candidate to match argument is {}", property);
       boolean matches = property.apply(arguments, this, cmd, collector);
-      if (!matches) {
+      if (!matches || currentArgument.isCompletion()) {
         return false;
       }
       currentArgument = arguments.current();

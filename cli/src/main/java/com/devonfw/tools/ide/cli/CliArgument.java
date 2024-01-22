@@ -101,6 +101,22 @@ public class CliArgument {
   }
 
   /**
+   * @return {@code true} if this is a short option (e.g. "-b"), {@code false} otherwise.
+   */
+  public boolean isShortOption() {
+
+    return (this.arg.length() >= 2) && (this.arg.charAt(0) == '-') && (this.arg.charAt(1) != '-');
+  }
+
+  /**
+   * @return {@code true} if this is a combined short option (e.g. "-bd"), {@code false} otherwise.
+   */
+  public boolean isCombinedShortOption() {
+
+    return (this.arg.length() > 2) && (this.arg.charAt(0) == '-') && (this.arg.charAt(1) != '-');
+  }
+
+  /**
    * @return {@code true} if {@link #END_OPTIONS}, {@code false} otherwise.
    */
   public boolean isEndOptions() {
@@ -161,7 +177,7 @@ public class CliArgument {
    */
   public CliArgument getNext(boolean splitShortOpts) {
 
-    if (splitShortOpts && !this.completion && (this.next != null)) {
+    if (splitShortOpts && (this.next != null) && !this.next.completion) {
       String option = this.next.arg;
       int len = option.length();
       if ((len > 2) && (option.charAt(0) == '-') && (option.charAt(1) != '-')) {
