@@ -211,7 +211,11 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
     if (version.equals("latest")) {
       return VersionIdentifier.LATEST;
     }
-    return new VersionIdentifier(VersionSegment.of(version));
+    VersionSegment startSegment = VersionSegment.of(version);
+    if (startSegment == null) {
+      return null;
+    }
+    return new VersionIdentifier(startSegment);
   }
 
 }
