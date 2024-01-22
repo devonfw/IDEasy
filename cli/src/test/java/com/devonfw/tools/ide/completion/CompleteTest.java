@@ -23,12 +23,30 @@ public class CompleteTest extends Assertions {
   public void testCompleteEmpty() {
 
     // arrange
+    boolean includeContextOptions = true;
     AbstractIdeContext context = IdeTestContextMock.get();
     CliArguments args = CliArguments.ofCompletion("");
     args.next();
-    List<String> expectedCandidates = getExpectedCandidates(context);
+    List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions);
     // act
-    List<CompletionCandidate> candidates = context.complete(args, true);
+    List<CompletionCandidate> candidates = context.complete(args, includeContextOptions);
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text))
+        .containsExactly(expectedCandidates.toArray(String[]::new));
+  }
+
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for empty input. */
+  @Test
+  public void testCompleteEmptyNoCtxOptions() {
+
+    // arrange
+    boolean includeContextOptions = false;
+    AbstractIdeContext context = IdeTestContextMock.get();
+    CliArguments args = CliArguments.ofCompletion("");
+    args.next();
+    List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions);
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, includeContextOptions);
     // assert
     assertThat(candidates.stream().map(CompletionCandidate::text))
         .containsExactly(expectedCandidates.toArray(String[]::new));
@@ -73,21 +91,53 @@ public class CompleteTest extends Assertions {
     assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdoqt", "-fbdoqtv");
   }
 
-  private static List<String> getExpectedCandidates(AbstractIdeContext context) {
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
+  @Test
+  public void testCompleteHelpEmptyArgs() {
+
+    // arrange
+    AbstractIdeContext context = IdeTestContextMock.get();
+    CliArguments args = CliArguments.ofCompletion("help", "");
+    List<String> expectedCandidates = getExpectedCandidates(context, true, false);
+    expectedCandidates.remove("-v"); // hackish solution, improve me please
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, true);
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates.toArray(String[]::new));
+  }
+
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
+  @Test
+  public void testCompleteVersionNoMoreArgs() {
+
+    // arrange
+    AbstractIdeContext context = IdeTestContextMock.get();
+    CliArguments args = CliArguments.ofCompletion("--version", "");
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, true);
+    // assert
+    assertThat(candidates).isEmpty();
+  }
+
+  private static List<String> getExpectedCandidates(AbstractIdeContext context, boolean commandlets, boolean ctxOptions) {
 
     List<String> expectedCandidates = new ArrayList<>();
-    ContextCommandlet ctxCmd = new ContextCommandlet();
-    for (Property<?> p : ctxCmd.getProperties()) {
-      expectedCandidates.add(p.getName());
-      String alias = p.getAlias();
-      if (alias != null) {
-        expectedCandidates.add(alias);
+    if (ctxOptions) {
+      ContextCommandlet ctxCmd = new ContextCommandlet();
+      for (Property<?> p : ctxCmd.getProperties()) {
+        expectedCandidates.add(p.getName());
+        String alias = p.getAlias();
+        if (alias != null) {
+          expectedCandidates.add(alias);
+        }
       }
     }
-    for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
-      expectedCandidates.add(cmd.getName());
+    if (commandlets) {
+      for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
+        expectedCandidates.add(cmd.getName());
+      }
+      expectedCandidates.add("-v"); // alias for VersionCommandlet (--version)
     }
-    expectedCandidates.add("-v"); // alias for VersionCommandlet (--version)
     Collections.sort(expectedCandidates);
     return expectedCandidates;
   }
