@@ -7,6 +7,7 @@ import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollectorAdapter;
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
@@ -257,7 +258,11 @@ public abstract class Property<V> {
 
     CliArgument argument = args.current();
     if (argument.isCompletion()) {
-      return complete(argument.get(), args, context, commandlet, collector);
+      int size = collector.getCandidates().size();
+      complete(argument, args, context, commandlet, collector);
+      if (collector.getCandidates().size() > size) { // completions added so complete matched?
+        return true;
+      }
     }
     boolean option = isOption();
     if (option && !argument.isOption()) {
@@ -310,42 +315,44 @@ public abstract class Property<V> {
   /**
    * Performs auto-completion for the {@code arg}.
    *
-   * @param arg the {@link CliArgument#get() CLI argument}.
-   * @param args TODO
+   * @param argument the {@link CliArgument CLI argument}.
+   * @param args the {@link CliArguments}.
    * @param context the {@link IdeContext}.
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
-   * @return {@code true} if it matches, {@code false} otherwise.
    */
-  protected boolean complete(String arg, CliArguments args, IdeContext context, Commandlet commandlet,
+  protected void complete(CliArgument argument, CliArguments args, IdeContext context, Commandlet commandlet,
       CompletionCandidateCollector collector) {
 
-    boolean match = false;
+    String arg = argument.get();
     if (this.name.isEmpty()) {
-      match = completeValue(arg, context, commandlet, collector);
+      boolean match = completeValue(arg, context, commandlet, collector);
       if (match) {
         args.next();
       }
-      return match;
+      return;
     }
     if (this.name.startsWith(arg)) {
       collector.add(this.name, this, commandlet);
-      match = true;
     }
-    if ((this.alias != null) && this.alias.startsWith(arg)) {
-      // TODO combined short-option completion "-d" -TAB-> "-df", ...
-      collector.add(this.alias, this, commandlet);
-      match = true;
+    if (this.alias != null) {
+      if (this.alias.startsWith(arg)) {
+        collector.add(this.alias, this, commandlet);
+      } else if ((this.alias.length() == 2) && (this.alias.charAt(0) == '-') && (arg.length() >= 2)
+          && (arg.charAt(0) == '-') && (arg.charAt(1) != '-')) {
+        char opt = this.alias.charAt(1); // e.g. arg="-do" and alias="-f" -complete-> "-dof"
+        if (arg.indexOf(opt) < 0) {
+          collector.add(arg + opt, this, commandlet);
+        }
+      }
     }
-    // TODO combined short-option completion "-df" -TAB-> "-dfo", "-dfl", ...
-    if (match) {
-      args.next();
-    } else {
-      // ...
+    String value = argument.getValue();
+    if (value != null) {
+      String key = argument.getKey();
+      if (this.name.equals(key) || Objects.equals(this.alias, key)) {
+        completeValue(value, context, commandlet, new CompletionCandidateCollectorAdapter(key+"=", collector));
+      }
     }
-
-    // TODO key/values completion "--key=v" -TAB-> "--key=value"
-    return match;
   }
 
   /**

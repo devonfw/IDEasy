@@ -24,6 +24,7 @@ import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -799,7 +800,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
 
-    CompletionCandidateCollector collector = new CompletionCandidateCollector(this);
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
     if (includeContextOptions) {
       ContextCommandlet cc = new ContextCommandlet();
       for (Property<?> property : cc.getProperties()) {
