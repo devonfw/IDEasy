@@ -202,7 +202,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     String cves = securityFile.getMatchingSecurityWarnings(current).stream().map(UrlSecurityWarning::getCveName)
         .collect(Collectors.joining(", "));
     String currentIsUnsafe = "Currently, version " + current + " of " + this.getName() + " is selected, "
-        + "which is has one or more vulnerabilities:\n\n" + cves + "\n\n(See also " + securityFile.getPath() + ")\n\n";
+        + "which has one or more vulnerabilities:\n\n" + cves + "\n\n(See also " + securityFile.getPath() + ")\n\n";
 
     if (latestSafe == null) {
       this.context.warning(currentIsUnsafe + "There is no safe version available.");
