@@ -52,7 +52,6 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new HelpCommandlet(context));
     add(new EnvironmentCommandlet(context));
     add(new CompleteCommandlet(context));
-    add(new ShellCommandlet(context));
     add(new InstallCommandlet(context));
     add(new VersionSetCommandlet(context));
     add(new VersionGetCommandlet(context));
