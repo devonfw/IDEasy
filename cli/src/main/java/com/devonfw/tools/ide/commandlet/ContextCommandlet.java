@@ -68,12 +68,7 @@ public class ContextCommandlet extends Commandlet {
       logLevel = IdeLogLevel.WARNING;
     }
 
-    if (this.ideContext == null) {
-      this.ideContext = new IdeContextConsole(logLevel, null, true);
-    } else {
-      this.ideContext.setLogLevel(logLevel);
-    }
-
+    this.ideContext = new IdeContextConsole(logLevel, null, true);
     this.ideContext.setBatchMode(this.batch.isTrue());
     this.ideContext.setForceMode(this.force.isTrue());
     this.ideContext.setQuietMode(this.quiet.isTrue());
@@ -88,20 +83,4 @@ public class ContextCommandlet extends Commandlet {
 
     return this.ideContext;
   }
-
-  /**
-   * Resets the {@link ContextCommandlet} run params.
-   */
-  public void resetRunParams() {
-
-    this.ideContext.setLogLevel(IdeLogLevel.INFO);
-    this.ideContext.setBatchMode(false);
-    this.ideContext.setForceMode(false);
-    this.ideContext.setQuietMode(false);
-    this.ideContext.setOfflineMode(false);
-    this.trace.setValue(false);
-    this.debug.setValue(false);
-    this.quiet.setValue(false);
-  }
-
 }
