@@ -38,36 +38,6 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
   }
 
   @Override
-  public int addAllMatches(String text, String[] sortedCandidates, Property<?> property, Commandlet commandlet) {
-
-    if (text.isEmpty()) {
-      for (String candidate : sortedCandidates) {
-        add(candidate, property, commandlet);
-      }
-      return sortedCandidates.length;
-    }
-    int count = 0;
-    int index = Arrays.binarySearch(sortedCandidates, text);
-    if (index >= 0) {
-      add(sortedCandidates[index], property, commandlet);
-      index++;
-      count++;
-    } else {
-      index = -index;
-    }
-    while ((index >= 0) && (index < sortedCandidates.length)) {
-      if (sortedCandidates[index].startsWith(text)) {
-        add(sortedCandidates[index], property, commandlet);
-        count++;
-      } else {
-        break;
-      }
-      index++;
-    }
-    return count;
-  }
-
-  @Override
   public List<CompletionCandidate> getCandidates() {
 
     return this.candidates;
