@@ -24,6 +24,7 @@ import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -717,7 +718,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * Sets the log level (currently used only for autocompletion)
+   * Sets the log level.
    *
    * @param logLevel {@link IdeLogLevel}
    */
@@ -799,7 +800,10 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
 
-    CompletionCandidateCollector collector = new CompletionCandidateCollector(this);
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
+    if (arguments.current().isStart()) {
+      arguments.next();
+    }
     if (includeContextOptions) {
       ContextCommandlet cc = new ContextCommandlet();
       for (Property<?> property : cc.getProperties()) {
@@ -814,6 +818,8 @@ public abstract class AbstractIdeContext implements IdeContext {
       boolean matches = false;
       if (firstCandidate != null) {
         matches = apply(arguments.copy(), firstCandidate, collector);
+      } else if (current.isCombinedShortOption()) {
+        collector.add(keyword, null, null);
       }
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
@@ -823,7 +829,9 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
     }
-    return collector.getCandidates();
+    List<CompletionCandidate> candidates = collector.getCandidates();
+    Collections.sort(candidates);
+    return candidates;
   }
 
   /**
@@ -838,8 +846,13 @@ public abstract class AbstractIdeContext implements IdeContext {
   public boolean apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
     trace("Trying to match arguments to commandlet {}", cmd.getName());
-    Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     CliArgument currentArgument = arguments.current();
+    Iterator<Property<?>> propertyIterator;
+    if (currentArgument.isCompletion()) {
+      propertyIterator = cmd.getProperties().iterator();
+    } else {
+      propertyIterator = cmd.getValues().iterator();
+    }
     while (!currentArgument.isEnd()) {
       trace("Trying to match argument '{}'", currentArgument);
       Property<?> property = null;
@@ -847,15 +860,15 @@ public abstract class AbstractIdeContext implements IdeContext {
         property = cmd.getOption(currentArgument.getKey());
       }
       if (property == null) {
-        if (!valueIterator.hasNext()) {
+        if (!propertyIterator.hasNext()) {
           trace("No option or next value found");
           return false;
         }
-        property = valueIterator.next();
+        property = propertyIterator.next();
       }
       trace("Next property candidate to match argument is {}", property);
       boolean matches = property.apply(arguments, this, cmd, collector);
-      if (!matches) {
+      if (!matches || currentArgument.isCompletion()) {
         return false;
       }
       currentArgument = arguments.current();

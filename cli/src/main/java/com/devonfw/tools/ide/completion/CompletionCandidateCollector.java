@@ -11,35 +11,14 @@ import com.devonfw.tools.ide.property.Property;
 /**
  * Collects the {@link CompletionCandidate}s for auto-completion.
  */
-public class CompletionCandidateCollector {
-
-  private final List<CompletionCandidate> candidates;
-
-  private final IdeContext context;
-
-  /**
-   * The constructor.
-   *
-   * @param context the {@link IdeContext}.
-   */
-  public CompletionCandidateCollector(IdeContext context) {
-
-    super();
-    this.candidates = new ArrayList<>();
-    this.context = context;
-  }
+public interface CompletionCandidateCollector {
 
   /**
    * @param text the suggested word to add to auto-completion.
    * @param property the {@link Property} that triggered this suggestion.
    * @param commandlet the {@link Commandlet} owning the {@link Property}.
    */
-  public void add(String text, Property<?> property, Commandlet commandlet) {
-
-    CompletionCandidate candidate = new CompletionCandidate(text);
-    this.candidates.add(candidate);
-    this.context.trace("Added {} for auto-completion of property {}.{}", candidate, commandlet, property);
-  }
+  void add(String text, Property<?> property, Commandlet commandlet);
 
   /**
    * @param text the suggested word to add to auto-completion.
@@ -48,7 +27,7 @@ public class CompletionCandidateCollector {
    * @param commandlet the {@link Commandlet} owning the {@link Property}.
    * @return the number of {@link CompletionCandidate}s that have been added.
    */
-  public int addAllMatches(String text, String[] sortedCandidates, Property<?> property, Commandlet commandlet) {
+  default int addAllMatches(String text, String[] sortedCandidates, Property<?> property, Commandlet commandlet) {
 
     if (text.isEmpty()) {
       for (String candidate : sortedCandidates) {
@@ -80,23 +59,14 @@ public class CompletionCandidateCollector {
   /**
    * Resets this {@link CompletionCandidateCollector} to reuse trying the next {@link Commandlet}.
    */
-  public void clear() {
+  default void clear() {
 
-    this.candidates.clear();
+    getCandidates().clear();
   }
 
   /**
    * @return the list of {@link CompletionCandidate}s.
    */
-  public List<CompletionCandidate> getCandidates() {
-
-    return this.candidates;
-  }
-
-  @Override
-  public String toString() {
-
-    return this.candidates.toString();
-  }
+  List<CompletionCandidate> getCandidates();
 
 }
