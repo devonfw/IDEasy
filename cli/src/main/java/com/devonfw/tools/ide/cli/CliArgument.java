@@ -1,7 +1,10 @@
 package com.devonfw.tools.ide.cli;
 
+import java.util.Objects;
+
 /**
- * A single argument of a {@code main} method from a command-line-interface (CLI).
+ * Represents an argument for a command-line-interface (CLI) and a chain to all its {@link #getNext(boolean)
+ * successors}.
  *
  * @since 1.0.0
  * @see #getNext(boolean)
@@ -14,8 +17,10 @@ public class CliArgument {
    */
   public static final String END_OPTIONS = "--";
 
-  /** A dummy {@link CliArgument} to represent the end of the CLI arguments. */
-  public static final CliArgument END = new CliArgument("«end»");
+  /** A {@link CliArgument} to represent the end of the CLI arguments. */
+  public static final CliArgument END = new CliArgument();
+
+  static final String NAME_START = "«start»";
 
   private final String arg;
 
@@ -23,18 +28,52 @@ public class CliArgument {
 
   private String value;
 
-  private CliArgument next;
+  final CliArgument next;
+
+  private final boolean completion;
+
+  private CliArgument() {
+
+    super();
+    this.arg = "«end»";
+    this.next = null;
+    this.completion = false;
+  }
 
   /**
    * The constructor.
    *
    * @param arg the {@link #get() argument}.
+   * @param next the {@link #getNext() next}.
    */
-  protected CliArgument(String arg) {
+  protected CliArgument(String arg, CliArgument next) {
+
+    this(arg, next, false);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param arg the {@link #get() argument}.
+   * @param next the {@link #getNext() next}.
+   * @param completion the {@link #isCompletion() completion flag}.
+   */
+  protected CliArgument(String arg, CliArgument next, boolean completion) {
 
     super();
+    Objects.requireNonNull(arg);
+    Objects.requireNonNull(next);
     this.arg = arg;
-    this.next = END;
+    this.next = next;
+    this.completion = completion;
+  }
+
+  /**
+   * @return {@code true} if this is the argument to complete (should be the last one), {@code false} otherwise.
+   */
+  public boolean isCompletion() {
+
+    return this.completion;
   }
 
   /**
@@ -62,6 +101,22 @@ public class CliArgument {
   }
 
   /**
+   * @return {@code true} if this is a short option (e.g. "-b"), {@code false} otherwise.
+   */
+  public boolean isShortOption() {
+
+    return (this.arg.length() >= 2) && (this.arg.charAt(0) == '-') && (this.arg.charAt(1) != '-');
+  }
+
+  /**
+   * @return {@code true} if this is a combined short option (e.g. "-bd"), {@code false} otherwise.
+   */
+  public boolean isCombinedShortOption() {
+
+    return (this.arg.length() > 2) && (this.arg.charAt(0) == '-') && (this.arg.charAt(1) != '-');
+  }
+
+  /**
    * @return {@code true} if {@link #END_OPTIONS}, {@code false} otherwise.
    */
   public boolean isEndOptions() {
@@ -70,37 +125,67 @@ public class CliArgument {
   }
 
   /**
-   * @return {@code true} if this is the {@link #END}, {@code false} otherwise.
+   * @return {@code true} if this is the {@link #END} of the arguments, {@code false} otherwise.
    */
   public boolean isEnd() {
 
-    return (this == END);
+    return (this.next == null);
+  }
+
+  /**
+   * @return {@code true} if this is the start of the arguments, {@code false} otherwise.
+   */
+  public boolean isStart() {
+
+    return (this.arg == NAME_START); // not using equals on purpose
+  }
+
+  /**
+   * @param successors the number of {@link #getNext() successors} expected.
+   * @return {@code true} if at least the given number of {@link #getNext() successors} are available, {@code false}
+   *         otherwise.
+   */
+  public boolean hasMoreSuccessorsThan(int successors) {
+
+    if (successors <= 0) {
+      return true;
+    }
+    CliArgument current = this;
+    while (current != END) {
+      successors--;
+      if (successors == 0) {
+        return true;
+      }
+      current = current.next;
+    }
+    return false;
+  }
+
+  /**
+   * @return the next {@link CliArgument} or {@code null} if this is the {@link #isEnd() end}.
+   * @see #getNext(boolean)
+   */
+  public CliArgument getNext() {
+
+    return this.next;
   }
 
   /**
    * @param splitShortOpts - if {@code true} then combined short options will be split (so instead of "-fbd" you will
    *        get "-f", "-b", "-d").
-   * @return the next {@link CliArgument} or {@code null} if this is the last argument.
+   * @return the next {@link CliArgument} or {@code null} if this is the {@link #isEnd() end}.
    */
   public CliArgument getNext(boolean splitShortOpts) {
 
-    if (splitShortOpts && (this.next != null)) {
+    if (splitShortOpts && (this.next != null) && !this.next.completion) {
       String option = this.next.arg;
       int len = option.length();
       if ((len > 2) && (option.charAt(0) == '-') && (option.charAt(1) != '-')) {
-        CliArgument first = null;
-        CliArgument current = null;
-        for (int i = 1; i < len; i++) {
-          CliArgument shortOpt = new CliArgument("-" + option.charAt(i));
-          shortOpt.next = this.next.next;
-          if (current == null) {
-            first = shortOpt;
-          } else {
-            current.next = shortOpt;
-          }
-          current = shortOpt;
+        CliArgument current = this.next.next;
+        for (int i = len - 1; i > 0; i--) {
+          current = new CliArgument("-" + option.charAt(i), current);
         }
-        return first;
+        return current;
       }
     }
     return this.next;
@@ -151,6 +236,9 @@ public class CliArgument {
     }
     StringBuilder sb = new StringBuilder();
     CliArgument current = this;
+    if (current.isStart()) {
+      current = current.next;
+    }
     String prefix = "\"";
     while (!current.isEnd()) {
       sb.append(prefix);
@@ -162,6 +250,12 @@ public class CliArgument {
     return sb.toString();
   }
 
+  private CliArgument createStart() {
+
+    assert (!isStart());
+    return new CliArgument(NAME_START, this);
+  }
+
   @Override
   public String toString() {
 
@@ -169,48 +263,36 @@ public class CliArgument {
   }
 
   /**
-   * @param args the command-line arguments from {@code main} method.
+   * @param args the command-line arguments (e.g. from {@code main} method).
    * @return the first {@link CliArgument} of the parsed arguments or {@code null} if for empty arguments.
    */
   public static CliArgument of(String... args) {
 
-    return of(true, args);
+    return of(false, args);
   }
 
   /**
-   * @param splitShortOpt - to {@link #getNext(boolean) split combined short options} for the first argument.
-   * @param args the command-line arguments from {@code main} method.
+   * @param args the command-line arguments (e.g. from {@code main} method).
    * @return the first {@link CliArgument} of the parsed arguments or {@code null} if for empty arguments.
    */
-  public static CliArgument of(boolean splitShortOpt, String... args) {
+  public static CliArgument ofCompletion(String... args) {
 
-    CliArgument first = CliArgument.END;
-    CliArgument current = null;
-    for (int argsIndex = 0; argsIndex < args.length; argsIndex++) {
+    return of(true, args);
+  }
+
+  private static CliArgument of(boolean completion, String... args) {
+
+    CliArgument current = CliArgument.END;
+    int last = args.length - 1;
+    for (int argsIndex = last; argsIndex >= 0; argsIndex--) {
       String arg = args[argsIndex];
-      CliArgument argument = new CliArgument(arg);
-      if (current == null) {
-        first = argument;
-        current = argument;
-        if (splitShortOpt) {
-          CliArgument start = new CliArgument("");
-          start.next = argument;
-          first = start.getNext(true);
-          current = first;
-          while (!current.next.isEnd()) {
-            current = current.next;
-          }
-        }
-      } else {
-        if (current.isEnd()) {
-          // should never happen, but if a bug leads us here it is severe
-          throw new IllegalStateException("Internal error!");
-        }
-        current.next = argument;
-        current = argument;
+      boolean completionArg = false;
+      if (argsIndex == last) {
+        completionArg = completion;
       }
+      current = new CliArgument(arg, current, completionArg);
     }
-    return first;
+    return current.createStart();
   }
 
   /**

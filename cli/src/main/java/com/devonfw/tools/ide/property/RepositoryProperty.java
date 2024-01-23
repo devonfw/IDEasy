@@ -41,9 +41,9 @@ public class RepositoryProperty extends Property<String> {
   }
 
   @Override
-  public String parse(String valueAsString) {
+  public String parse(String valueAsString, IdeContext context) {
 
-    return valueAsString;
+    return null;
   }
 
   public Path getValueAsPath(IdeContext context) {

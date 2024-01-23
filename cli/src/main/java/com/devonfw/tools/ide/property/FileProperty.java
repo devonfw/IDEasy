@@ -13,11 +13,12 @@ public class FileProperty extends PathProperty {
    *
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
+   * @param mustExist the {@link #isPathRequiredToExist() required to exist flag}.
    * @param alias the {@link #getAlias() property alias}.
    */
-  public FileProperty(String name, boolean required, String alias) {
+  public FileProperty(String name, boolean required, String alias, boolean mustExist) {
 
-    this(name, required, alias, null);
+    this(name, required, alias, mustExist, null);
   }
 
   /**
@@ -26,11 +27,18 @@ public class FileProperty extends PathProperty {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
+   * @param mustExist the {@link #isPathRequiredToExist() required to exist flag}.
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public FileProperty(String name, boolean required, String alias, Consumer<Path> validator) {
+  public FileProperty(String name, boolean required, String alias, boolean mustExist, Consumer<Path> validator) {
 
-    super(name, required, alias, validator);
+    super(name, required, alias, mustExist, validator);
+  }
+
+  @Override
+  protected boolean isPathRequiredToBeFile() {
+
+    return true;
   }
 
 }
