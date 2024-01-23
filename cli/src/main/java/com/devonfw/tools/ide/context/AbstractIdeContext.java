@@ -5,16 +5,21 @@ import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 
+import com.devonfw.tools.ide.cli.CliArgument;
+import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
+import com.devonfw.tools.ide.commandlet.ContextCommandlet;
+import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
+import com.devonfw.tools.ide.completion.CompletionCandidate;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -30,6 +35,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
 import com.devonfw.tools.ide.repo.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
@@ -94,6 +100,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final DirectoryMerger workspaceMerger;
 
+  private final Function<IdeLogLevel, IdeSubLogger> loggerFactory;
+
   private boolean offlineMode;
 
   private boolean forceMode;
@@ -116,18 +124,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir) {
 
     super();
+    this.loggerFactory = factory;
     this.loggers = new HashMap<>();
-    for (IdeLogLevel level : IdeLogLevel.values()) {
-      IdeSubLogger logger;
-      if (level.ordinal() < minLogLevel.ordinal()) {
-        logger = new IdeSubLoggerNone(level);
-      } else {
-        logger = factory.apply(level);
-      }
-      this.loggers.put(level, logger);
-    }
+    setLogLevel(minLogLevel);
     this.systemInfo = new SystemInfoImpl();
-    this.commandletManager = CommandletManagerImpl.getOrCreate(this);
+    this.commandletManager = new CommandletManagerImpl(this);
     this.fileAccess = new FileAccessImpl(this);
     String workspace = WORKSPACE_MAIN;
     if (userDir == null) {
@@ -710,6 +711,165 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (duplicate != null) {
       throw new IllegalArgumentException("Duplicated option " + key);
     }
+  }
+
+  /**
+   * Sets the log level.
+   *
+   * @param logLevel {@link IdeLogLevel}
+   */
+  public void setLogLevel(IdeLogLevel logLevel) {
+
+    for (IdeLogLevel level : IdeLogLevel.values()) {
+      IdeSubLogger logger;
+      if (level.ordinal() < logLevel.ordinal()) {
+        logger = new IdeSubLoggerNone(level);
+      } else {
+        logger = this.loggerFactory.apply(level);
+      }
+      this.loggers.put(level, logger);
+    }
+  }
+
+  /**
+   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its {@link Commandlet#getProperties()
+   * properties} and will execute it.
+   *
+   * @param arguments the {@link CliArgument}.
+   * @return the return code of the execution.
+   */
+  public int run(CliArguments arguments) {
+
+    CliArgument current = arguments.current();
+    if (!current.isEnd()) {
+      String keyword = current.get();
+      Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
+      boolean matches;
+      if (firstCandidate != null) {
+        matches = applyAndRun(arguments.copy(), firstCandidate);
+        if (matches) {
+          return ProcessResult.SUCCESS;
+        }
+      }
+      for (Commandlet cmd : this.commandletManager.getCommandlets()) {
+        if (cmd != firstCandidate) {
+          matches = applyAndRun(arguments.copy(), cmd);
+          if (matches) {
+            return ProcessResult.SUCCESS;
+          }
+        }
+      }
+      error("Invalid arguments: {}", current.getArgs());
+    }
+    this.commandletManager.getCommandlet(HelpCommandlet.class).run();
+    return 1;
+  }
+
+  /**
+   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
+   *        {@link Commandlet#run() run}.
+   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
+   *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   */
+  private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
+
+    boolean matches = apply(arguments, cmd, null);
+    if (matches) {
+      matches = cmd.validate();
+    }
+    if (matches) {
+      debug("Running commandlet {}", cmd);
+      if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
+        throw new CliException(getMessageIdeHomeNotFound());
+      }
+      cmd.run();
+    } else {
+      trace("Commandlet did not match");
+    }
+    return matches;
+  }
+
+  /**
+   * @param arguments the {@link CliArguments#ofCompletion(String...) completion arguments}.
+   * @param includeContextOptions to include the options of {@link ContextCommandlet}.
+   * @return the {@link List} of {@link CompletionCandidate}s to suggest.
+   */
+  public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
+
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
+    if (arguments.current().isStart()) {
+      arguments.next();
+    }
+    if (includeContextOptions) {
+      ContextCommandlet cc = new ContextCommandlet();
+      for (Property<?> property : cc.getProperties()) {
+        assert (property.isOption());
+        property.apply(arguments, this, cc, collector);
+      }
+    }
+    CliArgument current = arguments.current();
+    if (!current.isEnd()) {
+      String keyword = current.get();
+      Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
+      boolean matches = false;
+      if (firstCandidate != null) {
+        matches = apply(arguments.copy(), firstCandidate, collector);
+      } else if (current.isCombinedShortOption()) {
+        collector.add(keyword, null, null);
+      }
+      if (!matches) {
+        for (Commandlet cmd : this.commandletManager.getCommandlets()) {
+          if (cmd != firstCandidate) {
+            apply(arguments.copy(), cmd, collector);
+          }
+        }
+      }
+    }
+    List<CompletionCandidate> candidates = collector.getCandidates();
+    Collections.sort(candidates);
+    return candidates;
+  }
+
+  /**
+   * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are
+   *        matched. Consider passing a {@link CliArguments#copy() copy} as needed.
+   * @param cmd the potential {@link Commandlet} to match.
+   * @param collector the {@link CompletionCandidateCollector}.
+   * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have
+   *         been applied (set in the {@link Commandlet} and {@link Commandlet#validate() validated}), {@code false}
+   *         otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   */
+  public boolean apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+
+    trace("Trying to match arguments to commandlet {}", cmd.getName());
+    CliArgument currentArgument = arguments.current();
+    Iterator<Property<?>> propertyIterator;
+    if (currentArgument.isCompletion()) {
+      propertyIterator = cmd.getProperties().iterator();
+    } else {
+      propertyIterator = cmd.getValues().iterator();
+    }
+    while (!currentArgument.isEnd()) {
+      trace("Trying to match argument '{}'", currentArgument);
+      Property<?> property = null;
+      if (!arguments.isEndOptions()) {
+        property = cmd.getOption(currentArgument.getKey());
+      }
+      if (property == null) {
+        if (!propertyIterator.hasNext()) {
+          trace("No option or next value found");
+          return false;
+        }
+        property = propertyIterator.next();
+      }
+      trace("Next property candidate to match argument is {}", property);
+      boolean matches = property.apply(arguments, this, cmd, collector);
+      if (!matches || currentArgument.isCompletion()) {
+        return false;
+      }
+      currentArgument = arguments.current();
+    }
+    return true;
   }
 
 }
