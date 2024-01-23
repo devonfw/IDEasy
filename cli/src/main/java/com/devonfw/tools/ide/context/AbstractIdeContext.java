@@ -613,23 +613,35 @@ public abstract class AbstractIdeContext implements IdeContext {
       } else {
         pc.errorHandling(ProcessErrorHandling.WARNING);
         if (isOnline()) {
-          result = pc.addArg("fetch").addArg("origin").addArg("master").run(false);
+          // fetch from latest remote
+          result = pc.addArg("fetch").addArg("origin").addArg("master").run(true);
           if (!result.isSuccessful()) {
             warning("Git failed to fetch from origin master.");
           }
-          result = pc.addArg("--no-pager").addArg("pull").run(false);
+          // pull from remote
+          result = pc.addArg("--no-pager").addArg("pull").run(true);
           if (!result.isSuccessful()) {
             warning("Git failed to pull from origin master.");
           }
         }
         if (force) {
-          result = pc.addArg("reset").addArg("--hard").addArg("origin/master").run(false);
+          // check for changed files
+          result = pc.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(true);
           if (!result.isSuccessful()) {
-            warning("Git failed to reset: {} to 'origin/master'.", target);
+            // reset to origin/master
+            result = pc.addArg("reset").addArg("--hard").addArg("origin/master").run(true);
+            if (!result.isSuccessful()) {
+              warning("Git failed to reset: {} to 'origin/master'.", target);
+            }
           }
-          result = pc.addArg("clean").addArg("-df").run(false);
-          if (!result.isSuccessful()) {
-            warning("Git failed to clean the repository: {}.", target);
+          // check for untracked files
+          result = pc.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard").run(true);
+          if (!result.getOut().isEmpty()) {
+            // delete untracked files
+            result = pc.addArg("clean").addArg("-df").run(true);
+            if (!result.isSuccessful()) {
+              warning("Git failed to clean the repository: {}.", target);
+            }
           }
         }
         if (!result.isSuccessful()) {
