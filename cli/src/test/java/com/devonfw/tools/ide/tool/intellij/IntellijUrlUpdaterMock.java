@@ -15,12 +15,12 @@ public class IntellijUrlUpdaterMock extends IntellijUrlUpdater {
   @Override
   protected String getEdition() {
 
-    return null;
+    return getTool();
   }
 
   @Override
   IntellijJsonObject getIntellijJsonRelease(IntellijJsonObject[] releases) {
 
-    return null;
+    return releases[1];
   }
 }
