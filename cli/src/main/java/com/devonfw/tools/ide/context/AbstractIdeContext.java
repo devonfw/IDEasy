@@ -713,7 +713,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * Sets the log level (currently used only for autocompletion)
+   * Sets the log level.
    *
    * @param logLevel {@link IdeLogLevel}
    */
