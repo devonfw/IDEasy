@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.property;
 
 import java.util.function.Consumer;
 
+import com.devonfw.tools.ide.context.IdeContext;
+
 /**
  * {@link Property} with {@link #getValueType() value type} {@link Long}.
  */
@@ -39,7 +41,7 @@ public class NumberProperty extends Property<Long> {
   }
 
   @Override
-  public Long parse(String valueAsString) {
+  public Long parse(String valueAsString, IdeContext context) {
 
     try {
       return Long.valueOf(valueAsString);

@@ -23,7 +23,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     String path = "workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
-    versionGet.tool.setValueAsString("java");
+    versionGet.tool.setValueAsString("java", context);
     // act
     try {
       versionGet.run();
@@ -45,7 +45,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext("basic", path, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     // act
-    versionGet.tool.setValueAsString("mvn");
+    versionGet.tool.setValueAsString("mvn", context);
     versionGet.run();
     // assert
     assertLogMessage(context, IdeLogLevel.INFO, "3.9.4");

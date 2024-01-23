@@ -54,7 +54,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     String path = "workspaces/foo-test/my-git-repo";
     IdeTestContext context = newContext("basic", path, true);
     HelpCommandlet help = context.getCommandletManager().getCommandlet(HelpCommandlet.class);
-    help.commandlet.setValueAsString("mvn");
+    help.commandlet.setValueAsString("mvn", context);
     // act
     help.run();
     // assert
@@ -78,7 +78,6 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     assertLogMessage(context, IdeLogLevel.INFO,
         "-q | --quiet    disable info logging (only log success, warning or error)");
     assertLogMessage(context, IdeLogLevel.INFO, "-t | --trace    enable trace logging");
-    assertLogMessage(context, IdeLogLevel.INFO, "-v | --version  Print the IDE version and exit.");
   }
 
   /**

@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.property;
 
 import java.util.function.Consumer;
 
+import com.devonfw.tools.ide.context.IdeContext;
+
 /**
  * {@link Property} with {@link #getValueType() value type} {@link String}.
  */
@@ -39,7 +41,7 @@ public class StringProperty extends Property<String> {
   }
 
   @Override
-  public String parse(String valueAsString) {
+  public String parse(String valueAsString, IdeContext context) {
 
     return valueAsString;
   }

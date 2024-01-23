@@ -68,7 +68,7 @@ public class SystemPath {
       } else {
         Path duplicate = this.tool2pathMap.putIfAbsent(tool, path);
         if (duplicate != null) {
-          context.error("Duplicated tool path for tool: {} at path: {} with duplicated path: {}.", tool, path, duplicate);
+          context.warning("Duplicated tool path for tool: {} at path: {} with duplicated path: {}.", tool, path, duplicate);
         }
       }
     }
