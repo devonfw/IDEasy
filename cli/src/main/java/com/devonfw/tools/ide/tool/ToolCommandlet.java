@@ -4,7 +4,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -25,7 +28,10 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.StringListProperty;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
 import com.devonfw.tools.ide.util.FilenameUtil;
+import com.devonfw.tools.ide.util.Pair;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
+import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.*;
 
 /**
  * {@link Commandlet} for a tool integrated into the IDE.
@@ -198,11 +204,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     VersionIdentifier nextSafe = getNextSafeVersion(current, securityFile, allVersions);
     VersionIdentifier latestSafe = getLatestSafe(allVersions, securityFile);
-
     String cves = securityFile.getMatchingSecurityWarnings(current).stream().map(UrlSecurityWarning::getCveName)
         .collect(Collectors.joining(", "));
     String currentIsUnsafe = "Currently, version " + current + " of " + this.getName() + " is selected, "
-        + "which is has one or more vulnerabilities:\n\n" + cves + "\n\n(See also " + securityFile.getPath() + ")\n\n";
+        + "which has one or more vulnerabilities:\n\n" + cves + "\n\n(See also " + securityFile.getPath() + ")\n\n";
 
     if (latestSafe == null) {
       this.context.warning(currentIsUnsafe + "There is no safe version available.");
@@ -229,66 +234,44 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     String ask = "Which version do you want to install?";
 
-    String stay = "Stay with the current unsafe version (" + current + ").";
-    String installLatestSafe = "Install the latest safe version (" + latestSafe + ").";
-    String installSafeLatest = "Install the (safe) latest version (" + latest + ").";
-    String installNextSafe = "Install the next safe version (" + nextSafe + ").";
+    // enum id, option message, version that is returned if this option is selected
+    Map<SecurityRiskInteractionAnswer, Pair<String, VersionIdentifier>> options = new HashMap<>();
+    options.put(STAY, Pair.of("Stay with the current unsafe version (" + current + ").", configuredVersion));
+    options.put(LATEST_SAFE, Pair.of("Install the latest safe version (" + latestSafe + ").", latestSafe));
+    options.put(SAFE_LATEST, Pair.of("Install the (safe) latest version (" + latest + ").", VersionIdentifier.LATEST));
+    options.put(NEXT_SAFE, Pair.of("Install the next safe version (" + nextSafe + ").", nextSafe));
 
     if (current.equals(latest)) {
-      String answer = this.context.question(currentIsUnsafe + "There are no updates available. " + ask, stay,
-          installLatestSafe);
-      if (answer.equals(stay)) {
-        return configuredVersion;
-      } else {
-        return latestSafe;
-      }
+      return getAnswer(options, currentIsUnsafe + "There are no updates available. " + ask, STAY, LATEST_SAFE);
     } else if (nextSafe == null) { // install an older version that is safe or stay with the current unsafe version
-      String answer = this.context.question(currentIsUnsafe + "All newer versions are also not safe. " + ask, stay,
-          installLatestSafe);
-      if (answer.equals(stay)) {
-        return configuredVersion;
-      } else {
-        return latestSafe;
-      }
+      return getAnswer(options, currentIsUnsafe + "All newer versions are also not safe. " + ask, STAY, LATEST_SAFE);
     } else if (nextSafe.equals(latest)) {
-      String answer = this.context.question(currentIsUnsafe + "Of the newer versions, only the latest is safe. " + ask,
-          stay, installSafeLatest);
-      if (answer.equals(stay)) {
-        return configuredVersion;
-      } else {
-        return VersionIdentifier.LATEST;
-      }
+      return getAnswer(options, currentIsUnsafe + "Of the newer versions, only the latest is safe. " + ask, STAY,
+          SAFE_LATEST);
     } else if (nextSafe.equals(latestSafe)) {
-      String answer = this.context.question(
-          currentIsUnsafe + "Of the newer versions, only version " + nextSafe
-              + " is safe, which is however not the latest. " + ask,
-          stay, "Install the safe version (" + nextSafe + ").");
-      if (answer.equals(stay)) {
-        return configuredVersion;
-      } else {
-        return nextSafe;
-      }
+      return getAnswer(options, currentIsUnsafe + "Of the newer versions, only version " + nextSafe
+          + " is safe, which is however not the latest. " + ask, STAY, NEXT_SAFE);
     } else {
       if (latestSafe.equals(latest)) {
-        String answer = this.context.question(currentIsUnsafe + ask, stay, installNextSafe, installSafeLatest);
-        if (answer.equals(stay)) {
-          return configuredVersion;
-        } else if (answer.equals(installNextSafe)) {
-          return nextSafe;
-        } else {
-          return VersionIdentifier.LATEST;
-        }
+        return getAnswer(options, currentIsUnsafe + ask, STAY, NEXT_SAFE, SAFE_LATEST);
       } else {
-        String answer = this.context.question(currentIsUnsafe + ask, stay, installNextSafe, installLatestSafe);
-        if (answer.equals(stay)) {
-          return configuredVersion;
-        } else if (answer.equals(installNextSafe)) {
-          return nextSafe;
-        } else {
-          return latestSafe;
-        }
+        return getAnswer(options, currentIsUnsafe + ask, STAY, NEXT_SAFE, LATEST_SAFE);
       }
     }
+  }
+
+  private VersionIdentifier getAnswer(Map<SecurityRiskInteractionAnswer, Pair<String, VersionIdentifier>> options,
+      String question, SecurityRiskInteractionAnswer... possibleAnswers) {
+
+    String[] availableOptions = Arrays.stream(possibleAnswers).map(options::get).map(Pair::getFirst)
+        .toArray(String[]::new);
+    String answer = this.context.question(question, availableOptions);
+    for (SecurityRiskInteractionAnswer possibleAnswer : possibleAnswers) {
+      if (options.get(possibleAnswer).getFirst().equals(answer)) {
+        return options.get(possibleAnswer).getSecond();
+      }
+    }
+    throw new IllegalStateException("Invalid answer " + answer);
   }
 
   /**

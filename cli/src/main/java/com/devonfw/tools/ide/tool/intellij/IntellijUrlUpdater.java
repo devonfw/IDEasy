@@ -20,15 +20,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * {@link IntellijUrlUpdater} base class for IntelliJ.
  */
-public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
+public abstract class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
 
   private static final String VERSION_BASE_URL = "https://data.services.jetbrains.com";
 
   private static final String JSON_URL = "products?code=IIU%2CIIC&release.type=release";
-
-  private static final String ULTIMATE_EDITION = "ultimate";
-
-  private static final String COMMUNITY_EDITION = "intellij";
 
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
@@ -41,23 +37,13 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
     try {
       String response = doGetResponseBodyAsString(doGetVersionUrl());
       IntellijJsonObject[] jsonObj = MAPPER.readValue(response, IntellijJsonObject[].class);
-      // Has 2 elements, 1. Ultimate Edition, 2. Community Edition
-      IntellijJsonObject ultimateRelease;
-      IntellijJsonObject communityRelease;
 
       if (jsonObj.length == 2) {
-        ultimateRelease = jsonObj[0];
-        communityRelease = jsonObj[1];
-        UrlEdition edition;
+        IntellijJsonObject release = getIntellijJsonRelease(jsonObj);
+        UrlEdition edition = tool.getOrCreateChild(getEdition());
 
-        if (ultimateRelease != null) {
-          edition = tool.getOrCreateChild(ULTIMATE_EDITION);
-          addVersionForEdition(ultimateRelease, edition);
-        }
-
-        if (communityRelease != null) {
-          edition = tool.getOrCreateChild(COMMUNITY_EDITION);
-          addVersionForEdition(communityRelease, edition);
+        if (release != null) {
+          addVersionForEdition(release, edition);
         }
       }
 
@@ -65,6 +51,12 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
       throw new IllegalStateException("Error while getting versions from JSON API " + JSON_URL, e);
     }
   }
+
+  /**
+   * @param releases Has 2 elements, 1. Ultimate Edition, 2. Community Edition
+   * @return The release for the {@link #getEdition() edition}.
+   */
+  abstract IntellijJsonObject getIntellijJsonRelease(IntellijJsonObject[] releases);
 
   /**
    * Adds a version for the provided {@link UrlEdition}

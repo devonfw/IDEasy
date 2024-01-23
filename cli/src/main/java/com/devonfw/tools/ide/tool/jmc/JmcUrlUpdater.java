@@ -15,6 +15,12 @@ public class JmcUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
+  protected String getEdition() {
+
+    return getTool();
+  }
+
+  @Override
   protected String getGithubOrganization() {
 
     return "adoptium";
@@ -25,7 +31,6 @@ public class JmcUrlUpdater extends GithubUrlUpdater {
 
     return "jmc-build";
   }
-
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {

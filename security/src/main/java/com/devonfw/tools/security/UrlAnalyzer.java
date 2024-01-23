@@ -37,25 +37,37 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
    */
   public UrlAnalyzer(UpdateManager updateManager) {
 
-    fileFilter = new UrlFileFilter();
+    this.fileFilter = new UrlFileFilter();
     this.updateManager = updateManager;
   }
 
   @Override
   protected void analyzeDependency(Dependency dependency, Engine engine) {
 
-    String filePath = dependency.getFilePath();
-    Path parent = Paths.get(filePath).getParent();
-    String tool = parent.getParent().getParent().getFileName().toString();
-    String edition = parent.getParent().getFileName().toString();
+    System.out.println("UrlAnalyzer: file path = " + dependency.getFilePath());
 
-    AbstractUrlUpdater urlUpdater = updateManager.retrieveUrlUpdater(tool, edition);
+    Path versionFolder = Paths.get(dependency.getFilePath()).getParent();
+    String tool = versionFolder.getParent().getParent().getFileName().toString();
+    String edition = versionFolder.getParent().getFileName().toString();
+
+    System.out.println("UrlAnalyzer: tool = " + tool + ", edition = " + edition);
+    AbstractUrlUpdater urlUpdater = this.updateManager.retrieveUrlUpdater(tool, edition);
+    if (urlUpdater == null) {
+      System.out.println("no urlupdater for " + tool + " " + edition);
+    }
+    try {
+      String cpeVendor = urlUpdater.getCpeVendor();
+    } catch (Exception e) {
+      System.out.println("UrlAnalyzer: getCpeVendor failed for " + tool + " " + edition);
+      System.exit(1);
+    }
 
     // adding vendor evidence
     String cpeVendor = urlUpdater.getCpeVendor();
+    System.out.println("UrlAnalyzer: cpeVendor = " + cpeVendor);
     String cpeProduct = urlUpdater.getCpeProduct();
     String cpeEdition = urlUpdater.getCpeEdition(edition);
-    String cpeVersion = urlUpdater.mapUrlVersionToCpeVersion(parent.getFileName().toString());
+    String cpeVersion = urlUpdater.mapUrlVersionToCpeVersion(versionFolder.getFileName().toString());
 
     if (cpeVendor == null || cpeProduct == null) {
       return;
@@ -92,7 +104,7 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
   @Override
   protected FileFilter getFileFilter() {
 
-    return fileFilter;
+    return this.fileFilter;
   }
 
   @Override

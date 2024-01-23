@@ -45,12 +45,11 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   }
 
   /**
-   * A wrapper for {@link #addSecurityWarning(VersionRange, String, String, BigDecimal, String, String, String)}
-   * used in the unit tests.
+   * A wrapper for {@link #addSecurityWarning(VersionRange, BigDecimal, String, String, String)} used in the unit tests.
    */
   public boolean addSecurityWarning(VersionRange versionRange) {
 
-    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, null, null, null, null, null, null);
+    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, null, null, null, null);
     boolean added = this.urlSecurityWarningsJson.getWarnings().add(newWarning);
     this.modified = this.modified || added;
     return added;
@@ -60,20 +59,16 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
    * Adds a new security warning to the security json file.
    *
    * @param versionRange the version range, specifying the versions of the tool to which the security risk applies.
-   * @param matchedCpe the matched CPE.
-   * @param interval the interval of vulnerability that was used to determine the {@link VersionRange}. This can be used
-   *        to manually check if the mapping from CPE version to UrlVersion was correct.
    * @param severity the severity of the security risk.
    * @param cveName the name of the CVE (Common Vulnerabilities and Exposures).
    * @param description the description of the CVE.
    * @param nistUrl the url to the CVE on the NIST website.
    * @return {@code true} if the security match was added, {@code false} if it was already present.
    */
-  public boolean addSecurityWarning(VersionRange versionRange, String matchedCpe, String interval, BigDecimal severity,
-      String cveName, String description, String nistUrl) {
+  public boolean addSecurityWarning(VersionRange versionRange, BigDecimal severity, String cveName, String description,
+      String nistUrl) {
 
-    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, matchedCpe, interval, severity, cveName,
-        description, nistUrl);
+    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, severity, cveName, description, nistUrl);
     boolean added = this.urlSecurityWarningsJson.getWarnings().add(newWarning);
     this.modified = this.modified || added;
     return added;

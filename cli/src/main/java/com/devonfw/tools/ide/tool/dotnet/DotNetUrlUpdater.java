@@ -14,6 +14,12 @@ public class DotNetUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
+  protected String getEdition() {
+
+    return getTool();
+  }
+
+  @Override
   protected String getVersionPrefixToRemove() {
 
     return "v";
@@ -48,10 +54,10 @@ public class DotNetUrlUpdater extends GithubUrlUpdater {
 
   @Override
   protected String mapVersion(String version) {
+
     if (version.matches("v\\d+\\.\\d+\\.\\d+")) {
       return super.mapVersion(version);
-    }
-    else {
+    } else {
       return null;
     }
   }

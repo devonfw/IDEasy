@@ -10,13 +10,21 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class GCloudUrlUpdater extends GithubUrlUpdater {
 
   private static final VersionIdentifier MIN_GCLOUD_VID = VersionIdentifier.of("299.0.0");
+
   private static final VersionIdentifier MIN_ARM_GCLOUD_VID = VersionIdentifier.of("366.0.0");
+
   private static final String BASE_URL = "https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-${version}-";
-  
+
   @Override
   protected String getTool() {
 
     return "gcloud";
+  }
+
+  @Override
+  protected String getEdition() {
+
+    return getTool();
   }
 
   @Override

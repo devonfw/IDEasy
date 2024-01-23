@@ -16,6 +16,12 @@ public class OcUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
+  protected String getEdition() {
+
+    return getTool();
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     String baseUrl = "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${version}/openshift-client-";

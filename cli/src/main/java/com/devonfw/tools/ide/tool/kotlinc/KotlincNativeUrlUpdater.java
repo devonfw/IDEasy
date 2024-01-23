@@ -16,6 +16,12 @@ public class KotlincNativeUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
+  protected String getEdition() {
+
+    return getTool();
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     String baseUrl = "https://github.com/JetBrains/kotlin/releases/download/v${version}/kotlin-native-";

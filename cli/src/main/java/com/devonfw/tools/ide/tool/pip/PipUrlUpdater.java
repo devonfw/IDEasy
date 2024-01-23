@@ -16,6 +16,12 @@ public class PipUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
+  protected String getEdition() {
+
+    return getTool();
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     doAddVersion(urlVersion, "https://bootstrap.pypa.io/pip/${version}/get-pip.py");
@@ -23,6 +29,7 @@ public class PipUrlUpdater extends WebsiteUrlUpdater {
 
   @Override
   protected boolean isValidContentType(String contentType) {
+
     // pip is not a binary download but a script with content-type `text/x-Python` so we override this check here
     return true;
   }

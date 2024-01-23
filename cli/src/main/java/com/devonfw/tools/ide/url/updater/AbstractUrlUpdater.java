@@ -78,10 +78,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @return the name of the {@link UrlEdition edition} handled by this updater.
    */
-  protected String getEdition() {
-
-    return getTool();
-  }
+  abstract protected String getEdition();
 
   /**
    * @return the combination of {@link #getTool() tool} and {@link #getEdition() edition} but simplified if both are

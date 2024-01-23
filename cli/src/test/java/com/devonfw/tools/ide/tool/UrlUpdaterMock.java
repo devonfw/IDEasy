@@ -24,6 +24,12 @@ public class UrlUpdaterMock extends AbstractUrlUpdater {
   }
 
   @Override
+  protected String getEdition() {
+
+    return getTool();
+  }
+
+  @Override
   public void update(UrlRepository urlRepository) {
     super.update(urlRepository);
   }

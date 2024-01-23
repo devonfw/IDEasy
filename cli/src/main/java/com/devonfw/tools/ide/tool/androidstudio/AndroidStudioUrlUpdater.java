@@ -41,6 +41,12 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject> {
   }
 
   @Override
+  protected String getEdition() {
+
+    return getTool();
+  }
+
+  @Override
   public void update(UrlRepository urlRepository) {
 
     UrlTool tool = urlRepository.getOrCreateChild(getTool());

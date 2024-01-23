@@ -18,6 +18,12 @@ public class TerraformUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
+  protected String getEdition() {
+
+    return getTool();
+  }
+
+  @Override
   protected String getGithubOrganization() {
 
     return "hashicorp";

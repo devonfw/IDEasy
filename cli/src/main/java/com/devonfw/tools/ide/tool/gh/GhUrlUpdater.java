@@ -8,13 +8,19 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link GithubUrlUpdater} for "gh" (github CLI).
  */
 public class GhUrlUpdater extends GithubUrlUpdater {
-  
+
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("2.23.0");
 
   @Override
   protected String getTool() {
 
     return "gh";
+  }
+
+  @Override
+  protected String getEdition() {
+
+    return getTool();
   }
 
   @Override

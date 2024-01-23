@@ -13,10 +13,6 @@ public class UrlSecurityWarning {
 
   private VersionRange versionRange;
 
-  private String matchedCpe;
-
-  private String interval;
-
   private BigDecimal severity;
 
   private String cveName;
@@ -35,21 +31,16 @@ public class UrlSecurityWarning {
    *
    * @param versionRange the {@link VersionRange}, specifying the versions of the tool to which the security risk
    *        applies.
-   * @param matchedCpe the matched CPE.
-   * @param interval the interval provided by OWASP vulnerability that was used to determine the {@link VersionRange}.
-   *        This is used to check if the mapping from CPE version to UrlVersion was correct.
    * @param severity the severity of the security risk.
    * @param cveName the name of the CVE (Common Vulnerabilities and Exposures).
    * @param description the description of the CVE.
    * @param nistUrl the url to the CVE on the NIST website.
    */
-  public UrlSecurityWarning(VersionRange versionRange, String matchedCpe, String interval, BigDecimal severity,
-      String cveName, String description, String nistUrl) {
+  public UrlSecurityWarning(VersionRange versionRange, BigDecimal severity, String cveName, String description,
+      String nistUrl) {
 
     super();
     this.versionRange = versionRange;
-    this.matchedCpe = matchedCpe;
-    this.interval = interval;
     this.severity = severity;
     this.cveName = cveName;
     this.description = description;
@@ -60,16 +51,6 @@ public class UrlSecurityWarning {
   public void setVersionRange(VersionRange versionRange) {
 
     this.versionRange = versionRange;
-  }
-
-  public void setInterval(String interval) {
-
-    this.interval = interval;
-  }
-
-  public void setMatchedCpe(String matchedCpe) {
-
-    this.matchedCpe = matchedCpe;
   }
 
   public void setSeverity(BigDecimal severity) {
@@ -95,16 +76,6 @@ public class UrlSecurityWarning {
   public VersionRange getVersionRange() {
 
     return versionRange;
-  }
-
-  public String getMatchedCpe() {
-
-    return matchedCpe;
-  }
-
-  public String getInterval() {
-
-    return interval;
   }
 
   public BigDecimal getSeverity() {

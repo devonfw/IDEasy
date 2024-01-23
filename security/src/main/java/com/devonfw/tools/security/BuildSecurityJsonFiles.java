@@ -13,6 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.version.BoundaryType;
+import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
@@ -37,7 +38,6 @@ import org.owasp.dependencycheck.analyzer.RetireJsAnalyzer;
 import org.owasp.dependencycheck.analyzer.RubyBundlerAnalyzer;
 import org.owasp.dependencycheck.analyzer.YarnAuditAnalyzer;
 import org.owasp.dependencycheck.dependency.Dependency;
-import org.owasp.dependencycheck.dependency.Reference;
 import org.owasp.dependencycheck.dependency.Vulnerability;
 import org.owasp.dependencycheck.dependency.VulnerableSoftware;
 import org.owasp.dependencycheck.exception.ExceptionCollection;
@@ -63,8 +63,8 @@ import com.devonfw.tools.ide.version.VersionRange;
  * {@link com.devonfw.tools.ide.url.model.file.UrlStatusFile#STATUS_JSON} must be present in the
  * {@link com.devonfw.tools.ide.url.model.folder.UrlVersion}. If a vulnerability is found, it is added to the
  * {@link UrlSecurityJsonFile} of the corresponding tool and edition. The previous content of the file is overwritten.
- * Sometimes when running this class is takes a long time to finish. Maybe this is because of the OWASP package, which
- * is updating the vulnerabilities. A dirty fix is to stop the program and restart it.
+ * Sometimes when running this class is takes a long time to finish. This is because of the OWASP package, which is
+ * updating the vulnerability database.
  */
 public class BuildSecurityJsonFiles {
 
@@ -93,12 +93,14 @@ public class BuildSecurityJsonFiles {
    */
   public static void main(String[] args) {
 
-    if (args.length != 2) {
-      throw new RuntimeException("Please provide 2 numbers: minV2Severity and minV3Severity");
-    }
+    // if (args.length != 2) {
+    // throw new RuntimeException("Please provide 2 numbers: minV2Severity and minV3Severity");
+    // }
     try {
-      minV2Severity = new BigDecimal(String.format(args[0]));
-      minV3Severity = new BigDecimal(String.format(args[1]));
+      // minV2Severity = new BigDecimal(String.format(args[0]));
+      // minV3Severity = new BigDecimal(String.format(args[1]));
+      minV2Severity = new BigDecimal(String.format("0"));
+      minV3Severity = new BigDecimal(String.format("0"));
     } catch (NumberFormatException e) {
       throw new RuntimeException("These two args could not be parsed as BigDecimal");
     }
@@ -112,8 +114,13 @@ public class BuildSecurityJsonFiles {
     UpdateManager updateManager = new UpdateManager(context.getUrlsPath(), null);
     Dependency[] dependencies = getDependenciesWithVulnerabilities(updateManager);
     Set<Pair<String, String>> foundToolsAndEditions = new HashSet<>();
+
+    // TODO clean this up
+
+
     for (Dependency dependency : dependencies) {
       String filePath = dependency.getFilePath();
+      System.out.println("filePath in BuildSecurityJsonFiles = " + filePath);
       Path parent = Paths.get(filePath).getParent();
       String tool = parent.getParent().getParent().getFileName().toString();
       String edition = parent.getParent().getFileName().toString();
@@ -132,11 +139,12 @@ public class BuildSecurityJsonFiles {
 
       Set<Vulnerability> vulnerabilities = dependency.getVulnerabilities(true);
       for (Vulnerability vulnerability : vulnerabilities) {
-        addVulnerabilityToSecurityFile(vulnerability, securityFile, urlUpdater, cpeToUrlVersion);
+        addVulnerabilityToSecurityFile(vulnerability, securityFile, cpeToUrlVersion, urlUpdater);
       }
       securityFile.save();
     }
-    actuallyIgnoredCves.forEach(cve -> context.debug("Ignored CVE " + cve + " because it is listed in CVES_TO_IGNORE."));
+    actuallyIgnoredCves
+        .forEach(cve -> context.debug("Ignored CVE " + cve + " because it is listed in CVES_TO_IGNORE."));
     printAffectedVersions(context);
   }
 
@@ -154,48 +162,43 @@ public class BuildSecurityJsonFiles {
     engine.getMode().getPhases().forEach(
         phase -> engine.getAnalyzers(phase).removeIf(analyzer -> ANALYZERS_TO_IGNORE.contains(analyzer.getClass())));
 
+    System.out.println("engine.scan");
+    System.out.println("updateManager.getUrlRepository()"+ updateManager.getUrlRepository());
     engine.scan(updateManager.getUrlRepository().getPath().toString());
+    System.out.println("engine.scan done");
 
     try {
+      System.out.println("engine.analyzeDependencies()");
       engine.analyzeDependencies();
+      System.out.println("engine.analyzeDependencies() done");
     } catch (ExceptionCollection e) {
       throw new RuntimeException(e);
     }
+    System.out.println("before return engine.getDependencies");
     return engine.getDependencies();
   }
 
+  /**
+   * Adds a {@link UrlSecurityWarning} to the {@link UrlSecurityJsonFile} of the tool and edition to which the
+   * vulnerability applies.
+   *
+   * @param vulnerability the {@link Vulnerability} determined by OWASP dependency check.
+   * @param securityFile the {@link UrlSecurityJsonFile} of the tool and edition to which the vulnerability applies.
+   * @param cpeToUrlVersion a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
+   * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get maps between CPE Version and
+   *        {@link UrlVersion#getName() Url Version} naming.
+   */
   private static void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityJsonFile securityFile,
-      AbstractUrlUpdater urlUpdater, Map<String, String> cpeToUrlVersion) {
+      Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater) {
 
-    if (vulnerability.getCvssV2() == null && vulnerability.getCvssV3() == null) {
-      // TODO if this ever happens, add a case that handles this
-      throw new RuntimeException("Vulnerability without severity found: " + vulnerability.getName() + "\\n"
-          + " Please contact https://github.com/devonfw/IDEasy and make a request to get this feature implemented.");
-    }
-    double severityDouble;
-    boolean hasV3Severity = vulnerability.getCvssV3() != null;
-    if (hasV3Severity) {
-      severityDouble = vulnerability.getCvssV3().getCvssData().getBaseScore();
-    } else {
-      severityDouble = vulnerability.getCvssV2().getCvssData().getBaseScore();
-    }
-    vulnerability.getCvssV3().getCvssData().getBaseScore();
-    vulnerability.getCvssV2().getCvssData().getBaseScore();
-    String formatted = String.format(Locale.US, "%.1f", severityDouble);
-    BigDecimal severity = new BigDecimal(formatted);
     String cveName = vulnerability.getName();
     if (CVES_TO_IGNORE.contains(cveName)) {
       actuallyIgnoredCves.add(cveName);
       return;
     }
 
-    String description = vulnerability.getDescription();
-    String nistUrl = CVE_BASE_URL + cveName;
-    List<String> referenceUrls = vulnerability.getReferences().stream().map(Reference::getUrl)
-        .collect(Collectors.toList());
-    if (referenceUrls.isEmpty()) {
-      referenceUrls.add("No references found, try searching for the CVE name (" + cveName + ") on the web.");
-    }
+    boolean hasV3Severity = vulnerability.getCvssV3() != null;
+    BigDecimal severity = getBigDecimalSeverity(vulnerability, hasV3Severity);
     if (hasV3Severity) {
       if (severity.compareTo(minV3Severity) < 0) {
         return;
@@ -204,7 +207,7 @@ public class BuildSecurityJsonFiles {
       return;
     }
 
-    VersionRange versionRange = getVersionRangeFromVulnerability(vulnerability, urlUpdater, cpeToUrlVersion);
+    VersionRange versionRange = getVersionRangeFromVulnerability(vulnerability, cpeToUrlVersion, urlUpdater);
     if (versionRange == null) {
       context.info(
           "Vulnerability {} seems to be irrelevant because its affected versions have no overlap with the versions "
@@ -213,31 +216,80 @@ public class BuildSecurityJsonFiles {
           vulnerability.getName());
       return;
     }
+
+    String description = vulnerability.getDescription();
+    String nistUrl = CVE_BASE_URL + cveName;
+    debugInfo(vulnerability, versionRange, severity, cveName, description, nistUrl, securityFile);
+    securityFile.addSecurityWarning(versionRange, severity, cveName, description, nistUrl);
+  }
+
+  /**
+   * Prints debug information about the vulnerability.
+   * 
+   * @param vulnerability the vulnerability determined by OWASP dependency check.
+   * @param versionRange the {@link VersionRange} to which the vulnerability applies.
+   * @param severity the severity of the vulnerability.
+   * @param cveName the CVE name of the vulnerability.
+   * @param description the description of the vulnerability.
+   * @param nistUrl the NIST url of the vulnerability.
+   * @param securityFile the {@link UrlSecurityJsonFile} of the tool and edition to which the vulnerability is added.
+   */
+  private static void debugInfo(Vulnerability vulnerability, VersionRange versionRange, BigDecimal severity,
+      String cveName, String description, String nistUrl, UrlSecurityJsonFile securityFile) {
+
+    context.debug("Writing vulnerability {} to security file at {}.", cveName, securityFile.getPath());
     VulnerableSoftware matchedVulnerableSoftware = vulnerability.getMatchedVulnerableSoftware();
-    String matchedCpe = matchedVulnerableSoftware.toCpe23FS();
+    context.debug("Matched CPE: {}.", matchedVulnerableSoftware.toCpe23FS());
     // the fields of cpe2.3 are:
     // cpe2.3 part, vendor, product, version, update, edition, language, swEdition, targetSw, targetHw, other;
-    String interval = String.format(
-        "start excluding = %s, start including = %s, end including = %s, end excluding = %s, single version = %s, is "
-            + "the interval provided by OWASP. Manually double check whether the VersionRange was correctly determined.",
-        matchedVulnerableSoftware.getVersionStartExcluding(), matchedVulnerableSoftware.getVersionStartIncluding(),
-        matchedVulnerableSoftware.getVersionEndIncluding(), matchedVulnerableSoftware.getVersionEndExcluding(),
-        matchedVulnerableSoftware.getVersion());
+    context.debug("The severity of the vulnerability is {}.", severity);
+    context.debug("The description of the vulnerability is {}.", description);
+    context.debug("The NIST url of the vulnerability is {}.", nistUrl);
+    context.debug(
+        "The determined VersionRange is {}, given OWASPs versionStartExcluding {}, versionStartIncluding {}, "
+            + "versionEndIncluding {}, versionEndExcluding {}, single Version {} ",
+        versionRange, matchedVulnerableSoftware.getVersionStartExcluding(),
+        matchedVulnerableSoftware.getVersionStartIncluding(), matchedVulnerableSoftware.getVersionEndIncluding(),
+        matchedVulnerableSoftware.getVersionEndExcluding(), matchedVulnerableSoftware.getVersion());
+  }
 
-    securityFile.addSecurityWarning(versionRange, matchedCpe, interval, severity, cveName, description, nistUrl);
+  /**
+   * Determines the severity of the vulnerability.
+   *
+   * @param vulnerability the vulnerability determined by OWASP dependency check.
+   * @param hasV3Severity {@code true} if the vulnerability has a V3 severity, {@code false} if it has a V2 severity.
+   * @return the {@link BigDecimal severity} of the vulnerability.
+   */
+  private static BigDecimal getBigDecimalSeverity(Vulnerability vulnerability, boolean hasV3Severity) {
 
+    if (vulnerability.getCvssV2() == null && vulnerability.getCvssV3() == null) {
+      // TODO if this ever happens, add a case that handles this
+      throw new RuntimeException("Vulnerability without severity found: " + vulnerability.getName() + "\\n"
+          + " Please contact https://github.com/devonfw/IDEasy and make a request to get this feature implemented.");
+    }
+    double severityDouble;
+    if (hasV3Severity) {
+      severityDouble = vulnerability.getCvssV3().getCvssData().getBaseScore();
+    } else {
+      severityDouble = vulnerability.getCvssV2().getCvssData().getBaseScore();
+    }
+    String formatted = String.format(Locale.US, "%.1f", severityDouble);
+    BigDecimal severity = new BigDecimal(formatted);
+    return severity;
   }
 
   /**
    * From the vulnerability determine the {@link VersionRange versionRange} to which the vulnerability applies.
    *
    * @param vulnerability the vulnerability determined by OWASP dependency check.
-   * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get maps between CPE Version and
-   *        {@link UrlVersion#getName() Url Version}.
+   * @param cpeToUrlVersion a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
+   * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get mapping functions between CPE Version and *
+   *        {@link UrlVersion#getName() Url Version}. This is used as backup if the {@code cpeToUrlVersion} does not *
+   *        contain the CPE Version.
    * @return the {@link VersionRange versionRange} to which the vulnerability applies.
    */
-  static VersionRange getVersionRangeFromVulnerability(Vulnerability vulnerability, AbstractUrlUpdater urlUpdater,
-      Map<String, String> cpeToUrlVersion) {
+  static VersionRange getVersionRangeFromVulnerability(Vulnerability vulnerability, Map<String, String> cpeToUrlVersion,
+      AbstractUrlUpdater urlUpdater) {
 
     VulnerableSoftware matchedVulnerableSoftware = vulnerability.getMatchedVulnerableSoftware();
 
@@ -247,11 +299,11 @@ public class BuildSecurityJsonFiles {
     String vEndIncluding = matchedVulnerableSoftware.getVersionEndIncluding();
     String singleVersion = matchedVulnerableSoftware.getVersion();
 
-    vStartExcluding = getUrlVersion(vStartExcluding, urlUpdater, cpeToUrlVersion);
-    vStartIncluding = getUrlVersion(vStartIncluding, urlUpdater, cpeToUrlVersion);
-    vEndExcluding = getUrlVersion(vEndExcluding, urlUpdater, cpeToUrlVersion);
-    vEndIncluding = getUrlVersion(vEndIncluding, urlUpdater, cpeToUrlVersion);
-    singleVersion = getUrlVersion(singleVersion, urlUpdater, cpeToUrlVersion);
+    vStartExcluding = getUrlVersion(vStartExcluding, cpeToUrlVersion, urlUpdater);
+    vStartIncluding = getUrlVersion(vStartIncluding, cpeToUrlVersion, urlUpdater);
+    vEndExcluding = getUrlVersion(vEndExcluding, cpeToUrlVersion, urlUpdater);
+    vEndIncluding = getUrlVersion(vEndIncluding, cpeToUrlVersion, urlUpdater);
+    singleVersion = getUrlVersion(singleVersion, cpeToUrlVersion, urlUpdater);
 
     VersionRange affectedRange;
     try {
@@ -265,15 +317,17 @@ public class BuildSecurityJsonFiles {
   }
 
   /**
-   * TODO
+   * Maps the CPE Version to the {@link UrlVersion#getName() Url Version}.
    *
-   * @param cpeVersion
-   * @param urlUpdater
-   * @param cpeToUrlVersion
-   * @return
+   * @param cpeVersion the CPE Version to map.
+   * @param cpeToUrlVersion a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
+   * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get mapping functions between CPE Version and
+   *        {@link UrlVersion#getName() Url Version}. This is used as backup if the {@code cpeToUrlVersion} does not
+   *        contain the CPE Version.
+   * @return the {@link UrlVersion#getName() Url Version} of the CPE Version.
    */
-  private static String getUrlVersion(String cpeVersion, AbstractUrlUpdater urlUpdater,
-      Map<String, String> cpeToUrlVersion) {
+  private static String getUrlVersion(String cpeVersion, Map<String, String> cpeToUrlVersion,
+      AbstractUrlUpdater urlUpdater) {
 
     String urlVersion = null;
     if (cpeVersion != null) {
@@ -329,6 +383,11 @@ public class BuildSecurityJsonFiles {
     return new VersionRange(min, max, BoundaryType.of(leftExclusive, rightExclusive));
   }
 
+  /**
+   * Prints the affected versions of each tool and edition.
+   * 
+   * @param context the {@link IdeContext} to use to get the {@link UrlSecurityJsonFile}.
+   */
   private static void printAffectedVersions(IdeContext context) {
 
     Path urlsPath = context.getUrlsPath();
@@ -368,11 +427,10 @@ public class BuildSecurityJsonFiles {
     }
   }
 
-
   private static void initCvesToIgnore() {
 
     if (CVES_TO_IGNORE.isEmpty()) {
-      // ......................................vendor......product......why was is ignored
+      // .................CVE..................vendor......product......why was is ignored
       CVES_TO_IGNORE.add("CVE-2021-36230"); // hashicorp...terraform....https://github.com/anchore/grype/issues/1377
     }
   }
