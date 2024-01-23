@@ -1,12 +1,13 @@
 package com.devonfw.tools.ide.completion;
 
+import java.util.List;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.property.Property;
 
-import java.util.List;
-
 /**
- * Implementation of {@link CompletionCandidateCollector} that wraps and existing {@link CompletionCandidateCollector} adding a prefix.
+ * Implementation of {@link CompletionCandidateCollector} that wraps an existing {@link CompletionCandidateCollector}
+ * adding a prefix.
  */
 public class CompletionCandidateCollectorAdapter implements CompletionCandidateCollector {
 
@@ -21,6 +22,7 @@ public class CompletionCandidateCollectorAdapter implements CompletionCandidateC
    * @param delegate the {@link CompletionCandidateCollector} to wrap.
    */
   public CompletionCandidateCollectorAdapter(String prefix, CompletionCandidateCollector delegate) {
+
     super();
     this.prefix = prefix;
     this.delegate = delegate;
@@ -28,6 +30,7 @@ public class CompletionCandidateCollectorAdapter implements CompletionCandidateC
 
   @Override
   public void add(String text, Property<?> property, Commandlet commandlet) {
+
     this.delegate.add(this.prefix + text, property, commandlet);
   }
 

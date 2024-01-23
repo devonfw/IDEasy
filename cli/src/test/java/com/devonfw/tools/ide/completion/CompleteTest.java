@@ -1,17 +1,18 @@
 package com.devonfw.tools.ide.completion;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.property.Property;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion}.
@@ -75,7 +76,8 @@ public class CompleteTest extends Assertions {
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-f", "-fb", "-fd", "-fo", "-fq", "-ft", "-fv");
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-f", "-fb", "-fd", "-fo", "-fq",
+        "-ft", "-fv");
   }
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "-fbdoqt". */
@@ -99,11 +101,13 @@ public class CompleteTest extends Assertions {
     AbstractIdeContext context = IdeTestContextMock.get();
     CliArguments args = CliArguments.ofCompletion("help", "");
     List<String> expectedCandidates = getExpectedCandidates(context, true, false);
+    // TODO: fix the hacky workaround, see: https://github.com/devonfw/IDEasy/issues/188
     expectedCandidates.remove("-v"); // hackish solution, improve me please
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates.toArray(String[]::new));
+    assertThat(candidates.stream().map(CompletionCandidate::text))
+        .containsExactly(expectedCandidates.toArray(String[]::new));
   }
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
@@ -119,7 +123,8 @@ public class CompleteTest extends Assertions {
     assertThat(candidates).isEmpty();
   }
 
-  private static List<String> getExpectedCandidates(AbstractIdeContext context, boolean commandlets, boolean ctxOptions) {
+  private static List<String> getExpectedCandidates(AbstractIdeContext context, boolean commandlets,
+      boolean ctxOptions) {
 
     List<String> expectedCandidates = new ArrayList<>();
     if (ctxOptions) {
