@@ -5,14 +5,10 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
@@ -91,7 +87,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   public boolean contains(VersionIdentifier version, boolean ignoreWarningsThatAffectAllVersions, IdeContext context,
       UrlEdition edition) {
 
-    List<VersionIdentifier> sortedVersions = null;
+    List<VersionIdentifier> sortedVersions = List.of();
     if (ignoreWarningsThatAffectAllVersions) {
       sortedVersions = Objects.requireNonNull(context).getUrls().getSortedVersions(edition.getName(),
           edition.getName());

@@ -237,8 +237,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     // enum id, option message, version that is returned if this option is selected
     Map<SecurityRiskInteractionAnswer, Pair<String, VersionIdentifier>> options = new HashMap<>();
     options.put(STAY, Pair.of("Stay with the current unsafe version (" + current + ").", configuredVersion));
-    options.put(LATEST_SAFE, Pair.of("Install the latest safe version (" + latestSafe + ").", latestSafe));
-    options.put(SAFE_LATEST, Pair.of("Install the (safe) latest version (" + latest + ").", VersionIdentifier.LATEST));
+    options.put(LATEST_SAFE, Pair.of("Install the latest of all safe versions (" + latestSafe + ").", latestSafe));
+    options.put(SAFE_LATEST, Pair.of("Install the latest version (" + latest + "). This version is save.", VersionIdentifier.LATEST));
     options.put(NEXT_SAFE, Pair.of("Install the next safe version (" + nextSafe + ").", nextSafe));
 
     if (current.equals(latest)) {

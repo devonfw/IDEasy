@@ -12,8 +12,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.devonfw.tools.ide.version.BoundaryType;
+import com.devonfw.tools.ide.context.AbstractIdeContext;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeContextConsole;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
 import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
+import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
+import com.devonfw.tools.ide.url.updater.UpdateManager;
+import com.devonfw.tools.ide.util.MapUtil;
+import com.devonfw.tools.ide.version.BoundaryType;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionRange;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
@@ -44,18 +55,6 @@ import org.owasp.dependencycheck.exception.ExceptionCollection;
 import org.owasp.dependencycheck.utils.Pair;
 import org.owasp.dependencycheck.utils.Settings;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeContextConsole;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
-import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
-import com.devonfw.tools.ide.url.updater.UpdateManager;
-import com.devonfw.tools.ide.util.MapUtil;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.version.VersionRange;
-
 /**
  * This class is used to build the {@link UrlSecurityJsonFile} files for IDEasy. It scans the
  * {@link AbstractIdeContext#getUrlsPath() ide-url} folder for all tools, editions and versions and checks for
@@ -79,6 +78,8 @@ public class BuildSecurityJsonFiles {
       NodeAuditAnalyzer.class, YarnAuditAnalyzer.class, PnpmAuditAnalyzer.class, RetireJsAnalyzer.class,
       FalsePositiveAnalyzer.class);
 
+  // private static final Set<Class<? extends AbstractAnalyzer>> ANALYZERS_TO_IGNORE = Set.of( FileNameAnalyzer.class);
+
   private static BigDecimal minV2Severity;
 
   private static BigDecimal minV3Severity;
@@ -97,10 +98,11 @@ public class BuildSecurityJsonFiles {
     // throw new RuntimeException("Please provide 2 numbers: minV2Severity and minV3Severity");
     // }
     try {
-      // minV2Severity = new BigDecimal(String.format(args[0]));
+      minV2Severity = new BigDecimal(String.format(args[0]));
+      minV3Severity = minV2Severity;
       // minV3Severity = new BigDecimal(String.format(args[1]));
-      minV2Severity = new BigDecimal(String.format("0"));
-      minV3Severity = new BigDecimal(String.format("0"));
+      // minV2Severity = new BigDecimal(String.format("0"));
+      // minV3Severity = new BigDecimal(String.format("0"));
     } catch (NumberFormatException e) {
       throw new RuntimeException("These two args could not be parsed as BigDecimal");
     }
@@ -114,13 +116,8 @@ public class BuildSecurityJsonFiles {
     UpdateManager updateManager = new UpdateManager(context.getUrlsPath(), null);
     Dependency[] dependencies = getDependenciesWithVulnerabilities(updateManager);
     Set<Pair<String, String>> foundToolsAndEditions = new HashSet<>();
-
-    // TODO clean this up
-
-
     for (Dependency dependency : dependencies) {
       String filePath = dependency.getFilePath();
-      System.out.println("filePath in BuildSecurityJsonFiles = " + filePath);
       Path parent = Paths.get(filePath).getParent();
       String tool = parent.getParent().getParent().getFileName().toString();
       String edition = parent.getParent().getFileName().toString();
@@ -131,12 +128,7 @@ public class BuildSecurityJsonFiles {
         securityFile.clearSecurityWarnings();
       }
 
-      List<String> sortedVersions = context.getUrls().getSortedVersions(tool, edition).stream()
-          .map(VersionIdentifier::toString).toList();
-      List<String> sortedCpeVersions = sortedVersions.stream().map(urlUpdater::mapUrlVersionToCpeVersion)
-          .collect(Collectors.toList());
-      Map<String, String> cpeToUrlVersion = MapUtil.createMapfromLists(sortedCpeVersions, sortedVersions);
-
+      Map<String, String> cpeToUrlVersion = buildCpeToUrlVersionMap(tool, edition, urlUpdater);
       Set<Vulnerability> vulnerabilities = dependency.getVulnerabilities(true);
       for (Vulnerability vulnerability : vulnerabilities) {
         addVulnerabilityToSecurityFile(vulnerability, securityFile, cpeToUrlVersion, urlUpdater);
@@ -148,10 +140,31 @@ public class BuildSecurityJsonFiles {
     printAffectedVersions(context);
   }
 
+  /**
+   * Creates a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version} containing all versions provided
+   * by IDEasy for the given tool and edition.
+   *
+   * @param tool the tool to get the {@link Map map} for.
+   * @param edition the edition to get the {@link Map map} for.
+   * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get
+   *        {@link AbstractUrlUpdater#mapUrlVersionToCpeVersion(String) mapping functions} between CPE Version and
+   *        {@link UrlVersion#getName() Url Version}.
+   * @return the {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
+   */
+  private static Map<String, String> buildCpeToUrlVersionMap(String tool, String edition,
+      AbstractUrlUpdater urlUpdater) {
+
+    List<String> sortedVersions = context.getUrls().getSortedVersions(tool, edition).stream()
+        .map(VersionIdentifier::toString).toList();
+    List<String> sortedCpeVersions = sortedVersions.stream().map(urlUpdater::mapUrlVersionToCpeVersion)
+        .collect(Collectors.toList());
+    Map<String, String> cpeToUrlVersion = MapUtil.createMapfromLists(sortedCpeVersions, sortedVersions);
+    return cpeToUrlVersion;
+  }
+
   private static Dependency[] getDependenciesWithVulnerabilities(UpdateManager updateManager) {
 
     Settings settings = new Settings();
-    // Using "try with resource" or engine.close() at the end resulted in SEVERE warning by OWASP.
     Engine engine = new Engine(settings);
 
     FileTypeAnalyzer urlAnalyzer = new UrlAnalyzer(updateManager);
@@ -162,20 +175,15 @@ public class BuildSecurityJsonFiles {
     engine.getMode().getPhases().forEach(
         phase -> engine.getAnalyzers(phase).removeIf(analyzer -> ANALYZERS_TO_IGNORE.contains(analyzer.getClass())));
 
-    System.out.println("engine.scan");
-    System.out.println("updateManager.getUrlRepository()"+ updateManager.getUrlRepository());
     engine.scan(updateManager.getUrlRepository().getPath().toString());
-    System.out.println("engine.scan done");
-
     try {
-      System.out.println("engine.analyzeDependencies()");
       engine.analyzeDependencies();
-      System.out.println("engine.analyzeDependencies() done");
     } catch (ExceptionCollection e) {
       throw new RuntimeException(e);
     }
-    System.out.println("before return engine.getDependencies");
-    return engine.getDependencies();
+    Dependency[] dependencies = engine.getDependencies();
+    engine.close();
+    return dependencies;
   }
 
   /**

@@ -1,9 +1,7 @@
 package com.devonfw.tools.security;
 
-import java.io.FileFilter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
+import com.devonfw.tools.ide.url.updater.UpdateManager;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractFileTypeAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
@@ -13,8 +11,9 @@ import org.owasp.dependencycheck.dependency.Evidence;
 import org.owasp.dependencycheck.dependency.EvidenceType;
 import org.owasp.dependencycheck.exception.InitializationException;
 
-import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
-import com.devonfw.tools.ide.url.updater.UpdateManager;
+import java.io.FileFilter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 /**
  * Analyzes file paths to detect tool, edition and version of software listed in a directory structure like this:
@@ -44,32 +43,18 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
   @Override
   protected void analyzeDependency(Dependency dependency, Engine engine) {
 
-    System.out.println("UrlAnalyzer: file path = " + dependency.getFilePath());
-
     Path versionFolder = Paths.get(dependency.getFilePath()).getParent();
     String tool = versionFolder.getParent().getParent().getFileName().toString();
     String edition = versionFolder.getParent().getFileName().toString();
 
-    System.out.println("UrlAnalyzer: tool = " + tool + ", edition = " + edition);
     AbstractUrlUpdater urlUpdater = this.updateManager.retrieveUrlUpdater(tool, edition);
-    if (urlUpdater == null) {
-      System.out.println("no urlupdater for " + tool + " " + edition);
-    }
-    try {
-      String cpeVendor = urlUpdater.getCpeVendor();
-    } catch (Exception e) {
-      System.out.println("UrlAnalyzer: getCpeVendor failed for " + tool + " " + edition);
-      System.exit(1);
-    }
 
-    // adding vendor evidence
     String cpeVendor = urlUpdater.getCpeVendor();
-    System.out.println("UrlAnalyzer: cpeVendor = " + cpeVendor);
     String cpeProduct = urlUpdater.getCpeProduct();
     String cpeEdition = urlUpdater.getCpeEdition(edition);
     String cpeVersion = urlUpdater.mapUrlVersionToCpeVersion(versionFolder.getFileName().toString());
 
-    if (cpeVendor == null || cpeProduct == null) {
+    if (cpeVendor.isBlank() || cpeProduct.isBlank()) {
       return;
     }
     Evidence evidence;
@@ -79,7 +64,7 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
     evidence = new Evidence(ANALYZER_NAME, "CpeProduct", cpeProduct, Confidence.HIGH);
     dependency.addEvidence(EvidenceType.PRODUCT, evidence);
 
-    if (cpeEdition != null) {
+    if (cpeEdition.isBlank()) {
       evidence = new Evidence(ANALYZER_NAME, "CpeEdition", cpeEdition, Confidence.HIGH);
       dependency.addEvidence(EvidenceType.PRODUCT, evidence);
     }

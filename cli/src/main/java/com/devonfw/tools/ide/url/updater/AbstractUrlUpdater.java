@@ -16,9 +16,6 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
@@ -34,6 +31,8 @@ import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract base implementation of {@link UrlUpdater}. Contains methods for retrieving response bodies from URLs,
@@ -99,7 +98,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   public String getCpeVendor() {
 
-    return null;
+    return "";
   }
 
   /**
@@ -107,7 +106,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   public String getCpeProduct() {
 
-    return null;
+    return "";
   }
 
   /**
@@ -116,12 +115,12 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   public String getCpeEdition(String urlEdition) {
 
-    return null;
+    return "";
   }
 
   /**
-   * @return maps the version as specified by the directory name in the url repository to the version as specified in
-   *         the CPE (Common Platform Enumeration).
+   * @param version the {@link UrlVersion#getName() version} to get the CPE (Common Platform Enumeration) version for.
+   * @return the version as specified in the CPE (Common Platform Enumeration).
    */
   public String mapUrlVersionToCpeVersion(String version) {
 
