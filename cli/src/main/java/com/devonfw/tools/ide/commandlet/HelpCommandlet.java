@@ -103,7 +103,6 @@ public final class HelpCommandlet extends Commandlet {
           usage.append(key);
           values.add(key, bundle.get(cmd, property));
         } else {
-          assert (property instanceof KeywordProperty);
           usage.append(name);
         }
         if (property.isMultiValued()) {
