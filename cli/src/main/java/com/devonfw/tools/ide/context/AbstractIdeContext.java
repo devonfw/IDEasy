@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.*;
 import java.nio.file.attribute.FileTime;
 import java.util.function.Function;
@@ -114,6 +115,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   private Locale locale;
 
   private UrlMetadata urlMetadata;
+
+  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);
 
   /**
    * The constructor.
@@ -665,11 +668,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   private void gitPullOrCloneIfNeeded(Path urlsPath, String repoUrl) {
 
     Path gitDirectory = urlsPath.resolve(".git");
-    Path magicFilePath = gitDirectory.resolve("HEAD");
-    long deltaThreshold = 30 * 60 * 1000; // 30 minutes in milliseconds
 
     // Check if the .git directory exists
     if (Files.isDirectory(gitDirectory)) {
+      Path magicFilePath = gitDirectory.resolve("HEAD");
       long currentTime = System.currentTimeMillis();
       // Get the modification time of the magic file
       long fileMTime;
@@ -680,7 +682,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
 
       // Check if the file modification time is older than the delta threshold
-      if (currentTime - fileMTime > deltaThreshold) {
+      if (currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) {
         gitPullOrClone(urlsPath, repoUrl);
         try {
           Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
