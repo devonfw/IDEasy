@@ -78,7 +78,6 @@ public class BuildSecurityJsonFiles {
       NodeAuditAnalyzer.class, YarnAuditAnalyzer.class, PnpmAuditAnalyzer.class, RetireJsAnalyzer.class,
       FalsePositiveAnalyzer.class);
 
-  // private static final Set<Class<? extends AbstractAnalyzer>> ANALYZERS_TO_IGNORE = Set.of( FileNameAnalyzer.class);
 
   private static BigDecimal minV2Severity;
 
