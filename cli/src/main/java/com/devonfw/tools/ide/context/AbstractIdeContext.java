@@ -682,7 +682,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
 
       // Check if the file modification time is older than the delta threshold
-      if (currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) {
+      if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || isForceMode()) {
         gitPullOrClone(urlsPath, repoUrl);
         try {
           Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
