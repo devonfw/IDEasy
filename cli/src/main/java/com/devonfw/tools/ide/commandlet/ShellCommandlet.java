@@ -81,7 +81,7 @@ public final class ShellCommandlet extends Commandlet {
 
         // TODO: implement TailTipWidgets, see: https://github.com/devonfw/IDEasy/issues/169
 
-        String prompt = "prompt> ";
+        String prompt = "ide> ";
         String rightPrompt = null;
         String line;
 
