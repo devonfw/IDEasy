@@ -275,7 +275,6 @@ public class BuildSecurityJsonFiles {
    */
   protected static BigDecimal getBigDecimalSeverity(Vulnerability vulnerability) {
 
-
     if (vulnerability.getCvssV2() == null && vulnerability.getCvssV3() == null) {
       // TODO if this ever happens, add a case that handles this
       throw new RuntimeException("Vulnerability without severity found: " + vulnerability.getName() + "\\n"
