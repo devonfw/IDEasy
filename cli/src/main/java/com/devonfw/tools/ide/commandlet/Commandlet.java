@@ -7,9 +7,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * A {@link Commandlet} is a sub-command of the IDE CLI.
@@ -84,6 +86,18 @@ public abstract class Commandlet {
       this.firstKeyword = keyword;
     }
     add(new KeywordProperty(keyword, true, null));
+  }
+
+  /**
+   * @param property the keyword {@link Property} to {@link #add(Property) add}.
+   */
+  protected void addKeyword(Property<?> property) {
+
+    if (!this.properties.isEmpty()) {
+      throw new IllegalStateException();
+    }
+    this.firstKeyword = property.getNameOrAlias();
+    add(property);
   }
 
   /**
@@ -191,5 +205,15 @@ public abstract class Commandlet {
   public String toString() {
 
     return getClass().getSimpleName() + "[" + getName() + "]";
+  }
+
+  /**
+   * @param version the {@link VersionIdentifier} to complete.
+   * @param collector the {@link CompletionCandidateCollector}.
+   * @return {@code true} on success, {@code false} otherwise.
+   */
+  public boolean completeVersion(VersionIdentifier version, CompletionCandidateCollector collector) {
+
+    return false;
   }
 }
