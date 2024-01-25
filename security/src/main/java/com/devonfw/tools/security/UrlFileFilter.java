@@ -12,8 +12,6 @@ import java.nio.file.Paths;
  */
 public class UrlFileFilter implements FileFilter {
 
-  UpdateManager updateManager = new UpdateManager(Paths.get("C:\\projects\\_ide\\urls"), null);
-
   @Override
   public boolean accept(java.io.File pathname) {
 

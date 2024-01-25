@@ -58,8 +58,10 @@ import org.owasp.dependencycheck.utils.Settings;
 /**
  * This class is used to build the {@link UrlSecurityJsonFile} files for IDEasy. It scans the
  * {@link AbstractIdeContext#getUrlsPath() ide-url} folder for all tools, editions and versions and checks for
- * vulnerabilities by using the OWASP package. For this the
- * {@link com.devonfw.tools.ide.url.model.file.UrlStatusFile#STATUS_JSON} must be present in the
+ * vulnerabilities by using the OWASP package. You must pass two arguments to the main method: minV2Severity and
+ * minV3Severity. V2 and V3 severity are differentiated, because they are often considered not comparable.
+ * Vulnerabilities with severity lower than these values will not be added to the {@link UrlSecurityJsonFile}. For this
+ * the {@link com.devonfw.tools.ide.url.model.file.UrlStatusFile#STATUS_JSON} must be present in the
  * {@link com.devonfw.tools.ide.url.model.folder.UrlVersion}. If a vulnerability is found, it is added to the
  * {@link UrlSecurityJsonFile} of the corresponding tool and edition. The previous content of the file is overwritten.
  * Sometimes when running this class is takes a long time to finish. This is because of the OWASP package, which is
@@ -78,8 +80,6 @@ public class BuildSecurityJsonFiles {
       NodeAuditAnalyzer.class, YarnAuditAnalyzer.class, PnpmAuditAnalyzer.class, RetireJsAnalyzer.class,
       FalsePositiveAnalyzer.class);
 
-  // private static final Set<Class<? extends AbstractAnalyzer>> ANALYZERS_TO_IGNORE = Set.of( FileNameAnalyzer.class);
-
   private static BigDecimal minV2Severity;
 
   private static BigDecimal minV3Severity;
@@ -90,19 +90,16 @@ public class BuildSecurityJsonFiles {
 
   /**
    * @param args Set {@code minV2Severity} with {@code args[0]} and {@code minV3Severity} with {@code args[1]}.
-   *        Vulnerabilities with severity lower than these values will not be added to {@link UrlSecurityJsonFile}.
+   *        Vulnerabilities with severity lower than these values will not be added to the {@link UrlSecurityJsonFile}s.
    */
   public static void main(String[] args) {
 
-    // if (args.length != 2) {
-    // throw new RuntimeException("Please provide 2 numbers: minV2Severity and minV3Severity");
-    // }
+    if (args.length != 2) {
+      throw new RuntimeException("Please provide 2 numbers: minV2Severity and minV3Severity");
+    }
     try {
       minV2Severity = new BigDecimal(String.format(args[0]));
-      minV3Severity = minV2Severity;
-      // minV3Severity = new BigDecimal(String.format(args[1]));
-      // minV2Severity = new BigDecimal(String.format("0"));
-      // minV3Severity = new BigDecimal(String.format("0"));
+      minV3Severity = new BigDecimal(String.format(args[1]));
     } catch (NumberFormatException e) {
       throw new RuntimeException("These two args could not be parsed as BigDecimal");
     }
@@ -162,6 +159,16 @@ public class BuildSecurityJsonFiles {
     return cpeToUrlVersion;
   }
 
+  /**
+   * Uses the {@link Engine OWASP engine} to scan the {@link AbstractIdeContext#getUrlsPath() ide-url} folder for
+   * dependencies and then runs {@link Engine#analyzeDependencies() analyzes} them to get the {@link Vulnerability
+   * vulnerabilities}.
+   * 
+   * @param updateManager the {@link UpdateManager} to use to get the {@link AbstractUrlUpdater} of the tool to get CPE
+   *        Vendor, CPE Product and CPE edition of the tool, as well as the
+   *        {@link AbstractUrlUpdater#mapCpeVersionToUrlVersion(String) CPE naming of its version}
+   * @return the {@link Dependency dependencies} with associated {@link Vulnerability vulnerabilities}.
+   */
   private static Dependency[] getDependenciesWithVulnerabilities(UpdateManager updateManager) {
 
     Settings settings = new Settings();
@@ -196,7 +203,7 @@ public class BuildSecurityJsonFiles {
    * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get maps between CPE Version and
    *        {@link UrlVersion#getName() Url Version} naming.
    */
-  private static void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityJsonFile securityFile,
+  protected static void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityJsonFile securityFile,
       Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater) {
 
     String cveName = vulnerability.getName();
@@ -205,9 +212,8 @@ public class BuildSecurityJsonFiles {
       return;
     }
 
-    boolean hasV3Severity = vulnerability.getCvssV3() != null;
-    BigDecimal severity = getBigDecimalSeverity(vulnerability, hasV3Severity);
-    if (hasV3Severity) {
+    BigDecimal severity = getBigDecimalSeverity(vulnerability);
+    if (vulnerability.getCvssV3() != null) {
       if (severity.compareTo(minV3Severity) < 0) {
         return;
       }
@@ -265,10 +271,10 @@ public class BuildSecurityJsonFiles {
    * Determines the severity of the vulnerability.
    *
    * @param vulnerability the vulnerability determined by OWASP dependency check.
-   * @param hasV3Severity {@code true} if the vulnerability has a V3 severity, {@code false} if it has a V2 severity.
    * @return the {@link BigDecimal severity} of the vulnerability.
    */
-  private static BigDecimal getBigDecimalSeverity(Vulnerability vulnerability, boolean hasV3Severity) {
+  protected static BigDecimal getBigDecimalSeverity(Vulnerability vulnerability) {
+
 
     if (vulnerability.getCvssV2() == null && vulnerability.getCvssV3() == null) {
       // TODO if this ever happens, add a case that handles this
@@ -276,7 +282,7 @@ public class BuildSecurityJsonFiles {
           + " Please contact https://github.com/devonfw/IDEasy and make a request to get this feature implemented.");
     }
     double severityDouble;
-    if (hasV3Severity) {
+    if (vulnerability.getCvssV3() != null) {
       severityDouble = vulnerability.getCvssV3().getCvssData().getBaseScore();
     } else {
       severityDouble = vulnerability.getCvssV2().getCvssData().getBaseScore();
@@ -296,8 +302,8 @@ public class BuildSecurityJsonFiles {
    *        contain the CPE Version.
    * @return the {@link VersionRange versionRange} to which the vulnerability applies.
    */
-  static VersionRange getVersionRangeFromVulnerability(Vulnerability vulnerability, Map<String, String> cpeToUrlVersion,
-      AbstractUrlUpdater urlUpdater) {
+  protected static VersionRange getVersionRangeFromVulnerability(Vulnerability vulnerability,
+      Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater) {
 
     VulnerableSoftware matchedVulnerableSoftware = vulnerability.getMatchedVulnerableSoftware();
 
@@ -435,6 +441,7 @@ public class BuildSecurityJsonFiles {
     }
   }
 
+  /** Initializes the {@link #CVES_TO_IGNORE}. */
   private static void initCvesToIgnore() {
 
     if (CVES_TO_IGNORE.isEmpty()) {
