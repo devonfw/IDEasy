@@ -80,13 +80,12 @@ public class BuildSecurityJsonFiles {
       NodeAuditAnalyzer.class, YarnAuditAnalyzer.class, PnpmAuditAnalyzer.class, RetireJsAnalyzer.class,
       FalsePositiveAnalyzer.class);
 
-  private static BigDecimal minV2Severity;
+  private static BigDecimal minV2Severity = new BigDecimal("0.0");
 
-  private static BigDecimal minV3Severity;
+  private static BigDecimal minV3Severity = new BigDecimal("0.0");
 
   private static final Set<String> actuallyIgnoredCves = new HashSet<>();
-
-  private static IdeContext context;
+  private static final IdeContext context = new IdeContextConsole(IdeLogLevel.INFO, null, false);;
 
   /**
    * @param args Set {@code minV2Severity} with {@code args[0]} and {@code minV3Severity} with {@code args[1]}.
@@ -109,7 +108,6 @@ public class BuildSecurityJsonFiles {
   private static void run() {
 
     initCvesToIgnore();
-    context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
     UpdateManager updateManager = new UpdateManager(context.getUrlsPath(), null);
     Dependency[] dependencies = getDependenciesWithVulnerabilities(updateManager);
     Set<Pair<String, String>> foundToolsAndEditions = new HashSet<>();
@@ -344,7 +342,7 @@ public class BuildSecurityJsonFiles {
 
     String urlVersion = null;
     if (cpeVersion != null) {
-      if (cpeToUrlVersion.containsKey(cpeVersion)) {
+      if (cpeToUrlVersion!= null && cpeToUrlVersion.containsKey(cpeVersion)) {
         urlVersion = cpeToUrlVersion.get(cpeVersion);
       } else {
         urlVersion = urlUpdater.mapCpeVersionToUrlVersion(cpeVersion);
