@@ -1,0 +1,15 @@
+{
+  "warnings" : [ {
+    "versionRange" : "[3.0.6,3.2.1)",
+    "severity" : 5.8,
+    "cveName" : "testName1",
+    "description" : "testDescription1",
+    "nistUrl" : "https://nvd.nist.gov/vuln/detail/testName1"
+  }, {
+    "versionRange" : "(,3.8.1)",
+    "severity" : 9.1,
+    "cveName" : "testName2",
+    "description" : "testDescription2",
+    "nistUrl" : "https://nvd.nist.gov/vuln/detail/testName2"
+  } ]
+}

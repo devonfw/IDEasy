@@ -317,11 +317,11 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
     // if I don't pass answers here I get: End of answers reached!
     IdeContext context = newContext("basic", path, true, answers);
     ToolCommandlet toolCommandlet = context.getCommandletManager().getCommandlet(dummyTool);
-    Path eitionPath = context.getUrlsPath().resolve(toolCommandlet.getName()).resolve(toolCommandlet.getEdition());
-    context.getFileAccess().delete(eitionPath); // I want to define my own versions for simplicity
+    Path editionPath = context.getUrlsPath().resolve(toolCommandlet.getName()).resolve(toolCommandlet.getEdition());
+    context.getFileAccess().delete(editionPath); // I want to define my own versions for simplicity
     int numberOfVersions = 10;
     for (int i = 1; i < numberOfVersions; i++) {
-      context.getFileAccess().mkdirs(eitionPath.resolve(String.valueOf(i)));
+      context.getFileAccess().mkdirs(editionPath.resolve(String.valueOf(i)));
     }
     return context;
   }

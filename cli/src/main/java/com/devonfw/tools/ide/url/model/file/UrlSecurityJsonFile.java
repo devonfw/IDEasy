@@ -181,4 +181,9 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
       throw new IllegalStateException("Failed to save the UrlSecurityJsonFile " + getPath(), e);
     }
   }
+
+  public UrlSecurityWarningsJson getUrlSecurityWarningsJson() {
+
+    return this.urlSecurityWarningsJson;
+  }
 }
