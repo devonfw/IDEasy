@@ -120,7 +120,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @return the {@link EnvironmentVariables#getToolEdition(String) tool edition}.
    */
-  protected String getEdition() {
+  public String getEdition() {
 
     return this.context.getVariables().getToolEdition(getName());
   }

@@ -8,7 +8,6 @@ import org.assertj.core.api.Assertions;
 import org.assertj.core.api.Condition;
 import org.assertj.core.api.ListAssert;
 
-import com.devonfw.tools.ide.commandlet.CommandletManagerResetter;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
@@ -66,7 +65,6 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
     Path sourceDir = PATH_PROJECTS.resolve(projectName);
     Path userDir = sourceDir;
-    CommandletManagerResetter.reset();
     IdeTestContext context;
     if (copyForMutation) {
       Path projectDir = PATH_PROJECTS_COPY.resolve(projectName);
