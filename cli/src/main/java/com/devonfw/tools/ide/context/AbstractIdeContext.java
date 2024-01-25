@@ -11,11 +11,7 @@ import java.util.function.Function;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.commandlet.CommandletManager;
-import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
-import com.devonfw.tools.ide.commandlet.ContextCommandlet;
-import com.devonfw.tools.ide.commandlet.HelpCommandlet;
+import com.devonfw.tools.ide.commandlet.*;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -612,36 +608,13 @@ public abstract class AbstractIdeContext implements IdeContext {
         askToContinue(message);
       } else {
         pc.errorHandling(ProcessErrorHandling.WARNING);
+        GitUtils gitUtils = new GitUtils(this, pc, target, "origin", "master");
         if (isOnline()) {
-          // fetch from latest remote
-          result = pc.addArg("fetch").addArg("origin").addArg("master").run(true);
-          if (!result.isSuccessful()) {
-            warning("Git failed to fetch from origin master.");
-          }
-          // pull from remote
-          result = pc.addArg("--no-pager").addArg("pull").run(true);
-          if (!result.isSuccessful()) {
-            warning("Git failed to pull from origin master.");
-          }
-        }
-        if (force) {
-          // check for changed files
-          result = pc.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(true);
-          if (!result.isSuccessful()) {
-            // reset to origin/master
-            result = pc.addArg("reset").addArg("--hard").addArg("origin/master").run(true);
-            if (!result.isSuccessful()) {
-              warning("Git failed to reset: {} to 'origin/master'.", target);
-            }
-          }
-          // check for untracked files
-          result = pc.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard").run(true);
-          if (!result.getOut().isEmpty()) {
-            // delete untracked files
-            result = pc.addArg("clean").addArg("-df").run(true);
-            if (!result.isSuccessful()) {
-              warning("Git failed to clean the repository: {}.", target);
-            }
+          gitUtils.runGitFetch();
+          gitUtils.runGitPull();
+          if (force) {
+            gitUtils.runGitReset();
+            gitUtils.runGitCleanup();
           }
         }
         if (!result.isSuccessful()) {
@@ -795,8 +768,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
-   *        {@link Commandlet#run() run}.
+   * @param cmd the potential {@link Commandlet} to
+   *        {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run()
+   *        run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
    *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
