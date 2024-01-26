@@ -12,7 +12,7 @@ public interface ProcessResult {
   /** Exit code for success. */
   int SUCCESS = 0;
 
-  /** Exit code if the tool is not installed */
+  /** Exit code if tool was requested that is not installed. */
   int TOOL_NOT_INSTALLED = 4;
 
   /**

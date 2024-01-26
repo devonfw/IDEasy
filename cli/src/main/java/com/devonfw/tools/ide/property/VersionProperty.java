@@ -2,6 +2,9 @@ package com.devonfw.tools.ide.property;
 
 import java.util.function.Consumer;
 
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -41,9 +44,16 @@ public class VersionProperty extends Property<VersionIdentifier> {
   }
 
   @Override
-  public VersionIdentifier parse(String valueAsString) {
+  public VersionIdentifier parse(String valueAsString, IdeContext context) {
 
     return VersionIdentifier.of(valueAsString);
+  }
+
+  @Override
+  protected boolean completeValue(String arg, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
+
+    return commandlet.completeVersion(VersionIdentifier.of(arg), collector);
   }
 
 }
