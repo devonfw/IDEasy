@@ -829,7 +829,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
     }
-    return collector.getCandidates();
+    return collector.getSortedCandidates();
   }
 
   /**
