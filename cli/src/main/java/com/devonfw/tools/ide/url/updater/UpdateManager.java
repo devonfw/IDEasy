@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.tool.docker.DockerDesktopUrlUpdater;
 import com.devonfw.tools.ide.tool.docker.DockerRancherDesktopUrlUpdater;
 import com.devonfw.tools.ide.tool.dotnet.DotNetUrlUpdater;
 import com.devonfw.tools.ide.tool.eclipse.EclipseCppUrlUpdater;
+import com.devonfw.tools.ide.tool.eclipse.EclipseJeeUrlUpdater;
 import com.devonfw.tools.ide.tool.eclipse.EclipseJavaUrlUpdater;
 import com.devonfw.tools.ide.tool.gcloud.GCloudUrlUpdater;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewerUrlUpdater;
@@ -57,10 +58,11 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
   private final UrlRepository urlRepository;
 
   private final List<AbstractUrlUpdater> updaters = Arrays.asList(new AndroidStudioUrlUpdater(), new AwsUrlUpdater(),
-      new AzureUrlUpdater(), new CobigenUrlUpdater(), new DockerDesktopUrlUpdater() , new DotNetUrlUpdater(), new EclipseCppUrlUpdater(),
-      new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(), new GcViewerUrlUpdater(), new GhUrlUpdater(),
-      new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(), new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(),
-      new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(),
+      new AzureUrlUpdater(), new CobigenUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
+      new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
+      new GcViewerUrlUpdater(), new GhUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
+      new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JavaUrlUpdater(),
+      new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(),
       new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(),
       new PipUrlUpdater(), new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(),
       new SonarUrlUpdater(), new TerraformUrlUpdater(), new TomcatUrlUpdater(), new VsCodeUrlUpdater());
