@@ -1,6 +1,9 @@
 package com.devonfw.tools.ide.property;
 
-import java.util.Objects;
+import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * {@link Property} with {@link #getValueType() value type} {@link Boolean}.
@@ -42,37 +45,57 @@ public class BooleanProperty extends Property<Boolean> {
   }
 
   @Override
-  public Boolean parse(String valueAsString) {
+  public Boolean parse(String valueAsString, IdeContext context) {
 
+    Boolean result = parse(valueAsString);
+    if (result == null) {
+      throw new IllegalArgumentException("Illegal boolean value '" + valueAsString + "' for property " + getName());
+    }
+    return result;
+  }
+
+  private Boolean parse(String valueAsString) {
+
+    if (valueAsString == null) {
+      return null;
+    }
     valueAsString = valueAsString.toLowerCase();
     if ("true".equals(valueAsString) || "yes".equals(valueAsString)) {
       return Boolean.TRUE;
     } else if ("false".equals(valueAsString) || "no".equals(valueAsString)) {
       return Boolean.FALSE;
     }
-    throw new IllegalArgumentException("Illegal boolean value '" + valueAsString + "' for property " + getName());
+    return null;
   }
 
   @Override
-  public void setValueAsString(String valueAsString) {
+  public void setValueAsString(String valueAsString, IdeContext context) {
 
-    Boolean value;
+    Boolean b;
     if (matches(valueAsString)) {
-      // allow "--force" to enable "--force" option
-      value = Boolean.TRUE;
+      // allow e.g. "--force" to enable "--force" option
+      b = Boolean.TRUE;
     } else {
-      value = parse(valueAsString);
+      b = parse(valueAsString, context);
     }
-    setValue(value);
+    setValue(b);
   }
 
-  /**
-   * @param nameOrAlias the potential {@link #getName() name} or {@link #getAlias() alias}.
-   * @return {@code true} if it matches, {@code false} otherwise.
-   */
-  public boolean matches(String nameOrAlias) {
+  @Override
+  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context,
+      Commandlet commandlet, CompletionCandidateCollector collector) {
 
-    return (this.name.equals(nameOrAlias) || Objects.equals(this.alias, nameOrAlias));
+    if (lookahead) {
+      Boolean b = parse(argValue);
+      if (b == null) {
+        setValue(true);
+      } else {
+        setValue(b);
+        args.next();
+      }
+      return true;
+    }
+    return super.applyValue(argValue, lookahead, args, context, commandlet, collector);
   }
 
 }
