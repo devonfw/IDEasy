@@ -17,7 +17,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run, when Installed Version is null.
    */
   @Test
-  public void testVersionGetCommandletRunThrowsCliExeption() {
+  public void testVersionGetCommandletRunThrowsCliException() {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
