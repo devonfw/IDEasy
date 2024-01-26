@@ -18,10 +18,9 @@ import org.jline.widget.AutosuggestionWidgets;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.cli.IdeCompleter;
+import com.devonfw.tools.ide.completion.IdeCompleter;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.BooleanProperty;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.KeywordProperty;
@@ -69,7 +68,7 @@ public final class ShellCommandlet extends Commandlet {
       try (Terminal terminal = TerminalBuilder.builder().build()) {
 
         // initialize our own completer here
-        IdeCompleter completer = new IdeCompleter(this.context);
+        IdeCompleter completer = new IdeCompleter((AbstractIdeContext) this.context);
 
         LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)
             .variable(LineReader.LIST_MAX, AUTOCOMPLETER_MAX_RESULTS).build();
@@ -117,7 +116,6 @@ public final class ShellCommandlet extends Commandlet {
    * Converts String of arguments to array and runs the command
    *
    * @param args String of arguments
-   * @param contextCommandlet {@link ContextCommandlet}
    * @return status code
    */
   private int runCommand(String args) {
@@ -129,97 +127,6 @@ public final class ShellCommandlet extends Commandlet {
     CliArguments cliArgs = new CliArguments(arguments);
     cliArgs.next();
     return ((AbstractIdeContext) this.context).run(cliArgs);
-  }
-
-  private int processCliArgument(CliArgument current) {
-
-    if (current == null) {
-      // exit with success after --version has been printed...
-      return ProcessResult.SUCCESS;
-    }
-    String keyword = current.get();
-    Commandlet firstCandidate = this.context.getCommandletManager().getCommandletByFirstKeyword(keyword);
-    boolean matches;
-    if (firstCandidate != null) {
-      matches = applyAndRun(current, firstCandidate);
-      if (matches) {
-        return ProcessResult.SUCCESS;
-      }
-    }
-    for (Commandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
-      if (commandlet != firstCandidate) {
-        matches = applyAndRun(current, commandlet);
-        if (matches) {
-          return ProcessResult.SUCCESS;
-        }
-      }
-    }
-    if (!current.isEnd()) {
-      this.context.error("Invalid arguments: {}", current.getArgs());
-    }
-    this.context.getCommandletManager().getCommandlet(HelpCommandlet.class).run();
-    return 1;
-  }
-
-  private CliArgument initContext(CliArgument first, ContextCommandlet contextCommandlet) {
-
-    CliArgument current = first;
-    while (!current.isEnd()) {
-      String key = current.getKey();
-      Property<?> property = contextCommandlet.getOption(key);
-      if (property == null) {
-        break;
-      }
-      String value = current.getValue();
-      if (value == null) {
-        if (property instanceof FlagProperty) {
-          ((FlagProperty) property).setValue(Boolean.TRUE);
-        } else {
-          this.context.error("Missing value for option " + key);
-        }
-      } else {
-        property.setValueAsString(value, this.context);
-      }
-      current = current.getNext(true);
-    }
-    return current;
-  }
-
-  private CliArgument retrieveCliArgumentByContext(CliArgument first, ContextCommandlet contextCommandlet) {
-
-    CliArgument current = initContext(first, contextCommandlet);
-    return current;
-  }
-
-  private CliArgument initContext(CliArgument first) {
-
-    ContextCommandlet init = new ContextCommandlet();
-    CliArgument current = initContext(first, init);
-    init.run();
-    // this.context = init.getIdeContext();
-    return current;
-  }
-
-  /**
-   * @param current the current {@link CliArgument} (position) to match.
-   * @param commandlet the potential {@link Commandlet} to {@link #apply(CliArgument, Commandlet) apply} and
-   *        {@link Commandlet#run() run}.
-   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
-   */
-  private boolean applyAndRun(CliArgument current, Commandlet commandlet) {
-
-    boolean matches = apply(current, commandlet);
-    if (matches) {
-      this.context.debug("Running commandlet {}", commandlet);
-      if (commandlet.isIdeHomeRequired() && (this.context.getIdeHome() == null)) {
-        throw new CliException(((AbstractIdeContext) this.context).getMessageIdeHome());
-      }
-      commandlet.run();
-    } else {
-      this.context.trace("Commandlet did not match");
-    }
-    return matches;
   }
 
   /**

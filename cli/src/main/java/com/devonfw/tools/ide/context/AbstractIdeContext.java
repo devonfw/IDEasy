@@ -819,7 +819,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (firstCandidate != null) {
         matches = apply(arguments.copy(), firstCandidate, collector);
       } else if (current.isCombinedShortOption()) {
-        collector.add(keyword, null, null);
+        collector.add(keyword, null, null, null);
       }
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
@@ -829,9 +829,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
     }
-    List<CompletionCandidate> candidates = collector.getCandidates();
-    Collections.sort(candidates);
-    return candidates;
+    return collector.getCandidates();
   }
 
   /**

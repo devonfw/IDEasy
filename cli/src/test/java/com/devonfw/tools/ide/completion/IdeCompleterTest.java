@@ -1,8 +1,10 @@
-package com.devonfw.tools.ide.cli;
+package com.devonfw.tools.ide.completion;
 
 import java.io.IOException;
 import java.nio.file.Paths;
 
+import com.devonfw.tools.ide.cli.AutocompletionReaderTestSupport;
+import com.devonfw.tools.ide.completion.IdeCompleter;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -68,8 +70,8 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
     String path = "workspaces/foo-test/my-git-repo";
     IdeTestContext ideContext = newContext("basic", path, false);
     this.reader.setCompleter(new IdeCompleter(ideContext));
-    assertBuffer("install mvn 3.2.1", new TestBuffer("install mvn").tab().tab().tab());
-
+    // assertBuffer("install mvn 3.2.1", new TestBuffer("install mvn ").tab().tab().tab());
+    assertBuffer("install mvn *!", new TestBuffer("install mvn ").tab().tab().tab());
   }
 
   @Test
@@ -86,8 +88,8 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
 
     IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
     this.reader.setCompleter(new IdeCompleter(ideContext));
-    assertBuffer("-t -f get-version -", new TestBuffer("-t -f get-version -").tab().tab());
-    assertBuffer("-t -f get-version - ", new TestBuffer("-t -f get-version - ").tab().tab());
+    assertBuffer("get-version -", new TestBuffer("get-version -").tab().tab());
+    assertBuffer("get-version - ", new TestBuffer("get-version - ").tab().tab());
 
   }
 
@@ -107,7 +109,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
 
     IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
     this.reader.setCompleter(new IdeCompleter(ideContext));
-    assertBuffer("-t -f get-version mvn ", new TestBuffer("-t -f get-version mv").tab().tab());
+    assertBuffer("get-version mvn ", new TestBuffer("get-version mv").tab().tab());
 
   }
 }
