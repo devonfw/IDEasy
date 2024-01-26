@@ -61,8 +61,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
     String path = "workspaces/foo-test/my-git-repo";
     IdeTestContext ideContext = newContext("basic", path, false);
     this.reader.setCompleter(new IdeCompleter(ideContext));
-    // assertBuffer("install mvn 3.2.1", new TestBuffer("install mvn ").tab().tab().tab());
-    assertBuffer("install mvn *!", new TestBuffer("install mvn ").tab().tab().tab());
+    assertBuffer("install mvn 3.2.1", new TestBuffer("install mvn ").tab().tab());
   }
 
   @Test
