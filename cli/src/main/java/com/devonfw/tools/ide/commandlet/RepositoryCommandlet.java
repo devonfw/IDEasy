@@ -34,7 +34,7 @@ public class RepositoryCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     addKeyword("setup");
-    this.repository = add(new RepositoryProperty("", false, "repository"));
+    this.repository = add(new RepositoryProperty("", false, "repository", true));
   }
 
   @Override
@@ -46,7 +46,7 @@ public class RepositoryCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    Path repositoryFile = repository.getValueAsPath(context);
+    Path repositoryFile = repository.getValue();
 
     if (repositoryFile != null) {
       // Handle the case when a specific repository is provided

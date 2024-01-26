@@ -7,7 +7,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-public class RepositoryProperty extends Property<String> {
+public class RepositoryProperty extends FileProperty {
 
   /**
    * The constructor.
@@ -15,10 +15,11 @@ public class RepositoryProperty extends Property<String> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
+   * @param mustExist the {@link #isPathRequiredToExist() required to exist flag}.
    */
-  public RepositoryProperty(String name, boolean required, String alias) {
+  public RepositoryProperty(String name, boolean required, String alias, boolean mustExist) {
 
-    this(name, required, alias, null);
+    super(name, required, alias, mustExist);
   }
 
   /**
@@ -27,41 +28,33 @@ public class RepositoryProperty extends Property<String> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
+   * @param mustExist the {@link #isPathRequiredToExist() required to exist flag}.
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public RepositoryProperty(String name, boolean required, String alias, Consumer<String> validator) {
+  public RepositoryProperty(String name, boolean required, String alias, boolean mustExist, Consumer<Path> validator) {
 
-    super(name, required, alias, validator);
+    super(name, required, alias, mustExist, validator);
   }
 
-  @Override
-  public Class<String> getValueType() {
+  public Path parse(String valueAsString, IdeContext context) {
 
-    return String.class;
-  }
-
-  @Override
-  public String parse(String valueAsString, IdeContext context) {
-
-    return null;
-  }
-
-  public Path getValueAsPath(IdeContext context) {
-
-    String value = getValue();
-    if (value == null) {
+    if (valueAsString == null) {
       return null;
     }
 
-    Path repositoryFile = Path.of(value);
+    Path repositoryFile = Path.of(valueAsString);
     if (!Files.exists(repositoryFile)) {
       Path repositoriesPath = context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES);
       Path legacyRepositoriesPath = context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_REPOSITORIES);
-      repositoryFile = context.getFileAccess().findExistingFile(value + ".properties",
+      String propertiesFileName = valueAsString;
+      if (!valueAsString.endsWith(".properties")) {
+        propertiesFileName += ".properties";
+      }
+      repositoryFile = context.getFileAccess().findExistingFile(propertiesFileName,
           Arrays.asList(repositoriesPath, legacyRepositoriesPath));
     }
     if (repositoryFile == null) {
-      throw new IllegalStateException("Could not find " + value);
+      throw new IllegalStateException("Could not find properties file: " + valueAsString);
     }
     return repositoryFile;
   }
