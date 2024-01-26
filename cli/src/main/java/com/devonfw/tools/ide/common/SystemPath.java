@@ -166,7 +166,6 @@ public class SystemPath {
    */
   public void setPath(String tool, Path path) {
 
-    this.paths.add(path);
     this.tool2pathMap.put(tool, path);
   }
 
