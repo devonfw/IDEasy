@@ -22,13 +22,13 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
     assertBuffer("helm", new TestBuffer("he").tab().tab());
   }
 
-  // @Test
-  // public void testIdeCompleterVersion() throws IOException {
-  //
-  // IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
-  // this.reader.setCompleter(new IdeCompleter(ideContext));
-  // assertBuffer("--version ", new TestBuffer("--vers").tab());
-  // }
+  @Test
+  public void testIdeCompleterVersion() throws IOException {
+
+    IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
+    this.reader.setCompleter(new IdeCompleter(ideContext));
+    assertBuffer("--version ", new TestBuffer("--vers").tab());
+  }
 
   @Test
   public void testIdeCompleterInstall() throws IOException {
@@ -45,15 +45,6 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
     this.reader.setCompleter(new IdeCompleter(ideContext));
     assertBuffer("help mvn ", new TestBuffer("help m").tab().tab());
   }
-
-  // @Test
-  // public void testIdeCompleterOptions() throws IOException {
-  //
-  // IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
-  // this.reader.setCompleter(new IdeCompleter(ideContext));
-  // assertBuffer("--trace ", new TestBuffer("--t").tab());
-  // assertBuffer("--debug ", new TestBuffer("--d").tab());
-  // }
 
   @Test
   public void testIdeCompleterOptionsRemovesUsedOption() throws IOException {
@@ -101,7 +92,6 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
     assertBuffer("get-version -t ", new TestBuffer("get-version -t ").tab().tab());
     assertBuffer("- get-version ", new TestBuffer("- get-version ").tab().tab());
     assertBuffer(" - get-version", new TestBuffer(" - get-version").tab().tab());
-
   }
 
   @Test
@@ -110,6 +100,5 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
     IdeTestContext ideContext = new IdeTestContext(Paths.get(""), "");
     this.reader.setCompleter(new IdeCompleter(ideContext));
     assertBuffer("get-version mvn ", new TestBuffer("get-version mv").tab().tab());
-
   }
 }
