@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.property;
 
+import com.devonfw.tools.ide.context.IdeContext;
+
 import java.util.function.Consumer;
 
 public class EditionProperty extends Property<String> {
@@ -36,7 +38,7 @@ public class EditionProperty extends Property<String> {
   }
 
   @Override
-  public String parse(String valueAsString) {
+  public String parse(String valueAsString, IdeContext context) {
 
     return valueAsString;
   }
