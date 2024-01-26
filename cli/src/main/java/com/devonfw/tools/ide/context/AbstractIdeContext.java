@@ -29,7 +29,6 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
@@ -597,63 +596,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (!gitRepoUrl.startsWith("http")) {
       throw new IllegalArgumentException("Invalid git URL '" + gitRepoUrl + "'!");
     }
-    ProcessContext pc = newProcess().directory(target).executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0");
-    if (Files.isDirectory(target.resolve(".git"))) {
-      ProcessResult result = pc.addArg("remote").run(true);
-      List<String> remotes = result.getOut();
-      if (remotes.isEmpty()) {
-        String message = target
-            + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
-            + "Do you want to ignore the problem and continue anyhow?";
-        askToContinue(message);
-      } else {
-        pc.errorHandling(ProcessErrorHandling.WARNING);
-        GitUtils gitUtils = new GitUtils(this, pc, target, "origin", "master");
-        if (isOnline()) {
-          gitUtils.runGitFetch();
-          gitUtils.runGitPull();
-          if (force) {
-            gitUtils.runGitReset();
-            gitUtils.runGitCleanup();
-          }
-        }
-        if (!result.isSuccessful()) {
-          String message = "Failed to update git repository at " + target;
-          if (this.offlineMode) {
-            warning(message);
-            interaction("Continuing as we are in offline mode - results may be outdated!");
-          } else {
-            error(message);
-            if (isOnline()) {
-              error("See above error for details. If you have local changes, please stash or revert and retry.");
-            } else {
-              error(
-                  "It seems you are offline - please ensure Internet connectivity and retry or activate offline mode (-o or --offline).");
-            }
-            askToContinue("Typically you should abort and fix the problem. Do you want to continue anyways?");
-          }
-        }
-      }
-    } else {
-      String branch = null;
-      int hashIndex = gitRepoUrl.indexOf("#");
-      if (hashIndex != -1) {
-        branch = gitRepoUrl.substring(hashIndex + 1);
-        gitRepoUrl = gitRepoUrl.substring(0, hashIndex);
-      }
-      this.fileAccess.mkdirs(target);
-      requireOnline("git clone of " + gitRepoUrl);
-      pc.addArg("clone");
-      if (isQuietMode()) {
-        pc.addArg("-q");
-      }
-      pc.addArgs("--recursive", gitRepoUrl, "--config", "core.autocrlf=false", ".");
-      pc.run();
-      if (branch != null) {
-        pc.addArgs("checkout", branch);
-        pc.run();
-      }
-    }
+    GitUtils gitUtils = new GitUtils(this, target, "origin", "master");
+    gitUtils.runGitPullOrClone(force, gitRepoUrl);
   }
 
   @Override
