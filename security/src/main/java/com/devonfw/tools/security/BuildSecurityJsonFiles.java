@@ -274,7 +274,7 @@ public class BuildSecurityJsonFiles {
   protected static BigDecimal getBigDecimalSeverity(Vulnerability vulnerability) {
 
     if (vulnerability.getCvssV2() == null && vulnerability.getCvssV3() == null) {
-      // TODO if this ever happens, add a case that handles this
+      // TODO if this ever happens, add a case that handles this. See https://github.com/devonfw/IDEasy/issues/190
       throw new RuntimeException("Vulnerability without severity found: " + vulnerability.getName() + "\\n"
           + " Please contact https://github.com/devonfw/IDEasy and make a request to get this feature implemented.");
     }

@@ -12,6 +12,11 @@ import java.nio.file.Paths;
  */
 public class UrlFileFilter implements FileFilter {
 
+  /**
+   * This method only accepts files with name {@link UrlStatusFile#STATUS_JSON}.
+   *
+   * @param pathname the {@link java.io.File} to check.
+   */
   @Override
   public boolean accept(java.io.File pathname) {
 
