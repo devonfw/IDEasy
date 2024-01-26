@@ -27,7 +27,7 @@ public class Aws extends LocalToolCommandlet {
    */
   public Aws(IdeContext context) {
 
-    super(context, "aws", Set.of(TAG_CLOUD));
+    super(context, "aws", Set.of(Tag.CLOUD));
   }
 
   private void makeExecutable(Path file) {
