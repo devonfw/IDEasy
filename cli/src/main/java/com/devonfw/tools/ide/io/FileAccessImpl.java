@@ -18,6 +18,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -25,12 +27,14 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
@@ -315,7 +319,6 @@ public class FileAccessImpl implements FileAccess {
         return;
       }
     }
-    // "||" since broken junctions are not detected by Files.exists(brokenJunction)
     exists = exists || Files.exists(path);
     boolean isSymlink = exists && Files.isSymbolicLink(path);
 
@@ -495,12 +498,40 @@ public class FileAccessImpl implements FileAccess {
     unpack(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
   }
 
+  /**
+   * @param permissions The integer as returned by {@link TarArchiveEntry#getMode()} that represents the file
+   *        permissions of a file on a Unix file system.
+   * @return A String representing the file permissions. E.g. "rwxrwxr-x" or "rw-rw-r--"
+   */
+  public static String generatePermissionString(int permissions) {
+
+    // Ensure that only the last 9 bits are considered
+    permissions &= 0b111111111;
+
+    StringBuilder permissionStringBuilder = new StringBuilder("rwxrwxrwx");
+
+    for (int i = 0; i < 9; i++) {
+      int mask = 1 << i;
+      char currentChar = ((permissions & mask) != 0) ? permissionStringBuilder.charAt(8 - i) : '-';
+      permissionStringBuilder.setCharAt(8 - i, currentChar);
+    }
+
+    return permissionStringBuilder.toString();
+  }
+
   private void unpack(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
       ArchiveEntry entry = ais.getNextEntry();
+      boolean isTar = ais instanceof TarArchiveInputStream;
       while (entry != null) {
+        String permissionStr = null;
+        if (isTar) {
+          int tarMode = ((TarArchiveEntry) entry).getMode();
+          permissionStr = generatePermissionString(tarMode);
+        }
+
         Path entryName = Paths.get(entry.getName());
         Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
         if (!entryPath.startsWith(targetDir)) {
@@ -512,6 +543,10 @@ public class FileAccessImpl implements FileAccess {
           // ensure the file can also be created if directory entry was missing or out of order...
           mkdirs(entryPath.getParent());
           Files.copy(ais, entryPath);
+        }
+        if (isTar) {
+          Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
+          Files.setPosixFilePermissions(entryPath, permissions);
         }
         entry = ais.getNextEntry();
       }
