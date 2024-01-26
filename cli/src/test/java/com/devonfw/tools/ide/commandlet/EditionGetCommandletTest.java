@@ -26,7 +26,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
 
     // act
-    editionGet.tool.setValueAsString(tool);
+    editionGet.tool.setValueAsString(tool, context);
     editionGet.run();
 
     // assert
@@ -56,7 +56,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     String path = "workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, false);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
-    editionGet.tool.setValueAsString("java");
+    editionGet.tool.setValueAsString("java", context);
     // act
     try {
       editionGet.run();

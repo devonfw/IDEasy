@@ -20,8 +20,8 @@ public class EditionSetCommandletTest extends AbstractIdeContextTest {
     String path = "workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, true);
     EditionSetCommandlet editionSet = context.getCommandletManager().getCommandlet(EditionSetCommandlet.class);
-    editionSet.tool.setValueAsString("mvn");
-    editionSet.edition.setValueAsString("setEdition");
+    editionSet.tool.setValueAsString("mvn", context);
+    editionSet.edition.setValueAsString("setEdition", context);
 
     // act
     editionSet.run();
