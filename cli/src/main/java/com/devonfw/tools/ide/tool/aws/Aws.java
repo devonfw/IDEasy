@@ -32,7 +32,7 @@ public class Aws extends LocalToolCommandlet {
 
   private void makeExecutable(Path file) {
 
-    // TODO this can be removed if issue #132 is fixed
+    // TODO this can be removed if issue #132 is fixed. See https://github.com/devonfw/IDEasy/issues/132
     Set<PosixFilePermission> permissions = null;
     try {
       permissions = Files.getPosixFilePermissions(file);
