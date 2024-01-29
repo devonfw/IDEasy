@@ -4,17 +4,18 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessResult;
 
 /**
- * Provides utilities for git
+ * Provides utilities for git.
  */
 public class GitUtils {
   private final IdeContext context;
 
-  private final ProcessContext processContext;
+  private ProcessContext processContext;
 
   private final Path targetRepository;
 
@@ -34,21 +35,21 @@ public class GitUtils {
     this.targetRepository = targetRepository;
     this.remoteName = remoteName;
     this.branchName = branchName;
-    this.processContext = this.context.newProcess().directory(targetRepository).executable("git")
-        .withEnvVar("GIT_TERMINAL_PROMPT", "0");
-    this.processContext.errorHandling(ProcessErrorHandling.WARNING);
+
   }
 
   /**
-   * Runs a git pull or a git clone
+   * Runs a git pull or a git clone.
    *
-   * @param force boolean true enforces a git hard reset and cleanup of added files
-   * @param gitRepoUrl String of repository URL
+   * @param force boolean true enforces a git hard reset and cleanup of added files.
+   * @param gitRepoUrl String of repository URL.
    */
   protected void runGitPullOrClone(boolean force, String gitRepoUrl) {
 
-    ProcessResult result = this.processContext.addArg("remote").run(true);
+    this.processContext = this.context.newProcess().directory(this.targetRepository).executable("git")
+        .withEnvVar("GIT_TERMINAL_PROMPT", "0");
     if (Files.isDirectory(this.targetRepository.resolve(".git"))) {
+      ProcessResult result = this.processContext.addArg("remote").run(true);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
         String message = this.targetRepository
@@ -59,13 +60,13 @@ public class GitUtils {
         this.processContext.errorHandling(ProcessErrorHandling.WARNING);
 
         if (this.context.isOnline()) {
-          result = runGitFetch();
           result = runGitPull();
           if (force) {
-            result = runGitReset();
+            runGitReset();
             result = runGitCleanup();
           }
         }
+
         if (!result.isSuccessful()) {
           String message = "Failed to update git repository at " + this.targetRepository;
           if (this.context.isOffline()) {
@@ -92,6 +93,22 @@ public class GitUtils {
         branch = gitRepoUrl.substring(hashIndex + 1);
         gitRepoUrl = gitRepoUrl.substring(0, hashIndex);
       }
+      runGitClone(gitRepoUrl);
+      if (!branch.isEmpty()) {
+        this.processContext.addArgs("checkout", branch);
+        this.processContext.run();
+      }
+    }
+  }
+
+  /**
+   * Runs a git clone. Throws a CliException if in offline mode.
+   * 
+   * @param gitRepoUrl String of repository URL.
+   */
+  protected void runGitClone(String gitRepoUrl) {
+
+    if (this.context.isOnline()) {
       this.context.getFileAccess().mkdirs(this.targetRepository);
       this.context.requireOnline("git clone of " + gitRepoUrl);
       this.processContext.addArg("clone");
@@ -100,36 +117,17 @@ public class GitUtils {
       }
       this.processContext.addArgs("--recursive", gitRepoUrl, "--config", "core.autocrlf=false", ".");
       this.processContext.run();
-      if (!branch.isEmpty()) {
-        this.processContext.addArgs("checkout", branch);
-        this.processContext.run();
-      }
+    } else {
+      throw new CliException(
+          "Could not clone " + gitRepoUrl + " to " + this.targetRepository + " because you are offline.");
     }
+
   }
 
   protected List<String> runGitGetRemotes() {
 
     ProcessResult result = this.processContext.addArg("remote").run(true);
     return result.getOut();
-  }
-
-  /**
-   * Runs a git fetch.
-   *
-   * @return the {@link ProcessResult}.
-   */
-  protected ProcessResult runGitFetch() {
-
-    ProcessResult result;
-    // fetch from latest remote
-    result = this.processContext.addArg("fetch").addArg(this.remoteName).addArg(this.branchName).run(true);
-
-    if (!result.isSuccessful()) {
-      this.context.warning("Git fetch from {} {} for repository {} failed.", remoteName, branchName,
-          this.targetRepository);
-    }
-
-    return result;
   }
 
   /**
@@ -152,10 +150,8 @@ public class GitUtils {
 
   /**
    * Runs a git reset if files were modified.
-   *
-   * @return the {@link ProcessResult}.
    */
-  protected ProcessResult runGitReset() {
+  protected void runGitReset() {
 
     ProcessResult result;
     // check for changed files
@@ -172,7 +168,6 @@ public class GitUtils {
       }
     }
 
-    return result;
   }
 
   /**
