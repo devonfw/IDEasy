@@ -108,6 +108,7 @@ public class GitUtils {
    */
   protected void runGitClone(String gitRepoUrl) {
 
+    ProcessResult result;
     if (this.context.isOnline()) {
       this.context.getFileAccess().mkdirs(this.targetRepository);
       this.context.requireOnline("git clone of " + gitRepoUrl);
@@ -116,7 +117,10 @@ public class GitUtils {
         this.processContext.addArg("-q");
       }
       this.processContext.addArgs("--recursive", gitRepoUrl, "--config", "core.autocrlf=false", ".");
-      this.processContext.run();
+      result = this.processContext.run(true);
+      if (!result.isSuccessful()) {
+        this.context.warning("Git failed to clone {} into {}.", gitRepoUrl, this.targetRepository);
+      }
     } else {
       throw new CliException(
           "Could not clone " + gitRepoUrl + " to " + this.targetRepository + " because you are offline.");
@@ -142,7 +146,8 @@ public class GitUtils {
     result = this.processContext.addArg("--no-pager").addArg("pull").run(true);
 
     if (!result.isSuccessful()) {
-      context.warning("Git pull from origin master failed for repository {}.", this.targetRepository);
+      context.warning("Git pull for {}/{} failed for repository {}.", this.remoteName, this.branchName,
+          this.targetRepository);
     }
 
     return result;
