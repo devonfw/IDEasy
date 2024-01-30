@@ -6,9 +6,14 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.*;
-import java.nio.file.attribute.FileTime;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
+import java.nio.file.attribute.FileTime;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -858,7 +863,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (firstCandidate != null) {
         matches = apply(arguments.copy(), firstCandidate, collector);
       } else if (current.isCombinedShortOption()) {
-        collector.add(keyword, null, null);
+        collector.add(keyword, null, null, null);
       }
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
@@ -868,9 +873,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
     }
-    List<CompletionCandidate> candidates = collector.getCandidates();
-    Collections.sort(candidates);
-    return candidates;
+    return collector.getSortedCandidates();
   }
 
   /**
