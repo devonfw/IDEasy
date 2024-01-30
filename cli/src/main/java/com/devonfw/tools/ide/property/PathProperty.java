@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -102,22 +103,20 @@ public class PathProperty extends Property<Path> {
   }
 
   @Override
-  protected boolean completeValue(String arg, IdeContext context, Commandlet commandlet,
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
       CompletionCandidateCollector collector) {
 
     Path path = Path.of(arg);
     Path parent = path.getParent();
     String filename = path.getFileName().toString();
     if (Files.isDirectory(parent)) {
-      try {
-        Files.list(parent).filter(child -> isValidPath(path, filename))
-            .forEach(child -> collector.add(child.toString(), this, commandlet));
-        return true;
+      try (Stream<Path> children = Files.list(parent)) {
+        children.filter(child -> isValidPath(path, filename))
+            .forEach(child -> collector.add(child.toString(), null, this, commandlet));
       } catch (IOException e) {
         throw new IllegalStateException(e);
       }
     }
-    return false;
   }
 
   private boolean isValidPath(Path path, String filename) {

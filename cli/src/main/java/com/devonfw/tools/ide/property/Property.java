@@ -280,7 +280,8 @@ public abstract class Property<V> {
       if (argValue == null) {
         argument = args.next();
         if (argument.isCompletion()) {
-          return completeValue(argument.get(), context, commandlet, collector);
+          completeValue(argument.get(), context, commandlet, collector);
+          return true;
         } else {
           if (!argument.isEnd()) {
             argValue = argument.get();
@@ -326,22 +327,23 @@ public abstract class Property<V> {
 
     String arg = argument.get();
     if (this.name.isEmpty()) {
-      boolean match = completeValue(arg, context, commandlet, collector);
-      if (match) {
+      int count = collector.getCandidates().size();
+      completeValue(arg, context, commandlet, collector);
+      if (collector.getCandidates().size() > count) {
         args.next();
       }
       return;
     }
     if (this.name.startsWith(arg)) {
-      collector.add(this.name, this, commandlet);
+      collector.add(this.name, null, this, commandlet);
     }
     if (this.alias != null) {
       if (this.alias.startsWith(arg)) {
-        collector.add(this.alias, this, commandlet);
+        collector.add(this.alias, null, this, commandlet);
       } else if ((this.alias.length() == 2) && (this.alias.charAt(0) == '-') && argument.isShortOption()) {
         char opt = this.alias.charAt(1); // e.g. arg="-do" and alias="-f" -complete-> "-dof"
         if (arg.indexOf(opt) < 0) {
-          collector.add(arg + opt, this, commandlet);
+          collector.add(arg + opt, null, this, commandlet);
         }
       }
     }
@@ -361,12 +363,10 @@ public abstract class Property<V> {
    * @param context the {@link IdeContext}.
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
-   * @return {@code true} if it matches, {@code false} otherwise.
    */
-  protected boolean completeValue(String arg, IdeContext context, Commandlet commandlet,
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
       CompletionCandidateCollector collector) {
 
-    return true;
   }
 
   /**
