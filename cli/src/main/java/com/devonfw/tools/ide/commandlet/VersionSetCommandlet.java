@@ -52,31 +52,9 @@ public class VersionSetCommandlet extends Commandlet {
   }
 
   @Override
-  public boolean completeVersion(VersionIdentifier version2complete, CompletionCandidateCollector collector) {
+  public ToolCommandlet getToolForVersionCompletion() {
 
-    ToolCommandlet toolCmd = this.tool.getValue();
-    if (toolCmd != null) {
-      String text;
-      if (version2complete == null) {
-        text = "";
-      } else {
-        text = version2complete.toString();
-        if (version2complete.isPattern()) {
-          collector.add(text, this.version, this);
-          return true;
-        }
-      }
-      collector.add(text + VersionSegment.PATTERN_MATCH_ANY_STABLE_VERSION, this.tool, this);
-      collector.add(text + VersionSegment.PATTERN_MATCH_ANY_VERSION, this.tool, this);
-      List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(toolCmd.getName(),
-          toolCmd.getEdition());
-      int size = versions.size();
-      String[] sorderCandidates = IntStream.rangeClosed(1, size).mapToObj(i -> versions.get(size - i).toString())
-          .toArray(s -> new String[s]);
-      collector.addAllMatches(text, sorderCandidates, this.version, this);
-      return true;
-    }
-    return super.completeVersion(version2complete, collector);
+    return this.tool.getValue();
   }
 
 }

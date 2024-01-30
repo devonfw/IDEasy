@@ -1,11 +1,9 @@
 package com.devonfw.tools.ide.completion;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.Property;
 
 /**
@@ -15,10 +13,27 @@ public interface CompletionCandidateCollector {
 
   /**
    * @param text the suggested word to add to auto-completion.
+   * @param description the description of the suggestion candidate or {@code null} to determine automatically form the given parameters.
    * @param property the {@link Property} that triggered this suggestion.
    * @param commandlet the {@link Commandlet} owning the {@link Property}.
    */
-  void add(String text, Property<?> property, Commandlet commandlet);
+  void add(String text, String description, Property<?> property, Commandlet commandlet);
+
+  /**
+   * @param text the suggested word to add to auto-completion.
+   * @param description the description of the suggestion candidate or {@code null} to determine automatically form the given parameters.
+   * @param property the {@link Property} that triggered this suggestion.
+   * @param commandlet the {@link Commandlet} owning the {@link Property}.
+   * @return the {@link CompletionCandidate} for the given parameters.
+   */
+  default CompletionCandidate createCandidate(String text, String description, Property<?> property, Commandlet commandlet) {
+
+    if (description == null) {
+      // compute description from property + commandlet like in HelpCommandlet?
+    }
+    CompletionCandidate candidate = new CompletionCandidate(text, description);
+    return candidate;
+  }
 
   /**
    * @param text the suggested word to add to auto-completion.
@@ -31,14 +46,14 @@ public interface CompletionCandidateCollector {
 
     if (text.isEmpty()) {
       for (String candidate : sortedCandidates) {
-        add(candidate, property, commandlet);
+        add(candidate, "", property, commandlet);
       }
       return sortedCandidates.length;
     }
     int count = 0;
     int index = Arrays.binarySearch(sortedCandidates, text);
     if (index >= 0) {
-      add(sortedCandidates[index], property, commandlet);
+      add(sortedCandidates[index], "", property, commandlet);
       index++;
       count++;
     } else {
@@ -46,7 +61,7 @@ public interface CompletionCandidateCollector {
     }
     while ((index >= 0) && (index < sortedCandidates.length)) {
       if (sortedCandidates[index].startsWith(text)) {
-        add(sortedCandidates[index], property, commandlet);
+        add(sortedCandidates[index], "", property, commandlet);
         count++;
       } else {
         break;
@@ -68,5 +83,15 @@ public interface CompletionCandidateCollector {
    * @return the list of {@link CompletionCandidate}s.
    */
   List<CompletionCandidate> getCandidates();
+
+  /**
+   * Disables the {@link #getSortedCandidates() sorting}.
+   */
+  void disableSorting();
+
+  /**
+   * @return the sorted {@link #getCandidates() candidates}.
+   */
+  List<CompletionCandidate> getSortedCandidates();
 
 }

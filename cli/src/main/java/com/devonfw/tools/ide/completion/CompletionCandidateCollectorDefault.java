@@ -1,7 +1,7 @@
 package com.devonfw.tools.ide.completion;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -17,6 +17,8 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
 
   private final IdeContext context;
 
+  private boolean sortCandidates;
+
   /**
    * The constructor.
    *
@@ -27,12 +29,13 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
     super();
     this.candidates = new ArrayList<>();
     this.context = context;
+    this.sortCandidates = true;
   }
 
   @Override
-  public void add(String text, Property<?> property, Commandlet commandlet) {
+  public void add(String text, String description, Property<?> property, Commandlet commandlet) {
 
-    CompletionCandidate candidate = new CompletionCandidate(text);
+    CompletionCandidate candidate = createCandidate(text, description, property, commandlet);
     this.candidates.add(candidate);
     this.context.trace("Added {} for auto-completion of property {}.{}", candidate, commandlet, property);
   }
@@ -41,6 +44,21 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
   public List<CompletionCandidate> getCandidates() {
 
     return this.candidates;
+  }
+
+  @Override
+  public List<CompletionCandidate> getSortedCandidates() {
+
+    if (this.sortCandidates) {
+      Collections.sort(this.candidates);
+    }
+    return this.candidates;
+  }
+
+  @Override
+  public void disableSorting() {
+
+    this.sortCandidates = false;
   }
 
   @Override
