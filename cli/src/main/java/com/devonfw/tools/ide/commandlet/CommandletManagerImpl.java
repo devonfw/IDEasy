@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
+import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.helm.Helm;
@@ -64,6 +65,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Java(context));
     add(new Node(context));
     add(new Mvn(context));
+    add(new GcViewer(context));
     add(new Gradle(context));
     add(new Eclipse(context));
     add(new Terraform(context));
