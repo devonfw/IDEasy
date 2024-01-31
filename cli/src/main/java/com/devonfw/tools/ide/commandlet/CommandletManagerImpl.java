@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
+import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.helm.Helm;
@@ -24,6 +25,7 @@ import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
+import com.devonfw.tools.ide.tool.cobigen.Cobigen;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -53,6 +55,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new HelpCommandlet(context));
     add(new EnvironmentCommandlet(context));
     add(new CompleteCommandlet(context));
+    add(new ShellCommandlet(context));
     add(new InstallCommandlet(context));
     add(new VersionSetCommandlet(context));
     add(new VersionGetCommandlet(context));
@@ -63,6 +66,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Java(context));
     add(new Node(context));
     add(new Mvn(context));
+    add(new GcViewer(context));
     add(new Gradle(context));
     add(new Eclipse(context));
     add(new Terraform(context));
@@ -73,6 +77,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Vscode(context));
     add(new Azure(context));
     add(new Aws(context));
+    add(new Cobigen(context));
   }
 
   private void add(Commandlet commandlet) {
