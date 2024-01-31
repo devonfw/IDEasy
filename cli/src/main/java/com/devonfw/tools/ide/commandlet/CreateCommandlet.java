@@ -60,7 +60,7 @@ public class CreateCommandlet extends Commandlet {
     if (pc.run() == ProcessResult.SUCCESS) {
       this.context.success("IDEasy Instance successfully created in {}", newInstancePath);
     } else {
-      this.context.warning("Could not created IDEasy Instance.");
+      this.context.warning("Could not create IDEasy Instance.");
     }
   }
 
