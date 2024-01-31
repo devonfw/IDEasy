@@ -23,5 +23,9 @@
         <include>${imageName}</include>
       </includes>
     </fileSet>
+    <fileSet>
+      <directory>${project.build.directory}/package</directory>
+      <outputDirectory>./target/package</outputDirectory>
+    </fileSet>
   </fileSets>
 </assembly>
