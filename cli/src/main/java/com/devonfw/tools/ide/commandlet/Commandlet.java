@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -208,12 +209,11 @@ public abstract class Commandlet {
   }
 
   /**
-   * @param version the {@link VersionIdentifier} to complete.
-   * @param collector the {@link CompletionCandidateCollector}.
-   * @return {@code true} on success, {@code false} otherwise.
+   * @return the {@link ToolCommandlet} set in a {@link Property} of this commandlet used for auto-completion of a
+   *         {@link VersionIdentifier} or {@code null} if not exists or not configured.
    */
-  public boolean completeVersion(VersionIdentifier version, CompletionCandidateCollector collector) {
+  public ToolCommandlet getToolForVersionCompletion() {
 
-    return false;
+    return null;
   }
 }

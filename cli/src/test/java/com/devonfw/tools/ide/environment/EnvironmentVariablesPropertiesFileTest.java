@@ -10,6 +10,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.IdeTestContextMock;
+import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Test of {@link EnvironmentVariablesPropertiesFile}.
@@ -40,7 +41,7 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
   }
 
   @Test
-  void testSave() throws Exception {
+  void testSave(@TempDir Path tempDir) throws Exception {
 
     // arrange
     List<String> linesToWrite = new ArrayList<>();
@@ -60,7 +61,7 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     linesToWrite.add("# 5th comment");
     linesToWrite.add("var9=9");
 
-    Path propertiesFilePath = Path.of("target/tmp-EnvironmentVariablesPropertiesFileTest-ide.properties");
+    Path propertiesFilePath = tempDir.resolve("test.properties");
     Files.write(propertiesFilePath, linesToWrite, StandardOpenOption.CREATE_NEW);
     // check if this writing was correct
     List<String> lines = Files.readAllLines(propertiesFilePath);
@@ -76,7 +77,7 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     variables.set("var5", "5", true);
     variables.set("var1", "1.0", false);
     variables.set("var10", "10", false);
-    variables.set("var11", "11", true); // var11 must be set after var 10, the other lines can be shuffled
+    variables.set("var11", "11", true);
     variables.set("var3", "3", false);
     variables.set("var7", "7", true);
     variables.set("var6", "6.0", true);
@@ -107,7 +108,5 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
 
     lines = Files.readAllLines(propertiesFilePath);
     assertThat(lines).containsExactlyElementsOf(linesAfterSave);
-    // clean up
-    Files.delete(propertiesFilePath);
   }
 }
