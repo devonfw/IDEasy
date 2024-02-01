@@ -70,7 +70,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     String path = "workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, true);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
-    install.tool.setValueAsString("java");
+    install.tool.setValueAsString("java", context);
     mockWebServer();
     // act
     install.run();
@@ -88,8 +88,8 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     String path = "workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, true);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
-    install.tool.setValueAsString("java");
-    install.version.setValueAsString("17.0.6");
+    install.tool.setValueAsString("java", context);
+    install.version.setValueAsString("17.0.6", context);
     mockWebServer();
 
     // act
