@@ -1,14 +1,14 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
-import java.util.Set;
-import java.io.BufferedReader;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Iterator;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -86,7 +86,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier installedVersion = getInstalledVersion();
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
-    if (isInstalledVersion(resolvedVersion, installedVersion, silent)) {
+    if (resolvedVersion.equals(installedVersion)) {
+      IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
+      this.context.level(level).log("Version {} of tool {} is already installed", installedVersion,
+          getToolWithEdition());
       return false;
     }
     // we need to link the version or update the link.
@@ -153,12 +156,17 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     if (Files.isDirectory(toolPath)) {
       if (Files.exists(toolVersionFile)) {
-        this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion,
-            getToolWithEdition(this.tool, edition), toolPath);
-        return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
+        if (this.context.isForceMode()) {
+          fileAccess.delete(toolPath);
+        } else {
+          this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion,
+              getToolWithEdition(this.tool, edition), toolPath);
+          return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
+        }
+      } else {
+        this.context.warning("Deleting corrupted installation at {}", toolPath);
+        fileAccess.delete(toolPath);
       }
-      this.context.warning("Deleting corrupted installation at {}", toolPath);
-      fileAccess.delete(toolPath);
     }
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
     fileAccess.mkdirs(toolPath.getParent());
@@ -185,21 +193,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
     }
     return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion);
-  }
-
-  private boolean isInstalledVersion(VersionIdentifier expectedVersion, VersionIdentifier installedVersion,
-      boolean silent) {
-
-    if (expectedVersion.equals(installedVersion)) {
-      IdeLogLevel level = IdeLogLevel.INFO;
-      if (silent) {
-        level = IdeLogLevel.DEBUG;
-      }
-      this.context.level(level).log("Version {} of tool {} is already installed", installedVersion,
-          getToolWithEdition());
-      return true;
-    }
-    return false;
   }
 
   /**
