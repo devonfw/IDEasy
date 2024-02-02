@@ -97,7 +97,12 @@ public final class ProcessContextImpl implements ProcessContext {
   }
 
   @Override
-  public ProcessResult run(boolean capture) {
+  public ProcessResult run(boolean capture, boolean isBackgroundProcess) {
+
+    //TODO: Implement background process functionality
+    if (isBackgroundProcess){
+      throw new UnsupportedOperationException("Background processes are currently not supported!");
+    }
 
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");

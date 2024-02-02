@@ -82,7 +82,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   @Override
   public void run() {
 
-    runTool(null, this.arguments.asArray());
+    runTool(false,null, this.arguments.asArray());
   }
 
   /**
@@ -93,7 +93,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *        without touching and IDE installation and used to run.
    * @param args the commandline arguments to run the tool.
    */
-  public void runTool(VersionIdentifier toolVersion, String... args) {
+  public void runTool(boolean isBackgroundProcess, VersionIdentifier toolVersion, String... args) {
 
     Path binaryPath;
     Path toolPath = Paths.get(getBinaryName());
@@ -105,7 +105,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
         .addArgs(args);
-    pc.run();
+
+    pc.run(false, isBackgroundProcess);
   }
 
   /**

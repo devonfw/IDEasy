@@ -10,8 +10,6 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
-//TODO: How to start command as background Process?
-
 /**
  * {@link ToolCommandlet} for <a href="https://www.oracle.com/java/technologies/jdk-mission-control.html">JDK Mission Control</a>, An advanced set of tools for managing, monitoring, profiling, and troubleshooting Java applications.
  */
@@ -26,6 +24,13 @@ public class Jmc extends LocalToolCommandlet {
   public Jmc(IdeContext context) {
 
     super(context,"jmc",Set.of(Tag.JAVA, Tag.QA, Tag.ANALYSE, Tag.JVM));
+  }
+
+  @Override
+  public void run() {
+
+    //TODO: pass isBackgroundProcess Parameter as true when implemented
+    runTool(false,null, this.arguments.asArray());
   }
 
   @Override

@@ -133,7 +133,7 @@ public interface ProcessContext {
    */
   default int run() {
 
-    return run(false).getExitCode();
+    return run(false, false).getExitCode();
   }
 
   /**
@@ -144,8 +144,10 @@ public interface ProcessContext {
    * @param capture - {@code true} to capture standard {@link ProcessResult#getOut() out} and
    *        {@link ProcessResult#getErr() err} in the {@link ProcessResult}, {@code false} otherwise (to redirect out
    *        and err).
+   * @param isBackgroundProcess {@code true}, The process of the command will be run as background process {@code false} otherwise
+   * it will be run as foreground process.
    * @return the {@link ProcessResult}.
    */
-  ProcessResult run(boolean capture);
+  ProcessResult run(boolean capture, boolean isBackgroundProcess);
 
 }
