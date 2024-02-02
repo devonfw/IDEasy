@@ -49,6 +49,7 @@ public class GitUtils {
     this.processContext = this.context.newProcess().directory(this.targetRepository).executable("git")
         .withEnvVar("GIT_TERMINAL_PROMPT", "0");
     if (Files.isDirectory(this.targetRepository.resolve(".git"))) {
+      // checks for remotes
       ProcessResult result = this.processContext.addArg("remote").run(true);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
@@ -59,7 +60,7 @@ public class GitUtils {
       } else {
         this.processContext.errorHandling(ProcessErrorHandling.WARNING);
 
-        if (this.context.isOnline()) {
+        if (!this.context.isOffline()) {
           result = runGitPull();
           if (force) {
             runGitReset();
@@ -109,7 +110,7 @@ public class GitUtils {
   protected void runGitClone(String gitRepoUrl) {
 
     ProcessResult result;
-    if (this.context.isOnline()) {
+    if (!this.context.isOffline()) {
       this.context.getFileAccess().mkdirs(this.targetRepository);
       this.context.requireOnline("git clone of " + gitRepoUrl);
       this.processContext.addArg("clone");
@@ -126,12 +127,6 @@ public class GitUtils {
           "Could not clone " + gitRepoUrl + " to " + this.targetRepository + " because you are offline.");
     }
 
-  }
-
-  protected List<String> runGitGetRemotes() {
-
-    ProcessResult result = this.processContext.addArg("remote").run(true);
-    return result.getOut();
   }
 
   /**
