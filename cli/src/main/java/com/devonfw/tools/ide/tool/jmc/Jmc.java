@@ -29,7 +29,7 @@ public class Jmc extends LocalToolCommandlet {
   @Override
   public void run() {
 
-    //TODO: pass isBackgroundProcess Parameter as true when implemented
+    //TODO: pass isBackgroundProcess parameter as true when implemented
     runTool(false,null, this.arguments.asArray());
   }
 
