@@ -42,17 +42,12 @@ public class EditionGetCommandlet extends Commandlet {
     ToolCommandlet commandlet = this.tool.getValue();
     VersionIdentifier installedVersion = commandlet.getInstalledVersion();
     if (installedVersion == null) {
-      throw new CliException("Tool " + commandlet.getName() + " is not installed!", TOOL_NOT_INSTALLED);
+      this.context.info("The configured edition for tool {} is {}", commandlet.getName(), commandlet.getEdition());
+      this.context.info("To install that edition call the following command:");
+      this.context.info("ide install {}", commandlet.getName());
+      return;
     }
-
-    try {
-      String installedEdition = commandlet.getInstalledEdition();
-      this.context.info(installedEdition);
-    } catch (IllegalStateException e) {
-      String configuredEdition = this.context.getVariables().getToolEdition(getName());
-      this.context.info("The configured edition for tool {} is {}.", getName(), configuredEdition);
-
-    }
+    String installedEdition = commandlet.getInstalledEdition();
+    this.context.info(installedEdition);
   }
-
 }

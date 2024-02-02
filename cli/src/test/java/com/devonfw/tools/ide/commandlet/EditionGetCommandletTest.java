@@ -31,7 +31,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
     // assert
     List<String> logs = context.level(IdeLogLevel.INFO).getMessages();
-    assertThat(logs).contains("testEdition");
+    assertThat(logs).contains("az");
   }
 
   /**
@@ -43,27 +43,25 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
   private static void mockInstallTool(IdeTestContext context, String tool) {
 
     Path pathToInstallationOfDummyTool = context.getSoftwareRepositoryPath()
-        .resolve(context.getDefaultToolRepository().getId()).resolve(tool).resolve("testEdition/testVersion");
+        .resolve(context.getDefaultToolRepository().getId()).resolve(tool).resolve("az/testVersion");
     Path pathToLinkedSoftware = context.getSoftwarePath().resolve(tool);
     context.getFileAccess().symlink(pathToInstallationOfDummyTool, pathToLinkedSoftware);
   }
 
   /** Test of {@link VersionGetCommandlet} run, when Installed Version is null. */
   @Test
-  public void testVersionGetCommandletRunThrowsCliException() {
+  public void testVersionGetCommandletRunPrintConfiguredEdition() {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
-    IdeContext context = newContext("basic", path, false);
+    IdeTestContext context = newContext("basic", path, false);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString("java", context);
     // act
-    try {
-      editionGet.run();
-      failBecauseExceptionWasNotThrown(CliException.class);
-    } catch (CliException e) {
-      // assert
-      assertThat(e).hasMessageContaining("Tool java is not installed!");
-    }
+    editionGet.run();
+    // assert
+    assertLogMessage(context, IdeLogLevel.INFO, "The configured edition for tool java is java");
+    assertLogMessage(context, IdeLogLevel.INFO, "To install that edition call the following command:");
+    assertLogMessage(context, IdeLogLevel.INFO, "ide install java");
   }
 }

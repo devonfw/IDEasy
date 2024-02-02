@@ -352,8 +352,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     try {
       String edition = toolPath.toRealPath().getParent().getFileName().toString();
       if (!this.context.getUrls().getSortedEditions(getName()).contains(edition)) {
-        this.context.warning("The determined edition \"{}\" of tool {} is not among the editions provided by IDEasy",
-            edition, getName());
+        edition = getEdition();
       }
       return edition;
     } catch (IOException e) {
