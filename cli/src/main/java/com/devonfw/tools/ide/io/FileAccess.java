@@ -63,7 +63,7 @@ public interface FileAccess {
    * Creates a symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a Windows
    * junction, it will be replaced. In case of missing privileges, Windows Junctions may be used as fallback, which must
    * point to absolute paths. Therefore, the created link will be absolute instead of relative.
-   * 
+   *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
    * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
@@ -74,7 +74,7 @@ public interface FileAccess {
    * Creates a relative symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a
    * Windows junction, it will be replaced. In case of missing privileges, Windows Junctions may be used as fallback,
    * which must point to absolute paths. Therefore, the created link will be absolute instead of relative.
-   * 
+   *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
    */

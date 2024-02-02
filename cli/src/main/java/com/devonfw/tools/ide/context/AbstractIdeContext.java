@@ -5,8 +5,15 @@ import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
+import java.nio.file.attribute.FileTime;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -113,6 +120,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   private Locale locale;
 
   private UrlMetadata urlMetadata;
+
+  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);
 
   /**
    * The constructor.
@@ -488,7 +497,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        gitPullOrClone(this.urlsPath, "https://github.com/devonfw/ide-urls.git");
+        gitPullOrCloneIfNeeded(this.urlsPath, "https://github.com/devonfw/ide-urls.git");
       }
       this.urlMetadata = new UrlMetadata(this);
     }
@@ -654,6 +663,46 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
   }
 
+  /**
+   * Checks if the Git repository in the specified target folder needs an update by
+   * inspecting the modification time of a magic file.
+   *
+   * @param urlsPath The Path to the Urls repository.
+   * @param repoUrl The git remote URL of the Urls repository.
+   */
+
+  private void gitPullOrCloneIfNeeded(Path urlsPath, String repoUrl) {
+
+    Path gitDirectory = urlsPath.resolve(".git");
+
+    // Check if the .git directory exists
+    if (Files.isDirectory(gitDirectory)) {
+      Path magicFilePath = gitDirectory.resolve("HEAD");
+      long currentTime = System.currentTimeMillis();
+      // Get the modification time of the magic file
+      long fileMTime;
+      try {
+        fileMTime = Files.getLastModifiedTime(magicFilePath).toMillis();
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not read " + magicFilePath, e);
+      }
+
+      // Check if the file modification time is older than the delta threshold
+      if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || isForceMode()) {
+        gitPullOrClone(urlsPath, repoUrl);
+        try {
+          Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
+        } catch (IOException e) {
+          throw new IllegalStateException("Could not read or write in " + magicFilePath, e);
+        }
+      }
+    } else {
+      // If the .git directory does not exist, perform git clone
+      gitPullOrClone(urlsPath, repoUrl);
+    }
+  }
+
+
   @Override
   public IdeSubLogger level(IdeLogLevel level) {
 
@@ -815,7 +864,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (firstCandidate != null) {
         matches = apply(arguments.copy(), firstCandidate, collector);
       } else if (current.isCombinedShortOption()) {
-        collector.add(keyword, null, null);
+        collector.add(keyword, null, null, null);
       }
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
@@ -825,9 +874,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
     }
-    List<CompletionCandidate> candidates = collector.getCandidates();
-    Collections.sort(candidates);
-    return candidates;
+    return collector.getSortedCandidates();
   }
 
   /**
