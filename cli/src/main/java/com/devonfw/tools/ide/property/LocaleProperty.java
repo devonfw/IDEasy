@@ -53,11 +53,10 @@ public class LocaleProperty extends Property<Locale> {
   }
 
   @Override
-  protected boolean completeValue(String arg, IdeContext context, Commandlet commandlet,
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
       CompletionCandidateCollector collector) {
 
-    int count = collector.addAllMatches(arg, getAvailableLocales(), this, commandlet);
-    return count > 0;
+    collector.addAllMatches(arg, getAvailableLocales(), this, commandlet);
   }
 
   private static String[] getAvailableLocales() {
