@@ -46,8 +46,7 @@ public class GitUtils {
    */
   protected void runGitPullOrClone(boolean force, String gitRepoUrl) {
 
-    this.processContext = this.context.newProcess().directory(this.targetRepository).executable("git")
-        .withEnvVar("GIT_TERMINAL_PROMPT", "0");
+    initializeProcessContext();
     if (Files.isDirectory(this.targetRepository.resolve(".git"))) {
       // checks for remotes
       ProcessResult result = this.processContext.addArg("remote").run(true);
@@ -103,12 +102,24 @@ public class GitUtils {
   }
 
   /**
+   * Lazily initializes the {@link ProcessContext}.
+   */
+  private void initializeProcessContext() {
+
+    if (this.processContext == null) {
+      this.processContext = this.context.newProcess().directory(this.targetRepository).executable("git")
+          .withEnvVar("GIT_TERMINAL_PROMPT", "0");
+    }
+  }
+
+  /**
    * Runs a git clone. Throws a CliException if in offline mode.
    * 
    * @param gitRepoUrl String of repository URL.
    */
   protected void runGitClone(String gitRepoUrl) {
 
+    initializeProcessContext();
     ProcessResult result;
     if (!this.context.isOffline()) {
       this.context.getFileAccess().mkdirs(this.targetRepository);
@@ -136,6 +147,7 @@ public class GitUtils {
    */
   protected ProcessResult runGitPull() {
 
+    initializeProcessContext();
     ProcessResult result;
     // pull from remote
     result = this.processContext.addArg("--no-pager").addArg("pull").run(true);
@@ -153,6 +165,7 @@ public class GitUtils {
    */
   protected void runGitReset() {
 
+    initializeProcessContext();
     ProcessResult result;
     // check for changed files
     result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(true);
@@ -177,6 +190,7 @@ public class GitUtils {
    */
   protected ProcessResult runGitCleanup() {
 
+    initializeProcessContext();
     ProcessResult result;
     // check for untracked files
     result = this.processContext.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard")
