@@ -25,7 +25,7 @@ public class Jmc extends LocalToolCommandlet {
    */
   public Jmc(IdeContext context) {
 
-    super(context,"jmc",Set.of(Tag.JAVA)); //TODO ASK IF CORRECT Tag is used
+    super(context,"jmc",Set.of(Tag.JAVA, Tag.QA, Tag.ANALYSE)); //TODO ASK IF CORRECT Tag is used
   }
 
   @Override
