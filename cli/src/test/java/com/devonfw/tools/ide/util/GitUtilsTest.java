@@ -30,6 +30,7 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     outs.add("test-remote");
     Path projectPath = Paths.get("target/test-projects").resolve(projectName).resolve(projectPathName);
     IdeContext context = newGitUtilsContext(projectName, projectPathName, true, errors, outs, 0, true);
+    context.info("testRunGitCloneInOfflineModeThrowsException");
     GitUtils gitUtils = new GitUtils(context, projectPath, "origin", "master");
     try {
       // act
@@ -57,6 +58,7 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     outs.add("test-remote");
     Path projectPath = Paths.get("target/test-projects").resolve(projectName).resolve(projectPathName);
     IdeContext context = newGitUtilsContext(projectName, projectPathName, true, errors, outs, 0, false);
+    context.info("testRunGitClone");
     GitUtils gitUtils = new GitUtils(context, projectPath, "origin", "master");
     // act
     gitUtils.runGitPullOrClone(true, gitRepoUrl);
@@ -80,6 +82,7 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     outs.add("test-remote");
     Path projectPath = Paths.get("target/test-projects").resolve(projectName).resolve(projectPathName);
     IdeContext context = newGitUtilsContext(projectName, projectPathName, true, errors, outs, 0, false);
+    context.info("testRunGitPullWithoutForce");
     GitUtils gitUtils = new GitUtils(context, projectPath, "origin", "master");
     Date currentDate = new Date();
     // act
@@ -106,6 +109,7 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     outs.add("test-remote");
     Path projectPath = Paths.get("target/test-projects").resolve(projectName).resolve(projectPathName);
     IdeContext context = newGitUtilsContext(projectName, projectPathName, true, errors, outs, 0, true);
+    context.info("testRunGitPullWithForce");
     GitUtils gitUtils = new GitUtils(context, projectPath, "origin", "master");
     // act
     FileAccess fileAccess = new FileAccessImpl(context);
@@ -128,6 +132,7 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     outs.add("test-remote");
     Path projectPath = Paths.get("target/test-projects").resolve(projectName).resolve(projectPathName);
     IdeContext context = newGitUtilsContext(projectName, projectPathName, true, errors, outs, 0, false);
+    context.info("testRunGitPullWithForceStartsCleanup");
     GitUtils gitUtils = new GitUtils(context, projectPath, "origin", "master");
     // act
     FileAccess fileAccess = new FileAccessImpl(context);
