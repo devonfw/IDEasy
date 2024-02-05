@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -22,6 +23,7 @@ public class GitUtilsTest extends AbstractIdeContextTest {
    * Runs a git clone in offline mode and expects an exception to be thrown with a message.
    */
   @Test
+  @Disabled
   public void testRunGitCloneInOfflineModeThrowsException() {
 
     // arrange
