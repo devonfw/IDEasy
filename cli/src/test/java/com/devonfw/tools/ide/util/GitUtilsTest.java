@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.util;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -32,15 +34,13 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     IdeContext context = newGitUtilsContext(projectName, projectPathName, true, errors, outs, 0, true);
     System.out.println("testRunGitCloneInOfflineModeThrowsException");
     GitUtils gitUtils = new GitUtils(context, projectPath, "origin", "master");
-    try {
-      // act
+
+    CliException e1 = assertThrows(CliException.class, () -> {
       gitUtils.runGitPullOrClone(true, "https://github.com/test");
-    } catch (Exception e) {
-      // assert
-      assertThat(e).isInstanceOf(CliException.class);
-      assertThat(e).hasMessageContaining("https://github.com/test").hasMessageContaining(projectPath.toString())
-          .hasMessageContaining("offline");
-    }
+    });
+    assertThat(e1).hasMessageContaining("https://github.com/test").hasMessageContaining(projectPath.toString())
+        .hasMessageContaining("offline");
+
   }
 
   /**
