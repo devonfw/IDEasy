@@ -38,13 +38,13 @@ public class Jmc extends LocalToolCommandlet {
 
     super.postInstall();
 
-    // if(context.getSystemInfo().isWindows() || context.getSystemInfo().isLinux()) {
-    Path toolPath = getToolPath();
-    Path oldBinaryPath = toolPath.resolve("JDK Mission Control");
-    FileAccess fileAccess = context.getFileAccess();
-    moveFilesAndDirs(toolPath.toFile(), oldBinaryPath.toFile());
-    fileAccess.delete(oldBinaryPath);
-    // }
+    if (context.getSystemInfo().isWindows() || context.getSystemInfo().isLinux()) {
+      Path toolPath = getToolPath();
+      Path oldBinaryPath = toolPath.resolve("JDK Mission Control");
+      FileAccess fileAccess = context.getFileAccess();
+      moveFilesAndDirs(toolPath.toFile(), oldBinaryPath.toFile());
+      fileAccess.delete(oldBinaryPath);
+    }
 
   }
 

@@ -23,7 +23,6 @@ public class JmcTest extends AbstractIdeContextTest {
 
   private static WireMockServer server;
 
-  // TODO USE TEMPDIR eventually instead of adding ressources to repo??? ASK
   private static Path resourcePath = Paths.get("src/test/resources");
 
   @BeforeAll
@@ -43,9 +42,10 @@ public class JmcTest extends AbstractIdeContextTest {
 
     String windowsFilename = "org.openjdk.jmc-8.3.0-win32.win32.x86_64.zip";
     String linuxFilename = "org.openjdk.jmc-8.3.0-linux.gtk.x86_64.tar.gz";
+    String macOSFilename = "org.openjdk.jmc-8.3.0-macosx.cocoa.x86_64.tar.gz";
 
-    Path windowsFilePath = resourcePath.resolve("__files").resolve(windowsFilename); // TODO USE TEMPDIR also for mock
-                                                                                     // files???
+    Path windowsFilePath = resourcePath.resolve("__files").resolve(windowsFilename);
+
     String windowsLength = String.valueOf(Files.size(windowsFilePath));
     server.stubFor(
         get(urlPathEqualTo("/installTest/windows")).willReturn(aResponse().withHeader("Content-Type", "application/zip")
@@ -57,17 +57,16 @@ public class JmcTest extends AbstractIdeContextTest {
         get(urlPathEqualTo("/installTest/linux")).willReturn(aResponse().withHeader("Content-Type", "application/gz")
             .withHeader("Content-Length", linuxLength).withStatus(200).withBodyFile(linuxFilename)));
 
-    // TODO MAKE MAC CORRECT
-    /*
-     * server.stubFor( get(urlPathEqualTo("/installTest/macOS")).willReturn(aResponse().withHeader("Content-Type",
-     * "application/gz") .withHeader("Content-Length",
-     * linuxLength).withStatus(200).withBodyFile("jmc-8.3.0_linux-x64.tar.gz")));
-     */
+    Path macOSFilePath = resourcePath.resolve("__files").resolve(macOSFilename);
+    String maxOSLength = String.valueOf(Files.size(macOSFilePath));
+    server.stubFor(
+        get(urlPathEqualTo("/installTest/macOS")).willReturn(aResponse().withHeader("Content-Type", "application/gz")
+            .withHeader("Content-Length", maxOSLength).withStatus(200).withBodyFile(macOSFilename)));
 
   }
 
   @Test
-  public void jmcPostInstallShouldMoveFilesToParentDir() throws IOException {
+  public void jmcPostInstallShouldMoveFilesIfRequired() throws IOException {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
@@ -81,15 +80,23 @@ public class JmcTest extends AbstractIdeContextTest {
     // assert
     assertThat(context.getSoftwarePath().resolve("jmc")).exists();
     assertThat(context.getSoftwarePath().resolve("jmc/InstallTest.txt")).hasContent("This is a test file.");
-    assertThat(context.getSoftwarePath().resolve("jmc/HelloWorld.txt")).hasContent("Hello World!");
 
     if (context.getSystemInfo().isWindows()) {
       assertThat(context.getSoftwarePath().resolve("jmc/jmc.cmd")).exists();
     } else if (context.getSystemInfo().isLinux()) {
       assertThat(context.getSoftwarePath().resolve("jmc/jmc")).exists();
     }
-    // TODO MAC || context.getSystemInfo().isMac()
-    assertThat(context.getSoftwarePath().resolve("JDK Mission Control")).doesNotExist();
+
+    if (context.getSystemInfo().isWindows() || context.getSystemInfo().isLinux()) {
+      assertThat(context.getSoftwarePath().resolve("jmc/HelloWorld.txt")).hasContent("Hello World!");
+      assertThat(context.getSoftwarePath().resolve("jmc/JDK Mission Control")).doesNotExist();
+    }
+
+    if (context.getSystemInfo().isMac()) {
+      assertThat(context.getSoftwarePath().resolve("jmc/JDK Mission Control.app")).exists();
+      assertThat(context.getSoftwarePath().resolve("jmc/JDK Mission Control.app/Contents")).exists();
+    }
+
   }
 
 }
