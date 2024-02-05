@@ -11,26 +11,26 @@ import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
- * {@link ToolCommandlet} for <a href="https://www.oracle.com/java/technologies/jdk-mission-control.html">JDK Mission Control</a>, An advanced set of tools for managing, monitoring, profiling, and troubleshooting Java applications.
+ * {@link ToolCommandlet} for <a href="https://www.oracle.com/java/technologies/jdk-mission-control.html">JDK Mission
+ * Control</a>, An advanced set of tools for managing, monitoring, profiling, and troubleshooting Java applications.
  */
 public class Jmc extends LocalToolCommandlet {
 
   /**
    * The constructor.
    *
-   * @param context the {@link IdeContext}.
-   * method.
+   * @param context the {@link IdeContext}. method.
    */
   public Jmc(IdeContext context) {
 
-    super(context,"jmc",Set.of(Tag.JAVA, Tag.QA, Tag.ANALYSE, Tag.JVM));
+    super(context, "jmc", Set.of(Tag.JAVA, Tag.QA, Tag.ANALYSE, Tag.JVM));
   }
 
   @Override
   public void run() {
 
-    //TODO: pass isBackgroundProcess parameter as true when implemented
-    runTool(false,null, this.arguments.asArray());
+    // TODO: pass isBackgroundProcess parameter as true when implemented
+    runTool(false, null, this.arguments.asArray());
   }
 
   @Override
@@ -38,19 +38,21 @@ public class Jmc extends LocalToolCommandlet {
 
     super.postInstall();
 
+    // if(context.getSystemInfo().isWindows() || context.getSystemInfo().isLinux()) {
     Path toolPath = getToolPath();
     Path oldBinaryPath = toolPath.resolve("JDK Mission Control");
     FileAccess fileAccess = context.getFileAccess();
-
-    moveFilesAndDirs(toolPath.toFile(),oldBinaryPath.toFile());
+    moveFilesAndDirs(toolPath.toFile(), oldBinaryPath.toFile());
     fileAccess.delete(oldBinaryPath);
+    // }
+
   }
 
   private void moveFilesAndDirs(File toolPathDir, File oldBinaryDir) {
 
     FileAccess fileAccess = context.getFileAccess();
     for (File fileOrDir : oldBinaryDir.listFiles()) {
-      fileAccess.move(fileOrDir.toPath(),new File(toolPathDir, fileOrDir.getName()).toPath());
+      fileAccess.move(fileOrDir.toPath(), new File(toolPathDir, fileOrDir.getName()).toPath());
     }
   }
 
