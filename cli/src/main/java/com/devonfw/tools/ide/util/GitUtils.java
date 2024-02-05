@@ -1,10 +1,11 @@
-package com.devonfw.tools.ide.context;
+package com.devonfw.tools.ide.util;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -44,7 +45,7 @@ public class GitUtils {
    * @param force boolean true enforces a git hard reset and cleanup of added files.
    * @param gitRepoUrl String of repository URL.
    */
-  protected void runGitPullOrClone(boolean force, String gitRepoUrl) {
+  public void runGitPullOrClone(boolean force, String gitRepoUrl) {
 
     initializeProcessContext();
     if (Files.isDirectory(this.targetRepository.resolve(".git"))) {

@@ -47,6 +47,7 @@ import com.devonfw.tools.ide.repo.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
+import com.devonfw.tools.ide.util.GitUtils;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
