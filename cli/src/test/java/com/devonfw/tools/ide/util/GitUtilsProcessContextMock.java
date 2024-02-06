@@ -100,6 +100,7 @@ public class GitUtilsProcessContextMock implements ProcessContext {
         throw new RuntimeException(e);
       }
     }
+    // changes file back to initial state (uses reference file in .git folder)
     if (this.arguments.contains("reset")) {
 
     }

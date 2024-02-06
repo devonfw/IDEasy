@@ -71,25 +71,18 @@ public abstract class AbstractIdeContextTest extends Assertions {
   }
 
   /**
-   * @param projectName the (folder)name of the test project in {@link #PATH_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
-   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
-   *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
-   *        in that project.
    * @param errors list of error messages.
    * @param outs list of out messages.
    * @param exitCode the exit code.
    * @param offlineMode boolean if it should be run in offline mode.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static GitUtilsTestContext newGitUtilsContext(String projectName, String projectPath,
-      boolean copyForMutation, List<String> errors, List<String> outs, int exitCode, boolean offlineMode) {
+  protected static GitUtilsTestContext newGitUtilsContext(Path projectPath, List<String> errors, List<String> outs,
+      int exitCode, boolean offlineMode) {
 
-    Path sourceDir = PATH_PROJECTS.resolve(projectName);
-    Path userDir = sourceDir;
     GitUtilsTestContext context;
-    userDir = setupUserDirectory(projectName, projectPath, copyForMutation, sourceDir, userDir);
-    context = new GitUtilsTestContext(userDir);
+    context = new GitUtilsTestContext(projectPath);
     context.setErrors(errors);
     context.setOuts(outs);
     context.setExitCode(exitCode);

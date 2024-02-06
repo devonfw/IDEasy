@@ -3,13 +3,12 @@ package com.devonfw.tools.ide.util;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -17,30 +16,29 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 
+/**
+ * Test of {@link GitUtils}.
+ */
 public class GitUtilsTest extends AbstractIdeContextTest {
 
   /**
    * Runs a git clone in offline mode and expects an exception to be thrown with a message.
    */
   @Test
-  @Disabled
-  public void testRunGitCloneInOfflineModeThrowsException() {
+  public void testRunGitCloneInOfflineModeThrowsException(@TempDir Path tempDir) {
 
     // arrange
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
-    String projectName = "gitutils";
-    String projectPathName = "urls";
     outs.add("test-remote");
-    Path projectPath = Paths.get("target/test-projects").resolve(projectName).resolve(projectPathName);
-    IdeContext context = newGitUtilsContext(projectName, projectPathName, true, errors, outs, 0, true);
+    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
     System.out.println("testRunGitCloneInOfflineModeThrowsException");
-    GitUtils gitUtils = new GitUtils(context, projectPath, "origin", "master");
+    GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
 
     CliException e1 = assertThrows(CliException.class, () -> {
       gitUtils.runGitPullOrClone(true, "https://github.com/test");
     });
-    assertThat(e1).hasMessageContaining("https://github.com/test").hasMessageContaining(projectPath.toString())
+    assertThat(e1).hasMessageContaining("https://github.com/test").hasMessageContaining(tempDir.toString())
         .hasMessageContaining("offline");
 
   }
@@ -49,73 +47,63 @@ public class GitUtilsTest extends AbstractIdeContextTest {
    * Runs a simulated git clone and checks if a new file with the correct repository URL was created.
    */
   @Test
-  public void testRunGitClone() {
+  public void testRunGitClone(@TempDir Path tempDir) {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
-    String projectName = "gitutils";
-    String projectPathName = "urls";
     outs.add("test-remote");
-    Path projectPath = Paths.get("target/test-projects").resolve(projectName).resolve(projectPathName);
-    IdeContext context = newGitUtilsContext(projectName, projectPathName, true, errors, outs, 0, false);
+    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
     System.out.println("testRunGitClone");
-    GitUtils gitUtils = new GitUtils(context, projectPath, "origin", "master");
+    GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     // act
     gitUtils.runGitPullOrClone(true, gitRepoUrl);
     // assert
-    assertThat(projectPath.resolve(".git").resolve("status").resolve("url")).hasContent(gitRepoUrl);
+    assertThat(tempDir.resolve(".git").resolve("status").resolve("url")).hasContent(gitRepoUrl);
   }
 
   /**
    * Runs a simulated git pull without force mode, checks if a new file with the current date was created.
    */
   @Test
-  public void testRunGitPullWithoutForce() {
+  public void testRunGitPullWithoutForce(@TempDir Path tempDir) {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
-
-    String projectName = "gitutils";
-    String projectPathName = "urls";
     outs.add("test-remote");
-    Path projectPath = Paths.get("target/test-projects").resolve(projectName).resolve(projectPathName);
-    IdeContext context = newGitUtilsContext(projectName, projectPathName, true, errors, outs, 0, false);
+    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
     System.out.println("testRunGitPullWithoutForce");
-    GitUtils gitUtils = new GitUtils(context, projectPath, "origin", "master");
+    GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     Date currentDate = new Date();
     // act
     FileAccess fileAccess = new FileAccessImpl(context);
-    Path gitFolderPath = projectPath.resolve(".git");
+    Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
     gitUtils.runGitPullOrClone(false, gitRepoUrl);
     // assert
-    assertThat(projectPath.resolve(".git").resolve("status").resolve("update")).hasContent(currentDate.toString());
+    assertThat(tempDir.resolve(".git").resolve("status").resolve("update")).hasContent(currentDate.toString());
   }
 
   /**
    * Runs a git pull with force mode, creates temporary files to simulate a proper cleanup.
    */
   @Test
-  public void testRunGitPullWithForce() {
+  public void testRunGitPullWithForce(@TempDir Path tempDir) {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
-    String projectName = "gitutils";
-    String projectPathName = "urls";
     outs.add("test-remote");
-    Path projectPath = Paths.get("target/test-projects").resolve(projectName).resolve(projectPathName);
-    IdeContext context = newGitUtilsContext(projectName, projectPathName, true, errors, outs, 0, true);
+    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
     System.out.println("testRunGitPullWithForce");
-    GitUtils gitUtils = new GitUtils(context, projectPath, "origin", "master");
+    GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     // act
     FileAccess fileAccess = new FileAccessImpl(context);
-    Path gitFolderPath = projectPath.resolve(".git");
+    Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
 
     // assert
@@ -123,26 +111,23 @@ public class GitUtilsTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testRunGitPullWithForceStartsCleanup() {
+  public void testRunGitPullWithForceStartsCleanup(@TempDir Path tempDir) {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
-    String projectName = "gitutils";
-    String projectPathName = "urls";
     outs.add("test-remote");
-    Path projectPath = Paths.get("target/test-projects").resolve(projectName).resolve(projectPathName);
-    IdeContext context = newGitUtilsContext(projectName, projectPathName, true, errors, outs, 0, false);
+    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
     System.out.println("testRunGitPullWithForceStartsCleanup");
-    GitUtils gitUtils = new GitUtils(context, projectPath, "origin", "master");
+    GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     // act
     FileAccess fileAccess = new FileAccessImpl(context);
-    Path gitFolderPath = projectPath.resolve(".git");
+    Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
-    fileAccess.mkdirs(projectPath.resolve("new-folder"));
+    fileAccess.mkdirs(tempDir.resolve("new-folder"));
     // assert
     gitUtils.runGitPullOrClone(true, gitRepoUrl);
-    assertThat(projectPath.resolve("new-folder")).doesNotExist();
+    assertThat(tempDir.resolve("new-folder")).doesNotExist();
   }
 }
