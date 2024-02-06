@@ -1,6 +1,10 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
@@ -15,6 +19,7 @@ import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.node.Node;
+import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
@@ -58,6 +63,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Helm(context));
     add(new Java(context));
     add(new Node(context));
+    add(new Npm(context));
     add(new Mvn(context));
     add(new Gradle(context));
     add(new Eclipse(context));
