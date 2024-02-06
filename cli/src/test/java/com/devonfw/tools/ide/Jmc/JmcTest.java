@@ -19,6 +19,9 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
+/**
+ * Integration test of {@link com.devonfw.tools.ide.tool.jmc.Jmc}.
+ */
 public class JmcTest extends AbstractIdeContextTest {
 
   private static WireMockServer server;

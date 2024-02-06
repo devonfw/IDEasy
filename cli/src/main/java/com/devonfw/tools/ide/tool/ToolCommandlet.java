@@ -82,12 +82,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   @Override
   public void run() {
 
-    runTool(false,null, this.arguments.asArray());
+    runTool(false, null, this.arguments.asArray());
   }
 
   /**
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
+   * @param isBackgroundProcess {@code true}, the process of the command will be run as background process,
+   *        {@code false} otherwise it will be run as foreground process.
    * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
    *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
    *        without touching and IDE installation and used to run.
