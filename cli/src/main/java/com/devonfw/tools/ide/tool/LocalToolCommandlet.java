@@ -73,15 +73,15 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   @Override
   protected boolean doInstall(boolean silent) {
 
-    VersionIdentifier configuredVersion = getConfiguredVersion();
-    // install configured version of our tool in the software repository if not already installed
-    ToolInstallation installation = installInRepo(configuredVersion);
-
     if (Files.exists(getDependencyJsonPath())) {
-      installDependency();
+      installDependencies();
     } else {
       this.context.trace("No Dependencies file found");
     }
+
+    VersionIdentifier configuredVersion = getConfiguredVersion();
+    // install configured version of our tool in the software repository if not already installed
+    ToolInstallation installation = installInRepo(configuredVersion);
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier installedVersion = getInstalledVersion();
@@ -200,23 +200,22 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * 
    * @return the {@link Path} of the dependencies file for the tool
    */
-  private Path getDependencyJsonPath() {
+  public Path getDependencyJsonPath() {
 
     Path urlsPath = this.context.getUrlsPath();
     Path toolPath = urlsPath.resolve(getName()).resolve(getEdition());
     return toolPath.resolve(DEPENDENCY_FILENAME);
   }
 
-  private void installDependency() {
+  private void installDependencies() {
 
     List<DependencyInfo> dependencies = readJson();
 
     for (DependencyInfo dependencyInfo : dependencies) {
-      VersionRange dependencyVersionRangeFound = VersionRange.of(dependencyInfo.getVersionRange());
-      String dependencyName = dependencyInfo.getDependency();
+      VersionRange dependencyVersionRangeFound = dependencyInfo.getVersionRange();
+      String dependencyName = dependencyInfo.getTool();
       ToolCommandlet dependencyTool = this.context.getCommandletManager().getToolCommandlet(dependencyName);
-      VersionIdentifier dependencyVersionToInstall = findDependencyVersionToInstall(dependencyVersionRangeFound,
-          dependencyName);
+      VersionIdentifier dependencyVersionToInstall = findDependencyVersionToInstall(dependencyInfo);
       if (dependencyVersionToInstall == null) {
         continue;
       }
@@ -225,15 +224,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           .resolve(dependencyName).resolve(dependencyTool.getEdition());
 
       if (versionExistsInRepository(dependencyRepository, dependencyVersionRangeFound)) {
-        this.context.info("Necessary version of the dependency {} is already installed in repository",
-            dependencyName);
+        this.context.info("Necessary version of the dependency {} is already installed in repository", dependencyName);
       } else {
         this.context.info("The version {} of the dependency {} is being installed", dependencyVersionToInstall,
             dependencyName);
         LocalToolCommandlet dependencyLocal = (LocalToolCommandlet) dependencyTool;
         dependencyLocal.installInRepo(dependencyVersionToInstall);
-        this.context.info("The version {} of the dependency {} was successfully installed",
-            dependencyVersionToInstall, dependencyName);
+        this.context.info("The version {} of the dependency {} was successfully installed", dependencyVersionToInstall,
+            dependencyName);
       }
     }
   }
@@ -253,21 +251,19 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   /**
    * Method to search the List of versions available in the ide and find the right version to install
    *
-   * @param dependencyVersionRangeFound the {@link VersionRange} of the dependency that was found that needs to be
-   *        installed
-   * @param dependency the {@link String} of the dependency tool
+   * @param dependencyFound the {@link DependencyInfo} of the dependency that was found that needs to be installed
    *
    * @return {@link VersionIdentifier} of the dependency that is to be installed
    */
-  private VersionIdentifier findDependencyVersionToInstall(VersionRange dependencyVersionRangeFound,
-      String dependency) {
+  private VersionIdentifier findDependencyVersionToInstall(DependencyInfo dependencyFound) {
 
-    String dependencyEdition = this.context.getVariables().getToolEdition(dependency);
+    String dependencyEdition = this.context.getVariables().getToolEdition(dependencyFound.getTool());
 
-    List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(dependency, dependencyEdition);
+    List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(dependencyFound.getTool(),
+        dependencyEdition);
 
     for (VersionIdentifier vi : versions) {
-      if (dependencyVersionRangeFound.contains(vi)) {
+      if (dependencyFound.getVersionRange().contains(vi)) {
         return vi;
       }
     }
@@ -299,18 +295,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return false;
   }
 
-  private List<DependencyInfo> findDependenciesFromJson(Map<String, List<DependencyInfo>> dependencies,
+  private List<DependencyInfo> findDependenciesFromJson(Map<VersionRange, List<DependencyInfo>> dependencies,
       VersionIdentifier toolVersionToCheck) {
 
-    for (Map.Entry<String, List<DependencyInfo>> map : dependencies.entrySet()) {
+    for (Map.Entry<VersionRange, List<DependencyInfo>> map : dependencies.entrySet()) {
 
-      String versionKey = map.getKey();
-      VersionIdentifier foundToolVersion = VersionIdentifier.of(versionKey);
+      VersionRange foundToolVersionRange = map.getKey();
 
-      // if a newer (greater) version is available, that is not already in the Json file
-      if (toolVersionToCheck.getStart().compareVersion(foundToolVersion.getStart()).isGreater()) {
-        return null;
-      } else if (foundToolVersion.matches(toolVersionToCheck)) {
+      if (foundToolVersionRange.contains(toolVersionToCheck)) {
         return map.getValue();
       }
     }
