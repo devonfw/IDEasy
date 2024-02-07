@@ -47,24 +47,24 @@ public class JmcTest extends AbstractIdeContextTest {
     String linuxFilename = "org.openjdk.jmc-8.3.0-linux.gtk.x86_64.tar.gz";
     String macOSFilename = "org.openjdk.jmc-8.3.0-macosx.cocoa.x86_64.tar.gz";
 
-    Path windowsFilePath = resourcePath.resolve("__files").resolve(windowsFilename);
+    Path windowsFilePathJmc = resourcePath.resolve("__files").resolve(windowsFilename);
 
-    String windowsLength = String.valueOf(Files.size(windowsFilePath));
+    String windowsLengthJmc = String.valueOf(Files.size(windowsFilePathJmc));
     server.stubFor(
-        get(urlPathEqualTo("/installTest/windows")).willReturn(aResponse().withHeader("Content-Type", "application/zip")
-            .withHeader("Content-Length", windowsLength).withStatus(200).withBodyFile(windowsFilename)));
+        get(urlPathEqualTo("/jmcTest/windows")).willReturn(aResponse().withHeader("Content-Type", "application/zip")
+            .withHeader("Content-Length", windowsLengthJmc).withStatus(200).withBodyFile(windowsFilename)));
 
-    Path linuxFilePath = resourcePath.resolve("__files").resolve(linuxFilename);
-    String linuxLength = String.valueOf(Files.size(linuxFilePath));
+    Path linuxFilePathJmc = resourcePath.resolve("__files").resolve(linuxFilename);
+    String linuxLengthJmc = String.valueOf(Files.size(linuxFilePathJmc));
     server.stubFor(
-        get(urlPathEqualTo("/installTest/linux")).willReturn(aResponse().withHeader("Content-Type", "application/gz")
-            .withHeader("Content-Length", linuxLength).withStatus(200).withBodyFile(linuxFilename)));
+        get(urlPathEqualTo("/jmcTest/linux")).willReturn(aResponse().withHeader("Content-Type", "application/gz")
+            .withHeader("Content-Length", linuxLengthJmc).withStatus(200).withBodyFile(linuxFilename)));
 
-    Path macOSFilePath = resourcePath.resolve("__files").resolve(macOSFilename);
-    String maxOSLength = String.valueOf(Files.size(macOSFilePath));
+    Path macOSFilePathJmc = resourcePath.resolve("__files").resolve(macOSFilename);
+    String maxOSLengthJmc = String.valueOf(Files.size(macOSFilePathJmc));
     server.stubFor(
-        get(urlPathEqualTo("/installTest/macOS")).willReturn(aResponse().withHeader("Content-Type", "application/gz")
-            .withHeader("Content-Length", maxOSLength).withStatus(200).withBodyFile(macOSFilename)));
+        get(urlPathEqualTo("/jmcTest/macOS")).willReturn(aResponse().withHeader("Content-Type", "application/gz")
+            .withHeader("Content-Length", maxOSLengthJmc).withStatus(200).withBodyFile(macOSFilename)));
 
   }
 
