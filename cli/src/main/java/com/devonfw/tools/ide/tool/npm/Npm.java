@@ -35,7 +35,17 @@ public class Npm extends LocalToolCommandlet {
     super(context, "npm", Set.of(Tag.JAVA_SCRIPT, Tag.RUNTIME));
   }
 
-  public void firstSteps() throws IOException {
+  @Override
+  public void run() {
+
+    try {
+      runNpm();
+    } catch (IOException e) {
+      System.out.println(e.getMessage());
+    }
+  }
+
+  public void runNpm() throws IOException {
 
     Scanner scanner = new Scanner(System.in);
     String userInput = scanner.nextLine();
@@ -44,68 +54,98 @@ public class Npm extends LocalToolCommandlet {
     String npmBuildOpts = "buildOpts";
     String npmReleaseOpts = "releaseOpts";
     String firstElement = userInputArray[0];
-    String secondElement = userInputArray[1];
-    String thirdElement = userInputArray[2];
 
-    if (firstElement.equals("h") || firstElement.equals("help")) {
-      System.out.println("Setup or run npm.");
-      System.out.println();
-      System.out.println("Arguments:");
-      System.out.println("                                run default build");
-      System.out.println(" setup                          setup NPM (install and verify)");
-      System.out.println(" get-version                    get the current project version");
-      System.out.println(
-          " set-version «nv» [«cv»]        set the current project version to new version «nv» (assuming current version is «cv»)");
-      System.out.println(
-          " check-top-level-project        check if you are running on a top-level project or fail if in a module or no NPM project at all");
-      System.out.println(" release                        start a clean deploy release build");
-      System.out.println(" «args»                         run NPM with the given arguments");
-      return;
+    if (userInputArray.length > 0) {
+      if (firstElement.equals("h") || firstElement.equals("help")) {
+        System.out.println("Setup or run npm.");
+        System.out.println();
+        System.out.println("Arguments:");
+        System.out.println("                                run default build");
+        System.out.println(" setup                          setup NPM (install and verify)");
+        System.out.println(" get-version                    get the current project version");
+        System.out.println(
+            " set-version «nv» [«cv»]        set the current project version to new version «nv» (assuming current version is «cv»)");
+        System.out.println(
+            " check-top-level-project        check if you are running on a top-level project or fail if in a module or no NPM project at all");
+        System.out.println(" release                        start a clean deploy release build");
+        System.out.println(" «args»                         run NPM with the given arguments");
+        return;
+      }
     }
 
-    if (firstElement.length() == 0 || firstElement.equals("build")) {
-      if (npmBuildOpts.length() != 0) {
-        runTool(getConfiguredVersion()); // (NPM_BUILD_OPTS);
-      } else {
-        run();
-      }
+    if (userInputArray.length >= 2) {
+      String secondElement = userInputArray[1];
+      if (firstElement.length() == 0 || firstElement.equals("build")) {
+        if (npmBuildOpts.length() != 0) {
+          // runTool(getConfiguredVersion()); // (NPM_BUILD_OPTS);
+        } else {
+          // run();
+        }
 
-      if (secondElement.length() != 0) {
-        runTool(getConfiguredVersion());// (restliche Argumente)
+        if (secondElement.length() != 0) {
+          // runTool(getConfiguredVersion());// (restliche Argumente)
+        }
       } else if (secondElement.equals("setup")) {
         // doSetup(thirdElement);
       } else if (secondElement.equals("get-version")) {
-        getProjectVersion();
-      } else if (secondElement.equals("set-version") && (thirdElement.length() != 0)) {
-        setProjectVersion("restliche Argumente");
+        this.context.info("Project version: {}", getProjectVersion());
+      } else if (secondElement.equals("set-version")
+          && (userInputArray.length >= 3 ? userInputArray[2].length() != 0 : false)) {
+        setProjectVersion(userInputArray[2]);
+        this.context.info("Project version is set to {}", userInputArray[2]);
       } else if (secondElement.equals("check-top-level-project")) {
         checkTopLevelProject();// restliche Argumente als Parameter
       } else if (secondElement.equals("release")) {
-        runTool(getConfiguredVersion());// (npmReleaseOpts != null ? npmReleaseOpts : "release")
+        // runTool(getConfiguredVersion());// (npmReleaseOpts != null ? npmReleaseOpts : "release")
       } else {
-        runTool(getConfiguredVersion()); // (alle übergegebene Argumente)
+        // runTool(getConfiguredVersion()); // (alle übergegebene Argumente)
       }
     }
   }
 
   public void doSetup() {
 
-    String TOOL_PATH = "C:/Projects/devonfw/software/node";
-    String softwareDir = TOOL_PATH + "node_modules/npm/bin";
+    String TOOL_PATH = this.context.getSoftwarePath().toString() + "/node";
+    String softwareDir = TOOL_PATH + "/node_modules/npm/bin";
+    // boolean successfullInstallation = doInstall();
 
-    boolean success = true;
+    if (true) {
+      if (createFileWithPath(TOOL_PATH + "/npm").isFile()) {
+        deleteFile(TOOL_PATH + "/npm");
+      }
 
-    if (success) {
-      deleteFile(TOOL_PATH + "/npm");
-      deleteFile(TOOL_PATH + "/npm.cmd");
-      deleteFile(TOOL_PATH + "/npx");
-      deleteFile(TOOL_PATH + "/npx.cmd");
+      if (createFileWithPath(TOOL_PATH + "/npm.cmd").isFile()) {
+        deleteFile(TOOL_PATH + "/npm.cmd");
+      }
+
+      if (createFileWithPath(TOOL_PATH + "/npx").isFile()) {
+        deleteFile(TOOL_PATH + "/npx");
+      }
+
+      if (createFileWithPath(TOOL_PATH + "/npx.cmd").isFile()) {
+        deleteFile(TOOL_PATH + "/npx.cmd");
+      }
 
       copyFile(softwareDir + "/npm", TOOL_PATH);
       copyFile(softwareDir + "/npm.cmd", TOOL_PATH);
       copyFile(softwareDir + "/npx", TOOL_PATH);
       copyFile(softwareDir + "/npx.cmd", TOOL_PATH);
     }
+  }
+
+  private boolean doInstall(String software, String version, String argument1, String argument2, String softwareDir) {
+
+    System.out.println("Installing " + software + " version " + version);
+    System.out.println("Argument 1: " + argument1);
+    System.out.println("Argument 2: " + argument2);
+    System.out.println("Software directory: " + softwareDir);
+
+    return true;
+  }
+
+  private File createFileWithPath(String path) {
+
+    return new File(path);
   }
 
   private static void deleteFile(String filePath) {
@@ -128,9 +168,14 @@ public class Npm extends LocalToolCommandlet {
     }
   }
 
+  private File getJsonFile() {
+
+    return new File(this.context.getSoftwarePath().toString() + "/node/node_modules/npm/package.json");
+  }
+
   public String getProjectVersion() throws IOException {
 
-    File PACKAGE_JSON = new File(getToolPath().toString() + "node_modules/npm/package.json");
+    File PACKAGE_JSON = getJsonFile();
     if (PACKAGE_JSON.isFile()) {
       BufferedReader reader = new BufferedReader(new FileReader(PACKAGE_JSON));
       String line;
@@ -153,12 +198,12 @@ public class Npm extends LocalToolCommandlet {
 
   public void setProjectVersion(String newVersion) throws IOException {
 
-    File PACKAGE_JSON = new File(getToolPath().toString() + "node_modules/npm/package.json");
+    File PACKAGE_JSON = getJsonFile();
     if (PACKAGE_JSON.isFile()) {
       File backupFile = new File("package.json.bak");
 
       if (!PACKAGE_JSON.renameTo(backupFile)) {
-        throw new IOException("Failed to create backup of package.json");
+        this.context.error("Failed to create backup of package.json");
       }
 
       try (BufferedReader reader = new BufferedReader(new FileReader(backupFile));
@@ -175,18 +220,18 @@ public class Npm extends LocalToolCommandlet {
 
       // Delete backup file
       if (!backupFile.delete()) {
-        throw new IOException("Failed to delete backup file");
+        this.context.error("Failed to delete backup file");
       }
     } else {
-      throw new IOException("No package.json - not an npm project.");
+      this.context.error("No package.json - not an npm project.");
     }
   }
 
-  public void checkTopLevelProject() throws IOException {
+  public void checkTopLevelProject() {
 
-    File PACKAGE_JSON = new File(getToolPath().toString() + "node_modules/npm/package.json");
+    File PACKAGE_JSON = getJsonFile();
     if (!PACKAGE_JSON.isFile()) {
-      throw new IOException("No package.json - not an npm project.");
+      this.context.error("No package.json - not an npm project.");
     }
     // IMHO npm/package.json does not support nested projects (modules)
   }
