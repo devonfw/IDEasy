@@ -20,6 +20,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public abstract class LocalToolCommandlet extends ToolCommandlet {
 
+  private boolean doInstallationFlag = false;
+
   /**
    * The constructor.
    *
@@ -60,13 +62,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   protected boolean doInstall(boolean silent) {
 
     VersionIdentifier configuredVersion = getConfiguredVersion();
+    // get installed version before installInRepo actually may install the software
+    VersionIdentifier installedVersion = getInstalledVersion();
     // install configured version of our tool in the software repository if not already installed
     ToolInstallation installation = installInRepo(configuredVersion);
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
-    VersionIdentifier installedVersion = getInstalledVersion();
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
-    if (resolvedVersion.equals(installedVersion)) {
+    if (resolvedVersion.equals(installedVersion) && !doInstallationFlag) {
       IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
       this.context.level(level).log("Version {} of tool {} is already installed", installedVersion,
           getToolWithEdition());
@@ -156,6 +159,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to write version file " + toolVersionFile, e);
     }
+    // this flag results in above conditions to be true if isForceMode is true or if the tool version file is missing
+    doInstallationFlag = true;
     return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
   }
 
