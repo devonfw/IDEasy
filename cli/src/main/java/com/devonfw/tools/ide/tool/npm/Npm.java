@@ -9,15 +9,13 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
@@ -37,28 +35,63 @@ public class Npm extends LocalToolCommandlet {
     super(context, "npm", Set.of(Tag.JAVA_SCRIPT, Tag.RUNTIME));
   }
 
-  @Override
-  public void run() {
+  public void firstSteps() throws IOException {
 
-    runNpm(false);
-    doSetup();
-  }
+    Scanner scanner = new Scanner(System.in);
+    String userInput = scanner.nextLine();
+    String[] userInputArray = userInput.split(" ");
+    // TODO
+    String npmBuildOpts = "buildOpts";
+    String npmReleaseOpts = "releaseOpts";
+    String firstElement = userInputArray[0];
+    String secondElement = userInputArray[1];
+    String thirdElement = userInputArray[2];
 
-  protected ProcessResult runNpm(boolean log, String... args) {
-
-    Path toolPath = getToolPath();
-    ProcessContext pc = this.context.newProcess();
-    if (log) {
-      pc.errorHandling(ProcessErrorHandling.ERROR);
+    if (firstElement.equals("h") || firstElement.equals("help")) {
+      System.out.println("Setup or run npm.");
+      System.out.println();
+      System.out.println("Arguments:");
+      System.out.println("                                run default build");
+      System.out.println(" setup                          setup NPM (install and verify)");
+      System.out.println(" get-version                    get the current project version");
+      System.out.println(
+          " set-version «nv» [«cv»]        set the current project version to new version «nv» (assuming current version is «cv»)");
+      System.out.println(
+          " check-top-level-project        check if you are running on a top-level project or fail if in a module or no NPM project at all");
+      System.out.println(" release                        start a clean deploy release build");
+      System.out.println(" «args»                         run NPM with the given arguments");
+      return;
     }
-    pc.executable(toolPath);
-    return pc.run(log);
+
+    if (firstElement.length() == 0 || firstElement.equals("build")) {
+      if (npmBuildOpts.length() != 0) {
+        runTool(getConfiguredVersion()); // (NPM_BUILD_OPTS);
+      } else {
+        run();
+      }
+
+      if (secondElement.length() != 0) {
+        runTool(getConfiguredVersion());// (restliche Argumente)
+      } else if (secondElement.equals("setup")) {
+        // doSetup(thirdElement);
+      } else if (secondElement.equals("get-version")) {
+        getProjectVersion();
+      } else if (secondElement.equals("set-version") && (thirdElement.length() != 0)) {
+        setProjectVersion("restliche Argumente");
+      } else if (secondElement.equals("check-top-level-project")) {
+        checkTopLevelProject();// restliche Argumente als Parameter
+      } else if (secondElement.equals("release")) {
+        runTool(getConfiguredVersion());// (npmReleaseOpts != null ? npmReleaseOpts : "release")
+      } else {
+        runTool(getConfiguredVersion()); // (alle übergegebene Argumente)
+      }
+    }
   }
 
   public void doSetup() {
 
-    String TOOL_PATH = getToolPath().toString();
-    String softwareDir = TOOL_PATH + "node_modules/npm";
+    String TOOL_PATH = "C:/Projects/devonfw/software/node";
+    String softwareDir = TOOL_PATH + "node_modules/npm/bin";
 
     boolean success = true;
 
@@ -68,10 +101,10 @@ public class Npm extends LocalToolCommandlet {
       deleteFile(TOOL_PATH + "/npx");
       deleteFile(TOOL_PATH + "/npx.cmd");
 
-      copyFile(softwareDir + "/bin/npm", TOOL_PATH);
-      copyFile(softwareDir + "/bin/npm.cmd", TOOL_PATH);
-      copyFile(softwareDir + "/bin/npx", TOOL_PATH);
-      copyFile(softwareDir + "/bin/npx.cmd", TOOL_PATH);
+      copyFile(softwareDir + "/npm", TOOL_PATH);
+      copyFile(softwareDir + "/npm.cmd", TOOL_PATH);
+      copyFile(softwareDir + "/npx", TOOL_PATH);
+      copyFile(softwareDir + "/npx.cmd", TOOL_PATH);
     }
   }
 
@@ -97,7 +130,7 @@ public class Npm extends LocalToolCommandlet {
 
   public String getProjectVersion() throws IOException {
 
-    final File PACKAGE_JSON = new File(getToolPath().toString() + "node_modules/npm/package.json");
+    File PACKAGE_JSON = new File(getToolPath().toString() + "node_modules/npm/package.json");
     if (PACKAGE_JSON.isFile()) {
       BufferedReader reader = new BufferedReader(new FileReader(PACKAGE_JSON));
       String line;
@@ -120,7 +153,7 @@ public class Npm extends LocalToolCommandlet {
 
   public void setProjectVersion(String newVersion) throws IOException {
 
-    final File PACKAGE_JSON = new File(getToolPath().toString() + "node_modules/npm/package.json");
+    File PACKAGE_JSON = new File(getToolPath().toString() + "node_modules/npm/package.json");
     if (PACKAGE_JSON.isFile()) {
       File backupFile = new File("package.json.bak");
 
@@ -151,7 +184,7 @@ public class Npm extends LocalToolCommandlet {
 
   public void checkTopLevelProject() throws IOException {
 
-    final File PACKAGE_JSON = new File(getToolPath().toString() + "node_modules/npm/package.json");
+    File PACKAGE_JSON = new File(getToolPath().toString() + "node_modules/npm/package.json");
     if (!PACKAGE_JSON.isFile()) {
       throw new IOException("No package.json - not an npm project.");
     }
