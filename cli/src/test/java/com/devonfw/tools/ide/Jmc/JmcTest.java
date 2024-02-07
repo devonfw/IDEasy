@@ -43,29 +43,41 @@ public class JmcTest extends AbstractIdeContextTest {
 
   private void mockWebServer() throws IOException {
 
-    String windowsFilename = "org.openjdk.jmc-8.3.0-win32.win32.x86_64.zip";
-    String linuxFilename = "org.openjdk.jmc-8.3.0-linux.gtk.x86_64.tar.gz";
-    String macOSFilename = "org.openjdk.jmc-8.3.0-macosx.cocoa.x86_64.tar.gz";
+    String windowsFilenameJmc = "org.openjdk.jmc-8.3.0-win32.win32.x86_64.zip";
+    String linuxFilenameJmc = "org.openjdk.jmc-8.3.0-linux.gtk.x86_64.tar.gz";
+    String macOSFilenameJmc = "org.openjdk.jmc-8.3.0-macosx.cocoa.x86_64.tar.gz";
+    String windowsFilenameJava = "java-17.0.6-windows-x64.zip";
+    String linuxFilenameJava = "java-17.0.6-linux-x64.tgz";
+    String resourceFilesDirName = "__files";
 
-    Path windowsFilePathJmc = resourcePath.resolve("__files").resolve(windowsFilename);
-
+    Path windowsFilePathJmc = resourcePath.resolve(resourceFilesDirName).resolve(windowsFilenameJmc);
     String windowsLengthJmc = String.valueOf(Files.size(windowsFilePathJmc));
-    server.stubFor(
-        get(urlPathEqualTo("/jmcTest/windows")).willReturn(aResponse().withHeader("Content-Type", "application/zip")
-            .withHeader("Content-Length", windowsLengthJmc).withStatus(200).withBodyFile(windowsFilename)));
 
-    Path linuxFilePathJmc = resourcePath.resolve("__files").resolve(linuxFilename);
+    Path linuxFilePathJmc = resourcePath.resolve(resourceFilesDirName).resolve(linuxFilenameJmc);
     String linuxLengthJmc = String.valueOf(Files.size(linuxFilePathJmc));
-    server.stubFor(
-        get(urlPathEqualTo("/jmcTest/linux")).willReturn(aResponse().withHeader("Content-Type", "application/gz")
-            .withHeader("Content-Length", linuxLengthJmc).withStatus(200).withBodyFile(linuxFilename)));
 
-    Path macOSFilePathJmc = resourcePath.resolve("__files").resolve(macOSFilename);
+    Path macOSFilePathJmc = resourcePath.resolve(resourceFilesDirName).resolve(macOSFilenameJmc);
     String maxOSLengthJmc = String.valueOf(Files.size(macOSFilePathJmc));
-    server.stubFor(
-        get(urlPathEqualTo("/jmcTest/macOS")).willReturn(aResponse().withHeader("Content-Type", "application/gz")
-            .withHeader("Content-Length", maxOSLengthJmc).withStatus(200).withBodyFile(macOSFilename)));
 
+    Path windowsFilePathJava = resourcePath.resolve(resourceFilesDirName).resolve(windowsFilenameJava);
+    String windowsLengthJava = String.valueOf(Files.size(windowsFilePathJava));
+
+    Path linuxFilePathJava = resourcePath.resolve(resourceFilesDirName).resolve(linuxFilenameJava);
+    String linuxLengthJava = String.valueOf(Files.size(linuxFilePathJava));
+
+    setupMockServerResponse("/jmcTest/windows", "application/zip", windowsLengthJmc, windowsFilenameJmc);
+    setupMockServerResponse("/jmcTest/linux", "application/gz", linuxLengthJmc, linuxFilenameJmc);
+    setupMockServerResponse("/jmcTest/macOS", "application/gz", maxOSLengthJmc, macOSFilenameJmc);
+    setupMockServerResponse("/installTest/windows", "application/zip", windowsLengthJava, windowsFilenameJava);
+    setupMockServerResponse("/installTest/linux", "application/tgz", linuxLengthJava, linuxFilenameJava);
+    setupMockServerResponse("/installTest/macOS", "application/tgz", linuxLengthJava, linuxFilenameJava);
+
+  }
+
+  private void setupMockServerResponse(String testUrl, String contentType, String contentLength, String bodyFile) {
+
+    server.stubFor(get(urlPathEqualTo(testUrl)).willReturn(aResponse().withHeader("Content-Type", contentType)
+        .withHeader("Content-Length", contentLength).withStatus(200).withBodyFile(bodyFile)));
   }
 
   @Test
