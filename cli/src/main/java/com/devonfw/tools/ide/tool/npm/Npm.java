@@ -9,7 +9,6 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,12 +17,15 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.java.Java;
 
 /**
  * {@link ToolCommandlet} for <a href="https://nodejs.org/">node</a>.
  */
 
 public class Npm extends LocalToolCommandlet {
+
+  final String JSON_PATH = "/node/node_modules/npm/package.json";
 
   /**
    * The constructor.
@@ -33,6 +35,13 @@ public class Npm extends LocalToolCommandlet {
   public Npm(IdeContext context) {
 
     super(context, "npm", Set.of(Tag.JAVA_SCRIPT, Tag.RUNTIME));
+  }
+
+  @Override
+  public boolean install(boolean silent) {
+
+    getCommandlet(Java.class).install();
+    return super.install(silent);
   }
 
   @Override
@@ -47,15 +56,13 @@ public class Npm extends LocalToolCommandlet {
 
   public void runNpm() throws IOException {
 
-    Scanner scanner = new Scanner(System.in);
-    String userInput = scanner.nextLine();
-    String[] userInputArray = userInput.split(" ");
+    String[] userInputArray = this.arguments.asArray();
     // TODO
     String npmBuildOpts = "buildOpts";
     String npmReleaseOpts = "releaseOpts";
-    String firstElement = userInputArray[0];
 
     if (userInputArray.length > 0) {
+      String firstElement = userInputArray[0].toString();
       if (firstElement.equals("h") || firstElement.equals("help")) {
         System.out.println("Setup or run npm.");
         System.out.println();
@@ -71,35 +78,82 @@ public class Npm extends LocalToolCommandlet {
         System.out.println(" «args»                         run NPM with the given arguments");
         return;
       }
-    }
 
-    if (userInputArray.length >= 2) {
-      String secondElement = userInputArray[1];
-      if (firstElement.length() == 0 || firstElement.equals("build")) {
-        if (npmBuildOpts.length() != 0) {
-          // runTool(getConfiguredVersion()); // (NPM_BUILD_OPTS);
+      if (userInputArray.length >= 2) {
+        String secondElement = userInputArray[1];
+
+        if (firstElement == "shortlist" && (secondElement == null || secondElement.length() == 0)) {
+          this.context.info("setup version get-version set-version check-top-level-project release help");
+        }
+
+        if ((firstElement == null || firstElement.length() == 0) || firstElement.equals("build")) {
+          if (npmBuildOpts.length() != 0) {
+            // runTool(getConfiguredVersion()); // (NPM_BUILD_OPTS);
+          } else {
+            // run();
+          }
+
+          if (secondElement.length() != 0) {
+            // runTool(getConfiguredVersion());// (restliche Argumente)
+          }
+        } else if (secondElement.equals("setup")) {
+          // doSetup(thirdElement);
+        } else if (secondElement.equals("get-version")) {
+          this.context.info("Project version: {}", getProjectVersion());
+        } else if (secondElement.equals("set-version")
+            && (userInputArray.length >= 3 ? userInputArray[2].length() != 0 : false)) {
+          setProjectVersion(userInputArray[2]);
+          this.context.info("Project version is set to {}", userInputArray[2]);
+        } else if (secondElement.equals("check-top-level-project")) {
+          checkTopLevelProject();
+        } else if (secondElement.equals("release")) {
+          // runTool(getConfiguredVersion());// (npmReleaseOpts != null ? npmReleaseOpts : "release")
         } else {
-          // run();
+          // runTool(getConfiguredVersion()); // (alle übergegebene Argumente)
         }
-
-        if (secondElement.length() != 0) {
-          // runTool(getConfiguredVersion());// (restliche Argumente)
-        }
-      } else if (secondElement.equals("setup")) {
-        // doSetup(thirdElement);
-      } else if (secondElement.equals("get-version")) {
-        this.context.info("Project version: {}", getProjectVersion());
-      } else if (secondElement.equals("set-version")
-          && (userInputArray.length >= 3 ? userInputArray[2].length() != 0 : false)) {
-        setProjectVersion(userInputArray[2]);
-        this.context.info("Project version is set to {}", userInputArray[2]);
-      } else if (secondElement.equals("check-top-level-project")) {
-        checkTopLevelProject();// restliche Argumente als Parameter
-      } else if (secondElement.equals("release")) {
-        // runTool(getConfiguredVersion());// (npmReleaseOpts != null ? npmReleaseOpts : "release")
-      } else {
-        // runTool(getConfiguredVersion()); // (alle übergegebene Argumente)
       }
+    }
+  }
+
+  public void doRunBuild(boolean silent, String[] arguments) {
+
+    this.context.info("Running: npm {}", arguments);
+    install(silent);
+  }
+
+  public void doBuild(String scriptName) {
+
+    // doRunBuild install
+    if (isPackageJsonContainingScript(scriptName)) {
+      // doRunBuild run build
+    }
+  }
+
+  public boolean isPackageJsonContainingScript(String scriptName) {
+
+    this.context.trace("Überprüfung, ob package.json einen Skriptabschnitt namens " + scriptName + " enthält");
+    try {
+      BufferedReader reader = new BufferedReader(
+          new FileReader(createFileWithPath(this.context.getSoftwarePath().toString() + JSON_PATH)));
+      StringBuilder content = new StringBuilder();
+      String line;
+      while ((line = reader.readLine()) != null) {
+        content.append(line).append(System.lineSeparator());
+      }
+      reader.close();
+      String jsonString = content.toString().replaceAll("\\r", "");
+      Pattern pattern = Pattern.compile("[\"']scripts[\"']\\s*:\\s*\\{\\s*§.*[\"']" + scriptName + "[\"']\\s*:");
+      Matcher matcher = pattern.matcher(jsonString);
+      if (matcher.find()) {
+        return true;
+      } else {
+        this.context
+            .info("Im package.json ist kein Build-Skript vorhanden - überspringe Ausführung des Build-Skripts.");
+        return false;
+      }
+    } catch (IOException e) {
+      e.printStackTrace();
+      return false;
     }
   }
 
@@ -107,40 +161,28 @@ public class Npm extends LocalToolCommandlet {
 
     String TOOL_PATH = this.context.getSoftwarePath().toString() + "/node";
     String softwareDir = TOOL_PATH + "/node_modules/npm/bin";
-    // boolean successfullInstallation = doInstall();
-
-    if (true) {
-      if (createFileWithPath(TOOL_PATH + "/npm").isFile()) {
-        deleteFile(TOOL_PATH + "/npm");
-      }
-
-      if (createFileWithPath(TOOL_PATH + "/npm.cmd").isFile()) {
-        deleteFile(TOOL_PATH + "/npm.cmd");
-      }
-
-      if (createFileWithPath(TOOL_PATH + "/npx").isFile()) {
-        deleteFile(TOOL_PATH + "/npx");
-      }
-
-      if (createFileWithPath(TOOL_PATH + "/npx.cmd").isFile()) {
-        deleteFile(TOOL_PATH + "/npx.cmd");
-      }
-
-      copyFile(softwareDir + "/npm", TOOL_PATH);
-      copyFile(softwareDir + "/npm.cmd", TOOL_PATH);
-      copyFile(softwareDir + "/npx", TOOL_PATH);
-      copyFile(softwareDir + "/npx.cmd", TOOL_PATH);
+    // boolean successfullInstallation
+    install();
+    if (createFileWithPath(TOOL_PATH + "/npm").isFile()) {
+      deleteFile(TOOL_PATH + "/npm");
     }
-  }
 
-  private boolean doInstall(String software, String version, String argument1, String argument2, String softwareDir) {
+    if (createFileWithPath(TOOL_PATH + "/npm.cmd").isFile()) {
+      deleteFile(TOOL_PATH + "/npm.cmd");
+    }
 
-    System.out.println("Installing " + software + " version " + version);
-    System.out.println("Argument 1: " + argument1);
-    System.out.println("Argument 2: " + argument2);
-    System.out.println("Software directory: " + softwareDir);
+    if (createFileWithPath(TOOL_PATH + "/npx").isFile()) {
+      deleteFile(TOOL_PATH + "/npx");
+    }
 
-    return true;
+    if (createFileWithPath(TOOL_PATH + "/npx.cmd").isFile()) {
+      deleteFile(TOOL_PATH + "/npx.cmd");
+    }
+
+    copyFile(softwareDir + "/npm", TOOL_PATH);
+    copyFile(softwareDir + "/npm.cmd", TOOL_PATH);
+    copyFile(softwareDir + "/npx", TOOL_PATH);
+    copyFile(softwareDir + "/npx.cmd", TOOL_PATH);
   }
 
   private File createFileWithPath(String path) {
@@ -168,14 +210,9 @@ public class Npm extends LocalToolCommandlet {
     }
   }
 
-  private File getJsonFile() {
-
-    return new File(this.context.getSoftwarePath().toString() + "/node/node_modules/npm/package.json");
-  }
-
   public String getProjectVersion() throws IOException {
 
-    File PACKAGE_JSON = getJsonFile();
+    File PACKAGE_JSON = createFileWithPath(this.context.getSoftwarePath().toString() + JSON_PATH);
     if (PACKAGE_JSON.isFile()) {
       BufferedReader reader = new BufferedReader(new FileReader(PACKAGE_JSON));
       String line;
@@ -198,7 +235,7 @@ public class Npm extends LocalToolCommandlet {
 
   public void setProjectVersion(String newVersion) throws IOException {
 
-    File PACKAGE_JSON = getJsonFile();
+    File PACKAGE_JSON = createFileWithPath(this.context.getSoftwarePath().toString() + JSON_PATH);
     if (PACKAGE_JSON.isFile()) {
       File backupFile = new File("package.json.bak");
 
@@ -229,7 +266,7 @@ public class Npm extends LocalToolCommandlet {
 
   public void checkTopLevelProject() {
 
-    File PACKAGE_JSON = getJsonFile();
+    File PACKAGE_JSON = createFileWithPath(this.context.getSoftwarePath().toString() + JSON_PATH);
     if (!PACKAGE_JSON.isFile()) {
       this.context.error("No package.json - not an npm project.");
     }
