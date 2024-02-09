@@ -128,7 +128,6 @@ public final class ProcessContextImpl implements ProcessContext {
         this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
       }
 
-      // start
       Process process = this.processBuilder.start();
 
       List<String> out = null;
@@ -139,7 +138,6 @@ public final class ProcessContextImpl implements ProcessContext {
         handleCapture(process, out, err);
       }
 
-      // Exit code for background process?
       int exitCode;
       if (isBackgroundProcess) {
         // TODO: Ask if a background process shall get its own process result or if we should assume success?
