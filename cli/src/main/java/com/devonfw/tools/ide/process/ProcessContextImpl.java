@@ -99,9 +99,9 @@ public final class ProcessContextImpl implements ProcessContext {
   @Override
   public ProcessResult run(boolean capture, boolean isBackgroundProcess) {
 
-    // TODO https://github.com/devonfw/IDEasy/issues/9: Implement background process functionality
-    if (isBackgroundProcess) {
-      throw new UnsupportedOperationException("Background processes are currently not supported!");
+    if (capture && isBackgroundProcess) {
+      throw new IllegalStateException(
+          "It is not possible for the main process to capture the streams of the subprocess (background process) !");
     }
 
     if (this.executable == null) {
@@ -110,72 +110,49 @@ public final class ProcessContextImpl implements ProcessContext {
     String executableName = this.executable.toString();
     // pragmatic solution to avoid copying lists/arrays
     this.arguments.add(0, executableName);
-    String fileExtension = FilenameUtil.getExtension(executableName);
-    boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(this.executable);
-    if (isBashScript) {
-      String bash = "bash";
-      if (this.context.getSystemInfo().isWindows()) {
-        String findBashOnWindowsResult = findBashOnWindows();
-        if (findBashOnWindowsResult != null) {
-          bash = findBashOnWindowsResult;
-        }
-      }
-      this.arguments.add(0, bash);
-    }
+
+    checkAndHandlePossibleBashScript(executableName);
+
     this.processBuilder.command(this.arguments);
     if (this.context.debug().isEnabled()) {
       String message = createCommandMessage(" ...");
       this.context.debug(message);
     }
+
     try {
+
       if (capture) {
         this.processBuilder.redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
+      } else if (isBackgroundProcess) {
+        // TODO ASK if correct
+        this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
       }
+
+      // start
+      Process process = this.processBuilder.start();
+
       List<String> out = null;
       List<String> err = null;
-      Process process = this.processBuilder.start();
       if (capture) {
         out = new ArrayList<>();
         err = new ArrayList<>();
-        try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-          String outLine = "";
-          String errLine = "";
-          while ((outLine != null) || (errLine != null)) {
-            if (outLine != null) {
-              outLine = outReader.readLine();
-              if (outLine != null) {
-                out.add(outLine);
-              }
-            }
-            if (errLine != null) {
-              errLine = errReader.readLine();
-              if (errLine != null) {
-                err.add(errLine);
-              }
-            }
-          }
-        }
+        handleCapture(process, out, err);
       }
-      int exitCode = process.waitFor();
+
+      // Exit code for background process?
+      int exitCode;
+      if (isBackgroundProcess) {
+        // TODO: Ask if a background process shall get its own process result or if we should assume success?
+        exitCode = ProcessResult.SUCCESS;
+      } else {
+        exitCode = process.waitFor();
+      }
+
       ProcessResult result = new ProcessResultImpl(exitCode, out, err);
-      if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
-        String message = createCommandMessage(" failed with exit code " + exitCode + "!");
-        if (this.errorHandling == ProcessErrorHandling.THROW) {
-          throw new CliException(message, exitCode);
-        }
-        IdeSubLogger level;
-        if (this.errorHandling == ProcessErrorHandling.ERROR) {
-          level = this.context.error();
-        } else if (this.errorHandling == ProcessErrorHandling.WARNING) {
-          level = this.context.warning();
-        } else {
-          level = this.context.error();
-          level.log("Internal error: Undefined error handling {}", this.errorHandling);
-        }
-        level.log(message);
-      }
+      performLogOnError(result, exitCode);
+
       return result;
+
     } catch (Exception e) {
       String msg = e.getMessage();
       if ((msg == null) || msg.isEmpty()) {
@@ -271,6 +248,66 @@ public final class ProcessContextImpl implements ProcessContext {
     }
     // no bash found
     throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
+  }
+
+  private void handleCapture(Process process, List<String> out, List<String> err) throws IOException {
+
+    try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+      String outLine = "";
+      String errLine = "";
+      while ((outLine != null) || (errLine != null)) {
+        if (outLine != null) {
+          outLine = outReader.readLine();
+          if (outLine != null) {
+            out.add(outLine);
+          }
+        }
+        if (errLine != null) {
+          errLine = errReader.readLine();
+          if (errLine != null) {
+            err.add(errLine);
+          }
+        }
+      }
+    }
+  }
+
+  private void checkAndHandlePossibleBashScript(String executableName) {
+
+    String fileExtension = FilenameUtil.getExtension(executableName);
+    boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(this.executable);
+    if (isBashScript) {
+      String bash = "bash";
+      if (this.context.getSystemInfo().isWindows()) {
+        String findBashOnWindowsResult = findBashOnWindows();
+        if (findBashOnWindowsResult != null) {
+          bash = findBashOnWindowsResult;
+        }
+      }
+      this.arguments.add(0, bash);
+    }
+
+  }
+
+  private void performLogOnError(ProcessResult result, int exitCode) {
+
+    if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
+      String message = createCommandMessage(" failed with exit code " + exitCode + "!");
+      if (this.errorHandling == ProcessErrorHandling.THROW) {
+        throw new CliException(message, exitCode);
+      }
+      IdeSubLogger level;
+      if (this.errorHandling == ProcessErrorHandling.ERROR) {
+        level = this.context.error();
+      } else if (this.errorHandling == ProcessErrorHandling.WARNING) {
+        level = this.context.warning();
+      } else {
+        level = this.context.error();
+        level.log("Internal error: Undefined error handling {}", this.errorHandling);
+      }
+      level.log(message);
+    }
   }
 
 }
