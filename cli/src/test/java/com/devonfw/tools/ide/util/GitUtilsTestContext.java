@@ -24,19 +24,29 @@ public class GitUtilsTestContext extends AbstractIdeTestContext {
 
   private Path directory;
 
+  private static boolean testOnlineMode;
+
   /**
    * The constructor.
    *
+   * @param isOnline boolean if it should be run in online mode.
    * @param userDir the optional {@link Path} to current working directory.
    * @param answers the automatic answers simulating a user in test.
    */
-  public GitUtilsTestContext(Path userDir, String... answers) {
+  public GitUtilsTestContext(boolean isOnline, Path userDir, String... answers) {
 
     super(level -> new IdeTestLogger(level), userDir, answers);
+    testOnlineMode = isOnline;
     this.errors = new ArrayList<>();
     this.outs = new ArrayList<>();
     this.exitCode = 0;
     this.directory = userDir;
+  }
+
+  @Override
+  public boolean isOnline() {
+
+    return testOnlineMode;
   }
 
   @Override
@@ -50,7 +60,7 @@ public class GitUtilsTestContext extends AbstractIdeTestContext {
    */
   public static GitUtilsTestContext of() {
 
-    return new GitUtilsTestContext(Paths.get("/"));
+    return new GitUtilsTestContext(testOnlineMode, Paths.get("/"));
   }
 
   @Override

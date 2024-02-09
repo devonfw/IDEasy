@@ -75,18 +75,17 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param errors list of error messages.
    * @param outs list of out messages.
    * @param exitCode the exit code.
-   * @param offlineMode boolean if it should be run in offline mode.
+   * @param isOnline boolean if it should be run in online mode.
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected static GitUtilsTestContext newGitUtilsContext(Path projectPath, List<String> errors, List<String> outs,
-      int exitCode, boolean offlineMode) {
+      int exitCode, boolean isOnline) {
 
     GitUtilsTestContext context;
-    context = new GitUtilsTestContext(projectPath);
+    context = new GitUtilsTestContext(isOnline, projectPath);
     context.setErrors(errors);
     context.setOuts(outs);
     context.setExitCode(exitCode);
-    context.setOfflineMode(offlineMode);
     return context;
   }
 

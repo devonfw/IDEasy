@@ -31,7 +31,7 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
-    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
+    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
     System.out.println("testRunGitCloneInOfflineModeThrowsException");
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
 
@@ -54,7 +54,7 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
-    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
+    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
     System.out.println("testRunGitClone");
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     // act
@@ -74,7 +74,7 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
-    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
+    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
     System.out.println("testRunGitPullWithoutForce");
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     Date currentDate = new Date();
@@ -98,7 +98,7 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
-    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
+    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
     System.out.println("testRunGitPullWithForce");
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     // act
@@ -118,7 +118,7 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
-    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
+    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
     System.out.println("testRunGitPullWithForceStartsCleanup");
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     // act
