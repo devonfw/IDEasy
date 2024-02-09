@@ -87,10 +87,16 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void missingExecutableShouldThrowIllegalState() {
+  public void missingExecutableShouldThrowIllegalState() throws Exception {
 
     // arrange
     String expectedMessage = "Missing executable to run process!";
+
+    Field underTestExecutable = ReflectionUtils.findFields(ProcessContextImpl.class,
+        f -> f.getName().equals("executable"), ReflectionUtils.HierarchyTraversalMode.TOP_DOWN).get(0);
+    underTestExecutable.setAccessible(true);
+    underTestExecutable.set(underTest, null);
+    underTestExecutable.setAccessible(false);
 
     // act & assert
     Exception exception = assertThrows(IllegalStateException.class, () -> {
@@ -192,13 +198,13 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     // arrange
     when(processMock.waitFor()).thenReturn(ProcessResult.TOOL_NOT_INSTALLED);
     underTest.errorHandling(processErrorHandling);
-    String expectedMessage = "failed with exit code ";
+    String expectedMessage = "failed with exit code 4!";
     // act
     underTest.run(false, false);
 
     // assert
     IdeLogLevel level = convertToIdeLogLevel(processErrorHandling);
-    assertLogMessage((IdeTestContext) context, level, expectedMessage);
+    assertLogMessage((IdeTestContext) context, level, expectedMessage, true);
   }
 
   private IdeLogLevel convertToIdeLogLevel(ProcessErrorHandling processErrorHandling) {
