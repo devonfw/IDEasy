@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.util;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Date;
@@ -32,7 +34,6 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
     IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
-    System.out.println("testRunGitCloneInOfflineModeThrowsException");
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
 
     CliException e1 = assertThrows(CliException.class, () -> {
@@ -55,12 +56,11 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
     IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
-    System.out.println("testRunGitClone");
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     // act
     gitUtils.runGitPullOrClone(true, gitRepoUrl);
     // assert
-    assertThat(tempDir.resolve(".git").resolve("status").resolve("url")).hasContent(gitRepoUrl);
+    assertThat(tempDir.resolve(".git").resolve("url")).hasContent(gitRepoUrl);
   }
 
   /**
@@ -75,7 +75,6 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
     IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
-    System.out.println("testRunGitPullWithoutForce");
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     Date currentDate = new Date();
     // act
@@ -84,32 +83,51 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     fileAccess.mkdirs(gitFolderPath);
     gitUtils.runGitPullOrClone(false, gitRepoUrl);
     // assert
-    assertThat(tempDir.resolve(".git").resolve("status").resolve("update")).hasContent(currentDate.toString());
+    assertThat(tempDir.resolve(".git").resolve("update")).hasContent(currentDate.toString());
   }
 
   /**
    * Runs a git pull with force mode, creates temporary files to simulate a proper cleanup.
    */
   @Test
-  public void testRunGitPullWithForce(@TempDir Path tempDir) {
+  public void testRunGitPullWithForceStartsReset(@TempDir Path tempDir) {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
-    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
-    System.out.println("testRunGitPullWithForce");
+    Path gitFolderPath = tempDir.resolve(".git");
+    try {
+      Files.createDirectory(gitFolderPath);
+      Files.createDirectory(gitFolderPath.resolve("objects"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    Path referenceFile;
+    Path modifiedFile;
+
+    try {
+      referenceFile = Files.createFile(gitFolderPath.resolve("objects").resolve("referenceFile"));
+      Files.writeString(referenceFile, "original");
+      modifiedFile = Files.createFile(tempDir.resolve("trackedFile"));
+      Files.writeString(modifiedFile, "changed");
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
+
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     // act
-    FileAccess fileAccess = new FileAccessImpl(context);
-    Path gitFolderPath = tempDir.resolve(".git");
-    fileAccess.mkdirs(gitFolderPath);
+    gitUtils.runGitPullOrClone(true, gitRepoUrl);
 
     // assert
-    gitUtils.runGitPullOrClone(true, gitRepoUrl);
+    assertThat(modifiedFile).hasContent("original");
   }
 
+  /**
+   * Runs a git pull with force and starts a cleanup (checks if an untracked folder was removed).
+   */
   @Test
   public void testRunGitPullWithForceStartsCleanup(@TempDir Path tempDir) {
 
@@ -119,7 +137,6 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
     IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
-    System.out.println("testRunGitPullWithForceStartsCleanup");
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     // act
     FileAccess fileAccess = new FileAccessImpl(context);
