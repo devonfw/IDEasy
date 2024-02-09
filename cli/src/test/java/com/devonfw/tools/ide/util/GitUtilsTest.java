@@ -35,10 +35,11 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     outs.add("test-remote");
     IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
-
+    // act
     CliException e1 = assertThrows(CliException.class, () -> {
       gitUtils.runGitPullOrClone(true, "https://github.com/test");
     });
+    // assert
     assertThat(e1).hasMessageContaining("https://github.com/test").hasMessageContaining(tempDir.toString())
         .hasMessageContaining("offline");
 
@@ -77,10 +78,10 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     Date currentDate = new Date();
-    // act
     FileAccess fileAccess = new FileAccessImpl(context);
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
+    // act
     gitUtils.runGitPullOrClone(false, gitRepoUrl);
     // assert
     assertThat(tempDir.resolve(".git").resolve("update")).hasContent(currentDate.toString());
@@ -106,7 +107,6 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     }
     Path referenceFile;
     Path modifiedFile;
-
     try {
       referenceFile = Files.createFile(gitFolderPath.resolve("objects").resolve("referenceFile"));
       Files.writeString(referenceFile, "original");
@@ -116,11 +116,9 @@ public class GitUtilsTest extends AbstractIdeContextTest {
       throw new RuntimeException(e);
     }
     IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
-
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
     // act
     gitUtils.runGitPullOrClone(true, gitRepoUrl);
-
     // assert
     assertThat(modifiedFile).hasContent("original");
   }
@@ -138,13 +136,13 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     outs.add("test-remote");
     IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
     GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
-    // act
     FileAccess fileAccess = new FileAccessImpl(context);
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
     fileAccess.mkdirs(tempDir.resolve("new-folder"));
-    // assert
+    // act
     gitUtils.runGitPullOrClone(true, gitRepoUrl);
+    // assert
     assertThat(tempDir.resolve("new-folder")).doesNotExist();
   }
 }
