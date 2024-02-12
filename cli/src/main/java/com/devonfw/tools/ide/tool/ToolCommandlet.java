@@ -112,6 +112,17 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * See {@link ToolCommandlet#runTool(boolean, VersionIdentifier, String...)} method.
+   * 
+   * @param toolVersion
+   * @param args
+   */
+  public void runTool(VersionIdentifier toolVersion, String... args) {
+
+    runTool(false, toolVersion, args);
+  }
+
+  /**
    * @return the {@link EnvironmentVariables#getToolEdition(String) tool edition}.
    */
   public String getEdition() {
