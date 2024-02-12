@@ -99,9 +99,9 @@ public final class ProcessContextImpl implements ProcessContext {
   @Override
   public ProcessResult run(boolean capture, boolean isBackgroundProcess) {
 
-    // TODO https://github.com/devonfw/IDEasy/issues/9: Implement background process functionality
     if (isBackgroundProcess) {
-      throw new UnsupportedOperationException("Background processes are currently not supported!");
+      this.context
+          .warning("TODO https://github.com/devonfw/IDEasy/issues/9 Implement background process functionality");
     }
 
     if (this.executable == null) {
