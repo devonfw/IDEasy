@@ -110,7 +110,7 @@ Instead include the full exception and use your logger properly:
 try {
   doSomething();
 } catch (Exception e) {
-  // bad
+  // good
   LOG.error("Something failed: {}", e.getMessage(), e);
 }
 ----
@@ -144,11 +144,99 @@ public Boolean isEmpty {
 Instead always use the primitive `boolean` type:
 [source,java]
 ----
-// fine
+// good
 public boolean isEmpty {
   return size() == 0;
 }
 ----
+
+== Optionals
+With `Optional` you can wrap values to avoid a `NullPointerException` (NPE).
+However, it is not a good code-style to use `Optional` for every parameter or result to express that it may be null.
+For such case use JavaDoc (or consider `@Nullable` or even better instead annotate `@NotNull` where `null` is not acceptable).
+
+However, `Optional` can be used to prevent NPEs in fluent calls (due to the lack of the elvis operator):
+[source,java]
+----
+Long id;
+id = fooCto.getBar().getBar().getId(); // may cause NPE
+id = Optional.ofNullable(fooCto).map(FooCto::getBar).map(BarCto::getBar).map(BarEto::getId).orElse(null); // null-safe
+----
+
+== Avoid catching NPE
+
+Please avoid catching `NullPointerException`:
+[source,java]
+----
+// bad
+try {
+  variable.getFoo().doSomething();
+} catch (NullPointerException e) {
+  LOG.warning("foo was null");
+}
+----
+
+Better explicitly check for `null`:
+[source,java]
+----
+// good
+Foo foo = null;
+if (variable != null) {
+  foo = variable.getFoo();
+}
+if (foo == null) {
+  LOG.warning("foo was null");
+} else {
+  foo.doSomething();
+}
+----
+
+Please note that the term `Exception` is used for something exceptional.
+Further creating an instance of an `Exception` or `Throable` in Java is expensive as the entire Strack has to be collected and copied into arrays, etc. causing significant overhead.
+This should always be avoided in situations we can easily avoid with a simple `if` check.
+
+== Consider extractig local variable for multiple method calls
+
+Calling the same method (cascades) multiple times is redundant and reduces readability and performance:
+[source,java]
+----
+// bad
+Candidate candidate;
+if (variable.getFoo().getFirst().getSize() > variable.getFoo().getSecond().getSize()) {
+  candidate = variable.getFoo().getFirst();
+} else {
+  candidate = variable.getFoo().getSecond();
+}
+----
+
+The method `getFoo()` is used in 4 places and called 3 times. Maybe the method call is expensive?
+[source,java]
+----
+// good
+Candidate candidate;
+Foo foo = variable.getFoo();
+Candidate first = foo.getFirst();
+Candidate second = foo.getSecond();
+if (first.getSize() > second.getSize()) {
+  candidate = first;
+} else {
+  candidate = second;
+}
+----
+
+Please note that your IDE can automatically refactor your code extracting all occurrences of the same method call within the method body to a local variable.
+
+== Encoding
+Encoding (esp. Unicode with combining characters and surrogates) is a complex topic.
+Please study this topic if you have to deal with encodings and processing of special characters.
+For the basics follow these recommendations:
+
+* Whenever possible prefer unicode (UTF-8 or better) as encoding.
+* Do not cast from `byte` to `char` (unicode characters can be composed of multiple bytes, such cast may only work for ASCII characters)
+* Never convert the case of a String using the default locale. E.g. if you do `"HI".toLowerCase()` and your system locale is Turkish, then the output will be "hı" instead of "hi", which can lead to wrong assumptions and serious problems. If you want to do a "universal" case conversion always explicitly use an according western locale (e.g. `toLowerCase(Locale.US)`). Consider using a helper class (see e.g. https://github.com/m-m-m/base/blob/master/core/src/main/java/io/github/mmm/base/text/CaseHelper.java[CaseHelper]) or create your own little static utility for that in your project.
+* Write your code independent from the default encoding (system property `file.encoding`) - this will most likely differ in JUnit from production environment
+** Always provide an encoding when you create a `String` from `byte[]`: `new String(bytes, encoding)`
+** Always provide an encoding when you create a `Reader` or `Writer` : `new InputStreamReader(inStream, encoding)`
 
 == BLOBs
 Avoid using `byte[]` for BLOBs as this will load them entirely into your memory.
@@ -340,25 +428,3 @@ public List<String> twitterHandles(List<Author> authors, String company) {
   }
 ----
 
-== Optionals
-With `Optional` you can wrap values to avoid a `NullPointerException` (NPE). However, it is not a good code-style to use `Optional` for every parameter or result to express that it may be null. For such case use `@Nullable` or even better instead annotate `@NotNull` where `null` is not acceptable.
-
-However, `Optional` can be used to prevent NPEs in fluent calls (due to the lack of the elvis operator):
-[source,java]
-----
-Long id;
-id = fooCto.getBar().getBar().getId(); // may cause NPE
-id = Optional.ofNullable(fooCto).map(FooCto::getBar).map(BarCto::getBar).map(BarEto::getId).orElse(null); // null-safe
-----
-
-== Encoding
-Encoding (esp. Unicode with combining characters and surrogates) is a complex topic.
-Please study this topic if you have to deal with encodings and processing of special characters.
-For the basics follow these recommendations:
-
-* Whenever possible prefer unicode (UTF-8 or better) as encoding.
-* Do not cast from `byte` to `char` (unicode characters can be composed of multiple bytes, such cast may only work for ASCII characters)
-* Never convert the case of a String using the default locale. E.g. if you do `"HI".toLowerCase()` and your system locale is Turkish, then the output will be "hı" instead of "hi", which can lead to wrong assumptions and serious problems. If you want to do a "universal" case conversion always explicitly use an according western locale (e.g. `toLowerCase(Locale.US)`). Consider using a helper class (see e.g. https://github.com/m-m-m/base/blob/master/core/src/main/java/io/github/mmm/base/text/CaseHelper.java[CaseHelper]) or create your own little static utility for that in your project.
-* Write your code independent from the default encoding (system property `file.encoding`) - this will most likely differ in JUnit from production environment
-** Always provide an encoding when you create a `String` from `byte[]`: `new String(bytes, encoding)`
-** Always provide an encoding when you create a `Reader` or `Writer` : `new InputStreamReader(inStream, encoding)`
