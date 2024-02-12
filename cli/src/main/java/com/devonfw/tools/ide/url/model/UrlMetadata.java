@@ -66,13 +66,12 @@ public class UrlMetadata {
       for (UrlEdition urlEdition : this.repository.getChild(tool).getChildren()) {
         list.add(urlEdition.getName());
       }
-      Collections.sort(list);
-      return Collections.unmodifiableList(list);
     } catch (NullPointerException e) {
       this.context.warning("Can't get sorted editions for tool {} because it does not exist in {}.", tool,
           this.repository.getPath());
-      return List.of();
     }
+    Collections.sort(list);
+    return Collections.unmodifiableList(list);
   }
 
   /**
