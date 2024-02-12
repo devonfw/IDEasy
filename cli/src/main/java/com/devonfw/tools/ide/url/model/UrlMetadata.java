@@ -1,12 +1,15 @@
 package com.devonfw.tools.ide.url.model;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
+import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -50,6 +53,25 @@ public class UrlMetadata {
     UrlTool urlTool = this.repository.getOrCreateChild(tool);
     UrlEdition urlEdition = urlTool.getOrCreateChild(edition);
     return urlEdition;
+  }
+
+  /**
+   * @param tool the name of the {@link UrlTool}.
+   * @return the sorted {@link List} of {@link String editions} .
+   */
+  public List<String> getSortedEditions(String tool) {
+
+    List<String> list = new ArrayList<>();
+    try {
+      for (UrlEdition urlEdition : this.repository.getChild(tool).getChildren()) {
+        list.add(urlEdition.getName());
+      }
+    } catch (NullPointerException e) {
+      this.context.warning("Can't get sorted editions for tool {} because it does not exist in {}.", tool,
+          this.repository.getPath());
+    }
+    Collections.sort(list);
+    return Collections.unmodifiableList(list);
   }
 
   /**
