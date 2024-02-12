@@ -62,23 +62,17 @@ public class UrlMetadata {
   public List<String> getSortedEditions(String tool) {
 
     List<String> list = new ArrayList<>();
-    Path path;
     try {
-      path = this.repository.getChild(tool).getPath();
+      for (UrlEdition urlEdition : this.repository.getChild(tool).getChildren()) {
+        list.add(urlEdition.getName());
+      }
+      Collections.sort(list);
+      return Collections.unmodifiableList(list);
     } catch (NullPointerException e) {
       this.context.warning("Can't get sorted editions for tool {} because it does not exist in {}.", tool,
           this.repository.getPath());
       return List.of();
     }
-    if (Files.isDirectory(path)) {
-      try (Stream<Path> childStream = Files.list(path)) {
-        childStream.forEach(c -> list.add(c.getFileName().toString()));
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to list children of directory " + path, e);
-      }
-    }
-    Collections.sort(list);
-    return Collections.unmodifiableList(list);
   }
 
   /**

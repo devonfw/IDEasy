@@ -456,14 +456,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void setEdition(String edition) {
 
-    if ((edition == null) || edition.isBlank()) {
-      throw new IllegalStateException("Edition has to be specified!");
-    }
-
-    if (!Files.exists(this.context.getUrls().getEdition(getName(), edition).getPath())) {
-      this.context.warning("Edition {} seems to be invalid", edition);
-
-    }
     setEdition(edition, true);
   }
 
@@ -475,6 +467,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void setEdition(String edition, boolean hint) {
 
+    if ((edition == null) || edition.isBlank()) {
+      throw new IllegalStateException("Edition has to be specified!");
+    }
+
+    if (!Files.exists(this.context.getUrls().getEdition(getName(), edition).getPath())) {
+      this.context.warning("Edition {} seems to be invalid", edition);
+
+    }
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
     String name = EnvironmentVariables.getToolEditionVariable(this.tool);
