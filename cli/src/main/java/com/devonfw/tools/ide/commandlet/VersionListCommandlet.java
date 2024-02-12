@@ -7,7 +7,7 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 /**
  * An internal {@link Commandlet} to list versions for a tool.
  *
- * @see ToolCommandlet#listVersions())
+ * @see ToolCommandlet#listVersions()
  */
 public class VersionListCommandlet extends Commandlet {
 
