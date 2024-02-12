@@ -5,6 +5,7 @@ import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,7 +14,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
-import java.nio.file.attribute.FileTime;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -613,7 +613,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     ProcessContext pc = newProcess().directory(target).executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0");
     if (Files.isDirectory(target.resolve(".git"))) {
-      ProcessResult result = pc.addArg("remote").run(true);
+      ProcessResult result = pc.addArg("remote").run(true, false);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
         String message = "This is a local git repo with no remote - if you did this for testing, you may continue...\n"
@@ -621,7 +621,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         askToContinue(message);
       } else {
         pc.errorHandling(ProcessErrorHandling.WARNING);
-        result = pc.addArg("pull").run(false);
+        result = pc.addArg("pull").run(false, false);
         if (!result.isSuccessful()) {
           String message = "Failed to update git repository at " + target;
           if (this.offlineMode) {

@@ -97,7 +97,12 @@ public final class ProcessContextImpl implements ProcessContext {
   }
 
   @Override
-  public ProcessResult run(boolean capture) {
+  public ProcessResult run(boolean capture, boolean isBackgroundProcess) {
+
+    if (isBackgroundProcess) {
+      this.context
+          .warning("TODO https://github.com/devonfw/IDEasy/issues/9 Implement background process functionality");
+    }
 
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");

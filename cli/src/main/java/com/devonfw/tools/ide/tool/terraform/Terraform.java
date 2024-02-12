@@ -26,6 +26,6 @@ public class Terraform extends LocalToolCommandlet {
   protected void postInstall() {
 
     super.postInstall();
-    runTool(null, "-install-autocomplete");
+    runTool(false, null, "-install-autocomplete");
   }
 }

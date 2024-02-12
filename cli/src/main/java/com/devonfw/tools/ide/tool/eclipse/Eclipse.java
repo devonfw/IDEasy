@@ -81,7 +81,7 @@ public class Eclipse extends IdeToolCommandlet {
     Path javaPath = getCommandlet(Java.class).getToolBinPath();
     pc.addArg("-vm").addArg(javaPath);
     pc.addArgs(args);
-    return pc.run(log);
+    return pc.run(log, false);
   }
 
   @Override
