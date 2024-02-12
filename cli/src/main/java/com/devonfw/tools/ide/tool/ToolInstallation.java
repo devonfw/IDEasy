@@ -13,7 +13,9 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * @param binDir the {@link Path} relative to {@code linkDir} pointing to the directory containing the binaries that
  *        should be put on the path (typically "bin").
  * @param resolvedVersion the {@link VersionIdentifier} of the resolved tool version installed in {@code rootDir}.
+ * @param newInstallation {@code true} - if the tool should be installed newly, {@code true} - else
  */
-public record ToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier resolvedVersion) {
+public record ToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier resolvedVersion,
+    boolean newInstallation) {
 
 }
