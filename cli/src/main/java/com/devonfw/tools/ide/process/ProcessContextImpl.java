@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -111,9 +112,8 @@ public final class ProcessContextImpl implements ProcessContext {
     // pragmatic solution to avoid copying lists/arrays
     this.arguments.add(0, executableName);
 
-    checkAndHandlePossibleBashScript(executableName);
+    boolean isBashScript = checkAndHandlePossibleBashScript(executableName);
 
-    this.processBuilder.command(this.arguments);
     if (this.context.debug().isEnabled()) {
       String message = createCommandMessage(" ...");
       this.context.debug(message);
@@ -124,9 +124,10 @@ public final class ProcessContextImpl implements ProcessContext {
       if (capture) {
         this.processBuilder.redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
       } else if (isBackgroundProcess) {
-        // TODO ASK if correct
-        this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
+        modifyArgumentsOnBackgroundProcess(isBashScript);
       }
+
+      this.processBuilder.command(this.arguments);
 
       Process process = this.processBuilder.start();
 
@@ -271,7 +272,7 @@ public final class ProcessContextImpl implements ProcessContext {
     }
   }
 
-  private void checkAndHandlePossibleBashScript(String executableName) {
+  private boolean checkAndHandlePossibleBashScript(String executableName) {
 
     String fileExtension = FilenameUtil.getExtension(executableName);
     boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(this.executable);
@@ -285,7 +286,7 @@ public final class ProcessContextImpl implements ProcessContext {
       }
       this.arguments.add(0, bash);
     }
-
+    return isBashScript;
   }
 
   private void performLogOnError(ProcessResult result, int exitCode) {
@@ -305,6 +306,25 @@ public final class ProcessContextImpl implements ProcessContext {
         level.log("Internal error: Undefined error handling {}", this.errorHandling);
       }
       level.log(message);
+    }
+  }
+
+  private void modifyArgumentsOnBackgroundProcess(boolean isBashScript) {
+
+    if (context.getSystemInfo().isWindows() && !isBashScript) {
+
+      this.context.warning(
+          "Currently starting the process as background process in windows will result in lost standard output!");
+
+      this.processBuilder.redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
+      List<String> windowsArgs = List.of("cmd.exe", "/c", "start", "cmd.exe", "/k", "start", "/b");
+      List<String> newArgs = Stream.concat(windowsArgs.stream(), this.arguments.stream()).toList();
+      this.arguments.clear();
+      this.arguments.addAll(newArgs);
+
+    } else {
+      // just assume unix system for know
+      this.arguments.add("&");
     }
   }
 

@@ -1,9 +1,6 @@
 package com.devonfw.tools.ide.process;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -83,7 +80,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
     String actualMessage = exception.getMessage();
 
-    assertEquals(actualMessage, expectedMessage);
+    assertThat(actualMessage).isEqualTo(expectedMessage);
   }
 
   @Test
@@ -105,7 +102,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
     String actualMessage = exception.getMessage();
 
-    assertEquals(actualMessage, expectedMessage);
+    assertThat(actualMessage).isEqualTo(expectedMessage);
   }
 
   @Test
@@ -119,7 +116,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     ProcessResult result = underTest.run(false, false);
 
     // assert
-    assertTrue(result.isSuccessful());
+    assertThat(result.isSuccessful()).isTrue();
 
   }
 
@@ -148,8 +145,8 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
       verify(mockProcessBuilder)
           .redirectError((ProcessBuilder.Redirect) argThat(arg -> arg.equals(ProcessBuilder.Redirect.PIPE)));
 
-      assertEquals(outputText, result.getOut().get(0));
-      assertEquals(errorText, result.getErr().get(0));
+      assertThat(outputText).isEqualTo(result.getOut().get(0));
+      assertThat(errorText).isEqualTo(result.getErr().get(0));
     }
   }
 
@@ -164,15 +161,15 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
     // assert
     verify(mockProcessBuilder)
-        .redirectOutput((ProcessBuilder.Redirect) argThat(arg -> arg.equals(ProcessBuilder.Redirect.DISCARD)));
+        .redirectOutput((ProcessBuilder.Redirect) argThat(arg -> arg.equals(ProcessBuilder.Redirect.PIPE)));
 
     verify(mockProcessBuilder)
-        .redirectError((ProcessBuilder.Redirect) argThat(arg -> arg.equals(ProcessBuilder.Redirect.DISCARD)));
+        .redirectError((ProcessBuilder.Redirect) argThat(arg -> arg.equals(ProcessBuilder.Redirect.PIPE)));
 
     verify(processMock, never()).waitFor();
 
-    assertNull(result.getOut());
-    assertNull(result.getErr());
+    assertThat(result.getOut()).isNull();
+    assertThat(result.getErr()).isNull();
 
   }
 
