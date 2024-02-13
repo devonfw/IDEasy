@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -101,7 +101,7 @@ public final class ProcessContextImpl implements ProcessContext {
 
     if (capture && isBackgroundProcess) {
       throw new IllegalStateException(
-          "It is not possible for the main process to capture the streams of the subprocess (background process) !");
+          "It is not possible for the main process to capture the streams of the subprocess (in a background process) !");
     }
 
     if (this.executable == null) {
@@ -313,12 +313,20 @@ public final class ProcessContextImpl implements ProcessContext {
     if (context.getSystemInfo().isWindows() && !isBashScript) {
 
       this.context.warning(
-          "Currently starting the process as background process in windows will result in lost standard output!");
+          "Currently starting the process as background process in windows will use 'more' command to redirect output to a new cmd window!");
 
       this.processBuilder.redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
-      List<String> windowsArgs = List.of("cmd.exe", "/c", "start", "cmd.exe", "/k", "start", "/b");
-      List<String> newArgs = Stream.concat(windowsArgs.stream(), this.arguments.stream()).toList();
+      List<String> windowsArgs = List.of("cmd.exe", "/c", "start", "cmd.exe", "/k");
+
+      String currentCommandToRunInCmd = this.arguments.stream().map(Object::toString).collect(Collectors.joining(" "));
+      currentCommandToRunInCmd += " | more";
+
       this.arguments.clear();
+
+      List<String> newArgs = new ArrayList<>();
+      newArgs.addAll(windowsArgs);
+      newArgs.add(currentCommandToRunInCmd);
+
       this.arguments.addAll(newArgs);
 
     } else {
