@@ -65,19 +65,12 @@ public enum VersionComparisonResult {
    */
   public int asValue() {
 
-    switch (this) {
-      case LESS:
-      case LESS_UNSAFE:
-        return -1;
-      case EQUAL:
-      case EQUAL_UNSAFE:
-        return 0;
-      case GREATER:
-      case GREATER_UNSAFE:
-        return 1;
-      default:
-        throw new IllegalStateException(toString());
-    }
+    return switch (this) {
+      case LESS, LESS_UNSAFE -> -1;
+      case EQUAL, EQUAL_UNSAFE -> 0;
+      case GREATER, GREATER_UNSAFE -> 1;
+      default -> throw new IllegalStateException(toString());
+    };
   }
 
   /**

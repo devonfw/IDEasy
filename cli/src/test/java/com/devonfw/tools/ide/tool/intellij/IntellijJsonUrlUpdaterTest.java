@@ -9,7 +9,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -44,7 +43,7 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
 
     // given
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Paths.get(TEST_DATA_ROOT).resolve("intellij-version.json")))));
+        .withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("intellij-version.json")))));
 
     stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
@@ -76,7 +75,7 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
 
     // given
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Paths.get(TEST_DATA_ROOT).resolve("intellij-version.json")))));
+        .withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("intellij-version.json")))));
 
     stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(404)));
 
@@ -105,7 +104,7 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
 
     // given
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Paths.get(TEST_DATA_ROOT).resolve("intellij-version-withoutchecksum.json")))));
+        .withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("intellij-version-withoutchecksum.json")))));
 
     stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
