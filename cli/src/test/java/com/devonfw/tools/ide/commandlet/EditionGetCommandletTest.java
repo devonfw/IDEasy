@@ -1,14 +1,14 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.cli.CliException;
+import java.nio.file.Path;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
-import java.util.List;
 
 /** Integration test of {@link EditionGetCommandlet}. */
 

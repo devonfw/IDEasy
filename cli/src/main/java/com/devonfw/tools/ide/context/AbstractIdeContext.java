@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.attribute.FileTime;
 import java.time.Duration;
 import java.util.HashMap;
@@ -141,7 +140,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.fileAccess = new FileAccessImpl(this);
     String workspace = WORKSPACE_MAIN;
     if (userDir == null) {
-      this.cwd = Paths.get(System.getProperty("user.dir"));
+      this.cwd = Path.of(System.getProperty("user.dir"));
     } else {
       this.cwd = userDir.toAbsolutePath();
     }
@@ -184,7 +183,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         root = System.getenv("IDE_ROOT");
       }
       if (root != null) {
-        Path rootPath = Paths.get(root);
+        Path rootPath = Path.of(root);
         if (Files.isDirectory(rootPath)) {
           if (!ideRootPath.equals(rootPath)) {
             warning("Variable IDE_ROOT is set to '{}' but for your project '{}' would have been expected.");
@@ -224,12 +223,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (isTest()) {
       // only for testing...
       if (this.ideHome == null) {
-        this.userHome = Paths.get("/non-existing-user-home-for-testing");
+        this.userHome = Path.of("/non-existing-user-home-for-testing");
       } else {
         this.userHome = this.ideHome.resolve("home");
       }
     } else {
-      this.userHome = Paths.get(System.getProperty("user.home"));
+      this.userHome = Path.of(System.getProperty("user.home"));
     }
     this.userHomeIde = this.userHome.resolve(".ide");
     this.downloadPath = this.userHome.resolve("Downloads/ide");
@@ -663,8 +662,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * Checks if the Git repository in the specified target folder needs an update by
-   * inspecting the modification time of a magic file.
+   * Checks if the Git repository in the specified target folder needs an update by inspecting the modification time of
+   * a magic file.
    *
    * @param urlsPath The Path to the Urls repository.
    * @param repoUrl The git remote URL of the Urls repository.
@@ -700,7 +699,6 @@ public abstract class AbstractIdeContext implements IdeContext {
       gitPullOrClone(urlsPath, repoUrl);
     }
   }
-
 
   @Override
   public IdeSubLogger level(IdeLogLevel level) {
@@ -814,8 +812,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
-   *        {@link Commandlet#run() run}.
+   * @param cmd the potential {@link Commandlet} to
+   *        {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run()
+   *        run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
    *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */

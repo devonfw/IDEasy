@@ -6,8 +6,6 @@ import java.io.OutputStreamWriter;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.environment.SortedProperties;
-
 /**
  * Test of {@link SortedProperties}.
  */
