@@ -49,13 +49,14 @@ public class Jmc extends LocalToolCommandlet {
       Path toolPath = getToolPath();
       Path oldBinaryPath = toolPath.resolve("JDK Mission Control");
       FileAccess fileAccess = context.getFileAccess();
-      moveFilesAndDirs(toolPath.toFile(), oldBinaryPath.toFile());
+
+      moveFilesAndDirs(oldBinaryPath.toFile(), toolPath.toFile());
       fileAccess.delete(oldBinaryPath);
     }
 
   }
 
-  private void moveFilesAndDirs(File toolPathDir, File oldBinaryDir) {
+  private void moveFilesAndDirs(File oldBinaryDir, File toolPathDir) {
 
     FileAccess fileAccess = context.getFileAccess();
     for (File fileOrDir : oldBinaryDir.listFiles()) {

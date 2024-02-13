@@ -20,8 +20,6 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public abstract class LocalToolCommandlet extends ToolCommandlet {
 
-  private boolean doInstallationFlag = false;
-
   /**
    * The constructor.
    *
@@ -69,7 +67,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
-    if (resolvedVersion.equals(installedVersion) && !doInstallationFlag) {
+    if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
       IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
       this.context.level(level).log("Version {} of tool {} is already installed", installedVersion,
           getToolWithEdition());
@@ -159,13 +157,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to write version file " + toolVersionFile, e);
     }
-    // this flag results in above conditions to be true if isForceMode is true or if the tool version file is missing
-    doInstallationFlag = true;
-    return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
+    // newInstallation results in above conditions to be true if isForceMode is true or if the tool version file was
+    // missing
+    return createToolInstallation(toolPath, resolvedVersion, toolVersionFile, true);
   }
 
-  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion,
-      Path toolVersionFile) {
+  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile,
+      boolean newInstallation) {
 
     Path linkDir = getMacOsHelper().findLinkDir(rootDir);
     Path binDir = linkDir;
@@ -177,7 +175,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       assert (!linkDir.equals(rootDir));
       this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
     }
-    return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion);
+    return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion, newInstallation);
+  }
+
+  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion,
+      Path toolVersionFile) {
+
+    return createToolInstallation(rootDir, resolvedVersion, toolVersionFile, false);
   }
 
 }

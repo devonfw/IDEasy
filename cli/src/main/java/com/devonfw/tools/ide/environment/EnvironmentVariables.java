@@ -226,4 +226,13 @@ public interface EnvironmentVariables {
     return tool.toUpperCase(Locale.ROOT) + "_VERSION";
   }
 
+  /**
+   * @param tool the name of the tool.
+   * @return the name of the edition variable.
+   */
+  static String getToolEditionVariable(String tool) {
+
+    return tool.toUpperCase(Locale.ROOT) + "_EDITION";
+  }
+
 }

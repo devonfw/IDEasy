@@ -1,42 +1,47 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.property.EditionProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
- * An internal {@link Commandlet} to list versions for a tool.
- *
- * @see ToolCommandlet#listVersions())
+ * An internal {@link Commandlet} to set a tool edition.
  */
-public class VersionListCommandlet extends Commandlet {
+public class EditionSetCommandlet extends Commandlet {
 
-  /** The tool to list the versions of. */
+  /** The tool to set the edition of. */
   public final ToolProperty tool;
+
+  /** The edition to set. */
+  public final EditionProperty edition;
 
   /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
    */
-  public VersionListCommandlet(IdeContext context) {
+  public EditionSetCommandlet(IdeContext context) {
 
     super(context);
     addKeyword(getName());
     this.tool = add(new ToolProperty("", true, "tool"));
+    this.edition = add(new EditionProperty("", true, "edition"));
   }
 
   @Override
   public String getName() {
 
-    return "list-versions";
+    return "set-edition";
   }
 
   @Override
   public void run() {
 
     ToolCommandlet commandlet = this.tool.getValue();
-    commandlet.listVersions();
+    String edition = this.edition.getValue();
+
+    commandlet.setEdition(edition);
   }
 
 }

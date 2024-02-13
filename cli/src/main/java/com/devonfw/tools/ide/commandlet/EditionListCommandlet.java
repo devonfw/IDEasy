@@ -5,13 +5,13 @@ import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
- * An internal {@link Commandlet} to list versions for a tool.
+ * An internal {@link Commandlet} to list editions for a tool.
  *
- * @see ToolCommandlet#listVersions())
+ * @see ToolCommandlet#listEditions()
  */
-public class VersionListCommandlet extends Commandlet {
+public class EditionListCommandlet extends Commandlet {
 
-  /** The tool to list the versions of. */
+  /** The tool to list the editions of. */
   public final ToolProperty tool;
 
   /**
@@ -19,7 +19,7 @@ public class VersionListCommandlet extends Commandlet {
    *
    * @param context the {@link IdeContext}.
    */
-  public VersionListCommandlet(IdeContext context) {
+  public EditionListCommandlet(IdeContext context) {
 
     super(context);
     addKeyword(getName());
@@ -29,14 +29,14 @@ public class VersionListCommandlet extends Commandlet {
   @Override
   public String getName() {
 
-    return "list-versions";
+    return "list-editions";
   }
 
   @Override
   public void run() {
 
     ToolCommandlet commandlet = this.tool.getValue();
-    commandlet.listVersions();
+    commandlet.listEditions();
   }
 
 }
