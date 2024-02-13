@@ -1,8 +1,11 @@
 package com.devonfw.tools.ide.tool.jmc;
 
-import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -45,22 +48,31 @@ public class Jmc extends LocalToolCommandlet {
 
     super.postInstall();
 
-    if (context.getSystemInfo().isWindows() || context.getSystemInfo().isLinux()) {
+    if (this.context.getSystemInfo().isWindows() || this.context.getSystemInfo().isLinux()) {
       Path toolPath = getToolPath();
       Path oldBinaryPath = toolPath.resolve("JDK Mission Control");
-      FileAccess fileAccess = context.getFileAccess();
-
-      moveFilesAndDirs(oldBinaryPath.toFile(), toolPath.toFile());
-      fileAccess.delete(oldBinaryPath);
+      if (Files.isDirectory(oldBinaryPath)) {
+        FileAccess fileAccess = this.context.getFileAccess();
+        moveFilesAndDirs(oldBinaryPath, toolPath);
+        fileAccess.delete(oldBinaryPath);
+      } else {
+        this.context.info("JMC binary folder not found at {} - ignoring as this legacy problem may be resolved in newer versions.", oldBinaryPath);
+      }
     }
 
   }
 
-  private void moveFilesAndDirs(File oldBinaryDir, File toolPathDir) {
+  private void moveFilesAndDirs(Path sourceFolder, Path targetFolder) {
 
-    FileAccess fileAccess = context.getFileAccess();
-    for (File fileOrDir : oldBinaryDir.listFiles()) {
-      fileAccess.move(fileOrDir.toPath(), new File(toolPathDir, fileOrDir.getName()).toPath());
+    FileAccess fileAccess = this.context.getFileAccess();
+    try (Stream<Path> childStream = Files.list(sourceFolder)) {
+      Iterator<Path> iterator = childStream.iterator();
+      while (iterator.hasNext()) {
+        Path child = iterator.next();
+        fileAccess.move(child, targetFolder.resolve(child.getFileName()));
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to list files to move in " + sourceFolder, e);
     }
   }
 
