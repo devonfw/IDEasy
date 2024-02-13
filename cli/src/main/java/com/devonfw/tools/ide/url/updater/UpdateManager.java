@@ -44,6 +44,7 @@ import com.devonfw.tools.ide.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.tool.vscode.VsCodeUrlUpdater;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.tool.jasypt.JasyptUrlUpdater;
 
 /**
  * The {@code UpdateManager} class manages the update process for various tools by using a list of
@@ -65,7 +66,8 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(),
       new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(),
       new PipUrlUpdater(), new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(),
-      new SonarUrlUpdater(), new TerraformUrlUpdater(), new TomcatUrlUpdater(), new VsCodeUrlUpdater());
+      new SonarUrlUpdater(), new TerraformUrlUpdater(), new TomcatUrlUpdater(), new VsCodeUrlUpdater(),
+      new JasyptUrlUpdater());
 
   /**
    * The constructor.
