@@ -1,8 +1,12 @@
 package com.devonfw.tools.ide.util;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
+import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -24,9 +28,13 @@ public class GitUtils {
 
   private final String branchName;
 
+  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);
+
   /**
    * @param context the {@link IdeContext context}.
-   * @param targetRepository the target repository Path.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
+   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the
+   *        final folder that will contain the ".git" subfolder.
    * @param remoteName the remote server name.
    * @param branchName the name of the branch.
    */
@@ -40,12 +48,59 @@ public class GitUtils {
   }
 
   /**
+   * Checks if the Git repository in the specified target folder needs an update by inspecting the modification time of
+   * a magic file.
+   *
+   * @param repoUrl the git remote URL to clone from. May be suffixed with a hash-sign ('#') followed by the branch name
+   *        to check-out.
+   * @param force boolean true enforces a git hard reset and cleanup of added files.
+   */
+  public void gitPullOrCloneIfNeeded(String repoUrl, boolean force) {
+
+    Path gitDirectory = this.targetRepository.resolve(".git");
+
+    // Check if the .git directory exists
+    if (Files.isDirectory(gitDirectory)) {
+      Path magicFilePath = gitDirectory.resolve("HEAD");
+      long currentTime = System.currentTimeMillis();
+      // Get the modification time of the magic file
+      long fileMTime;
+      try {
+        fileMTime = Files.getLastModifiedTime(magicFilePath).toMillis();
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not read " + magicFilePath, e);
+      }
+
+      // Check if the file modification time is older than the delta threshold
+      if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || force) {
+        runGitPullOrClone(force, repoUrl);
+        try {
+          Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
+        } catch (IOException e) {
+          throw new IllegalStateException("Could not read or write in " + magicFilePath, e);
+        }
+      }
+    } else {
+      // If the .git directory does not exist, perform git clone
+      runGitPullOrClone(force, repoUrl);
+    }
+  }
+
+  /**
    * Runs a git pull or a git clone.
    *
    * @param force boolean true enforces a git hard reset and cleanup of added files.
-   * @param gitRepoUrl String of repository URL.
+   * @param gitRepoUrl the git remote URL to clone from. May be suffixed with a hash-sign ('#') followed by the branch
+   *        name to check-out.
    */
   public void runGitPullOrClone(boolean force, String gitRepoUrl) {
+
+    Objects.requireNonNull(this.targetRepository);
+    Objects.requireNonNull(gitRepoUrl);
+
+    if (!gitRepoUrl.startsWith("http")) {
+      throw new IllegalArgumentException("Invalid git URL '" + gitRepoUrl + "'!");
+    }
 
     initializeProcessContext();
     if (Files.isDirectory(this.targetRepository.resolve(".git"))) {

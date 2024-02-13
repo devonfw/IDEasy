@@ -5,8 +5,6 @@ import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.attribute.FileTime;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -122,8 +120,6 @@ public abstract class AbstractIdeContext implements IdeContext {
   private Locale locale;
 
   private UrlMetadata urlMetadata;
-
-  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);
 
   /**
    * The constructor.
@@ -497,7 +493,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        gitPullOrCloneIfNeeded(this.urlsPath, IDE_URLS_GIT, true);
+        GitUtils gitUtils = new GitUtils(this, this.urlsPath, "origin", "master");
+        gitUtils.gitPullOrCloneIfNeeded(IDE_URLS_GIT, true);
       }
       this.urlMetadata = new UrlMetadata(this);
     }
@@ -600,57 +597,6 @@ public abstract class AbstractIdeContext implements IdeContext {
   public ProcessContext newProcess() {
 
     return new ProcessContextImpl(this);
-  }
-
-  @Override
-  public void gitPullOrClone(Path target, String gitRepoUrl, boolean force) {
-
-    Objects.requireNonNull(target);
-    Objects.requireNonNull(gitRepoUrl);
-    if (!gitRepoUrl.startsWith("http")) {
-      throw new IllegalArgumentException("Invalid git URL '" + gitRepoUrl + "'!");
-    }
-    GitUtils gitUtils = new GitUtils(this, target, "origin", "master");
-    gitUtils.runGitPullOrClone(force, gitRepoUrl);
-  }
-
-  /**
-   * Checks if the Git repository in the specified target folder needs an update by inspecting the modification time of
-   * a magic file.
-   *
-   * @param urlsPath The Path to the Urls repository.
-   * @param repoUrl The git remote URL of the Urls repository.
-   * @param force boolean true enforces a git hard reset and cleanup of added files.
-   */
-  private void gitPullOrCloneIfNeeded(Path urlsPath, String repoUrl, boolean force) {
-
-    Path gitDirectory = urlsPath.resolve(".git");
-
-    // Check if the .git directory exists
-    if (Files.isDirectory(gitDirectory)) {
-      Path magicFilePath = gitDirectory.resolve("HEAD");
-      long currentTime = System.currentTimeMillis();
-      // Get the modification time of the magic file
-      long fileMTime;
-      try {
-        fileMTime = Files.getLastModifiedTime(magicFilePath).toMillis();
-      } catch (IOException e) {
-        throw new IllegalStateException("Could not read " + magicFilePath, e);
-      }
-
-      // Check if the file modification time is older than the delta threshold
-      if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || isForceMode()) {
-        gitPullOrClone(urlsPath, repoUrl, force);
-        try {
-          Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
-        } catch (IOException e) {
-          throw new IllegalStateException("Could not read or write in " + magicFilePath, e);
-        }
-      }
-    } else {
-      // If the .git directory does not exist, perform git clone
-      gitPullOrClone(urlsPath, repoUrl, force);
-    }
   }
 
   @Override
