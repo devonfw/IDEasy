@@ -28,6 +28,13 @@ public final class FilenameUtil {
       lastSlash = 0;
     }
     int lastDot = path.lastIndexOf('.');
+
+    // workaround for sourceforge urls ending with /download like
+    // https://sourceforge.net/projects/gcviewer/files/gcviewer-1.36.jar/download
+    if (path.startsWith("https://") && path.contains("sourceforge") && path.endsWith("download")) {
+      return path.substring(lastDot + 1, lastSlash);
+    }
+
     if (lastDot < lastSlash) {
       return null;
     }

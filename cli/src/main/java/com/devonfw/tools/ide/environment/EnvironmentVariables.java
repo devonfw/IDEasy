@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.environment;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Locale;
 
@@ -46,7 +45,7 @@ public interface EnvironmentVariables {
     if (value == null) {
       return null;
     }
-    return Paths.get(value);
+    return Path.of(value);
   }
 
   /**
@@ -224,6 +223,15 @@ public interface EnvironmentVariables {
   static String getToolVersionVariable(String tool) {
 
     return tool.toUpperCase(Locale.ROOT) + "_VERSION";
+  }
+
+  /**
+   * @param tool the name of the tool.
+   * @return the name of the edition variable.
+   */
+  static String getToolEditionVariable(String tool) {
+
+    return tool.toUpperCase(Locale.ROOT) + "_EDITION";
   }
 
 }
