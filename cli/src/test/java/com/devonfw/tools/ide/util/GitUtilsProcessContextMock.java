@@ -74,7 +74,7 @@ public class GitUtilsProcessContextMock implements ProcessContext {
   }
 
   @Override
-  public ProcessResult run(boolean capture) {
+  public ProcessResult run(boolean capture, boolean isBackgroundProcess) {
 
     Path gitFolderPath = this.directory.resolve(".git");
     // deletes a newly added folder

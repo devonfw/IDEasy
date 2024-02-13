@@ -50,7 +50,7 @@ public class GitUtils {
     initializeProcessContext();
     if (Files.isDirectory(this.targetRepository.resolve(".git"))) {
       // checks for remotes
-      ProcessResult result = this.processContext.addArg("remote").run(true);
+      ProcessResult result = this.processContext.addArg("remote").run(true, false);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
         String message = this.targetRepository
@@ -130,7 +130,7 @@ public class GitUtils {
         this.processContext.addArg("-q");
       }
       this.processContext.addArgs("--recursive", gitRepoUrl, "--config", "core.autocrlf=false", ".");
-      result = this.processContext.run(true);
+      result = this.processContext.run(true, false);
       if (!result.isSuccessful()) {
         this.context.warning("Git failed to clone {} into {}.", gitRepoUrl, this.targetRepository);
       }
@@ -151,7 +151,7 @@ public class GitUtils {
     initializeProcessContext();
     ProcessResult result;
     // pull from remote
-    result = this.processContext.addArg("--no-pager").addArg("pull").run(true);
+    result = this.processContext.addArg("--no-pager").addArg("pull").run(true, false);
 
     if (!result.isSuccessful()) {
       context.warning("Git pull for {}/{} failed for repository {}.", this.remoteName, this.branchName,
@@ -169,13 +169,14 @@ public class GitUtils {
     initializeProcessContext();
     ProcessResult result;
     // check for changed files
-    result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(true);
+    result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(true, false);
 
     if (!result.isSuccessful()) {
       // reset to origin/master
       context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", this.targetRepository,
           remoteName, branchName);
-      result = this.processContext.addArg("reset").addArg("--hard").addArg(remoteName + "/" + branchName).run(true);
+      result = this.processContext.addArg("reset").addArg("--hard").addArg(remoteName + "/" + branchName).run(true,
+          false);
 
       if (!result.isSuccessful()) {
         context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, this.targetRepository);
@@ -195,11 +196,11 @@ public class GitUtils {
     ProcessResult result;
     // check for untracked files
     result = this.processContext.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard")
-        .run(true);
+        .run(true, false);
 
     if (!result.getOut().isEmpty()) {
       // delete untracked files
-      result = this.processContext.addArg("clean").addArg("-df").run(true);
+      result = this.processContext.addArg("clean").addArg("-df").run(true, false);
 
       if (!result.isSuccessful()) {
         context.warning("Git failed to clean the repository {}.", this.targetRepository);
