@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.variable;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.function.Function;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -67,6 +66,6 @@ public class VariableDefinitionPath extends AbstractVariableDefinition<Path> {
   @Override
   public Path fromString(String value, IdeContext context) {
 
-    return Paths.get(value);
+    return Path.of(value);
   }
 }

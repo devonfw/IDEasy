@@ -1,15 +1,11 @@
 package com.devonfw.tools.ide.url.model;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -62,13 +58,13 @@ public class UrlMetadata {
   public List<String> getSortedEditions(String tool) {
 
     List<String> list = new ArrayList<>();
-    try {
-      for (UrlEdition urlEdition : this.repository.getChild(tool).getChildren()) {
+    UrlTool urlTool = this.repository.getChild(tool);
+    if (urlTool == null) {
+      this.context.warning("Can't get sorted editions for tool {} because it does not exist in {}.", tool, this.repository.getPath());
+    } else {
+      for (UrlEdition urlEdition : urlTool.getChildren()) {
         list.add(urlEdition.getName());
       }
-    } catch (NullPointerException e) {
-      this.context.warning("Can't get sorted editions for tool {} because it does not exist in {}.", tool,
-          this.repository.getPath());
     }
     Collections.sort(list);
     return Collections.unmodifiableList(list);
@@ -121,9 +117,8 @@ public class UrlMetadata {
         return vi;
       }
     }
-    throw new CliException("Could not find any version matching '" + version + "' for tool '" + tool
-        + "' - potentially there are " + versions.size() + " version(s) available in "
-        + getEdition(tool, edition).getPath() + " but none matched!");
+    throw new CliException("Could not find any version matching '" + version + "' for tool '" + tool + "' - potentially there are " + versions.size()
+        + " version(s) available in " + getEdition(tool, edition).getPath() + " but none matched!");
   }
 
   /**
@@ -138,8 +133,7 @@ public class UrlMetadata {
     VersionIdentifier resolvedVersion = getVersion(tool, edition, version);
     UrlVersion urlVersion = getEdition(tool, edition).getChild(resolvedVersion.toString());
     if (urlVersion == null) {
-      throw new IllegalArgumentException(
-          "Version " + version + " for tool " + tool + " does not exist in edition " + edition + ".");
+      throw new IllegalArgumentException("Version " + version + " for tool " + tool + " does not exist in edition " + edition + ".");
     }
     return urlVersion;
   }

@@ -29,7 +29,7 @@ public class AndroidJsonItem {
    */
   public List<AndroidJsonDownload> getDownload() {
 
-    return download;
+    return this.download;
   }
 
 }

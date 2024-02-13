@@ -8,7 +8,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
@@ -84,7 +83,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     // act
     updater.update(urlRepository);
-    Path versionsPath = Paths.get(testdataRoot).resolve("mocked").resolve("mocked").resolve("1.0");
+    Path versionsPath = Path.of(testdataRoot).resolve("mocked").resolve("mocked").resolve("1.0");
 
     // assert
     assertThat(versionsPath.resolve("windows_x64.urls")).doesNotExist();
@@ -100,7 +99,6 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
    * @param tempDir Temporary directory
-   * @throws IOException test fails
    */
   @Test
   public void testUrlUpdaterStatusJsonRefreshBugStillExisting(@TempDir Path tempDir) {
@@ -147,8 +145,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertThat(errorCode).isEqualTo(404);
     assertThat(errorTimestamp).isAfter(successTimestamp);
 
-    stubFor(
-        any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain")));
+    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain")));
 
     // re-initialize UrlRepository for error timestamp
     UrlRepository urlRepositoryWithSuccess = UrlRepository.load(tempDir);
@@ -181,8 +178,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   public void testUrlUpdaterWithTextContentTypeWillNotCreateStatusJson(@TempDir Path tempDir) {
 
     // given
-    stubFor(any(urlMatching("/os/.*"))
-        .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain").withBody("aBody")));
+    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain").withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle();

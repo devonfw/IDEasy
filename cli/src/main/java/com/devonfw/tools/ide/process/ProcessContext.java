@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.process;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Objects;
 
@@ -41,7 +40,7 @@ public interface ProcessContext {
    */
   default ProcessContext executable(String executable) {
 
-    return executable(Paths.get(executable));
+    return executable(Path.of(executable));
   }
 
   /**
@@ -144,10 +143,25 @@ public interface ProcessContext {
    * @param capture - {@code true} to capture standard {@link ProcessResult#getOut() out} and
    *        {@link ProcessResult#getErr() err} in the {@link ProcessResult}, {@code false} otherwise (to redirect out
    *        and err).
-   * @param isBackgroundProcess {@code true}, the process of the command will be run as background process,
-   *        {@code false} otherwise it will be run as foreground process.
    * @return the {@link ProcessResult}.
    */
-  ProcessResult run(boolean capture, boolean isBackgroundProcess);
+  default ProcessResult run(boolean capture) {
+
+    return run(capture, false);
+  }
+
+  /**
+   * Runs the previously configured {@link #executable(Path) command} with the configured {@link #addArgs(String...)
+   * arguments}. Will reset the {@link #addArgs(String...) arguments} but not the {@link #executable(Path) command} for
+   * sub-sequent calls.
+   *
+   * @param capture - {@code true} to capture standard {@link ProcessResult#getOut() out} and
+   *        {@link ProcessResult#getErr() err} in the {@link ProcessResult}, {@code false} otherwise (to redirect out
+   *        and err).
+   * @param runInBackground {@code true}, the process of the command will be run as background process, {@code false}
+   *        otherwise (it will be run as foreground process).
+   * @return the {@link ProcessResult}.
+   */
+  ProcessResult run(boolean capture, boolean runInBackground);
 
 }

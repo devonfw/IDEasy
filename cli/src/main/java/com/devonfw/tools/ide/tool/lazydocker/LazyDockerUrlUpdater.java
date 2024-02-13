@@ -8,9 +8,9 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link GithubUrlUpdater} for lazydocker.
  */
 public class LazyDockerUrlUpdater extends GithubUrlUpdater {
-  
+
   private static final VersionIdentifier MIN_WIN_VID = VersionIdentifier.of("0.7.4");
-  
+
   private static final VersionIdentifier MIN_ARM_VID = VersionIdentifier.of("0.15.0");
 
   @Override

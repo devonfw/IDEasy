@@ -7,7 +7,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,7 +25,7 @@ public class JmcTest extends AbstractIdeContextTest {
 
   private static WireMockServer server;
 
-  private static Path resourcePath = Paths.get("src/test/resources");
+  private static Path resourcePath = Path.of("src/test/resources");
 
   @BeforeAll
   static void setUp() throws IOException {
