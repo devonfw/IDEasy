@@ -17,7 +17,7 @@ public class NpmUrlUpdater extends WebsiteUrlUpdater {
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {
-    
+
     doAddVersion(urlVersion, "https://registry.npmjs.org/npm/-/npm-${version}.tgz");
 
   }

@@ -9,7 +9,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -37,7 +36,7 @@ public class PythonUrlUpdaterTest extends Assertions {
 
     // given
     stubFor(get(urlMatching("/actions/python-versions/main/.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Paths.get(testdataRoot).resolve("python-version.json")))));
+        .withBody(Files.readAllBytes(Path.of(testdataRoot).resolve("python-version.json")))));
 
     stubFor(any(urlMatching("/actions/python-versions/releases/download.*"))
         .willReturn(aResponse().withStatus(200).withBody("aBody")));

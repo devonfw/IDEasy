@@ -7,7 +7,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -26,7 +25,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
 
   private static WireMockServer server;
 
-  private static Path resourcePath = Paths.get("src/test/resources");
+  private static Path resourcePath = Path.of("src/test/resources");
 
   @BeforeAll
   static void setUp() throws IOException {
@@ -103,7 +102,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("java")).exists();
     assertThat(context.getSoftwarePath().resolve("java/InstallTest.txt")).hasContent("This is a test file.");
     assertThat(context.getSoftwarePath().resolve("java/bin/HelloWorld.txt")).hasContent("Hello World!");
-    if(context.getSystemInfo().isWindows()){
+    if (context.getSystemInfo().isWindows()) {
       assertThat(context.getSoftwarePath().resolve("java/bin/java.cmd")).exists();
     } else if (context.getSystemInfo().isLinux() || context.getSystemInfo().isMac()) {
       assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();

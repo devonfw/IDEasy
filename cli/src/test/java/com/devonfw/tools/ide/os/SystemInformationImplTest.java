@@ -3,11 +3,6 @@ package com.devonfw.tools.ide.os;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.os.OperatingSystem;
-import com.devonfw.tools.ide.os.SystemArchitecture;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
-
 /**
  * Test of {@link SystemInfoImpl}.
  */

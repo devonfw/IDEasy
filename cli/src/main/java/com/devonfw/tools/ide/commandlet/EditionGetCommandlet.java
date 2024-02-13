@@ -1,12 +1,9 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import static com.devonfw.tools.ide.process.ProcessResult.TOOL_NOT_INSTALLED;
 
 /**
  * An internal {@link Commandlet} to get the installed edition for a tool.

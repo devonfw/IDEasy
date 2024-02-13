@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.completion;
 
-import com.devonfw.tools.ide.version.VersionSegment;
-
 /**
  * Candidate for auto-completion.
  *
@@ -13,6 +11,6 @@ public record CompletionCandidate(String text, String description) implements Co
   @Override
   public int compareTo(CompletionCandidate o) {
 
-    return text.compareTo(o.text);
+    return this.text.compareTo(o.text);
   }
 }

@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Map;
 import java.util.Set;
@@ -12,30 +12,34 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 
+/**
+ * Test of {@link PluginBasedCommandlet}.
+ */
 public class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
   @Test
-   void testGetPluginsMap() {
+  void testGetPluginsMap() {
+
     IdeTestContext context = newContext(PROJECT_BASIC, "", true);
     String tool = "eclipse";
     Set<Tag> tags = null;
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, tool, tags);
 
     Map<String, PluginDescriptor> pluginsMap = pluginBasedCommandlet.getPluginsMap();
-    assertNotNull(pluginsMap);
+    assertThat(pluginsMap).isNotNull();
 
-    assertTrue(pluginsMap.containsKey("checkstyle"));
-    assertTrue(pluginsMap.containsKey("anyedit"));
+    assertThat(pluginsMap.containsKey("checkstyle")).isTrue();
+    assertThat(pluginsMap.containsKey("anyedit")).isTrue();
 
     PluginDescriptor plugin1 = pluginsMap.get("checkstyle");
     assertNotNull(plugin1);
-    assertEquals("checkstyle", plugin1.getName());
+    assertThat(plugin1.getName()).isEqualTo("checkstyle");
 
     PluginDescriptor plugin2 = pluginsMap.get("anyedit");
     assertNotNull(plugin2);
-    assertEquals("anyedit", plugin2.getName());
+    assertThat(plugin2.getName()).isEqualTo("anyedit");
 
     // Check if anyedit plugin has value "false" --> value from user directory
-    assertEquals(false, plugin2.isActive());
+    assertThat(plugin2.isActive()).isFalse();
   }
 }

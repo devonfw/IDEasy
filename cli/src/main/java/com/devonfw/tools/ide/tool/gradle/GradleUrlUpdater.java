@@ -47,13 +47,13 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    if (responseBody == null) {
-      responseBody = doGetResponseBodyAsString(HASH_VERSION_URL);
+    if (this.responseBody == null) {
+      this.responseBody = doGetResponseBodyAsString(HASH_VERSION_URL);
     }
 
     String hashSum = "";
-    if (responseBody != null && !responseBody.isEmpty()) {
-      hashSum = doGetHashSumForVersion(responseBody, urlVersion.getName());
+    if (this.responseBody != null && !this.responseBody.isEmpty()) {
+      hashSum = doGetHashSumForVersion(this.responseBody, urlVersion.getName());
     }
 
     if (hashSum.isEmpty()) {

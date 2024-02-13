@@ -55,7 +55,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    */
   public Map<String, IdeProgressBarTestImpl> getProgressBarMap() {
 
-    return progressBarMap;
+    return this.progressBarMap;
   }
 
   @Override

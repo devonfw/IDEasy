@@ -23,6 +23,7 @@ import java.util.logging.Logger;
 
 import org.jline.reader.Candidate;
 import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
 import org.jline.reader.impl.LineReaderImpl;
 import org.jline.terminal.Size;
 import org.jline.terminal.Terminal;
@@ -63,20 +64,24 @@ public abstract class AutocompletionReaderTestSupport extends AbstractIdeContext
     this.terminal = new DumbTerminal("terminal", "ansi", this.in, this.out, StandardCharsets.UTF_8);
     this.terminal.setSize(new Size(160, 80));
     this.reader = new TestLineReader(this.terminal, "JLine", null);
-    this.reader.setKeyMap(LineReaderImpl.EMACS);
+    this.reader.setKeyMap(LineReader.EMACS);
     this.mask = null;
   }
 
-  protected void assertBuffer(final String expected, final TestBuffer buffer) throws IOException {
+  protected void assertBuffer(final String expected, final TestBuffer buffer) {
 
     assertBuffer(expected, buffer, true);
   }
 
-  protected void assertBuffer(final String expected, final TestBuffer buffer, final boolean clear) throws IOException {
+  protected void assertBuffer(final String expected, final TestBuffer buffer, final boolean clear) {
 
     // clear current buffer, if any
     if (clear) {
-      this.reader.getHistory().purge();
+      try {
+        this.reader.getHistory().purge();
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to purge history.", e);
+      }
     }
     this.reader.list = false;
     this.reader.menu = false;

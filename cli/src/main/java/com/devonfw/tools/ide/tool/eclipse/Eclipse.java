@@ -5,7 +5,6 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
@@ -61,7 +60,7 @@ public class Eclipse extends IdeToolCommandlet {
    */
   protected ProcessResult runEclipse(boolean log, String... args) {
 
-    Path toolPath = Paths.get(getBinaryName());
+    Path toolPath = Path.of(getBinaryName());
     ProcessContext pc = this.context.newProcess();
     if (log) {
       pc.errorHandling(ProcessErrorHandling.ERROR);

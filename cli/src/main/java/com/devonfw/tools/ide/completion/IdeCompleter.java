@@ -1,32 +1,14 @@
 package com.devonfw.tools.ide.completion;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-import com.devonfw.tools.ide.cli.CliArguments;
-import com.devonfw.tools.ide.completion.CompletionCandidate;
-import com.devonfw.tools.ide.context.AbstractIdeContext;
 import org.jline.reader.Candidate;
 import org.jline.reader.Completer;
 import org.jline.reader.LineReader;
 import org.jline.reader.ParsedLine;
-import org.jline.reader.impl.completer.ArgumentCompleter;
-import org.jline.reader.impl.completer.NullCompleter;
-import org.jline.utils.AttributedString;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.commandlet.HelpCommandlet;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.Property;
-import com.devonfw.tools.ide.property.ToolProperty;
-import com.devonfw.tools.ide.property.VersionProperty;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 
 /**
  * Implements the {@link Completer} for jline3 autocompletion. Inspired by picocli

@@ -1,10 +1,5 @@
 package com.devonfw.tools.ide.os;
 
-import com.devonfw.tools.ide.os.OperatingSystem;
-import com.devonfw.tools.ide.os.SystemArchitecture;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
-
 /**
  * Mock instances of {@link SystemInfo} to test OS specific behavior independent of the current OS running the test.
  */

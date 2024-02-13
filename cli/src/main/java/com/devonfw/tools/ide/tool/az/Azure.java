@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.tool.az;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -35,6 +35,6 @@ public class Azure extends LocalToolCommandlet {
     EnvironmentVariables typeVariables = variables.getByType(EnvironmentVariablesType.CONF);
     typeVariables.set("AZURE_CONFIG_DIR", this.context.getConfPath().resolve(".azure").toString(), true);
     typeVariables.save();
-    this.context.getFileAccess().symlink(Paths.get("wbin"), getToolPath().resolve("bin"));
+    this.context.getFileAccess().symlink(Path.of("wbin"), getToolPath().resolve("bin"));
   }
 }

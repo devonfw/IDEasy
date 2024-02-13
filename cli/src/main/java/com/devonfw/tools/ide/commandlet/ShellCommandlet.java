@@ -17,12 +17,10 @@ import org.jline.widget.AutosuggestionWidgets;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.completion.IdeCompleter;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.BooleanProperty;
-import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 
@@ -166,8 +164,7 @@ public final class ShellCommandlet extends Commandlet {
             }
             currentProperty = valueIterator.next();
             this.context.trace("Next value candidate is {}", currentProperty);
-            if (currentProperty instanceof KeywordProperty) {
-              KeywordProperty keyword = (KeywordProperty) currentProperty;
+            if (currentProperty instanceof KeywordProperty keyword) {
               if (keyword.matches(arg)) {
                 keyword.setValue(Boolean.TRUE);
                 this.context.trace("Keyword matched");

@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Collections;
 import java.util.List;
 
 import com.devonfw.tools.ide.cli.CliArguments;

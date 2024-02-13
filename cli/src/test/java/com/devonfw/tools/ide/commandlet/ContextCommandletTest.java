@@ -4,7 +4,6 @@ import java.util.Locale;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContextConsole;
 

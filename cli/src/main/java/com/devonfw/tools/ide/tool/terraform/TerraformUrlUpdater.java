@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link GithubUrlUpdater} for terraform.
  */
 public class TerraformUrlUpdater extends GithubUrlUpdater {
-  
+
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.1.0");
 
   @Override

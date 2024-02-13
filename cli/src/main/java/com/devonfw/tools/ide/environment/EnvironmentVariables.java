@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.environment;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Locale;
 
@@ -46,7 +45,7 @@ public interface EnvironmentVariables {
     if (value == null) {
       return null;
     }
-    return Paths.get(value);
+    return Path.of(value);
   }
 
   /**

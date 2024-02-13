@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,7 +31,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   * method.
+   *        method.
    */
   public PluginBasedCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -59,6 +58,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   private void loadPluginsFromDirectory(Map<String, PluginDescriptor> map, Path pluginsPath) {
+
     if (Files.isDirectory(pluginsPath)) {
       try (Stream<Path> childStream = Files.list(pluginsPath)) {
         Iterator<Path> iterator = childStream.iterator();
@@ -86,6 +86,9 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     return false;
   }
 
+  /**
+   * @return the {@link Path} to the folder with the plugin configuration files inside the settings.
+   */
   protected Path getPluginsConfigPath() {
 
     return this.context.getSettingsPath().resolve(this.tool).resolve(IdeContext.FOLDER_PLUGINS);
@@ -93,9 +96,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private Path getUserHomePluginsConfigPath() {
 
-    return context.getUserHome().resolve(Paths.get(".ide", "settings", this.tool, IdeContext.FOLDER_PLUGINS));
+    return this.context.getUserHome().resolve(Path.of(".ide", "settings", this.tool, IdeContext.FOLDER_PLUGINS));
   }
-
 
   /**
    * @return the immutable {@link Collection} of {@link PluginDescriptor}s configured for this IDE tool.

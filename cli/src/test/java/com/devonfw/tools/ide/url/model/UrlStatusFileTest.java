@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.url.model;
 
-import java.nio.file.Paths;
+import java.nio.file.Path;
 import java.time.Instant;
 
 import org.assertj.core.api.Assertions;
@@ -27,7 +27,7 @@ public class UrlStatusFileTest extends Assertions {
   public void testReadJson() {
 
     // given
-    UrlRepository repo = UrlRepository.load(Paths.get("src/test/resources/urls"));
+    UrlRepository repo = UrlRepository.load(Path.of("src/test/resources/urls"));
     UrlTool tool = repo.getChild("docker");
     UrlEdition edition = tool.getChild("rancher");
     UrlVersion version = edition.getChild("1.6.2");
