@@ -323,8 +323,7 @@ public final class ProcessContextImpl implements ProcessContext {
 
       this.arguments.clear();
 
-      List<String> newArgs = new ArrayList<>();
-      newArgs.addAll(windowsArgs);
+      List<String> newArgs = new ArrayList<>(windowsArgs);
       newArgs.add(currentCommandToRunInCmd);
 
       this.arguments.addAll(newArgs);

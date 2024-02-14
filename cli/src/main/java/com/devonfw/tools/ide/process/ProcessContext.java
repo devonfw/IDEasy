@@ -158,8 +158,11 @@ public interface ProcessContext {
    * @param capture - {@code true} to capture standard {@link ProcessResult#getOut() out} and
    *        {@link ProcessResult#getErr() err} in the {@link ProcessResult}, {@code false} otherwise (to redirect out
    *        and err).
-   * @param runInBackground {@code true}, the process of the command will be run as background process, {@code false}
-   *        otherwise (it will be run as foreground process).
+   * @param runInBackground {@code true}, the process of the command will be run like an background process,
+   *        {@code false} otherwise (it will be run as foreground process). Technically the parent process will simply
+   *        not await its child process. In Unix systems the equivalent of appending an '&' is used. On Windows cmd is
+   *        used to start the process as externally and to capture the child process output. It is recommended to set
+   *        this option to {@code true} when a UI-Application is started, which may act dependent of its parent process.
    * @return the {@link ProcessResult}.
    */
   ProcessResult run(boolean capture, boolean runInBackground);
