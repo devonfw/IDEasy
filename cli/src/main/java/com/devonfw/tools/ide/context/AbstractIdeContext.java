@@ -45,7 +45,6 @@ import com.devonfw.tools.ide.repo.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
-import com.devonfw.tools.ide.util.GitUtils;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -493,8 +492,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        GitUtils gitUtils = new GitUtils(this, this.urlsPath, "origin", "master");
-        gitUtils.gitPullOrCloneIfNeeded(IDE_URLS_GIT, true);
+        this.getGitContext().gitPullOrCloneIfNeeded(IDE_URLS_GIT, this.urlsPath, "origin", "master", true);
       }
       this.urlMetadata = new UrlMetadata(this);
     }
@@ -591,6 +589,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   public DirectoryMerger getWorkspaceMerger() {
 
     return this.workspaceMerger;
+  }
+
+  @Override
+  public GitContext getGitContext() {
+
+    return new GitContextImpl(this);
   }
 
   @Override

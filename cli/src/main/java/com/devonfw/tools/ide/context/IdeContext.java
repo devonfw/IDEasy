@@ -383,4 +383,9 @@ public interface IdeContext extends IdeLogger {
    */
   DirectoryMerger getWorkspaceMerger();
 
+  /**
+   * @return the {@link GitContext} used to run several git commands.
+   */
+  GitContext getGitContext();
+
 }
