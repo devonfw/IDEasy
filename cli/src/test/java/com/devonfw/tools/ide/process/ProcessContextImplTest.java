@@ -71,7 +71,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   public void streamCapturingAndBackgroundProcessShouldThrowIllegalState() {
 
     // arrange
-    String expectedMessage = "It is not possible for the main process to capture the streams of the subprocess (background process) !";
+    String expectedMessage = "It is not possible for the main process to capture the streams of the subprocess (in a background process) !";
 
     // act & assert
     Exception exception = assertThrows(IllegalStateException.class, () -> {
