@@ -492,7 +492,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        this.getGitContext().gitPullOrCloneIfNeeded(IDE_URLS_GIT, this.urlsPath, "origin", "master", true);
+        this.getGitContext().pullOrCloneIfNeeded(IDE_URLS_GIT, this.urlsPath, "origin", "master", true);
       }
       this.urlMetadata = new UrlMetadata(this);
     }

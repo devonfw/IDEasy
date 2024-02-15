@@ -15,6 +15,9 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessResult;
 
+/**
+ * Implements the {@link GitContext}.
+ */
 public class GitContextImpl implements GitContext {
   private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);;
 
@@ -32,7 +35,7 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void gitPullOrCloneIfNeeded(String repoUrl, Path targetRepository, String remoteName, String branchName,
+  public void pullOrCloneIfNeeded(String repoUrl, Path targetRepository, String remoteName, String branchName,
       boolean force) {
 
     Path gitDirectory = targetRepository.resolve(".git");
@@ -51,7 +54,7 @@ public class GitContextImpl implements GitContext {
 
       // Check if the file modification time is older than the delta threshold
       if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || force) {
-        runGitPullOrClone(repoUrl, targetRepository, remoteName, branchName, force);
+        pullOrClone(repoUrl, targetRepository, remoteName, branchName, force);
         try {
           Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
         } catch (IOException e) {
@@ -60,12 +63,12 @@ public class GitContextImpl implements GitContext {
       }
     } else {
       // If the .git directory does not exist, perform git clone
-      runGitPullOrClone(repoUrl, targetRepository, remoteName, branchName, force);
+      pullOrClone(repoUrl, targetRepository, remoteName, branchName, force);
     }
   }
 
   @Override
-  public void runGitPullOrClone(String gitRepoUrl, Path targetRepository, String remoteName, String branchName,
+  public void pullOrClone(String gitRepoUrl, Path targetRepository, String remoteName, String branchName,
       boolean force) {
 
     Objects.requireNonNull(targetRepository);
@@ -89,29 +92,10 @@ public class GitContextImpl implements GitContext {
         this.processContext.errorHandling(ProcessErrorHandling.WARNING);
 
         if (!this.context.isOffline()) {
-          result = runGitPull(targetRepository, remoteName, branchName);
+          pull(targetRepository, remoteName, branchName);
           if (force) {
-            runGitReset(targetRepository, remoteName, branchName);
-            result = runGitCleanup(targetRepository);
-          }
-        }
-
-        if (!result.isSuccessful()) {
-          String message = "Failed to update git repository at " + targetRepository;
-          if (this.context.isOffline()) {
-            this.context.warning(message);
-            this.context.interaction("Continuing as we are in offline mode - results may be outdated!");
-          } else {
-            this.context.error(message);
-            if (this.context.isOnline()) {
-              this.context
-                  .error("See above error for details. If you have local changes, please stash or revert and retry.");
-            } else {
-              this.context.error(
-                  "It seems you are offline - please ensure Internet connectivity and retry or activate offline mode (-o or --offline).");
-            }
-            this.context
-                .askToContinue("Typically you should abort and fix the problem. Do you want to continue anyways?");
+            reset(targetRepository, remoteName, branchName);
+            cleanup(targetRepository);
           }
         }
       }
@@ -122,7 +106,7 @@ public class GitContextImpl implements GitContext {
         branch = gitRepoUrl.substring(hashIndex + 1);
         gitRepoUrl = gitRepoUrl.substring(0, hashIndex);
       }
-      runGitClone(gitRepoUrl, targetRepository);
+      clone(gitRepoUrl, targetRepository);
       if (!branch.isEmpty()) {
         this.processContext.addArgs("checkout", branch);
         this.processContext.run();
@@ -130,8 +114,43 @@ public class GitContextImpl implements GitContext {
     }
   }
 
-  @Override
-  public void initializeProcessContext(Path targetRepository) {
+  /**
+   * Handles errors which occurred during git pull.
+   *
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
+   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
+   *        final folder that will contain the ".git" subfolder.
+   * @param result the {@link ProcessResult} to evaluate.
+   */
+  private void handleErrors(Path targetRepository, ProcessResult result) {
+
+    if (!result.isSuccessful()) {
+      String message = "Failed to update git repository at " + targetRepository;
+      if (this.context.isOffline()) {
+        this.context.warning(message);
+        this.context.interaction("Continuing as we are in offline mode - results may be outdated!");
+      } else {
+        this.context.error(message);
+        if (this.context.isOnline()) {
+          this.context
+              .error("See above error for details. If you have local changes, please stash or revert and retry.");
+        } else {
+          this.context.error(
+              "It seems you are offline - please ensure Internet connectivity and retry or activate offline mode (-o or --offline).");
+        }
+        this.context.askToContinue("Typically you should abort and fix the problem. Do you want to continue anyways?");
+      }
+    }
+  }
+
+  /**
+   * Lazily initializes the {@link ProcessContext}.
+   *
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
+   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
+   *        final folder that will contain the ".git" subfolder.
+   */
+  private void initializeProcessContext(Path targetRepository) {
 
     if (this.processContext == null) {
       this.processContext = this.context.newProcess().directory(targetRepository).executable("git")
@@ -140,7 +159,7 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void runGitClone(String gitRepoUrl, Path targetRepository) {
+  public void clone(String gitRepoUrl, Path targetRepository) {
 
     initializeProcessContext(targetRepository);
     ProcessResult result;
@@ -162,7 +181,7 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public ProcessResult runGitPull(Path targetRepository, String remoteName, String branchName) {
+  public void pull(Path targetRepository, String remoteName, String branchName) {
 
     initializeProcessContext(targetRepository);
     ProcessResult result;
@@ -171,13 +190,12 @@ public class GitContextImpl implements GitContext {
 
     if (!result.isSuccessful()) {
       context.warning("Git pull for {}/{} failed for repository {}.", remoteName, branchName, targetRepository);
+      handleErrors(targetRepository, result);
     }
-
-    return result;
   }
 
   @Override
-  public void runGitReset(Path targetRepository, String remoteName, String branchName) {
+  public void reset(Path targetRepository, String remoteName, String branchName) {
 
     initializeProcessContext(targetRepository);
     ProcessResult result;
@@ -193,12 +211,13 @@ public class GitContextImpl implements GitContext {
 
       if (!result.isSuccessful()) {
         context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, targetRepository);
+        handleErrors(targetRepository, result);
       }
     }
   }
 
   @Override
-  public ProcessResult runGitCleanup(Path targetRepository) {
+  public void cleanup(Path targetRepository) {
 
     initializeProcessContext(targetRepository);
     ProcessResult result;
@@ -208,14 +227,13 @@ public class GitContextImpl implements GitContext {
 
     if (!result.getOut().isEmpty()) {
       // delete untracked files
+      context.warning("Git detected untracked files in {} and is attempting a cleanup.", targetRepository);
       result = this.processContext.addArg("clean").addArg("-df").run(true, false);
 
       if (!result.isSuccessful()) {
         context.warning("Git failed to clean the repository {}.", targetRepository);
       }
     }
-
-    return result;
   }
 
   @Override
