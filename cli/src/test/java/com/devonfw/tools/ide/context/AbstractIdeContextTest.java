@@ -14,7 +14,6 @@ import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
-import com.devonfw.tools.ide.util.GitUtilsTestContext;
 
 /**
  * Abstract base class for tests that need mocked instances of {@link IdeContext}.
@@ -78,11 +77,11 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param isOnline boolean if it should be run in online mode.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static GitUtilsTestContext newGitUtilsContext(Path projectPath, List<String> errors, List<String> outs,
+  protected static GitContextTestContext newGitContext(Path projectPath, List<String> errors, List<String> outs,
       int exitCode, boolean isOnline) {
 
-    GitUtilsTestContext context;
-    context = new GitUtilsTestContext(isOnline, projectPath);
+    GitContextTestContext context;
+    context = new GitContextTestContext(isOnline, projectPath);
     context.setErrors(errors);
     context.setOuts(outs);
     context.setExitCode(exitCode);

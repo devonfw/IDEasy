@@ -28,6 +28,12 @@ public class IdeTestContext extends AbstractIdeTestContext {
     return (IdeTestLogger) super.level(level);
   }
 
+  @Override
+  public GitContext getGitContext() {
+
+    return new GitContextMock();
+  }
+
   /**
    * @return a dummy {@link IdeTestContext}.
    */

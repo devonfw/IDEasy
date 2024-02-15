@@ -1,12 +1,10 @@
-package com.devonfw.tools.ide.util;
+package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.devonfw.tools.ide.context.AbstractIdeTestContext;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -14,7 +12,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 /**
  * Implementation of {@link IdeContext} for testing.
  */
-public class GitUtilsTestContext extends AbstractIdeTestContext {
+public class GitContextTestContext extends AbstractIdeTestContext {
 
   private List<String> errors;
 
@@ -33,7 +31,7 @@ public class GitUtilsTestContext extends AbstractIdeTestContext {
    * @param userDir the optional {@link Path} to current working directory.
    * @param answers the automatic answers simulating a user in test.
    */
-  public GitUtilsTestContext(boolean isOnline, Path userDir, String... answers) {
+  public GitContextTestContext(boolean isOnline, Path userDir, String... answers) {
 
     super(level -> new IdeTestLogger(level), userDir, answers);
     testOnlineMode = isOnline;
@@ -56,17 +54,17 @@ public class GitUtilsTestContext extends AbstractIdeTestContext {
   }
 
   /**
-   * @return a dummy {@link GitUtilsTestContext}.
+   * @return a dummy {@link GitContextTestContext}.
    */
-  public static GitUtilsTestContext of() {
+  public static GitContextTestContext of() {
 
-    return new GitUtilsTestContext(testOnlineMode, Paths.get("/"));
+    return new GitContextTestContext(testOnlineMode, Paths.get("/"));
   }
 
   @Override
   public ProcessContext newProcess() {
 
-    return new GitUtilsProcessContextMock(this.errors, this.outs, this.exitCode, this.directory);
+    return new GitContextProcessContextMock(this.errors, this.outs, this.exitCode, this.directory);
   }
 
   public void setErrors(List<String> errors) {

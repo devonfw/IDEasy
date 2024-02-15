@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.util;
+package com.devonfw.tools.ide.context;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -11,11 +11,12 @@ import java.util.List;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.process.ProcessResultImpl;
 
 /**
  * Mocks the {@link ProcessContext}.
  */
-public class GitUtilsProcessContextMock implements ProcessContext {
+public class GitContextProcessContextMock implements ProcessContext {
 
   private final List<String> arguments;
 
@@ -33,7 +34,7 @@ public class GitUtilsProcessContextMock implements ProcessContext {
    * @param exitCode the exit code.
    * @param directory
    */
-  public GitUtilsProcessContextMock(List<String> errors, List<String> outs, int exitCode, Path directory) {
+  public GitContextProcessContextMock(List<String> errors, List<String> outs, int exitCode, Path directory) {
 
     this.arguments = new ArrayList<>();
     this.errors = errors;
@@ -132,7 +133,7 @@ public class GitUtilsProcessContextMock implements ProcessContext {
       }
     }
     this.arguments.clear();
-    return new GitUtilsProcessResultMock(errors, outs, exitCode);
+    return new ProcessResultImpl(exitCode, outs, errors);
   }
 
 }

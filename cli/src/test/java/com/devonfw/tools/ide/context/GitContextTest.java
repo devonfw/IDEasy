@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.util;
+package com.devonfw.tools.ide.context;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -13,15 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 
-/**
- * Test of {@link GitUtils}.
- */
-public class GitUtilsTest extends AbstractIdeContextTest {
+public class GitContextTest extends AbstractIdeContextTest {
 
   /**
    * Runs a git clone in offline mode and expects an exception to be thrown with a message.
@@ -30,17 +25,18 @@ public class GitUtilsTest extends AbstractIdeContextTest {
   public void testRunGitCloneInOfflineModeThrowsException(@TempDir Path tempDir) {
 
     // arrange
+    String gitRepoUrl = "https://github.com/test";
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
-    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, false);
-    GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
+    IdeContext context = newGitContext(tempDir, errors, outs, 0, false);
+    GitContext gitContext = new GitContextImpl(context);
     // act
     CliException e1 = assertThrows(CliException.class, () -> {
-      gitUtils.runGitPullOrClone(true, "https://github.com/test");
+      gitContext.pullOrClone(gitRepoUrl, tempDir, "origin", "master", true);
     });
     // assert
-    assertThat(e1).hasMessageContaining("https://github.com/test").hasMessageContaining(tempDir.toString())
+    assertThat(e1).hasMessageContaining(gitRepoUrl).hasMessageContaining(tempDir.toString())
         .hasMessageContaining("offline");
 
   }
@@ -56,10 +52,10 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
-    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
-    GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
+    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
+    GitContext gitContext = new GitContextImpl(context);
     // act
-    gitUtils.runGitPullOrClone(true, gitRepoUrl);
+    gitContext.pullOrClone(gitRepoUrl, tempDir, "origin", "master", true);
     // assert
     assertThat(tempDir.resolve(".git").resolve("url")).hasContent(gitRepoUrl);
   }
@@ -75,14 +71,14 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
-    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
-    GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
+    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
+    GitContext gitContext = new GitContextImpl(context);
     Date currentDate = new Date();
     FileAccess fileAccess = new FileAccessImpl(context);
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
     // act
-    gitUtils.runGitPullOrClone(false, gitRepoUrl);
+    gitContext.pullOrClone(gitRepoUrl, tempDir, "origin", "master", false);
     // assert
     assertThat(tempDir.resolve(".git").resolve("update")).hasContent(currentDate.toString());
   }
@@ -115,10 +111,10 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
-    GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
+    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
+    GitContext gitContext = new GitContextImpl(context);
     // act
-    gitUtils.runGitPullOrClone(true, gitRepoUrl);
+    gitContext.pullOrClone(gitRepoUrl, tempDir, "origin", "master", true);
     // assert
     assertThat(modifiedFile).hasContent("original");
   }
@@ -134,15 +130,16 @@ public class GitUtilsTest extends AbstractIdeContextTest {
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
     outs.add("test-remote");
-    IdeContext context = newGitUtilsContext(tempDir, errors, outs, 0, true);
-    GitUtils gitUtils = new GitUtils(context, tempDir, "origin", "master");
+    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
+    GitContext gitContext = new GitContextImpl(context);
     FileAccess fileAccess = new FileAccessImpl(context);
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
     fileAccess.mkdirs(tempDir.resolve("new-folder"));
     // act
-    gitUtils.runGitPullOrClone(true, gitRepoUrl);
+    gitContext.pullOrClone(gitRepoUrl, tempDir, "origin", "master", true);
     // assert
     assertThat(tempDir.resolve("new-folder")).doesNotExist();
   }
+
 }
