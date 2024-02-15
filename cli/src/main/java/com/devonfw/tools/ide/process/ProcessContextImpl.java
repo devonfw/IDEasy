@@ -72,7 +72,12 @@ public final class ProcessContextImpl implements ProcessContext {
   @Override
   public ProcessContext directory(Path directory) {
 
-    this.processBuilder.directory(directory.toFile());
+    if (directory != null) {
+      this.processBuilder.directory(directory.toFile());
+    } else {
+      context.debug(
+          "Could not set the process builder's working directory! Directory of the current java process is used.");
+    }
     return this;
   }
 
