@@ -9,7 +9,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -44,7 +43,7 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
 
     // given
     stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Paths.get(testdataRoot).resolve("android-version.json")))));
+        .withBody(Files.readAllBytes(Path.of(testdataRoot).resolve("android-version.json")))));
 
     stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*"))
         .willReturn(aResponse().withStatus(200).withBody("aBody")));
@@ -83,7 +82,7 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
 
     // given
     stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Paths.get(testdataRoot).resolve("android-version.json")))));
+        .withBody(Files.readAllBytes(Path.of(testdataRoot).resolve("android-version.json")))));
 
     stubFor(get(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(404)));
 
@@ -112,7 +111,7 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
 
     // given
     stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Paths.get(testdataRoot).resolve("android-version-without-checksum.json")))));
+        .withBody(Files.readAllBytes(Path.of(testdataRoot).resolve("android-version-without-checksum.json")))));
 
     stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*"))
         .willReturn(aResponse().withStatus(200).withBody("aBody")));

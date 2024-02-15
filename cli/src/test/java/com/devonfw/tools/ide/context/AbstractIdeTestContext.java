@@ -55,7 +55,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    */
   public Map<String, IdeProgressBarTestImpl> getProgressBarMap() {
 
-    return progressBarMap;
+    return this.progressBarMap;
   }
 
   @Override
@@ -63,7 +63,10 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
     IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
     IdeProgressBarTestImpl duplicate = this.progressBarMap.put(taskName, progressBar);
-    assert duplicate == null;
+    // If we have multiple downloads, we may have an existing "Downloading" key
+    if (!taskName.equals("Downloading")) {
+      assert duplicate == null;
+    }
     return progressBar;
   }
 
