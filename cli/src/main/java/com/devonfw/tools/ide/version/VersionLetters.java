@@ -171,10 +171,7 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
       }
       return VersionMatchResult.MATCH;
     } else {
-      if (this.phase != other.phase) {
-        return VersionMatchResult.MISMATCH;
-      }
-      if (!this.lettersLowerCase.equals(other.lettersLowerCase)) {
+      if ((this.phase != other.phase) || !this.lettersLowerCase.equals(other.lettersLowerCase)) {
         return VersionMatchResult.MISMATCH;
       }
       return VersionMatchResult.EQUAL;
