@@ -397,9 +397,9 @@ public final class Tag {
    * @param tag the {@link Tag} to check.
    * @param includeAdditionalParents - {@code true} if {@link #getParent(int) additional parents} should be included,
    *        {@code false} otherwise (only consider {@link #getParent() primary parent}).
-   * @return {@code true} if the given {@link Tag} is an ancestor of this tag, {@code false} otherwise. An ancestor is
-   *         a direct or indirect {@link #getParent() parent}. Therefore, if {@link #ROOT} is given as {@link Tag} parameter,
-   *         this method should always return {@code true}.
+   * @return {@code true} if the given {@link Tag} is an ancestor of this tag, {@code false} otherwise. An ancestor is a
+   *         direct or indirect {@link #getParent() parent}. Therefore, if {@link #ROOT} is given as {@link Tag}
+   *         parameter, this method should always return {@code true}.
    */
   public boolean isAncestorOf(Tag tag, boolean includeAdditionalParents) {
 
@@ -432,7 +432,6 @@ public final class Tag {
   /**
    * @param id the {@link #getId() ID} of the tag.
    * @param parent the {@link #getParent() parent tag}.
-   * @param isAbstract the {@link #isAbstract() abstract flag}.
    * @return the new {@link Tag}.
    */
   static Tag create(String id, Tag parent) {
