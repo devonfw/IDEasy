@@ -70,11 +70,9 @@ public class DotNet extends LocalToolCommandlet {
     return webApiTemplatePath != null;
   }
 
-  // dotnet new uninstall 'Devon4Net.WebAPI'
   private void installDevon4NetTemplate() {
 
     String[] args = { "new", "install", "devon4net.WebApi.Template" };
-    // run dotnet
     Path toolPath = getToolPath();
     Path binaryPath = toolPath.resolve(getBinaryName());
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
