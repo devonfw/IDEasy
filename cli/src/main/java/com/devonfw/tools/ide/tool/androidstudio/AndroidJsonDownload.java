@@ -20,7 +20,7 @@ public class AndroidJsonDownload implements JsonObject {
    */
   public String getLink() {
 
-    return link;
+    return this.link;
   }
 
   /**
@@ -28,7 +28,7 @@ public class AndroidJsonDownload implements JsonObject {
    */
   public String getChecksum() {
 
-    return checksum;
+    return this.checksum;
   }
 
 }

@@ -1,0 +1,488 @@
+:toc:
+toc::[]
+
+= Coding Conventions
+
+The code should follow general conventions for Java (see http://www.oracle.com/technetwork/java/namingconventions-139351.html[Oracle Naming Conventions], https://google.github.io/styleguide/javaguide.html[Google Java Style], etc.).
+We consider this as common sense instead of repeating this here.
+The following sections give us additional conventions that we consider additionally.
+
+== Naming
+We follow these additional naming rules:
+
+* Always use short but speaking names (for types, methods, fields, parameters, variables, constants, etc.).
+* Avoid using existing type names from JDK (from `java.lang.*`, `java.util.*`, etc.) - so e.g. never name your own Java type `List`, `Error`, etc.
+* Strictly avoid special characters in technical names (for files, types, fields, methods, properties, variables, database tables, columns, constraints, etc.). In other words only use Latin alpahnumeric ASCII characters with the common allowed technical separators for the accordign context (e.g. underscore) for technical names (even excluding whitespaces).
+* For package segments and type names prefer singular forms (`CustomerEntity` instead of [line-through]`CustomersEntity`). Only use plural forms when there is no singular or it is really semantically required (e.g. for a container that contains multiple of such objects).
+* Avoid having duplicate type names. The name of a class, interface, enum or annotation should be unique within your project unless this is intentionally desired in a special and reasonable situation.
+* Avoid artificial naming constructs such as prefixes (`I*`) or suffixes (`*IF`) for interfaces.
+* Use CamelCase even for abbreviations (`XmlUtil` instead of [line-through]`XMLUtil`)
+* Avoid property/field names where the second character is upper-case at all (e.g. 'aBc'). See https://github.com/devonfw/cobigen/issues/1095[#1095] for details.
+* Names of Generics should be easy to understand. Where suitable follow the common rule `E=Element`, `T=Type`, `K=Key`, `V=Value` but feel free to use longer names for more specific cases such as `ID`, `DTO` or `ENTITY`. The capitalized naming helps to distinguish a generic type from a regular class.
+* For `boolean` getter methods use `is` prefix instead of `get` but for `boolean` variable names avoid the `is` prefix (`boolean force = ...` instead of `boolean isForce = ...`) unless the name is a reserved keyword (e.g. `boolean abstract = true` will result in a compile error so consider using `boolean isAbstract = true` instead).
+
+== Obsolete APIs
+Please avoid using the following APIs:
+
+* `java.util.Date` - use according type from `java.time.*` such as `LocalDate`, `LocalDateTime`, or `Instant`
+* `java.util.Calendar` - same as above
+* `java.sql.Date` - use `LocalDate`
+* `java.sql.Time` - use `LocalTime`
+* `java.sql.Timestamp` - use `Instant` or `LocalDateTime`
+* `java.io.File` - use `java.nio.file.Path`
+* `java.nio.file.Paths.get(...)` - use `java.nio.file.Path.of(...)`
+* `java.util.Vector` - use `List` and `ArrayList` or `LinkedList`
+* `java.lang.StringBuffer` - use `java.lang.StringBuilder`
+* `java.lang.Runtime.exec(...) - use `ProcessBuilder` (we use `ProcessContext` on top)
+* `com.google.common.base.Objects` - use `java.util.Objects`
+
+== Code-Documentation
+As a general goal, the code should be easy to read and understand. Besides, clear naming the documentation is important. We follow these rules:
+
+* APIs (especially component interfaces) are properly documented with JavaDoc.
+* JavaDoc shall provide actual value - we do not write JavaDoc to satisfy tools such as checkstyle but to express information not already available in the signature.
+* We make use of `{@link}` tags in JavaDoc to make it more expressive.
+* JavaDoc of APIs describes how to use the type or method and not how the implementation internally works.
+* To document implementation details, we use code comments (e.g. `// we have to flush explicitly to ensure version is up-to-date`). This is only needed for complex logic.
+* Avoid the pointless `{@inheritDoc}` as since Java 1.5 there is the `@Override` annotation for overridden methods and your JavaDoc is inherited automatically even without any JavaDoc comment at all.
+
+== Catching and handling Exceptions
+When catching exceptions always ensure the following:
+
+* Never call `printStackTrace()` method on an exception
+* Either log or wrap and re-throw the entire catched exception. Be aware that the cause(s) of an exception is very valuable information. If you loose such information by improper exception-handling you may be unable to properly analyse production problems what can cause severe issues.
+** If you wrap and re-throw an exception ensure that the catched exception is passed as cause to the newly created and thrown exception.
+** If you log an exception ensure that the entire exception is passed as argument to the logger (and not only the result of `getMessage()` or `toString()` on the exception).
+
+[source,java]
+----
+try {
+  doSomething();
+} catch (Exception e) {
+  // bad
+  throw new IllegalStateException("Something failed");
+}
+----
+
+This will result in a stacktrace like this:
+[source,java]
+----
+Exception in thread "main" java.lang.IllegalStateException: Something failed
+	at com.devonfw.tools.ide.ExceptionHandling.main(ExceptionHandling.java:14)
+----
+
+As you can see we have no information and clue what the catched `Exception` was and what really went wrong in `doSomething()`.
+
+Instead always rethrow with the original exception:
+[source,java]
+----
+try {
+  doSomething();
+} catch (Exception e) {
+  // good
+  throw new IllegalStateExeception("Something failed", e);
+}
+----
+
+Now our stacktrace will look similar to this:
+[source,java]
+----
+Exception in thread "main" java.lang.IllegalStateException: Something failed
+	at com.devonfw.tools.ide.ExceptionHandling.main(ExceptionHandling.java:14)
+Caused by: java.lang.IllegalArgumentException: Very important information
+	at com.devonfw.tools.ide.ExceptionHandling.doSomething(ExceptionHandling.java:23)
+	at com.devonfw.tools.ide.ExceptionHandling.main(ExceptionHandling.java:12)
+----
+
+Never do this severe mistake to lose this original exception cause!
+
+The same applies when logging the exception:
+[source,java]
+----
+try {
+  doSomething();
+} catch (Exception e) {
+  // bad
+  LOG.error("Something failed: " + e.getMessage());
+}
+----
+
+Instead include the full exception and use your logger properly:
+[source,java]
+----
+try {
+  doSomething();
+} catch (Exception e) {
+  // good
+  LOG.error("Something failed: {}", e.getMessage(), e);
+}
+----
+
+Also please add contextual information to the message for the logger or the new exception.
+So instead of just saying "Something failed" a really good example could look like this:
+[source,java]
+----
+LOG.error("An unexpected error occurred whilst downloading the tool {} with edition {} and version {} from URL {}.", tool, edition, version, url, e);
+----
+
+=== Prefer general API
+Avoid unnecessary strong bindings:
+
+* Do not bind your code to implementations such as `Vector` or `ArrayList` instead of `List`
+* In APIs for input (=parameters) always consider to make little assumptions:
+** prefer `Collection` over `List` or `Set` where the difference does not matter (e.g. only use `Set` when you require uniqueness or highly efficient `contains`)
+** consider preferring `Collection<? extends Foo>` over `Collection<Foo>` when `Foo` is an interface or super-class
+
+=== Prefer primitive types
+In general prefer primitive types (`boolean`, `int`, `long`, ...) instead of corresponding boxed object types (`Boolean`, `Integer`, `Long`, ...).
+Only use boxed object types, if you explicitly want to allow `null` as a value.
+Typically you never want to use `Boolean` but instead use `boolean`.
+[source,java]
+----
+// bad
+public Boolean isEmpty {
+  return size() == 0;
+}
+----
+Instead always use the primitive `boolean` type:
+[source,java]
+----
+// good
+public boolean isEmpty {
+  return size() == 0;
+}
+----
+
+== Constants
+Literals and values used in multiple places that do not change, shall be defined as constants.
+A constant in a Java class is a type variable declared with the modifiers `static final`.
+In an interface, `public static final` can and should be omitted since it is there by default.
+[source,java]
+----
+public class MavenDownloader {
+  // bad
+  public String url = "https://repo1.maven.org/maven2/"
+  public void download(Dependency dependency) {
+    String downloadUrl = url + dependency.getGroupId() + "/" + dependency.getArtifactId() + "/" dependency.getVersion() + "/" + dependency.getArtifactId() + "-" + dependency.getVersion() + ".jar";
+    download(downloadUrl);
+  }
+  public void download(String url) { ... }
+}
+----
+Here `url` is used as a constant however it is not declared as such.
+Instead we should better do this:
+[source,java]
+----
+public class MavenDownloader {
+  // good
+  /** The base URL of the central maven repository. */
+  public static final String REPOSITORY_URL = "https://repo1.maven.org/maven2/"
+  public void download(Dependency dependency) {
+    String artifactId = dependency.getArtifactId();
+    String version = dependency.getVersion();
+    String downloadUrl = REPOSITORY_URL + dependency.getGroupId().replace(".", "/") + "/" + artifactId + "/" + version + "/" + artifactId + "-" + version + ".jar";
+    download(downloadUrl);
+  }
+  public void download(String url) { ... }
+}
+----
+
+As stated above in case of an interface simply omit the modifiers:
+[source,java]
+----
+public interface MavenDownloader {
+  // good
+  /** The base URL of the central maven repository. */
+  String REPOSITORY_URL = "https://repo1.maven.org/maven2/"
+  void download(Dependency dependency);
+  void download(String url);
+}
+----
+
+So we conclude:
+
+* we want to use constants to define and reuse common immutable values.
+* by giving the constant a reasonable name, we make our code reable
+* following Java best-practices constants are named in `UPPER_CASE_WITH_UNDERSCORES` syntax
+* by adding JavaDoc to the constant we give additional details what this value is about and good for.
+* In classes we declare the constant with the visibility followed by the keywords `static final`.
+* In interfaces, we omit all modifiers as they always default to `public static final` for type variables.
+
+== Optionals
+With `Optional` you can wrap values to avoid a `NullPointerException` (NPE).
+However, it is not a good code-style to use `Optional` for every parameter or result to express that it may be null.
+For such case use JavaDoc (or consider `@Nullable` or even better instead annotate `@NotNull` where `null` is not acceptable).
+
+However, `Optional` can be used to prevent NPEs in fluent calls (due to the lack of the elvis operator):
+[source,java]
+----
+Long id;
+id = fooCto.getBar().getBar().getId(); // may cause NPE
+id = Optional.ofNullable(fooCto).map(FooCto::getBar).map(BarCto::getBar).map(BarEto::getId).orElse(null); // null-safe
+----
+
+== Avoid catching NPE
+
+Please avoid catching `NullPointerException`:
+[source,java]
+----
+// bad
+try {
+  variable.getFoo().doSomething();
+} catch (NullPointerException e) {
+  LOG.warning("foo was null");
+}
+----
+
+Better explicitly check for `null`:
+[source,java]
+----
+// good
+Foo foo = null;
+if (variable != null) {
+  foo = variable.getFoo();
+}
+if (foo == null) {
+  LOG.warning("foo was null");
+} else {
+  foo.doSomething();
+}
+----
+
+Please note that the term `Exception` is used for something exceptional.
+Further creating an instance of an `Exception` or `Throable` in Java is expensive as the entire Strack has to be collected and copied into arrays, etc. causing significant overhead.
+This should always be avoided in situations we can easily avoid with a simple `if` check.
+
+== Consider extractig local variable for multiple method calls
+
+Calling the same method (cascades) multiple times is redundant and reduces readability and performance:
+[source,java]
+----
+// bad
+Candidate candidate;
+if (variable.getFoo().getFirst().getSize() > variable.getFoo().getSecond().getSize()) {
+  candidate = variable.getFoo().getFirst();
+} else {
+  candidate = variable.getFoo().getSecond();
+}
+----
+
+The method `getFoo()` is used in 4 places and called 3 times. Maybe the method call is expensive?
+[source,java]
+----
+// good
+Candidate candidate;
+Foo foo = variable.getFoo();
+Candidate first = foo.getFirst();
+Candidate second = foo.getSecond();
+if (first.getSize() > second.getSize()) {
+  candidate = first;
+} else {
+  candidate = second;
+}
+----
+
+Please note that your IDE can automatically refactor your code extracting all occurrences of the same method call within the method body to a local variable.
+
+== Encoding
+Encoding (esp. Unicode with combining characters and surrogates) is a complex topic.
+Please study this topic if you have to deal with encodings and processing of special characters.
+For the basics follow these recommendations:
+
+* Whenever possible prefer unicode (UTF-8 or better) as encoding.
+* Do not cast from `byte` to `char` (unicode characters can be composed of multiple bytes, such cast may only work for ASCII characters)
+* Never convert the case of a String using the default locale. E.g. if you do `"HI".toLowerCase()` and your system locale is Turkish, then the output will be "hı" instead of "hi", which can lead to wrong assumptions and serious problems. If you want to do a "universal" case conversion always explicitly use an according western locale (e.g. `toLowerCase(Locale.US)`). Consider using a helper class (see e.g. https://github.com/m-m-m/base/blob/master/core/src/main/java/io/github/mmm/base/text/CaseHelper.java[CaseHelper]) or create your own little static utility for that in your project.
+* Write your code independent from the default encoding (system property `file.encoding`) - this will most likely differ in JUnit from production environment
+** Always provide an encoding when you create a `String` from `byte[]`: `new String(bytes, encoding)`
+** Always provide an encoding when you create a `Reader` or `Writer` : `new InputStreamReader(inStream, encoding)`
+
+== BLOBs
+Avoid using `byte[]` for BLOBs as this will load them entirely into your memory.
+This will cause performance issues or out of memory errors.
+Instead, use streams when dealing with BLOBs (`InputStream`, `OutputStream`, `Reader`, `Writer`).
+
+== Stateless Programming
+When implementing logic as components or _beans_, we strongly encourage stateless programming.
+This is not about data objects (e.g. JavaBeans) that are stateful by design.
+Instead this applies to things like `IdeContext` and all its related child-objects.
+Such classes shall never be modified after initialization.
+Methods called at runtime (after initialization) do not assign fields (member variables of your class) or mutate the object stored in a field.
+This allows your component or bean to be stateless and thread-safe.
+Therefore it can be initialized as a singleton so only one instance is created and shared accross all threads of the application.
+Ideally all fields are declared `final` otherwise be careful not to change them dynamically (except for lazy-initializations).
+Here is an example:
+[source,java]
+----
+public class GitHelperImpl implements GitHelper {
+
+  // bad
+  private boolean force;
+
+  @Overide
+  public void gitPullOrClone(boolean force, Path target, String gitUrl) {
+    this.force = force;
+    if (Files.isDirectory(target.resolve(".git"))) {
+      gitPull(target);
+    } else {
+      gitClone(target, gitUrl);
+    }
+  }
+
+  private void gitClone(Path target, String gitUrl) { ... }
+
+  private void gitPull(Path target) { ... }
+}
+----
+
+As you can see in the `bad` code fields of the class are assigned at runtime.
+Since IDEasy is not implementing a concurremt multi-user application this is not really critical.
+However, it is best-practice to avoid this pattern and generally follow thread-safe programming as best-practice:
+[source,java]
+----
+public class GitHelperImpl implements GitHelper {
+
+  // fine
+  @Overide
+  public void gitPullOrClone(boolean force, Path target, String gitUrl) {
+    if (Files.isDirectory(target.resolve(".git"))) {
+      gitPull(force, target);
+    } else {
+      gitClone(force, target, gitUrl);
+    }
+  }
+
+  private void gitClone(boolean force, Path target, String gitUrl) { ... }
+
+  private void gitPull(boolean force, Path target) { ... }
+}
+----
+
+== Closing Resources
+Resources such as streams (`InputStream`, `OutputStream`, `Reader`, `Writer`) or generally speaking implementations of `AutoClosable` need to be handled properly.
+Therefore, it is important to follow these rules:
+
+* Each resource has to be closed properly, otherwise you will get out of file handles, TX sessions, memory leaks or the like.
+* Where possible avoid to deal with such resources manually.
+* In case you have to deal with resources manually (e.g. binary streams) ensure to close them properly via `try-with-resource` pattern. See the example below for details.
+
+Closing streams and other such resources is error prone. Have a look at the following example:
+[source,java]
+----
+// bad
+try {
+  InputStream in = new FileInputStream(file);
+  readData(in);
+  in.close();
+} catch (IOException e) {
+  throw new IllegalStateException("Failed to read data.", e);
+}
+----
+
+The code above is wrong as in case of an `IOException` the `InputStream` is not properly closed.
+In a server application such mistakes can cause severe errors that typically will only occur in production.
+As such resources implement the `AutoCloseable` interface you can use the `try-with-resource` syntax to write correct code.
+The following code shows a correct version of the example:
+[source,java]
+----
+// fine
+try (InputStream in = new FileInputStream(file)) {
+  readData(in);
+} catch (IOException e) {
+  throw new IllegalStateException("Failed to read data.", e);
+}
+----
+
+== Lambdas and Streams
+With Java8 you have cool new features like lambdas and monads like (`Stream`, `CompletableFuture`, `Optional`, etc.).
+However, these new features can also be misused or led to code that is hard to read or debug. To avoid pain, we give you the following best practices:
+
+. Learn how to use the new features properly before using. Developers are often keen on using cool new features. When you do your first experiments in your project code you will cause deep pain and might be ashamed afterwards. Please study the features properly. Even Java8 experts still write for loops to iterate over collections, so only use these features where it really makes sense.
+. Streams shall only be used in fluent API calls as a Stream can not be forked or reused.
+. Each stream has to have exactly one terminal operation.
+. Do not write multiple statements into lambda code:
++
+[source,java]
+----
+// bad
+collection.stream().map(x -> {
+Foo foo = doSomething(x);
+...
+return foo;
+}).collect(Collectors.toList());
+----
++
+This style makes the code hard to read and debug. Never do that! Instead, extract the lambda body to a private method with a meaningful name:
++
+[source,java]
+----
+// fine
+collection.stream().map(this::convertToFoo).collect(Collectors.toList());
+----
+. Do not use `parallelStream()` in general code (that will run on server side) unless you know exactly what you are doing and what is going on under the hood. Some developers might think that using parallel streams is a good idea as it will make the code faster. However, if you want to do performance optimizations talk to your technical lead (architect). Many features such as security and transactions will rely on contextual information that is associated with the current thread. Hence, using parallel streams will most probably cause serious bugs. Only use them for standalone (CLI) applications or for code that is just processing large amounts of data.
+. Do not perform operations on a sub-stream inside a lambda:
++
+[source,java]
+----
+set.stream().flatMap(x -> x.getChildren().stream().filter(this::isSpecial)).collect(Collectors.toList()); // bad
+set.stream().flatMap(x -> x.getChildren().stream()).filter(this::isSpecial).collect(Collectors.toList()); // fine
+----
+. Only use `collect` at the end of the stream:
++
+[source,java]
+----
+set.stream().collect(Collectors.toList()).forEach(...) // bad
+set.stream().peek(...).collect(Collectors.toList()) // fine
+----
+. Lambda parameters with Types inference
++
+[source,java]
+----
+(String a, Float b, Byte[] c) -> a.toString() + Float.toString(b) + Arrays.toString(c)  // bad
+(a,b,c)  -> a.toString() + Float.toString(b) + Arrays.toString(c)  // fine
+
+Collections.sort(personList, (Person p1, Person p2) -> p1.getSurName().compareTo(p2.getSurName()));  // bad
+Collections.sort(personList, (p1, p2) -> p1.getSurName().compareTo(p2.getSurName()));  // fine
+----
+. Avoid Return Braces and Statement
++
+[source,java]
+----
+ a ->  { return a.toString(); } // bad
+ a ->  a.toString();   // fine
+----
+. Avoid Parentheses with Single Parameter
++
+[source,java]
+----
+(a) -> a.toString(); // bad
+ a -> a.toString();  // fine
+----
+. Avoid if/else inside foreach method. Use Filter method & comprehension
++
+[source,java]
+----
+// bad
+static public Iterator<String> TwitterHandles(Iterator<Author> authors, string company) {
+    final List result = new ArrayList<String> ();
+    foreach (Author a : authors) {
+      if (a.Company.equals(company)) {
+        String handle = a.TwitterHandle;
+        if (handle != null)
+          result.Add(handle);
+      }
+    }
+    return result;
+  }
+----
++
+[source,java]
+----
+// fine
+public List<String> twitterHandles(List<Author> authors, String company) {
+    return authors.stream()
+            .filter(a -> null != a && a.getCompany().equals(company))
+            .map(a -> a.getTwitterHandle())
+            .collect(toList());
+  }
+----
+

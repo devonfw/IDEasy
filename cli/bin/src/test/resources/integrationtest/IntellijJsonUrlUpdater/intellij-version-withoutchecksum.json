@@ -1,0 +1,68 @@
+[
+  {
+    "code": "IIU",
+    "releases": [
+      {
+        "date": "2023-05-16",
+        "downloads": {
+          "linuxARM64": {
+            "link": "http://localhost:8080/idea/ideaIU-2023.1.2-aarch64.tar.gz",
+            "checksumLink": ""
+          },
+          "linux": {
+            "link": "http://localhost:8080/idea/ideaIU-2023.1.2.tar.gz",
+            "checksumLink": ""
+          }
+        },
+        "version": "2023.1.2"
+      },
+      {
+        "date": "2023-04-28",
+        "downloads": {
+          "linuxARM64": {
+            "link": "http://localhost:8080/idea/ideaIU-2023.1.1-aarch64.tar.gz",
+            "checksumLink": ""
+          },
+          "linux": {
+            "link": "http://localhost:8080/idea/ideaIU-2023.1.1.tar.gz",
+            "checksumLink": ""
+          }
+        },
+        "version": "2023.1.1"
+      }
+    ]
+  },
+  {
+    "code": "IIC",
+    "releases": [
+      {
+        "date": "2023-05-16",
+        "downloads": {
+          "linuxARM64": {
+            "link": "http://localhost:8080/idea/ideaIC-2023.1.2-aarch64.tar.gz",
+            "checksumLink": ""
+          },
+          "linux": {
+            "link": "http://localhost:8080/idea/ideaIC-2023.1.2.tar.gz",
+            "checksumLink": ""
+          }
+        },
+        "version": "2023.1.2"
+      },
+      {
+        "date": "2023-04-28",
+        "downloads": {
+          "linuxARM64": {
+            "link": "http://localhost:8080/idea/ideaIC-2023.1.1-aarch64.tar.gz",
+            "checksumLink": ""
+          },
+          "linux": {
+            "link": "http://localhost:8080/idea/ideaIC-2023.1.1.tar.gz",
+            "checksumLink": ""
+          }
+        },
+        "version": "2023.1.1"
+      }
+    ]
+  }
+]

@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.tool.graalvm.GraalVm;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.helm.Helm;
 import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.tool.jmc.Jmc;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
@@ -61,6 +62,9 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new VersionSetCommandlet(context));
     add(new VersionGetCommandlet(context));
     add(new VersionListCommandlet(context));
+    add(new EditionGetCommandlet(context));
+    add(new EditionSetCommandlet(context));
+    add(new EditionListCommandlet(context));
     add(new VersionCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));
@@ -80,6 +84,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Aws(context));
     add(new Cobigen(context));
     add(new GraalVm(context));
+    add(new Jmc(context));
   }
 
   private void add(Commandlet commandlet) {

@@ -1,0 +1,6 @@
+{
+  "object": {
+    "foo": "${IDE_HOME}/foo",
+    "array": ["a", "b", "${IDE_HOME}"]
+  }
+}

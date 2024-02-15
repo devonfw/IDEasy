@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?><root attribute1="foo" xmlns:bar="http://bar.org" bar:attributeBar="bar">
+  <list>
+    <entry>value1</entry>
+    <entry>value2</entry>
+  </list>
+  <value>hello world</value>
+  <test path="${client.env.home}">${client.env.home}</test>
+</root>
