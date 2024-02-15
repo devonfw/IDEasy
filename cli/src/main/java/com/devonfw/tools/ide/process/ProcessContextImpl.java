@@ -7,7 +7,6 @@ import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -97,7 +96,12 @@ public final class ProcessContextImpl implements ProcessContext {
   }
 
   @Override
-  public ProcessResult run(boolean capture) {
+  public ProcessResult run(boolean capture, boolean isBackgroundProcess) {
+
+    if (isBackgroundProcess) {
+      this.context
+          .warning("TODO https://github.com/devonfw/IDEasy/issues/9 Implement background process functionality");
+    }
 
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");
@@ -220,7 +224,7 @@ public final class ProcessContextImpl implements ProcessContext {
   private String findBashOnWindows() {
 
     // Check if Git Bash exists in the default location
-    Path defaultPath = Paths.get("C:\\Program Files\\Git\\bin\\bash.exe");
+    Path defaultPath = Path.of("C:\\Program Files\\Git\\bin\\bash.exe");
     if (Files.exists(defaultPath)) {
       return defaultPath.toString();
     }

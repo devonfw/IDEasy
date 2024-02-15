@@ -182,8 +182,7 @@ public class XmlMerger extends FileMerger {
 
     for (int i = 0; i < nodeList.getLength(); i++) {
       Node node = nodeList.item(i);
-      if (node instanceof Text) {
-        Text text = (Text) node;
+      if (node instanceof Text text) {
         String value = text.getNodeValue();
         String resolvedValue;
         if (inverse) {

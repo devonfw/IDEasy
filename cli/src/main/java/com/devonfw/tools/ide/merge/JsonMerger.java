@@ -133,22 +133,16 @@ public class JsonMerger extends FileMerger {
       if (mergeJson == null) {
         status.updated = true; // JSON to merge does not exist and needs to be created
       }
-      switch (json.getValueType()) {
-        case OBJECT:
-          return mergeAndResolveObject((JsonObject) json, (JsonObject) mergeJson, variables, status, src);
-        case ARRAY:
-          return mergeAndResolveArray((JsonArray) json, (JsonArray) mergeJson, variables, status, src);
-        case STRING:
-          return mergeAndResolveString((JsonString) json, (JsonString) mergeJson, variables, status, src);
-        case NUMBER:
-        case FALSE:
-        case TRUE:
-        case NULL:
-          return mergeAndResolveNativeType(json, mergeJson, variables, status);
-        default:
+      return switch (json.getValueType()) {
+        case OBJECT -> mergeAndResolveObject((JsonObject) json, (JsonObject) mergeJson, variables, status, src);
+        case ARRAY -> mergeAndResolveArray((JsonArray) json, (JsonArray) mergeJson, variables, status, src);
+        case STRING -> mergeAndResolveString((JsonString) json, (JsonString) mergeJson, variables, status, src);
+        case NUMBER, FALSE, TRUE, NULL -> mergeAndResolveNativeType(json, mergeJson, variables, status);
+        default -> {
           this.context.error("Undefined JSON type {}", json.getClass());
-          return null;
-      }
+          yield null;
+        }
+      };
     }
   }
 

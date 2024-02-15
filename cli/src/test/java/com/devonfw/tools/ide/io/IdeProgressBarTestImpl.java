@@ -62,7 +62,7 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
    */
   public List<ProgressEvent> getEventList() {
 
-    return eventList;
+    return this.eventList;
   }
 
   /**
@@ -70,7 +70,7 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
    */
   public long getMaxSize() {
 
-    return max;
+    return this.max;
   }
 
   /**
@@ -100,7 +100,7 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
      */
     public Instant getTimestamp() {
 
-      return timestamp;
+      return this.timestamp;
     }
 
     /**
@@ -108,7 +108,7 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
      */
     public long getStepSize() {
 
-      return stepSize;
+      return this.stepSize;
     }
   }
 
