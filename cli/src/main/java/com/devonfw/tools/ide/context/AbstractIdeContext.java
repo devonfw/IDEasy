@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -138,7 +137,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.fileAccess = new FileAccessImpl(this);
     String workspace = WORKSPACE_MAIN;
     if (userDir == null) {
-      this.cwd = Paths.get(System.getProperty("user.dir"));
+      this.cwd = Path.of(System.getProperty("user.dir"));
     } else {
       this.cwd = userDir.toAbsolutePath();
     }
@@ -181,7 +180,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         root = System.getenv("IDE_ROOT");
       }
       if (root != null) {
-        Path rootPath = Paths.get(root);
+        Path rootPath = Path.of(root);
         if (Files.isDirectory(rootPath)) {
           if (!ideRootPath.equals(rootPath)) {
             warning(
@@ -222,12 +221,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (isTest()) {
       // only for testing...
       if (this.ideHome == null) {
-        this.userHome = Paths.get("/non-existing-user-home-for-testing");
+        this.userHome = Path.of("/non-existing-user-home-for-testing");
       } else {
         this.userHome = this.ideHome.resolve("home");
       }
     } else {
-      this.userHome = Paths.get(System.getProperty("user.home"));
+      this.userHome = Path.of(System.getProperty("user.home"));
     }
     this.userHomeIde = this.userHome.resolve(".ide");
     this.downloadPath = this.userHome.resolve("Downloads/ide");

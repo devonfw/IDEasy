@@ -1,3 +1,6 @@
+:toc:
+toc::[]
+
 = Coding Conventions
 
 The code should follow general conventions for Java (see http://www.oracle.com/technetwork/java/namingconventions-139351.html[Oracle Naming Conventions], https://google.github.io/styleguide/javaguide.html[Google Java Style], etc.).
@@ -149,6 +152,61 @@ public boolean isEmpty {
   return size() == 0;
 }
 ----
+
+== Constants
+Literals and values used in multiple places that do not change, shall be defined as constants.
+A constant in a Java class is a type variable declared with the modifiers `static final`.
+In an interface, `public static final` can and should be omitted since it is there by default.
+[source,java]
+----
+public class MavenDownloader {
+  // bad
+  public String url = "https://repo1.maven.org/maven2/"
+  public void download(Dependency dependency) {
+    String downloadUrl = url + dependency.getGroupId() + "/" + dependency.getArtifactId() + "/" dependency.getVersion() + "/" + dependency.getArtifactId() + "-" + dependency.getVersion() + ".jar";
+    download(downloadUrl);
+  }
+  public void download(String url) { ... }
+}
+----
+Here `url` is used as a constant however it is not declared as such.
+Instead we should better do this:
+[source,java]
+----
+public class MavenDownloader {
+  // good
+  /** The base URL of the central maven repository. */
+  public static final String REPOSITORY_URL = "https://repo1.maven.org/maven2/"
+  public void download(Dependency dependency) {
+    String artifactId = dependency.getArtifactId();
+    String version = dependency.getVersion();
+    String downloadUrl = REPOSITORY_URL + dependency.getGroupId().replace(".", "/") + "/" + artifactId + "/" + version + "/" + artifactId + "-" + version + ".jar";
+    download(downloadUrl);
+  }
+  public void download(String url) { ... }
+}
+----
+
+As stated above in case of an interface simply omit the modifiers:
+[source,java]
+----
+public interface MavenDownloader {
+  // good
+  /** The base URL of the central maven repository. */
+  String REPOSITORY_URL = "https://repo1.maven.org/maven2/"
+  void download(Dependency dependency);
+  void download(String url);
+}
+----
+
+So we conclude:
+
+* we want to use constants to define and reuse common immutable values.
+* by giving the constant a reasonable name, we make our code reable
+* following Java best-practices constants are named in `UPPER_CASE_WITH_UNDERSCORES` syntax
+* by adding JavaDoc to the constant we give additional details what this value is about and good for.
+* In classes we declare the constant with the visibility followed by the keywords `static final`.
+* In interfaces, we omit all modifiers as they always default to `public static final` for type variables.
 
 == Optionals
 With `Optional` you can wrap values to avoid a `NullPointerException` (NPE).

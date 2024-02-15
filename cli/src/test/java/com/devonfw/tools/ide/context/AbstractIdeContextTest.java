@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -24,10 +23,10 @@ public abstract class AbstractIdeContextTest extends Assertions {
   protected static final String PROJECT_BASIC = "basic";
 
   /** The source {@link Path} to the test projects. */
-  protected static final Path PATH_PROJECTS = Paths.get("src/test/resources/ide-projects");
+  protected static final Path PATH_PROJECTS = Path.of("src/test/resources/ide-projects");
 
   // will not use eclipse-target like done in maven via eclipse profile...
-  private static final Path PATH_PROJECTS_COPY = Paths.get("target/test-projects/");
+  private static final Path PATH_PROJECTS_COPY = Path.of("target/test-projects/");
 
   /** Chunk size to use for progress bars **/
   private static final int CHUNK_SIZE = 1024;
@@ -153,7 +152,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
         public boolean matches(String e) {
 
           return e.contains(message);
-        };
+        }
       };
       assertion.filteredOn(condition).isNotEmpty();
     } else {

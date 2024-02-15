@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
@@ -39,7 +38,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
    */
   public static IdeTestContext of() {
 
-    return new IdeTestContext(Paths.get("/"));
+    return new IdeTestContext(Path.of("/"));
   }
 
 }
