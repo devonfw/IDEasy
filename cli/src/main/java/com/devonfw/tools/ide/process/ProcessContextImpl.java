@@ -329,7 +329,7 @@ public final class ProcessContextImpl implements ProcessContext {
       this.arguments.addAll(newArgs);
 
     } else {
-      // just assume unix system for know
+      // just assume unix system for now
       this.arguments.add("&");
     }
   }
