@@ -1,0 +1,21 @@
+:toc:
+toc::[]
+
+= npm
+
+The `npm` commandlet allows to install, configure, and launch https://www.npmjs.com/[npm]. Calling `devon npm «args»` is more or less the same as calling `npm «args»` but with the benefit that the version of npm preferred by your project is used (and will be installed if not yet available).
+
+The arguments (`devon npm «args»`) are explained by the following table:
+
+.Usage of `devon npm`
+[options="header"]
+|=======================
+|*Argument(s)*             |*Meaning*
+|                          |run default build, link:configuration.asciidoc[configurable] via `NPM_BUILD_OPTS`
+|`setup`                   |setup NPM (install and verify), link:configuration.asciidoc[configurable] via `NPM_VERSION`
+|`get-version`             |print the version of your current project
+|`set-version «nv» [«cv»]` |set the version of your current project to `«nv»` (assuming your current version is `«cv»`)
+|`check-top-level-project` |check if you are running on a top-level project or fail if in a module or no NPM project at all
+|`release`                 |Start a clean deploy release build, link:configuration.asciidoc[configurable] via `NPM_RELEASE_OPTS`
+|`«args»`                  |run NPM with the given arguments (`«args»`)
+|=======================
