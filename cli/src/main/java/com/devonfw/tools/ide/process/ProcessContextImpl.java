@@ -37,14 +37,20 @@ public final class ProcessContextImpl implements ProcessContext {
    * The constructor.
    *
    * @param context the owning {@link IdeContext}.
+   * @param discardStandardOutput {@code true}, indicates that subprocess output will be discarded (to the operating *
+   *        system "null file" ) as initialized behaviour, {@code false} the parent process will initially inherit the
+   *        standard output of the subprocess.
    */
-  public ProcessContextImpl(IdeContext context) {
+  public ProcessContextImpl(IdeContext context, boolean discardStandardOutput) {
 
     super();
     this.context = context;
     this.processBuilder = new ProcessBuilder();
     // TODO needs to be configurable for GUI
-    this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
+    Redirect redirect = discardStandardOutput ? ProcessBuilder.Redirect.DISCARD : ProcessBuilder.Redirect.INHERIT;
+    this.processBuilder.redirectOutput(redirect);
+
+    this.processBuilder.redirectError(Redirect.INHERIT);
     this.errorHandling = ProcessErrorHandling.THROW;
     Map<String, String> environment = this.processBuilder.environment();
     for (VariableLine var : this.context.getVariables().collectExportedVariables()) {

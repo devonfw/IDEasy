@@ -378,6 +378,15 @@ public interface IdeContext extends IdeLogger {
   ProcessContext newProcess();
 
   /**
+   *
+   * @param discardStandardOutput {@code true}, indicates that subprocess output will be discarded (to the operating *
+   *        system "null file" ) as initialized behaviour, {@code false} the parent process will initially inherit the
+   *        standard output of the subprocess.
+   * @return a new {@link ProcessContext} to {@link ProcessContext#run() run} external commands.
+   */
+  ProcessContext newProcess(boolean discardStandardOutput);
+
+  /**
    * Prepares the {@link IdeProgressBar} initializes task name and maximum size as well as the behaviour and style.
    *
    * @param taskName name of the task.
@@ -391,5 +400,11 @@ public interface IdeContext extends IdeLogger {
    *         {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
    */
   DirectoryMerger getWorkspaceMerger();
+
+  /**
+   *
+   * @return the {@link Path} to the working directory from where the command is executed.
+   */
+  Path getDefaultExecutionDirectory();
 
 }

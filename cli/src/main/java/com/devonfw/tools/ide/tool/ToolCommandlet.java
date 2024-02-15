@@ -87,6 +87,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
+   * @param discardStandardOutput {@code true}, indicates that subprocess output will be discarded (to the operating
+   *        system "null file" ), {@code false} it will not. This setting will be overwritten if {@code runInBackground}
+   *        is {@code true}.
    * @param runInBackground {@code true}, the process of the command will be run as background process, {@code false}
    *        otherwise (it will be run as foreground process).
    * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
@@ -94,7 +97,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *        without touching and IDE installation and used to run.
    * @param args the command-line arguments to run the tool.
    */
-  public void runTool(boolean runInBackground, VersionIdentifier toolVersion, String... args) {
+  public void runTool(boolean discardStandardOutput, boolean runInBackground, VersionIdentifier toolVersion,
+      String... args) {
 
     Path binaryPath;
     Path toolPath = Path.of(getBinaryName());
@@ -104,19 +108,55 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
+
+    ProcessContext pc = this.context.newProcess(discardStandardOutput).errorHandling(ProcessErrorHandling.WARNING)
+        .executable(binaryPath).addArgs(args);
 
     pc.run(false, runInBackground);
   }
 
   /**
-   * @param toolVersion the explicit {@link VersionIdentifier} of the tool to run.
+   * Ensures the tool is installed and then runs this tool with the given arguments.
+   *
+   * @param runInBackground {@code true}, the process of the command will be run as background process, {@code false}
+   *        otherwise (it will be run as foreground process).
+   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
+   *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
+   *        without touching and IDE installation and used to run.
    * @param args the command-line arguments to run the tool.
-   * @see ToolCommandlet#runTool(boolean, VersionIdentifier, String...)
+   */
+  public void runTool(boolean runInBackground, VersionIdentifier toolVersion, String... args) {
+
+    runTool(false, runInBackground, toolVersion, args);
+  }
+
+  /**
+   * Ensures the tool is installed and then runs this tool with the given arguments.
+   *
+   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
+   *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
+   *        without touching and IDE installation and used to run.
+   * @param args the command-line arguments to run the tool.
    */
   public void runTool(VersionIdentifier toolVersion, String... args) {
 
     runTool(false, toolVersion, args);
+  }
+
+  /**
+   * Ensures the tool is installed and then runs this tool with the given arguments.
+   *
+   * @param discardStandardOutput {@code true}, indicates that subprocess output will be discarded (to the operating
+   *        system "null file" ), {@code false} the parent process will initially inherit the standard output of the
+   *        subprocess. This setting will be overwritten if {@code runInBackground} is {@code true}.
+   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
+   *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
+   *        without touching and IDE installation and used to run.
+   * @param args the command-line arguments to run the tool.
+   */
+  public void runTool(VersionIdentifier toolVersion, boolean discardStandardOutput, String... args) {
+
+    runTool(discardStandardOutput, false, toolVersion, args);
   }
 
   /**
@@ -210,11 +250,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     try (Stream<Path> stream = Files.list(path)) {
       Path[] subFiles = stream.toArray(Path[]::new);
       if (subFiles.length == 0) {
-        throw new CliException("The downloaded package for the tool " + this.tool + " seems to be empty as you can check in the extracted folder " + path);
+        throw new CliException("The downloaded package for the tool " + this.tool
+            + " seems to be empty as you can check in the extracted folder " + path);
       } else if (subFiles.length == 1) {
         String filename = subFiles[0].getFileName().toString();
-        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS) && !filename.endsWith(".app")
-            && Files.isDirectory(subFiles[0])) {
+        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS)
+            && !filename.endsWith(".app") && Files.isDirectory(subFiles[0])) {
           return getProperInstallationSubDirOf(subFiles[0]);
         }
       }
@@ -384,8 +425,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       return edition;
     } catch (IOException e) {
-      throw new IllegalStateException("Couldn't determine the edition of " + getName() + " from the directory structure of its software path " + toolPath
-          + ", assuming the name of the parent directory of the real path of the software path to be the edition " + "of the tool.", e);
+      throw new IllegalStateException("Couldn't determine the edition of " + getName()
+          + " from the directory structure of its software path " + toolPath
+          + ", assuming the name of the parent directory of the real path of the software path to be the edition "
+          + "of the tool.", e);
     }
 
   }
@@ -450,8 +493,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.context.info("{}={} has been set in {}", name, version, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
-          declaringVariables.getSource());
+      this.context.warning(
+          "The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
+          name, declaringVariables.getSource());
     }
     if (hint) {
       this.context.info("To install that version call the following command:");
@@ -494,8 +538,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.context.info("{}={} has been set in {}", name, edition, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
-          declaringVariables.getSource());
+      this.context.warning(
+          "The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
+          name, declaringVariables.getSource());
     }
     if (hint) {
       this.context.info("To install that edition call the following command:");
