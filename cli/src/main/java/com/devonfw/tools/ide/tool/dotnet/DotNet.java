@@ -26,9 +26,6 @@ public class DotNet extends LocalToolCommandlet {
   @Override
   public void run() {
 
-    // check if create passed and modify arguments array like doRun new Devon4NetAPI, remove
-
-    // TODO TEST
     AbstractIdeContext abstractIdeContext = (AbstractIdeContext) context;
     abstractIdeContext.setDefaultExecutionDirectory(context.getIdeHome());
 
@@ -55,8 +52,7 @@ public class DotNet extends LocalToolCommandlet {
 
     super.postInstall();
     if (devon4NetTemplateExists()) {
-      this.context.debug("Devon4net template already installed."); // TODO FILE PROBABLY DOES NOT DETERMINE
-                                                                   // INSTALLATION???
+      this.context.debug("Devon4net template already installed.");
     } else {
       installDevon4NetTemplate();
     }
