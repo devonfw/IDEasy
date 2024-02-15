@@ -128,7 +128,7 @@ public class UpdateCommandlet extends Commandlet {
       String toolName = software.getFileName().toString();
       ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandletOrNull(toolName);
       if (toolCommandlet != null) {
-        toolCommandlets.add(this.context.getCommandletManager().getToolCommandletOrNull(toolName));
+        toolCommandlets.add(toolCommandlet);
       }
     }
 
