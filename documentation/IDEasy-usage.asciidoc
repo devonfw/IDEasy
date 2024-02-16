@@ -15,6 +15,9 @@ include::variables.asciidoc[leveloffset=2]
 include::cli.asciidoc[leveloffset=2]
 
 include::docker-desktop-alternative.asciidoc[leveloffset=3]
+
+include::dotnet.asciidoc[leveloffset=3]
+
 include::jmc.asciidoc[leveloffset=3]
 
 <<<<

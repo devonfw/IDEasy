@@ -1,0 +1,16 @@
+:toc:
+toc::[]
+
+= dotnet
+
+The `dotnet` commandlet allows to install, configure, and launch the dotnet command to create a devonfw API project. Call `ide dotnet «args»` is more or less the same as calling `dotnet «args»` but with some advanced features and ensuring that `dotnet` is properly set up for your project.
+
+The arguments (`ide dotnet «args»`) are explained by the followidotnet table:
+
+.Usage of `devon dotnet`
+[options="header"]
+|=======================
+|*Command*             |*Meanidotnet*
+|`install dotnet`                 |install dotnet (or update and verify)
+|`dotnet create`                  |Create a new https://github.com/devonfw/devon4net[devon4net]  API project.
+|`dotnet «args»`                  |run dotnet with the given arguments (`«args»`)
