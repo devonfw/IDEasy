@@ -32,6 +32,7 @@ public class Jmc extends LocalToolCommandlet {
   @Override
   public boolean doInstall(boolean silent) {
 
+    // TODO The Java dependency should be also implemented, while the support for dependencies is not yet implemented
     // getCommandlet(Java.class).install();
     return super.doInstall(silent);
   }
