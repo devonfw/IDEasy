@@ -51,25 +51,27 @@ public abstract class AbstractIdeContextTest extends Assertions {
   }
 
   /**
-   * @param projectName the (folder)name of the test project in {@link #PATH_PROJECTS}. E.g. "basic".
+   * @param projectTestCaseName the (folder)name of the project test case, in this folder a 'project' folder represents
+   *        the test project in {@link #PATH_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
    *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
    *        in that project.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String projectName, String projectPath, boolean copyForMutation) {
+  protected static IdeTestContext newContext(String projectTestCaseName, String projectPath, boolean copyForMutation) {
 
-    Path sourceDir = PATH_PROJECTS.resolve(projectName);
+    Path sourceDir = PATH_PROJECTS.resolve(projectTestCaseName).resolve("project");
     Path userDir = sourceDir;
     IdeTestContext context;
     if (copyForMutation) {
-      Path projectDir = PATH_PROJECTS_COPY.resolve(projectName);
+      Path projectDir = PATH_PROJECTS_COPY.resolve(projectTestCaseName).resolve("project");
       FileAccess fileAccess = new FileAccessImpl(IdeTestContextMock.get());
       fileAccess.delete(projectDir);
       fileAccess.mkdirs(PATH_PROJECTS_COPY);
       fileAccess.copy(sourceDir, projectDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-      fileAccess.copy(PATH_PROJECTS.resolve(IdeContext.FOLDER_IDE), PATH_PROJECTS_COPY.resolve(IdeContext.FOLDER_IDE),
+      fileAccess.copy(PATH_PROJECTS.resolve(projectTestCaseName).resolve(IdeContext.FOLDER_IDE),
+          PATH_PROJECTS_COPY.resolve(projectTestCaseName).resolve(IdeContext.FOLDER_IDE),
           FileCopyMode.COPY_TREE_OVERRIDE_TREE);
       userDir = projectDir;
     }
