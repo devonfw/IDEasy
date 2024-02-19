@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.java.Java;
 
 /**
  * {@link ToolCommandlet} for <a href="https://www.oracle.com/java/technologies/jdk-mission-control.html">JDK Mission
@@ -32,8 +33,7 @@ public class Jmc extends LocalToolCommandlet {
   @Override
   public boolean doInstall(boolean silent) {
 
-    // TODO The Java dependency should be also implemented, while the support for dependencies is not yet implemented
-    // getCommandlet(Java.class).install();
+    getCommandlet(Java.class).install();
     return super.doInstall(silent);
   }
 
