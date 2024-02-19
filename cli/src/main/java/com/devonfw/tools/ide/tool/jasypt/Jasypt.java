@@ -6,7 +6,6 @@ import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -35,8 +34,8 @@ public class Jasypt extends LocalToolCommandlet {
 
     Path m2Repo = context.getVariables().getPath("M2_REPO");
     String installedVersion = getInstalledVersion().toString();
-    Path jasyptJar = m2Repo.resolve(
-        Paths.get("org", "jasypt", "jasypt", installedVersion, "jasypt-" + installedVersion + ".jar"));
+    Path jasyptJar = m2Repo.resolve("org").resolve("jasypt").resolve("jasypt").resolve(installedVersion)
+        .resolve("jasypt-" + installedVersion + ".jar");
 
     String[] commandArgs = { "-cp", jasyptJar.toString(), className, "algorithm=PBEWITHHMACSHA512ANDAES_256",
         "ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator", "password=" + masterpassword, "input=" + secret };
