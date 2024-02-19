@@ -14,12 +14,6 @@ public class DotNetUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getEdition() {
-
-    return getTool();
-  }
-
-  @Override
   protected String getVersionPrefixToRemove() {
 
     return "v";

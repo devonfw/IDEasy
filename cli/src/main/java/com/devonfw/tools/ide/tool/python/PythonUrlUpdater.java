@@ -36,12 +36,6 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject> {
   }
 
   @Override
-  protected String getEdition() {
-
-    return getTool();
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     throw new IllegalStateException();

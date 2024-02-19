@@ -16,6 +16,9 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
@@ -31,8 +34,6 @@ import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Abstract base implementation of {@link UrlUpdater}. Contains methods for retrieving response bodies from URLs,
@@ -77,7 +78,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @return the name of the {@link UrlEdition edition} handled by this updater.
    */
-  abstract protected String getEdition();
+  protected String getEdition() {
+
+    return getTool();
+  }
 
   /**
    * @return the combination of {@link #getTool() tool} and {@link #getEdition() edition} but simplified if both are

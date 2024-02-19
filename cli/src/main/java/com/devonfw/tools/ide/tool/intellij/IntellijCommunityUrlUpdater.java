@@ -5,11 +5,11 @@ public class IntellijCommunityUrlUpdater extends IntellijUrlUpdater {
   @Override
   protected String getEdition() {
 
-    return getTool();
+    return "community";
   }
 
   @Override
-  IntellijJsonObject getIntellijJsonRelease(IntellijJsonObject[] releases) {
+  public IntellijJsonObject getIntellijJsonRelease(IntellijJsonObject[] releases) {
 
     return releases[1];
   }

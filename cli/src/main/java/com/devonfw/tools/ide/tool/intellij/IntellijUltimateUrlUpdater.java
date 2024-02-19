@@ -9,7 +9,7 @@ public class IntellijUltimateUrlUpdater extends IntellijUrlUpdater {
   }
 
   @Override
-  IntellijJsonObject getIntellijJsonRelease(IntellijJsonObject[] releases) {
+  public IntellijJsonObject getIntellijJsonRelease(IntellijJsonObject[] releases) {
 
     return releases[0];
   }

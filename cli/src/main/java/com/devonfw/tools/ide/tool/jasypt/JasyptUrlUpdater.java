@@ -13,12 +13,6 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
   }
 
   @Override
-  protected String getEdition() {
-
-    return getTool();
-  }
-
-  @Override
   protected String getMavenGroupIdPath() {
 
     return "org/jasypt";

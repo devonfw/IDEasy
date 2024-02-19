@@ -17,12 +17,6 @@ public class JenkinsUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String getEdition() {
-
-    return getTool();
-  }
-
-  @Override
   protected String getVersionUrl() {
 
     return "https://mirrors.jenkins.io/war-stable/";

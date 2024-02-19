@@ -19,12 +19,6 @@ public class AzureUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getEdition() {
-
-    return getTool();
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     doAddVersion(urlVersion, "https://azcliprod.blob.core.windows.net/msi/azure-cli-${version}.msi",

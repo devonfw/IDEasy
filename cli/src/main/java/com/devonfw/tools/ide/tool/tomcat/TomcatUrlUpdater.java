@@ -15,12 +15,6 @@ public class TomcatUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getEdition() {
-
-    return getTool();
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     doAddVersion(urlVersion,

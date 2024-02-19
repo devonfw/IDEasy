@@ -16,12 +16,6 @@ public class MvnUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected String getEdition() {
-
-    return getTool();
-  }
-
-  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     doAddVersion(urlVersion,

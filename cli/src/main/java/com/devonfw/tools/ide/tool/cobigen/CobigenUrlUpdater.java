@@ -13,12 +13,6 @@ public class CobigenUrlUpdater extends MavenBasedUrlUpdater {
   }
 
   @Override
-  protected String getEdition() {
-
-    return getTool();
-  }
-
-  @Override
   protected String getMavenGroupIdPath() {
 
     return "com/devonfw/cobigen";

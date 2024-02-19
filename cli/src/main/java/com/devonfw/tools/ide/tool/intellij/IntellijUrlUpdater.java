@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * {@link IntellijUrlUpdater} base class for IntelliJ.
  */
-public abstract class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
+public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
 
   private static final String VERSION_BASE_URL = "https://data.services.jetbrains.com";
 
@@ -56,7 +56,10 @@ public abstract class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObje
    * @param releases Has 2 elements, 1. Ultimate Edition, 2. Community Edition
    * @return The release for the {@link #getEdition() edition}.
    */
-  abstract IntellijJsonObject getIntellijJsonRelease(IntellijJsonObject[] releases);
+  public IntellijJsonObject getIntellijJsonRelease(IntellijJsonObject[] releases) {
+
+    return releases[1];
+  }
 
   /**
    * Adds a version for the provided {@link UrlEdition}
@@ -139,6 +142,12 @@ public abstract class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObje
   protected String getTool() {
 
     return "intellij";
+  }
+
+  @Override
+  protected String getEdition() {
+
+    return "community";
   }
 
   @Override
