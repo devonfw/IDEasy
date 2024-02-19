@@ -56,9 +56,7 @@ public class Jmc extends LocalToolCommandlet {
         moveFilesAndDirs(oldBinaryPath, toolPath);
         fileAccess.delete(oldBinaryPath);
       } else {
-        this.context.info(
-            "JMC binary folder not found at {} - ignoring as this legacy problem may be resolved in newer versions.",
-            oldBinaryPath);
+        this.context.info("JMC binary folder not found at {} - ignoring as this legacy problem may be resolved in newer versions.", oldBinaryPath);
       }
     }
 
