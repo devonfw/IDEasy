@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.Jmc;
+package com.devonfw.tools.ide.tool.jmc;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -29,8 +29,7 @@ public class JmcTest extends AbstractIdeContextTest {
 
   @BeforeAll
   static void setUp() throws IOException {
-
-    server = new WireMockServer(WireMockConfiguration.wireMockConfig().port(1111));
+    server = new WireMockServer(WireMockConfiguration.wireMockConfig().port(1112));
     server.start();
   }
 
