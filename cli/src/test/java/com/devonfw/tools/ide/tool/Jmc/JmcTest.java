@@ -29,8 +29,7 @@ public class JmcTest extends AbstractIdeContextTest {
 
   @BeforeAll
   static void setUp() throws IOException {
-    // changed from 1111 to 1112 to solve the CI build failure
-    server = new WireMockServer(WireMockConfiguration.wireMockConfig().port(1112)); 
+    server = new WireMockServer(WireMockConfiguration.wireMockConfig().port(1112));
     server.start();
   }
 
