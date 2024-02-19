@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.jmc.Jmc;
+package com.devonfw.tools.ide.tool.jmc;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
