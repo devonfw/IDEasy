@@ -72,8 +72,6 @@ public class DotNet extends LocalToolCommandlet {
 
   private void installDevon4NetTemplate() {
 
-    // linux has --install param, TODO FIND OUT MAC OS
-    // TODO outsourcong in file better than hardcoding commands?
     String templateInstallCommand = context.getSystemInfo().isWindows() ? "install" : "--install";
     String[] args = { "new", templateInstallCommand, "devon4net.WebApi.Template" };
     Path toolPath = getToolPath();
