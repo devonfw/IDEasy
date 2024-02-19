@@ -16,9 +16,9 @@ public class IdeTestContext extends AbstractIdeTestContext {
    * @param userDir the optional {@link Path} to current working directory.
    * @param answers the automatic answers simulating a user in test.
    */
-  public IdeTestContext(Path userDir, String... answers) {
+  public IdeTestContext(Path userDir, boolean debug, String... answers) {
 
-    super(level -> new IdeTestLogger(level), userDir, answers);
+    super(level -> new IdeTestLogger(level), userDir, debug, answers);
   }
 
   @Override
@@ -32,7 +32,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
    */
   public static IdeTestContext of() {
 
-    return new IdeTestContext(Path.of("/"));
+    return new IdeTestContext(Path.of("/"), false);
   }
 
 }

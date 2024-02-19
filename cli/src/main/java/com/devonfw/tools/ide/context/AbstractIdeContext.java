@@ -129,7 +129,8 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
    */
-  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir) {
+  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
+      boolean debug) {
 
     super();
     this.loggerFactory = factory;
@@ -237,6 +238,27 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.defaultToolRepository = new DefaultToolRepository(this);
     this.customToolRepository = CustomToolRepositoryImpl.of(this);
     this.workspaceMerger = new DirectoryMerger(this);
+
+    if (debug) {
+      // TEMPORARY ADDED FOR DEBUGGING
+      System.err.println("Using ideHome: " + this.ideHome);
+      System.err.println("Using workspaceName: " + this.workspaceName);
+      System.err.println("Using workspacePath: " + this.workspacePath);
+      System.err.println("Using ideRoot: " + this.ideRoot);
+      System.err.println("Using confPath: " + this.confPath);
+      System.err.println("Using softwarePath: " + this.softwarePath);
+      System.err.println("Using pluginsPath: " + this.pluginsPath);
+      System.err.println("Using toolRepository: " + this.toolRepository);
+      System.err.println("Using urlsPath: " + this.urlsPath);
+      System.err.println("Using tempPath: " + this.tempPath);
+      System.err.println("Using tempDownloadPath: " + this.tempDownloadPath);
+      System.err.println("Using softwareRepositoryPath: " + this.softwareRepositoryPath);
+      System.err.println("Using userHome: " + this.userHome);
+      System.err.println("Using userHomeIde: " + this.userHomeIde);
+      System.err.println("Using downloadPath: " + this.downloadPath);
+      System.err.println("Using path: " + this.path);
+    }
+
   }
 
   private String getMessageIdeHomeFound() {
