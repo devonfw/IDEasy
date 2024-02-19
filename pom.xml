@@ -19,7 +19,18 @@
   <properties>
     <github.repository>IDEasy</github.repository>
     <ide_version>${revision}</ide_version>
+    <owasp.version>9.0.9</owasp.version>
   </properties>
+
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.owasp</groupId>
+        <artifactId>dependency-check-core</artifactId>
+        <version>${owasp.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
 
   <dependencies>
     <dependency>
