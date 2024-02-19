@@ -61,19 +61,16 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static IdeTestContext newContext(String projectTestCaseName, String projectPath, boolean copyForMutation) {
 
-    Path sourceDir = PATH_PROJECTS.resolve(projectTestCaseName).resolve("project");
-    Path userDir = sourceDir;
+    Path sourceDir = PATH_PROJECTS.resolve(projectTestCaseName);
+    Path userDir = sourceDir.resolve("project");
     IdeTestContext context;
     if (copyForMutation) {
-      Path projectDir = PATH_PROJECTS_COPY.resolve(projectTestCaseName).resolve("project");
+      Path projectDir = PATH_PROJECTS_COPY.resolve(projectTestCaseName);
       FileAccess fileAccess = new FileAccessImpl(IdeTestContextMock.get());
       fileAccess.delete(projectDir);
       fileAccess.mkdirs(PATH_PROJECTS_COPY);
       fileAccess.copy(sourceDir, projectDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-      fileAccess.copy(PATH_PROJECTS.resolve(projectTestCaseName).resolve(IdeContext.FOLDER_IDE),
-          PATH_PROJECTS_COPY.resolve(projectTestCaseName).resolve(IdeContext.FOLDER_IDE),
-          FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-      userDir = projectDir;
+      userDir = projectDir.resolve("project");
     }
     if (projectPath != null) {
       userDir = userDir.resolve(projectPath);
