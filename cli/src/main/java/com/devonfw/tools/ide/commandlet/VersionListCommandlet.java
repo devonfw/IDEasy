@@ -3,12 +3,11 @@ package com.devonfw.tools.ide.commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * An internal {@link Commandlet} to set a tool version.
+ * An internal {@link Commandlet} to list versions for a tool.
  *
- * @see ToolCommandlet#setVersion(VersionIdentifier, boolean)
+ * @see ToolCommandlet#listVersions()
  */
 public class VersionListCommandlet extends Commandlet {
 
@@ -30,7 +29,7 @@ public class VersionListCommandlet extends Commandlet {
   @Override
   public String getName() {
 
-    return "list-version";
+    return "list-versions";
   }
 
   @Override

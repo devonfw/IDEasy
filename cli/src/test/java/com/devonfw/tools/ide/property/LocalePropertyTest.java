@@ -2,12 +2,13 @@ package com.devonfw.tools.ide.property;
 
 import java.util.Locale;
 
-import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 
@@ -45,10 +46,9 @@ public class LocalePropertyTest extends Assertions {
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
     // act
     LocaleProperty property = new LocaleProperty("--locale", true, null);
-    boolean success = property.completeValue(input, context, new ContextCommandlet(), collector);
+    property.completeValue(input, context, new ContextCommandlet(), collector);
     // assert
-    assertThat(success).isTrue();
-    assertThat(collector.getCandidates().stream().map(c -> c.text())).containsExactly(expectedCandidates);
+    assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates);
   }
 
 }

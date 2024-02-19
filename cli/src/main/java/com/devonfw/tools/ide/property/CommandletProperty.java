@@ -49,18 +49,15 @@ public class CommandletProperty extends Property<Commandlet> {
   }
 
   @Override
-  protected boolean completeValue(String arg, IdeContext context, Commandlet commandlet,
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
       CompletionCandidateCollector collector) {
 
-    boolean matches = false;
     for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
       String cmdName = cmd.getName();
       if (cmdName.startsWith(arg)) {
-        collector.add(cmdName, this, commandlet);
-        matches = true;
+        collector.add(cmdName, null, null, cmd);
       }
     }
-    return matches;
   }
 
   @Override

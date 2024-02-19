@@ -60,14 +60,15 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   protected boolean doInstall(boolean silent) {
 
     VersionIdentifier configuredVersion = getConfiguredVersion();
+    // get installed version before installInRepo actually may install the software
+    VersionIdentifier installedVersion = getInstalledVersion();
     VersionIdentifier selectedVersion = securityRiskInteraction(configuredVersion);
     setVersion(selectedVersion, silent);
     // install configured version of our tool in the software repository if not already installed
     ToolInstallation installation = installInRepo(selectedVersion);
     // check if we already have this version installed (linked) locally in IDE_HOME/software
-    VersionIdentifier installedVersion = getInstalledVersion();
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
-    if (resolvedVersion.equals(installedVersion)) {
+    if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
       IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
       this.context.level(level).log("Version {} of tool {} is already installed", installedVersion,
           getToolWithEdition());
@@ -157,11 +158,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to write version file " + toolVersionFile, e);
     }
-    return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
+    // newInstallation results in above conditions to be true if isForceMode is true or if the tool version file was
+    // missing
+    return createToolInstallation(toolPath, resolvedVersion, toolVersionFile, true);
   }
 
-  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion,
-      Path toolVersionFile) {
+  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile,
+      boolean newInstallation) {
 
     Path linkDir = getMacOsHelper().findLinkDir(rootDir);
     Path binDir = linkDir;
@@ -173,7 +176,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       assert (!linkDir.equals(rootDir));
       this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
     }
-    return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion);
+    return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion, newInstallation);
+  }
+
+  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion,
+      Path toolVersionFile) {
+
+    return createToolInstallation(rootDir, resolvedVersion, toolVersionFile, false);
   }
 
 }
