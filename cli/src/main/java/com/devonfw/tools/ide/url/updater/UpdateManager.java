@@ -5,8 +5,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 
-import com.devonfw.tools.ide.tool.intellij.IntellijCommunityUrlUpdater;
-import com.devonfw.tools.ide.tool.intellij.IntellijUltimateUrlUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +26,7 @@ import com.devonfw.tools.ide.tool.graalvm.GraalVmOracleUrlUpdater;
 import com.devonfw.tools.ide.tool.gradle.GradleUrlUpdater;
 import com.devonfw.tools.ide.tool.helm.HelmUrlUpdater;
 import com.devonfw.tools.ide.tool.intellij.IntellijUrlUpdater;
+import com.devonfw.tools.ide.tool.jasypt.JasyptUrlUpdater;
 import com.devonfw.tools.ide.tool.java.JavaUrlUpdater;
 import com.devonfw.tools.ide.tool.jenkins.JenkinsUrlUpdater;
 import com.devonfw.tools.ide.tool.jmc.JmcUrlUpdater;
@@ -46,7 +45,6 @@ import com.devonfw.tools.ide.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.tool.vscode.VsCodeUrlUpdater;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.devonfw.tools.ide.tool.jasypt.JasyptUrlUpdater;
 
 /**
  * The {@code UpdateManager} class manages the update process for various tools by using a list of

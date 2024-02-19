@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.tool;
 
+import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.LATEST_SAFE;
+import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.NEXT_SAFE;
+import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.SAFE_LATEST;
+import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.STAY;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -11,7 +16,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
@@ -26,11 +30,10 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.StringListProperty;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
+import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.util.Pair;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.*;
 
 /**
  * {@link Commandlet} for a tool integrated into the IDE.
@@ -113,7 +116,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
+        .addArgs(args);
 
     pc.run(false, runInBackground);
   }
@@ -249,7 +253,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     Map<SecurityRiskInteractionAnswer, Pair<String, VersionIdentifier>> options = new HashMap<>();
     options.put(STAY, Pair.of("Stay with the current unsafe version (" + current + ").", configuredVersion));
     options.put(LATEST_SAFE, Pair.of("Install the latest of all safe versions (" + latestSafe + ").", latestSafe));
-    options.put(SAFE_LATEST, Pair.of("Install the latest version (" + latest + "). This version is save.", VersionIdentifier.LATEST));
+    options.put(SAFE_LATEST,
+        Pair.of("Install the latest version (" + latest + "). This version is save.", VersionIdentifier.LATEST));
     options.put(NEXT_SAFE, Pair.of("Install the next safe version (" + nextSafe + ").", nextSafe));
 
     if (current.equals(latest)) {
@@ -355,11 +360,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     try (Stream<Path> stream = Files.list(path)) {
       Path[] subFiles = stream.toArray(Path[]::new);
       if (subFiles.length == 0) {
-        throw new CliException("The downloaded package for the tool " + this.tool + " seems to be empty as you can check in the extracted folder " + path);
+        throw new CliException("The downloaded package for the tool " + this.tool
+            + " seems to be empty as you can check in the extracted folder " + path);
       } else if (subFiles.length == 1) {
         String filename = subFiles[0].getFileName().toString();
-        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS) && !filename.endsWith(".app")
-            && Files.isDirectory(subFiles[0])) {
+        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS)
+            && !filename.endsWith(".app") && Files.isDirectory(subFiles[0])) {
           return getProperInstallationSubDirOf(subFiles[0]);
         }
       }
@@ -424,15 +430,15 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", getName(), file);
 
       if (Files.isDirectory(file)) {
-      fileAccess.move(file, targetDir);
+        fileAccess.move(file, targetDir);
       } else {
         try {
           Files.createDirectories(targetDir);
         } catch (IOException e) {
           throw new IllegalStateException("Failed to create folder " + targetDir);
-    }
+        }
         fileAccess.move(file, targetDir.resolve(file.getFileName()));
-  }
+      }
     }
   }
 
@@ -529,8 +535,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       return edition;
     } catch (IOException e) {
-      throw new IllegalStateException("Couldn't determine the edition of " + getName() + " from the directory structure of its software path " + toolPath
-          + ", assuming the name of the parent directory of the real path of the software path to be the edition " + "of the tool.", e);
+      throw new IllegalStateException("Couldn't determine the edition of " + getName()
+          + " from the directory structure of its software path " + toolPath
+          + ", assuming the name of the parent directory of the real path of the software path to be the edition "
+          + "of the tool.", e);
     }
 
   }
@@ -595,8 +603,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.context.info("{}={} has been set in {}", name, version, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
-          declaringVariables.getSource());
+      this.context.warning(
+          "The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
+          name, declaringVariables.getSource());
     }
     if (hint) {
       this.context.info("To install that version call the following command:");
@@ -639,8 +648,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.context.info("{}={} has been set in {}", name, edition, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
-          declaringVariables.getSource());
+      this.context.warning(
+          "The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
+          name, declaringVariables.getSource());
     }
     if (hint) {
       this.context.info("To install that edition call the following command:");
