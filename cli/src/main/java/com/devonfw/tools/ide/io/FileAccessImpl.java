@@ -543,7 +543,7 @@ public class FileAccessImpl implements FileAccess {
           mkdirs(entryPath.getParent());
           Files.copy(ais, entryPath);
         }
-        if (isTar) {
+        if (isTar && !this.context.getSystemInfo().isWindows()) {
           Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
           Files.setPosixFilePermissions(entryPath, permissions);
         }
