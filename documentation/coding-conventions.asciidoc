@@ -208,6 +208,47 @@ So we conclude:
 * In classes we declare the constant with the visibility followed by the keywords `static final`.
 * In interfaces, we omit all modifiers as they always default to `public static final` for type variables.
 
+== Refactorings
+
+Do refactorings with care and follow these best-practices:
+
+* use `git mv «old» «new»` to move or rename things in git. Otherwise your diff may show that a file has been deleted somewhere and another file has been added but you cannot see that this file was moved/renamed and what changed inside the file.
+* do not change Java signatures like in a text editor but use refactoring capabilities of your IDE. So e.g. when changing a method name, adding or removing a parameter, always use refactoring as otherwise you easily break references (and JavaDoc references will not give you compile errors so you break things without noticing).
+* when adding paramaters to methods, please always consider to keep the existing signature and just create a new variant of the method with an additional parameter.
+
+Lets assume we have this method:
+[source,java]
+----
+public void doSomething() {
+  // ...
+}
+----
+
+Now, assuming this method is called from multiple places, this change is bad:
+[source,java]
+----
+// bad
+public void doSomething(boolean newFlag) {
+  // ...
+}
+----
+The reason is that it is most likely causing a lot of merge conflicts for feature-branches and PRs of other developers, currently working with code calling `doSomething()` that will not work after the change.
+
+Instead keep the existing signature and add a new one:
+[source,java]
+----
+// good
+public void doSomething() {
+  doSomething(false);
+}
+public void doSomething(boolean newFlag) {
+  // ...
+}
+----
+
+Typically, you should design flags such that `false` is a reasonable default.
+That is why we are passing `false` in the example from the existing method to the new one.
+
 == Optionals
 With `Optional` you can wrap values to avoid a `NullPointerException` (NPE).
 However, it is not a good code-style to use `Optional` for every parameter or result to express that it may be null.
