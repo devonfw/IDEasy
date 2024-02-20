@@ -32,12 +32,11 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
   private IdeContext context;
 
-  private final String projectPath = "workspaces/foo-test/my-git-repo";
-
   @BeforeEach
   public void setUp() throws Exception {
 
     mockProcessBuilder = mock(ProcessBuilder.class);
+    String projectPath = "workspaces/foo-test/my-git-repo";
     context = newContext("basic", projectPath, false);
     underTest = new ProcessContextImpl(context);
 
