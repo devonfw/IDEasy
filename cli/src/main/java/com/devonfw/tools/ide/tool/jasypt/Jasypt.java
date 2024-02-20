@@ -4,6 +4,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
 
 import java.nio.file.Path;
 import java.util.Scanner;
@@ -20,6 +21,11 @@ public class Jasypt extends LocalToolCommandlet {
   public boolean doInstall(boolean silent) {
 
     getCommandlet(Java.class).install();
+    Mvn mvn = getCommandlet(Mvn.class);
+    mvn.install();
+    String[] commandArgs = {"org.apache.maven.plugins:maven-dependency-plugin:3.1.2:get", "-Dartifact=org.jasypt:jasypt:" + getInstalledVersion().toString()};
+    mvn.runTool(null, commandArgs);
+
     return super.doInstall(silent);
   }
 
