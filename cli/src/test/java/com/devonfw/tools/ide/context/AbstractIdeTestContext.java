@@ -28,10 +28,9 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    * @param userDir the optional {@link Path} to current working directory.
    * @param answers the automatic answers simulating a user in test.
    */
-  public AbstractIdeTestContext(Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, boolean debug,
-      String... answers) {
+  public AbstractIdeTestContext(Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, String... answers) {
 
-    super(IdeLogLevel.TRACE, factory, userDir, debug);
+    super(IdeLogLevel.TRACE, factory, userDir);
     this.answers = answers;
     this.progressBarMap = new HashMap<>();
   }

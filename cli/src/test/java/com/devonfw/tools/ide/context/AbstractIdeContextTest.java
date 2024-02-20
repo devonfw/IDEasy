@@ -59,8 +59,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    *        in that project.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String projectTestCaseName, String projectPath, boolean copyForMutation,
-      boolean debug) {
+  protected static IdeTestContext newContext(String projectTestCaseName, String projectPath, boolean copyForMutation) {
 
     Path sourceDir = PATH_PROJECTS.resolve(projectTestCaseName);
     Path userDir = sourceDir.resolve("project");
@@ -76,13 +75,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
     if (projectPath != null) {
       userDir = userDir.resolve(projectPath);
     }
-    context = new IdeTestContext(userDir, debug);
+    context = new IdeTestContext(userDir);
     return context;
-  }
-
-  protected static IdeTestContext newContext(String projectTestCaseName, String projectPath, boolean copyForMutation) {
-
-    return newContext(projectTestCaseName, projectPath, copyForMutation, false);
   }
 
   /**
@@ -91,7 +85,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static IdeTestContext newContext(Path projectPath) {
 
-    return new IdeTestContext(projectPath, false);
+    return new IdeTestContext(projectPath);
   }
 
   /**
