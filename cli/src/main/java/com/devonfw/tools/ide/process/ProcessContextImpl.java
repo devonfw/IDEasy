@@ -123,7 +123,7 @@ public final class ProcessContextImpl implements ProcessContext {
       if (capture) {
         this.processBuilder.redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
       } else if (isBackgroundProcess) {
-        modifyArgumentsOnBackgroundProcess(isBashScript);
+        modifyArgumentsOnBackgroundProcess();
       }
 
       this.processBuilder.command(this.arguments);
@@ -139,8 +139,8 @@ public final class ProcessContextImpl implements ProcessContext {
       }
 
       int exitCode;
+      // TODO: Ask if a background process shall get its own process result or if we should assume success?
       if (isBackgroundProcess) {
-        // TODO: Ask if a background process shall get its own process result or if we should assume success?
         exitCode = ProcessResult.SUCCESS;
       } else {
         exitCode = process.waitFor();
@@ -308,31 +308,39 @@ public final class ProcessContextImpl implements ProcessContext {
     }
   }
 
-  private void modifyArgumentsOnBackgroundProcess(boolean isBashScript) {
+  private void modifyArgumentsOnBackgroundProcess() {
 
-    if (context.getSystemInfo().isWindows() && !isBashScript) {
+    String commandToRunInBackground = this.arguments.stream().map(Object::toString).collect(Collectors.joining(" "));
 
-      this.context.warning(
-          "Currently starting the process as background process in windows will use 'more' command to redirect output to a new cmd window!");
+    String bash = "bash";
 
-      this.processBuilder.redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
-      List<String> windowsArgs = List.of("cmd.exe", "/c", "start", "cmd.exe", "/k");
+    // try to use bash in windows to start the process
+    if (context.getSystemInfo().isWindows()) {
 
-      String currentCommandToRunInCmd = this.arguments.stream().map(Object::toString).collect(Collectors.joining(" "));
-      currentCommandToRunInCmd += " | more";
+      String findBashOnWindowsResult = findBashOnWindows();
+      if (findBashOnWindowsResult != null) {
 
-      this.arguments.clear();
+        bash = findBashOnWindowsResult;
+        // windows path must be converted to unix format and executable
+        commandToRunInBackground = commandToRunInBackground.replace('\\', '/');
+        commandToRunInBackground = "/" + commandToRunInBackground.substring(0, 1).toLowerCase()
+            + commandToRunInBackground.substring(2);
 
-      List<String> newArgs = new ArrayList<>(windowsArgs);
-      newArgs.add(currentCommandToRunInCmd);
-
-      this.arguments.addAll(newArgs);
-
-    } else {
-      this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
-      // just assume unix system for now
-      this.arguments.add("&");
+      } else {
+        // TODO IMPLEMENT start cmd window?
+        context.warning("Cannot start background process! No bash installation found, output will be discarded.");
+        this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
+        return;
+      }
     }
+
+    this.arguments.clear();
+    this.arguments.add(0, bash);
+    this.arguments.add("-c");
+    // todo adding disowning and silencing output with 1>/dev/null 2>/dev/null
+    commandToRunInBackground += " & disown";
+    this.arguments.add(commandToRunInBackground);
+
   }
 
 }
