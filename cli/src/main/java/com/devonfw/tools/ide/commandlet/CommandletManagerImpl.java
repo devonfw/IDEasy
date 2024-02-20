@@ -18,6 +18,7 @@ import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.helm.Helm;
 import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.tool.jmc.Jmc;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
@@ -27,6 +28,7 @@ import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
+import com.devonfw.tools.ide.tool.cobigen.Cobigen;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -61,6 +63,9 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new VersionSetCommandlet(context));
     add(new VersionGetCommandlet(context));
     add(new VersionListCommandlet(context));
+    add(new EditionGetCommandlet(context));
+    add(new EditionSetCommandlet(context));
+    add(new EditionListCommandlet(context));
     add(new VersionCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));

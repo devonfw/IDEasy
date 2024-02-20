@@ -6,7 +6,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -50,6 +49,25 @@ public class UrlMetadata {
     UrlTool urlTool = this.repository.getOrCreateChild(tool);
     UrlEdition urlEdition = urlTool.getOrCreateChild(edition);
     return urlEdition;
+  }
+
+  /**
+   * @param tool the name of the {@link UrlTool}.
+   * @return the sorted {@link List} of {@link String editions} .
+   */
+  public List<String> getSortedEditions(String tool) {
+
+    List<String> list = new ArrayList<>();
+    UrlTool urlTool = this.repository.getChild(tool);
+    if (urlTool == null) {
+      this.context.warning("Can't get sorted editions for tool {} because it does not exist in {}.", tool, this.repository.getPath());
+    } else {
+      for (UrlEdition urlEdition : urlTool.getChildren()) {
+        list.add(urlEdition.getName());
+      }
+    }
+    Collections.sort(list);
+    return Collections.unmodifiableList(list);
   }
 
   /**
@@ -99,9 +117,8 @@ public class UrlMetadata {
         return vi;
       }
     }
-    throw new CliException("Could not find any version matching '" + version + "' for tool '" + tool
-        + "' - potentially there are " + versions.size() + " version(s) available in "
-        + getEdition(tool, edition).getPath() + " but none matched!");
+    throw new CliException("Could not find any version matching '" + version + "' for tool '" + tool + "' - potentially there are " + versions.size()
+        + " version(s) available in " + getEdition(tool, edition).getPath() + " but none matched!");
   }
 
   /**
@@ -116,8 +133,7 @@ public class UrlMetadata {
     VersionIdentifier resolvedVersion = getVersion(tool, edition, version);
     UrlVersion urlVersion = getEdition(tool, edition).getChild(resolvedVersion.toString());
     if (urlVersion == null) {
-      throw new IllegalArgumentException(
-          "Version " + version + " for tool " + tool + " does not exist in edition " + edition + ".");
+      throw new IllegalArgumentException("Version " + version + " for tool " + tool + " does not exist in edition " + edition + ".");
     }
     return urlVersion;
   }

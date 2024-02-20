@@ -207,7 +207,7 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
    */
   protected void runIde(String... args) {
 
-    runTool(null, args);
+    runTool(false,null, args);
   }
 
   /**

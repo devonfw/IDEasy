@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -91,31 +90,42 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   @Override
   public void run() {
 
-    runTool(null, this.arguments.asArray());
+    runTool(false, null, this.arguments.asArray());
   }
 
   /**
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
+   * @param runInBackground {@code true}, the process of the command will be run as background process, {@code false}
+   *        otherwise (it will be run as foreground process).
    * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
    *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
    *        without touching and IDE installation and used to run.
-   * @param args the commandline arguments to run the tool.
+   * @param args the command-line arguments to run the tool.
    */
-  public void runTool(VersionIdentifier toolVersion, String... args) {
+  public void runTool(boolean runInBackground, VersionIdentifier toolVersion, String... args) {
 
     Path binaryPath;
-    Path toolPath = Paths.get(getBinaryName());
+    Path toolPath = Path.of(getBinaryName());
     if (toolVersion == null) {
       install(true);
       binaryPath = toolPath;
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
-        .addArgs(args);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
 
-    pc.run();
+    pc.run(false, runInBackground);
+  }
+
+  /**
+   * @param toolVersion the explicit {@link VersionIdentifier} of the tool to run.
+   * @param args the command-line arguments to run the tool.
+   * @see ToolCommandlet#runTool(boolean, VersionIdentifier, String...)
+   */
+  public void runTool(VersionIdentifier toolVersion, String... args) {
+
+    runTool(false, toolVersion, args);
   }
 
   /**
@@ -209,12 +219,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     try (Stream<Path> stream = Files.list(path)) {
       Path[] subFiles = stream.toArray(Path[]::new);
       if (subFiles.length == 0) {
-        throw new CliException("The downloaded package for the tool " + this.tool
-            + " seems to be empty as you can check in the extracted folder " + path);
+        throw new CliException("The downloaded package for the tool " + this.tool + " seems to be empty as you can check in the extracted folder " + path);
       } else if (subFiles.length == 1) {
         String filename = subFiles[0].getFileName().toString();
-        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS)
-            && !filename.endsWith(".app") && Files.isDirectory(subFiles[0])) {
+        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS) && !filename.endsWith(".app")
+            && Files.isDirectory(subFiles[0])) {
           return getProperInstallationSubDirOf(subFiles[0]);
         }
       }
@@ -256,10 +265,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         fileAccess.copy(appPath, tmpDir);
         pc.addArgs("detach", "-force", mountPath);
         pc.run();
-        // if [ -e "${target_dir}/Applications" ]
-        // then
-        // rm "${target_dir}/Applications"
-        // fi
       } else if ("msi".equals(extension)) {
         this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + tmpDir).run();
         // msiexec also creates a copy of the MSI
@@ -295,6 +300,13 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
   }
 
+  /**
+   * Moves the extracted content to the final destination {@link Path}. May be overridden to customize the extraction
+   * process.
+   *
+   * @param from the source {@link Path} to move.
+   * @param to the target {@link Path} to move to.
+   */
   protected void moveAndProcessExtraction(Path from, Path to) {
 
     this.context.getFileAccess().move(from, to);
@@ -356,6 +368,49 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * @return the installed edition of this tool or {@code null} if not installed.
+   */
+  public String getInstalledEdition() {
+
+    return getInstalledEdition(this.context.getSoftwarePath().resolve(getName()));
+  }
+
+  /**
+   * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent
+   *        directory of the real path corresponding to the passed {@link Path path} must be the name of the edition.
+   * @return the installed edition of this tool or {@code null} if not installed.
+   */
+  public String getInstalledEdition(Path toolPath) {
+
+    if (!Files.isDirectory(toolPath)) {
+      this.context.debug("Tool {} not installed in {}", getName(), toolPath);
+      return null;
+    }
+    try {
+      String edition = toolPath.toRealPath().getParent().getFileName().toString();
+      if (!this.context.getUrls().getSortedEditions(getName()).contains(edition)) {
+        edition = getEdition();
+      }
+      return edition;
+    } catch (IOException e) {
+      throw new IllegalStateException("Couldn't determine the edition of " + getName() + " from the directory structure of its software path " + toolPath
+          + ", assuming the name of the parent directory of the real path of the software path to be the edition " + "of the tool.", e);
+    }
+
+  }
+
+  /**
+   * List the available editions of this tool.
+   */
+  public void listEditions() {
+
+    List<String> editions = this.context.getUrls().getSortedEditions(getName());
+    for (String edition : editions) {
+      this.context.info(edition);
+    }
+  }
+
+  /**
    * List the available versions of this tool.
    */
   public void listVersions() {
@@ -404,12 +459,55 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.context.info("{}={} has been set in {}", name, version, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning(
-          "The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
-          name, declaringVariables.getSource());
+      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+          declaringVariables.getSource());
     }
     if (hint) {
       this.context.info("To install that version call the following command:");
+      this.context.info("ide install {}", this.tool);
+    }
+  }
+
+  /**
+   * Sets the tool edition in the environment variable configuration file.
+   *
+   * @param edition the edition to set.
+   */
+  public void setEdition(String edition) {
+
+    setEdition(edition, true);
+  }
+
+  /**
+   * Sets the tool edition in the environment variable configuration file.
+   *
+   * @param edition the edition to set
+   * @param hint - {@code true} to print the installation hint, {@code false} otherwise.
+   */
+  public void setEdition(String edition, boolean hint) {
+
+    if ((edition == null) || edition.isBlank()) {
+      throw new IllegalStateException("Edition has to be specified!");
+    }
+
+    if (!Files.exists(this.context.getUrls().getEdition(getName(), edition).getPath())) {
+      this.context.warning("Edition {} seems to be invalid", edition);
+
+    }
+    EnvironmentVariables variables = this.context.getVariables();
+    EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
+    String name = EnvironmentVariables.getToolEditionVariable(this.tool);
+    settingsVariables.set(name, edition, false);
+    settingsVariables.save();
+
+    this.context.info("{}={} has been set in {}", name, edition, settingsVariables.getSource());
+    EnvironmentVariables declaringVariables = variables.findVariable(name);
+    if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
+      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+          declaringVariables.getSource());
+    }
+    if (hint) {
+      this.context.info("To install that edition call the following command:");
       this.context.info("ide install {}", this.tool);
     }
   }
