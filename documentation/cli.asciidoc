@@ -91,3 +91,4 @@ The following commandlets are currently available:
 * link:tomcat.asciidoc[tomcat]
 * link:vscode.asciidoc[vscode]
 * link:yarn.asciidoc[yarn]
+* link:sonar.asciidoc[sonar]
