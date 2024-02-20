@@ -329,6 +329,7 @@ public final class ProcessContextImpl implements ProcessContext {
       this.arguments.addAll(newArgs);
 
     } else {
+      this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
       // just assume unix system for now
       this.arguments.add("&");
     }
