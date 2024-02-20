@@ -5,6 +5,8 @@
 *.log
 *.bak
 .*
+!.gitignore
+!.ide.software.version
 target/
 eclipse-target/
 generated/
