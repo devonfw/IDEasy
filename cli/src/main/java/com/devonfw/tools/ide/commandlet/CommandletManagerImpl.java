@@ -28,7 +28,6 @@ import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
-import com.devonfw.tools.ide.tool.cobigen.Cobigen;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -84,6 +83,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Azure(context));
     add(new Aws(context));
     add(new Cobigen(context));
+    add(new Jmc(context));
     add(new Sonar(context));
   }
 
