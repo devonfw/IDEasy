@@ -32,22 +32,24 @@ public abstract class AbstractIdeContextTest extends Assertions {
   private static final int CHUNK_SIZE = 1024;
 
   /**
-   * @param projectName the (folder)name of the test project in {@link #PATH_PROJECTS}. E.g. "basic".
+   * @param projectTestCaseName the (folder)name of the project test case, in this folder a 'project' folder represents
+   *        the test project in {@link #PATH_PROJECTS}. E.g. "basic".
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected IdeTestContext newContext(String projectName) {
+  protected IdeTestContext newContext(String projectTestCaseName) {
 
-    return newContext(projectName, null, true);
+    return newContext(projectTestCaseName, null, true);
   }
 
   /**
-   * @param projectName the (folder)name of the test project in {@link #PATH_PROJECTS}. E.g. "basic".
+   * @param projectTestCaseName the (folder)name of the project test case, in this folder a 'project' folder represents
+   *        the test project in {@link #PATH_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String projectName, String projectPath) {
+  protected static IdeTestContext newContext(String projectTestCaseName, String projectPath) {
 
-    return newContext(projectName, projectPath, true);
+    return newContext(projectTestCaseName, projectPath, true);
   }
 
   /**
@@ -56,7 +58,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param projectPath the relative path inside the test project where to create the context.
    * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
    *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
-   *        in that project.
+   *        in that project.)
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected static IdeTestContext newContext(String projectTestCaseName, String projectPath, boolean copyForMutation) {
