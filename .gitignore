@@ -7,6 +7,7 @@
 .*
 !.gitignore
 !.ide.software.version
+!.devon.software.version
 target/
 eclipse-target/
 generated/
