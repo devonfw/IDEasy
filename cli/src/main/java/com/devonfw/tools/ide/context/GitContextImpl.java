@@ -206,9 +206,16 @@ public class GitContextImpl implements GitContext {
     if (!remotes.isEmpty()) {
       for (String remote : remotes) {
         if (remote.startsWith("*")) {
-          String activeRemote = remote.substring(remote.indexOf("[") + 1, remote.indexOf("]"));
-          remoteAndBranchName.put("remote", activeRemote.substring(0, activeRemote.indexOf("/")));
-          remoteAndBranchName.put("branch", activeRemote.substring(activeRemote.indexOf("/") + 1));
+          String checkedOutBranch = remote.substring(remote.indexOf("[") + 1, remote.indexOf("]"));
+          remoteAndBranchName.put("remote", checkedOutBranch.substring(0, checkedOutBranch.indexOf("/")));
+          // check if current repo is behind remote and omit message
+          if (checkedOutBranch.contains(":")) {
+            remoteAndBranchName.put("branch",
+                checkedOutBranch.substring(checkedOutBranch.indexOf("/") + 1, checkedOutBranch.indexOf(":")));
+          } else {
+            remoteAndBranchName.put("branch", checkedOutBranch.substring(checkedOutBranch.indexOf("/") + 1));
+          }
+
         }
       }
     } else {
