@@ -14,6 +14,5 @@ The arguments (`devon sonar «args»`) are explained by the following table:
 |*Arguments*      |*Meaning*
 |`start`          |start local SonarQube server
 |`stop`           |stop local SonarQube server
-|`setup`          |setup SonarQube (install, verify, configure)
 |`analyze`        |analyze current project with SonarQube
 |=======================
