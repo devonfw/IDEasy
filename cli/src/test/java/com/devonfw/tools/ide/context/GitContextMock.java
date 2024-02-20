@@ -13,8 +13,7 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public void pullOrClone(String gitRepoUrl, Path targetRepository, String remoteName, String branchName,
-      boolean force) {
+  public void pullOrClone(String gitRepoUrl, Path targetRepository, boolean force) {
 
   }
 
@@ -24,12 +23,12 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public void pull(Path targetRepository, String remoteName, String branchName) {
+  public void pull(Path targetRepository) {
 
   }
 
   @Override
-  public void reset(Path targetRepository, String remoteName, String branchName) {
+  public void reset(Path targetRepository) {
 
   }
 

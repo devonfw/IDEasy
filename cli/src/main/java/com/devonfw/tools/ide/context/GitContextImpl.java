@@ -5,7 +5,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Duration;
+import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -54,7 +57,7 @@ public class GitContextImpl implements GitContext {
 
       // Check if the file modification time is older than the delta threshold
       if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || force) {
-        pullOrClone(repoUrl, targetRepository, remoteName, branchName, force);
+        pullOrClone(repoUrl, targetRepository, force);
         try {
           Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
         } catch (IOException e) {
@@ -63,13 +66,12 @@ public class GitContextImpl implements GitContext {
       }
     } else {
       // If the .git directory does not exist, perform git clone
-      pullOrClone(repoUrl, targetRepository, remoteName, branchName, force);
+      pullOrClone(repoUrl, targetRepository, force);
     }
   }
 
   @Override
-  public void pullOrClone(String gitRepoUrl, Path targetRepository, String remoteName, String branchName,
-      boolean force) {
+  public void pullOrClone(String gitRepoUrl, Path targetRepository, boolean force) {
 
     Objects.requireNonNull(targetRepository);
     Objects.requireNonNull(gitRepoUrl);
@@ -92,9 +94,9 @@ public class GitContextImpl implements GitContext {
         this.processContext.errorHandling(ProcessErrorHandling.WARNING);
 
         if (!this.context.isOffline()) {
-          pull(targetRepository, remoteName, branchName);
+          pull(targetRepository);
           if (force) {
-            reset(targetRepository, remoteName, branchName);
+            reset(targetRepository);
             cleanup(targetRepository);
           }
         }
@@ -181,7 +183,7 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void pull(Path targetRepository, String remoteName, String branchName) {
+  public void pull(Path targetRepository) {
 
     initializeProcessContext(targetRepository);
     ProcessResult result;
@@ -189,13 +191,36 @@ public class GitContextImpl implements GitContext {
     result = this.processContext.addArg("--no-pager").addArg("pull").run(true, false);
 
     if (!result.isSuccessful()) {
-      context.warning("Git pull for {}/{} failed for repository {}.", remoteName, branchName, targetRepository);
+      Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();
+      context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"),
+          remoteAndBranchName.get("branch"), targetRepository);
       handleErrors(targetRepository, result);
     }
   }
 
+  private Map<String, String> retrieveRemoteAndBranchName() {
+
+    Map<String, String> remoteAndBranchName = new HashMap<>();
+    ProcessResult remoteResult = this.processContext.addArg("branch").addArg("-vv").run(true, false);
+    List<String> remotes = remoteResult.getOut();
+    if (!remotes.isEmpty()) {
+      for (String remote : remotes) {
+        if (remote.startsWith("*")) {
+          String activeRemote = remote.substring(remote.indexOf("[") + 1, remote.indexOf("]"));
+          remoteAndBranchName.put("remote", activeRemote.substring(0, activeRemote.indexOf("/")));
+          remoteAndBranchName.put("branch", activeRemote.substring(activeRemote.indexOf("/") + 1));
+        }
+      }
+    } else {
+      return Map.ofEntries(new AbstractMap.SimpleEntry<>("remote", "unknown"),
+          new AbstractMap.SimpleEntry<>("branch", "unknown"));
+    }
+
+    return remoteAndBranchName;
+  }
+
   @Override
-  public void reset(Path targetRepository, String remoteName, String branchName) {
+  public void reset(Path targetRepository) {
 
     initializeProcessContext(targetRepository);
     ProcessResult result;
@@ -203,6 +228,9 @@ public class GitContextImpl implements GitContext {
     result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(true, false);
 
     if (!result.isSuccessful()) {
+      Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();
+      String remoteName = remoteAndBranchName.get("remote");
+      String branchName = remoteAndBranchName.get("branch");
       // reset to origin/master
       context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", targetRepository,
           remoteName, branchName);
