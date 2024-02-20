@@ -17,8 +17,8 @@ import ch.qos.logback.classic.spi.Configurator;
  */
 public class DirectoryMergerTest extends AbstractIdeContextTest {
 
-  private static final String IDE_HOME = PATH_PROJECTS.resolve(PROJECT_BASIC).toAbsolutePath().toString().replace('\\',
-      '/');
+  private static final String IDE_HOME = PATH_PROJECTS.resolve(PROJECT_BASIC).resolve("project").toAbsolutePath()
+      .toString().replace('\\', '/');
 
   private static final Prop JAVA_VERSION = new Prop("java.version", "1.11");
 

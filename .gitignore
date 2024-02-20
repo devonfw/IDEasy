@@ -7,6 +7,10 @@
 .*
 !.gitignore
 !.ide.software.version
+!.devon.software.version
+!.ide
+!.anyedit.properties
+!.ide.properties
 target/
 eclipse-target/
 generated/
