@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.common;
 
+import com.devonfw.tools.ide.context.IdeContext;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,8 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
-import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Represents the PATH variable in a structured way.
@@ -28,7 +28,9 @@ public class SystemPath {
 
   private final IdeContext context;
 
-  private static final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
+  private static final List<String> EXTENSION_PRIORITY_WIN = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
+
+  private static final List<String> EXTENSION_PRIORITY_UNIX = List.of(".exe", "", ".cmd", ".bat", ".msi", ".ps1");
 
   /**
    * The constructor.
@@ -67,7 +69,8 @@ public class SystemPath {
       } else {
         Path duplicate = this.tool2pathMap.putIfAbsent(tool, path);
         if (duplicate != null) {
-          context.warning("Duplicated tool path for tool: {} at path: {} with duplicated path: {}.", tool, path, duplicate);
+          context.warning("Duplicated tool path for tool: {} at path: {} with duplicated path: {}.", tool, path,
+              duplicate);
         }
       }
     }
@@ -116,7 +119,15 @@ public class SystemPath {
 
   private Path findBinaryInOrder(Path path, String tool) {
 
-    for (String extension : EXTENSION_PRIORITY) {
+    List<String> extensionPriority;
+
+    if (this.context.getSystemInfo().isWindows()) {
+      extensionPriority = EXTENSION_PRIORITY_WIN;
+    } else {
+      extensionPriority = EXTENSION_PRIORITY_UNIX;
+    }
+
+    for (String extension : extensionPriority) {
 
       Path fileToExecute = path.resolve(tool + extension);
 
@@ -131,7 +142,7 @@ public class SystemPath {
   /**
    * @param toolPath the {@link Path} to the tool installation.
    * @return the {@link Path} to the binary executable of the tool. E.g. is "software/mvn" is given
-   *         "software/mvn/bin/mvn" could be returned.
+   * "software/mvn/bin/mvn" could be returned.
    */
   public Path findBinary(Path toolPath) {
 
@@ -158,7 +169,7 @@ public class SystemPath {
   /**
    * @param tool the name of the tool.
    * @return the {@link Path} to the directory of the tool where the binaries can be found or {@code null} if the tool
-   *         is not installed.
+   * is not installed.
    */
   public Path getPath(String tool) {
 
@@ -182,7 +193,7 @@ public class SystemPath {
 
   /**
    * @param bash - {@code true} to convert the PATH to bash syntax (relevant for git-bash or cygwin on windows),
-   *        {@code false} otherwise.
+   * {@code false} otherwise.
    * @return this {@link SystemPath} as {@link String} for the PATH environment variable.
    */
   public String toString(boolean bash) {
