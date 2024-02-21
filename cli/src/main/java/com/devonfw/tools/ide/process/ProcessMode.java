@@ -35,6 +35,6 @@ public enum ProcessMode {
    */
   DEFAULT_CAPTURE
 
-  // TODO ADD EXTERNAL_WINDOW_MODE IN FUTURE
+  // TODO ADD EXTERNAL_WINDOW_MODE IN FUTURE Issue: https://github.com/devonfw/IDEasy/issues/218
 
 }
