@@ -28,7 +28,8 @@ public class SystemPath {
 
   private final IdeContext context;
 
-  private static final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
+  private static final List<String> EXTENSION_PRIORITY_WIN = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
+  private static final List<String> EXTENSION_PRIORITY_UNIX = List.of(".exe", "", ".cmd", ".bat", ".msi", ".ps1");
 
   /**
    * The constructor.
@@ -116,7 +117,16 @@ public class SystemPath {
 
   private Path findBinaryInOrder(Path path, String tool) {
 
-    for (String extension : EXTENSION_PRIORITY) {
+    List<String> extensionPriority;
+
+    if (this.context.getSystemInfo().isWindows()) {
+      extensionPriority = EXTENSION_PRIORITY_WIN;
+    }
+    else {
+      extensionPriority = EXTENSION_PRIORITY_UNIX;
+    }
+
+    for (String extension : extensionPriority) {
 
       Path fileToExecute = path.resolve(tool + extension);
 
