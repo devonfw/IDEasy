@@ -63,10 +63,20 @@ public class Jasypt extends LocalToolCommandlet {
   public boolean doInstall(boolean silent) {
 
     getCommandlet(Java.class).install();
+   /* if (Files.notExists(resolveJasyptJarPath())) {
+      installJasyptArtifact();
+    }*/
+    return super.doInstall(silent);
+  }
+
+  @Override
+  public void postInstall() {
+
+    super.postInstall();
+
     if (Files.notExists(resolveJasyptJarPath())) {
       installJasyptArtifact();
     }
-    return super.doInstall(silent);
   }
 
   private void installJasyptArtifact() {
