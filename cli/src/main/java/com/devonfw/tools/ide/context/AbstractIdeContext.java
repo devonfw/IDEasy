@@ -40,6 +40,7 @@ import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
@@ -612,7 +613,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     ProcessContext pc = newProcess().directory(target).executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0");
     if (Files.isDirectory(target.resolve(".git"))) {
-      ProcessResult result = pc.addArg("remote").run(true, false);
+      ProcessResult result = pc.addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
         String message = "This is a local git repo with no remote - if you did this for testing, you may continue...\n"
@@ -620,7 +621,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         askToContinue(message);
       } else {
         pc.errorHandling(ProcessErrorHandling.WARNING);
-        result = pc.addArg("pull").run(false, false);
+        result = pc.addArg("pull").run(ProcessMode.DEFAULT);
         if (!result.isSuccessful()) {
           String message = "Failed to update git repository at " + target;
           if (this.offlineMode) {

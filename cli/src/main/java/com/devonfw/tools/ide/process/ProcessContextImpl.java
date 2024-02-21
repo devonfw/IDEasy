@@ -44,8 +44,6 @@ public final class ProcessContextImpl implements ProcessContext {
     super();
     this.context = context;
     this.processBuilder = new ProcessBuilder();
-    // TODO needs to be configurable for GUI
-    this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
     this.errorHandling = ProcessErrorHandling.THROW;
     Map<String, String> environment = this.processBuilder.environment();
     for (VariableLine var : this.context.getVariables().collectExportedVariables()) {
@@ -97,12 +95,14 @@ public final class ProcessContextImpl implements ProcessContext {
   }
 
   @Override
-  public ProcessResult run(boolean capture, boolean isBackgroundProcess) {
+  public ProcessResult run(ProcessMode processMode) {
 
-    if (capture && isBackgroundProcess) {
-      throw new IllegalStateException(
-          "It is not possible for the main process to capture the streams of the subprocess (in a background process) !");
+    // TODO ProcessMode needs to be configurable for GUI
+    if (processMode == ProcessMode.DEFAULT) {
+      this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
     }
+
+    boolean isBackgroundProcess = processMode == ProcessMode.BACKGROUND || processMode == ProcessMode.BACKGROUND_SILENT;
 
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");
@@ -111,7 +111,7 @@ public final class ProcessContextImpl implements ProcessContext {
     // pragmatic solution to avoid copying lists/arrays
     this.arguments.add(0, executableName);
 
-    boolean isBashScript = checkAndHandlePossibleBashScript(executableName);
+    checkAndHandlePossibleBashScript(executableName);
 
     if (this.context.debug().isEnabled()) {
       String message = createCommandMessage(" ...");
@@ -120,10 +120,10 @@ public final class ProcessContextImpl implements ProcessContext {
 
     try {
 
-      if (capture) {
+      if (processMode == ProcessMode.DEFAULT_CAPTURE) {
         this.processBuilder.redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
       } else if (isBackgroundProcess) {
-        modifyArgumentsOnBackgroundProcess();
+        modifyArgumentsOnBackgroundProcess(processMode);
       }
 
       this.processBuilder.command(this.arguments);
@@ -132,7 +132,7 @@ public final class ProcessContextImpl implements ProcessContext {
 
       List<String> out = null;
       List<String> err = null;
-      if (capture) {
+      if (processMode == ProcessMode.DEFAULT_CAPTURE) {
         out = new ArrayList<>();
         err = new ArrayList<>();
         handleCapture(process, out, err);
@@ -271,7 +271,7 @@ public final class ProcessContextImpl implements ProcessContext {
     }
   }
 
-  private boolean checkAndHandlePossibleBashScript(String executableName) {
+  private void checkAndHandlePossibleBashScript(String executableName) {
 
     String fileExtension = FilenameUtil.getExtension(executableName);
     boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(this.executable);
@@ -285,7 +285,6 @@ public final class ProcessContextImpl implements ProcessContext {
       }
       this.arguments.add(0, bash);
     }
-    return isBashScript;
   }
 
   private void performLogOnError(ProcessResult result, int exitCode) {
@@ -308,9 +307,16 @@ public final class ProcessContextImpl implements ProcessContext {
     }
   }
 
-  private void modifyArgumentsOnBackgroundProcess() {
+  private void modifyArgumentsOnBackgroundProcess(ProcessMode processMode) {
 
-    String commandToRunInBackground = this.arguments.stream().map(Object::toString).collect(Collectors.joining(" "));
+    String commandToRunInBackground = "";
+
+    if (processMode == ProcessMode.BACKGROUND) {
+      this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
+    } else if (processMode == ProcessMode.BACKGROUND_SILENT) {
+      this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
+    } else
+      throw new IllegalStateException("Cannot handle non background process mode!");
 
     String bash = "bash";
 
@@ -321,26 +327,39 @@ public final class ProcessContextImpl implements ProcessContext {
       if (findBashOnWindowsResult != null) {
 
         bash = findBashOnWindowsResult;
+
         // windows path must be converted to unix format and executable
-        commandToRunInBackground = commandToRunInBackground.replace('\\', '/');
-        commandToRunInBackground = "/" + commandToRunInBackground.substring(0, 1).toLowerCase()
-            + commandToRunInBackground.substring(2);
+        String executablePath = this.arguments.get(0);
+        executablePath = convertWindowsPathToUnixPath(executablePath);
+
+        commandToRunInBackground = this.arguments.subList(1, this.arguments.size()).stream().map(Object::toString)
+            .collect(Collectors.joining(" "));
+
+        commandToRunInBackground = executablePath + " " + commandToRunInBackground;
 
       } else {
-        // TODO IMPLEMENT start cmd window?
-        context.warning("Cannot start background process! No bash installation found, output will be discarded.");
+        context.warning(
+            "Cannot start background process in windows! No bash installation found, output will be discarded.");
         this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
         return;
       }
+    } else {
+      commandToRunInBackground = this.arguments.stream().map(Object::toString).collect(Collectors.joining(" "));
     }
 
     this.arguments.clear();
-    this.arguments.add(0, bash);
+    this.arguments.add(bash);
     this.arguments.add("-c");
-    // todo adding disowning and silencing output with 1>/dev/null 2>/dev/null
     commandToRunInBackground += " & disown";
     this.arguments.add(commandToRunInBackground);
 
+  }
+
+  private String convertWindowsPathToUnixPath(String windowsPathString) {
+
+    String unixPath = windowsPathString.replace('\\', '/');
+    unixPath = "/" + unixPath.substring(0, 1).toLowerCase() + unixPath.substring(2);
+    return unixPath;
   }
 
 }

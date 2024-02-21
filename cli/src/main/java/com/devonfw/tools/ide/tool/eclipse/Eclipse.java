@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
@@ -80,7 +81,12 @@ public class Eclipse extends IdeToolCommandlet {
     Path javaPath = getCommandlet(Java.class).getToolBinPath();
     pc.addArg("-vm").addArg(javaPath);
     pc.addArgs(args);
-    return pc.run(log, true);
+
+    if (log) {
+      return pc.run(ProcessMode.BACKGROUND_SILENT);
+    } else {
+      return pc.run(ProcessMode.BACKGROUND);
+    }
   }
 
   @Override
