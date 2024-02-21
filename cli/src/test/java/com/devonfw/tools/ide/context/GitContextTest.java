@@ -33,7 +33,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     GitContext gitContext = new GitContextImpl(context);
     // act
     CliException e1 = assertThrows(CliException.class, () -> {
-      gitContext.pullOrClone(gitRepoUrl, tempDir, true);
+      gitContext.pullOrClone(gitRepoUrl, tempDir);
     });
     // assert
     assertThat(e1).hasMessageContaining(gitRepoUrl).hasMessageContaining(tempDir.toString())
@@ -55,7 +55,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
     GitContext gitContext = new GitContextImpl(context);
     // act
-    gitContext.pullOrClone(gitRepoUrl, tempDir, true);
+    gitContext.pullOrClone(gitRepoUrl, tempDir);
     // assert
     assertThat(tempDir.resolve(".git").resolve("url")).hasContent(gitRepoUrl);
   }
@@ -78,7 +78,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
     // act
-    gitContext.pullOrClone(gitRepoUrl, tempDir, false);
+    gitContext.pullOrClone(gitRepoUrl, tempDir);
     // assert
     assertThat(tempDir.resolve(".git").resolve("update")).hasContent(currentDate.toString());
   }
@@ -104,6 +104,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     Path referenceFile;
     Path modifiedFile;
     try {
+      Files.createFile(gitFolderPath.resolve("HEAD"));
       referenceFile = Files.createFile(gitFolderPath.resolve("objects").resolve("referenceFile"));
       Files.writeString(referenceFile, "original");
       modifiedFile = Files.createFile(tempDir.resolve("trackedFile"));
@@ -114,7 +115,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
     GitContext gitContext = new GitContextImpl(context);
     // act
-    gitContext.pullOrClone(gitRepoUrl, tempDir, true);
+    gitContext.pullOrFetchAndResetIfNeeded(gitRepoUrl, tempDir, "origin", "master");
     // assert
     assertThat(modifiedFile).hasContent("original");
   }
@@ -136,8 +137,13 @@ public class GitContextTest extends AbstractIdeContextTest {
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
     fileAccess.mkdirs(tempDir.resolve("new-folder"));
+    try {
+      Files.createFile(gitFolderPath.resolve("HEAD"));
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
     // act
-    gitContext.pullOrClone(gitRepoUrl, tempDir, true);
+    gitContext.pullOrFetchAndResetIfNeeded(gitRepoUrl, tempDir, "origin", "master");
     // assert
     assertThat(tempDir.resolve("new-folder")).doesNotExist();
   }

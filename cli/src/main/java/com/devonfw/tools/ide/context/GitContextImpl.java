@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.context;
 
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
@@ -38,8 +39,7 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void pullOrCloneIfNeeded(String repoUrl, Path targetRepository, String remoteName, String branchName,
-      boolean force) {
+  public void pullOrCloneIfNeeded(String repoUrl, Path targetRepository) {
 
     Path gitDirectory = targetRepository.resolve(".git");
 
@@ -56,8 +56,8 @@ public class GitContextImpl implements GitContext {
       }
 
       // Check if the file modification time is older than the delta threshold
-      if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || force) {
-        pullOrClone(repoUrl, targetRepository, force);
+      if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || context.isForceMode()) {
+        pullOrClone(repoUrl, targetRepository);
         try {
           Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
         } catch (IOException e) {
@@ -66,12 +66,25 @@ public class GitContextImpl implements GitContext {
       }
     } else {
       // If the .git directory does not exist, perform git clone
-      pullOrClone(repoUrl, targetRepository, force);
+      pullOrClone(repoUrl, targetRepository);
     }
   }
 
+  public void pullOrFetchAndResetIfNeeded(String repoUrl, Path targetRepository, String remoteName, String branchName) {
+
+    pullOrCloneIfNeeded(repoUrl, targetRepository);
+
+    if (remoteName.isEmpty()) {
+      reset(targetRepository, "origin", "master");
+    } else {
+      reset(targetRepository, remoteName, "master");
+    }
+
+    cleanup(targetRepository);
+  }
+
   @Override
-  public void pullOrClone(String gitRepoUrl, Path targetRepository, boolean force) {
+  public void pullOrClone(String gitRepoUrl, Path targetRepository) {
 
     Objects.requireNonNull(targetRepository);
     Objects.requireNonNull(gitRepoUrl);
@@ -95,10 +108,6 @@ public class GitContextImpl implements GitContext {
 
         if (!this.context.isOffline()) {
           pull(targetRepository);
-          if (force) {
-            reset(targetRepository);
-            cleanup(targetRepository);
-          }
         }
       }
     } else {
@@ -108,7 +117,7 @@ public class GitContextImpl implements GitContext {
         branch = gitRepoUrl.substring(hashIndex + 1);
         gitRepoUrl = gitRepoUrl.substring(0, hashIndex);
       }
-      clone(gitRepoUrl, targetRepository);
+      clone(new GitUrl(gitRepoUrl, branch), targetRepository);
       if (!branch.isEmpty()) {
         this.processContext.addArgs("checkout", branch);
         this.processContext.run();
@@ -161,24 +170,25 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void clone(String gitRepoUrl, Path targetRepository) {
+  public void clone(GitUrl gitRepoUrl, Path targetRepository) {
 
+    URL parsedUrl = gitRepoUrl.parseUrl();
     initializeProcessContext(targetRepository);
     ProcessResult result;
     if (!this.context.isOffline()) {
       this.context.getFileAccess().mkdirs(targetRepository);
-      this.context.requireOnline("git clone of " + gitRepoUrl);
+      this.context.requireOnline("git clone of " + parsedUrl);
       this.processContext.addArg("clone");
       if (this.context.isQuietMode()) {
         this.processContext.addArg("-q");
       }
-      this.processContext.addArgs("--recursive", gitRepoUrl, "--config", "core.autocrlf=false", ".");
+      this.processContext.addArgs("--recursive", parsedUrl, "--config", "core.autocrlf=false", ".");
       result = this.processContext.run(true, false);
       if (!result.isSuccessful()) {
-        this.context.warning("Git failed to clone {} into {}.", gitRepoUrl, targetRepository);
+        this.context.warning("Git failed to clone {} into {}.", parsedUrl, targetRepository);
       }
     } else {
-      throw new CliException("Could not clone " + gitRepoUrl + " to " + targetRepository + " because you are offline.");
+      throw new CliException("Could not clone " + parsedUrl + " to " + targetRepository + " because you are offline.");
     }
   }
 
@@ -227,7 +237,7 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void reset(Path targetRepository) {
+  public void reset(Path targetRepository, String remoteName, String branchName) {
 
     initializeProcessContext(targetRepository);
     ProcessResult result;
@@ -235,9 +245,6 @@ public class GitContextImpl implements GitContext {
     result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(true, false);
 
     if (!result.isSuccessful()) {
-      Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();
-      String remoteName = remoteAndBranchName.get("remote");
-      String branchName = remoteAndBranchName.get("branch");
       // reset to origin/master
       context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", targetRepository,
           remoteName, branchName);

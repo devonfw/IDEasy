@@ -16,13 +16,23 @@ public interface GitContext extends IdeLogger {
    * @param repoUrl the git remote URL to clone from. May be suffixed with a hash-sign ('#') followed by the branch name
    *        to check-out.
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   *        * It is not the parent directory where git will by default create a sub-folder by default on clone but the *
+   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
    *        final folder that will contain the ".git" subfolder.
-   * @param remoteName the remote server name.
-   * @param branchName the name of the branch.
-   * @param force boolean true enforces a git hard reset and cleanup of added files.
    */
-  void pullOrCloneIfNeeded(String repoUrl, Path targetRepository, String remoteName, String branchName, boolean force);
+  void pullOrCloneIfNeeded(String repoUrl, Path targetRepository);
+
+  /**
+   * Attempts a git pull and reset if required.
+   *
+   * @param repoUrl the git remote URL to clone from. May be suffixed with a hash-sign ('#') followed by the branch name
+   *        to check-out.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
+   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
+   *        final folder that will contain the ".git" subfolder.
+   * @param remoteName the remote name e.g. origin.
+   * @param branchName the branch name e.g. master.
+   */
+  void pullOrFetchAndResetIfNeeded(String repoUrl, Path targetRepository, String remoteName, String branchName);
 
   /**
    * Runs a git pull or a git clone.
@@ -30,27 +40,26 @@ public interface GitContext extends IdeLogger {
    * @param gitRepoUrl the git remote URL to clone from. May be suffixed with a hash-sign ('#') followed by the branch
    *        name to check-out.
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   *        * It is not the parent directory where git will by default create a sub-folder by default on clone but the *
+   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
    *        final folder that will contain the ".git" subfolder.
-   * @param force boolean true enforces a git hard reset and cleanup of added files.
    */
-  void pullOrClone(String gitRepoUrl, Path targetRepository, boolean force);
+  void pullOrClone(String gitRepoUrl, Path targetRepository);
 
   /**
    * Runs a git clone. Throws a CliException if in offline mode.
    *
    * @param gitRepoUrl String of repository URL.
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   *        * It is not the parent directory where git will by default create a sub-folder by default on clone but the *
+   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
    *        final folder that will contain the ".git" subfolder.
    */
-  void clone(String gitRepoUrl, Path targetRepository);
+  void clone(GitUrl gitRepoUrl, Path targetRepository);
 
   /**
    * Runs a git pull.
    *
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   *        * It is not the parent directory where git will by default create a sub-folder by default on clone but the *
+   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
    *        final folder that will contain the ".git" subfolder.
    */
   void pull(Path targetRepository);
@@ -59,16 +68,18 @@ public interface GitContext extends IdeLogger {
    * Runs a git reset if files were modified.
    *
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   *        * It is not the parent directory where git will by default create a sub-folder by default on clone but the *
+   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
    *        final folder that will contain the ".git" subfolder.
+   * @param remoteName the remote server name.
+   * @param branchName the name of the branch.
    */
-  void reset(Path targetRepository);
+  void reset(Path targetRepository, String remoteName, String branchName);
 
   /**
    * Runs a git cleanup if untracked files were found.
    *
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   *        * It is not the parent directory where git will by default create a sub-folder by default on clone but the *
+   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
    *        final folder that will contain the ".git" subfolder.
    */
   void cleanup(Path targetRepository);
