@@ -76,7 +76,9 @@ public class Jasypt extends LocalToolCommandlet {
 
     if (Files.notExists(resolveJasyptJarPath())) {
       installJasyptArtifact();
+      this.context.debug("installing jasypt artifact at:");
     }
+    this.context.debug("post install ");
   }
 
   private void installJasyptArtifact() {
