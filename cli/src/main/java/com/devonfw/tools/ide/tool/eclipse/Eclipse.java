@@ -83,9 +83,9 @@ public class Eclipse extends IdeToolCommandlet {
     pc.addArgs(args);
 
     if (log) {
-      return pc.run(ProcessMode.BACKGROUND_SILENT);
-    } else {
       return pc.run(ProcessMode.BACKGROUND);
+    } else {
+      return pc.run(ProcessMode.BACKGROUND_SILENT);
     }
   }
 
