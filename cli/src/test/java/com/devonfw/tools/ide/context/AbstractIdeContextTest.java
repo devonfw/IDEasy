@@ -62,7 +62,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param answers the answers to use for the {@link IdeTestContext}.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String projectTestCaseName, String projectPath, boolean copyForMutation) {
+  protected static IdeTestContext newContext(String projectTestCaseName, String projectPath, boolean copyForMutation,
+      String... answers) {
 
     Path sourceDir = PATH_PROJECTS.resolve(projectTestCaseName);
     Path userDir = sourceDir.resolve("project");

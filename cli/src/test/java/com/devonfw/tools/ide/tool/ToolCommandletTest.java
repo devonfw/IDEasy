@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.tool;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -11,7 +13,6 @@ import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
-import org.junit.jupiter.api.Test;
 
 /** Test of {@link ToolCommandlet} */
 public class ToolCommandletTest extends AbstractIdeContextTest {
