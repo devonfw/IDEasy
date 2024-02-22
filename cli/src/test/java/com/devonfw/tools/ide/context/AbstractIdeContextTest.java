@@ -66,44 +66,6 @@ public abstract class AbstractIdeContextTest extends Assertions {
     Path sourceDir = PATH_PROJECTS.resolve(projectTestCaseName);
     Path userDir = sourceDir.resolve("project");
     IdeTestContext context;
-    userDir = setupUserDirectory(projectName, projectPath, copyForMutation, sourceDir, userDir);
-    context = new IdeTestContext(userDir);
-    return context;
-  }
-
-  /**
-   * @param projectPath the relative path inside the test project where to create the context.
-   * @param errors list of error messages.
-   * @param outs list of out messages.
-   * @param exitCode the exit code.
-   * @param isOnline boolean if it should be run in online mode.
-   * @return the {@link IdeTestContext} pointing to that project.
-   */
-  protected static GitContextTestContext newGitContext(Path projectPath, List<String> errors, List<String> outs,
-      int exitCode, boolean isOnline) {
-
-    GitContextTestContext context;
-    context = new GitContextTestContext(isOnline, projectPath);
-    context.setErrors(errors);
-    context.setOuts(outs);
-    context.setExitCode(exitCode);
-    return context;
-  }
-
-  /**
-   *
-   * @param projectName the (folder)name of the test project in {@link #PATH_PROJECTS}. E.g. "basic".
-   * @param projectPath the relative path inside the test project where to create the context.
-   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
-   *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
-   *        in that project.
-   * @param sourceDir Path to source directory.
-   * @param userDir Path to current user directory.
-   * @return Path to new user directory.
-   */
-  private static Path setupUserDirectory(String projectName, String projectPath, boolean copyForMutation,
-      Path sourceDir, Path userDir) {
-
     if (copyForMutation) {
       Path projectDir = PATH_PROJECTS_COPY.resolve(projectTestCaseName);
       FileAccess fileAccess = new FileAccessImpl(IdeTestContextMock.get());
@@ -115,7 +77,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
     if (projectPath != null) {
       userDir = userDir.resolve(projectPath);
     }
-    return userDir;
+    context = new IdeTestContext(userDir);
+    return context;
   }
 
   /**
@@ -125,6 +88,25 @@ public abstract class AbstractIdeContextTest extends Assertions {
   protected static IdeTestContext newContext(Path projectPath) {
 
     return new IdeTestContext(projectPath);
+  }
+
+  /**
+   * @param projectPath the relative path inside the test project where to create the context.
+   * @param errors list of error messages.
+   * @param outs list of out messages.
+   * @param exitCode the exit code.
+   * @param isOnline boolean if it should be run in online mode.
+   * @return the {@link GitContextTestContext} pointing to that project.
+   */
+  protected static GitContextTestContext newGitContext(Path projectPath, List<String> errors, List<String> outs,
+      int exitCode, boolean isOnline) {
+
+    GitContextTestContext context;
+    context = new GitContextTestContext(isOnline, projectPath);
+    context.setErrors(errors);
+    context.setOuts(outs);
+    context.setExitCode(exitCode);
+    return context;
   }
 
   /**
