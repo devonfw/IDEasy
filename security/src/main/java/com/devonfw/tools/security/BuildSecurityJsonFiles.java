@@ -12,19 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeContextConsole;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
-import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
-import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
-import com.devonfw.tools.ide.url.updater.UpdateManager;
-import com.devonfw.tools.ide.util.MapUtil;
-import com.devonfw.tools.ide.version.BoundaryType;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.version.VersionRange;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
@@ -54,6 +41,20 @@ import org.owasp.dependencycheck.dependency.VulnerableSoftware;
 import org.owasp.dependencycheck.exception.ExceptionCollection;
 import org.owasp.dependencycheck.utils.Pair;
 import org.owasp.dependencycheck.utils.Settings;
+
+import com.devonfw.tools.ide.context.AbstractIdeContext;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeContextConsole;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
+import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
+import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
+import com.devonfw.tools.ide.url.updater.UpdateManager;
+import com.devonfw.tools.ide.util.MapUtil;
+import com.devonfw.tools.ide.version.BoundaryType;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionRange;
 
 /**
  * This class is used to build the {@link UrlSecurityJsonFile} files for IDEasy. It scans the
@@ -85,6 +86,7 @@ public class BuildSecurityJsonFiles {
   private static BigDecimal minV3Severity = new BigDecimal("0.0");
 
   private static final Set<String> actuallyIgnoredCves = new HashSet<>();
+
   private static final IdeContext context = new IdeContextConsole(IdeLogLevel.INFO, null, false);;
 
   /**
@@ -342,7 +344,7 @@ public class BuildSecurityJsonFiles {
 
     String urlVersion = null;
     if (cpeVersion != null) {
-      if (cpeToUrlVersion!= null && cpeToUrlVersion.containsKey(cpeVersion)) {
+      if (cpeToUrlVersion != null && cpeToUrlVersion.containsKey(cpeVersion)) {
         urlVersion = cpeToUrlVersion.get(cpeVersion);
       } else {
         urlVersion = urlUpdater.mapCpeVersionToUrlVersion(cpeVersion);

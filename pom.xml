@@ -20,14 +20,31 @@
     <github.repository>IDEasy</github.repository>
     <ide_version>${revision}</ide_version>
     <owasp.version>9.0.9</owasp.version>
+    <slf4j.version>2.0.3</slf4j.version>
+    <logback.version>1.4.7</logback.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
       <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>${slf4j.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>${logback.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.owasp</groupId>
         <artifactId>dependency-check-core</artifactId>
         <version>${owasp.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.devonfw.tools.IDEasy</groupId>
+        <artifactId>ide-cli</artifactId>
+        <version>${revision}</version>
       </dependency>
     </dependencies>
   </dependencyManagement>
