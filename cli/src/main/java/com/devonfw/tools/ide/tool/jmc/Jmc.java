@@ -10,8 +10,8 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 
 /**
@@ -33,8 +33,7 @@ public class Jmc extends LocalToolCommandlet {
   @Override
   public boolean doInstall(boolean silent) {
 
-    // TODO https://github.com/devonfw/IDEasy/issues/209 currently outcommented as this breaks the tests, real fix needed asap
-    // getCommandlet(Java.class).install();
+    getCommandlet(Java.class).install();
     return super.doInstall(silent);
   }
 
@@ -57,7 +56,9 @@ public class Jmc extends LocalToolCommandlet {
         moveFilesAndDirs(oldBinaryPath, toolPath);
         fileAccess.delete(oldBinaryPath);
       } else {
-        this.context.info("JMC binary folder not found at {} - ignoring as this legacy problem may be resolved in newer versions.", oldBinaryPath);
+        this.context.info(
+            "JMC binary folder not found at {} - ignoring as this legacy problem may be resolved in newer versions.",
+            oldBinaryPath);
       }
     }
 

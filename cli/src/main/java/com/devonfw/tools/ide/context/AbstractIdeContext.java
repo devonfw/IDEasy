@@ -128,8 +128,11 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
+   *        {@link DefaultToolRepository} will be used.
    */
-  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir) {
+  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
+      ToolRepository toolRepository) {
 
     super();
     this.loggerFactory = factory;
@@ -234,7 +237,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.downloadPath = this.userHome.resolve("Downloads/ide");
     this.variables = createVariables();
     this.path = computeSystemPath();
-    this.defaultToolRepository = new DefaultToolRepository(this);
+    this.defaultToolRepository = toolRepository == null ? new DefaultToolRepository(this) : toolRepository;
     this.customToolRepository = CustomToolRepositoryImpl.of(this);
     this.workspaceMerger = new DirectoryMerger(this);
   }

@@ -7,14 +7,19 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.commandlet.CommandLetExtractorMock;
 import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.repo.ToolRepositoryMock;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
 
@@ -25,11 +30,14 @@ public class JmcTest extends AbstractIdeContextTest {
 
   private static WireMockServer server;
 
-  private static Path resourcePath = Path.of("src/test/resources");
+  private static final Path RESOURCE_PATH = Path.of("src/test/resources");
 
   @BeforeAll
   static void setUp() throws IOException {
+
+    // TODO use random port number and create url file dynamically in project
     server = new WireMockServer(WireMockConfiguration.wireMockConfig().port(1112));
+
     server.start();
   }
 
@@ -41,31 +49,34 @@ public class JmcTest extends AbstractIdeContextTest {
 
   private void mockWebServer() throws IOException {
 
+    // Jmc under test
     String windowsFilenameJmc = "org.openjdk.jmc-8.3.0-win32.win32.x86_64.zip";
-    String linuxFilenameJmc = "org.openjdk.jmc-8.3.0-linux.gtk.x86_64.tar.gz";
-    String macOSFilenameJmc = "org.openjdk.jmc-8.3.0-macosx.cocoa.x86_64.tar.gz";
-    String windowsFilenameJava = "java-17.0.6-windows-x64.zip";
-    String linuxFilenameJava = "java-17.0.6-linux-x64.tgz";
-    String resourceFilesDirName = "__files";
-
-    Path windowsFilePathJmc = resourcePath.resolve(resourceFilesDirName).resolve(windowsFilenameJmc);
+    Path windowsFilePathJmc = RESOURCE_PATH.resolve("__files").resolve(windowsFilenameJmc);
     String windowsLengthJmc = String.valueOf(Files.size(windowsFilePathJmc));
 
-    Path linuxFilePathJmc = resourcePath.resolve(resourceFilesDirName).resolve(linuxFilenameJmc);
+    String linuxFilenameJmc = "org.openjdk.jmc-8.3.0-linux.gtk.x86_64.tar.gz";
+    Path linuxFilePathJmc = RESOURCE_PATH.resolve("__files").resolve(linuxFilenameJmc);
     String linuxLengthJmc = String.valueOf(Files.size(linuxFilePathJmc));
 
-    Path macOSFilePathJmc = resourcePath.resolve(resourceFilesDirName).resolve(macOSFilenameJmc);
+    String macOSFilenameJmc = "org.openjdk.jmc-8.3.0-macosx.cocoa.x86_64.tar.gz";
+    Path macOSFilePathJmc = RESOURCE_PATH.resolve("__files").resolve(macOSFilenameJmc);
     String maxOSLengthJmc = String.valueOf(Files.size(macOSFilePathJmc));
-
-    Path windowsFilePathJava = resourcePath.resolve(resourceFilesDirName).resolve(windowsFilenameJava);
-    String windowsLengthJava = String.valueOf(Files.size(windowsFilePathJava));
-
-    Path linuxFilePathJava = resourcePath.resolve(resourceFilesDirName).resolve(linuxFilenameJava);
-    String linuxLengthJava = String.valueOf(Files.size(linuxFilePathJava));
 
     setupMockServerResponse("/jmcTest/windows", "application/zip", windowsLengthJmc, windowsFilenameJmc);
     setupMockServerResponse("/jmcTest/linux", "application/gz", linuxLengthJmc, linuxFilenameJmc);
     setupMockServerResponse("/jmcTest/macOS", "application/gz", maxOSLengthJmc, macOSFilenameJmc);
+
+    // Java prerequisite
+
+    String windowsFilenameJava = "java-17.0.6-windows-x64.zip";
+    String linuxFilenameJava = "java-17.0.6-linux-x64.tgz";
+
+    Path windowsFilePathJava = RESOURCE_PATH.resolve("__files").resolve(windowsFilenameJava);
+    String windowsLengthJava = String.valueOf(Files.size(windowsFilePathJava));
+
+    Path linuxFilePathJava = RESOURCE_PATH.resolve("__files").resolve(linuxFilenameJava);
+    String linuxLengthJava = String.valueOf(Files.size(linuxFilePathJava));
+
     setupMockServerResponse("/installTest/windows", "application/zip", windowsLengthJava, windowsFilenameJava);
     setupMockServerResponse("/installTest/linux", "application/tgz", linuxLengthJava, linuxFilenameJava);
     setupMockServerResponse("/installTest/macOS", "application/tgz", linuxLengthJava, linuxFilenameJava);
@@ -79,11 +90,11 @@ public class JmcTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void jmcPostInstallShouldMoveFilesIfRequired() throws IOException {
+  public void jmcPostInstallShouldMoveFilesIfRequiredMockedServer() throws IOException {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
-    IdeContext context = newContext("basic", path, true);
+    IdeContext context = newContext("jmc", path, true);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("jmc", context);
     mockWebServer();
@@ -91,15 +102,91 @@ public class JmcTest extends AbstractIdeContextTest {
     install.run();
 
     // assert
+    performPostInstallAssertion(context);
+  }
+
+  @Test
+  public void jmcPostInstallShouldMoveFilesIfRequired() throws IOException {
+
+    // arrange
+    String path = "workspaces/foo-test/my-git-repo";
+    String projectTestCaseName = "jmc";
+
+    ToolRepositoryMock toolRepositoryMock = buildToolRepositoryMock(projectTestCaseName);
+
+    IdeContext context = newContext(projectTestCaseName, path, true, toolRepositoryMock);
+    toolRepositoryMock.setContext(context);
+
+    CommandLetExtractorMock commandLetExtractorMock = new CommandLetExtractorMock(context);
+    Jmc commandlet = new Jmc(context);
+    commandlet.setCommandletFileExtractor(commandLetExtractorMock);
+
+    // act
+    commandlet.install();
+
+    // assert
+    performPostInstallAssertion(context);
+
+  }
+
+  // run test, currently cannot find correct executeable TODO FIND BINARY BUGGY
+  @Test
+  @Disabled
+  public void jmcShouldRunExecuteableSuccessfully() throws IOException {
+
+    // arrange
+    String path = "workspaces/foo-test/my-git-repo";
+    String projectTestCaseName = "jmc";
+
+    ToolRepositoryMock toolRepositoryMock = buildToolRepositoryMock(projectTestCaseName);
+
+    IdeContext context = newContext(projectTestCaseName, path, true, toolRepositoryMock);
+    toolRepositoryMock.setContext(context);
+
+    CommandLetExtractorMock commandLetExtractorMock = new CommandLetExtractorMock(context);
+    Jmc commandlet = new Jmc(context);
+    commandlet.setCommandletFileExtractor(commandLetExtractorMock);
+
+    commandlet.install();
+
+    // act
+    commandlet.run();
+
+    // assert, output stream probably
+    // System.out
+
+  }
+
+  private static ToolRepositoryMock buildToolRepositoryMock(String projectTestCaseName) {
+
+    Map<String, String> toolToVersion = new HashMap<>();
+    toolToVersion.put("jmc", "8.3.0");
+    toolToVersion.put("java", "17.0.10_7");
+
+    String windowsFileFolder = "org.openjdk.jmc-8.3.0-win32.win32.x86_64";
+    String linuxFileFolder = "org.openjdk.jmc-8.3.0-linux.gtk.x86_64";
+    String macFileFolder = "org.openjdk.jmc-8.3.0-macosx.cocoa.x86_64";
+
+    ToolRepositoryMock toolRepositoryMock = new ToolRepositoryMock(toolToVersion, projectTestCaseName,
+        windowsFileFolder, linuxFileFolder, macFileFolder);
+    return toolRepositoryMock;
+  }
+
+  private void performPostInstallAssertion(IdeContext context) {
+
     assertThat(context.getSoftwarePath().resolve("jmc")).exists();
     assertThat(context.getSoftwarePath().resolve("jmc/InstallTest.txt")).hasContent("This is a test file.");
 
+    // Win
     if (context.getSystemInfo().isWindows()) {
       assertThat(context.getSoftwarePath().resolve("jmc/jmc.cmd")).exists();
-    } else if (context.getSystemInfo().isLinux()) {
+    }
+
+    if (context.getSystemInfo().isLinux()) {
       assertThat(context.getSoftwarePath().resolve("jmc/jmc")).exists();
     }
 
+    // Win linux
     if (context.getSystemInfo().isWindows() || context.getSystemInfo().isLinux()) {
       assertThat(context.getSoftwarePath().resolve("jmc/HelloWorld.txt")).hasContent("Hello World!");
       assertThat(context.getSoftwarePath().resolve("jmc/JDK Mission Control")).doesNotExist();
@@ -110,6 +197,8 @@ public class JmcTest extends AbstractIdeContextTest {
       assertThat(context.getSoftwarePath().resolve("jmc/JDK Mission Control.app/Contents")).exists();
     }
 
+    assertThat(context.getSoftwarePath().resolve("jmc/.ide.software.version")).exists();
+    assertThat(context.getSoftwarePath().resolve("jmc/.ide.software.version")).hasContent("8.3.0");
   }
 
 }
