@@ -1,0 +1,75 @@
+:toc:
+toc::[]
+
+= intellij
+
+The `intellij` commandlet allows to install, configure, and launch https://www.jetbrains.com/idea/[IntelliJ].
+To launch IntelliJ for your current workspace and `devonfw-ide` installation, simply run:
+`devon intellij`
+
+You may also supply additional arguments as `devon intellij «args»`.
+These are explained by the following table:
+
+.Usage of `devon intellij`
+[options="header"]
+|=======================
+|*Argument(s)*   |*Meaning*
+|`--all`         |if provided as first arg then to command will be invoked for each workspace
+|`setup`         |setup IntelliJ (install or update)
+|`add-plugin «id»`|install an additional plugin
+|`run`           |launch IntelliJ (default if no argument is given)
+|`start`         |same as `run`
+|`ws-up[date]`   |update workspace
+|`ws-re[verse]`  |reverse merge changes from workspace into settings
+|`ws-reverse-add`|reverse merge adding new properties
+|`create-script` |create launch script for this IDE, your current workspace and your OS
+|=======================
+
+There are link:variables.asciidoc[variables] that can be used for IntelliJ.
+These are explained by the following table:
+
+.Variables of devonfw-ide for intelliJ
+[options="header"]
+|=======================
+|*Variable*|*Meaning*
+|*`INTELLIJ_VERSION`*|The version of the tool IntelliJ to install and use.
+|*`INTELLIJ_EDITION`*|The edition of the tool IntelliJ to install and use. By default the Community edition will be installed. If you want to use the Ultimate Edition, the value has to be set to `ultimate`. The Ultimate edition requires a license. The user has to buy the license separately and it is not part of devonfw-ide. The devonfw-ide only supports download and installation.
+|*`EXTRA_JAVA_VERSION`*|You can set this to a different (newer) version of Java used to launch your IDE (other than `JAVA_VERSION` that is used to build your project)
+|*`INTELLIJ_DISABLE_OPEN_WORKSPACE`*|`true` will disable that your workspace folder will be opened automatically (legacy behavior), `false` will enable to open your workspace folder. See https://github.com/devonfw/ide/issues/1358[#1358] for details.
+|=======================
+
+== plugins
+
+To be productive with IntelliJ you need plugins.
+Of course `devonfw-ide` can automate this for your:
+In your link:settings.asciidoc[settings] git repository create a folder https://github.com/devonfw/ide-settings/tree/master/intellij/plugins[intellij/plugins] (click this link to see more examples and see which plugins come by default).
+Here you can create a properties file for each plugin.
+This is an example https://github.com/devonfw/ide-settings/blob/master/intellij/plugins/scala.properties[scala.properties]:
+
+```
+plugin_id=org.intellij.scala
+plugin_active=false
+```
+
+The variables are defined as following:
+
+* `plugin_id` defines the unique ID of the plugin to install.
+If you want to customize `devonfw-ide` with new plugins use the search on https://plugins.jetbrains.com/idea_ce to find the plugin of your choice.
+Select the tab `Versions` and click on a version in the list.
+The plugin ID is displayed in the upper right corner.
+Copy & paste the ID from here to make up your own custom config.
+* `plugin_active` is an optional parameter.
+If it is `true` (default) the plugin will be installed automatically during the project link:setup.asciidoc[setup] for all developers in your team.
+Otherwise developers can still install the plugin manually via `devon intellij add-plugin «plugin_id»`.
+
+In general you should try to stick with the configuration pre-defined by your project.
+But some plugins may be considered as personal flavor and are typically not predefined by the project config.
+Such plugins should be shipped with your link:settings.asciidoc[settings] as described above with `plugin_active=false` allowing you to easily install it manually.
+Surely, you can easily add plugins via the UI of IntelliJ.
+However, be aware that some plugins may collect sensitive data or could introduce other vulnerabilities.
+So consider the governance of your project and talk to your technical lead before installing additional plugins that are not pre-defined in your link:settings.asciidoc[settings].
+
+As maintainer of the link:settings.asciidoc[settings] for your project you should avoid to ship too many plugins that may waste resources but are not used by every developer.
+By configuring additional plugins with `plugin_active=false` you can give your developers the freedom to install some additional plugins easily.
+
+All plugins are installed separately in `plugins/intellij`.
