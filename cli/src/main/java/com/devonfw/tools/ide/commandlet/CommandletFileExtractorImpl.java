@@ -22,6 +22,12 @@ public class CommandletFileExtractorImpl implements CommandletFileExtractor {
 
   protected final ToolCommandlet commandlet;
 
+  /**
+   * The constructor
+   * 
+   * @param context the {@link IdeContext}.
+   * @param commandlet the {@link ToolCommandlet}
+   */
   public CommandletFileExtractorImpl(IdeContext context, ToolCommandlet commandlet) {
 
     this.context = context;
@@ -124,5 +130,4 @@ public class CommandletFileExtractorImpl implements CommandletFileExtractor {
       throw new IllegalStateException("Failed to get sub-files of " + path);
     }
   }
-
 }
