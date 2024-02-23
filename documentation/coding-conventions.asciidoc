@@ -453,7 +453,7 @@ else
   doThat();
   System.err.println("that");
 ----
-Now, it gets hard to see that the last statement is always executed independent on the condition.
+Now, it gets hard to see that the last statement is always executed independent of the condition.
 Maybe that should actually go only to the else block as we can guess from the indentation.
 If you always use curly braces this cannot happen and the code is easier to read:
 [source,java]
