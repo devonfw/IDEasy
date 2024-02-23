@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.StandardOpenOption;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -18,6 +19,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -28,7 +30,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   /** {@link #getName() Name} of security json file. */
   public static final String FILENAME_SECURITY = "security.json";
 
-  private UrlSecurityWarningsJson urlSecurityWarningsJson = new UrlSecurityWarningsJson();
+  private Collection<UrlSecurityWarning> urlSecurityWarnings;
 
   /**
    * The constructor.
@@ -38,17 +40,19 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   public UrlSecurityJsonFile(UrlEdition parent) {
 
     super(parent, FILENAME_SECURITY);
+    this.urlSecurityWarnings = new HashSet<>();
   }
 
   /**
    * A wrapper for {@link #addSecurityWarning(VersionRange, BigDecimal, String, String, String)} used in the unit tests.
+   *
+   * @param versionRange the {@link VersionRange}.
    */
-  public boolean addSecurityWarning(VersionRange versionRange) {
+  public void addSecurityWarning(VersionRange versionRange) {
 
     UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, null, null, null, null);
-    boolean added = this.urlSecurityWarningsJson.getWarnings().add(newWarning);
+    boolean added = urlSecurityWarnings.add(newWarning);
     this.modified = this.modified || added;
-    return added;
   }
 
   /**
@@ -65,7 +69,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
       String nistUrl) {
 
     UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, severity, cveName, description, nistUrl);
-    boolean added = this.urlSecurityWarningsJson.getWarnings().add(newWarning);
+    boolean added = urlSecurityWarnings.add(newWarning);
     this.modified = this.modified || added;
     return added;
   }
@@ -93,7 +97,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
           edition.getName());
     }
 
-    for (UrlSecurityWarning warning : this.urlSecurityWarningsJson.getWarnings()) {
+    for (UrlSecurityWarning warning : this.urlSecurityWarnings) {
       VersionRange versionRange = warning.getVersionRange();
       if (ignoreWarningsThatAffectAllVersions) {
         boolean includesOldestVersion = versionRange.getMin() == null
@@ -114,6 +118,9 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   /**
    * For a given version, returns whether there is a security warning in the {@link UrlSecurityWarningsJson JSON
    * object}. This method does not ignore warnings that affect all versions.
+   *
+   * @param version the {@link VersionIdentifier}.
+   * @return {@code true} if there is a security risk for the given version, {@code false} otherwise.
    */
   public boolean contains(VersionIdentifier version) {
 
@@ -129,7 +136,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   public Set<UrlSecurityWarning> getMatchingSecurityWarnings(VersionIdentifier version) {
 
     Set<UrlSecurityWarning> matchedWarnings = new HashSet<>();
-    for (UrlSecurityWarning warning : this.urlSecurityWarningsJson.getWarnings()) {
+    for (UrlSecurityWarning warning : this.urlSecurityWarnings) {
       if (warning.getVersionRange().contains(version)) {
         matchedWarnings.add(warning);
       }
@@ -140,7 +147,7 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
   /** Clears all security warnings. */
   public void clearSecurityWarnings() {
 
-    this.urlSecurityWarningsJson.getWarnings().clear();
+    this.urlSecurityWarnings.clear();
     this.modified = true;
   }
 
@@ -152,7 +159,8 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
     }
     ObjectMapper mapper = JsonMapping.create();
     try {
-      this.urlSecurityWarningsJson = mapper.readValue(getPath().toFile(), UrlSecurityWarningsJson.class);
+      urlSecurityWarnings = mapper.readValue(getPath().toFile(), new TypeReference<Set<UrlSecurityWarning>>() {
+      });
     } catch (IOException e) {
       throw new IllegalStateException("Failed to load the UrlSecurityJsonFile " + getPath(), e);
     }
@@ -163,13 +171,13 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
 
     ObjectMapper mapper = JsonMapping.create();
 
-    if (this.urlSecurityWarningsJson.getWarnings().isEmpty() && !Files.exists(getPath())) {
+    if (this.urlSecurityWarnings.isEmpty() && !Files.exists(getPath())) {
       return;
     }
 
     String jsonString;
     try {
-      jsonString = mapper.writeValueAsString(this.urlSecurityWarningsJson);
+      jsonString = mapper.writeValueAsString(urlSecurityWarnings);
     } catch (JsonProcessingException e) {
       throw new RuntimeException(e);
     }
@@ -182,8 +190,11 @@ public class UrlSecurityJsonFile extends AbstractUrlFile<UrlEdition> {
     }
   }
 
-  public UrlSecurityWarningsJson getUrlSecurityWarningsJson() {
+  /**
+   * @return Collection of {@link UrlSecurityWarning}.
+   */
+  public Collection<UrlSecurityWarning> getUrlSecurityWarnings() {
 
-    return this.urlSecurityWarningsJson;
+    return this.urlSecurityWarnings;
   }
 }

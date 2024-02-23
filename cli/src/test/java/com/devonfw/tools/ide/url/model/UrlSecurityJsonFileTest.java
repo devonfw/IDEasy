@@ -1,5 +1,12 @@
 package com.devonfw.tools.ide.url.model;
 
+import java.io.File;
+import java.math.BigDecimal;
+import java.nio.file.Path;
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
@@ -7,12 +14,6 @@ import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
-import org.junit.jupiter.api.Test;
-
-import java.io.File;
-import java.math.BigDecimal;
-import java.nio.file.Path;
-import java.util.Set;
 
 /** Test of {@link UrlSecurityJsonFile}. */
 
@@ -42,7 +43,7 @@ public class UrlSecurityJsonFileTest extends AbstractIdeContextTest {
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition("mvn", "mvn").getSecurityJsonFile();
 
     // assert
-    assertThat(securityFile.getUrlSecurityWarningsJson().getWarnings()).containsExactly(warning1, warning2);
+    assertThat(securityFile.getUrlSecurityWarnings()).containsExactly(warning1, warning2);
   }
 
   /**
@@ -66,15 +67,13 @@ public class UrlSecurityJsonFileTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(new File(String.valueOf(securityFilePath))).hasContent("""
-        {
-          "warnings" : [ {
-            "versionRange" : "[1,3)",
-            "severity" : 1.2,
-            "cveName" : "testName3",
-            "description" : "testDescription3",
-            "nistUrl" : "https://nvd.nist.gov/vuln/detail/testName3"
-          } ]
-        }
+        [ {
+          "versionRange" : "[1,3)",
+          "severity" : 1.2,
+          "cveName" : "testName3",
+          "description" : "testDescription3",
+          "nistUrl" : "https://nvd.nist.gov/vuln/detail/testName3"
+        } ]
         """);
   }
 
