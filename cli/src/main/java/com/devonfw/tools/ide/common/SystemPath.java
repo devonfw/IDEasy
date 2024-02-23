@@ -67,7 +67,8 @@ public class SystemPath {
       } else {
         Path duplicate = this.tool2pathMap.putIfAbsent(tool, path);
         if (duplicate != null) {
-          context.warning("Duplicated tool path for tool: {} at path: {} with duplicated path: {}.", tool, path, duplicate);
+          context.warning("Duplicated tool path for tool: {} at path: {} with duplicated path: {}.", tool, path,
+              duplicate);
         }
       }
     }
@@ -160,16 +161,16 @@ public class SystemPath {
    * @return the {@link Path} to the directory of the tool where the binaries can be found or {@code null} if the tool
    *         is not installed.
    */
-  public Path retrievePath(String tool) {
+  public Path getPath(String tool) {
 
     return this.tool2pathMap.get(tool);
   }
 
   /**
    * @param tool the name of the tool.
-   * @param path the new {@link #retrievePath(String) tool bin path}.
+   * @param path the new {@link #getPath(String) tool bin path}.
    */
-  public void addPath(String tool, Path path) {
+  public void setPath(String tool, Path path) {
 
     this.tool2pathMap.put(tool, path);
   }

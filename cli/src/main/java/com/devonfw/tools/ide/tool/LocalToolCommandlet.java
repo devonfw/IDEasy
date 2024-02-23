@@ -81,7 +81,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       fileAccess.backup(toolPath);
     }
     fileAccess.symlink(installation.linkDir(), toolPath);
-    this.context.getPath().addPath(this.tool, installation.binDir());
+    this.context.getPath().setPath(this.tool, installation.binDir());
     if (installedVersion == null) {
       this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
     } else {

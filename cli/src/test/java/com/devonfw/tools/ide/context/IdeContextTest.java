@@ -46,9 +46,9 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(systemPath.toString()).isNotEqualTo(envPath).endsWith(envPath);
     Path softwarePath = context.getSoftwarePath();
     Path javaBin = softwarePath.resolve("java/bin");
-    assertThat(systemPath.retrievePath("java")).isEqualTo(javaBin);
+    assertThat(systemPath.getPath("java")).isEqualTo(javaBin);
     Path mvnBin = softwarePath.resolve("mvn/bin");
-    assertThat(systemPath.retrievePath("mvn")).isEqualTo(mvnBin);
+    assertThat(systemPath.getPath("mvn")).isEqualTo(mvnBin);
     assertThat(systemPath.toString()).contains(javaBin.toString(), mvnBin.toString());
     assertThat(variables.getType()).isSameAs(EnvironmentVariablesType.RESOLVED);
     assertThat(variables.getByType(EnvironmentVariablesType.RESOLVED)).isSameAs(variables);
