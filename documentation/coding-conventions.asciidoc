@@ -79,7 +79,7 @@ Instead always rethrow with the original exception:
 try {
   doSomething();
 } catch (Exception e) {
-  // good
+  // fine
   throw new IllegalStateExeception("Something failed", e);
 }
 ----
@@ -113,7 +113,7 @@ Instead include the full exception and use your logger properly:
 try {
   doSomething();
 } catch (Exception e) {
-  // good
+  // fine
   LOG.error("Something failed: {}", e.getMessage(), e);
 }
 ----
@@ -147,7 +147,7 @@ public Boolean isEmpty {
 Instead always use the primitive `boolean` type:
 [source,java]
 ----
-// good
+// fine
 public boolean isEmpty {
   return size() == 0;
 }
@@ -174,7 +174,7 @@ Instead we should better do this:
 [source,java]
 ----
 public class MavenDownloader {
-  // good
+  // fine
   /** The base URL of the central maven repository. */
   public static final String REPOSITORY_URL = "https://repo1.maven.org/maven2/"
   public void download(Dependency dependency) {
@@ -191,7 +191,7 @@ As stated above in case of an interface simply omit the modifiers:
 [source,java]
 ----
 public interface MavenDownloader {
-  // good
+  // fine
   /** The base URL of the central maven repository. */
   String REPOSITORY_URL = "https://repo1.maven.org/maven2/"
   void download(Dependency dependency);
@@ -237,7 +237,7 @@ The reason is that it is most likely causing a lot of merge conflicts for featur
 Instead keep the existing signature and add a new one:
 [source,java]
 ----
-// good
+// fine
 public void doSomething() {
   doSomething(false);
 }
@@ -278,7 +278,7 @@ try {
 Better explicitly check for `null`:
 [source,java]
 ----
-// good
+// fine
 Foo foo = null;
 if (variable != null) {
   foo = variable.getFoo();
@@ -311,7 +311,7 @@ if (variable.getFoo().getFirst().getSize() > variable.getFoo().getSecond().getSi
 The method `getFoo()` is used in 4 places and called 3 times. Maybe the method call is expensive?
 [source,java]
 ----
-// good
+// fine
 Candidate candidate;
 Foo foo = variable.getFoo();
 Candidate first = foo.getFirst();
@@ -431,6 +431,41 @@ try (InputStream in = new FileInputStream(file)) {
 } catch (IOException e) {
   throw new IllegalStateException("Failed to read data.", e);
 }
+----
+
+== Enclose blocks with curly braces
+In Java curly braces for blocks can be omitted if there is only a single statement:
+[source,java]
+----
+// bad
+if (condition())
+  doThis();
+else
+  doThat();
+----
+While this is not really wrong it can lead to problems e.g. when adding a statement:
+[source,java]
+----
+// bad
+if (condition())
+  doThis();
+else
+  doThat();
+  System.err.println("that");
+----
+Now, it gets hard to see that the last statement is always executed independent of the condition.
+Maybe that should actually go only to the else block as we can guess from the indentation.
+If you always use curly braces this cannot happen and the code is easier to read:
+[source,java]
+----
+// fine
+if (condition()) {
+  doThis();
+} else {
+  doThat();
+  System.err.println("that");
+}
+//System.err.println("that");
 ----
 
 == Lambdas and Streams
