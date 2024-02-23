@@ -139,7 +139,6 @@ public final class ProcessContextImpl implements ProcessContext {
       }
 
       int exitCode;
-      // TODO: Ask if a background process shall get its own process result or if we should assume success?
       if (isBackgroundProcess) {
         exitCode = ProcessResult.SUCCESS;
       } else {
