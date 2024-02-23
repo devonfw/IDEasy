@@ -102,8 +102,6 @@ public final class ProcessContextImpl implements ProcessContext {
       this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
     }
 
-    boolean isBackgroundProcess = processMode == ProcessMode.BACKGROUND || processMode == ProcessMode.BACKGROUND_SILENT;
-
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");
     }
@@ -122,7 +120,7 @@ public final class ProcessContextImpl implements ProcessContext {
 
       if (processMode == ProcessMode.DEFAULT_CAPTURE) {
         this.processBuilder.redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
-      } else if (isBackgroundProcess) {
+      } else if (processMode.isBackground()) {
         modifyArgumentsOnBackgroundProcess(processMode);
       }
 
@@ -139,7 +137,7 @@ public final class ProcessContextImpl implements ProcessContext {
       }
 
       int exitCode;
-      if (isBackgroundProcess) {
+      if (processMode.isBackground()) {
         exitCode = ProcessResult.SUCCESS;
       } else {
         exitCode = process.waitFor();

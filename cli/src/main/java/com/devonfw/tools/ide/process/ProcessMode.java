@@ -33,7 +33,18 @@ public enum ProcessMode {
    * parent process. This setting makes the child process dependant from the parent process! (If you close the parent
    * process the child process will also be terminated.)
    */
-  DEFAULT_CAPTURE
+  DEFAULT_CAPTURE;
+
+  /**
+   * Method to check if the ProcessMode is a background process.
+   * 
+   * @return {@code true} if the {@link ProcessMode} is {@link ProcessMode#BACKGROUND} or
+   *         {@link ProcessMode#BACKGROUND_SILENT}, {@code false} if not.
+   */
+  public boolean isBackground() {
+
+    return this == BACKGROUND || this == BACKGROUND_SILENT;
+  }
 
   // TODO ADD EXTERNAL_WINDOW_MODE IN FUTURE Issue: https://github.com/devonfw/IDEasy/issues/218
 
