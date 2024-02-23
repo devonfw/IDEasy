@@ -40,7 +40,7 @@ public class CommandLetExtractorMock implements CommandletFileExtractor {
       }
 
     } else {
-      throw new IllegalStateException("Testing mocks only supports moving folders to install location!");
+      throw new IllegalStateException("Testing mocks only supports copying folders to install location!");
     }
   }
 

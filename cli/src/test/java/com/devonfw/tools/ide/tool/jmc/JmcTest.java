@@ -7,11 +7,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -19,6 +18,8 @@ import com.devonfw.tools.ide.commandlet.CommandLetExtractorMock;
 import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -45,6 +46,12 @@ public class JmcTest extends AbstractIdeContextTest {
   static void tearDown() throws IOException {
 
     server.shutdownServer();
+  }
+
+  @BeforeEach
+  public void setUpStream() {
+
+    // System.setOut(new PrintStream(outputStreamCaptor));
   }
 
   private void mockWebServer() throws IOException {
@@ -112,7 +119,7 @@ public class JmcTest extends AbstractIdeContextTest {
     String path = "workspaces/foo-test/my-git-repo";
     String projectTestCaseName = "jmc";
 
-    ToolRepositoryMock toolRepositoryMock = buildToolRepositoryMock(projectTestCaseName);
+    ToolRepositoryMock toolRepositoryMock = buildToolRepositoryMockForJmc(projectTestCaseName);
 
     IdeContext context = newContext(projectTestCaseName, path, true, toolRepositoryMock);
     toolRepositoryMock.setContext(context);
@@ -126,10 +133,9 @@ public class JmcTest extends AbstractIdeContextTest {
 
     // assert
     performPostInstallAssertion(context);
-
   }
 
-  // run test, currently cannot find correct executeable TODO FIND BINARY BUGGY
+  // run test, currently cannot find correct executeable TODO FIND BINARY BUG
   @Test
   @Disabled
   public void jmcShouldRunExecuteableSuccessfully() throws IOException {
@@ -137,8 +143,9 @@ public class JmcTest extends AbstractIdeContextTest {
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
     String projectTestCaseName = "jmc";
+    String expectedOutputWindows = "Dummy jmc 8.3.0 on windows";
 
-    ToolRepositoryMock toolRepositoryMock = buildToolRepositoryMock(projectTestCaseName);
+    ToolRepositoryMock toolRepositoryMock = buildToolRepositoryMockForJmc(projectTestCaseName);
 
     IdeContext context = newContext(projectTestCaseName, path, true, toolRepositoryMock);
     toolRepositoryMock.setContext(context);
@@ -152,27 +159,27 @@ public class JmcTest extends AbstractIdeContextTest {
     // act
     commandlet.run();
 
-    // assert, output stream probably
-    // System.out
+    // assert, TODO verify output stream
 
   }
 
-  private static ToolRepositoryMock buildToolRepositoryMock(String projectTestCaseName) {
-
-    Map<String, String> toolToVersion = new HashMap<>();
-    toolToVersion.put("jmc", "8.3.0");
-    toolToVersion.put("java", "17.0.10_7");
+  private static ToolRepositoryMock buildToolRepositoryMockForJmc(String projectTestCaseName) {
 
     String windowsFileFolder = "org.openjdk.jmc-8.3.0-win32.win32.x86_64";
     String linuxFileFolder = "org.openjdk.jmc-8.3.0-linux.gtk.x86_64";
     String macFileFolder = "org.openjdk.jmc-8.3.0-macosx.cocoa.x86_64";
 
-    ToolRepositoryMock toolRepositoryMock = new ToolRepositoryMock(toolToVersion, projectTestCaseName,
+    ToolRepositoryMock toolRepositoryMock = new ToolRepositoryMock("jmc", "8.3.0", projectTestCaseName,
         windowsFileFolder, linuxFileFolder, macFileFolder);
+
+    toolRepositoryMock.addAlreadyInstalledTool("java", "17.0.10_7");
+
     return toolRepositoryMock;
   }
 
   private void performPostInstallAssertion(IdeContext context) {
+
+    String expectedMessage = "Successfully installed jmc in version 8.3.0";
 
     assertThat(context.getSoftwarePath().resolve("jmc")).exists();
     assertThat(context.getSoftwarePath().resolve("jmc/InstallTest.txt")).hasContent("This is a test file.");
@@ -199,6 +206,9 @@ public class JmcTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("jmc/.ide.software.version")).exists();
     assertThat(context.getSoftwarePath().resolve("jmc/.ide.software.version")).hasContent("8.3.0");
+
+    assertLogMessage((IdeTestContext) context, IdeLogLevel.SUCCESS, expectedMessage, false);
+
   }
 
 }

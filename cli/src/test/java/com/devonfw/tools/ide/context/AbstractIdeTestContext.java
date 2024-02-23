@@ -9,6 +9,7 @@ import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
 
 /**
@@ -27,7 +28,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    *
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
+   *        {@link DefaultToolRepository} will be used.
    * @param answers the automatic answers simulating a user in test.
    */
   public AbstractIdeTestContext(Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
