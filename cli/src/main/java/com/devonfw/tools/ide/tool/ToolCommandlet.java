@@ -53,7 +53,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     addKeyword(tool);
     this.arguments = add(new StringListProperty("", false, "args"));
 
-    // TODO MAKE THIS SETTABLE
     commandletFileExtractor = new CommandletFileExtractorImpl(context, this);
   }
 
@@ -408,6 +407,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
   }
 
+  /**
+   * Sets the {@link CommandletFileExtractor} of the commandlet.
+   * 
+   * @param commandletFileExtractor an implementation of {@link CommandletFileExtractor}
+   */
   public void setCommandletFileExtractor(CommandletFileExtractor commandletFileExtractor) {
 
     this.commandletFileExtractor = commandletFileExtractor;
