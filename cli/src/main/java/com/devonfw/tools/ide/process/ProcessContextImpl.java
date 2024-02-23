@@ -314,8 +314,9 @@ public final class ProcessContextImpl implements ProcessContext {
       this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
     } else if (processMode == ProcessMode.BACKGROUND_SILENT) {
       this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
-    } else
+    } else {
       throw new IllegalStateException("Cannot handle non background process mode!");
+    }
 
     String bash = "bash";
 
