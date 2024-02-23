@@ -409,7 +409,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /**
    * Sets the {@link CommandletFileExtractor} of the commandlet.
-   * 
+   *
    * @param commandletFileExtractor an implementation of {@link CommandletFileExtractor}
    */
   public void setCommandletFileExtractor(CommandletFileExtractor commandletFileExtractor) {
