@@ -11,7 +11,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class ToolRepositoryMock implements ToolRepository {
 
-  private static final Path PROJECTS_RESOURCE_PATH = Path.of("src/test/resources/ide-projects");
+  private static final Path PROJECTS_TARGET_PATH = Path.of("target/test-projects");
 
   private static final String MOCK_DOWNLOAD_FOLDERNAME = "downloadMockLocation";
 
@@ -32,7 +32,7 @@ public class ToolRepositoryMock implements ToolRepository {
    *
    * @param toolToVersion Mapping of which Version of a tool should be mocked
    * @param projectTestCaseName the (folder)name of the project test case, in this folder a 'project' folder represents
-   *        the test project in {@link #PROJECTS_RESOURCE_PATH}. E.g. "basic".
+   * the test project in {@link #PROJECTS_TARGET_PATH}. E.g. "basic".
    * @param windowsFolderName Name of the folder which is used when test is run under Windows
    * @param linuxFolderName Name of the folder which is used when test is run under Linux
    * @param macFolderName Name of the folder which is used when test is run under Mac OS
@@ -68,7 +68,7 @@ public class ToolRepositoryMock implements ToolRepository {
   @Override
   public Path download(String tool, String edition, VersionIdentifier version) {
 
-    Path baseDownloadMockPath = PROJECTS_RESOURCE_PATH.resolve(projectTestCaseName).resolve(MOCK_DOWNLOAD_FOLDERNAME);
+    Path baseDownloadMockPath = PROJECTS_TARGET_PATH.resolve(projectTestCaseName).resolve(MOCK_DOWNLOAD_FOLDERNAME);
     String mockProgram = "";
 
     if (context == null) {
