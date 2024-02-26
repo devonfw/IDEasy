@@ -67,8 +67,7 @@ public class SystemPath {
       } else {
         Path duplicate = this.tool2pathMap.putIfAbsent(tool, path);
         if (duplicate != null) {
-          context.warning("Duplicated tool path for tool: {} at path: {} with duplicated path: {}.", tool, path,
-              duplicate);
+          context.warning("Duplicated tool path for tool: {} at path: {} with duplicated path: {}.", tool, path, duplicate);
         }
       }
     }
@@ -168,12 +167,11 @@ public class SystemPath {
 
   /**
    * @param tool the name of the tool.
-   * @param path the new {@link #getPath(String) tool bin path} and {@link #paths}.
+   * @param path the new {@link #getPath(String) tool bin path}.
    */
   public void setPath(String tool, Path path) {
 
     this.tool2pathMap.put(tool, path);
-    this.paths.add(0, path);
   }
 
   @Override
