@@ -29,14 +29,26 @@ public class CompletionCandidateCollectorAdapter implements CompletionCandidateC
   }
 
   @Override
-  public void add(String text, Property<?> property, Commandlet commandlet) {
+  public void add(String text, String description, Property<?> property, Commandlet commandlet) {
 
-    this.delegate.add(this.prefix + text, property, commandlet);
+    this.delegate.add(this.prefix + text, description, property, commandlet);
   }
 
   @Override
   public List<CompletionCandidate> getCandidates() {
 
     return this.delegate.getCandidates();
+  }
+
+  @Override
+  public List<CompletionCandidate> getSortedCandidates() {
+
+    return this.delegate.getSortedCandidates();
+  }
+
+  @Override
+  public void disableSorting() {
+
+    this.delegate.disableSorting();
   }
 }

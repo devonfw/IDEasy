@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.merge;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Map.Entry;
 import java.util.Properties;
 
@@ -18,8 +17,8 @@ import ch.qos.logback.classic.spi.Configurator;
  */
 public class DirectoryMergerTest extends AbstractIdeContextTest {
 
-  private static final String IDE_HOME = PATH_PROJECTS.resolve(PROJECT_BASIC).toAbsolutePath().toString().replace('\\',
-      '/');
+  private static final String IDE_HOME = PATH_PROJECTS.resolve(PROJECT_BASIC).resolve("project").toAbsolutePath()
+      .toString().replace('\\', '/');
 
   private static final Prop JAVA_VERSION = new Prop("java.version", "1.11");
 
@@ -54,7 +53,7 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     // act
     IdeContext context = newContext(PROJECT_BASIC, null, false);
     DirectoryMerger merger = context.getWorkspaceMerger();
-    Path templates = Paths.get("src/test/resources/templates");
+    Path templates = Path.of("src/test/resources/templates");
     Path setup = templates.resolve(IdeContext.FOLDER_SETUP);
     Path update = templates.resolve(IdeContext.FOLDER_UPDATE);
     merger.merge(setup, update, context.getVariables(), workspaceDir);

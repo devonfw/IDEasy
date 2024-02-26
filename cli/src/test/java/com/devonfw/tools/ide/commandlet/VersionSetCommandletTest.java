@@ -44,7 +44,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
         IDE_TOOLS=mvn,eclipse
 
         BAR=bar-${SOME}
-        
+
         TEST_ARGS1=${TEST_ARGS1} settings1
         TEST_ARGS4=${TEST_ARGS4} settings4
         TEST_ARGS5=${TEST_ARGS5} settings5
