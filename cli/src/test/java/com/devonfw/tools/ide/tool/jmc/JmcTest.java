@@ -16,10 +16,12 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.commandlet.CommandLetExtractorMock;
 import com.devonfw.tools.ide.commandlet.InstallCommandlet;
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -135,7 +137,7 @@ public class JmcTest extends AbstractIdeContextTest {
     performPostInstallAssertion(context);
   }
 
-  // run test, currently cannot find correct executeable TODO FIND BINARY BUG
+  // TODO: Enable test as soon https://github.com/devonfw/IDEasy/pull/228 is merged
   @Test
   @Disabled
   public void jmcShouldRunExecuteableSuccessfully() throws IOException {
@@ -144,11 +146,15 @@ public class JmcTest extends AbstractIdeContextTest {
     String path = "workspaces/foo-test/my-git-repo";
     String projectTestCaseName = "jmc";
     String expectedOutputWindows = "Dummy jmc 8.3.0 on windows";
+    String expectedOutputLinux = "Dummy jmc 8.3.0 on linux";
+    String expectedOutputMacOs = "Dummy jmc 8.3.0 on macOs";
+    Path mockResultPath = Path.of("target/test-projects/jmc/project");
 
     ToolRepositoryMock toolRepositoryMock = buildToolRepositoryMockForJmc(projectTestCaseName);
 
-    IdeContext context = newContext(projectTestCaseName, path, true, toolRepositoryMock);
+    AbstractIdeContext context = newContext(projectTestCaseName, path, true, toolRepositoryMock);
     toolRepositoryMock.setContext(context);
+    context.setDefaultExecutionDirectory(mockResultPath);
 
     CommandLetExtractorMock commandLetExtractorMock = new CommandLetExtractorMock(context);
     Jmc commandlet = new Jmc(context);
@@ -159,8 +165,29 @@ public class JmcTest extends AbstractIdeContextTest {
     // act
     commandlet.run();
 
-    // assert, TODO verify output stream
+    // assert
 
+    String expectedOutput = determineExpectedOutput(context, expectedOutputWindows, expectedOutputLinux,
+        expectedOutputMacOs);
+
+    assertThat(mockResultPath.resolve("jmcTestRestult.txt")).exists();
+    assertThat(mockResultPath.resolve("jmcTestRestult.txt")).hasContent(expectedOutput);
+
+  }
+
+  private String determineExpectedOutput(AbstractIdeContext context, String expectedOutputWindows,
+      String expectedOutputLinux, String expectedOutputMacOs) {
+
+    SystemInfo systemInfo = context.getSystemInfo();
+    if (systemInfo.isWindows()) {
+      return expectedOutputWindows;
+    } else if (systemInfo.isLinux()) {
+      return expectedOutputLinux;
+    } else if (systemInfo.isMac()) {
+      return expectedOutputMacOs;
+    } else {
+      throw new IllegalStateException("Unexpected operating system!");
+    }
   }
 
   private static ToolRepositoryMock buildToolRepositoryMockForJmc(String projectTestCaseName) {
@@ -184,7 +211,6 @@ public class JmcTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("jmc")).exists();
     assertThat(context.getSoftwarePath().resolve("jmc/InstallTest.txt")).hasContent("This is a test file.");
 
-    // Win
     if (context.getSystemInfo().isWindows()) {
       assertThat(context.getSoftwarePath().resolve("jmc/jmc.cmd")).exists();
     }
@@ -193,7 +219,6 @@ public class JmcTest extends AbstractIdeContextTest {
       assertThat(context.getSoftwarePath().resolve("jmc/jmc")).exists();
     }
 
-    // Win linux
     if (context.getSystemInfo().isWindows() || context.getSystemInfo().isLinux()) {
       assertThat(context.getSoftwarePath().resolve("jmc/HelloWorld.txt")).hasContent("Hello World!");
       assertThat(context.getSoftwarePath().resolve("jmc/JDK Mission Control")).doesNotExist();
