@@ -22,6 +22,9 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
+/**
+ * Unit tests of {@link ProcessContextImpl}.
+ */
 public class ProcessContextImplTest extends AbstractIdeContextTest {
 
   private ProcessContextImpl underTest;
