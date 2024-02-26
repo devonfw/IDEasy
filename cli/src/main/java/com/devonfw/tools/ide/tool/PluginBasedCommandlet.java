@@ -4,12 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -68,8 +63,20 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
           if (filename.endsWith(IdeContext.EXT_PROPERTIES) && Files.exists(child)) {
             PluginDescriptor descriptor = PluginDescriptorImpl.of(child, this.context, isPluginUrlNeeded());
 
-            // Priority to user-specific plugins
-            map.put(descriptor.getName(), descriptor);
+            // Check if plugin with same id exists
+            boolean pluginExists = map.values().stream()
+                .anyMatch(existingDescriptor -> existingDescriptor.getId().equals(descriptor.getId()));
+
+            if (pluginExists) {
+              // Plugin with same id already exists, overwrite it
+              map.entrySet().stream()
+                  .filter(entry -> entry.getValue().getId().equals(descriptor.getId()))
+                  .findFirst()
+                  .ifPresent(entry -> entry.setValue(descriptor));
+            } else {
+              // Plugin does not exist, add it normally to the map
+              map.put(descriptor.getName(), descriptor);
+            }
           }
         }
       } catch (IOException e) {
@@ -95,7 +102,6 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
     return context.getUserHome().resolve(Paths.get(".ide", "settings", this.tool, IdeContext.FOLDER_PLUGINS));
   }
-
 
   /**
    * @return the immutable {@link Collection} of {@link PluginDescriptor}s configured for this IDE tool.
@@ -144,7 +150,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   /**
    * @param key the filename of the properties file configuring the requested plugin (typically excluding the
-   *        ".properties" extension).
+   * ".properties" extension).
    * @return the {@link PluginDescriptor} for the given {@code key}.
    */
   public PluginDescriptor getPlugin(String key) {
@@ -189,7 +195,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   /**
    * @param plugin the in{@link PluginDescriptor#isActive() active} {@link PluginDescriptor} that is skipped for regular
-   *        plugin installation.
+   * plugin installation.
    */
   protected void handleInstall4InactivePlugin(PluginDescriptor plugin) {
 
