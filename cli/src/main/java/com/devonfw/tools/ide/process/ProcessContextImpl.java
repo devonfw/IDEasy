@@ -14,6 +14,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.log.IdeSubLogger;
@@ -306,8 +307,6 @@ public final class ProcessContextImpl implements ProcessContext {
 
   private void modifyArgumentsOnBackgroundProcess(ProcessMode processMode) {
 
-    String commandToRunInBackground = "";
-
     if (processMode == ProcessMode.BACKGROUND) {
       this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
     } else if (processMode == ProcessMode.BACKGROUND_SILENT) {
@@ -326,24 +325,15 @@ public final class ProcessContextImpl implements ProcessContext {
 
         bash = findBashOnWindowsResult;
 
-        // windows path must be converted to unix format and executable
-        String executablePath = this.arguments.get(0);
-        executablePath = convertWindowsPathToUnixPath(executablePath);
-
-        commandToRunInBackground = this.arguments.subList(1, this.arguments.size()).stream().map(Object::toString)
-            .collect(Collectors.joining(" "));
-
-        commandToRunInBackground = executablePath + " " + commandToRunInBackground;
-
       } else {
         context.warning(
             "Cannot start background process in windows! No bash installation found, output will be discarded.");
         this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
         return;
       }
-    } else {
-      commandToRunInBackground = this.arguments.stream().map(Object::toString).collect(Collectors.joining(" "));
     }
+
+    String commandToRunInBackground = buildCommandToRunInBackground();
 
     this.arguments.clear();
     this.arguments.add(bash);
@@ -353,11 +343,24 @@ public final class ProcessContextImpl implements ProcessContext {
 
   }
 
-  private String convertWindowsPathToUnixPath(String windowsPathString) {
+  private String buildCommandToRunInBackground() {
 
-    String unixPath = windowsPathString.replace('\\', '/');
-    unixPath = "/" + unixPath.substring(0, 1).toLowerCase() + unixPath.substring(2);
-    return unixPath;
+    if (context.getSystemInfo().isWindows()) {
+
+      StringBuilder stringBuilder = new StringBuilder();
+
+      for (String argument : this.arguments) {
+
+        if (SystemPath.isValidWindowsPath(argument)) {
+          argument = SystemPath.convertWindowsPathToUnixPath(argument);
+        }
+
+        stringBuilder.append(argument);
+        stringBuilder.append(" ");
+      }
+      return stringBuilder.toString().trim();
+    } else {
+      return this.arguments.stream().map(Object::toString).collect(Collectors.joining(" "));
+    }
   }
-
 }
