@@ -122,6 +122,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);
 
+  private Path defaultExecutionDirectory;
+
   /**
    * The constructor.
    *
@@ -598,10 +600,26 @@ public abstract class AbstractIdeContext implements IdeContext {
     return this.workspaceMerger;
   }
 
+  public Path getDefaultExecutionDirectory() {
+
+    return defaultExecutionDirectory;
+  }
+
+  /**
+   * @param defaultExecutionDirectory new value of {@link #getDefaultExecutionDirectory()}.
+   */
+  public void setDefaultExecutionDirectory(Path defaultExecutionDirectory) {
+
+    if (defaultExecutionDirectory != null) {
+      this.defaultExecutionDirectory = defaultExecutionDirectory;
+    }
+  }
+
   @Override
   public ProcessContext newProcess() {
 
     ProcessContext processContext = new ProcessContextImpl(this);
+    processContext.directory(this.getDefaultExecutionDirectory());
     return processContext;
   }
 
