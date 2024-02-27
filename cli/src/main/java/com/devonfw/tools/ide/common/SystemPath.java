@@ -141,6 +141,14 @@ public class SystemPath {
     String fileName = toolPath.getFileName().toString();
 
     if (parent == null) {
+
+      for (Path path : tool2pathMap.values()) {
+        Path binaryPath = findBinaryInOrder(path, fileName);
+        if (binaryPath != null) {
+          return binaryPath;
+        }
+      }
+
       for (Path path : this.paths) {
         Path binaryPath = findBinaryInOrder(path, fileName);
         if (binaryPath != null) {

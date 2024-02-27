@@ -131,10 +131,14 @@ public final class ProcessContextImpl implements ProcessContext {
 
       List<String> out = null;
       List<String> err = null;
+
       if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        out = new ArrayList<>();
-        err = new ArrayList<>();
-        handleCapture(process, out, err);
+        try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()));) {
+          out = outReader.lines().collect(Collectors.toList());
+        }
+        try (BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+          err = errReader.lines().collect(Collectors.toList());
+        }
       }
 
       int exitCode;
@@ -244,29 +248,6 @@ public final class ProcessContextImpl implements ProcessContext {
     }
     // no bash found
     throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
-  }
-
-  private void handleCapture(Process process, List<String> out, List<String> err) throws IOException {
-
-    try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-      String outLine = "";
-      String errLine = "";
-      while ((outLine != null) || (errLine != null)) {
-        if (outLine != null) {
-          outLine = outReader.readLine();
-          if (outLine != null) {
-            out.add(outLine);
-          }
-        }
-        if (errLine != null) {
-          errLine = errReader.readLine();
-          if (errLine != null) {
-            err.add(errLine);
-          }
-        }
-      }
-    }
   }
 
   private void checkAndHandlePossibleBashScript(String executableName) {
