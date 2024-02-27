@@ -27,8 +27,6 @@ public class ToolRepositoryMock implements ToolRepository {
       String macFolderName) {
   }
 
-  ;
-
   /**
    * Constructor of a ToolRepository Mock with information of an initial tool
    *
