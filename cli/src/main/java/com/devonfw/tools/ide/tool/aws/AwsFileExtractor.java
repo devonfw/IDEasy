@@ -6,7 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.Set;
 
-import com.devonfw.tools.ide.commandlet.CommandletFileExtractorImpl;
+import com.devonfw.tools.ide.commandlet.FileExtractor.CommandletFileExtractorImpl;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;

@@ -7,8 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.commandlet.CommandletFileExtractor;
-import com.devonfw.tools.ide.commandlet.CommandletFileExtractorImpl;
+import com.devonfw.tools.ide.commandlet.FileExtractor.CommandletFileExtractor;
+import com.devonfw.tools.ide.commandlet.FileExtractor.CommandletFileExtractorImpl;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;

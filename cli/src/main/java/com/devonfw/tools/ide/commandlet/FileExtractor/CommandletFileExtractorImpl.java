@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.commandlet;
+package com.devonfw.tools.ide.commandlet.FileExtractor;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -39,44 +39,24 @@ public class CommandletFileExtractorImpl implements CommandletFileExtractor {
 
     FileAccess fileAccess = this.context.getFileAccess();
     if (isExtract) {
-      Path tmpDir = this.context.getFileAccess().createTempDir("extract-" + file.getFileName());
+      Path tmpDir = fileAccess.createTempDir("extract-" + file.getFileName());
       this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", file, tmpDir, targetDir);
       String extension = FilenameUtil.getExtension(file.getFileName().toString());
       this.context.trace("Determined file extension {}", extension);
       TarCompression tarCompression = TarCompression.of(extension);
+      ExtractorFileType fileType = ExtractorFileType.valueOf(extension.toUpperCase());
+
       if (tarCompression != null) {
         fileAccess.untar(file, tmpDir, tarCompression);
-      } else if ("zip".equals(extension) || "jar".equals(extension)) {
+      } else if (fileType == ExtractorFileType.ZIP || fileType == ExtractorFileType.JAR) {
         fileAccess.unzip(file, tmpDir);
-      } else if ("dmg".equals(extension)) {
-        assert this.context.getSystemInfo().isMac();
-        Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
-        fileAccess.mkdirs(mountPath);
-        ProcessContext pc = this.context.newProcess();
-        pc.executable("hdiutil");
-        pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
-        pc.run();
-        Path appPath = fileAccess.findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
-        if (appPath == null) {
-          throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
-        }
-        fileAccess.copy(appPath, tmpDir);
-        pc.addArgs("detach", "-force", mountPath);
-        pc.run();
-      } else if ("msi".equals(extension)) {
-        this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + tmpDir).run();
-        // msiexec also creates a copy of the MSI
-        Path msiCopy = tmpDir.resolve(file.getFileName());
-        fileAccess.delete(msiCopy);
-      } else if ("pkg".equals(extension)) {
+      } else if (fileType == ExtractorFileType.DMG) {
+        extractLinuxDmg(file, tmpDir);
+      } else if (fileType == ExtractorFileType.MSI) {
+        extractWindowsMsi(file, tmpDir);
+      } else if (fileType == ExtractorFileType.PKG) {
+        extractPkg(file, tmpDir);
 
-        Path tmpDirPkg = fileAccess.createTempDir("ide-pkg-");
-        ProcessContext pc = this.context.newProcess();
-        // we might also be able to use cpio from commons-compression instead of external xar...
-        pc.executable("xar").addArgs("-C", tmpDirPkg, "-xf", file).run();
-        Path contentPath = fileAccess.findFirst(tmpDirPkg, p -> p.getFileName().toString().equals("Payload"), true);
-        fileAccess.untar(contentPath, tmpDir, TarCompression.GZ);
-        fileAccess.delete(tmpDirPkg);
       } else {
         throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + file);
       }
@@ -130,4 +110,48 @@ public class CommandletFileExtractorImpl implements CommandletFileExtractor {
       throw new IllegalStateException("Failed to get sub-files of " + path);
     }
   }
+
+  private void extractLinuxDmg(Path file, Path tmpDir) {
+
+    assert this.context.getSystemInfo().isMac();
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
+    fileAccess.mkdirs(mountPath);
+    ProcessContext pc = this.context.newProcess();
+    pc.executable("hdiutil");
+    pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
+    pc.run();
+    Path appPath = fileAccess.findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
+    if (appPath == null) {
+      throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
+    }
+    fileAccess.copy(appPath, tmpDir);
+    pc.addArgs("detach", "-force", mountPath);
+    pc.run();
+  }
+
+  private void extractWindowsMsi(Path file, Path tmpDir) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + tmpDir).run();
+    // msiexec also creates a copy of the MSI
+    Path msiCopy = tmpDir.resolve(file.getFileName());
+    fileAccess.delete(msiCopy);
+  }
+
+  private void extractPkg(Path file, Path tmpDir) {
+
+    FileAccess fileAccess = this.context.getFileAccess();
+
+    Path tmpDirPkg = fileAccess.createTempDir("ide-pkg-");
+    ProcessContext pc = this.context.newProcess();
+    // we might also be able to use cpio from commons-compression instead of external xar...
+    pc.executable("xar").addArgs("-C", tmpDirPkg, "-xf", file).run();
+    Path contentPath = fileAccess.findFirst(tmpDirPkg, p -> p.getFileName().toString().equals("Payload"), true);
+    fileAccess.untar(contentPath, tmpDir, TarCompression.GZ);
+    fileAccess.delete(tmpDirPkg);
+
+  }
+
 }

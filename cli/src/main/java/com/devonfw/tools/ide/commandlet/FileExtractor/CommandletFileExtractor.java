@@ -1,8 +1,8 @@
-package com.devonfw.tools.ide.commandlet;
-
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+package com.devonfw.tools.ide.commandlet.FileExtractor;
 
 import java.nio.file.Path;
+
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
  * {@link CommandletFileExtractor} class which handles the extraction of downloaded installations of a

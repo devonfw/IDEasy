@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.commandlet.FileExtractor.CommandletFileExtractor;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 
