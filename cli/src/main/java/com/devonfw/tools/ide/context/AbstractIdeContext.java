@@ -119,14 +119,19 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private UrlMetadata urlMetadata;
 
+  private Path defaultExecutionDirectory;
+
   /**
    * The constructor.
    *
    * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
+   *        {@link DefaultToolRepository} will be used.
    */
-  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir) {
+  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
+      ToolRepository toolRepository) {
 
     super();
     this.loggerFactory = factory;
@@ -232,7 +237,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.downloadPath = this.userHome.resolve("Downloads/ide");
     this.variables = createVariables();
     this.path = computeSystemPath();
-    this.defaultToolRepository = new DefaultToolRepository(this);
+
+    if (toolRepository == null) {
+      this.defaultToolRepository = new DefaultToolRepository(this);
+    } else {
+      this.defaultToolRepository = toolRepository;
+    }
+
     this.customToolRepository = CustomToolRepositoryImpl.of(this);
     this.workspaceMerger = new DirectoryMerger(this);
   }
@@ -590,6 +601,25 @@ public abstract class AbstractIdeContext implements IdeContext {
     return this.workspaceMerger;
   }
 
+  /**
+   *
+   * @return the {@link #defaultExecutionDirectory} the directory in which a command process is executed.
+   */
+  public Path getDefaultExecutionDirectory() {
+
+    return defaultExecutionDirectory;
+  }
+
+  /**
+   * @param defaultExecutionDirectory new value of {@link #getDefaultExecutionDirectory()}.
+   */
+  public void setDefaultExecutionDirectory(Path defaultExecutionDirectory) {
+
+    if (defaultExecutionDirectory != null) {
+      this.defaultExecutionDirectory = defaultExecutionDirectory;
+    }
+  }
+
   @Override
   public GitContext getGitContext() {
 
@@ -599,7 +629,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public ProcessContext newProcess() {
 
-    return new ProcessContextImpl(this);
+    ProcessContext processContext = new ProcessContextImpl(this);
+    processContext.directory(this.getDefaultExecutionDirectory());
+    return processContext;
   }
 
   @Override
