@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link LocalToolCommandlet} for <a href="https://www.graalvm.org/">GraalVM</a>, an advanced JDK with ahead-of-time
@@ -39,17 +40,17 @@ public class GraalVm extends LocalToolCommandlet {
   @Override
   public void run() {
 
+    Path toolPath = getToolPath();
     try {
-      Files.createDirectories(getToolPath());
+      Files.createDirectories(toolPath);
     } catch (IOException e) {
-      throw new RuntimeException("Failed to create new directory:" + e.getMessage());
+      throw new RuntimeException("Failed to create new directory:" + e);
     }
 
     String[] args = this.arguments.asArray();
     runTool(true, null, args);
 
     if (args.length > 0) {
-      Path toolPath = getToolPath();
       Path binaryPath = this.context.getUserHome().resolve(toolPath + "/bin");
       FileAccess fileAccess = this.context.getFileAccess();
 
@@ -67,6 +68,16 @@ public class GraalVm extends LocalToolCommandlet {
   }
 
   @Override
+  public void runTool(boolean runInBackground, VersionIdentifier toolVersion, String... args) {
+
+    if (toolVersion == null) {
+      install(true);
+    } else {
+      throw new UnsupportedOperationException("Not yet implemented!");
+    }
+  }
+
+  @Override
   public void postInstall() {
 
     super.postInstall();
@@ -74,12 +85,12 @@ public class GraalVm extends LocalToolCommandlet {
     final String graalvmExport = "export GRAALVM_HOME="
         + this.context.getSoftwarePath().resolve("extra").resolve(getName());
 
-    if (isPatternInPath(devonIdeHome, graalvmExport) == false) {
-      writeTextToFile(devonIdeHome, graalvmExport);
+    if (!isTextInFile(devonIdeHome, graalvmExport)) {
+      addTextToFile(devonIdeHome, graalvmExport);
     }
   }
 
-  private boolean isPatternInPath(Path path, String textToSearch) {
+  private boolean isTextInFile(Path path, String textToSearch) {
 
     try (BufferedReader br = Files.newBufferedReader(path)) {
       String line;
@@ -89,17 +100,17 @@ public class GraalVm extends LocalToolCommandlet {
         }
       }
     } catch (Exception e) {
-      throw new RuntimeException(("Failed to open a file for reading:" + e.getMessage()));
+      throw new RuntimeException(("Failed to open a file for reading:" + e));
     }
     return false;
   }
 
-  private void writeTextToFile(Path path, String textToAdd) {
+  private void addTextToFile(Path path, String textToAdd) {
 
     try {
       Files.write(path, textToAdd.getBytes(), StandardOpenOption.APPEND);
     } catch (IOException e) {
-      throw new RuntimeException("Unable to write text to file:" + e.getMessage());
+      throw new RuntimeException("Unable to write text to file:" + e);
     }
   }
 
