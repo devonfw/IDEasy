@@ -601,6 +601,10 @@ public abstract class AbstractIdeContext implements IdeContext {
     return this.workspaceMerger;
   }
 
+  /**
+   *
+   * @return the {@link #defaultExecutionDirectory} the directory in which a command process is executed.
+   */
   public Path getDefaultExecutionDirectory() {
 
     return defaultExecutionDirectory;
