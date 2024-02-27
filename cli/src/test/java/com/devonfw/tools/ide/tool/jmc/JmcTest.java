@@ -10,7 +10,6 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.commandlet.CommandLetExtractorMock;
@@ -38,6 +37,7 @@ public class JmcTest extends AbstractIdeContextTest {
   static void setUp() throws IOException {
 
     // TODO use random port number and create url file dynamically in project
+    // TODO ISSUE:https://github.com/devonfw/IDEasy/issues/223
     server = new WireMockServer(WireMockConfiguration.wireMockConfig().port(1112));
 
     server.start();
@@ -47,12 +47,6 @@ public class JmcTest extends AbstractIdeContextTest {
   static void tearDown() throws IOException {
 
     server.shutdownServer();
-  }
-
-  @BeforeEach
-  public void setUpStream() {
-
-    // System.setOut(new PrintStream(outputStreamCaptor));
   }
 
   private void mockWebServer() throws IOException {
@@ -137,7 +131,7 @@ public class JmcTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void jmcShouldRunExecuteableSuccessfully() throws IOException {
+  public void jmcShouldRunExecuteableSuccessful() throws IOException {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
