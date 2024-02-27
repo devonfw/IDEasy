@@ -11,7 +11,6 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.commandlet.CommandLetExtractorMock;
@@ -137,9 +136,7 @@ public class JmcTest extends AbstractIdeContextTest {
     performPostInstallAssertion(context);
   }
 
-  // TODO: Enable test as soon https://github.com/devonfw/IDEasy/pull/228 is merged
   @Test
-  @Disabled
   public void jmcShouldRunExecuteableSuccessfully() throws IOException {
 
     // arrange
