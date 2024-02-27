@@ -216,6 +216,7 @@ public class FileAccessImpl implements FileAccess {
 
     if (Files.isSymbolicLink(fileOrFolder)) {
       delete(fileOrFolder);
+      return;
     }
     Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
     LocalDateTime now = LocalDateTime.now();
