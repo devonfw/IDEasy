@@ -16,6 +16,11 @@ public class CommandLetExtractorMock implements CommandletFileExtractor {
 
   private final IdeContext context;
 
+  /**
+   * The constructor.
+   * 
+   * @param context the {@link IdeContext}
+   */
   public CommandLetExtractorMock(IdeContext context) {
 
     this.context = context;
