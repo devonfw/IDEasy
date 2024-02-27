@@ -237,7 +237,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.downloadPath = this.userHome.resolve("Downloads/ide");
     this.variables = createVariables();
     this.path = computeSystemPath();
-    this.defaultToolRepository = toolRepository == null ? new DefaultToolRepository(this) : toolRepository;
+
+    if (toolRepository == null) {
+      this.defaultToolRepository = new DefaultToolRepository(this);
+    } else {
+      this.defaultToolRepository = toolRepository;
+    }
+
     this.customToolRepository = CustomToolRepositoryImpl.of(this);
     this.workspaceMerger = new DirectoryMerger(this);
   }
