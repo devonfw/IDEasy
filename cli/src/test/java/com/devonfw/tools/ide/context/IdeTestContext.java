@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
@@ -28,12 +27,18 @@ public class IdeTestContext extends AbstractIdeTestContext {
     return (IdeTestLogger) super.level(level);
   }
 
+  @Override
+  public GitContext getGitContext() {
+
+    return new GitContextMock();
+  }
+
   /**
    * @return a dummy {@link IdeTestContext}.
    */
   public static IdeTestContext of() {
 
-    return new IdeTestContext(Paths.get("/"));
+    return new IdeTestContext(Path.of("/"));
   }
 
 }
