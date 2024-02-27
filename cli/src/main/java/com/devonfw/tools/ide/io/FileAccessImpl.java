@@ -225,6 +225,7 @@ public class FileAccessImpl implements FileAccess {
 
     if (Files.isSymbolicLink(fileOrFolder)) {
       delete(fileOrFolder);
+      return;
     }
     Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
     LocalDateTime now = LocalDateTime.now();
@@ -543,7 +544,7 @@ public class FileAccessImpl implements FileAccess {
           mkdirs(entryPath.getParent());
           Files.copy(ais, entryPath);
         }
-        if (isTar) {
+        if (isTar && !this.context.getSystemInfo().isWindows()) {
           Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
           Files.setPosixFilePermissions(entryPath, permissions);
         }
