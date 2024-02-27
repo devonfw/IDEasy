@@ -173,7 +173,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     if (linkDir != rootDir) {
       assert (!linkDir.equals(rootDir));
-      this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
+      if (newInstallation) {
+        linkDir = linkDir.resolve(this.context.FILE_SOFTWARE_VERSION);
+        this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
+      }
     }
     return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion, newInstallation);
   }
