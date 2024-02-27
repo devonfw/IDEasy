@@ -109,7 +109,7 @@ public class ToolRepositoryMock implements ToolRepository {
     String mockProgram = "";
 
     if (context == null) {
-      throw new IllegalStateException("Please set a IdeContext!");
+      throw new IllegalStateException("Please set an IdeContext!");
     }
 
     if (context.getSystemInfo().isWindows()) {
