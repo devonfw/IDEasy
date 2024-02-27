@@ -1,5 +1,15 @@
 package com.devonfw.tools.ide.io;
 
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.url.model.file.UrlChecksum;
+import com.devonfw.tools.ide.util.DateTimeUtil;
+import com.devonfw.tools.ide.util.HexUtil;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -30,17 +40,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
-
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.url.model.file.UrlChecksum;
-import com.devonfw.tools.ide.util.DateTimeUtil;
-import com.devonfw.tools.ide.util.HexUtil;
 
 /**
  * Implementation of {@link FileAccess}.
@@ -220,22 +219,37 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
+  private boolean isJunction(Path path) {
+
+    if (!this.context.getSystemInfo().isWindows()) {
+      return false;
+    }
+
+    try {
+      BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+      return attr.isOther() && attr.isDirectory();
+    } catch (IOException e) {
+      throw new IllegalStateException(
+          "An unexpected error occurred whilst checking if the file: " + path + " is a junction", e);
+    }
+  }
+
   @Override
   public void backup(Path fileOrFolder) {
 
-    if (Files.isSymbolicLink(fileOrFolder)) {
+    if (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder)) {
       delete(fileOrFolder);
-      return;
+    } else {
+      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
+      LocalDateTime now = LocalDateTime.now();
+      String date = DateTimeUtil.formatDate(now);
+      String time = DateTimeUtil.formatTime(now);
+      Path backupDatePath = backupPath.resolve(date);
+      mkdirs(backupDatePath);
+      Path target = backupDatePath.resolve(fileOrFolder.getFileName().toString() + "_" + time);
+      this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
+      move(fileOrFolder, target);
     }
-    Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
-    LocalDateTime now = LocalDateTime.now();
-    String date = DateTimeUtil.formatDate(now);
-    String time = DateTimeUtil.formatTime(now);
-    Path backupDatePath = backupPath.resolve(date);
-    mkdirs(backupDatePath);
-    Path target = backupDatePath.resolve(fileOrFolder.getFileName().toString() + "_" + time);
-    this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
-    move(fileOrFolder, target);
   }
 
   @Override
@@ -341,7 +355,7 @@ public class FileAccessImpl implements FileAccess {
    *
    * @param source the {@link Path} to adapt.
    * @param targetLink the {@link Path} used to calculate the relative path to the {@code source} if {@code relative} is
-   *        set to {@code true}.
+   * set to {@code true}.
    * @param relative the {@code relative} flag.
    * @return the adapted {@link Path}.
    * @see FileAccessImpl#symlink(Path, Path, boolean)
@@ -399,8 +413,7 @@ public class FileAccessImpl implements FileAccess {
       } catch (IOException e) {
         throw new IllegalStateException(
             "Since Windows junctions are used, the source must be an absolute path. The transformation of the passed "
-                + "source (" + source + ") to an absolute path failed.",
-            e);
+                + "source (" + source + ") to an absolute path failed.", e);
       }
 
     } else {
@@ -422,8 +435,9 @@ public class FileAccessImpl implements FileAccess {
     try {
       adaptedSource = adaptPath(source, targetLink, relative);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to adapt source for source (" + source + ") target (" + targetLink
-          + ") and relative (" + relative + ")", e);
+      throw new IllegalStateException(
+          "Failed to adapt source for source (" + source + ") target (" + targetLink + ") and relative (" + relative
+              + ")", e);
     }
     this.context.trace("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative",
         targetLink, adaptedSource);
@@ -446,8 +460,9 @@ public class FileAccessImpl implements FileAccess {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative")
-          + "symbolic link " + targetLink + " pointing to " + source, e);
+      throw new IllegalStateException(
+          "Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative") + "symbolic link " + targetLink
+              + " pointing to " + source, e);
     }
   }
 
@@ -500,7 +515,7 @@ public class FileAccessImpl implements FileAccess {
 
   /**
    * @param permissions The integer as returned by {@link TarArchiveEntry#getMode()} that represents the file
-   *        permissions of a file on a Unix file system.
+   * permissions of a file on a Unix file system.
    * @return A String representing the file permissions. E.g. "rwxrwxr-x" or "rw-rw-r--"
    */
   public static String generatePermissionString(int permissions) {
