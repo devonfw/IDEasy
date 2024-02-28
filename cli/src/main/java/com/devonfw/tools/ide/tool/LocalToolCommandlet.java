@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Set;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -92,8 +91,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} managed by this {@link Commandlet} only in the central
-   * software repository without touching the IDE installation.
+   * Performs the installation of the {@link #getName() tool} managed by this
+   * {@link com.devonfw.tools.ide.commandlet.Commandlet} only in the central software repository without touching the
+   * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
    *        {@link VersionIdentifier#isPattern() version pattern}.
@@ -105,8 +105,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} managed by this {@link Commandlet} only in the central
-   * software repository without touching the IDE installation.
+   * Performs the installation of the {@link #getName() tool} managed by this
+   * {@link com.devonfw.tools.ide.commandlet.Commandlet} only in the central software repository without touching the
+   * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
    *        {@link VersionIdentifier#isPattern() version pattern}.
@@ -119,8 +120,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} managed by this {@link Commandlet} only in the central
-   * software repository without touching the IDE installation.
+   * Performs the installation of the {@link #getName() tool} managed by this
+   * {@link com.devonfw.tools.ide.commandlet.Commandlet} only in the central software repository without touching the
+   * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
    *        {@link VersionIdentifier#isPattern() version pattern}.
@@ -151,7 +153,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
     fileAccess.mkdirs(toolPath.getParent());
-    extract(target, toolPath);
+    commandletFileExtractor.extract(target, toolPath, isExtract());
     try {
       Files.writeString(toolVersionFile, resolvedVersion.toString(), StandardOpenOption.CREATE_NEW);
     } catch (IOException e) {

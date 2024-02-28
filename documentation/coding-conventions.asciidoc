@@ -79,7 +79,7 @@ Instead always rethrow with the original exception:
 try {
   doSomething();
 } catch (Exception e) {
-  // good
+  // fine
   throw new IllegalStateExeception("Something failed", e);
 }
 ----
@@ -113,7 +113,7 @@ Instead include the full exception and use your logger properly:
 try {
   doSomething();
 } catch (Exception e) {
-  // good
+  // fine
   LOG.error("Something failed: {}", e.getMessage(), e);
 }
 ----
@@ -125,7 +125,7 @@ So instead of just saying "Something failed" a really good example could look li
 LOG.error("An unexpected error occurred whilst downloading the tool {} with edition {} and version {} from URL {}.", tool, edition, version, url, e);
 ----
 
-=== Prefer general API
+== Prefer general API
 Avoid unnecessary strong bindings:
 
 * Do not bind your code to implementations such as `Vector` or `ArrayList` instead of `List`
@@ -133,7 +133,7 @@ Avoid unnecessary strong bindings:
 ** prefer `Collection` over `List` or `Set` where the difference does not matter (e.g. only use `Set` when you require uniqueness or highly efficient `contains`)
 ** consider preferring `Collection<? extends Foo>` over `Collection<Foo>` when `Foo` is an interface or super-class
 
-=== Prefer primitive types
+== Prefer primitive types
 In general prefer primitive types (`boolean`, `int`, `long`, ...) instead of corresponding boxed object types (`Boolean`, `Integer`, `Long`, ...).
 Only use boxed object types, if you explicitly want to allow `null` as a value.
 Typically you never want to use `Boolean` but instead use `boolean`.
@@ -147,7 +147,7 @@ public Boolean isEmpty {
 Instead always use the primitive `boolean` type:
 [source,java]
 ----
-// good
+// fine
 public boolean isEmpty {
   return size() == 0;
 }
@@ -174,7 +174,7 @@ Instead we should better do this:
 [source,java]
 ----
 public class MavenDownloader {
-  // good
+  // fine
   /** The base URL of the central maven repository. */
   public static final String REPOSITORY_URL = "https://repo1.maven.org/maven2/"
   public void download(Dependency dependency) {
@@ -191,7 +191,7 @@ As stated above in case of an interface simply omit the modifiers:
 [source,java]
 ----
 public interface MavenDownloader {
-  // good
+  // fine
   /** The base URL of the central maven repository. */
   String REPOSITORY_URL = "https://repo1.maven.org/maven2/"
   void download(Dependency dependency);
@@ -207,6 +207,47 @@ So we conclude:
 * by adding JavaDoc to the constant we give additional details what this value is about and good for.
 * In classes we declare the constant with the visibility followed by the keywords `static final`.
 * In interfaces, we omit all modifiers as they always default to `public static final` for type variables.
+
+== Refactorings
+
+Do refactorings with care and follow these best-practices:
+
+* use `git mv «old» «new»` to move or rename things in git. Otherwise your diff may show that a file has been deleted somewhere and another file has been added but you cannot see that this file was moved/renamed and what changed inside the file.
+* do not change Java signatures like in a text editor but use refactoring capabilities of your IDE. So e.g. when changing a method name, adding or removing a parameter, always use refactoring as otherwise you easily break references (and JavaDoc references will not give you compile errors so you break things without noticing).
+* when adding paramaters to methods, please always consider to keep the existing signature and just create a new variant of the method with an additional parameter.
+
+Lets assume we have this method:
+[source,java]
+----
+public void doSomething() {
+  // ...
+}
+----
+
+Now, assuming this method is called from multiple places, this change is bad:
+[source,java]
+----
+// bad
+public void doSomething(boolean newFlag) {
+  // ...
+}
+----
+The reason is that it is most likely causing a lot of merge conflicts for feature-branches and PRs of other developers, currently working with code calling `doSomething()` that will not work after the change.
+
+Instead keep the existing signature and add a new one:
+[source,java]
+----
+// fine
+public void doSomething() {
+  doSomething(false);
+}
+public void doSomething(boolean newFlag) {
+  // ...
+}
+----
+
+Typically, you should design flags such that `false` is a reasonable default.
+That is why we are passing `false` in the example from the existing method to the new one.
 
 == Optionals
 With `Optional` you can wrap values to avoid a `NullPointerException` (NPE).
@@ -237,7 +278,7 @@ try {
 Better explicitly check for `null`:
 [source,java]
 ----
-// good
+// fine
 Foo foo = null;
 if (variable != null) {
   foo = variable.getFoo();
@@ -270,7 +311,7 @@ if (variable.getFoo().getFirst().getSize() > variable.getFoo().getSecond().getSi
 The method `getFoo()` is used in 4 places and called 3 times. Maybe the method call is expensive?
 [source,java]
 ----
-// good
+// fine
 Candidate candidate;
 Foo foo = variable.getFoo();
 Candidate first = foo.getFirst();
@@ -390,6 +431,41 @@ try (InputStream in = new FileInputStream(file)) {
 } catch (IOException e) {
   throw new IllegalStateException("Failed to read data.", e);
 }
+----
+
+== Enclose blocks with curly braces
+In Java curly braces for blocks can be omitted if there is only a single statement:
+[source,java]
+----
+// bad
+if (condition())
+  doThis();
+else
+  doThat();
+----
+While this is not really wrong it can lead to problems e.g. when adding a statement:
+[source,java]
+----
+// bad
+if (condition())
+  doThis();
+else
+  doThat();
+  System.err.println("that");
+----
+Now, it gets hard to see that the last statement is always executed independent of the condition.
+Maybe that should actually go only to the else block as we can guess from the indentation.
+If you always use curly braces this cannot happen and the code is easier to read:
+[source,java]
+----
+// fine
+if (condition()) {
+  doThis();
+} else {
+  doThat();
+  System.err.println("that");
+}
+//System.err.println("that");
 ----
 
 == Lambdas and Streams

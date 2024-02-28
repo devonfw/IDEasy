@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -47,10 +48,11 @@ public final class ProcessContextImpl implements ProcessContext {
     this.context = context;
     this.processBuilder = new ProcessBuilder();
     // TODO needs to be configurable for GUI
+    // TODO change by adding a ProcessMode when https://github.com/devonfw/IDEasy/pull/200 is finished
     Redirect redirect = discardStandardOutput ? ProcessBuilder.Redirect.DISCARD : ProcessBuilder.Redirect.INHERIT;
     this.processBuilder.redirectOutput(redirect);
-
     this.processBuilder.redirectError(Redirect.INHERIT);
+
     this.errorHandling = ProcessErrorHandling.THROW;
     Map<String, String> environment = this.processBuilder.environment();
     for (VariableLine var : this.context.getVariables().collectExportedVariables()) {
@@ -145,26 +147,11 @@ public final class ProcessContextImpl implements ProcessContext {
       List<String> err = null;
       Process process = this.processBuilder.start();
       if (capture) {
-        out = new ArrayList<>();
-        err = new ArrayList<>();
-        try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-            BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-          String outLine = "";
-          String errLine = "";
-          while ((outLine != null) || (errLine != null)) {
-            if (outLine != null) {
-              outLine = outReader.readLine();
-              if (outLine != null) {
-                out.add(outLine);
-              }
-            }
-            if (errLine != null) {
-              errLine = errReader.readLine();
-              if (errLine != null) {
-                err.add(errLine);
-              }
-            }
-          }
+        try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()));) {
+          out = outReader.lines().collect(Collectors.toList());
+        }
+        try (BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
+          err = errReader.lines().collect(Collectors.toList());
         }
       }
       int exitCode = process.waitFor();

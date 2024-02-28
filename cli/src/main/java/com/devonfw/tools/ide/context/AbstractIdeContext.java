@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -39,7 +37,6 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
@@ -53,6 +50,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  * Abstract base implementation of {@link IdeContext}.
  */
 public abstract class AbstractIdeContext implements IdeContext {
+
+  private static final String IDE_URLS_GIT = "https://github.com/devonfw/ide-urls.git";
 
   private final Map<IdeLogLevel, IdeSubLogger> loggers;
 
@@ -122,16 +121,17 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path defaultExecutionDirectory;
 
-  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);
-
   /**
    * The constructor.
    *
    * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
+   *        {@link DefaultToolRepository} will be used.
    */
-  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir) {
+  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
+      ToolRepository toolRepository) {
 
     super();
     this.loggerFactory = factory;
@@ -188,10 +188,11 @@ public abstract class AbstractIdeContext implements IdeContext {
         Path rootPath = Path.of(root);
         if (Files.isDirectory(rootPath)) {
           if (!ideRootPath.equals(rootPath)) {
-            warning("Variable IDE_ROOT is set to '{}' but for your project '{}' would have been expected.");
-            ideRootPath = rootPath;
+            warning(
+                "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
+                root, this.ideHome.getFileName(), ideRootPath);
           }
-          ideRootPath = this.ideHome.getParent();
+          ideRootPath = rootPath;
         } else {
           warning("Variable IDE_ROOT is not set to a valid directory '{}'." + root);
           ideRootPath = null;
@@ -236,7 +237,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.downloadPath = this.userHome.resolve("Downloads/ide");
     this.variables = createVariables();
     this.path = computeSystemPath();
-    this.defaultToolRepository = new DefaultToolRepository(this);
+
+    if (toolRepository == null) {
+      this.defaultToolRepository = new DefaultToolRepository(this);
+    } else {
+      this.defaultToolRepository = toolRepository;
+    }
+
     this.customToolRepository = CustomToolRepositoryImpl.of(this);
     this.workspaceMerger = new DirectoryMerger(this);
   }
@@ -268,10 +275,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public boolean isTest() {
 
-    if (isMock()) {
-      return true;
-    }
-    return false;
+    return isMock();
   }
 
   /**
@@ -498,7 +502,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        gitPullOrCloneIfNeeded(this.urlsPath, "https://github.com/devonfw/ide-urls.git");
+        this.getGitContext().pullOrFetchAndResetIfNeeded(IDE_URLS_GIT, this.urlsPath, "origin", "master");
       }
       this.urlMetadata = new UrlMetadata(this);
     }
@@ -568,7 +572,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     try {
       int timeout = 1000;
       online = InetAddress.getByName("github.com").isReachable(timeout);
-    } catch (Exception e) {
+    } catch (Exception ignored) {
 
     }
     return online;
@@ -597,11 +601,18 @@ public abstract class AbstractIdeContext implements IdeContext {
     return this.workspaceMerger;
   }
 
+  /**
+   *
+   * @return the {@link #defaultExecutionDirectory} the directory in which a command process is executed.
+   */
   public Path getDefaultExecutionDirectory() {
 
     return defaultExecutionDirectory;
   }
 
+  /**
+   * @param defaultExecutionDirectory new value of {@link #getDefaultExecutionDirectory()}.
+   */
   public void setDefaultExecutionDirectory(Path defaultExecutionDirectory) {
 
     if (defaultExecutionDirectory != null) {
@@ -626,101 +637,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public void gitPullOrClone(Path target, String gitRepoUrl) {
+  public GitContext getGitContext() {
 
-    Objects.requireNonNull(target);
-    Objects.requireNonNull(gitRepoUrl);
-    if (!gitRepoUrl.startsWith("http")) {
-      throw new IllegalArgumentException("Invalid git URL '" + gitRepoUrl + "'!");
-    }
-    ProcessContext pc = newProcess().directory(target).executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0");
-    if (Files.isDirectory(target.resolve(".git"))) {
-      ProcessResult result = pc.addArg("remote").run(true, false);
-      List<String> remotes = result.getOut();
-      if (remotes.isEmpty()) {
-        String message = "This is a local git repo with no remote - if you did this for testing, you may continue...\n"
-            + "Do you want to ignore the problem and continue anyhow?";
-        askToContinue(message);
-      } else {
-        pc.errorHandling(ProcessErrorHandling.WARNING);
-        result = pc.addArg("pull").run(false, false);
-        if (!result.isSuccessful()) {
-          String message = "Failed to update git repository at " + target;
-          if (this.offlineMode) {
-            warning(message);
-            interaction("Continuing as we are in offline mode - results may be outdated!");
-          } else {
-            error(message);
-            if (isOnline()) {
-              error("See above error for details. If you have local changes, please stash or revert and retry.");
-            } else {
-              error(
-                  "It seems you are offline - please ensure Internet connectivity and retry or activate offline mode (-o or --offline).");
-            }
-            askToContinue("Typically you should abort and fix the problem. Do you want to continue anyways?");
-          }
-        }
-      }
-    } else {
-      String branch = null;
-      int hashIndex = gitRepoUrl.indexOf("#");
-      if (hashIndex != -1) {
-        branch = gitRepoUrl.substring(hashIndex + 1);
-        gitRepoUrl = gitRepoUrl.substring(0, hashIndex);
-      }
-      this.fileAccess.mkdirs(target);
-      requireOnline("git clone of " + gitRepoUrl);
-      pc.addArg("clone");
-      if (isQuietMode()) {
-        pc.addArg("-q");
-      } else {
-      }
-      pc.addArgs("--recursive", gitRepoUrl, "--config", "core.autocrlf=false", ".");
-      pc.run();
-      if (branch != null) {
-        pc.addArgs("checkout", branch);
-        pc.run();
-      }
-    }
-  }
-
-  /**
-   * Checks if the Git repository in the specified target folder needs an update by inspecting the modification time of
-   * a magic file.
-   *
-   * @param urlsPath The Path to the Urls repository.
-   * @param repoUrl The git remote URL of the Urls repository.
-   */
-
-  private void gitPullOrCloneIfNeeded(Path urlsPath, String repoUrl) {
-
-    Path gitDirectory = urlsPath.resolve(".git");
-
-    // Check if the .git directory exists
-    if (Files.isDirectory(gitDirectory)) {
-      Path magicFilePath = gitDirectory.resolve("HEAD");
-      long currentTime = System.currentTimeMillis();
-      // Get the modification time of the magic file
-      long fileMTime;
-      try {
-        fileMTime = Files.getLastModifiedTime(magicFilePath).toMillis();
-      } catch (IOException e) {
-        throw new IllegalStateException("Could not read " + magicFilePath, e);
-      }
-
-      // Check if the file modification time is older than the delta threshold
-      if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || isForceMode()) {
-        gitPullOrClone(urlsPath, repoUrl);
-        try {
-          Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
-        } catch (IOException e) {
-          throw new IllegalStateException("Could not read or write in " + magicFilePath, e);
-        }
-      }
-    } else {
-      // If the .git directory does not exist, perform git clone
-      gitPullOrClone(urlsPath, repoUrl);
-    }
+    return new GitContextImpl(this);
   }
 
   @Override
