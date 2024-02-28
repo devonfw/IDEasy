@@ -34,7 +34,7 @@ public class JmcTest extends AbstractIdeContextTest {
   private static final Path RESOURCE_PATH = Path.of("src/test/resources");
 
   @BeforeAll
-  static void setUp() throws IOException {
+  static void setUp() {
 
     // TODO use random port number and create url file dynamically in project
     // TODO ISSUE:https://github.com/devonfw/IDEasy/issues/223
@@ -44,7 +44,7 @@ public class JmcTest extends AbstractIdeContextTest {
   }
 
   @AfterAll
-  static void tearDown() throws IOException {
+  static void tearDown() {
 
     server.shutdownServer();
   }
@@ -87,8 +87,9 @@ public class JmcTest extends AbstractIdeContextTest {
 
   private void setupMockServerResponse(String testUrl, String contentType, String contentLength, String bodyFile) {
 
-    server.stubFor(get(urlPathEqualTo(testUrl)).willReturn(aResponse().withHeader("Content-Type", contentType)
-        .withHeader("Content-Length", contentLength).withStatus(200).withBodyFile(bodyFile)));
+    server.stubFor(get(urlPathEqualTo(testUrl)).willReturn(
+        aResponse().withHeader("Content-Type", contentType).withHeader("Content-Length", contentLength).withStatus(200)
+            .withBodyFile(bodyFile)));
   }
 
   @Test
@@ -108,7 +109,7 @@ public class JmcTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void jmcPostInstallShouldMoveFilesIfRequired() throws IOException {
+  public void jmcPostInstallShouldMoveFilesIfRequired() {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
@@ -131,7 +132,7 @@ public class JmcTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void jmcShouldRunExecuteableSuccessful() throws IOException {
+  public void jmcShouldRunExecuteableSuccessful() {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
