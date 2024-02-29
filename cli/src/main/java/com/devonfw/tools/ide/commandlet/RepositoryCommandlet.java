@@ -94,7 +94,7 @@ public class RepositoryCommandlet extends Commandlet {
     String gitUrl = repositoryConfig.gitUrl();
     if (repository == null || "".equals(repository) || gitUrl == null || "".equals(gitUrl)) {
       this.context.warning("Invalid repository configuration {} - both 'path' and 'git-url' have to be defined."
-          , repositoryFile);
+          , repositoryFile.getFileName().toString());
       return;
     }
 
