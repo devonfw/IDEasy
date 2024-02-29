@@ -93,6 +93,25 @@ public abstract class AbstractIdeContextTest extends Assertions {
   }
 
   /**
+   * @param projectPath the relative path inside the test project where to create the context.
+   * @param errors list of error messages.
+   * @param outs list of out messages.
+   * @param exitCode the exit code.
+   * @param isOnline boolean if it should be run in online mode.
+   * @return the {@link GitContextTestContext} pointing to that project.
+   */
+  protected static GitContextTestContext newGitContext(Path projectPath, List<String> errors, List<String> outs,
+      int exitCode, boolean isOnline) {
+
+    GitContextTestContext context;
+    context = new GitContextTestContext(isOnline, projectPath);
+    context.setErrors(errors);
+    context.setOuts(outs);
+    context.setExitCode(exitCode);
+    return context;
+  }
+
+  /**
    * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
    * @param level the expected {@link IdeLogLevel}.
    * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
