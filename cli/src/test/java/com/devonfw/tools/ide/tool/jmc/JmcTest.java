@@ -87,9 +87,8 @@ public class JmcTest extends AbstractIdeContextTest {
 
   private void setupMockServerResponse(String testUrl, String contentType, String contentLength, String bodyFile) {
 
-    server.stubFor(get(urlPathEqualTo(testUrl)).willReturn(
-        aResponse().withHeader("Content-Type", contentType).withHeader("Content-Length", contentLength).withStatus(200)
-            .withBodyFile(bodyFile)));
+    server.stubFor(get(urlPathEqualTo(testUrl)).willReturn(aResponse().withHeader("Content-Type", contentType)
+        .withHeader("Content-Length", contentLength).withStatus(200).withBodyFile(bodyFile)));
   }
 
   @Test
@@ -132,7 +131,7 @@ public class JmcTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void jmcShouldRunExecuteableSuccessful() {
+  public void jmcShouldRunExecutableSuccessful() {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
