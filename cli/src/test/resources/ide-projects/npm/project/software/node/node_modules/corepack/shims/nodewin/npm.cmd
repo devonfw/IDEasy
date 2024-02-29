@@ -1,0 +1,1 @@
+echo Dummy npm 9.9.2 on windows> npmTestResult.txt

@@ -1,0 +1,1 @@
+echo Dummy node-gyp> nodeGypTestResult.txt

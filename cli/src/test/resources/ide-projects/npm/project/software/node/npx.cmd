@@ -1,0 +1,1 @@
+echo Dummy npx on windows> npxTestResult.txt

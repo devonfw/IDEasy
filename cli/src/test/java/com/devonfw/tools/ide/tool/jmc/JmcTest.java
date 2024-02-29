@@ -1,8 +1,6 @@
 package com.devonfw.tools.ide.tool.jmc;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -34,7 +32,7 @@ public class JmcTest extends AbstractIdeContextTest {
   private static final Path RESOURCE_PATH = Path.of("src/test/resources");
 
   @BeforeAll
-  static void setUp() throws IOException {
+  static void setUp() {
 
     // TODO use random port number and create url file dynamically in project
     // TODO ISSUE:https://github.com/devonfw/IDEasy/issues/223
@@ -44,7 +42,7 @@ public class JmcTest extends AbstractIdeContextTest {
   }
 
   @AfterAll
-  static void tearDown() throws IOException {
+  static void tearDown() {
 
     server.shutdownServer();
   }

@@ -1,8 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -28,14 +26,14 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
   private static Path resourcePath = Path.of("src/test/resources");
 
   @BeforeAll
-  static void setUp() throws IOException {
+  static void setUp() {
 
     server = new WireMockServer(WireMockConfiguration.wireMockConfig().port(1111));
     server.start();
   }
 
   @AfterAll
-  static void tearDown() throws IOException {
+  static void tearDown() {
 
     server.shutdownServer();
   }
