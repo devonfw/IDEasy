@@ -122,7 +122,7 @@ public class DotNetTest extends AbstractIdeContextTest {
     // arrange
     String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
     String expectedOutputLinux = "Dummy dotnet 6.0.419 on linux ";
-    String expectedOutputMacOs = "Dummy dotnet 6.0.419 on macOs ";
+    String expectedOutputMacOs = "Dummy dotnet 6.0.419 on mac ";
 
     ToolRepositoryMock toolRepositoryMock = buildToolRepositoryMockForDotNet();
     IdeTestContext context = newContext(PROJECT_TEST_CASE_NAME, GIT_REPO, true, toolRepositoryMock);
