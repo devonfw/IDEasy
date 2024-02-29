@@ -91,7 +91,7 @@ public class UpdateCommandlet extends Commandlet {
     Path settingsPath = this.context.getSettingsPath();
     if (Files.isDirectory(settingsPath)) {
       // perform git pull on the settings repo
-      this.context.gitPullOrClone(settingsPath, DEFAULT_SETTINGS_REPO_URL);
+      this.context.getGitContext().pull(settingsPath);
       this.context.success("Successfully updated settings repository.");
     } else {
       // check if a settings repository is given then clone, otherwise prompt user for a repository.
@@ -113,7 +113,7 @@ public class UpdateCommandlet extends Commandlet {
       if (repository.isBlank()) {
         repository = DEFAULT_SETTINGS_REPO_URL;
       }
-      this.context.gitPullOrClone(settingsPath, repository);
+      this.context.getGitContext().pullOrClone(repository, settingsPath);
       this.context.success("Successfully cloned settings repository.");
     }
   }
