@@ -225,6 +225,7 @@ public class FileAccessImpl implements FileAccess {
 
     if (Files.isSymbolicLink(fileOrFolder)) {
       delete(fileOrFolder);
+      return;
     }
     Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
     LocalDateTime now = LocalDateTime.now();
@@ -666,8 +667,8 @@ public class FileAccessImpl implements FileAccess {
         if (Files.exists(filePath)) {
           return filePath;
         }
-      } catch (SecurityException e) {
-        throw new IllegalStateException("SecurityException while checking file existence.");
+      } catch (Exception e) {
+        throw new IllegalStateException("Unexpected error while checking existence of file "+filePath+" .", e);
       }
     }
     return null;
