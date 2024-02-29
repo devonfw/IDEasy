@@ -4,12 +4,17 @@ import java.nio.file.Path;
 
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.ToolRepository;
 
 /**
  * Implementation of {@link IdeContext} for testing.
  */
 public class IdeTestContext extends AbstractIdeTestContext {
+
+  private Path dummyUserHome;
+
+  private ProcessContext mockProcessContext;
 
   /**
    * The constructor.
@@ -53,6 +58,53 @@ public class IdeTestContext extends AbstractIdeTestContext {
   public static IdeTestContext of() {
 
     return new IdeTestContext(Path.of("/"));
+  }
+
+  /**
+   *
+   * @param dummyUserHome mock path which will be used in {@link #getUserHome()}
+   */
+  public void setDummyUserHome(Path dummyUserHome) {
+
+    this.dummyUserHome = dummyUserHome;
+  }
+
+  /**
+   *
+   * @return a dummy UserHome path to avoid global path access in a commandlet test. The defined {@link #dummyUserHome}
+   *         will be returned if it is not {@code null}, else see implementation {@link #AbstractIdeContext}.
+   */
+  @Override
+  public Path getUserHome() {
+
+    if (dummyUserHome != null) {
+      return dummyUserHome;
+    }
+
+    return super.getUserHome();
+  }
+
+  /**
+   *
+   * @return a mocked {@link ProcessContext} for a test. The defined {@link #mockProcessContext} will be returned if it
+   *         is not {@code null}, else see implementation {@link #AbstractIdeContext}.
+   */
+  @Override
+  public ProcessContext newProcess() {
+
+    if (mockProcessContext != null) {
+      return mockProcessContext;
+    }
+    return super.newProcess();
+  }
+
+  /**
+   *
+   * @param mockProcessContext Set up a mocked ProcessContext for testing
+   */
+  public void setMockProcessContext(ProcessContext mockProcessContext) {
+
+    this.mockProcessContext = mockProcessContext;
   }
 
 }
