@@ -1,7 +1,9 @@
 package com.devonfw.tools.security;
 
-import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
-import com.devonfw.tools.ide.url.updater.UpdateManager;
+import java.io.FileFilter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractFileTypeAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
@@ -11,9 +13,8 @@ import org.owasp.dependencycheck.dependency.Evidence;
 import org.owasp.dependencycheck.dependency.EvidenceType;
 import org.owasp.dependencycheck.exception.InitializationException;
 
-import java.io.FileFilter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
+import com.devonfw.tools.ide.url.updater.UpdateManager;
 
 /**
  * Analyzes file paths to detect tool, edition and version of software listed in a directory structure like this:
@@ -56,9 +57,13 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
 
     AbstractUrlUpdater urlUpdater = this.updateManager.retrieveUrlUpdater(tool, edition);
 
+    if (urlUpdater == null) {
+      return;
+    }
+
     String cpeVendor = urlUpdater.getCpeVendor();
     String cpeProduct = urlUpdater.getCpeProduct();
-    String cpeEdition = urlUpdater.getCpeEdition(edition);
+    String cpeEdition = urlUpdater.getCpeEdition();
     String cpeVersion = urlUpdater.mapUrlVersionToCpeVersion(versionFolder.getFileName().toString());
 
     if (cpeVendor.isBlank() || cpeProduct.isBlank()) {

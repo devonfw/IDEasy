@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -111,7 +112,7 @@ public class BuildSecurityJsonFiles {
 
     initCvesToIgnore();
     UpdateManager updateManager = new UpdateManager(context.getUrlsPath(), null);
-    Dependency[] dependencies = getDependenciesWithVulnerabilities(updateManager);
+    List<Dependency> dependencies = getDependenciesWithVulnerabilities(updateManager);
     Set<Pair<String, String>> foundToolsAndEditions = new HashSet<>();
     for (Dependency dependency : dependencies) {
       String filePath = dependency.getFilePath();
@@ -119,6 +120,9 @@ public class BuildSecurityJsonFiles {
       String tool = parent.getParent().getParent().getFileName().toString();
       String edition = parent.getParent().getFileName().toString();
       AbstractUrlUpdater urlUpdater = updateManager.retrieveUrlUpdater(tool, edition);
+      if (urlUpdater == null) {
+        continue;
+      }
       UrlSecurityJsonFile securityFile = context.getUrls().getEdition(tool, edition).getSecurityJsonFile();
       boolean newlyAdded = foundToolsAndEditions.add(new Pair<>(tool, edition));
       if (newlyAdded) { // to assure that the file is cleared only once per tool and edition
@@ -153,6 +157,7 @@ public class BuildSecurityJsonFiles {
 
     List<String> sortedVersions = context.getUrls().getSortedVersions(tool, edition).stream()
         .map(VersionIdentifier::toString).toList();
+
     List<String> sortedCpeVersions = sortedVersions.stream().map(urlUpdater::mapUrlVersionToCpeVersion)
         .collect(Collectors.toList());
     Map<String, String> cpeToUrlVersion = MapUtil.createMapfromLists(sortedCpeVersions, sortedVersions);
@@ -163,13 +168,13 @@ public class BuildSecurityJsonFiles {
    * Uses the {@link Engine OWASP engine} to scan the {@link AbstractIdeContext#getUrlsPath() ide-url} folder for
    * dependencies and then runs {@link Engine#analyzeDependencies() analyzes} them to get the {@link Vulnerability
    * vulnerabilities}.
-   * 
+   *
    * @param updateManager the {@link UpdateManager} to use to get the {@link AbstractUrlUpdater} of the tool to get CPE
    *        Vendor, CPE Product and CPE edition of the tool, as well as the
    *        {@link AbstractUrlUpdater#mapCpeVersionToUrlVersion(String) CPE naming of its version}
    * @return the {@link Dependency dependencies} with associated {@link Vulnerability vulnerabilities}.
    */
-  private static Dependency[] getDependenciesWithVulnerabilities(UpdateManager updateManager) {
+  private static List<Dependency> getDependenciesWithVulnerabilities(UpdateManager updateManager) {
 
     Settings settings = new Settings();
     Engine engine = new Engine(settings);
@@ -189,8 +194,11 @@ public class BuildSecurityJsonFiles {
       throw new RuntimeException(e);
     }
     Dependency[] dependencies = engine.getDependencies();
+    // remove dependencies without vulnerabilities
+    List<Dependency> dependenciesFiltered = Arrays.stream(dependencies)
+        .filter(dependency -> !dependency.getVulnerabilities().isEmpty()).toList();
     engine.close();
-    return dependencies;
+    return dependenciesFiltered;
   }
 
   /**

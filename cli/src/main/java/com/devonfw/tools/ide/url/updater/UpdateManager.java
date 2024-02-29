@@ -108,8 +108,16 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
    */
   public AbstractUrlUpdater retrieveUrlUpdater(String tool, String edition) {
 
-    return updaters.stream().filter(updater -> updater.getTool().equals(tool) && updater.getEdition().equals(edition))
-        .findFirst().orElse(null);
+    for (AbstractUrlUpdater updater : updaters) {
+      // TODO: fix this ugly hack for intellij see: https://github.com/devonfw/ide/issues/1378
+      if (updater.getTool().equals(tool) && edition.equals("intellij")) {
+        return updater;
+      }
+      if (updater.getTool().equals(tool) && updater.getEdition().equals(edition)) {
+        return updater;
+      }
+    }
+    return null;
   }
 
   public UrlRepository getUrlRepository() {

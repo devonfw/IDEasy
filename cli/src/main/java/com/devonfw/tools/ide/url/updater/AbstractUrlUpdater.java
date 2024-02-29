@@ -103,7 +103,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   public String getCpeVendor() {
 
-    return "";
+    return getTool();
   }
 
   /**
@@ -111,16 +111,15 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   public String getCpeProduct() {
 
-    return "";
+    return getTool();
   }
 
   /**
-   * @param urlEdition the {@link UrlEdition} to get the CPE (Common Platform Enumeration) edition for.
    * @return the edition as specified in the CPE.
    */
-  public String getCpeEdition(String urlEdition) {
+  public String getCpeEdition() {
 
-    return "";
+    return getTool();
   }
 
   /**
