@@ -104,7 +104,8 @@ public class DotNetTest extends AbstractIdeContextTest {
 
     // assert passed arguments of process context
     ArgumentCaptor<String[]> processContextCapture = ArgumentCaptor.forClass(String[].class);
-    verify(mockProcessContext, times(2)).addArgs(processContextCapture.capture());
+    int numberInvocations = context.getSystemInfo().isWindows() ? 2 : 1;
+    verify(mockProcessContext, times(numberInvocations)).addArgs(processContextCapture.capture());
     String[] args = processContextCapture.getValue();
 
     if (context.getSystemInfo().isWindows()) {
