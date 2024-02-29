@@ -109,7 +109,7 @@ public class RepositoryCommandlet extends Commandlet {
     }
 
     Path repositoryPath = workspacePath.resolve(repository);
-    this.context.gitPullOrClone(repositoryPath, gitUrl);
+    this.context.getGitContext().pullOrClone(gitUrl, repositoryPath);
 
     String buildCmd = repositoryConfig.buildCmd();
     this.context.debug("Building repository with ide command: {}", buildCmd);
