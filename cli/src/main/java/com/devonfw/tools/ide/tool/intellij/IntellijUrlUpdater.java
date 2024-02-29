@@ -175,4 +175,16 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
 
     throw new IllegalStateException();
   }
+
+  @Override
+  public String getCpeVendor() {
+
+    return "jetbrains";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "intellij idea";
+  }
 }
