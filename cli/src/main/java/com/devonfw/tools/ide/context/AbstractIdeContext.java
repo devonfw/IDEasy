@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Duration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -13,7 +11,6 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
-import java.nio.file.attribute.FileTime;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -40,7 +37,6 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
@@ -54,6 +50,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  * Abstract base implementation of {@link IdeContext}.
  */
 public abstract class AbstractIdeContext implements IdeContext {
+
+  private static final String IDE_URLS_GIT = "https://github.com/devonfw/ide-urls.git";
 
   private final Map<IdeLogLevel, IdeSubLogger> loggers;
 
@@ -121,8 +119,6 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private UrlMetadata urlMetadata;
 
-  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);
-
   /**
    * The constructor.
    *
@@ -141,7 +137,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.fileAccess = new FileAccessImpl(this);
     String workspace = WORKSPACE_MAIN;
     if (userDir == null) {
-      this.cwd = Paths.get(System.getProperty("user.dir"));
+      this.cwd = Path.of(System.getProperty("user.dir"));
     } else {
       this.cwd = userDir.toAbsolutePath();
     }
@@ -184,13 +180,14 @@ public abstract class AbstractIdeContext implements IdeContext {
         root = System.getenv("IDE_ROOT");
       }
       if (root != null) {
-        Path rootPath = Paths.get(root);
+        Path rootPath = Path.of(root);
         if (Files.isDirectory(rootPath)) {
           if (!ideRootPath.equals(rootPath)) {
-            warning("Variable IDE_ROOT is set to '{}' but for your project '{}' would have been expected.");
-            ideRootPath = rootPath;
+            warning(
+                "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
+                root, this.ideHome.getFileName(), ideRootPath);
           }
-          ideRootPath = this.ideHome.getParent();
+          ideRootPath = rootPath;
         } else {
           warning("Variable IDE_ROOT is not set to a valid directory '{}'." + root);
           ideRootPath = null;
@@ -224,12 +221,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (isTest()) {
       // only for testing...
       if (this.ideHome == null) {
-        this.userHome = Paths.get("/non-existing-user-home-for-testing");
+        this.userHome = Path.of("/non-existing-user-home-for-testing");
       } else {
         this.userHome = this.ideHome.resolve("home");
       }
     } else {
-      this.userHome = Paths.get(System.getProperty("user.home"));
+      this.userHome = Path.of(System.getProperty("user.home"));
     }
     this.userHomeIde = this.userHome.resolve(".ide");
     this.downloadPath = this.userHome.resolve("Downloads/ide");
@@ -267,10 +264,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public boolean isTest() {
 
-    if (isMock()) {
-      return true;
-    }
-    return false;
+    return isMock();
   }
 
   /**
@@ -497,7 +491,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        gitPullOrCloneIfNeeded(this.urlsPath, "https://github.com/devonfw/ide-urls.git");
+        this.getGitContext().pullOrFetchAndResetIfNeeded(IDE_URLS_GIT, this.urlsPath, "origin", "master");
       }
       this.urlMetadata = new UrlMetadata(this);
     }
@@ -567,7 +561,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     try {
       int timeout = 1000;
       online = InetAddress.getByName("github.com").isReachable(timeout);
-    } catch (Exception e) {
+    } catch (Exception ignored) {
 
     }
     return online;
@@ -597,110 +591,16 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public ProcessContext newProcess() {
+  public GitContext getGitContext() {
 
-    ProcessContext processContext = new ProcessContextImpl(this);
-    return processContext;
+    return new GitContextImpl(this);
   }
 
   @Override
-  public void gitPullOrClone(Path target, String gitRepoUrl) {
+  public ProcessContext newProcess() {
 
-    Objects.requireNonNull(target);
-    Objects.requireNonNull(gitRepoUrl);
-    if (!gitRepoUrl.startsWith("http")) {
-      throw new IllegalArgumentException("Invalid git URL '" + gitRepoUrl + "'!");
-    }
-    ProcessContext pc = newProcess().directory(target).executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0");
-    if (Files.isDirectory(target.resolve(".git"))) {
-      ProcessResult result = pc.addArg("remote").run(true);
-      List<String> remotes = result.getOut();
-      if (remotes.isEmpty()) {
-        String message = "This is a local git repo with no remote - if you did this for testing, you may continue...\n"
-            + "Do you want to ignore the problem and continue anyhow?";
-        askToContinue(message);
-      } else {
-        pc.errorHandling(ProcessErrorHandling.WARNING);
-        result = pc.addArg("pull").run(false);
-        if (!result.isSuccessful()) {
-          String message = "Failed to update git repository at " + target;
-          if (this.offlineMode) {
-            warning(message);
-            interaction("Continuing as we are in offline mode - results may be outdated!");
-          } else {
-            error(message);
-            if (isOnline()) {
-              error("See above error for details. If you have local changes, please stash or revert and retry.");
-            } else {
-              error(
-                  "It seems you are offline - please ensure Internet connectivity and retry or activate offline mode (-o or --offline).");
-            }
-            askToContinue("Typically you should abort and fix the problem. Do you want to continue anyways?");
-          }
-        }
-      }
-    } else {
-      String branch = null;
-      int hashIndex = gitRepoUrl.indexOf("#");
-      if (hashIndex != -1) {
-        branch = gitRepoUrl.substring(hashIndex + 1);
-        gitRepoUrl = gitRepoUrl.substring(0, hashIndex);
-      }
-      this.fileAccess.mkdirs(target);
-      requireOnline("git clone of " + gitRepoUrl);
-      pc.addArg("clone");
-      if (isQuietMode()) {
-        pc.addArg("-q");
-      } else {
-      }
-      pc.addArgs("--recursive", gitRepoUrl, "--config", "core.autocrlf=false", ".");
-      pc.run();
-      if (branch != null) {
-        pc.addArgs("checkout", branch);
-        pc.run();
-      }
-    }
+    return new ProcessContextImpl(this);
   }
-
-  /**
-   * Checks if the Git repository in the specified target folder needs an update by
-   * inspecting the modification time of a magic file.
-   *
-   * @param urlsPath The Path to the Urls repository.
-   * @param repoUrl The git remote URL of the Urls repository.
-   */
-
-  private void gitPullOrCloneIfNeeded(Path urlsPath, String repoUrl) {
-
-    Path gitDirectory = urlsPath.resolve(".git");
-
-    // Check if the .git directory exists
-    if (Files.isDirectory(gitDirectory)) {
-      Path magicFilePath = gitDirectory.resolve("HEAD");
-      long currentTime = System.currentTimeMillis();
-      // Get the modification time of the magic file
-      long fileMTime;
-      try {
-        fileMTime = Files.getLastModifiedTime(magicFilePath).toMillis();
-      } catch (IOException e) {
-        throw new IllegalStateException("Could not read " + magicFilePath, e);
-      }
-
-      // Check if the file modification time is older than the delta threshold
-      if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || isForceMode()) {
-        gitPullOrClone(urlsPath, repoUrl);
-        try {
-          Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
-        } catch (IOException e) {
-          throw new IllegalStateException("Could not read or write in " + magicFilePath, e);
-        }
-      }
-    } else {
-      // If the .git directory does not exist, perform git clone
-      gitPullOrClone(urlsPath, repoUrl);
-    }
-  }
-
 
   @Override
   public IdeSubLogger level(IdeLogLevel level) {
@@ -814,8 +714,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
-   *        {@link Commandlet#run() run}.
+   * @param cmd the potential {@link Commandlet} to
+   *        {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run()
+   *        run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
    *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */

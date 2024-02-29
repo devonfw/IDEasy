@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -26,7 +25,7 @@ public class SystemPath {
   private final Map<String, Path> tool2pathMap;
 
   private final List<Path> paths;
-  
+
   private final IdeContext context;
 
   private static final List<String> EXTENSION_PRIORITY = List.of(".exe", ".cmd", ".bat", ".msi", ".ps1", "");
@@ -61,7 +60,7 @@ public class SystemPath {
     this.paths = new ArrayList<>();
     String[] envPaths = envPath.split(Character.toString(pathSeparator));
     for (String segment : envPaths) {
-      Path path = Paths.get(segment);
+      Path path = Path.of(segment);
       String tool = getTool(path, softwarePath);
       if (tool == null) {
         this.paths.add(path);
@@ -129,11 +128,25 @@ public class SystemPath {
     return null;
   }
 
+  /**
+   * @param toolPath the {@link Path} to the tool installation.
+   * @return the {@link Path} to the binary executable of the tool. E.g. is "software/mvn" is given
+   *         "software/mvn/bin/mvn" could be returned.
+   */
   public Path findBinary(Path toolPath) {
+
     Path parent = toolPath.getParent();
     String fileName = toolPath.getFileName().toString();
 
     if (parent == null) {
+
+      for (Path path : tool2pathMap.values()) {
+        Path binaryPath = findBinaryInOrder(path, fileName);
+        if (binaryPath != null) {
+          return binaryPath;
+        }
+      }
+
       for (Path path : this.paths) {
         Path binaryPath = findBinaryInOrder(path, fileName);
         if (binaryPath != null) {
