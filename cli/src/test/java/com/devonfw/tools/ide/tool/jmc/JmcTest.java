@@ -19,7 +19,6 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -87,9 +86,8 @@ public class JmcTest extends AbstractIdeContextTest {
 
   private void setupMockServerResponse(String testUrl, String contentType, String contentLength, String bodyFile) {
 
-    server.stubFor(get(urlPathEqualTo(testUrl)).willReturn(
-        aResponse().withHeader("Content-Type", contentType).withHeader("Content-Length", contentLength).withStatus(200)
-            .withBodyFile(bodyFile)));
+    server.stubFor(get(urlPathEqualTo(testUrl)).willReturn(aResponse().withHeader("Content-Type", contentType)
+        .withHeader("Content-Length", contentLength).withStatus(200).withBodyFile(bodyFile)));
   }
 
   @Test
@@ -165,21 +163,6 @@ public class JmcTest extends AbstractIdeContextTest {
     assertThat(mockResultPath.resolve("jmcTestRestult.txt")).exists();
     assertThat(mockResultPath.resolve("jmcTestRestult.txt")).hasContent(expectedOutput);
 
-  }
-
-  private String determineExpectedOutput(AbstractIdeContext context, String expectedOutputWindows,
-      String expectedOutputLinux, String expectedOutputMacOs) {
-
-    SystemInfo systemInfo = context.getSystemInfo();
-    if (systemInfo.isWindows()) {
-      return expectedOutputWindows;
-    } else if (systemInfo.isLinux()) {
-      return expectedOutputLinux;
-    } else if (systemInfo.isMac()) {
-      return expectedOutputMacOs;
-    } else {
-      throw new IllegalStateException("Unexpected operating system!");
-    }
   }
 
   private static ToolRepositoryMock buildToolRepositoryMockForJmc(String projectTestCaseName) {
