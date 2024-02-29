@@ -130,7 +130,7 @@ public class JmcTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void jmcShouldRunExecuteableSuccessful() {
+  public void jmcShouldRunExecutableSuccessful() {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
