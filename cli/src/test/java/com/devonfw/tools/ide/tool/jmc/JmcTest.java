@@ -132,7 +132,7 @@ public class JmcTest extends AbstractIdeContextTest {
   }
 
   // TODO: This test currently fails because since JMC runs as a background process
-  // The test does not wait for the started process to finish and assertion is performed too early!
+  // the test does not wait for the started process to finish and assertion is performed too early!
   @Test
   @Disabled
   public void jmcShouldRunExecutableSuccessful() {
