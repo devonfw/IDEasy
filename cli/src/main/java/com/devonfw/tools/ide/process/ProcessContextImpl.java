@@ -14,7 +14,6 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.log.IdeSubLogger;
@@ -45,6 +44,9 @@ public final class ProcessContextImpl implements ProcessContext {
     super();
     this.context = context;
     this.processBuilder = new ProcessBuilder();
+    // TODO needs to be configurable for GUI
+    // this.processBuilder.inheritIO();
+    this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
     this.errorHandling = ProcessErrorHandling.THROW;
     Map<String, String> environment = this.processBuilder.environment();
     for (VariableLine var : this.context.getVariables().collectExportedVariables()) {
@@ -102,11 +104,11 @@ public final class ProcessContextImpl implements ProcessContext {
   }
 
   @Override
-  public ProcessResult run(ProcessMode processMode) {
+  public ProcessResult run(boolean capture, boolean isBackgroundProcess) {
 
-    // TODO ProcessMode needs to be configurable for GUI
-    if (processMode == ProcessMode.DEFAULT) {
-      this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
+    if (isBackgroundProcess) {
+      this.context
+          .warning("TODO https://github.com/devonfw/IDEasy/issues/9 Implement background process functionality");
     }
 
     if (this.executable == null) {
@@ -115,30 +117,31 @@ public final class ProcessContextImpl implements ProcessContext {
     String executableName = this.executable.toString();
     // pragmatic solution to avoid copying lists/arrays
     this.arguments.add(0, executableName);
-
-    checkAndHandlePossibleBashScript(executableName);
-
+    String fileExtension = FilenameUtil.getExtension(executableName);
+    boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(this.executable);
+    if (isBashScript) {
+      String bash = "bash";
+      if (this.context.getSystemInfo().isWindows()) {
+        String findBashOnWindowsResult = findBashOnWindows();
+        if (findBashOnWindowsResult != null) {
+          bash = findBashOnWindowsResult;
+        }
+      }
+      this.arguments.add(0, bash);
+    }
+    this.processBuilder.command(this.arguments);
     if (this.context.debug().isEnabled()) {
       String message = createCommandMessage(" ...");
       this.context.debug(message);
     }
-
     try {
-
-      if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+      if (capture) {
         this.processBuilder.redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
-      } else if (processMode.isBackground()) {
-        modifyArgumentsOnBackgroundProcess(processMode);
       }
-
-      this.processBuilder.command(this.arguments);
-
-      Process process = this.processBuilder.start();
-
       List<String> out = null;
       List<String> err = null;
-
-      if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+      Process process = this.processBuilder.start();
+      if (capture) {
         try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()));) {
           out = outReader.lines().collect(Collectors.toList());
         }
@@ -146,19 +149,25 @@ public final class ProcessContextImpl implements ProcessContext {
           err = errReader.lines().collect(Collectors.toList());
         }
       }
-
-      int exitCode;
-      if (processMode.isBackground()) {
-        exitCode = ProcessResult.SUCCESS;
-      } else {
-        exitCode = process.waitFor();
-      }
-
+      int exitCode = process.waitFor();
       ProcessResult result = new ProcessResultImpl(exitCode, out, err);
-      performLogOnError(result, exitCode);
-
+      if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
+        String message = createCommandMessage(" failed with exit code " + exitCode + "!");
+        if (this.errorHandling == ProcessErrorHandling.THROW) {
+          throw new CliException(message, exitCode);
+        }
+        IdeSubLogger level;
+        if (this.errorHandling == ProcessErrorHandling.ERROR) {
+          level = this.context.error();
+        } else if (this.errorHandling == ProcessErrorHandling.WARNING) {
+          level = this.context.warning();
+        } else {
+          level = this.context.error();
+          level.log("Internal error: Undefined error handling {}", this.errorHandling);
+        }
+        level.log(message);
+      }
       return result;
-
     } catch (Exception e) {
       String msg = e.getMessage();
       if ((msg == null) || msg.isEmpty()) {
@@ -256,98 +265,4 @@ public final class ProcessContextImpl implements ProcessContext {
     throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
   }
 
-  private void checkAndHandlePossibleBashScript(String executableName) {
-
-    String fileExtension = FilenameUtil.getExtension(executableName);
-    boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(this.executable);
-    if (isBashScript) {
-      String bash = "bash";
-      if (this.context.getSystemInfo().isWindows()) {
-        String findBashOnWindowsResult = findBashOnWindows();
-        if (findBashOnWindowsResult != null) {
-          bash = findBashOnWindowsResult;
-        }
-      }
-      this.arguments.add(0, bash);
-    }
-  }
-
-  private void performLogOnError(ProcessResult result, int exitCode) {
-
-    if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
-      String message = createCommandMessage(" failed with exit code " + exitCode + "!");
-      if (this.errorHandling == ProcessErrorHandling.THROW) {
-        throw new CliException(message, exitCode);
-      }
-      IdeSubLogger level;
-      if (this.errorHandling == ProcessErrorHandling.ERROR) {
-        level = this.context.error();
-      } else if (this.errorHandling == ProcessErrorHandling.WARNING) {
-        level = this.context.warning();
-      } else {
-        level = this.context.error();
-        level.log("Internal error: Undefined error handling {}", this.errorHandling);
-      }
-      level.log(message);
-    }
-  }
-
-  private void modifyArgumentsOnBackgroundProcess(ProcessMode processMode) {
-
-    if (processMode == ProcessMode.BACKGROUND) {
-      this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
-    } else if (processMode == ProcessMode.BACKGROUND_SILENT) {
-      this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
-    } else {
-      throw new IllegalStateException("Cannot handle non background process mode!");
-    }
-
-    String bash = "bash";
-
-    // try to use bash in windows to start the process
-    if (context.getSystemInfo().isWindows()) {
-
-      String findBashOnWindowsResult = findBashOnWindows();
-      if (findBashOnWindowsResult != null) {
-
-        bash = findBashOnWindowsResult;
-
-      } else {
-        context.warning(
-            "Cannot start background process in windows! No bash installation found, output will be discarded.");
-        this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
-        return;
-      }
-    }
-
-    String commandToRunInBackground = buildCommandToRunInBackground();
-
-    this.arguments.clear();
-    this.arguments.add(bash);
-    this.arguments.add("-c");
-    commandToRunInBackground += " & disown";
-    this.arguments.add(commandToRunInBackground);
-
-  }
-
-  private String buildCommandToRunInBackground() {
-
-    if (context.getSystemInfo().isWindows()) {
-
-      StringBuilder stringBuilder = new StringBuilder();
-
-      for (String argument : this.arguments) {
-
-        if (SystemPath.isValidWindowsPath(argument)) {
-          argument = SystemPath.convertWindowsPathToUnixPath(argument);
-        }
-
-        stringBuilder.append(argument);
-        stringBuilder.append(" ");
-      }
-      return stringBuilder.toString().trim();
-    } else {
-      return this.arguments.stream().map(Object::toString).collect(Collectors.joining(" "));
-    }
-  }
 }

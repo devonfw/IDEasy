@@ -17,7 +17,6 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 
 /**
@@ -97,7 +96,7 @@ public class GitContextImpl implements GitContext {
     initializeProcessContext(targetRepository);
     if (Files.isDirectory(targetRepository.resolve(".git"))) {
       // checks for remotes
-      ProcessResult result = this.processContext.addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
+      ProcessResult result = this.processContext.addArg("remote").run(true, false);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
         String message = targetRepository
@@ -184,7 +183,7 @@ public class GitContextImpl implements GitContext {
         this.processContext.addArg("-q");
       }
       this.processContext.addArgs("--recursive", parsedUrl, "--config", "core.autocrlf=false", ".");
-      result = this.processContext.run(ProcessMode.DEFAULT_CAPTURE);
+      result = this.processContext.run(true, false);
       if (!result.isSuccessful()) {
         this.context.warning("Git failed to clone {} into {}.", parsedUrl, targetRepository);
       }
@@ -199,7 +198,7 @@ public class GitContextImpl implements GitContext {
     initializeProcessContext(targetRepository);
     ProcessResult result;
     // pull from remote
-    result = this.processContext.addArg("--no-pager").addArg("pull").run(ProcessMode.DEFAULT_CAPTURE);
+    result = this.processContext.addArg("--no-pager").addArg("pull").run(true, false);
 
     if (!result.isSuccessful()) {
       Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();
@@ -212,7 +211,7 @@ public class GitContextImpl implements GitContext {
   private Map<String, String> retrieveRemoteAndBranchName() {
 
     Map<String, String> remoteAndBranchName = new HashMap<>();
-    ProcessResult remoteResult = this.processContext.addArg("branch").addArg("-vv").run(ProcessMode.DEFAULT_CAPTURE);
+    ProcessResult remoteResult = this.processContext.addArg("branch").addArg("-vv").run(true, false);
     List<String> remotes = remoteResult.getOut();
     if (!remotes.isEmpty()) {
       for (String remote : remotes) {
@@ -243,14 +242,14 @@ public class GitContextImpl implements GitContext {
     initializeProcessContext(targetRepository);
     ProcessResult result;
     // check for changed files
-    result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(ProcessMode.DEFAULT_CAPTURE);
+    result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(true, false);
 
     if (!result.isSuccessful()) {
       // reset to origin/master
       context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", targetRepository,
           remoteName, branchName);
-      result = this.processContext.addArg("reset").addArg("--hard").addArg(remoteName + "/" + branchName)
-          .run(ProcessMode.DEFAULT_CAPTURE);
+      result = this.processContext.addArg("reset").addArg("--hard").addArg(remoteName + "/" + branchName).run(true,
+          false);
 
       if (!result.isSuccessful()) {
         context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, targetRepository);
@@ -266,12 +265,12 @@ public class GitContextImpl implements GitContext {
     ProcessResult result;
     // check for untracked files
     result = this.processContext.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard")
-        .run(ProcessMode.DEFAULT_CAPTURE);
+        .run(true, false);
 
     if (!result.getOut().isEmpty()) {
       // delete untracked files
       context.warning("Git detected untracked files in {} and is attempting a cleanup.", targetRepository);
-      result = this.processContext.addArg("clean").addArg("-df").run(ProcessMode.DEFAULT_CAPTURE);
+      result = this.processContext.addArg("clean").addArg("-df").run(true, false);
 
       if (!result.isSuccessful()) {
         context.warning("Git failed to clean the repository {}.", targetRepository);

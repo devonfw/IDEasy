@@ -10,7 +10,6 @@ import java.util.List;
 
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.process.ProcessResultImpl;
 
@@ -76,7 +75,7 @@ public class GitContextProcessContextMock implements ProcessContext {
   }
 
   @Override
-  public ProcessResult run(ProcessMode processMode) {
+  public ProcessResult run(boolean capture, boolean isBackgroundProcess) {
 
     Path gitFolderPath = this.directory.resolve(".git");
     // deletes a newly added folder

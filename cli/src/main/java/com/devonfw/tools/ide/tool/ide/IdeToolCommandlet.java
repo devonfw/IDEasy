@@ -15,7 +15,6 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
@@ -208,7 +207,7 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
    */
   protected void runIde(String... args) {
 
-    runTool(ProcessMode.DEFAULT, null, args);
+    runTool(false, null, args);
   }
 
   /**
