@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -67,7 +68,8 @@ public class SystemPath {
       } else {
         Path duplicate = this.tool2pathMap.putIfAbsent(tool, path);
         if (duplicate != null) {
-          context.warning("Duplicated tool path for tool: {} at path: {} with duplicated path: {}.", tool, path, duplicate);
+          context.warning("Duplicated tool path for tool: {} at path: {} with duplicated path: {}.", tool, path,
+              duplicate);
         }
       }
     }
@@ -211,22 +213,45 @@ public class SystemPath {
     return sb.toString();
   }
 
-  private void appendPath(Path path, StringBuilder sb, char separator, boolean bash) {
+  private static void appendPath(Path path, StringBuilder sb, char separator, boolean bash) {
 
     if (sb.length() > 0) {
       sb.append(separator);
     }
     String pathString = path.toString();
     if (bash && (pathString.length() > 3) && (pathString.charAt(1) == ':')) {
-      char slash = pathString.charAt(2);
-      if ((slash == '\\') || (slash == '/')) {
-        char drive = Character.toLowerCase(pathString.charAt(0));
-        if ((drive >= 'a') && (drive <= 'z')) {
-          pathString = "/" + drive + pathString.substring(2).replace('\\', '/');
-        }
-      }
+      pathString = convertWindowsPathToUnixPath(pathString);
     }
     sb.append(pathString);
   }
 
+  /**
+   * Method to convert a valid Windows path string representation to its corresponding one in Unix format.
+   * 
+   * @param pathString The Windows path string to convert.
+   * @return The converted Unix path string.
+   */
+  public static String convertWindowsPathToUnixPath(String pathString) {
+
+    char slash = pathString.charAt(2);
+    if ((slash == '\\') || (slash == '/')) {
+      char drive = Character.toLowerCase(pathString.charAt(0));
+      if ((drive >= 'a') && (drive <= 'z')) {
+        pathString = "/" + drive + pathString.substring(2).replace('\\', '/');
+      }
+    }
+    return pathString;
+  }
+
+  /**
+   * Method to validate if a given path string is a Windows path or not
+   * 
+   * @param pathString The string to check if it is a Windows path string.
+   * @return {@code true} if it is a valid windows path string, else {@code false}.
+   */
+  public static boolean isValidWindowsPath(String pathString) {
+
+    String windowsFilePathRegEx = "([a-zA-Z]:)?(\\\\[a-zA-Z0-9\\s_.-]+)+\\\\?";
+    return Pattern.matches(windowsFilePathRegEx, pathString);
+  }
 }
