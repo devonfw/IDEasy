@@ -47,6 +47,11 @@ public class Sonar extends LocalToolCommandlet {
 
     SonarCommand command = this.command.getValue();
 
+    Path toolPath = getToolPath();
+    if (!toolPath.toFile().exists()) {
+      super.install(true);
+    }
+
     switch (command) {
       case ANALYZE:
         getCommandlet(Mvn.class).runTool(null, "sonar:sonar");
