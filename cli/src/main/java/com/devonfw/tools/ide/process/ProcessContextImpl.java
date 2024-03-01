@@ -121,6 +121,10 @@ public final class ProcessContextImpl implements ProcessContext {
       }
       this.arguments.add(0, bash);
     }
+    if ("msi".equalsIgnoreCase(fileExtension)) {
+      this.arguments.add(0, "/i");
+      this.arguments.add(0, "msiexec");
+    }
     this.processBuilder.command(this.arguments);
     if (this.context.debug().isEnabled()) {
       String message = createCommandMessage(" ...");
