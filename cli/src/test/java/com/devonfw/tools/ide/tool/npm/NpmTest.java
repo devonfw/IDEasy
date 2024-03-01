@@ -49,7 +49,6 @@ public class NpmTest extends AbstractIdeContextTest {
       assertLogMessage((IdeTestContext) context, IdeLogLevel.SUCCESS, expectedMessage, false);
 
       if (context.getSystemInfo().isWindows()) {
-        Path test = context.getSoftwarePath();
         assertThat(context.getSoftwarePath().resolve("node/npm")).exists();
         assertThat(context.getSoftwarePath().resolve("node/npm.cmd")).exists();
         assertThat(context.getSoftwarePath().resolve("node/npx")).exists();
