@@ -187,7 +187,7 @@ public class DotNetTest extends AbstractIdeContextTest {
         linuxFileFolder, macFileFolder);
   }
 
-  private static void modifyArgumentsOfCommandlet(DotNet comandlet) throws IllegalAccessException {
+  private static void modifyArgumentsOfCommandlet(DotNet commandlet) throws IllegalAccessException {
 
     ArrayList<String> argsValues = new ArrayList<>();
     argsValues.add("create");
@@ -198,7 +198,7 @@ public class DotNetTest extends AbstractIdeContextTest {
     fakeProperties.setValue(argsValues);
 
     field.setAccessible(true);
-    field.set(comandlet, fakeProperties);
+    field.set(commandlet, fakeProperties);
     field.setAccessible(false);
   }
 
