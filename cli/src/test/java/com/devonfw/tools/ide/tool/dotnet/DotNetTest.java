@@ -42,12 +42,12 @@ public class DotNetTest extends AbstractIdeContextTest {
     toolRepositoryMock.setContext(context);
     CommandLetExtractorMock commandLetExtractorMock = new CommandLetExtractorMock(context);
 
-    DotNet comandlet = new DotNet(context);
-    comandlet.setCommandletFileExtractor(commandLetExtractorMock);
-    assignFakeUserHome(context, "dummyUserHome");
+    DotNet commandlet = new DotNet(context);
+    commandlet.setCommandletFileExtractor(commandLetExtractorMock);
+    assignDummyUserHome(context, "dummyUserHome");
 
     // act
-    comandlet.install();
+    commandlet.install();
 
     // assert
 
@@ -86,7 +86,7 @@ public class DotNetTest extends AbstractIdeContextTest {
     DotNet comandlet = new DotNet(context);
     comandlet.setCommandletFileExtractor(commandLetExtractorMock);
 
-    assignFakeUserHome(context, "dummyEmptyUserHome");
+    assignDummyUserHome(context, "dummyEmptyUserHome");
 
     // installation may install template, so we set up a mocked processContext
 
@@ -129,7 +129,7 @@ public class DotNetTest extends AbstractIdeContextTest {
     toolRepositoryMock.setContext(context);
     CommandLetExtractorMock commandLetExtractorMock = new CommandLetExtractorMock(context);
 
-    assignFakeUserHome(context, "dummyUserHome");
+    assignDummyUserHome(context, "dummyUserHome");
 
     DotNet comandlet = new DotNet(context);
     comandlet.setCommandletFileExtractor(commandLetExtractorMock);
@@ -160,7 +160,7 @@ public class DotNetTest extends AbstractIdeContextTest {
     toolRepositoryMock.setContext(context);
     CommandLetExtractorMock commandLetExtractorMock = new CommandLetExtractorMock(context);
 
-    assignFakeUserHome(context, "dummyUserHome");
+    assignDummyUserHome(context, "dummyUserHome");
 
     DotNet comandlet = new DotNet(context);
     comandlet.setCommandletFileExtractor(commandLetExtractorMock);
@@ -202,7 +202,7 @@ public class DotNetTest extends AbstractIdeContextTest {
     field.setAccessible(false);
   }
 
-  private static void assignFakeUserHome(IdeTestContext context, String pathString) {
+  private static void assignDummyUserHome(IdeTestContext context, String pathString) {
 
     Path dummyUserHomePath = PROJECTS_TARGET_PATH.resolve(PROJECT_TEST_CASE_NAME).resolve(pathString);
     context.setDummyUserHome(dummyUserHomePath);
