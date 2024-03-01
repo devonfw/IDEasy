@@ -10,8 +10,9 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 
 /**
@@ -40,7 +41,7 @@ public class Jmc extends LocalToolCommandlet {
   @Override
   public void run() {
 
-    runTool(true, null, this.arguments.asArray());
+    runTool(ProcessMode.BACKGROUND, null, this.arguments.asArray());
   }
 
   @Override
