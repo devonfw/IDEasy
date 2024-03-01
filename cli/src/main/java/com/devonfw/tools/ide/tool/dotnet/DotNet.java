@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 
 public class DotNet extends LocalToolCommandlet {
@@ -41,9 +42,9 @@ public class DotNet extends LocalToolCommandlet {
     }
 
     if (context.isQuietMode()) {
-      runTool(null, true, args);
+      runTool(ProcessMode.DEFAULT_SILENT, null, args);
     } else {
-      runTool(false, null, args);
+      runTool(ProcessMode.DEFAULT, null, args);
     }
   }
 
@@ -79,7 +80,7 @@ public class DotNet extends LocalToolCommandlet {
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
         .addArgs(args);
 
-    pc.run(false, false);
+    pc.run(ProcessMode.DEFAULT);
 
   }
 

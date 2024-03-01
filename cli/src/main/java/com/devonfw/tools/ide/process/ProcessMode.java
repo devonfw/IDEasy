@@ -33,7 +33,13 @@ public enum ProcessMode {
    * parent process. This setting makes the child process dependant from the parent process! (If you close the parent
    * process the child process will also be terminated.)
    */
-  DEFAULT_CAPTURE;
+  DEFAULT_CAPTURE,
+
+  /**
+   * Like {@link #DEFAULT} the parent and child process will not be detached, the subprocess output will be discarded
+   * (to the operating system "null file" ) using {@link ProcessBuilder.Redirect#DISCARD}.
+   */
+  DEFAULT_SILENT;
 
   /**
    * Method to check if the ProcessMode is a background process.
