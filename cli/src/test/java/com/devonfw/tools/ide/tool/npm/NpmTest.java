@@ -1,36 +1,45 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import java.io.IOException;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.commandlet.CommandLetExtractorMock;
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
 
 public class NpmTest extends AbstractIdeContextTest {
 
-    @Test
-  public void npmPostInstallShouldMoveFiles() throws IOException {
-      // arrange
-      String path = "workspaces/foo-test/my-git-repo";
-      String projectTestCaseName = "npm";
+  private static AbstractIdeContext context;
+  private static Npm commandlet;
+  private final static String NPM_TEST_PATH = "workspaces/foo-test/my-git-repo";
+  private final static String PROJECT_TEST_CASE_NAME = "npm";
+  private static ToolRepositoryMock toolRepositoryMock;
+  private static Path mockResultPath;
+  
+  @BeforeAll
+  static void setUp() {
 
-      ToolRepositoryMock toolRepositoryMock = buildToolRepositoryMockForNpm(projectTestCaseName);
+    toolRepositoryMock = buildToolRepositoryMockForNpm(PROJECT_TEST_CASE_NAME);
 
-      IdeContext context = newContext(projectTestCaseName, path, true, toolRepositoryMock);
-      toolRepositoryMock.setContext(context);
+    context = newContext(PROJECT_TEST_CASE_NAME, NPM_TEST_PATH, true, toolRepositoryMock);
+    toolRepositoryMock.setContext(context);
+    mockResultPath = Path.of("target/test-projects/npm/project");
+    context.setDefaultExecutionDirectory(mockResultPath);
 
-      CommandLetExtractorMock commandLetExtractorMock = new CommandLetExtractorMock(context);
-      Npm commandlet = new Npm(context);
-      commandlet.setCommandletFileExtractor(commandLetExtractorMock);
+    CommandLetExtractorMock commandLetExtractorMock = new CommandLetExtractorMock(context);
+    commandlet = new Npm(context);
+    commandlet.setCommandletFileExtractor(commandLetExtractorMock);
+  }
 
-      assertThat(context.getSoftwarePath().resolve("node/npm")).hasContent("# This is npm");
-      assertThat(context.getSoftwarePath().resolve("node/npx")).hasContent("# This is npx");
+  @Test
+  public void npmPostInstallShouldMoveFiles() {
+      assertThat(context.getSoftwarePath().resolve("node/npm")).hasContent("This is npm");
+      assertThat(context.getSoftwarePath().resolve("node/npx")).hasContent("This is npx");
 
       // act
       commandlet.install();
@@ -38,6 +47,7 @@ public class NpmTest extends AbstractIdeContextTest {
       // assert
       String expectedMessage = "Successfully installed npm in version 9.9.2";
       assertLogMessage((IdeTestContext) context, IdeLogLevel.SUCCESS, expectedMessage, false);
+
       if (context.getSystemInfo().isWindows()) {
         Path test = context.getSoftwarePath();
         assertThat(context.getSoftwarePath().resolve("node/npm")).exists();
@@ -45,9 +55,24 @@ public class NpmTest extends AbstractIdeContextTest {
         assertThat(context.getSoftwarePath().resolve("node/npx")).exists();
         assertThat(context.getSoftwarePath().resolve("node/npx.cmd")).exists();
 
-        assertThat(context.getSoftwarePath().resolve("node/npm")).hasContent("# This is npm bin");
-        assertThat(context.getSoftwarePath().resolve("node/npx")).hasContent("# This is npx bin");
+        assertThat(context.getSoftwarePath().resolve("node/npm")).hasContent("This is npm bin");
+        assertThat(context.getSoftwarePath().resolve("node/npx")).hasContent("This is npx bin");
       }
+  }
+
+  @Test
+  public void npmShouldRunExecutableSuccessful() {
+
+    //arrange
+    String expectedOutputWindowsNpm = "Dummy npm bin 9.9.2 on windows";
+
+    // act
+    commandlet.install();
+    commandlet.run();
+
+    //assert
+    assertThat(mockResultPath.resolve("npmTestResult.txt")).exists();
+    assertThat(mockResultPath.resolve("npmTestResult.txt")).hasContent(expectedOutputWindowsNpm);
   }
 
   private static ToolRepositoryMock buildToolRepositoryMockForNpm(String projectTestCaseName) {

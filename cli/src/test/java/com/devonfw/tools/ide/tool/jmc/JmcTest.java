@@ -129,7 +129,7 @@ public class JmcTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void jmcShouldRunExecuteableSuccessful() throws IOException {
+  public void jmcShouldRunExecuteableSuccessful() {
 
     // arrange
     String path = "workspaces/foo-test/my-git-repo";
