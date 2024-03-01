@@ -1,12 +1,21 @@
 package com.devonfw.tools.ide.io;
 
-import java.io.*;
+import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.file.*;
+import java.nio.file.FileSystemException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
@@ -92,8 +101,7 @@ public class FileAccessImpl implements FileAccess {
    * @param target Path of the target directory.
    * @param response the {@link HttpResponse} to use.
    */
-  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response)
-      throws IOException {
+  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
     if (contentLength == 0) {
