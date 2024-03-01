@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
@@ -39,7 +40,7 @@ public class Eclipse extends IdeToolCommandlet {
   protected void runIde(String... args) {
 
     install(true);
-    runEclipse(false,
+    runEclipse(ProcessMode.BACKGROUND,
         CliArgument.prepend(args, "gui", "-showlocation", this.context.getIdeHome().getFileName().toString()));
   }
 
@@ -53,22 +54,21 @@ public class Eclipse extends IdeToolCommandlet {
   /**
    * Runs eclipse application.
    *
-   * @param log - {@code true} to run in log mode without opening a window and capture the output, {@code false}
-   *        otherwise (run in GUI mode).
+   * @param processMode - the {@link ProcessMode}.
    * @param args the individual arguments to pass to eclipse.
    * @return the {@link ProcessResult}.
    */
-  protected ProcessResult runEclipse(boolean log, String... args) {
+  protected ProcessResult runEclipse(ProcessMode processMode, String... args) {
 
     Path toolPath = Path.of(getBinaryName());
     ProcessContext pc = this.context.newProcess();
-    if (log) {
+    if (processMode == ProcessMode.DEFAULT_CAPTURE) {
       pc.errorHandling(ProcessErrorHandling.ERROR);
     }
     pc.executable(toolPath);
     Path configurationPath = getPluginsInstallationPath().resolve("configuration");
     this.context.getFileAccess().mkdirs(configurationPath);
-    if (log) {
+    if (processMode == ProcessMode.DEFAULT_CAPTURE) {
       pc.addArg("-consoleLog").addArg("-nosplash");
     } else {
       pc.addArg("-clean");
@@ -80,14 +80,16 @@ public class Eclipse extends IdeToolCommandlet {
     Path javaPath = getCommandlet(Java.class).getToolBinPath();
     pc.addArg("-vm").addArg(javaPath);
     pc.addArgs(args);
-    return pc.run(log, false);
+
+    return pc.run(processMode);
+
   }
 
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    ProcessResult result = runEclipse(true, "org.eclipse.equinox.p2.director", "-repository", plugin.getUrl(),
-        "-installIU", plugin.getId());
+    ProcessResult result = runEclipse(ProcessMode.DEFAULT_CAPTURE, "org.eclipse.equinox.p2.director", "-repository",
+        plugin.getUrl(), "-installIU", plugin.getId());
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {

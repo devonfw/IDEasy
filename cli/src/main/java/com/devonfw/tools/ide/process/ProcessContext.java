@@ -132,7 +132,7 @@ public interface ProcessContext {
    */
   default int run() {
 
-    return run(false, false).getExitCode();
+    return run(ProcessMode.DEFAULT).getExitCode();
   }
 
   /**
@@ -140,28 +140,9 @@ public interface ProcessContext {
    * arguments}. Will reset the {@link #addArgs(String...) arguments} but not the {@link #executable(Path) command} for
    * sub-sequent calls.
    *
-   * @param capture - {@code true} to capture standard {@link ProcessResult#getOut() out} and
-   *        {@link ProcessResult#getErr() err} in the {@link ProcessResult}, {@code false} otherwise (to redirect out
-   *        and err).
+   * @param processMode {@link ProcessMode}
    * @return the {@link ProcessResult}.
    */
-  default ProcessResult run(boolean capture) {
-
-    return run(capture, false);
-  }
-
-  /**
-   * Runs the previously configured {@link #executable(Path) command} with the configured {@link #addArgs(String...)
-   * arguments}. Will reset the {@link #addArgs(String...) arguments} but not the {@link #executable(Path) command} for
-   * sub-sequent calls.
-   *
-   * @param capture - {@code true} to capture standard {@link ProcessResult#getOut() out} and
-   *        {@link ProcessResult#getErr() err} in the {@link ProcessResult}, {@code false} otherwise (to redirect out
-   *        and err).
-   * @param runInBackground {@code true}, the process of the command will be run as background process, {@code false}
-   *        otherwise (it will be run as foreground process).
-   * @return the {@link ProcessResult}.
-   */
-  ProcessResult run(boolean capture, boolean runInBackground);
+  ProcessResult run(ProcessMode processMode);
 
 }
