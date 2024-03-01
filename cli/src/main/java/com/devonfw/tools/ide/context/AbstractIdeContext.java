@@ -623,15 +623,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public ProcessContext newProcess() {
 
-    ProcessContext processContext = new ProcessContextImpl(this, false);
-    processContext.directory(this.getDefaultExecutionDirectory());
-    return processContext;
-  }
-
-  @Override
-  public ProcessContext newProcess(boolean discardStandardOutput) {
-
-    ProcessContext processContext = new ProcessContextImpl(this, discardStandardOutput);
+    ProcessContext processContext = new ProcessContextImpl(this);
     processContext.directory(this.getDefaultExecutionDirectory());
     return processContext;
   }
