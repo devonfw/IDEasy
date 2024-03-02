@@ -1,1 +1,0 @@
-echo Dummy jmc 8.3.0 on windows> jmcTestRestult.txt

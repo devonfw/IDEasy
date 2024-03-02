@@ -1,17 +1,5 @@
 package com.devonfw.tools.ide.context;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliException;
@@ -45,6 +33,18 @@ import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
+
+import java.io.IOException;
+import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
 
 /**
  * Abstract base implementation of {@link IdeContext}.
@@ -128,7 +128,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
-   *        {@link DefaultToolRepository} will be used.
+   * {@link DefaultToolRepository} will be used.
    */
   public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
       ToolRepository toolRepository) {
@@ -260,7 +260,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable
-   *         initialization.
+   * initialization.
    */
   public String getMessageIdeHome() {
 
@@ -294,12 +294,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private boolean isIdeHome(Path dir) {
 
-    if (!Files.isRegularFile(dir.resolve("setup"))) {
+    if (!Files.isDirectory(dir.resolve("workspaces"))) {
       return false;
-    } else if (!Files.isDirectory(dir.resolve("scripts"))) {
-      return false;
-    } else if (dir.toString().endsWith("/scripts/src/main/resources")) {
-      // TODO does this still make sense for our new Java based product?
+    } else if (!Files.isDirectory(dir.resolve("settings"))) {
       return false;
     }
     return true;
@@ -602,12 +599,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   *
    * @return the {@link #defaultExecutionDirectory} the directory in which a command process is executed.
    */
   public Path getDefaultExecutionDirectory() {
 
-    return defaultExecutionDirectory;
+    return this.defaultExecutionDirectory;
   }
 
   /**
@@ -629,9 +625,20 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public ProcessContext newProcess() {
 
-    ProcessContext processContext = new ProcessContextImpl(this);
-    processContext.directory(this.getDefaultExecutionDirectory());
+    ProcessContext processContext = createProcessContext();
+    if (this.defaultExecutionDirectory != null) {
+      processContext.directory(this.defaultExecutionDirectory);
+    }
     return processContext;
+  }
+
+  /**
+   * @return a new instance of {@link ProcessContext}.
+   * @see #newProcess()
+   */
+  protected ProcessContext createProcessContext() {
+
+    return new ProcessContextImpl(this);
   }
 
   @Override
@@ -712,8 +719,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its {@link Commandlet#getProperties()
-   * properties} and will execute it.
+   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its
+   * {@link Commandlet#getProperties() properties} and will execute it.
    *
    * @param arguments the {@link CliArgument}.
    * @return the return code of the execution.
@@ -747,10 +754,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @param cmd the potential {@link Commandlet} to
-   *        {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run()
-   *        run}.
+   * {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -811,12 +817,12 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are
-   *        matched. Consider passing a {@link CliArguments#copy() copy} as needed.
+   * matched. Consider passing a {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have
-   *         been applied (set in the {@link Commandlet} and {@link Commandlet#validate() validated}), {@code false}
-   *         otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * been applied (set in the {@link Commandlet} and {@link Commandlet#validate() validated}), {@code false} otherwise
+   * (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   public boolean apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 

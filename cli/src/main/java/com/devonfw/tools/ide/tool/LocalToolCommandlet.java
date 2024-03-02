@@ -1,11 +1,5 @@
 package com.devonfw.tools.ide.tool;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.Set;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -13,6 +7,12 @@ import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.Set;
 
 /**
  * {@link ToolCommandlet} that is installed locally into the IDE.
@@ -25,7 +25,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   *        method.
+   * method.
    */
   public LocalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -42,13 +42,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   /**
    * @return the {@link Path} where the executables of the tool can be found. Typically a "bin" folder inside
-   *         {@link #getToolPath() tool path}.
+   * {@link #getToolPath() tool path}.
    */
   public Path getToolBinPath() {
 
     Path toolPath = getToolPath();
-    Path binPath = this.context.getFileAccess().findFirst(toolPath, path -> path.getFileName().toString().equals("bin"),
-        false);
+    Path binPath = this.context.getFileAccess()
+        .findFirst(toolPath, path -> path.getFileName().toString().equals("bin"), false);
     if ((binPath != null) && Files.isDirectory(binPath)) {
       return binPath;
     }
@@ -68,8 +68,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
     if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
       IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
-      this.context.level(level).log("Version {} of tool {} is already installed", installedVersion,
-          getToolWithEdition());
+      this.context.level(level)
+          .log("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
       return false;
     }
     // we need to link the version or update the link.
@@ -78,6 +78,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (Files.exists(toolPath)) {
       fileAccess.backup(toolPath);
     }
+    fileAccess.mkdirs(toolPath.getParent());
     fileAccess.symlink(installation.linkDir(), toolPath);
     this.context.getPath().setPath(this.tool, installation.binDir());
     if (installedVersion == null) {
@@ -96,7 +97,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
-   *        {@link VersionIdentifier#isPattern() version pattern}.
+   * {@link VersionIdentifier#isPattern() version pattern}.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
    */
   public ToolInstallation installInRepo(VersionIdentifier version) {
@@ -110,7 +111,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
-   *        {@link VersionIdentifier#isPattern() version pattern}.
+   * {@link VersionIdentifier#isPattern() version pattern}.
    * @param edition the specific edition to install.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
    */
@@ -125,7 +126,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
-   *        {@link VersionIdentifier#isPattern() version pattern}.
+   * {@link VersionIdentifier#isPattern() version pattern}.
    * @param edition the specific edition to install.
    * @param toolRepository the {@link ToolRepository} to use.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
@@ -153,7 +154,26 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
     fileAccess.mkdirs(toolPath.getParent());
-    commandletFileExtractor.extract(target, toolPath, isExtract());
+    boolean extract = isExtract();
+    if (!extract) {
+      this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool,
+          target);
+    }
+    if (Files.isDirectory(target)) {
+      if (extract) {
+        this.context.warning("Found directory for download at {} hence moving without extraction!", target);
+      }
+      fileAccess.move(target, toolPath);
+    } else if (!extract) {
+      try {
+        Files.createDirectories(toolPath);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to create folder " + toolPath);
+      }
+      fileAccess.move(target, toolPath.resolve(target.getFileName()));
+    } else {
+      fileAccess.extract(target, toolPath, this::postExtract);
+    }
     try {
       Files.writeString(toolVersionFile, resolvedVersion.toString(), StandardOpenOption.CREATE_NEW);
     } catch (IOException e) {
@@ -162,6 +182,16 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // newInstallation results in above conditions to be true if isForceMode is true or if the tool version file was
     // missing
     return createToolInstallation(toolPath, resolvedVersion, toolVersionFile, true);
+  }
+
+  /**
+   * Post-extraction hook that can be overridden to add custom processing after unpacking and before moving to the final
+   * destination folder.
+   *
+   * @param extractedDir the {@link Path} to the folder with the unpacked tool.
+   */
+  protected void postExtract(Path extractedDir) {
+
   }
 
   private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile,

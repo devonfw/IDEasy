@@ -1,5 +1,12 @@
 package com.devonfw.tools.ide.process;
 
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.SystemPath;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.VariableLine;
+import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.util.FilenameUtil;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,19 +20,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.common.SystemPath;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.VariableLine;
-import com.devonfw.tools.ide.log.IdeSubLogger;
-import com.devonfw.tools.ide.util.FilenameUtil;
-
 /**
  * Implementation of {@link ProcessContext}.
  */
-public final class ProcessContextImpl implements ProcessContext {
+public class ProcessContextImpl implements ProcessContext {
 
-  private final IdeContext context;
+  protected final IdeContext context;
 
   private final ProcessBuilder processBuilder;
 

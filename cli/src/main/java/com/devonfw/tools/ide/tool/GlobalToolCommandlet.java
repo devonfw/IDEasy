@@ -1,9 +1,5 @@
 package com.devonfw.tools.ide.tool;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -12,6 +8,10 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Set;
 
 /**
  * {@link ToolCommandlet} that is installed globally.
@@ -24,7 +24,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   *        method.
+   * method.
    */
   public GlobalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -56,17 +56,20 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
-    Path tmpDir = fileAccess.createTempDir(getName());
-    Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
-    commandletFileExtractor.extract(target, downloadBinaryPath, isExtract());
-    if (isExtract()) {
+    Path executable = target;
+    Path tmpDir = null;
+    boolean extract = isExtract();
+    if (extract) {
+      tmpDir = fileAccess.createTempDir(getName());
+      Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
+      fileAccess.extract(target, downloadBinaryPath);
       downloadBinaryPath = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING)
-        .executable(downloadBinaryPath);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(executable);
     int exitCode = pc.run();
-    fileAccess.delete(tmpDir);
-    fileAccess.delete(target);
+    if (tmpDir != null) {
+      fileAccess.delete(tmpDir);
+    }
     if (exitCode == 0) {
       this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
     } else {

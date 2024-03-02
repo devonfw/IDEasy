@@ -1,13 +1,17 @@
 package com.devonfw.tools.ide.io;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
+import java.io.IOException;
+import java.io.InputStream;
+
 /**
- * {@link Enum} with the available compression modes of a TAR archive file.
+ * {@link Enum} with the available compression modes of a TAR archive file. A GNU Tape ARchive is the standard archive
+ * format on Linux systems. It is similar to {@link FileCompression#ZIP ZIP} but it allows to represent advanced
+ * metadata such as file permissions (e.g. executable flags). Further, it has no compression and is therefore typically
+ * combined with generic file compressions like {@link #GZ GNU zip} (not to be confused with Windows
+ * {@link FileCompression#ZIP ZIP}) or {@link #BZIP2}.
  */
 public enum TarCompression {
 
@@ -16,7 +20,6 @@ public enum TarCompression {
 
   /** GNU-Zip compression. */
   GZ("gz", "tgz", "-z") {
-
     @Override
     InputStream unpackRaw(InputStream in) throws IOException {
 
@@ -26,7 +29,6 @@ public enum TarCompression {
 
   /** BZip2 compression. */
   BZIP2("bz2", "tbz2", "-j", "bzip2") {
-
     @Override
     InputStream unpackRaw(InputStream in) throws IOException {
 
@@ -57,7 +59,7 @@ public enum TarCompression {
 
   /**
    * @return the (default) file extension of this compression (excluding the dot). E.g. "gz" for a "tar.gz" or "tgz"
-   *         file.
+   * file.
    */
   public String getExtension() {
 
@@ -66,7 +68,7 @@ public enum TarCompression {
 
   /**
    * @return the compact file extension of this compression combined with the tar archive information. E.g. "tgz" or
-   *         "tbz2".
+   * "tbz2".
    */
   public String getCombinedExtension() {
 

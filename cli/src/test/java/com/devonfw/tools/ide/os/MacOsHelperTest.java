@@ -1,20 +1,19 @@
 package com.devonfw.tools.ide.os;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import org.junit.jupiter.api.Test;
+
+import java.nio.file.Path;
 
 /**
  * Test of {@link MacOsHelper}.
  */
 public class MacOsHelperTest extends AbstractIdeContextTest {
 
-  private static final IdeContext CONTEXT = newContext("basic", "", false);
+  private static final IdeContext CONTEXT = newContext(PROJECT_BASIC, null, false);
 
-  private static final Path APPS_DIR = Path.of("src/test/resources/mac-apps");
+  private static final Path APPS_DIR = TEST_RESOURCES.resolve("mac-apps");
 
   /** Test "java" structure. */
   @Test
