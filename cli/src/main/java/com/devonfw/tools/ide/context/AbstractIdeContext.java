@@ -32,7 +32,6 @@ import com.devonfw.tools.ide.repo.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
-import com.devonfw.tools.ide.variable.IdeVariables;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -288,8 +287,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private SystemPath computeSystemPath() {
 
-    String systemPath = System.getenv(IdeVariables.PATH.getName());
-    return new SystemPath(systemPath, this.softwarePath, this);
+    return new SystemPath(this);
   }
 
   private boolean isIdeHome(Path dir) {
