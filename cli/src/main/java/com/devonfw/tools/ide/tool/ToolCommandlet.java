@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.io.TarCompression;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.StringListProperty;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -81,20 +82,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   @Override
   public void run() {
 
-    runTool(false, null, this.arguments.asArray());
+    runTool(ProcessMode.DEFAULT, null, this.arguments.asArray());
   }
 
   /**
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
-   * @param runInBackground {@code true}, the process of the command will be run as background process, {@code false}
-   *        otherwise (it will be run as foreground process).
+   * @param processMode see {@link ProcessMode}
    * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
    *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
    *        without touching and IDE installation and used to run.
    * @param args the command-line arguments to run the tool.
    */
-  public void runTool(boolean runInBackground, VersionIdentifier toolVersion, String... args) {
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
     Path binaryPath;
     Path toolPath = Path.of(getBinaryName());
@@ -104,19 +104,20 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
+        .addArgs(args);
 
-    pc.run(false, runInBackground);
+    pc.run(processMode);
   }
 
   /**
    * @param toolVersion the explicit {@link VersionIdentifier} of the tool to run.
    * @param args the command-line arguments to run the tool.
-   * @see ToolCommandlet#runTool(boolean, VersionIdentifier, String...)
+   * @see ToolCommandlet#runTool(ProcessMode, VersionIdentifier, String...)
    */
   public void runTool(VersionIdentifier toolVersion, String... args) {
 
-    runTool(false, toolVersion, args);
+    runTool(ProcessMode.DEFAULT, toolVersion, args);
   }
 
   /**
@@ -210,11 +211,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     try (Stream<Path> stream = Files.list(path)) {
       Path[] subFiles = stream.toArray(Path[]::new);
       if (subFiles.length == 0) {
-        throw new CliException("The downloaded package for the tool " + this.tool + " seems to be empty as you can check in the extracted folder " + path);
+        throw new CliException("The downloaded package for the tool " + this.tool
+            + " seems to be empty as you can check in the extracted folder " + path);
       } else if (subFiles.length == 1) {
         String filename = subFiles[0].getFileName().toString();
-        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS) && !filename.endsWith(".app")
-            && Files.isDirectory(subFiles[0])) {
+        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS)
+            && !filename.endsWith(".app") && Files.isDirectory(subFiles[0])) {
           return getProperInstallationSubDirOf(subFiles[0]);
         }
       }
@@ -384,8 +386,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       return edition;
     } catch (IOException e) {
-      throw new IllegalStateException("Couldn't determine the edition of " + getName() + " from the directory structure of its software path " + toolPath
-          + ", assuming the name of the parent directory of the real path of the software path to be the edition " + "of the tool.", e);
+      throw new IllegalStateException("Couldn't determine the edition of " + getName()
+          + " from the directory structure of its software path " + toolPath
+          + ", assuming the name of the parent directory of the real path of the software path to be the edition "
+          + "of the tool.", e);
     }
 
   }
@@ -450,8 +454,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.context.info("{}={} has been set in {}", name, version, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
-          declaringVariables.getSource());
+      this.context.warning(
+          "The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
+          name, declaringVariables.getSource());
     }
     if (hint) {
       this.context.info("To install that version call the following command:");
@@ -494,8 +499,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.context.info("{}={} has been set in {}", name, edition, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
-          declaringVariables.getSource());
+      this.context.warning(
+          "The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
+          name, declaringVariables.getSource());
     }
     if (hint) {
       this.context.info("To install that edition call the following command:");
