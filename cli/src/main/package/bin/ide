@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# Check if arguments are given
+if [ -n "${1}" ]; then
+  # Call native ideasy.exe with user-provided arguments
+  ideasy "$@"
+
+  rc=$?
+  if [ "${rc}" != 0 ]; then
+    exit ${rc}
+  fi
+fi
+
+envariable=
+if [ "${OSTYPE}" = "cygwin" ] || [ "${OSTYPE}" = "msys" ] ; then
+	envariable="ideasy env --bash"
+else
+  envariable="ideasy env"
+fi
+
+rc=$?
+
+if [ $rc = 0 ]; then
+  eval "$envariable"
+fi

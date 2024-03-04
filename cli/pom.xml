@@ -116,7 +116,7 @@
               <goal>copy-resources</goal>
             </goals>
             <configuration>
-              <outputDirectory>${basedir}/target/package</outputDirectory>
+              <outputDirectory>${project.build.directory}/package</outputDirectory>
               <resources>          
                 <resource>
                   <directory>src/main/package</directory>
