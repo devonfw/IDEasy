@@ -34,11 +34,11 @@ public class PluginBasedCommandletTest extends AbstractIdeContextTest {
     assertThat(plugin2.getName()).isEqualTo("anyedit");
 
     // Check if anyedit plugin has value "false" --> value from user directory
-    assertFalse(plugin2.isActive());
+    assertThat(plugin2.isActive()).isFalse();
 
-    assertFalse(pluginsMap.containsKey("anyedit2"));
+    assertThat(pluginsMap.containsKey("anyedit2")).isFalse();
 
-    assertEquals(2, pluginsMap.size());
+    assertThat(pluginsMap.size()).isEqualTo(2);
   }
 
 
