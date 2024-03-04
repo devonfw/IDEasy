@@ -178,7 +178,7 @@ public class ProcessContextImpl implements ProcessContext {
     sb.append(this.executable);
     sb.append("'");
     if (interpreter != null) {
-      sb.append("using ");
+      sb.append(" using ");
       sb.append(interpreter);
     }
     int size = this.arguments.size();
@@ -279,6 +279,10 @@ public class ProcessContextImpl implements ProcessContext {
 
   private String addExecutable(String executable, List<String> args) {
 
+    if (!SystemInfoImpl.INSTANCE.isWindows()) {
+      args.add(executable);
+      return null;
+    }
     String interpreter = null;
     String fileExtension = FilenameUtil.getExtension(executable);
     boolean isBashScript = "sh".equals(fileExtension);
