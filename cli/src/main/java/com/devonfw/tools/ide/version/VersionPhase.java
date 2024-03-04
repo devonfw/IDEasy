@@ -54,7 +54,7 @@ public enum VersionPhase implements AbstractVersionPhase {
   /** A bug-fix version from the previous release including important fix(es). */
   BUG_FIX(Boolean.TRUE, "bugfix", "fix", "quickfix"),
 
-  /** An fix release, similar to {@link #BUG_FIX} but more urgent. */
+  /** A fix release, similar to {@link #BUG_FIX} but more urgent. */
   HOT_FIX(Boolean.TRUE, "hotfix", "hf");
 
   private final Boolean hasNumber;

@@ -26,10 +26,6 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
 
   private static final String JSON_URL = "products?code=IIU%2CIIC&release.type=release";
 
-  private static final String ULTIMATE_EDITION = "ultimate";
-
-  private static final String COMMUNITY_EDITION = "intellij";
-
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
   private static final Logger logger = LoggerFactory.getLogger(IntellijUrlUpdater.class);
@@ -41,29 +37,28 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
     try {
       String response = doGetResponseBodyAsString(doGetVersionUrl());
       IntellijJsonObject[] jsonObj = MAPPER.readValue(response, IntellijJsonObject[].class);
-      // Has 2 elements, 1. Ultimate Edition, 2. Community Edition
-      IntellijJsonObject ultimateRelease;
-      IntellijJsonObject communityRelease;
 
       if (jsonObj.length == 2) {
-        ultimateRelease = jsonObj[0];
-        communityRelease = jsonObj[1];
-        UrlEdition edition;
+        IntellijJsonObject release = getIntellijJsonRelease(jsonObj);
+        UrlEdition edition = tool.getOrCreateChild(getEdition());
 
-        if (ultimateRelease != null) {
-          edition = tool.getOrCreateChild(ULTIMATE_EDITION);
-          addVersionForEdition(ultimateRelease, edition);
-        }
-
-        if (communityRelease != null) {
-          edition = tool.getOrCreateChild(COMMUNITY_EDITION);
-          addVersionForEdition(communityRelease, edition);
+        if (release != null) {
+          addVersionForEdition(release, edition);
         }
       }
 
     } catch (Exception e) {
       throw new IllegalStateException("Error while getting versions from JSON API " + JSON_URL, e);
     }
+  }
+
+  /**
+   * @param releases Has 2 elements, 1. Ultimate Edition, 2. Community Edition
+   * @return The release for the {@link #getEdition() edition}.
+   */
+  public IntellijJsonObject getIntellijJsonRelease(IntellijJsonObject[] releases) {
+
+    return releases[1];
   }
 
   /**
@@ -150,6 +145,12 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
   }
 
   @Override
+  protected String getEdition() {
+
+    return "community";
+  }
+
+  @Override
   protected String doGetVersionUrl() {
 
     return getVersionBaseUrl() + "/" + JSON_URL;
@@ -173,5 +174,17 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
   protected void collectVersionsFromJson(IntellijJsonObject jsonItem, Collection<String> versions) {
 
     throw new IllegalStateException();
+  }
+
+  @Override
+  public String getCpeVendor() {
+
+    return "jetbrains";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "intellij idea";
   }
 }

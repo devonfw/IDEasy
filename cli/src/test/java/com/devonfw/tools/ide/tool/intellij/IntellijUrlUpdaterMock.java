@@ -11,4 +11,16 @@ public class IntellijUrlUpdaterMock extends IntellijUrlUpdater {
 
     return TEST_BASE_URL;
   }
+
+  @Override
+  protected String getEdition() {
+
+    return getTool();
+  }
+
+  @Override
+  public IntellijJsonObject getIntellijJsonRelease(IntellijJsonObject[] releases) {
+
+    return releases[1];
+  }
 }

@@ -26,6 +26,7 @@ import com.devonfw.tools.ide.tool.graalvm.GraalVmOracleUrlUpdater;
 import com.devonfw.tools.ide.tool.gradle.GradleUrlUpdater;
 import com.devonfw.tools.ide.tool.helm.HelmUrlUpdater;
 import com.devonfw.tools.ide.tool.intellij.IntellijUrlUpdater;
+import com.devonfw.tools.ide.tool.jasypt.JasyptUrlUpdater;
 import com.devonfw.tools.ide.tool.java.JavaUrlUpdater;
 import com.devonfw.tools.ide.tool.jenkins.JenkinsUrlUpdater;
 import com.devonfw.tools.ide.tool.jmc.JmcUrlUpdater;
@@ -44,7 +45,6 @@ import com.devonfw.tools.ide.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.tool.vscode.VsCodeUrlUpdater;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.devonfw.tools.ide.tool.jasypt.JasyptUrlUpdater;
 
 /**
  * The {@code UpdateManager} class manages the update process for various tools by using a list of
@@ -97,6 +97,32 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
         logger.error("Failed to update {}", updater.getToolWithEdition(), e);
       }
     }
+  }
+
+  /**
+   * Retrieves the {@link AbstractUrlUpdater updater} that matches the given tool and edition.
+   *
+   * @param tool the tool to retrieve the updater for.
+   * @param edition the edition to retrieve the updater for.
+   * @return the {@link AbstractUrlUpdater updater} that matches the given tool and edition.
+   */
+  public AbstractUrlUpdater retrieveUrlUpdater(String tool, String edition) {
+
+    for (AbstractUrlUpdater updater : updaters) {
+      // TODO: fix this ugly hack for intellij see: https://github.com/devonfw/ide/issues/1378
+      if (updater.getTool().equals(tool) && edition.equals("intellij")) {
+        return updater;
+      }
+      if (updater.getTool().equals(tool) && updater.getEdition().equals(edition)) {
+        return updater;
+      }
+    }
+    return null;
+  }
+
+  public UrlRepository getUrlRepository() {
+
+    return this.urlRepository;
   }
 
 }
