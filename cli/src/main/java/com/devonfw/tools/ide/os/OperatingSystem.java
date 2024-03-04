@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.os;
 
+import java.util.Locale;
+
 /**
  * Enum with the supported operating systems.
  */
@@ -38,6 +40,27 @@ public enum OperatingSystem {
       }
     }
     return null;
+  }
+
+  public static OperatingSystem ofName(String osName) {
+
+    String os = osName.toLowerCase(Locale.ROOT);
+    if (os.startsWith("windows")) {
+      return OperatingSystem.WINDOWS;
+    } else if (os.startsWith("mac") || os.contains("darwin")) {
+      return OperatingSystem.MAC;
+    } else if (os.contains("linux")) {
+      return OperatingSystem.LINUX;
+    } else if (os.contains("bsd")) {
+      return OperatingSystem.LINUX;
+    } else if (os.contains("ix")) {
+      return OperatingSystem.LINUX;
+    } else {
+      System.err.println("ERROR: Unknown operating system '" + osName + "'");
+      // be tolerant: most of our users are working on windows
+      // in case of an odd JVM or virtualization issue let us better continue than failing
+      return OperatingSystem.WINDOWS;
+    }
   }
 
   /**

@@ -136,7 +136,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.loggerFactory = factory;
     this.loggers = new HashMap<>();
     setLogLevel(minLogLevel);
-    this.systemInfo = new SystemInfoImpl();
+    this.systemInfo = SystemInfoImpl.INSTANCE;
     this.commandletManager = new CommandletManagerImpl(this);
     this.fileAccess = new FileAccessImpl(this);
     String workspace = WORKSPACE_MAIN;

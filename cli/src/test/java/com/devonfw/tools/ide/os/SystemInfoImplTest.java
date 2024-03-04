@@ -17,7 +17,7 @@ public class SystemInfoImplTest extends Assertions {
     String osVersion = System.getProperty("os.version");
     String architectureName = System.getProperty("os.arch");
     // act
-    SystemInfo systemInfo = new SystemInfoImpl();
+    SystemInfo systemInfo = SystemInfoImpl.INSTANCE;
     // assert
     assertThat(systemInfo.getOsName()).isEqualTo(osName).isNotBlank();
     assertThat(systemInfo.getOsVersion().toString()).isEqualTo(osVersion).isNotBlank();
