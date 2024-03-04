@@ -1,14 +1,14 @@
 package com.devonfw.tools.ide.merge;
 
-import ch.qos.logback.classic.spi.Configurator;
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.nio.file.Path;
 import java.util.Map.Entry;
 import java.util.Properties;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Test of {@link DirectoryMerger}.
@@ -39,7 +39,7 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
   private static final Prop EDITOR = new Prop("editor", "vi");
 
   /**
-   * Test of {@link Configurator}.
+   * Test of {@link DirectoryMerger}.
    *
    * @param workspaceDir the temporary folder to use as workspace for this test.
    * @throws Exception on error.
