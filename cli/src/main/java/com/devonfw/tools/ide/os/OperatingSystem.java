@@ -33,7 +33,7 @@ public enum OperatingSystem {
   public static OperatingSystem of(String title) {
 
     for (OperatingSystem os : values()) {
-      if (os.toString().equals(title)) {
+      if (os.title.equals(title)) {
         return os;
       }
     }
@@ -43,7 +43,7 @@ public enum OperatingSystem {
   /**
    * @param suffix the file extension.
    * @return {@code true} if the given {@code suffix} is an executable file extension of this {@link OperatingSystem},
-   *         {@code false} otherwise.
+   * {@code false} otherwise.
    */
   public boolean isExecutable(String suffix) {
 

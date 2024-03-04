@@ -21,7 +21,7 @@ public class MacOsHelperTest extends AbstractIdeContextTest {
 
     // arrange
     Path rootDir = APPS_DIR.resolve("java");
-    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInformationMock.MAC_X64, CONTEXT);
+    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64, CONTEXT);
     // act
     Path linkDir = helper.findLinkDir(rootDir);
     // assert
@@ -34,7 +34,7 @@ public class MacOsHelperTest extends AbstractIdeContextTest {
 
     // arrange
     Path rootDir = APPS_DIR.resolve("special");
-    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInformationMock.MAC_X64, CONTEXT);
+    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64, CONTEXT);
     // act
     Path linkDir = helper.findLinkDir(rootDir);
     // assert
@@ -47,7 +47,7 @@ public class MacOsHelperTest extends AbstractIdeContextTest {
 
     // arrange
     Path rootDir = APPS_DIR.resolve("java");
-    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInformationMock.LINUX_X64, CONTEXT);
+    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.LINUX_X64, CONTEXT);
     // act
     Path linkDir = helper.findLinkDir(rootDir);
     // assert

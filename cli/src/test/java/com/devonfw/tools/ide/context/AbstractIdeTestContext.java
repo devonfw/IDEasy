@@ -1,16 +1,17 @@
 package com.devonfw.tools.ide.context;
 
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
+
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * Implementation of {@link IdeContext} for testing.
@@ -23,13 +24,15 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   private final Map<String, IdeProgressBarTestImpl> progressBarMap;
 
+  private SystemInfo systemInfo;
+
   /**
    * The constructor.
    *
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
-   *        {@link DefaultToolRepository} will be used.
+   * {@link DefaultToolRepository} will be used.
    * @param answers the automatic answers simulating a user in test.
    */
   public AbstractIdeTestContext(Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
@@ -38,6 +41,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     super(IdeLogLevel.TRACE, factory, userDir, toolRepository);
     this.answers = answers;
     this.progressBarMap = new HashMap<>();
+    this.systemInfo = super.getSystemInfo();
   }
 
   @Override
@@ -75,4 +79,18 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     return progressBar;
   }
 
+  @Override
+  public SystemInfo getSystemInfo() {
+
+    return this.systemInfo;
+  }
+
+  /**
+   * @param systemInfo the {@link SystemInfo} to use for testing.
+   * @see com.devonfw.tools.ide.os.SystemInfoMock
+   */
+  public void setSystemInfo(SystemInfo systemInfo) {
+
+    this.systemInfo = systemInfo;
+  }
 }
