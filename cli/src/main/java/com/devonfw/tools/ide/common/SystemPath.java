@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.common;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 import java.io.File;
@@ -45,7 +46,6 @@ public class SystemPath {
    * The constructor.
    *
    * @param context {@link IdeContext}.
-   * @param envPath the value of the PATH variable.
    */
   public SystemPath(IdeContext context) {
 
@@ -146,7 +146,11 @@ public class SystemPath {
 
   private Path findBinaryInOrder(Path path, String tool) {
 
-    for (String extension : EXTENSION_PRIORITY) {
+    List<String> extensionPriority = List.of("");
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      extensionPriority = EXTENSION_PRIORITY;
+    }
+    for (String extension : extensionPriority) {
 
       Path fileToExecute = path.resolve(tool + extension);
 
