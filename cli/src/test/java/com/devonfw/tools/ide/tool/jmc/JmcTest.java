@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
@@ -55,10 +54,6 @@ public class JmcTest extends AbstractIdeContextTest {
   @ValueSource(strings = { "windows", "mac", "linux" })
   public void testJmcRun(String os) {
 
-    if ("windows".equals(os) && !SystemInfoImpl.INSTANCE.isWindows()) {
-      // cannot run windows tests executing CMD files on any other OS than Windows
-      return;
-    }
     // arrange
     IdeTestContext context = newContext(PROJECT_JMC);
     SystemInfo systemInfo = SystemInfoMock.of(os);
