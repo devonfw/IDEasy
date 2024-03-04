@@ -20,10 +20,11 @@ public class MacOsHelperTest extends AbstractIdeContextTest {
   public void testJava() {
 
     // arrange
-    Path rootDir = APPS_DIR.resolve("java");
+    String tool = "java";
+    Path rootDir = APPS_DIR.resolve(tool);
     MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64, CONTEXT);
     // act
-    Path linkDir = helper.findLinkDir(rootDir);
+    Path linkDir = helper.findLinkDir(rootDir, tool);
     // assert
     assertThat(linkDir).isEqualTo(rootDir.resolve("Contents/Resources/app"));
   }
@@ -33,10 +34,11 @@ public class MacOsHelperTest extends AbstractIdeContextTest {
   public void testSpecial() {
 
     // arrange
-    Path rootDir = APPS_DIR.resolve("special");
+    String tool = "special";
+    Path rootDir = APPS_DIR.resolve(tool);
     MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64, CONTEXT);
     // act
-    Path linkDir = helper.findLinkDir(rootDir);
+    Path linkDir = helper.findLinkDir(rootDir, tool);
     // assert
     assertThat(linkDir).isEqualTo(rootDir.resolve("Special.app/Contents/CorrectFolder"));
   }
@@ -46,11 +48,27 @@ public class MacOsHelperTest extends AbstractIdeContextTest {
   public void testNotMac() {
 
     // arrange
-    Path rootDir = APPS_DIR.resolve("java");
+    String tool = "java";
+    Path rootDir = APPS_DIR.resolve(tool);
     MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.LINUX_X64, CONTEXT);
     // act
-    Path linkDir = helper.findLinkDir(rootDir);
+    Path linkDir = helper.findLinkDir(rootDir, tool);
     // assert
     assertThat(linkDir).isSameAs(rootDir);
   }
+
+  /** Test "java" structure. */
+  @Test
+  public void testJmc() {
+
+    // arrange
+    String tool = "jmc";
+    Path rootDir = APPS_DIR.resolve(tool);
+    MacOsHelper helper = new MacOsHelper(CONTEXT.getFileAccess(), SystemInfoMock.MAC_X64, CONTEXT);
+    // act
+    Path linkDir = helper.findLinkDir(rootDir, tool);
+    // assert
+    assertThat(linkDir).isEqualTo(rootDir.resolve("Contents/MacOS"));
+  }
+
 }

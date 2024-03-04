@@ -258,6 +258,13 @@ public class FileAccessImpl implements FileAccess {
     boolean fileOnly = mode.isFileOnly();
     if (fileOnly) {
       this.context.debug("Copying file {} to {}", source, target);
+      if (Files.isDirectory(target)) {
+        // if we want to copy "file.txt" to the existing folder "path/to/folder/" in a shell this will copy "file.txt" into that folder
+        // with Java NIO the raw copy method will fail as we cannot copy the file to the path of the target folder
+        // even worse if FileCopyMode is override the target folder ("path/to/folder/") would be deleted and the result
+        // of our "file.txt" would later appear in "path/to/folder". To prevent such bugs we append the filename to target
+        target = target.resolve(source.getFileName());
+      }
     } else {
       this.context.debug("Copying {} recursively to {}", source, target);
     }
@@ -290,7 +297,7 @@ public class FileAccessImpl implements FileAccess {
         }
       }
     } else if (Files.exists(source)) {
-      if (mode == FileCopyMode.COPY_TREE_OVERRIDE_FILES) {
+      if (mode.isOverrideFile()) {
         delete(target);
       }
       this.context.trace("Copying {} to {}", source, target);
@@ -491,33 +498,51 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook) {
+  public void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook, boolean extract) {
 
+    if (Files.isDirectory(archiveFile)) {
+      Path properInstallDir = archiveFile; //getProperInstallationSubDirOf(archiveFile, archiveFile);
+      if (extract) {
+        this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
+        copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
+      } else {
+        move(properInstallDir, targetDir);
+      }
+      return;
+    } else if (!extract) {
+      mkdirs(targetDir);
+      move(archiveFile, targetDir.resolve(archiveFile.getFileName()));
+      return;
+    }
     Path tmpDir = createTempDir("extract-" + archiveFile.getFileName());
     this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", archiveFile, tmpDir,
         targetDir);
-    String extension = FilenameUtil.getExtension(archiveFile.getFileName().toString());
-    this.context.trace("Determined file extension {}", extension);
-    TarCompression tarCompression = TarCompression.of(extension);
+    String filename = archiveFile.getFileName().toString();
+    TarCompression tarCompression = TarCompression.of(filename);
     if (tarCompression != null) {
-      untar(archiveFile, tmpDir, tarCompression);
+      extractTar(archiveFile, tmpDir, tarCompression);
     } else {
-      FileCompression fileType = FileCompression.of(extension);
-      if (fileType == null) {
-        throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + archiveFile);
+      String extension = FilenameUtil.getExtension(filename);
+      if (extension == null) {
+        throw new IllegalStateException("Unknown archive format without extension - can not extract " + archiveFile);
+      } else {
+        this.context.trace("Determined file extension {}", extension);
       }
-      switch (fileType) {
-        case ZIP, JAR -> {
-          unzip(archiveFile, tmpDir);
+      switch (extension) {
+        case "zip", "jar" -> {
+          extractZip(archiveFile, tmpDir);
         }
-        case DMG -> {
+        case "dmg" -> {
           extractDmg(archiveFile, tmpDir);
         }
-        case MSI -> {
+        case "msi" -> {
           extractMsi(archiveFile, tmpDir);
         }
-        case PKG -> {
+        case "pkg" -> {
           extractPkg(archiveFile, tmpDir);
+        }
+        default -> {
+          throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + archiveFile);
         }
       }
     }
@@ -556,15 +581,15 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void unzip(Path file, Path targetDir) {
+  public void extractZip(Path file, Path targetDir) {
 
-    unpack(file, targetDir, in -> new ZipArchiveInputStream(in));
+    extractArchive(file, targetDir, in -> new ZipArchiveInputStream(in));
   }
 
   @Override
-  public void untar(Path file, Path targetDir, TarCompression compression) {
+  public void extractTar(Path file, Path targetDir, TarCompression compression) {
 
-    unpack(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
+    extractArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
   }
 
   /**
@@ -588,7 +613,7 @@ public class FileAccessImpl implements FileAccess {
     return permissionStringBuilder.toString();
   }
 
-  private void unpack(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
+  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
@@ -624,7 +649,7 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  public void extractDmg(Path file, Path tmpDir) {
+  public void extractDmg(Path file, Path targetDir) {
 
     assert this.context.getSystemInfo().isMac();
 
@@ -638,27 +663,27 @@ public class FileAccessImpl implements FileAccess {
     if (appPath == null) {
       throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
     }
-    copy(appPath, tmpDir);
+    copy(appPath, targetDir);
     pc.addArgs("detach", "-force", mountPath);
     pc.run();
   }
 
-  public void extractMsi(Path file, Path tmpDir) {
+  public void extractMsi(Path file, Path targetDir) {
 
-    this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + tmpDir).run();
+    this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + targetDir).run();
     // msiexec also creates a copy of the MSI
-    Path msiCopy = tmpDir.resolve(file.getFileName());
+    Path msiCopy = targetDir.resolve(file.getFileName());
     delete(msiCopy);
   }
 
-  public void extractPkg(Path file, Path tmpDir) {
+  public void extractPkg(Path file, Path targetDir) {
 
     Path tmpDirPkg = createTempDir("ide-pkg-");
     ProcessContext pc = this.context.newProcess();
     // we might also be able to use cpio from commons-compression instead of external xar...
     pc.executable("xar").addArgs("-C", tmpDirPkg, "-xf", file).run();
     Path contentPath = findFirst(tmpDirPkg, p -> p.getFileName().toString().equals("Payload"), true);
-    untar(contentPath, tmpDir, TarCompression.GZ);
+    extractTar(contentPath, targetDir, TarCompression.GZ);
     delete(tmpDirPkg);
   }
 

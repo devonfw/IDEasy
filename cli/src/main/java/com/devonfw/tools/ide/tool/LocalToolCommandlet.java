@@ -159,21 +159,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool,
           target);
     }
-    if (Files.isDirectory(target)) {
-      if (extract) {
-        this.context.warning("Found directory for download at {} hence moving without extraction!", target);
-      }
-      fileAccess.move(target, toolPath);
-    } else if (!extract) {
-      try {
-        Files.createDirectories(toolPath);
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to create folder " + toolPath);
-      }
-      fileAccess.move(target, toolPath.resolve(target.getFileName()));
-    } else {
-      fileAccess.extract(target, toolPath, this::postExtract);
-    }
+    fileAccess.extract(target, toolPath, this::postExtract, extract);
     try {
       Files.writeString(toolVersionFile, resolvedVersion.toString(), StandardOpenOption.CREATE_NEW);
     } catch (IOException e) {
@@ -197,7 +183,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile,
       boolean newInstallation) {
 
-    Path linkDir = getMacOsHelper().findLinkDir(rootDir);
+    Path linkDir = getMacOsHelper().findLinkDir(rootDir, this.tool);
     Path binDir = linkDir;
     Path binFolder = binDir.resolve(IdeContext.FOLDER_BIN);
     if (Files.isDirectory(binFolder)) {
@@ -205,7 +191,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     if (linkDir != rootDir) {
       assert (!linkDir.equals(rootDir));
-      this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
+      this.context.getFileAccess()
+          .copy(toolVersionFile, linkDir.resolve(IdeContext.FILE_SOFTWARE_VERSION), FileCopyMode.COPY_FILE_OVERRIDE);
     }
     return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion, newInstallation);
   }
