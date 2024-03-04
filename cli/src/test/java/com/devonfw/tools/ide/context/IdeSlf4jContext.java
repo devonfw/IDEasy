@@ -17,7 +17,7 @@ public class IdeSlf4jContext extends AbstractIdeTestContext {
    */
   public IdeSlf4jContext(Path userDir, String... answers) {
 
-    super(level -> new IdeSlf4jLogger(level), userDir, answers);
+    super(level -> new IdeSlf4jLogger(level), userDir, null, answers);
   }
 
 }

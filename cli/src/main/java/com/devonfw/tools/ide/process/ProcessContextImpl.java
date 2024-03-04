@@ -1,10 +1,19 @@
 package com.devonfw.tools.ide.process;
 
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.SystemPath;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.VariableLine;
+import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.util.FilenameUtil;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.ProcessBuilder.Redirect;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -13,19 +22,14 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.common.SystemPath;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.VariableLine;
-import com.devonfw.tools.ide.log.IdeSubLogger;
-import com.devonfw.tools.ide.util.FilenameUtil;
-
 /**
  * Implementation of {@link ProcessContext}.
  */
-public final class ProcessContextImpl implements ProcessContext {
+public class ProcessContextImpl implements ProcessContext {
 
-  private final IdeContext context;
+  private static final String PREFIX_USR_BIN_ENV = "/usr/bin/env ";
+
+  protected final IdeContext context;
 
   private final ProcessBuilder processBuilder;
 
@@ -66,7 +70,13 @@ public final class ProcessContextImpl implements ProcessContext {
   @Override
   public ProcessContext directory(Path directory) {
 
-    this.processBuilder.directory(directory.toFile());
+    if (directory != null) {
+      this.processBuilder.directory(directory.toFile());
+    } else {
+      context.debug(
+          "Could not set the process builder's working directory! Directory of the current java process is used.");
+    }
+
     return this;
   }
 
@@ -106,14 +116,11 @@ public final class ProcessContextImpl implements ProcessContext {
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");
     }
-    String executableName = this.executable.toString();
-    // pragmatic solution to avoid copying lists/arrays
-    this.arguments.add(0, executableName);
-
-    checkAndHandlePossibleBashScript(executableName);
-
+    List<String> args = new ArrayList<>(this.arguments.size() + 2);
+    String interpreter = addExecutable(this.executable.toString(), args);
+    args.addAll(this.arguments);
     if (this.context.debug().isEnabled()) {
-      String message = createCommandMessage(" ...");
+      String message = createCommandMessage(interpreter, " ...");
       this.context.debug(message);
     }
 
@@ -125,7 +132,7 @@ public final class ProcessContextImpl implements ProcessContext {
         modifyArgumentsOnBackgroundProcess(processMode);
       }
 
-      this.processBuilder.command(this.arguments);
+      this.processBuilder.command(args);
 
       Process process = this.processBuilder.start();
 
@@ -149,7 +156,7 @@ public final class ProcessContextImpl implements ProcessContext {
       }
 
       ProcessResult result = new ProcessResultImpl(exitCode, out, err);
-      performLogOnError(result, exitCode);
+      performLogOnError(result, exitCode, interpreter);
 
       return result;
 
@@ -158,18 +165,22 @@ public final class ProcessContextImpl implements ProcessContext {
       if ((msg == null) || msg.isEmpty()) {
         msg = e.getClass().getSimpleName();
       }
-      throw new IllegalStateException(createCommandMessage(" failed: " + msg), e);
+      throw new IllegalStateException(createCommandMessage(interpreter, " failed: " + msg), e);
     } finally {
       this.arguments.clear();
     }
   }
 
-  private String createCommandMessage(String suffix) {
+  private String createCommandMessage(String interpreter, String suffix) {
 
     StringBuilder sb = new StringBuilder();
     sb.append("Running command '");
     sb.append(this.executable);
     sb.append("'");
+    if (interpreter != null) {
+      sb.append(" using ");
+      sb.append(interpreter);
+    }
     int size = this.arguments.size();
     if (size > 1) {
       sb.append(" with arguments");
@@ -185,18 +196,34 @@ public final class ProcessContextImpl implements ProcessContext {
     return message;
   }
 
-  private boolean hasSheBang(Path file) {
+  private String getSheBang(Path file) {
 
     try (InputStream in = Files.newInputStream(file)) {
-      byte[] buffer = new byte[2];
+      // "#!/usr/bin/env bash".length() = 19
+      byte[] buffer = new byte[32];
       int read = in.read(buffer);
-      if ((read == 2) && (buffer[0] == '#') && (buffer[1] == '!')) {
-        return true;
+      if ((read > 2) && (buffer[0] == '#') && (buffer[1] == '!')) {
+        int start = 2;
+        int end = 2;
+        while (end < read) {
+          byte c = buffer[end];
+          if ((c == '\n') || (c == '\r') || (c > 127)) {
+            break;
+          } else if ((end == start) && (c == ' ')) {
+            start++;
+          }
+          end++;
+        }
+        String sheBang = new String(buffer, start, end - start, StandardCharsets.US_ASCII).trim();
+        if (sheBang.startsWith(PREFIX_USR_BIN_ENV)) {
+          sheBang = sheBang.substring(PREFIX_USR_BIN_ENV.length());
+        }
+        return sheBang;
       }
     } catch (IOException e) {
       // ignore...
     }
-    return false;
+    return null;
   }
 
   private String findBashOnWindows() {
@@ -250,26 +277,51 @@ public final class ProcessContextImpl implements ProcessContext {
     throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
   }
 
-  private void checkAndHandlePossibleBashScript(String executableName) {
+  private String addExecutable(String executable, List<String> args) {
 
-    String fileExtension = FilenameUtil.getExtension(executableName);
-    boolean isBashScript = "sh".equals(fileExtension) || hasSheBang(this.executable);
+    if (!SystemInfoImpl.INSTANCE.isWindows()) {
+      args.add(executable);
+      return null;
+    }
+    String interpreter = null;
+    String fileExtension = FilenameUtil.getExtension(executable);
+    boolean isBashScript = "sh".equals(fileExtension);
+    if (!isBashScript) {
+      String sheBang = getSheBang(this.executable);
+      if (sheBang != null) {
+        String cmd = sheBang;
+        int lastSlash = cmd.lastIndexOf('/');
+        if (lastSlash >= 0) {
+          cmd = cmd.substring(lastSlash + 1);
+        }
+        if (cmd.equals("bash")) {
+          isBashScript = true;
+        } else {
+          // currently we do not support other interpreters...
+        }
+      }
+    }
     if (isBashScript) {
       String bash = "bash";
-      if (this.context.getSystemInfo().isWindows()) {
+      interpreter = bash;
+      // here we want to have native OS behavior even if OS is mocked during tests...
+      // if (this.context.getSystemInfo().isWindows()) {
+      if (SystemInfoImpl.INSTANCE.isWindows()) {
         String findBashOnWindowsResult = findBashOnWindows();
         if (findBashOnWindowsResult != null) {
           bash = findBashOnWindowsResult;
         }
       }
-      this.arguments.add(0, bash);
+      args.add(bash);
     }
+    args.add(executable);
+    return interpreter;
   }
 
-  private void performLogOnError(ProcessResult result, int exitCode) {
+  private void performLogOnError(ProcessResult result, int exitCode, String interpreter) {
 
     if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
-      String message = createCommandMessage(" failed with exit code " + exitCode + "!");
+      String message = createCommandMessage(interpreter, " failed with exit code " + exitCode + "!");
       if (this.errorHandling == ProcessErrorHandling.THROW) {
         throw new CliException(message, exitCode);
       }

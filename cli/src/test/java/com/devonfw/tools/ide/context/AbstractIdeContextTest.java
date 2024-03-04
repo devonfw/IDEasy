@@ -1,18 +1,19 @@
 package com.devonfw.tools.ide.context;
 
-import java.nio.file.Path;
-import java.util.List;
-
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ListAssert;
-
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
+import com.devonfw.tools.ide.repo.ToolRepositoryMock;
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.ListAssert;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
 
 /**
  * Abstract base class for tests that need mocked instances of {@link IdeContext}.
@@ -22,62 +23,73 @@ public abstract class AbstractIdeContextTest extends Assertions {
   /** {@link #newContext(String) Name of test project} {@value}. */
   protected static final String PROJECT_BASIC = "basic";
 
+  /** Test- */
+  protected static final Path TEST_RESOURCES = Path.of("src/test/resources");
+
   /** The source {@link Path} to the test projects. */
-  protected static final Path PATH_PROJECTS = Path.of("src/test/resources/ide-projects");
+  protected static final Path TEST_PROJECTS = TEST_RESOURCES.resolve("ide-projects");
 
   // will not use eclipse-target like done in maven via eclipse profile...
-  private static final Path PATH_PROJECTS_COPY = Path.of("target/test-projects/");
+  private static final Path TEST_PROJECTS_COPY = Path.of("target/test-projects");
 
   /** Chunk size to use for progress bars **/
   private static final int CHUNK_SIZE = 1024;
 
   /**
-   * @param projectTestCaseName the (folder)name of the project test case, in this folder a 'project' folder represents
-   *        the test project in {@link #PATH_PROJECTS}. E.g. "basic".
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
+   * project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected IdeTestContext newContext(String projectTestCaseName) {
+  protected IdeTestContext newContext(String testProject) {
 
-    return newContext(projectTestCaseName, null, true);
+    return newContext(testProject, null, true);
   }
 
   /**
-   * @param projectTestCaseName the (folder)name of the project test case, in this folder a 'project' folder represents
-   *        the test project in {@link #PATH_PROJECTS}. E.g. "basic".
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
+   * project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String projectTestCaseName, String projectPath) {
+  protected static IdeTestContext newContext(String testProject, String projectPath) {
 
-    return newContext(projectTestCaseName, projectPath, true);
+    return newContext(testProject, projectPath, true);
   }
 
   /**
-   * @param projectTestCaseName the (folder)name of the project test case, in this folder a 'project' folder represents
-   *        the test project in {@link #PATH_PROJECTS}. E.g. "basic".
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
+   * project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
-   *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
-   *        in that project.)
+   * {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything in that
+   * project.)
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String projectTestCaseName, String projectPath, boolean copyForMutation) {
+  protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
 
-    Path sourceDir = PATH_PROJECTS.resolve(projectTestCaseName);
-    Path userDir = sourceDir.resolve("project");
-    IdeTestContext context;
+    Path ideRoot = TEST_PROJECTS.resolve(testProject);
     if (copyForMutation) {
-      Path projectDir = PATH_PROJECTS_COPY.resolve(projectTestCaseName);
+      Path ideRootCopy = TEST_PROJECTS_COPY.resolve(testProject);
       FileAccess fileAccess = new FileAccessImpl(IdeTestContextMock.get());
-      fileAccess.delete(projectDir);
-      fileAccess.mkdirs(PATH_PROJECTS_COPY);
-      fileAccess.copy(sourceDir, projectDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-      userDir = projectDir.resolve("project");
+      fileAccess.delete(ideRootCopy);
+      fileAccess.mkdirs(TEST_PROJECTS_COPY);
+      fileAccess.copy(ideRoot, ideRootCopy, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
+      ideRoot = ideRootCopy;
     }
-    if (projectPath != null) {
-      userDir = userDir.resolve(projectPath);
+    if (projectPath == null) {
+      projectPath = "project";
     }
-    context = new IdeTestContext(userDir);
+    ToolRepositoryMock mock = null;
+    Path ideHome = ideRoot.resolve(projectPath);
+    ToolRepositoryMock toolRepository = null;
+    Path repositoryFolder = ideRoot.resolve("repository");
+    if (Files.isDirectory(repositoryFolder)) {
+      toolRepository = new ToolRepositoryMock(repositoryFolder);
+    }
+    IdeTestContext context = new IdeTestContext(ideHome, toolRepository);
+    if (toolRepository != null) {
+      toolRepository.setContext(context);
+    }
     return context;
   }
 
@@ -124,7 +136,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param level the expected {@link IdeLogLevel}.
    * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
    * @param contains - {@code true} if the given {@code message} may only be a sub-string of the log-message to assert,
-   *        {@code false} otherwise (the entire log message including potential parameters being filled in is asserted).
+   * {@code false} otherwise (the entire log message including potential parameters being filled in is asserted).
    */
   protected static void assertLogMessage(IdeTestContext context, IdeLogLevel level, String message, boolean contains) {
 
