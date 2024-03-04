@@ -1,12 +1,11 @@
 package com.devonfw.tools.ide.commandlet;
 
-import org.junit.jupiter.api.Test;
-
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import org.junit.jupiter.api.Test;
 
 /**
  * Integration test of {@link HelpCommandlet}.
@@ -51,8 +50,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
   public void testRunWithCommandlet() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext("basic", path, true);
+    IdeTestContext context = newContext(PROJECT_BASIC);
     HelpCommandlet help = context.getCommandletManager().getCommandlet(HelpCommandlet.class);
     help.commandlet.setValueAsString("mvn", context);
     // act

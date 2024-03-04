@@ -1,13 +1,14 @@
 package com.devonfw.tools.ide.io;
 
 /**
- * {@link Enum} with the available modes to {@link FileAccess#copy(java.nio.file.Path, java.nio.file.Path, FileCopyMode)
- * copy} files and folders.
+ * {@link Enum} with the available modes to
+ * {@link FileAccess#copy(java.nio.file.Path, java.nio.file.Path, FileCopyMode) copy} files and folders.
  */
 public enum FileCopyMode {
 
   /**
-   * Copy {@link #isFileOnly() only a single file} and {@link #isFailIfExists() fail if the target-file already exists}.
+   * Copy {@link #isFileOnly() only a single file} and
+   * {@link #isFailIfExists() fail if the target-file already exists}.
    */
   COPY_FILE_FAIL_IF_EXISTS,
 
@@ -28,7 +29,7 @@ public enum FileCopyMode {
 
   /**
    * @return {@code true} if only a single file shall be copied. Will fail if a directory is given to copy,
-   *         {@code false} otherwise (to copy folders recursively).
+   * {@code false} otherwise (to copy folders recursively).
    */
   public boolean isFileOnly() {
 
@@ -37,7 +38,7 @@ public enum FileCopyMode {
 
   /**
    * @return {@code true} if files and folders shall be copied recursively, {@code false} otherwise
-   *         ({@link #isFileOnly() copy file copy}).
+   * ({@link #isFileOnly() copy file copy}).
    */
   public boolean isRecursive() {
 
@@ -52,4 +53,8 @@ public enum FileCopyMode {
     return (this == COPY_FILE_FAIL_IF_EXISTS) || (this == COPY_TREE_FAIL_IF_EXISTS);
   }
 
+  public boolean isOverrideFile() {
+
+    return (this == COPY_FILE_OVERRIDE) || (this == COPY_TREE_OVERRIDE_FILES);
+  }
 }

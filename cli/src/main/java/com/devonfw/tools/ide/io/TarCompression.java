@@ -1,13 +1,17 @@
 package com.devonfw.tools.ide.io;
 
-import java.io.IOException;
-import java.io.InputStream;
-
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Locale;
+
 /**
- * {@link Enum} with the available compression modes of a TAR archive file.
+ * {@link Enum} with the available compression modes of a TAR archive file. A GNU Tape ARchive is the standard archive
+ * format on Linux systems. It is similar to ZIP but it allows to represent advanced metadata such as file permissions
+ * (e.g. executable flags). Further, it has no compression and is therefore typically combined with generic file
+ * compressions like {@link #GZ GNU zip} (not to be confused with Windows ZIP) or {@link #BZIP2}.
  */
 public enum TarCompression {
 
@@ -16,7 +20,6 @@ public enum TarCompression {
 
   /** GNU-Zip compression. */
   GZ("gz", "tgz", "-z") {
-
     @Override
     InputStream unpackRaw(InputStream in) throws IOException {
 
@@ -26,7 +29,6 @@ public enum TarCompression {
 
   /** BZip2 compression. */
   BZIP2("bz2", "tbz2", "-j", "bzip2") {
-
     @Override
     InputStream unpackRaw(InputStream in) throws IOException {
 
@@ -57,7 +59,7 @@ public enum TarCompression {
 
   /**
    * @return the (default) file extension of this compression (excluding the dot). E.g. "gz" for a "tar.gz" or "tgz"
-   *         file.
+   * file.
    */
   public String getExtension() {
 
@@ -66,7 +68,7 @@ public enum TarCompression {
 
   /**
    * @return the compact file extension of this compression combined with the tar archive information. E.g. "tgz" or
-   *         "tbz2".
+   * "tbz2".
    */
   public String getCombinedExtension() {
 
@@ -108,33 +110,41 @@ public enum TarCompression {
   }
 
   /**
-   * @param extension the file extension (e.g. "tgz", ".tar.gz", "bz2", etc.)
-   * @return the {@link TarCompression} detected from the given {@code extension} or {@code null} if none was detected.
+   * @param filename the filename or extension (e.g. "archive.tar.bzip2", "tgz", ".tar.gz", etc.)
+   * @return the {@link TarCompression} detected from the given {@code filename} or {@code null} if none was detected.
    */
-  public static TarCompression of(String extension) {
+  public static TarCompression of(String filename) {
 
-    if ((extension == null) || extension.isEmpty()) {
+    if ((filename == null) || filename.isEmpty()) {
       return null;
     }
-    String ext = extension;
-    if (ext.charAt(0) == '.') {
-      ext = ext.substring(1);
-    }
-    boolean isTar = false;
-    if (ext.startsWith("tar")) {
-      isTar = true;
-      if ((ext.length() > 3) && (ext.charAt(3) == '.')) {
-        ext = ext.substring(4);
-      } else {
-        return NONE;
+    String ext = filename.toLowerCase(Locale.ROOT);
+    int tarIndex = ext.lastIndexOf("tar");
+    if (tarIndex >= 0) {
+      if ((tarIndex == 0) || (ext.charAt(tarIndex - 1) == '.')) {
+        int tarEnd = tarIndex + 3;
+        int rest = ext.length() - tarEnd;
+        if (rest == 0) {
+          return NONE;
+        }
+        if (ext.charAt(tarEnd) == '.') {
+          String compression = ext.substring(tarEnd + 1);
+          for (TarCompression cmp : values()) {
+            if (compression.equals(cmp.extension) || compression.equals(cmp.altExtension)) {
+              return cmp;
+            }
+          }
+        }
       }
+      return null;
+    }
+    int lastDot = ext.lastIndexOf('.');
+    if (lastDot > 0) {
+      ext = ext.substring(lastDot + 1);
     }
     for (TarCompression cmp : values()) {
-      if (cmp.extension.equals(ext)) {
-        return cmp;
-      } else if (!isTar && cmp.combinedExtension.equals(ext)) {
-        return cmp;
-      } else if ((cmp.altExtension != null) && cmp.altExtension.equals(ext)) {
+      if (ext.equals(cmp.combinedExtension) || (ext.endsWith(cmp.combinedExtension)
+          && ext.charAt(ext.length() - cmp.combinedExtension.length() - 1) == '.')) {
         return cmp;
       }
     }

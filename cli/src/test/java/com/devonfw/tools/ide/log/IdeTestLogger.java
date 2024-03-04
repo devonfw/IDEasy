@@ -7,7 +7,7 @@ import java.util.List;
  * Implementation of {@link IdeSubLogger} for testing that collects all messages and allows to check if an expected
  * message was logged.
  */
-public class IdeTestLogger extends AbstractIdeSubLogger {
+public class IdeTestLogger extends IdeSlf4jLogger {
 
   private final List<String> messages;
 
@@ -25,6 +25,7 @@ public class IdeTestLogger extends AbstractIdeSubLogger {
   @Override
   public void log(String message) {
 
+    super.log(message);
     this.messages.add(message);
   }
 

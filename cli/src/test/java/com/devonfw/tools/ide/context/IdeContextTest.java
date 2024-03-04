@@ -1,14 +1,13 @@
 package com.devonfw.tools.ide.context;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import org.junit.jupiter.api.Test;
+
+import java.nio.file.Path;
 
 /**
  * Integration test of {@link IdeContext}.
@@ -22,7 +21,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
   public void testBasicProjectEnvironment() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
+    String path = "project/workspaces/foo-test/my-git-repo";
     // act
     IdeTestContext context = newContext(PROJECT_BASIC, path, false);
     // assert

@@ -13,8 +13,7 @@ public class EditionListCommandletTest extends AbstractIdeContextTest {
   public void testEditionListCommandletRun() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext("basic", path, false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     EditionListCommandlet editionList = context.getCommandletManager().getCommandlet(EditionListCommandlet.class);
     editionList.tool.setValueAsString("mvn", context);
 

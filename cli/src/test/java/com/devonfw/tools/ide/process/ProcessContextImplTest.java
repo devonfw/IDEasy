@@ -1,26 +1,25 @@
 package com.devonfw.tools.ide.process;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.lang.reflect.Field;
-
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.platform.commons.util.ReflectionUtils;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.lang.reflect.Field;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests of {@link ProcessContextImpl}.
@@ -39,8 +38,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   public void setUp() throws Exception {
 
     mockProcessBuilder = mock(ProcessBuilder.class);
-    String projectPath = "workspaces/foo-test/my-git-repo";
-    context = newContext("basic", projectPath, false);
+    context = newContext(PROJECT_BASIC, null, false);
     processConttextUnderTest = new ProcessContextImpl(context);
 
     Field field = ReflectionUtils.findFields(ProcessContextImpl.class, f -> f.getName().equals("processBuilder"),
@@ -55,7 +53,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
         f -> f.getName().equals("executable"), ReflectionUtils.HierarchyTraversalMode.TOP_DOWN).get(0);
     underTestExecutable.setAccessible(true);
     underTestExecutable.set(processConttextUnderTest,
-        PATH_PROJECTS.resolve("_ide/software/nonExistingBinaryForTesting"));
+        TEST_PROJECTS.resolve("_ide/software/nonExistingBinaryForTesting"));
     underTestExecutable.setAccessible(false);
 
     processMock = mock(Process.class);

@@ -1,11 +1,10 @@
 package com.devonfw.tools.ide.completion;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-
 import com.devonfw.tools.ide.cli.AutocompletionReaderTestSupport;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import org.junit.jupiter.api.Test;
+
+import java.nio.file.Path;
 
 /**
  * Integration test of {@link IdeCompleter}.
@@ -35,7 +34,8 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   }
 
   /**
-   * Test of 2nd level auto-completion with tool property of {@link com.devonfw.tools.ide.commandlet.InstallCommandlet}.
+   * Test of 2nd level auto-completion with tool property of
+   * {@link com.devonfw.tools.ide.commandlet.InstallCommandlet}.
    */
   @Test
   public void testIdeCompleterInstall() {
@@ -74,8 +74,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   @Test
   public void testIdeCompleterThirdLayerVersions() {
 
-    String path = "workspaces/foo-test/my-git-repo";
-    IdeTestContext ideContext = newContext("basic", path, false);
+    IdeTestContext ideContext = newContext(PROJECT_BASIC, null, false);
     this.reader.setCompleter(new IdeCompleter(ideContext));
     assertBuffer("install mvn 3.2.1", new TestBuffer("install mvn ").tab().tab());
   }
