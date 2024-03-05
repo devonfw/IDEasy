@@ -1,10 +1,10 @@
 package com.devonfw.tools.ide.variable;
 
-import java.nio.file.Path;
-
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.VariableLine;
+
+import java.nio.file.Path;
 
 /**
  * Interface for a definition of a variable.
@@ -20,7 +20,7 @@ public interface VariableDefinition<V> {
 
   /**
    * @return the optional legacy name that is still supported for downward compatibility. May be {@code null} if
-   *         undefined (no legacy support).
+   * undefined (no legacy support).
    */
   String getLegacyName();
 
@@ -38,7 +38,6 @@ public interface VariableDefinition<V> {
   /**
    * @param context the {@link IdeContext}.
    * @return the default value as {@link String}. May be {@code null}.
-   *
    * @see #getDefaultValue(IdeContext)
    * @see #toString(Object)
    */
@@ -53,17 +52,22 @@ public interface VariableDefinition<V> {
 
   /**
    * @return {@code true} if the {@link #getDefaultValue(IdeContext) default value} shall be used without any
-   *         {@link EnvironmentVariables#get(String) variable lookup} (to prevent odd overriding of build in variables
-   *         like IDE_HOME), {@code false} otherwise (overriding of default value is allowed and intended).
+   * {@link EnvironmentVariables#get(String) variable lookup} (to prevent odd overriding of build in variables like
+   * IDE_HOME), {@code false} otherwise (overriding of default value is allowed and intended).
    */
   boolean isForceDefaultValue();
 
   /**
    * @param value the value as {@link String}. May NOT be {@code null}.
-   * @param context TODO
+   * @param context the {@link IdeContext}.
    * @return the value converted to the {@link #getValueType() value type}.
    */
   V fromString(String value, IdeContext context);
+
+  /**
+   * @return {@code true} if the variable needs to be exported, {@code false} otherwise.
+   */
+  boolean isExport();
 
   /**
    * @param value the typed value.
