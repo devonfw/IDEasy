@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
   <parent>
@@ -31,6 +32,12 @@
       <groupId>org.assertj</groupId>
       <artifactId>assertj-core</artifactId>
       <version>3.24.2</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.10.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -99,74 +106,74 @@
       <name>J&#246;rg Hohwiller</name>
       <email>hohwille@users.sourceforge.net</email>
       <organization>Capgemini</organization>
-      <organizationUrl />
+      <organizationUrl/>
       <roles>
         <role>admin</role>
         <role>designer</role>
         <role>developer</role>
       </roles>
       <timezone>+1</timezone>
-      <properties />
+      <properties/>
     </developer>
     <developer>
       <id>trippl</id>
       <name>Thomas Rippl</name>
       <email></email>
       <organization></organization>
-      <organizationUrl />
+      <organizationUrl/>
       <roles>
         <role>developer</role>
       </roles>
       <timezone>+1</timezone>
-      <properties />
+      <properties/>
     </developer>
     <developer>
       <id>markusschuh</id>
       <name>Markus Schuh</name>
       <email></email>
       <organization>Capgemini</organization>
-      <organizationUrl />
+      <organizationUrl/>
       <roles>
         <role>contributor</role>
       </roles>
       <timezone>+1</timezone>
-      <properties />
+      <properties/>
     </developer>
     <developer>
       <id>maybeec</id>
       <name>Malte Brunnlieb</name>
       <email></email>
       <organization>Capgemini</organization>
-      <organizationUrl />
+      <organizationUrl/>
       <roles>
         <role>contributor</role>
       </roles>
       <timezone>+1</timezone>
-      <properties />
+      <properties/>
     </developer>
     <developer>
       <id>ediekman</id>
       <name>Erik Diekmann</name>
       <email></email>
       <organization>Capgemini</organization>
-      <organizationUrl />
+      <organizationUrl/>
       <roles>
         <role>contributor</role>
       </roles>
       <timezone>+1</timezone>
-      <properties />
+      <properties/>
     </developer>
     <developer>
       <id>nricheton</id>
       <name>Nicolas Richeton</name>
       <email></email>
       <organization>Capgemini</organization>
-      <organizationUrl />
+      <organizationUrl/>
       <roles>
         <role>contributor</role>
       </roles>
       <timezone>+1</timezone>
-      <properties />
+      <properties/>
     </developer>
   </developers>
 </project>
