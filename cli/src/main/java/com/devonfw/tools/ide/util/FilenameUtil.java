@@ -15,14 +15,14 @@ public final class FilenameUtil {
   /**
    * @param path the file or path name to get the extension from.
    * @return the file extension excluding the dot from the given {@code path} or {@code null} if no extension is
-   *         present.
+   * present.
    */
   public static String getExtension(String path) {
 
     if (path == null) {
       return null;
     }
-    path = path.toLowerCase(Locale.ROOT);
+    path = path.toLowerCase(Locale.ROOT).replace('\\', '/');
     int lastSlash = path.lastIndexOf('/');
     if (lastSlash < 0) {
       lastSlash = 0;
