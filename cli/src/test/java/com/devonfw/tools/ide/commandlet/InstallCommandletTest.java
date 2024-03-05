@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.commandlet;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.*;
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -26,14 +28,14 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
   private static Path resourcePath = Path.of("src/test/resources");
 
   @BeforeAll
-  static void setUp() {
+  static void setUp() throws IOException {
 
     server = new WireMockServer(WireMockConfiguration.wireMockConfig().port(1111));
     server.start();
   }
 
   @AfterAll
-  static void tearDown() {
+  static void tearDown() throws IOException {
 
     server.shutdownServer();
   }
@@ -42,19 +44,19 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
 
     Path windowsFilePath = resourcePath.resolve("__files").resolve("java-17.0.6-windows-x64.zip");
     String windowsLength = String.valueOf(Files.size(windowsFilePath));
-    server.stubFor(
-        get(urlPathEqualTo("/installTest/windows")).willReturn(aResponse().withHeader("Content-Type", "application/zip")
-            .withHeader("Content-Length", windowsLength).withStatus(200).withBodyFile("java-17.0.6-windows-x64.zip")));
+    server.stubFor(get(urlPathEqualTo("/installTest/windows")).willReturn(
+        aResponse().withHeader("Content-Type", "application/zip").withHeader("Content-Length", windowsLength)
+            .withStatus(200).withBodyFile("java-17.0.6-windows-x64.zip")));
 
     Path linuxFilePath = resourcePath.resolve("__files").resolve("java-17.0.6-linux-x64.tgz");
     String linuxLength = String.valueOf(Files.size(linuxFilePath));
-    server.stubFor(
-        get(urlPathEqualTo("/installTest/linux")).willReturn(aResponse().withHeader("Content-Type", "application/tgz")
-            .withHeader("Content-Length", linuxLength).withStatus(200).withBodyFile("java-17.0.6-linux-x64.tgz")));
+    server.stubFor(get(urlPathEqualTo("/installTest/linux")).willReturn(
+        aResponse().withHeader("Content-Type", "application/tgz").withHeader("Content-Length", linuxLength)
+            .withStatus(200).withBodyFile("java-17.0.6-linux-x64.tgz")));
 
-    server.stubFor(
-        get(urlPathEqualTo("/installTest/macOS")).willReturn(aResponse().withHeader("Content-Type", "application/tgz")
-            .withHeader("Content-Length", linuxLength).withStatus(200).withBodyFile("java-17.0.6-linux-x64.tgz")));
+    server.stubFor(get(urlPathEqualTo("/installTest/macOS")).willReturn(
+        aResponse().withHeader("Content-Type", "application/tgz").withHeader("Content-Length", linuxLength)
+            .withStatus(200).withBodyFile("java-17.0.6-linux-x64.tgz")));
   }
 
   /**
@@ -64,8 +66,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
   public void testInstallCommandletRunWithVersion() throws IOException {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
-    IdeContext context = newContext("basic", path, true);
+    IdeContext context = newContext(PROJECT_BASIC);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
     mockWebServer();
@@ -82,8 +83,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
   public void testInstallCommandletRunWithVersionAndVersionIdentifier() throws IOException {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
-    IdeContext context = newContext("basic", path, true);
+    IdeContext context = newContext(PROJECT_BASIC);
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("java", context);
     install.version.setValueAsString("17.0.6", context);

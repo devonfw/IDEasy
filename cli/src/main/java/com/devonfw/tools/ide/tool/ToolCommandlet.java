@@ -17,6 +17,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.StringListProperty;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -43,7 +44,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   *        method.
+   * method.
    */
   public ToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -82,20 +83,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   @Override
   public void run() {
 
-    runTool(false, null, this.arguments.asArray());
+    runTool(ProcessMode.DEFAULT, null, this.arguments.asArray());
   }
 
   /**
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
-   * @param runInBackground {@code true}, the process of the command will be run as background process, {@code false}
-   *        otherwise (it will be run as foreground process).
+   * @param processMode see {@link ProcessMode}
    * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
-   *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
-   *        without touching and IDE installation and used to run.
+   * is installed and use that one. Otherwise, the specified version will be installed in the software repository
+   * without touching and IDE installation and used to run.
    * @param args the command-line arguments to run the tool.
    */
-  public void runTool(boolean runInBackground, VersionIdentifier toolVersion, String... args) {
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
     Path binaryPath;
     Path toolPath = Path.of(getBinaryName());
@@ -108,17 +108,17 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
         .addArgs(args);
 
-    pc.run(false, runInBackground);
+    pc.run(processMode);
   }
 
   /**
    * @param toolVersion the explicit {@link VersionIdentifier} of the tool to run.
    * @param args the command-line arguments to run the tool.
-   * @see ToolCommandlet#runTool(boolean, VersionIdentifier, String...)
+   * @see ToolCommandlet#runTool(ProcessMode, VersionIdentifier, String...)
    */
   public void runTool(VersionIdentifier toolVersion, String... args) {
 
-    runTool(false, toolVersion, args);
+    runTool(ProcessMode.DEFAULT, toolVersion, args);
   }
 
   /**
@@ -131,7 +131,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /**
    * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as
-   *         tool.
+   * tool.
    * @see #getToolWithEdition(String, String)
    */
   protected final String getToolWithEdition() {
@@ -143,7 +143,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param tool the tool name.
    * @param edition the edition.
    * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as
-   *         tool.
+   * tool.
    */
   protected final static String getToolWithEdition(String tool, String edition) {
 
@@ -166,7 +166,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
    *
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   *         nothing has changed.
+   * nothing has changed.
    */
   public boolean install() {
 
@@ -179,7 +179,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   *         nothing has changed.
+   * nothing has changed.
    */
   public boolean install(boolean silent) {
 
@@ -191,7 +191,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   *         nothing has changed.
+   * nothing has changed.
    */
   protected abstract boolean doInstall(boolean silent);
 
@@ -268,7 +268,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /**
    * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent
-   *        directory of the real path corresponding to the passed {@link Path path} must be the name of the edition.
+   * directory of the real path corresponding to the passed {@link Path path} must be the name of the edition.
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   public String getInstalledEdition(Path toolPath) {
@@ -284,10 +284,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       return edition;
     } catch (IOException e) {
-      throw new IllegalStateException("Couldn't determine the edition of " + getName()
-          + " from the directory structure of its software path " + toolPath
-          + ", assuming the name of the parent directory of the real path of the software path to be the edition "
-          + "of the tool.", e);
+      throw new IllegalStateException(
+          "Couldn't determine the edition of " + getName() + " from the directory structure of its software path "
+              + toolPath
+              + ", assuming the name of the parent directory of the real path of the software path to be the edition "
+              + "of the tool.", e);
     }
 
   }
