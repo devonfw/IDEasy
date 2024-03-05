@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.io;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -212,5 +213,14 @@ public interface FileAccess {
    * @return the first child {@link Path} matching the given {@link Predicate} or {@code null} if no match was found.
    */
   Path findFirst(Path dir, Predicate<Path> filter, boolean recursive);
+
+  /**
+   * @param dir the {@link Path} to the directory where to list the children.
+   * @param filter the {@link Predicate} used to {@link Predicate#test(Object) decide} which children to include (if
+   * {@code true} is returned).
+   * @return all children of the given {@link Path} that match the given {@link Predicate}. Will be the empty list of
+   * the given {@link Path} is not an existing directory.
+   */
+  List<Path> listChildren(Path dir, Predicate<Path> filter);
 
 }
