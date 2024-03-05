@@ -54,7 +54,7 @@ public class Jasypt extends LocalToolCommandlet {
     } else if (args.length == 3 && args[0].equals("decrypt")) {
       doJasypt(CLASS_NAME_DECRYPTION, args);
     } else {
-      this.context.warning("Unknown arguments ");
+      this.context.warning("Unknown arguments");
       this.context.info(USAGE_INFO);
     }
   }
