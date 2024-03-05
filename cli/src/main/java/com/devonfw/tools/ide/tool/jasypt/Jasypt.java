@@ -63,9 +63,7 @@ public class Jasypt extends LocalToolCommandlet {
   public boolean doInstall(boolean silent) {
 
     getCommandlet(Java.class).install();
-   /* if (Files.notExists(resolveJasyptJarPath())) {
-      installJasyptArtifact();
-    }*/
+
     return super.doInstall(silent);
   }
 
@@ -76,9 +74,7 @@ public class Jasypt extends LocalToolCommandlet {
 
     if (Files.notExists(resolveJasyptJarPath())) {
       installJasyptArtifact();
-      this.context.debug("installing jasypt artifact at:");
     }
-    this.context.debug("post install ");
   }
 
   private void installJasyptArtifact() {
@@ -87,6 +83,7 @@ public class Jasypt extends LocalToolCommandlet {
     mvn.install();
     mvn.runTool(null, "org.apache.maven.plugins:maven-dependency-plugin:3.1.2:get",
         "-Dartifact=org.jasypt:jasypt:" + getInstalledVersion().toString());
+    this.context.debug("installing jasypt artifact in: " + resolveJasyptJarPath());
   }
 
   private void doJasypt(String className, String[] args) {
