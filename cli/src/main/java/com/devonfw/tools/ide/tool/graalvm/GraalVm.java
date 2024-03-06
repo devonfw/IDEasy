@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -48,7 +49,7 @@ public class GraalVm extends LocalToolCommandlet {
     }
 
     String[] args = this.arguments.asArray();
-    runTool(true, null, args);
+    runTool(ProcessMode.BACKGROUND, null, args);
 
     if (args.length > 0) {
       Path binaryPath = this.context.getUserHome().resolve(toolPath + "/bin");
@@ -62,13 +63,13 @@ public class GraalVm extends LocalToolCommandlet {
       if (executableFile != null) {
         ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING)
             .executable(executableFile).addArgs(Arrays.copyOfRange(args, 1, args.length));
-        pc.run(false, false);
+        pc.run(ProcessMode.BACKGROUND);
       }
     }
   }
 
   @Override
-  public void runTool(boolean runInBackground, VersionIdentifier toolVersion, String... args) {
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
     if (toolVersion == null) {
       install(true);
