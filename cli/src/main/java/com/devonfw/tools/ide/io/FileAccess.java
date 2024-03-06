@@ -212,5 +212,4 @@ public interface FileAccess {
    * @return the first child {@link Path} matching the given {@link Predicate} or {@code null} if no match was found.
    */
   Path findFirst(Path dir, Predicate<Path> filter, boolean recursive);
-
 }

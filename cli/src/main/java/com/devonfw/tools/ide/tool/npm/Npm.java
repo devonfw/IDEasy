@@ -39,20 +39,22 @@ public class Npm extends LocalToolCommandlet {
     super.postInstall();
 
     FileAccess fileAccess = context.getFileAccess();
-    Path nodeHomePath = this.context.getSoftwarePath().resolve("node/");
-    Path npmBinBath = nodeHomePath.resolve("node_modules/npm/bin/");
-    String npm = "npm";
-    String npx = "npx";
-    String cmd = ".cmd";
+    if(context.getSystemInfo().isWindows()) {
+      Path nodeHomePath = this.context.getSoftwarePath().resolve("node/");
+      Path npmBinBath = nodeHomePath.resolve("node_modules/npm/bin/");
+      String npm = "npm";
+      String npx = "npx";
+      String cmd = ".cmd";
 
-    fileAccess.delete(nodeHomePath.resolve(npm));
-    fileAccess.delete(nodeHomePath.resolve(npm + cmd));
-    fileAccess.delete(nodeHomePath.resolve(npx));
-    fileAccess.delete(nodeHomePath.resolve(npx + cmd));
+      fileAccess.delete(nodeHomePath.resolve(npm));
+      fileAccess.delete(nodeHomePath.resolve(npm + cmd));
+      fileAccess.delete(nodeHomePath.resolve(npx));
+      fileAccess.delete(nodeHomePath.resolve(npx + cmd));
 
-    fileAccess.copy(npmBinBath.resolve(npm), nodeHomePath.resolve(npm));
-    fileAccess.copy(npmBinBath.resolve(npm + cmd), nodeHomePath.resolve(npm + cmd));
-    fileAccess.copy(npmBinBath.resolve(npx), nodeHomePath.resolve(npx));
-    fileAccess.copy(npmBinBath.resolve(npx + cmd), nodeHomePath.resolve(npx + cmd));
+      fileAccess.copy(npmBinBath.resolve(npm), nodeHomePath.resolve(npm));
+      fileAccess.copy(npmBinBath.resolve(npm + cmd), nodeHomePath.resolve(npm + cmd));
+      fileAccess.copy(npmBinBath.resolve(npx), nodeHomePath.resolve(npx));
+      fileAccess.copy(npmBinBath.resolve(npx + cmd), nodeHomePath.resolve(npx + cmd));
+    }
   }
 }
