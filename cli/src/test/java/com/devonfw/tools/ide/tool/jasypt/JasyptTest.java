@@ -21,14 +21,13 @@ public class JasyptTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_JASYPT);
     Jasypt commandlet = new Jasypt(context);
 
-    // act install
+    // act - install
     commandlet.install();
 
-    // assert install
-    assertLogMessage(context, IdeLogLevel.INFO, "executing mvn:"); // assert postInstall()
+    // assert - install
     checkInstallation(context);
 
-    // act and assert run
+    // act and assert - run
     runNoArgs(context, commandlet, null);
     runRightArgs(context, commandlet, List.of("encrypt", "master", "secret"));
     runRightArgs(context, commandlet, List.of("decrypt", "master", "secret"));
@@ -64,11 +63,14 @@ public class JasyptTest extends AbstractIdeContextTest {
 
   private void checkInstallation(IdeTestContext context) {
 
-    // dependencies
+    // install - java
     assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
+
+    // postInstall - mvn
+    assertLogMessage(context, IdeLogLevel.INFO, "executing mvn:");
     assertThat(context.getSoftwarePath().resolve("mvn/bin/mvn")).exists();
 
-    // commandlet
+    // commandlet - jasypt
     assertThat(context.getSoftwarePath().resolve("jasypt/META-INF/HelloWorld.txt")).hasContent("Hello World!");
     assertThat(context.getSoftwarePath().resolve("jasypt/org/HelloWorld.txt")).hasContent("Hello World!");
     assertThat(context.getSoftwarePath().resolve("jasypt/.ide.software.version")).exists().hasContent("1.9.3");

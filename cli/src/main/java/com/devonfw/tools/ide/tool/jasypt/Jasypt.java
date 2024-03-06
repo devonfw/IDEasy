@@ -50,9 +50,9 @@ public class Jasypt extends LocalToolCommandlet {
     if (args.length == 0) {
       this.context.info(USAGE_INFO);
     } else if (args.length == 3 && args[0].equals("encrypt")) {
-      doJasypt(CLASS_NAME_ENCRYPTION, args);
+      runJasypt(CLASS_NAME_ENCRYPTION, args);
     } else if (args.length == 3 && args[0].equals("decrypt")) {
-      doJasypt(CLASS_NAME_DECRYPTION, args);
+      runJasypt(CLASS_NAME_DECRYPTION, args);
     } else {
       this.context.warning("Unknown arguments");
       this.context.info(USAGE_INFO);
@@ -81,12 +81,12 @@ public class Jasypt extends LocalToolCommandlet {
 
     Mvn mvn = getCommandlet(Mvn.class);
     mvn.install();
+    this.context.debug("installing jasypt artifact in: " + resolveJasyptJarPath());
     mvn.runTool(null, "org.apache.maven.plugins:maven-dependency-plugin:3.1.2:get",
         "-Dartifact=org.jasypt:jasypt:" + getInstalledVersion().toString());
-    this.context.debug("installing jasypt artifact in: " + resolveJasyptJarPath());
   }
 
-  private void doJasypt(String className, String[] args) {
+  private void runJasypt(String className, String[] args) {
 
     Java java = getCommandlet(Java.class);
     java.runTool(null, "-cp", resolveJasyptJarPath().toString(), className, ALGORITHM, GENERATOR_CLASS_NAME,
@@ -102,5 +102,3 @@ public class Jasypt extends LocalToolCommandlet {
   }
 
 }
-
-
