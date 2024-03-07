@@ -13,7 +13,7 @@ fi
 
 envariable=
 if [ "${OSTYPE}" = "cygwin" ] || [ "${OSTYPE}" = "msys" ] ; then
-	envariable="ideasy env --bash"
+  envariable="ideasy env --bash"
 else
   envariable="ideasy env"
 fi
