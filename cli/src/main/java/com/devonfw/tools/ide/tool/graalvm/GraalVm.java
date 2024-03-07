@@ -22,6 +22,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * Native Image compilation.
  */
 public class GraalVm extends LocalToolCommandlet {
+
   /**
    * The constructor.
    *
