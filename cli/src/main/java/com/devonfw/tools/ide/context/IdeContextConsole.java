@@ -1,13 +1,14 @@
 package com.devonfw.tools.ide.context;
 
-import me.tongfei.progressbar.ProgressBarBuilder;
-import me.tongfei.progressbar.ProgressBarStyle;
 import java.util.Scanner;
 
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarConsole;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLoggerOut;
+
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
 
 /**
  * Default implementation of {@link IdeContext} using the console.
@@ -25,7 +26,7 @@ public class IdeContextConsole extends AbstractIdeContext {
    */
   public IdeContextConsole(IdeLogLevel minLogLevel, Appendable out, boolean colored) {
 
-    super(minLogLevel, level -> new IdeSubLoggerOut(level, out, colored), null);
+    super(minLogLevel, level -> new IdeSubLoggerOut(level, out, colored), null, null);
     if (System.console() == null) {
       debug("System console not available - using System.in as fallback");
       this.scanner = new Scanner(System.in);
@@ -50,12 +51,12 @@ public class IdeContextConsole extends AbstractIdeContext {
     ProgressBarBuilder pbb = new ProgressBarBuilder();
     // default (COLORFUL_UNICODE_BLOCK)
     pbb.setStyle(ProgressBarStyle.builder().refreshPrompt("\r").leftBracket("\u001b[33m│").delimitingSequence("")
-    .rightBracket("│\u001b[0m").block('█').space(' ').fractionSymbols(" ▏▎▍▌▋▊▉").rightSideFractionSymbol(' ')
-    .build());
+        .rightBracket("│\u001b[0m").block('█').space(' ').fractionSymbols(" ▏▎▍▌▋▊▉").rightSideFractionSymbol(' ')
+        .build());
     // set different style for Windows systems (ASCII)
     if (this.getSystemInfo().isWindows()) {
       pbb.setStyle(ProgressBarStyle.builder().refreshPrompt("\r").leftBracket("[").delimitingSequence("")
-      .rightBracket("]").block('=').space(' ').fractionSymbols(">").rightSideFractionSymbol(' ').build());
+          .rightBracket("]").block('=').space(' ').fractionSymbols(">").rightSideFractionSymbol(' ').build());
     }
     pbb.showSpeed();
     pbb.setTaskName(taskName);
