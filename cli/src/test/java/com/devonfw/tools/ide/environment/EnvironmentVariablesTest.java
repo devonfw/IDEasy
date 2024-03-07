@@ -16,7 +16,7 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
   public void testProperEvaluationOfVariables() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
+    String path = "project/workspaces/foo-test/my-git-repo";
     IdeTestContext context = newContext(PROJECT_BASIC, path, false);
     EnvironmentVariables variables = context.getVariables();
 
@@ -51,8 +51,8 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(TEST_ARGS10).isEqualTo("user10 workspace10");
 
     assertThat(TEST_ARGSa).isEqualTo(" user1 settings1 workspace1 conf1  user3 workspace3 confa");
-    assertThat(TEST_ARGSb)
-        .isEqualTo("user10 workspace10 settingsb  user1 settings1 workspace1 conf1  user3 workspace3 confa userb");
+    assertThat(TEST_ARGSb).isEqualTo(
+        "user10 workspace10 settingsb  user1 settings1 workspace1 conf1  user3 workspace3 confa userb");
 
     assertThat(TEST_ARGSc).isEqualTo(" user1 settings1 workspace1 conf1 userc settingsc confc");
     assertThat(TEST_ARGSd).isEqualTo(" user1 settings1 workspace1 conf1 userd workspaced");
