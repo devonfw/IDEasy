@@ -1,21 +1,26 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 
 public class NpmTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_NPM = "NPM";
 
-  @Test
-  public void testNpmInstall() {
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  public void testNpmInstall(String os) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_NPM);
-
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    context.setSystemInfo(systemInfo);
     Npm commandlet = new Npm(context);
 
     // act

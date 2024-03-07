@@ -40,6 +40,7 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -448,7 +449,7 @@ public class FileAccessImpl implements FileAccess {
     try {
       Files.createSymbolicLink(targetLink, adaptedSource);
     } catch (FileSystemException e) {
-      if (this.context.getSystemInfo().isWindows()) {
+      if (SystemInfoImpl.INSTANCE.isWindows()) {
         this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
             + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for "
             + "further details. Error was: " + e.getMessage());
