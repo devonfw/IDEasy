@@ -40,7 +40,9 @@ public class Intellij extends IdeToolCommandlet {
 
   @Override
   public void postInstall() {
+
     super.postInstall();
+
     Path binPath = getToolPath().resolve("bin");
     if (this.context.getSystemInfo().isLinux()) {
       Path ideaShLink = binPath.resolve("idea.sh");
@@ -50,5 +52,4 @@ public class Intellij extends IdeToolCommandlet {
       }
     }
   }
-
 }
