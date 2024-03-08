@@ -36,7 +36,6 @@ public class Intellij extends IdeToolCommandlet {
   public void installPlugin(PluginDescriptor plugin) {
 
     // no override needed
-
   }
 
   @Override
