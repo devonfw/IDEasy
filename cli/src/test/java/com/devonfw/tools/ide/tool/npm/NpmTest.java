@@ -11,7 +11,7 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 
 public class NpmTest extends AbstractIdeContextTest {
 
-  private static final String PROJECT_NPM = "NPM";
+  private static final String PROJECT_NPM = "npm";
 
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
