@@ -1,14 +1,13 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.nio.file.Path;
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import org.junit.jupiter.api.Test;
+
+import java.nio.file.Path;
+import java.util.List;
 
 /** Integration test of {@link EditionGetCommandlet}. */
 
@@ -19,9 +18,8 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
   public void testEditionGetCommandletRun() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
     String tool = "az";
-    IdeTestContext context = newContext("basic", path, true);
+    IdeTestContext context = newContext(PROJECT_BASIC);
     mockInstallTool(context, tool);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
 
@@ -53,8 +51,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletRunPrintConfiguredEdition() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext("basic", path, false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString("java", context);
     // act

@@ -40,6 +40,4 @@ public class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
     assertThat(pluginsMap.size()).isEqualTo(2);
   }
-
-
 }
