@@ -24,13 +24,13 @@ public class Jasypt extends LocalToolCommandlet {
        decrypt  <masterpassword>  <secret>             decrypt an encrypted secret with a master-password
       """;
 
-  public static final String CLASS_NAME_ENCRYPTION = "org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI";
+  private static final String CLASS_NAME_ENCRYPTION = "org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI";
 
-  public static final String CLASS_NAME_DECRYPTION = "org.jasypt.intf.cli.JasyptPBEStringDecryptionCLI";
+  private static final String CLASS_NAME_DECRYPTION = "org.jasypt.intf.cli.JasyptPBEStringDecryptionCLI";
 
-  public static final String ALGORITHM = "algorithm=PBEWITHHMACSHA512ANDAES_256";
+  private static final String ALGORITHM = "algorithm=PBEWITHHMACSHA512ANDAES_256";
 
-  public static final String GENERATOR_CLASS_NAME = "ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator";
+  private static final String GENERATOR_CLASS_NAME = "ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator";
 
   /**
    * The constructor.
