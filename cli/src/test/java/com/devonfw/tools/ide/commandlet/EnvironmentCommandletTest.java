@@ -73,8 +73,8 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
   public void testRun() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext("basic", path, false);
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
     // act
     env.run();
@@ -89,15 +89,16 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
     assertLogMessage(context, IdeLogLevel.INFO, "INTELLIJ_EDITION=ultimate");
     assertLogMessage(context, IdeLogLevel.INFO, "DOCKER_EDITION=docker");
   }
+
   /**
-   * Test of {@link EnvironmentCommandlet} does not require home.
+   * Test that {@link EnvironmentCommandlet} requires home.
    */
   @Test
-  public void testThatHomeIsNotReqired() {
+  public void testThatHomeIsRequired() {
 
     // arrange
     EnvironmentCommandlet env = new EnvironmentCommandlet(IdeTestContextMock.get());
     // act & assert
-    assertThat(env.isIdeHomeRequired()).isFalse();
+    assertThat(env.isIdeHomeRequired()).isTrue();
   }
 }

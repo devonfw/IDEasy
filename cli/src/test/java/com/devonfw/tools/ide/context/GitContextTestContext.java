@@ -33,7 +33,7 @@ public class GitContextTestContext extends AbstractIdeTestContext {
    */
   public GitContextTestContext(boolean isOnline, Path userDir, String... answers) {
 
-    super(level -> new IdeTestLogger(level), userDir, answers);
+    super(level -> new IdeTestLogger(level), userDir, null, answers);
     testOnlineMode = isOnline;
     this.errors = new ArrayList<>();
     this.outs = new ArrayList<>();
