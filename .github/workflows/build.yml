@@ -18,10 +18,5 @@ jobs:
           java-version: '17'
       - name: Build project with Maven
         run: mvn -B -ntp -Dstyle.color=always install
-      - name: Deploy to OSSRH nexus
-        env:
-          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dstyle.color=always -B -ntp deploy
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v2.2.3
