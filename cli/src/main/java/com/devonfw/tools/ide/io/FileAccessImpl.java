@@ -1,9 +1,11 @@
 package com.devonfw.tools.ide.io;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
+
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -221,7 +223,7 @@ public class FileAccessImpl implements FileAccess {
 
   private boolean isJunction(Path path) {
 
-    if (!this.context.getSystemInfo().isWindows()) {
+    if (!SystemInfoImpl.INSTANCE.isWindows()) {
       return false;
     }
 
