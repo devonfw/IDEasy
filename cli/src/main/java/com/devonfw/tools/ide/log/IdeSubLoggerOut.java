@@ -48,7 +48,9 @@ public class IdeSubLoggerOut extends AbstractIdeSubLogger {
       String startColor = null;
       if (this.colored) {
         startColor = this.level.getStartColor();
-        this.out.append(startColor);
+        if (startColor != null) {
+          this.out.append(startColor);
+        }
       }
       this.out.append(message);
       if (startColor != null) {

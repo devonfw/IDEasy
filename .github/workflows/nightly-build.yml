@@ -65,7 +65,7 @@ jobs:
       - name: Make natives available and build project 
         run: |
           mvn -B -ntp -Dstyle.color=always install
-          mv ./natives/* ./cli/target/
+          mv ./natives/* ./cli/target/package/bin/
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}

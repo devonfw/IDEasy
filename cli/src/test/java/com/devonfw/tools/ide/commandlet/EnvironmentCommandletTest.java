@@ -1,11 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
 
 /**
  * Test of {@link EnvironmentCommandlet}.
@@ -22,12 +23,12 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
     assertThat(env.normalizeWindowsValue("")).isEqualTo("");
     assertThat(env.normalizeWindowsValue("*")).isEqualTo("*");
     assertThat(env.normalizeWindowsValue("$:\\\\{garbage}§")).isEqualTo("$:\\\\{garbage}§");
-    assertThat(env.normalizeWindowsValue("/c/Windows/system32/drivers/etc/hosts")).isEqualTo(
-        "C:\\Windows\\system32\\drivers\\etc\\hosts");
-    assertThat(env.normalizeWindowsValue("C:\\Windows\\system32\\drivers\\etc\\hosts")).isEqualTo(
-        "C:\\Windows\\system32\\drivers\\etc\\hosts");
-    assertThat(env.normalizeWindowsValue("C:\\Users\\login/.ide/scripts/ide")).isEqualTo(
-        "C:\\Users\\login\\.ide\\scripts\\ide");
+    assertThat(env.normalizeWindowsValue("/c/Windows/system32/drivers/etc/hosts"))
+        .isEqualTo("C:\\Windows\\system32\\drivers\\etc\\hosts");
+    assertThat(env.normalizeWindowsValue("C:\\Windows\\system32\\drivers\\etc\\hosts"))
+        .isEqualTo("C:\\Windows\\system32\\drivers\\etc\\hosts");
+    assertThat(env.normalizeWindowsValue("C:\\Users\\login/.ide/scripts/ide"))
+        .isEqualTo("C:\\Users\\login\\.ide\\scripts\\ide");
     assertThat(env.normalizeWindowsValue("\\login/.ide/scripts/ide")).isEqualTo("\\login/.ide/scripts/ide");
   }
 
@@ -42,10 +43,10 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
     assertThat(env.normalizeWindowsValue("")).isEqualTo("");
     assertThat(env.normalizeWindowsValue("*")).isEqualTo("*");
     assertThat(env.normalizeWindowsValue("$:\\\\{garbage}§")).isEqualTo("$:\\\\{garbage}§");
-    assertThat(env.normalizeWindowsValue("C:\\Windows\\system32\\drivers\\etc\\hosts")).isEqualTo(
-        "/c/Windows/system32/drivers/etc/hosts");
-    assertThat(env.normalizeWindowsValue("/c/Windows/system32/drivers/etc/hosts")).isEqualTo(
-        "/c/Windows/system32/drivers/etc/hosts");
+    assertThat(env.normalizeWindowsValue("C:\\Windows\\system32\\drivers\\etc\\hosts"))
+        .isEqualTo("/c/Windows/system32/drivers/etc/hosts");
+    assertThat(env.normalizeWindowsValue("/c/Windows/system32/drivers/etc/hosts"))
+        .isEqualTo("/c/Windows/system32/drivers/etc/hosts");
   }
 
   /**
@@ -90,14 +91,14 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link EnvironmentCommandlet} does not require home.
+   * Test that {@link EnvironmentCommandlet} requires home.
    */
   @Test
-  public void testThatHomeIsNotReqired() {
+  public void testThatHomeIsRequired() {
 
     // arrange
     EnvironmentCommandlet env = new EnvironmentCommandlet(IdeTestContextMock.get());
     // act & assert
-    assertThat(env.isIdeHomeRequired()).isFalse();
+    assertThat(env.isIdeHomeRequired()).isTrue();
   }
 }
