@@ -57,6 +57,7 @@ public class ToolRepositoryMock implements ToolRepository {
     Path editionFolder = this.repositoryFolder.resolve(tool).resolve(edition);
     Path versionFolder = editionFolder.resolve(version.toString());
     if (!Files.isDirectory(versionFolder)) {
+      this.context.debug("Could not find version {} so using 'default' for {}/{}", version, tool, edition);
       versionFolder = editionFolder.resolve("default");
     }
     if (!Files.isDirectory(versionFolder)) {
@@ -74,6 +75,8 @@ public class ToolRepositoryMock implements ToolRepository {
           Path child = iterator.next();
           if (Files.isRegularFile(child) && child.getFileName().startsWith("content.")) {
             contentArchive = child;
+            this.context.debug("Using compressed archive {} for mock download of {}/{}", child.getFileName(), tool,
+                edition);
           } else {
             break;
           }
