@@ -1,25 +1,19 @@
 #!/usr/bin/env bash
 
+# immediately exit on errors
+set -e
+
 # Check if arguments are given
 if [ -n "${1}" ]; then
-  # Call native ideasy.exe with user-provided arguments
+  # Call native ideasy with user-provided arguments
   ideasy "$@"
-
-  rc=$?
-  if [ "${rc}" != 0 ]; then
-    exit ${rc}
-  fi
 fi
 
-envariable=
-if [ "${OSTYPE}" = "cygwin" ] || [ "${OSTYPE}" = "msys" ] ; then
-  envariable="ideasy env --bash"
+ide_env=
+if [ "${OSTYPE}" = "cygwin" ] || [ "${OSTYPE}" = "msys" ]; then
+  ide_env="$(ideasy env --bash)"
 else
-  envariable="ideasy env"
+  ide_env="$(ideasy env)"
 fi
-
-rc=$?
-
-if [ $rc = 0 ]; then
-  eval "$envariable"
-fi
+eval "$ide_env"
+unset ide_env
