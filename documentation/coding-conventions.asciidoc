@@ -21,6 +21,16 @@ We follow these additional naming rules:
 * Names of Generics should be easy to understand. Where suitable follow the common rule `E=Element`, `T=Type`, `K=Key`, `V=Value` but feel free to use longer names for more specific cases such as `ID`, `DTO` or `ENTITY`. The capitalized naming helps to distinguish a generic type from a regular class.
 * For `boolean` getter methods use `is` prefix instead of `get` but for `boolean` variable names avoid the `is` prefix (`boolean force = ...` instead of `boolean isForce = ...`) unless the name is a reserved keyword (e.g. `boolean abstract = true` will result in a compile error so consider using `boolean isAbstract = true` instead).
 
+== Proper IDE configuration
+Ensure your IDE (IntelliJ, Eclipse, VSCode, ...) is properly configured.
+This is what https://github.com/devonfw/IDEasy[IDEasy] is all about.
+A reasonable configuration of formatter, save actions, etc. will ensure:
+
+* no start imports are used (`import java.util.*`)
+* no diff-wars in git (if every developer in the team uses the same formatter settings the diffs in git will only show what really changed)
+* import statements are properly grouped and sorted
+* code has properly indentation and formatting (e.g. newlines after opening curly braces)
+
 == Obsolete APIs
 Please avoid using the following APIs:
 
@@ -169,7 +179,7 @@ public class MavenDownloader {
   public void download(String url) { ... }
 }
 ----
-Here `url` is used as a constant however it is not declared as such.
+Here `url` is used as a constant however it is not declared as such. Other classes could modify the value (`MavenDownloader.url = "you have been hacked";`).
 Instead we should better do this:
 [source,java]
 ----
