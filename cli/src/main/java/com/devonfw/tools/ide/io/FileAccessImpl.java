@@ -2,11 +2,13 @@ package com.devonfw.tools.ide.io;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.util.HexUtil;
+
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
@@ -223,22 +225,41 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
+  private boolean isJunction(Path path) {
+
+    if (!SystemInfoImpl.INSTANCE.isWindows()) {
+      return false;
+    }
+
+    try {
+      BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+      return attr.isOther() && attr.isDirectory();
+    } catch (NoSuchFileException e) {
+      return false; // file doesn't exist
+    } catch (IOException e) {
+      // errors in reading the attributes of the file
+      throw new IllegalStateException(
+          "An unexpected error occurred whilst checking if the file: " + path + " is a junction", e);
+    }
+  }
+
   @Override
   public void backup(Path fileOrFolder) {
 
-    if (Files.isSymbolicLink(fileOrFolder)) {
+    if (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder)) {
       delete(fileOrFolder);
-      return;
+    } else {
+      // fileOrFolder is a directory
+      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
+      LocalDateTime now = LocalDateTime.now();
+      String date = DateTimeUtil.formatDate(now);
+      String time = DateTimeUtil.formatTime(now);
+      Path backupDatePath = backupPath.resolve(date);
+      mkdirs(backupDatePath);
+      Path target = backupDatePath.resolve(fileOrFolder.getFileName().toString() + "_" + time);
+      this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
+      move(fileOrFolder, target);
     }
-    Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
-    LocalDateTime now = LocalDateTime.now();
-    String date = DateTimeUtil.formatDate(now);
-    String time = DateTimeUtil.formatTime(now);
-    Path backupDatePath = backupPath.resolve(date);
-    mkdirs(backupDatePath);
-    Path target = backupDatePath.resolve(fileOrFolder.getFileName().toString() + "_" + time);
-    this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
-    move(fileOrFolder, target);
   }
 
   @Override
@@ -317,31 +338,14 @@ public class FileAccessImpl implements FileAccess {
    */
   private void deleteLinkIfExists(Path path) throws IOException {
 
-    boolean exists = false;
-    boolean isJunction = false;
-    if (this.context.getSystemInfo().isWindows()) {
-      try { // since broken junctions are not detected by Files.exists(brokenJunction)
-        BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-        exists = true;
-        isJunction = attr.isOther() && attr.isDirectory();
-      } catch (NoSuchFileException e) {
-        // ignore, since there is no previous file at the location, so nothing to delete
-        return;
-      }
-    }
-    exists = exists || Files.exists(path);
-    boolean isSymlink = exists && Files.isSymbolicLink(path);
+    boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
+    boolean isSymlink = Files.exists(path) && Files.isSymbolicLink(path);
 
     assert !(isSymlink && isJunction);
 
-    if (exists) {
-      if (isJunction || isSymlink) {
-        this.context.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
-        Files.delete(path);
-      } else {
-        throw new IllegalStateException(
-            "The file at " + path + " was not deleted since it is not a symlink or a Windows junction");
-      }
+    if (isJunction || isSymlink) {
+      this.context.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
+      Files.delete(path);
     }
   }
 

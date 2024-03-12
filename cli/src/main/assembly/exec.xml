@@ -8,20 +8,8 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${project.build.directory}</directory>
-      <outputDirectory>./</outputDirectory>
-      <excludes>
-        <exclude>*</exclude>
-        <exclude>*/**</exclude>
-      </excludes>
-    </fileSet>
-    <fileSet>
-      <directory>${project.build.directory}</directory>
-      <outputDirectory>./bin</outputDirectory>
-      <includes>
-        <include>${imageName}.exe</include>
-        <include>${imageName}</include>
-      </includes>
+      <directory>${project.build.directory}/package</directory>
+      <outputDirectory>.</outputDirectory>
     </fileSet>
   </fileSets>
 </assembly>
