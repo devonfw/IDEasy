@@ -48,7 +48,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.tool = tool;
     this.tags = tags;
     addKeyword(tool);
-    this.arguments = add(new StringListProperty("", false, "args"));
+    this.arguments = new StringListProperty("", false, "args");
+    initProperties();
+  }
+
+  /**
+   * Add initial Properties to the tool
+   */
+  protected void initProperties() {
+
+    add(this.arguments);
   }
 
   /**

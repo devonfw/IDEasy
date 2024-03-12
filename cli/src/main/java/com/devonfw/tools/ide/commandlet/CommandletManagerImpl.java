@@ -26,6 +26,7 @@ import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
+import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 
@@ -85,6 +86,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Aws(context));
     add(new Cobigen(context));
     add(new Jmc(context));
+    add(new Sonar(context));
   }
 
   private void add(Commandlet commandlet) {
