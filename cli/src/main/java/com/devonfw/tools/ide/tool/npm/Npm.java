@@ -33,13 +33,10 @@ public class Npm extends LocalToolCommandlet {
     return super.doInstall(silent);
   }
 
-  @Override
-  public void postInstall() {
-
-    super.postInstall();
+  protected void postExtract(Path extractedDir) {
 
     FileAccess fileAccess = context.getFileAccess();
-    if(context.getSystemInfo().isWindows()) {
+    if (context.getSystemInfo().isWindows()) {
       Path nodeHomePath = this.context.getSoftwarePath().resolve("node/");
       Path npmBinBath = nodeHomePath.resolve("node_modules/npm/bin/");
       String npm = "npm";
