@@ -182,9 +182,9 @@ public class ProcessContextImpl implements ProcessContext {
       sb.append(interpreter);
     }
     int size = this.arguments.size();
-    if (size > 1) {
+    if (size > 0) {
       sb.append(" with arguments");
-      for (int i = 1; i < size; i++) {
+      for (int i = 0; i < size; i++) {
         String arg = this.arguments.get(i);
         sb.append(" '");
         sb.append(arg);
