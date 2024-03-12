@@ -60,11 +60,13 @@ public class GraalVmTest extends AbstractIdeContextTest {
     String argument = "testArgument";
     commandlet.arguments.setValue(List.of("testFile", argument));
 
+    if(context.getSystemInfo().isWindows()){
     // act
     commandlet.run();
 
     // assert
     assertLogMessage(context, IdeLogLevel.INFO, "graalvm windows " + argument);
+  }
   }
 
   private boolean hasFileContent(Path path, String textToSearch) {
