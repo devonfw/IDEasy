@@ -510,6 +510,7 @@ public class FileAccessImpl implements FileAccess {
       } else {
         move(properInstallDir, targetDir);
       }
+      postExtractHook(postExtractHook, properInstallDir);
       return;
     } else if (!extract) {
       mkdirs(targetDir);
@@ -549,11 +550,16 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     Path properInstallDir = getProperInstallationSubDirOf(tmpDir, archiveFile);
+    postExtractHook(postExtractHook, properInstallDir);
+    move(properInstallDir, targetDir);
+    delete(tmpDir);
+  }
+
+  private void postExtractHook(Consumer<Path> postExtractHook, Path properInstallDir) {
+
     if (postExtractHook != null) {
       postExtractHook.accept(properInstallDir);
     }
-    move(properInstallDir, targetDir);
-    delete(tmpDir);
   }
 
   /**

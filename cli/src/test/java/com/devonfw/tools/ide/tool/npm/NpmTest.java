@@ -33,11 +33,16 @@ public class NpmTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
 
     if (context.getSystemInfo().isWindows()) {
-      assertThat(context.getSoftwarePath().resolve("node/npm")).exists().hasContent("#!/bin/bash\n" + "echo \"npmbin $*\"");
-      assertThat(context.getSoftwarePath().resolve("node/npm.cmd")).exists().hasContent("@echo off\n" + "echo npmcmdbin %*");
-      assertThat(context.getSoftwarePath().resolve("node/npx")).exists().hasContent("#!/bin/bash\n" + "echo \"npxbin $*\"");
-      assertThat(context.getSoftwarePath().resolve("node/npx.cmd")).exists().hasContent("@echo off\n" + "echo npxcmdbin %*");
+      assertThat(context.getSoftwarePath().resolve("node/npm")).exists()
+          .hasContent("#!/bin/bash\n" + "echo \"npmbin $*\"");
+      assertThat(context.getSoftwarePath().resolve("node/npm.cmd")).exists()
+          .hasContent("@echo off\n" + "echo npmcmdbin %*");
+      assertThat(context.getSoftwarePath().resolve("node/npx")).exists()
+          .hasContent("#!/bin/bash\n" + "echo \"npxbin $*\"");
+      assertThat(context.getSoftwarePath().resolve("node/npx.cmd")).exists()
+          .hasContent("@echo off\n" + "echo npxcmdbin %*");
     }
+
     assertThat(context.getSoftwarePath().resolve("npm/.ide.software.version")).exists().hasContent("9.9.2");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed npm in version 9.9.2");
   }
