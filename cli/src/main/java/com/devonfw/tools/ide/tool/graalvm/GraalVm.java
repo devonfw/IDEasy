@@ -44,7 +44,8 @@ public class GraalVm extends LocalToolCommandlet {
 
     Path toolPath = getToolPath();
     try {
-      Files.createDirectories(toolPath);
+      if(!Files.exists(toolPath)){
+      Files.createDirectories(toolPath);}
     } catch (IOException e) {
       throw new RuntimeException("Failed to create new directory:" + e);
     }
