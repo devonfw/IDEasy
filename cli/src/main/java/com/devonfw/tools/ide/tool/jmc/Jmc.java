@@ -1,18 +1,19 @@
 package com.devonfw.tools.ide.tool.jmc;
 
+import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.java.Java;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import com.devonfw.tools.ide.common.Tag;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.java.Java;
 
 /**
  * {@link ToolCommandlet} for <a href="https://www.oracle.com/java/technologies/jdk-mission-control.html">JDK Mission
@@ -27,21 +28,20 @@ public class Jmc extends LocalToolCommandlet {
    */
   public Jmc(IdeContext context) {
 
-    super(context, "jmc", Set.of(Tag.JAVA, Tag.QA, Tag.ANALYSE, Tag.JVM));
+    super(context, "jmc", Set.of(Tag.JAVA, Tag.ANALYSE));
   }
 
   @Override
   public boolean doInstall(boolean silent) {
 
-    // TODO https://github.com/devonfw/IDEasy/issues/209 currently outcommented as this breaks the tests, real fix needed asap
-    // getCommandlet(Java.class).install();
+    getCommandlet(Java.class).install();
     return super.doInstall(silent);
   }
 
   @Override
   public void run() {
 
-    runTool(true, null, this.arguments.asArray());
+    runTool(ProcessMode.BACKGROUND, null, this.arguments.asArray());
   }
 
   @Override
@@ -57,7 +57,9 @@ public class Jmc extends LocalToolCommandlet {
         moveFilesAndDirs(oldBinaryPath, toolPath);
         fileAccess.delete(oldBinaryPath);
       } else {
-        this.context.info("JMC binary folder not found at {} - ignoring as this legacy problem may be resolved in newer versions.", oldBinaryPath);
+        this.context.info(
+            "JMC binary folder not found at {} - ignoring as this legacy problem may be resolved in newer versions.",
+            oldBinaryPath);
       }
     }
 
