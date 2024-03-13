@@ -15,11 +15,10 @@ public class RepositoryProperty extends FileProperty {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
-   * @param mustExist the {@link #isPathRequiredToExist() required to exist flag}.
    */
-  public RepositoryProperty(String name, boolean required, String alias, boolean mustExist) {
+  public RepositoryProperty(String name, boolean required, String alias) {
 
-    super(name, required, alias, mustExist);
+    super(name, required, alias, true);
   }
 
   /**
