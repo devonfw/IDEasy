@@ -70,7 +70,7 @@ See also our latest video https://vimeo.com/808368450/88d4af9d18[devon ide updat
 * link:documentation/[Documentation]
 
 == Contribution Guidelines
-*If you want to contribute to `devon-ide` please read our https://github.com/devonfw/ide/blob/master/documentation/devonfw-ide-contribution-getting-started.asciidoc[Contribution Guidelines].*
+*If you want to contribute to `IDEasy` please read our https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-getting-started.asciidoc[Contribution Guidelines].*
 
 *We use https://github.com/devonfw/IDEasy/issues[GitHub Issues] to track bugs and submit feature requests.*
 
