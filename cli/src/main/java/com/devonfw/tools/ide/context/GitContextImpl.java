@@ -115,10 +115,6 @@ public class GitContextImpl implements GitContext {
       }
     } else {
       clone(new GitUrl(gitRepoUrl, branch), targetRepository);
-      if (!branch.isEmpty()) {
-        this.processContext.addArgs("checkout", branch);
-        this.processContext.run();
-      }
     }
   }
 
@@ -187,7 +183,6 @@ public class GitContextImpl implements GitContext {
       String branch = gitRepoUrl.branch();
       if (branch != null) {
         this.processContext.addArgs("checkout", branch);
-        this.processContext.run();
         result = this.processContext.run(ProcessMode.DEFAULT_CAPTURE);
         if (!result.isSuccessful()) {
           this.context.warning("Git failed to checkout to branch {}", branch);
