@@ -18,23 +18,11 @@ toc::[]
 == Setup
 
 === Prerequisites
+All you need before installing IDEasy is https://git-scm.com/download/[git].
 ** Windows
-
 *** On Windows you need to  *download and install* https://git-scm.com/download/win[git for windows].
-
-*** You need a tool to extract `*.tar.gz` files (`tar` and `gzip`).
-+
-For example https://www.7-zip.org/[7-zip] or https://www.win-rar.com/[WinRar]. 
 ** Linux
-*** On Linux you need to install `curl` and `git` if you don't have them already
-+
-[source,terminal, .text-center]
-----
-sudo apt-get install git curl 
-or
-sudo yum install git-core curl
-----
-
+*** On Linux you only need to install https://git-scm.com/download/linux[git for linux].
 ** MacOS
 *** On MacOS you only need to download and install https://git-scm.com/download/mac[git for mac].
 
