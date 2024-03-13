@@ -447,7 +447,7 @@ public class FileAccessImpl implements FileAccess {
     try {
       Files.createSymbolicLink(targetLink, adaptedSource);
     } catch (FileSystemException e) {
-      if (this.context.getSystemInfo().isWindows()) {
+      if (SystemInfoImpl.INSTANCE.isWindows()) {
         this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
             + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for "
             + "further details. Error was: " + e.getMessage());
