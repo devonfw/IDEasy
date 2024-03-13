@@ -29,7 +29,7 @@ All you need before installing IDEasy is https://git-scm.com/download/[git].
 
 === Install
 
-** Download the latest version of `devonfw-ide` from https://github.com/devonfw/IDEasy/releases[here] and extract it to a folder of your choice.
+** Download the latest version of `IDEasy` from https://github.com/devonfw/IDEasy/releases[here] and execute it.
 +
 (You can find all Releases in https://repo.maven.apache.org/maven2/com/devonfw/tools/IDEasy/ide-cli/[Maven Central])
 ** Run the `setup` in this folder (On Windows you can double click on `setup.bat`)
