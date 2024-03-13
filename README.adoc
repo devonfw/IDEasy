@@ -34,9 +34,10 @@ All you need before installing IDEasy is https://git-scm.com/download/[git].
 (You can find all Releases in https://repo.maven.apache.org/maven2/com/devonfw/tools/IDEasy/ide-cli/[Maven Central])
 ** Run the `setup` in this folder (On Windows you can double click on `setup.bat`)
 +
-A command prompt will open and the setup will start. The setup will ask for a settings URL. In case you do not have a settings URL for your project, you can just press enter to use the default settings.
+A command prompt will open and the setup will start. The setup will ask for a settings URL.
+In case you do not have a settings URL for your project, you can just press enter to use the default settings.
 ** After the setup is finished, you can close the command prompt and open a new one.
-** *You are done! You can now use the `devon` command in your terminal to use the devonfw-ide.*
+** *You are done! You can now use the `ide` command in your terminal to use the `IDEasy`.*
 
 ==== Video Tutorial
 ifdef::env-github[]
