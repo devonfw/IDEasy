@@ -179,11 +179,19 @@ public class GitContextImpl implements GitContext {
       if (this.context.isQuietMode()) {
         this.processContext.addArg("-q");
       }
-      this.processContext.addArgs("--recursive", "-b", gitRepoUrl.branch(), gitRepoUrl.url(), "--config",
-          "core.autocrlf=false", ".");
+      this.processContext.addArgs("--recursive", gitRepoUrl.url(), "--config", "core.autocrlf=false", ".");
       result = this.processContext.run(ProcessMode.DEFAULT_CAPTURE);
       if (!result.isSuccessful()) {
         this.context.warning("Git failed to clone {} into {}.", parsedUrl, targetRepository);
+      }
+      String branch = gitRepoUrl.branch();
+      if (branch != null) {
+        this.processContext.addArgs("checkout", branch);
+        this.processContext.run();
+        result = this.processContext.run(ProcessMode.DEFAULT_CAPTURE);
+        if (!result.isSuccessful()) {
+          this.context.warning("Git failed to checkout to branch {}", branch);
+        }
       }
     } else {
       throw new CliException("Could not clone " + parsedUrl + " to " + targetRepository + " because you are offline.");
