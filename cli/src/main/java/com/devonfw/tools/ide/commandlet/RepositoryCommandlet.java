@@ -65,7 +65,7 @@ public class RepositoryCommandlet extends Commandlet {
         return;
       }
 
-      List <Path> propertiesFiles = this.context.getFileAccess().getChildrenInDir(repositories,
+      List <Path> propertiesFiles = this.context.getFileAccess().listChildren(repositories,
           path -> path.getFileName().toString().endsWith(".properties"));
 
       boolean forceMode = this.context.isForceMode();
@@ -104,12 +104,9 @@ public class RepositoryCommandlet extends Commandlet {
     Path workspacePath = this.context.getIdeHome().resolve("workspaces").resolve(workspace);
     this.context.getFileAccess().mkdirs(workspacePath);
 
-    if (repositoryConfig.gitBranch() != null && !repositoryConfig.gitBranch().isEmpty()) {
-      gitUrl = gitUrl + "#" + repositoryConfig.gitBranch();
-    }
-
     Path repositoryPath = workspacePath.resolve(repository);
-    this.context.getGitContext().pullOrClone(gitUrl, repositoryPath);
+    String branch = repositoryConfig.gitBranch() != null ? repositoryConfig.gitBranch() : "";
+    this.context.getGitContext().pullOrClone(gitUrl, branch, repositoryPath);
 
     String buildCmd = repositoryConfig.buildCmd();
     this.context.debug("Building repository with ide command: {}", buildCmd);
