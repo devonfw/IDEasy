@@ -19,6 +19,7 @@ toc::[]
 
 === Prerequisites
 All you need before installing IDEasy is https://git-scm.com/download/[git].
+
 ** Windows
 *** On Windows you need to  *download and install* https://git-scm.com/download/win[git for windows].
 ** Linux
