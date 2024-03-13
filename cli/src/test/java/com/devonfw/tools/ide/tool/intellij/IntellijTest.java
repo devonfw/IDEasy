@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -37,7 +39,7 @@ public class IntellijTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
 
     if (context.getSystemInfo().isLinux()) {
-
+      Path binPath = context.getSoftwarePath().resolve("bin");
     }
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7");
