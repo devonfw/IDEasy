@@ -10,6 +10,7 @@ image:https://img.shields.io/github/license/devonfw/IDEasy.svg?label=License["Ap
 image:https://img.shields.io/maven-central/v/com.devonfw.tools.ide/ide-cli.svg?label=Maven%20Central["Maven Central",link=https://search.maven.org/search?q=g:com.devonfw.tools.ide]
 image:https://github.com/devonfw/IDEasy/actions/workflows/build.yml/badge.svg["Build Status",link="https://github.com/devonfw/IDEasy/actions/workflows/build.yml"]
 image:https://github.com/devonfw/IDEasy/actions/workflows/update-urls.yml/badge.svg["Update URLS Status",link="https://github.com/devonfw/IDEasy/actions/workflows/update-urls.yml"]
+image:https://github.com/devonfw/IDEasy/actions/workflows/nightly-build.yml/badge.svg["Nightly Release", link="https://github.com/devonfw/IDEasy/actions/workflows/nightly-build.yml"]
 image:https://coveralls.io/repos/github/devonfw/IDEasy/badge.svg?branch=main["Coverage Status",link="https://coveralls.io/github/devonfw/IDEasy?branch=main"]
 
 toc::[]
