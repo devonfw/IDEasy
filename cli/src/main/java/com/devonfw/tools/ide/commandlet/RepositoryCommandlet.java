@@ -105,7 +105,10 @@ public class RepositoryCommandlet extends Commandlet {
     this.context.getFileAccess().mkdirs(workspacePath);
 
     Path repositoryPath = workspacePath.resolve(repository);
-    String branch = repositoryConfig.gitBranch() != null ? repositoryConfig.gitBranch() : "";
+    String branch = "";
+    if (repositoryConfig.gitBranch() != null) {
+      branch = repositoryConfig.gitBranch();
+    }
     this.context.getGitContext().pullOrClone(gitUrl, branch, repositoryPath);
 
     String buildCmd = repositoryConfig.buildCmd();
