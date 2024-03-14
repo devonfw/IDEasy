@@ -1,0 +1,72 @@
+:toc:
+toc::[]
+
+= Configurator
+
+`IDEasy` has build-in functionality to configure your IDE.
+This allows to merge and manage complex configurations.
+
+== How to use
+The easiest way is that you do not care.
+When you launch the IDE of your choice (e.g. via `ide eclipse`, `ide intellij`, `ide vscode`), this will happen automatically.
+
+== How it works
+For every supported IDE we distinguish the following file structures:
+
+1. _workspace_
++
+The actual configuration location of the tool itself.
+We configure the tool to relocate this to a specific workspace (so by default `workspaces/main/`).
+2. _setup_
++
+A configuration location with the configuration only used during the link:setup.adoc[setup]: `settings/«ide»/workspace/setup`.
+Contains settings to setup a link:workspaces.adoc[workspace].
+After that the user remains control over these settings.
+3. _update_
++
+A configuration location with the configuration used to update and override: `settings/«ide»/workspace/update`.
+Contains settings that are overridden with every update and enforced for every team member.
+If a developer manually changes such configuration setting, it will be reset on the next time the IDE gets started.
+
+The configurator will recursively traverse the directory structure of 2. and 3. together.
+For each located file `«relative-path»/«file»` it will create or update 1. according to the following rules:
+
+* If `«relative-path»/«file»` is present in 1. (workspace) it will be loaded and used as basis.
+* Otherwise if `«relative-path»/«file»` is present in 2. (setup) it will be loaded and used as basis.
+* If `«relative-path»/«file»` is present in 3. (update) it will be loaded and merged with the current basis.
+* Variables in the from `${«variable-name»}` get resolved if `«variable-name»` is defined.
+* If this caused any change the result is written to `«relative-path»/«file»` in 1. (workspace).
+
+In other words this means:
+
+* When your workspace configuration is initially created, 1. is empty. Hence, settings from 2. are used and merged with 3.
+* Settings in 2. are therefore used as initial defaults and suggestions but can be changed by the end-user (developer).
+Hence, use 2. for things such as themes, UI tweaks, etc.
+Once the workspace is configured 2. typically is not relevant anymore.
+* Settings in 3. are applied on every update.
+By default this happens every time you start your IDE, these settings are managed by the `settings` and in control `configurator`.
+If the user modifies such settings and reopens his IDE his changes are reverted.
+Hence, use 3. for things such as code-formatters, compiler options, paths to tools shipped with `IDEasy`, etc. that should be consistent and homogeneous for every team-member.
+
+== How to customize
+
+The settings for your ide are located in `settings/«ide»/workspace` where you find the `setup` (2.) and `update` (3.) sub-folders.
+E.g. for Eclipse the most relevant settings can be found in `settings/eclipse/workspace/update/.metadata/.plugins/org.eclipse.core.runtime/.settings`.
+Of course you could manually edit these settings with a text editor.
+However, this requires a lot of knowledge. As we want to provide a great user-experience with `IDEasy` you can also do the following:
+
+* Launch the IDE to configure (e.g. `ide intellij`).
+* In case of a non-trivial tweak you may first create a backup copy of the IDE configuration in `workspaces/main` (for IntelliJ in `.intelij` and `.idea` subfolders and for eclipse in `.metadata`).
+* Do the desired modification of the configuration via the GUI of your IDE (Preferences dialog).
+* Exit your IDE and wait untill it is shutdown
+* Call `ws-reverse` command for your IDE (e.g. `ide intellij ws-reverse`) - ensure you do this in the same workspace where you launched and tweaked the config (without intermediate `cd` commands).
+* Review the changes to your link:settings.adoc[settings] with a git and diff tool of your choice (e.g. call `git diff`).
+* If all looks as expected commit these changes and push them - consider using a feature branch and ask a colleague to test these changes before you apply this to the main branch.
+* In case you could not find the expected changes, you may have tweaked a property that is not yet managed.
+Therefore, you can try again with `ws-reverse-add` instead of `ws-reverse` (e.g. `ide eclipse ws-reverse-add`) but be aware to revert undesired changes.
+Be sure not to add undesired settings that should not be managed.
+* In case your changes are in an entirely new configuration file that is currently not managed,
+you can simply diff the current workspace folder with the previously created backup copy using a recursive diff tool
+(such as winmerge or maybe just `diff -R`).
+Once you figured out the relevant change from that diff,
+you can manually apply it to the according `«ide»/workspace/update` folder in your `ide-settings` git repository.
