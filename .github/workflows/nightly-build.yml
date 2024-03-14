@@ -1,4 +1,4 @@
-name: Nightly CI Build and Snapshot Release
+name: Nightly Build
 on:
    workflow_dispatch:
    schedule:
