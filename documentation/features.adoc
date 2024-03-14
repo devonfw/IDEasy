@@ -3,12 +3,15 @@ toc::[]
 
 = Features
 
-Every developer needs great tools to work efficiently. Setting up these tools manually can be tedious and error-prone.
+Every developer needs great tools to work efficiently.
+Setting up these tools manually can be tedious and error-prone.
 Furthermore, some projects may require different versions and configurations of such tools.
-In case you are working for more than one project in parallel, you may have contradicting requirements for your environments (e.g. different versions of Java, Node.js, etc. or different code-styles).
+In case you are working for more than one project in parallel,
+you may have contradicting requirements for your environments (e.g. different versions of Java, Node.js, etc. or different code-styles).
 Especially configurations like code-formatters should be consistent within a project to avoid diff-wars.
 
-`IDEasy` will solve these issues. Here are the features and benefits for you:
+`IDEasy` will solve these issues.
+Here are the features and benefits for you:
 
 * *Efficient* +
 Set up your IDE quickly tailored for the requirements of your project.
@@ -17,19 +20,29 @@ Automate the setup and update, avoid manual steps and mistakes.
 * *Simple* +
 KISS (Keep It Small and Simple), no native installers that globally mess your operating-system or tool-integrations that break with every release.
 * *Configurable* +
-Each project can be configured via a simple git repository. These link:settings.asciidoc[settings] allow a project to maintain their configuration tailored to its needs and this way distribute it to its team. A developer can even customize and configure additional fine-tunings for personal preferences.
+Each project can be configured via a simple git repository.
+These link:settings.adoc[settings] allow a project to maintain their configuration tailored to its needs and this way distribute it to its team.
+A developer can even customize and configure additional fine-tunings for personal preferences.
 * *Maintainable* +
-For your project you should fork (copy) these link:settings.asciidoc[settings] to an own git repository that can be maintained and updated to manage the tool configurations during the project lifecycle. If you use GitHub, GitLab, or BitBucket every developer can easily suggest changes and improvements to these link:settings.asciidoc[settings] via pull/merge requests. This makes it scale from a single developer up to teams with hundreds of developers.
+For your project you should fork (copy) these link:settings.adoc[settings] to an own git repository that can be maintained and updated to manage the tool configurations during the project lifecycle.
+If you use GitHub, GitLab, or BitBucket every developer can easily suggest changes and improvements to these link:settings.adoc[settings] via pull/merge requests.
+This makes it scale from a single developer up to teams with hundreds of developers.
 * *Customizable* +
-You can integrate any tool you need on your local machine. Most development tools are supported out of the box and if you want you get security updates automatically without manual maintenance. You can even add link:software.asciidoc#custom[custom tools] on your own to integrate tools that are not supported out of the box (including closed-source, proprietary or commercial software) as long as you care about the terms and licenses of these tools.
+You can integrate any tool you need on your local machine.
+Most development tools are supported out of the box and if you want you get security updates automatically without manual maintenance.
+You can even add link:software.adoc#custom[custom tools] on your own to integrate tools that are not supported out of the box (including closed-source, proprietary or commercial software) as long as you care about the terms and licenses of these tools.
 * *Multi-platform* +
 It supports and works on all major platforms: Windows, Mac and Linux.
 * *Multi-tenancy* +
-You can have any number of projects "link:setup.asciidoc[installed]" with `IDEasy` on your machine with different tools, tool versions and configurations. Such "installations" do not interfere with each other nor with other software installed on your operating-system.
+You can have any number of projects "link:setup.adoc[installed]" with `IDEasy` on your machine with different tools, tool versions and configurations.
+Such project "installations" do not interfere with each other nor with other software installed on your operating-system.
 * *Multiple Workspaces* +
-It supports working with different link:workspaces.asciidoc[workspaces]. You can create and update new workspaces with a few clicks e.g. for different sub-projects or branches. You can see the workspace name in the title-bar of your IDE so you do not get confused and work on the right workspace.
+It supports working with different link:workspaces.adoc[workspaces].
+You can create and update new workspaces with a few clicks e.g. for different sub-projects or branches.
+You can see the workspace name in the title-bar of your IDE so you do not get confused and work on the right workspace.
 * *Free* +
-`IDEasy` is free just like everything from https://devonfw.com[devonfw]. See link:license.asciidoc[LICENSE] for details.
+`IDEasy` is free and open-source software.
+See link:license.adoc[LICENSE] for details.
 
 == IDEs
 We support the following IDEs:
@@ -41,7 +54,8 @@ We support the following IDEs:
 
 == Motivation
 
-`TL;DR`? Lets talk to developers a correct language. Here are some examples with `IDEasy`:
+`TL;DR`? Lets talk to developers a correct language.
+Here are some examples with `IDEasy`:
 
 [source,bash]
 --------
@@ -49,7 +63,7 @@ We support the following IDEs:
 You are not inside an IDEasy project: /
 [/]$ cd /projects/devonfw
 [devonfw]$ mvn
-zsh: command not found: mvn
+command not found: mvn
 [devonfw]$ ide
 Environment variables have been set for /projects/devonfw in workspace main
 [devonfw]$ mvn -v
@@ -76,7 +90,7 @@ launching Eclipse for workspace test...
 --------
 
 This was just a very simple demo of what `IDEasy` can do.
-For further details have a look at our link:cli.asciidoc[CLI documentation].
+For further details have a look at our link:cli.adoc[CLI documentation].
 
 Now you might ask:
 
@@ -88,4 +102,4 @@ Now you might ask:
 * But I use (OhMy)Zsh  - it works!
 * But ...? - it works!
 
-Wow! So let's get started with link:setup.asciidoc[download & setup].
+Wow! So let's get started with link:setup.adoc[download & setup].
