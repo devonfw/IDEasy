@@ -9,7 +9,7 @@ This section explains the usage of `IDEasy` according to your role:
 = Usage
 
 == Developer
-As a developer you are supported to link:setup.asciidoc[setup] your IDE automated and fast while you can have a nice cup of coffee (after you provided `settings-URL` and accepted the license).
+As a developer you are supported to link:setup.adoc[setup] your IDE automated and fast while you can have a nice cup of coffee (after you provided `settings-URL` and accepted the license).
 You only need the settings URL from your xref:admin[ide-admin].
 Experienced developers can directly call `setup «settings-URL»`.
 Otherwise if you just call `setup` (e.g. by double-clicking it), you can enter it when you are prompted for `Settings URL` (using copy&paste to avoid typos).
@@ -30,16 +30,16 @@ You can still delete the according installation from your `software` folder and 
 === Working with multiple workspaces
 If you are working on different branches in parallel you typically want to use multiple workspaces.
 
-. Go to the link:workspaces.asciidoc[workspaces] folder in your link:variables.asciidoc[${IDE_HOME}] and create a new folder with the name of your choice (e.g. `release2.1`).
+. Go to the link:workspaces.adoc[workspaces] folder in your link:variables.adoc[${IDE_HOME}] and create a new folder with the name of your choice (e.g. `release2.1`).
 . Check out (`git clone ...`) the according projects and branch into that workspace folder.
-. Open a shell in that new workspace folder (`cd` to it) and according to your IDE run e.g. link:eclipse.asciidoc[eclipse], link:vscode.asciidoc[vscode], or link:intellij.asciidoc[intellij] to create your workspace and launch the IDE. You can also add the parameter `create-script` to the IDE link:cli.asciidoc#commandlets[commandlet] in order to create a launch-script for your IDE.
+. Open a shell in that new workspace folder (`cd` to it) and according to your IDE run e.g. link:eclipse.adoc[eclipse], link:vscode.adoc[vscode], or link:intellij.adoc[intellij] to create your workspace and launch the IDE. You can also add the parameter `create-script` to the IDE link:cli.adoc#commandlets[commandlet] in order to create a launch-script for your IDE.
 
 You can have multiple instances of eclipse running for each workspace in parallel. To distinguish these instances you will find the workspace name in the title of eclipse.
 
 == Admin
 
-You can easily customize and link:configuration.asciidoc[configure] `IDEasy` for the requirements of your project.
-In order to do so, you need to create your own project-specific settings git repository and provide the URL to all developers for the link:setup.asciidoc[setup].
+You can easily customize and link:configuration.adoc[configure] `IDEasy` for the requirements of your project.
+In order to do so, you need to create your own project-specific settings git repository and provide the URL to all developers for the link:setup.adoc[setup].
 With tools such as gitlab, bitbucket or github every developer can easily propose changes and improvements.
 However, we suggest that one team member is responsible to ensure that everything stays consistent and works.
 We will call this person the _ide-admin_ of your project.
@@ -56,8 +56,8 @@ git push
 ```
 +
 Now you should have a full fork as a copy of the `settings` git repo with all its history that is ready for upstream merges.
-. Study the link:settings.asciidoc#structure[structure] of this git repository to understand where to find which configuration.
-. Study the link:configuration.asciidoc[configuration] and understand that general settings can be tweaked in the toplevel `ide.properties` file of your settings git repository.
+. Study the link:settings.adoc#structure[structure] of this git repository to understand where to find which configuration.
+. Study the link:configuration.adoc[configuration] and understand that general settings can be tweaked in the toplevel `ide.properties` file of your settings git repository.
 . Configure the tools and their versions for your project. Here is an example:
 +
 ```
@@ -70,14 +70,14 @@ MAVEN_VERSION=3.6.2
 ```
 +
 This way you will take over control of the tools and their versions for every developer in your project team and ensure that things get reproducible.
-. In case you need a proprietary or unsupported tool, you can study link:software.asciidoc#custom[how to include custom tools].
-. In case you have very restrictive policies about downloading tools from the internet, you can create and configure a link:software.asciidoc#repository[software repository] for your project or company.
-. Some of the tools (especially the actual IDEs) allow extensions via plugins. You can customize them to your needs for link:eclipse.asciidoc#plugins[eclipse], link:vscode.asciidoc#plugins[VS code], or link:intellij.asciidoc#plugins[intelliJ].
-. In your `settings` git repository you will find a `projects` folder. Here you will find configurations files for every git project relevant for your actual project. Feel free to create new projects for your needs and delete the `devonfw` specific default projects. The link:projects.asciidoc[projects] documentation will explain you how to do this.
+. In case you need a proprietary or unsupported tool, you can study link:software.adoc#custom[how to include custom tools].
+. In case you have very restrictive policies about downloading tools from the internet, you can create and configure a link:software.adoc#repository[software repository] for your project or company.
+. Some of the tools (especially the actual IDEs) allow extensions via plugins. You can customize them to your needs for link:eclipse.adoc#plugins[eclipse], link:vscode.adoc#plugins[VS code], or link:intellij.adoc#plugins[intelliJ].
+. In your `settings` git repository you will find a `projects` folder. Here you will find configurations files for every git project relevant for your actual project. Feel free to create new projects for your needs and delete the `devonfw` specific default projects. The link:projects.adoc[projects] documentation will explain you how to do this.
 . For every IDE you will also find an according folder in your `settings` git repository. Here are the individual configuration settings for that IDE. You can change them by directly editing the according configuration files directly with a text-editor in your `settings` git repository. However, this is a really complex way and will take you a lot of time to find the right file and property to tweak for your actual need. Instead we suggest to study
-link:configurator.asciidoc#how-to-customize[how to customize IDE specific settings].
+link:configurator.adoc#how-to-customize[how to customize IDE specific settings].
 . You may also create new sub-folders in your `settings` git repository and put individual things according to your needs. E.g. you could add scripts for https://addons.mozilla.org/de/firefox/addon/greasemonkey[greasemonkey] or https://www.tampermonkey.net/[tampermonkey], as well as scripts for your database or whatever may be useful and worth to share in your team. However, to share and maintain knowledge we recommend to use a wiki instead.
-. You may want to customize the link:eclipse.asciidoc#dictionary[Eclipse spellchecker dictionary] for your project and your language.
+. You may want to customize the link:eclipse.adoc#dictionary[Eclipse spellchecker dictionary] for your project and your language.
 
 All described in the above steps (except the first one) can be used to manage and update the configuration during the project lifecycle.
 However, when you have done changes especially in a larger project, please consider the following best-practices to avoid that a large teams gets blocked by a non-functional IDE:
@@ -88,7 +88,8 @@ However, when you have done changes especially in a larger project, please consi
 * Only after that works well for a couple of days, inform the entire team to update.
 
 === Announce changes to your team
-In order to roll out the perfectly configured `IDEasy` to your project initially or when new members join, you only have to provide the `Settings URL` to the xref:developer[developers] of your team.
+In order to roll out the perfectly configured `IDEasy` to your project initially or when new members join,
+you only have to provide the `Settings URL` to the xref:developer[developers] of your team.
 You can also provide a specific branch with `Settings URL#branch` to use variations of common settings or to test new settings before making them public to the team.
 
 After you changed and tested your `settings` git repository (main branch), you only need to announce this to your xref:developer[developers] (e.g. via email or some communication tool) so that they will call `ide update` and automatically get up-to-date with the latest changes (see xref:update[update]).
