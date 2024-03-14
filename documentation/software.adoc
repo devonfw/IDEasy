@@ -1,0 +1,51 @@
+:doctype: book
+:toc:
+toc::[]
+
+= software
+
+The `software` folder contains the third party tools for your IDE such as maven, npm, java, dotnet, etc.
+However, `IDEasy` only maintains symbolic links here that point to a local xref:repository[].
+
+== Repository
+
+Technically we "install" (extract) all tools into a local repository (in `$IDE_ROOT/_ide/software`) and just place symbolic links to such physical tool version inside the local repository.
+This has the following benefits:
+
+* Switching a tool version forth and back is lightning fast since only a symbolic link needs to be updated.
+* We avoid severe issues with link:how-to-unlock-files.adoc[Windows file-locking].
+* Multiple IDEasy projects can share the same physical tool versions to save disc-space.
+However, we keep previous tool version on updates what can also waste disc-space.
+Therefore, you can run `ide cleanup` to find and release old tool versions and free disc-space.
+
+== Custom Tools
+
+In some cases, a project might need a (proprietary) tools that are not directly supported by `IDEasy`.
+As a solution for this need, `IDEasy` let's you configure custom tools via `settings/ide-custom-tools.json`.
+The following example illustrates how to configure custom tools:
+```json
+{
+  "url": "https://some-file-server.company.com/projects/my-project",
+  "tools": [
+    {
+      "name": "jboss-eap",
+      "version": "7.1.4.GA",
+      "os-agnostic": true,
+      "arch-agnostic": true
+    },
+    {
+      "name": "firefox",
+      "version": "70.0.1",
+      "os-agnostic": false,
+      "arch-agnostic": false
+    }
+  ]
+}
+```
+
+This will download and extract the following content to your `software` folder:
+
+* `https://some-file-server.company.com/projects/my-project/jboss-eap/7.1.4.GA/jboss-eap-7.1.4.GA.tgz`
+* `https://some-file-server.company.com/projects/my-project/firefox/70.0.1/firefox-70.0.1-windows-x64.tgz`
+
+Please note that if you are not using windows, the `-windows` suffix will be `-mac` or `-linux`.
