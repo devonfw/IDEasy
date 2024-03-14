@@ -1,0 +1,8 @@
+:toc:
+toc::[]
+
+= system
+
+The `system` folder contains documentation and solutions for operation system specific integration.
+Please have a look to get the maximum out of `IDEasy` and become a very efficient power user.
+
