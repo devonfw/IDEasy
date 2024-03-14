@@ -18,16 +18,16 @@ ${project.version}, ${buildtime}
 :toc:
 
 [preface]
-include::IDEasy-introduction.asciidoc[leveloffset=1]
+include::IDEasy-introduction.adoc[leveloffset=1]
 
 <<<<
 
-include::IDEasy-usage.asciidoc[leveloffset=1]
+include::IDEasy-usage.adoc[leveloffset=1]
 
 <<<<
 
-include::IDEasy-advanced.asciidoc[leveloffset=1]
+include::IDEasy-advanced.adoc[leveloffset=1]
 
 <<<<
 
-include::IDEasy-support.asciidoc[leveloffset=1]
+include::IDEasy-support.adoc[leveloffset=1]
