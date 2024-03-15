@@ -1,7 +1,7 @@
 :toc:
 toc::[]
 
-= definition of done
+= Definition of Done
 
 Before a pull request (PR) for devonfw-ide is ready for review, this _definition of done_ (DoD) should be satisfied.
 Please note that external contributors are not strictly required to address all of these points as we love to get contributions and do not want to scare people from contributing with too much constraints.
@@ -36,6 +36,9 @@ So e.g. if we implement a story and then add another PR as bugfix or improvement
 There are very few tools as exception to this rule like `Docker` that extend `GlobalToolCommandlet`.
 ** [ ] The tool can be configured locally inside `$IDE_HOME/conf` and not from a global location (e.g. in `$HOME`).
 Note: If a tool reads configuration files from the users home directory this is not given as two IDEasy projects using the same tool then would read the same config so one installation would influence the other.
+** [ ] The help page displays information about the commandlet and its properties (CLI parameters) explaining how to use it properly.
+There are no warnings logged in the help output (like `Cound not find key 'cmd-gcviewer' in ResourceBundle nls.Ide.properties`).
+Therefore add proper help texts for all supported languages https://github.com/devonfw/IDEasy/tree/main/cli/src/main/resources/nls[here].
 ** [ ] The new tool is added to the table of tools in https://github.com/devonfw/ide/blob/master/documentation/LICENSE.asciidoc#license[LICENSE.asciidoc] with its according licesne.
 If that license is not yet included, the full license text needs to be added.
 ** [ ] The new commandlet installs potential dependencies automatically (e.g. `getCommandlet(«DependentTool».class).install()` in overridden `install` method).
