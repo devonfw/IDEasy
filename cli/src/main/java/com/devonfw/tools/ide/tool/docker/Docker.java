@@ -1,10 +1,14 @@
 package com.devonfw.tools.ide.tool.docker;
 
-import java.util.Set;
+import java.util.*;
 
+import com.devonfw.tools.ide.PackageManager;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 public class Docker extends GlobalToolCommandlet {
   /**
@@ -17,9 +21,53 @@ public class Docker extends GlobalToolCommandlet {
     super(context, "docker", Set.of(Tag.DOCKER));
   }
 
-  /*
-   * @Override public String getName() {
-   * 
-   * return "rancher"; }
-   */
+  @Override
+  public boolean isExtract(){
+   switch (context.getSystemInfo().getOs()){
+      case WINDOWS:
+        return false;
+      case MAC:
+        if(context.getSystemInfo().getArchitecture().equals(SystemArchitecture.ARM64)){
+          return true;
+        }
+        return false;
+      case LINUX:
+        return true;
+      default:
+        return super.isExtract();
+    }
+  }
+
+  @Override
+  protected boolean doInstall(boolean silent){
+    if(context.getSystemInfo().isLinux()){
+        return installWithPackageManger(getPackageMangerCommands(),silent);
+    } else {
+      return super.doInstall(silent);
+    }
+  }
+
+  private Map<PackageManager, List<String>> getPackageMangerCommands(){
+    Map<PackageManager, List<String>> commands = new HashMap<>();
+
+    String edition = getEdition();
+    ToolRepository toolRepository = this.context.getDefaultToolRepository();
+    VersionIdentifier configuredVersion = getConfiguredVersion();
+    String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion).toString();
+
+    commands.put(PackageManager.ZYPPER, Arrays.asList("sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo",
+        String.format("sudo zypper --no-gpg-checks install rancher-desktop=%s*",resolvedVersion)));
+
+    commands.put(PackageManager.APT, Arrays.asList("curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | gpg --dearmor | sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
+        "echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg] https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' | sudo dd status=none of=/etc/apt/sources.list.d/isv-rancher-stable.list",
+        "sudo apt update",
+        String.format("sudo apt install -y --allow-downgrades rancher-desktop=%s*",resolvedVersion)));
+
+    return commands;
+  }
+
+  @Override
+  protected String getBinaryName(){
+    return "rancher-desktop";
+  }
 }
