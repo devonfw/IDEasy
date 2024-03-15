@@ -87,6 +87,12 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
+  public void pullOrClone(String gitRepoUrl, Path targetRepository) {
+
+    pullOrClone(gitRepoUrl, null, targetRepository);
+  }
+
+  @Override
   public void pullOrClone(String gitRepoUrl, String branch, Path targetRepository) {
 
     Objects.requireNonNull(targetRepository);

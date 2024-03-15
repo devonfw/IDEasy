@@ -17,6 +17,11 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
+  public void pullOrClone(String gitRepoUrl, Path targetRepository) {
+
+  }
+
+  @Override
   public void pullOrClone(String gitRepoUrl, String branch, Path targetRepository) {
 
   }

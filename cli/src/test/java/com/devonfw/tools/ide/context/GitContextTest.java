@@ -55,7 +55,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
     GitContext gitContext = new GitContextImpl(context);
     // act
-    gitContext.pullOrClone(gitRepoUrl, "", tempDir);
+    gitContext.pullOrClone(gitRepoUrl, tempDir);
     // assert
     assertThat(tempDir.resolve(".git").resolve("url")).hasContent(gitRepoUrl);
   }
@@ -78,7 +78,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
     // act
-    gitContext.pullOrClone(gitRepoUrl, "", tempDir);
+    gitContext.pullOrClone(gitRepoUrl, tempDir);
     // assert
     assertThat(tempDir.resolve(".git").resolve("update")).hasContent(currentDate.toString());
   }
