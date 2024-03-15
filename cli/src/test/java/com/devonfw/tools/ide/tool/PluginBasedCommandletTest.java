@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 public class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
- public IdeTestContext context = newContext(PROJECT_BASIC, "", false);
+ public IdeTestContext context = newContext(PROJECT_BASIC);
  public ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, "eclipse", null);
 
  @Test
