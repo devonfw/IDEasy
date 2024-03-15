@@ -6,12 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.devonfw.tools.ide.PackageManager;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
+import com.devonfw.tools.ide.tool.PackageManager;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 public class Docker extends GlobalToolCommandlet {
