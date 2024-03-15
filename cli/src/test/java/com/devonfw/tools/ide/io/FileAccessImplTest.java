@@ -1,7 +1,10 @@
 package com.devonfw.tools.ide.io;
 
-import static com.devonfw.tools.ide.io.FileAccessImpl.generatePermissionString;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContextMock;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,12 +15,8 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import static com.devonfw.tools.ide.io.FileAccessImpl.generatePermissionString;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 /**
  * Test of {@link FileAccessImpl}.
@@ -218,8 +217,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     if (!windowsJunctionsAreUsed(context, tempDir)) {
-      context
-          .info("Can not check the Test: testWindowsJunctionsCanNotPointToFiles since windows junctions are not used.");
+      context.info(
+          "Can not check the Test: testWindowsJunctionsCanNotPointToFiles since windows junctions are not used.");
       return;
     }
     Path file = tempDir.resolve("file");
@@ -352,7 +351,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    *
    * @param dir the {@link Path} to the directory where the symlinks are expected.
    * @param readLinks - {@code true} if the symbolic link shall be read with {@link Files#readSymbolicLink(Path)}, this
-   *        does not work for Windows junctions.
+   * does not work for Windows junctions.
    */
   private void assertSymlinksAreBroken(Path dir, boolean readLinks) throws IOException {
 
@@ -373,7 +372,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    *
    * @param link the {@link Path} to the link.
    * @param readLinks - {@code true} if the symbolic link shall be read with {@link Files#readSymbolicLink(Path)}, this
-   *        does not work for Windows junctions.
+   * does not work for Windows junctions.
    */
   private void assertSymlinkIsBroken(Path link, boolean readLinks) throws IOException {
 
@@ -398,7 +397,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    *
    * @param dir the {@link Path} to the directory where the symlinks are expected.
    * @param readLinks - {@code true} if the symbolic link shall be read with {@link Files#readSymbolicLink(Path)}, this
-   *        does not work for Windows junctions.
+   * does not work for Windows junctions.
    */
   private void assertSymlinksWork(Path dir, boolean readLinks) {
 
@@ -475,8 +474,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link FileAccessImpl#untar(Path, Path, TarCompression)} with {@link TarCompression#NONE} and checks if
-   * file permissions are preserved on Unix.
+   * Test of {@link FileAccessImpl#extractTar(Path, Path, TarCompression)} with {@link TarCompression#NONE} and checks
+   * if file permissions are preserved on Unix.
    */
   @Test
   public void testUntarWithNoneCompressionWithFilePermissions(@TempDir Path tempDir) {
@@ -488,9 +487,9 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
 
     // act
-    context.getFileAccess().untar(
-        Path.of("src/test/resources/com/devonfw/tools/ide/io").resolve("executable_and_non_executable.tar"), tempDir,
-        TarCompression.NONE);
+    context.getFileAccess()
+        .extractTar(Path.of("src/test/resources/com/devonfw/tools/ide/io").resolve("executable_and_non_executable.tar"),
+            tempDir, TarCompression.NONE);
 
     // assert
     assertPosixFilePermissions(tempDir.resolve("executableFile.txt"), "rwxrwxr-x");
@@ -498,8 +497,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link FileAccessImpl#untar(Path, Path, TarCompression)} with {@link TarCompression#GZ} and checks if file
-   * permissions are preserved on Unix.
+   * Test of {@link FileAccessImpl#extractTar(Path, Path, TarCompression)} with {@link TarCompression#GZ} and checks if
+   * file permissions are preserved on Unix.
    */
   @Test
   public void testUntarWithGzCompressionWithFilePermissions(@TempDir Path tempDir) {
@@ -511,7 +510,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
 
     // act
-    context.getFileAccess().untar(
+    context.getFileAccess().extractTar(
         Path.of("src/test/resources/com/devonfw/tools/ide/io").resolve("executable_and_non_executable.tar.gz"), tempDir,
         TarCompression.GZ);
 
@@ -521,8 +520,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link FileAccessImpl#untar(Path, Path, TarCompression)} with {@link TarCompression#BZIP2} and checks if
-   * file permissions are preserved on Unix.
+   * Test of {@link FileAccessImpl#extractTar(Path, Path, TarCompression)} with {@link TarCompression#BZIP2} and checks
+   * if file permissions are preserved on Unix.
    */
   @Test
   public void testUntarWithBzip2CompressionWithFilePermissions(@TempDir Path tempDir) {
@@ -534,7 +533,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
 
     // act
-    context.getFileAccess().untar(
+    context.getFileAccess().extractTar(
         Path.of("src/test/resources/com/devonfw/tools/ide/io").resolve("executable_and_non_executable.tar.bz2"),
         tempDir, TarCompression.BZIP2);
 

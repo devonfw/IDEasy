@@ -116,21 +116,20 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
-    Path tmpDir = fileAccess.createTempDir(getName());
-    Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
-    extract(target, downloadBinaryPath);
-    if (!Files.isDirectory(target) && !isExtract()) {
-      downloadBinaryPath = downloadBinaryPath.resolve(target.getFileName());
+    Path executable = target;
+    Path tmpDir = null;
+    boolean extract = isExtract();
+    if (extract) {
+      tmpDir = fileAccess.createTempDir(getName());
+      Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
+      fileAccess.extract(target, downloadBinaryPath);
+      downloadBinaryPath = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
-    if (isExtract()) {
-      downloadBinaryPath = fileAccess.findFirst(downloadBinaryPath,
-          file -> !Files.isDirectory(file) && Files.isExecutable(file), true);
-    }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING)
-        .executable(downloadBinaryPath);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(executable);
     int exitCode = pc.run();
-    fileAccess.delete(tmpDir);
-    fileAccess.delete(target);
+    if (tmpDir != null) {
+      fileAccess.delete(tmpDir);
+    }
     if (exitCode == 0) {
       this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
     } else {
