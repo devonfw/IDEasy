@@ -14,7 +14,7 @@ Microsoft is also working on a repository for Windows called https://github.com/
 
 == Integration into Windows-Explorer
 
-After you have link:setup.asciidoc[set up] your `IDEasy` on a windows machine,
+After you have link:setup.adoc[set up] your `IDEasy` on a windows machine,
 you already have windows-explorer integration out-of-the-box.
 Just right-click on the folder you would like to open in a terminal and choose from the context menu:
 

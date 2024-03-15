@@ -1,0 +1,30 @@
+:toc:
+toc::[]
+
+= Structure
+The directory layout of your `IDEasy` will look like this:
+
+.File structure of your IDEasy
+[subs=+macros]
+----
+/ projects (link:variables.adoc[$IDE_ROOT])
+├──/ _ide/
+|  ├──/ bin/
+|  |  ├──/ ide
+|  |  └──/ ideasy[.exe]
+|  ├──/ link:software.adoc[software]/
+|  ├──/ link:system.adoc[system]/
+|  ├──/ tmp/
+|  └──/ urls/
+└──/ my-project (link:variables.adoc[$IDE_HOME])
+   ├──/ link:conf.adoc[conf]/
+   ├──/ link:log.adoc[log]/
+   ├──/ link:settings.adoc[settings]/
+   ├──/ link:software.adoc[software]/
+   ├──/ link:workspaces.adoc[workspaces]/
+   └── IDEasy-doc.pdf
+----
+
+The elements of the above structure are described in the individual sections.
+As they are hyperlinks you can simply click on them to get more details.
+

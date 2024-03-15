@@ -33,7 +33,7 @@ To better organize the board and avoid overload, only pull request are allowed i
 Issues remain `in progress` until completed via merge of PR.
 
 General conventions for contributions to devonfw can be found
-https://github.com/devonfw/.github/blob/master/CONTRIBUTING.asciidoc#code-changes[here].
+https://github.com/devonfw/.github/blob/master/CONTRIBUTING.adoc#code-changes[here].
 The following conventions are added on top by the IDEasy team from the
 learnings & retros for our best way of working together:
 
