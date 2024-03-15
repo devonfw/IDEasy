@@ -60,7 +60,7 @@ public class GitContextImpl implements GitContext {
 
       // Check if the file modification time is older than the delta threshold
       if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || context.isForceMode()) {
-        pullOrClone(repoUrl, "", targetRepository);
+        pullOrClone(repoUrl, targetRepository);
         try {
           Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
         } catch (IOException e) {
