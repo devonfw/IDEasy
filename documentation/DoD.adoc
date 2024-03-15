@@ -12,7 +12,7 @@ However, chances to get your change merged quickly are higher if you address all
 ** [ ] PR top-level comment summarizes what has been done and contains link to addressed issue(s).
 ** [ ] PR is linked with the issue(s) that it implements and resolves (see sidebar, click on `Development` and enter issue ID) - to archive this add `fixes #«issue-id»` to your PR summary.
 ** [ ] PR and issue(s) have suitable labels (OS-specific like `windows`, `macOS`, or `linux` as well as other aspects like `commandlet`, `plugins`, `urls`, or tool specific labels such as `eclipse` or `java`)
-** [ ] Issue is assigned to you (should actually be done before you start your implementation).
+** [ ] Issue is set to `In Progress` and assigned to you (should actually be done before you start your implementation). See also https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[here].
 ** [ ] Milestones are typically assigned by PO (Jörg) but have to be set before issues and PRs get closed. In case your issue is only addressed by a change in `ide-mirrors`/`ide-urls` or in `ide-settings` repository, please already assign the according milestone (switch to `closed` tab under `Milestone`).
 * [ ] All checks have passed. Otherwise if a check failed (red cross) you need to click the `Details` link, read the logs and fix the problem.
 ** [ ] The build and all automated tests succeeded. If failed and you clicked on `Details` add read the logs to find the error.
