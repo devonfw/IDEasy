@@ -6,7 +6,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.EnumProperty;
-import com.devonfw.tools.ide.property.StringProperty;
+import com.devonfw.tools.ide.property.PasswordProperty;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
@@ -18,10 +18,10 @@ import com.devonfw.tools.ide.tool.mvn.Mvn;
  */
 public class Jasypt extends LocalToolCommandlet {
 
-  public final EnumProperty<JasyptCommand> command;
+  private final EnumProperty<JasyptCommand> command;
 
-  public final StringProperty masterPassword;
-  public final StringProperty secret;
+  private final PasswordProperty masterPassword;
+  private final PasswordProperty secret;
 
 
   private static final String CLASS_NAME_ENCRYPTION = "org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI";
@@ -40,14 +40,14 @@ public class Jasypt extends LocalToolCommandlet {
   public Jasypt(IdeContext context) {
 
 
-    super(context, "jasypt", Set.of(Tag.JAVA));
+    super(context, "jasypt", Set.of(Tag.JAVA, Tag.ENCRYPTION));
 
 
 
     this.command = add(new EnumProperty<>("", true, "command", JasyptCommand.class));
-    this.masterPassword=add(new StringProperty("", true, "masterPassword"));
-    this.secret=add(new StringProperty("", true, "secret"));
-    //add(this.arguments);
+    this.masterPassword=add(new PasswordProperty("", true, "masterPassword"));
+    this.secret=add(new PasswordProperty("", true, "secret"));
+    add(this.arguments);
 
   }
 
