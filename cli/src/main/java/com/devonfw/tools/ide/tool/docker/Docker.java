@@ -1,6 +1,10 @@
 package com.devonfw.tools.ide.tool.docker;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.devonfw.tools.ide.PackageManager;
 import com.devonfw.tools.ide.common.Tag;
@@ -22,32 +26,27 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
-  public boolean isExtract(){
-   switch (context.getSystemInfo().getOs()){
-      case WINDOWS:
-        return false;
-      case MAC:
-        if(context.getSystemInfo().getArchitecture().equals(SystemArchitecture.ARM64)){
-          return true;
-        }
-        return false;
-      case LINUX:
-        return true;
-      default:
-        return super.isExtract();
-    }
+  public boolean isExtract() {
+
+    return switch (context.getSystemInfo().getOs()) {
+      case WINDOWS -> false;
+      case MAC -> context.getSystemInfo().getArchitecture().equals(SystemArchitecture.ARM64);
+      case LINUX -> true;
+    };
   }
 
   @Override
-  protected boolean doInstall(boolean silent){
-    if(context.getSystemInfo().isLinux()){
-        return installWithPackageManger(getPackageMangerCommands(),silent);
+  protected boolean doInstall(boolean silent) {
+
+    if (context.getSystemInfo().isLinux()) {
+      return installWithPackageManger(getPackageMangerCommands(), silent);
     } else {
       return super.doInstall(silent);
     }
   }
 
-  private Map<PackageManager, List<String>> getPackageMangerCommands(){
+  private Map<PackageManager, List<String>> getPackageMangerCommands() {
+
     Map<PackageManager, List<String>> commands = new HashMap<>();
 
     String edition = getEdition();
@@ -55,19 +54,22 @@ public class Docker extends GlobalToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion).toString();
 
-    commands.put(PackageManager.ZYPPER, Arrays.asList("sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo",
-        String.format("sudo zypper --no-gpg-checks install rancher-desktop=%s*",resolvedVersion)));
+    commands.put(PackageManager.ZYPPER, Arrays.asList(
+        "sudo zypper addrepo https://download.opensuse.org/repositories/isv:/Rancher:/stable/rpm/isv:Rancher:stable.repo",
+        String.format("sudo zypper --no-gpg-checks install rancher-desktop=%s*", resolvedVersion)));
 
-    commands.put(PackageManager.APT, Arrays.asList("curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | gpg --dearmor | sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
+    commands.put(PackageManager.APT, Arrays.asList(
+        "curl -s https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/Release.key | gpg --dearmor | sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
         "echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg] https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' | sudo dd status=none of=/etc/apt/sources.list.d/isv-rancher-stable.list",
         "sudo apt update",
-        String.format("sudo apt install -y --allow-downgrades rancher-desktop=%s*",resolvedVersion)));
+        String.format("sudo apt install -y --allow-downgrades rancher-desktop=%s*", resolvedVersion)));
 
     return commands;
   }
 
   @Override
-  protected String getBinaryName(){
+  protected String getBinaryName() {
+
     return "rancher-desktop";
   }
 }

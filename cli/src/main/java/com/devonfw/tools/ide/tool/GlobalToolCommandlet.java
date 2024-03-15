@@ -42,7 +42,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
    *         nothing has changed.
    */
-  protected boolean installWithPackageManger(Map<PackageManager, List<String>> commands, boolean silent){
+  protected boolean installWithPackageManger(Map<PackageManager, List<String>> commands, boolean silent) {
+
     Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
 
     if (binaryPath != null && Files.exists(binaryPath) && !this.context.isForceMode()) {
@@ -52,7 +53,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
 
     Path bashPath = this.context.getPath().findBinary(Path.of("bash"));
-    if (bashPath == null || !Files.exists(bashPath)){
+    if (bashPath == null || !Files.exists(bashPath)) {
       context.warning("Bash was not found on this machine. Not Proceeding with installation of tool " + this.tool);
       return false;
     }
@@ -66,7 +67,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
 
     int finalExitCode = 0;
-    if(foundPackageManager == null){
+    if (foundPackageManager == null) {
       context.warning("No supported Package Manager found for installation");
       return false;
     } else {
@@ -100,6 +101,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   @Override
   protected boolean doInstall(boolean silent) {
+
     Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
     // if force mode is enabled, go through with the installation even if the tool is already installed
     if (binaryPath != null && Files.exists(binaryPath) && !this.context.isForceMode()) {
@@ -121,7 +123,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       downloadBinaryPath = downloadBinaryPath.resolve(target.getFileName());
     }
     if (isExtract()) {
-      downloadBinaryPath = fileAccess.findFirst(downloadBinaryPath,file -> !Files.isDirectory(file) && Files.isExecutable(file), true);
+      downloadBinaryPath = fileAccess.findFirst(downloadBinaryPath,
+          file -> !Files.isDirectory(file) && Files.isExecutable(file), true);
     }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING)
         .executable(downloadBinaryPath);
