@@ -50,7 +50,8 @@ public interface IdeVariables {
   VariableDefinitionString GRAALVM_EDITION = new VariableDefinitionString("GRAALVM_EDITION", null, c -> "community");
 
   /** {@link VariableDefinition} for options of jasypt */
-  VariableDefinitionString JASYPT_OPTS = new VariableDefinitionString("JASYPT_OPTS", null, c -> "algorithm=PBEWITHHMACSHA512ANDAES_256 ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator");
+  VariableDefinitionString JASYPT_OPTS = new VariableDefinitionString("JASYPT_OPTS", null,
+      c -> "algorithm=PBEWITHHMACSHA512ANDAES_256 ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator");
 
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE,
