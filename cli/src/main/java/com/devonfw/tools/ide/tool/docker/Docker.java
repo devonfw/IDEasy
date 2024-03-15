@@ -70,6 +70,10 @@ public class Docker extends GlobalToolCommandlet {
   @Override
   protected String getBinaryName() {
 
-    return "rancher-desktop";
+    if (context.getSystemInfo().isLinux()) {
+      return "rancher-desktop";
+    } else {
+      return super.getBinaryName();
+    }
   }
 }
