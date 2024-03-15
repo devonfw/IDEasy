@@ -10,7 +10,8 @@ In order to grant these permissions to yourself, run `secpol.msc` (`Local Securi
 +
 image::images/LocalSecurityPolicy.png[LocalSecurityPolicy]
 +
-2. Add your own user account. To do so you might need to be connected to a VPN depending on the company settings.
+2. Add your own user account.
+To do so you might need to be connected to a VPN depending on the company settings.
 
 [cols="3,1a,1a,3", frame=none, grid=none]
 |===
