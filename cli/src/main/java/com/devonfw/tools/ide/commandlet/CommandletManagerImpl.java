@@ -1,10 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
@@ -27,6 +23,7 @@ import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
+import com.devonfw.tools.ide.tool.tomcat.Tomcat;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 
 /**
@@ -79,6 +76,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Quarkus(context));
     add(new Kotlinc(context));
     add(new KotlincNative(context));
+    add(new Tomcat(context));
     add(new Vscode(context));
     add(new Azure(context));
     add(new Aws(context));
