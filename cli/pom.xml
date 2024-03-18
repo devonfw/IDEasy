@@ -152,17 +152,17 @@
                 <configuration>
                   <artifacts>
                     <artifact>
-                      <file>target/${project.artifactId}-linux-x64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-linux-x64.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>linux</classifier>
                     </artifact>
                     <artifact>
-                      <file>target/${project.artifactId}-windows-x64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-windows-x64.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>windows</classifier>
                     </artifact>
                     <artifact>
-                      <file>target/${project.artifactId}-mac-x64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-mac-x64.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>mac</classifier>
                     </artifact>
@@ -206,14 +206,40 @@
               <agent>
                 <enabled>true</enabled>
               </agent>
-              <imageName>
-                ${imageName}
-              </imageName>
+              <imageName>${imageName}</imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=https</arg>
                 <arg>-H:IncludeResources="nls/.*"</arg>
                 <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
               </buildArgs>
+            </configuration>
+          </plugin>
+          <plugin>
+            <!-- Include documentation into release -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-documentation</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>ide-doc</artifactId>
+                  <version>${project.version}</version>
+                  <type>pdf</type>
+                  <destFileName>IDEasy-documentation.pdf</destFileName>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
             </configuration>
           </plugin>
           <plugin>
@@ -230,7 +256,7 @@
                   <finalName>${releaseName}</finalName>
                   <appendAssemblyId>false</appendAssemblyId>
                   <descriptors>
-                    <descriptor>/src/main/assembly/exec.xml</descriptor>
+                    <descriptor>/src/main/assembly/release.xml</descriptor>
                   </descriptors>
                 </configuration>
               </execution>

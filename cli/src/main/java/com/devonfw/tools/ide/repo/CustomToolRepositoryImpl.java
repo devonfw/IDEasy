@@ -164,7 +164,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
           String url = getString(jsonToolObject, "url", defaultUrl);
           boolean osAgnostic = getBoolean(jsonToolObject, "os-agnostic", Boolean.FALSE);
           boolean archAgnostic = getBoolean(jsonToolObject, "arch-agnostic", Boolean.TRUE);
-          if (defaultUrl.isEmpty()) {
+          if (url.isEmpty()) {
             throw new IllegalStateException("Missing 'url' property for tool '" + name + "'!");
           }
           // TODO
