@@ -4,5 +4,5 @@ TODO: community, bug-reporting, etc.
 
 <<<<
 
-include::LICENSE.asciidoc[leveloffset=2]
+include::LICENSE.adoc[leveloffset=2]
 
