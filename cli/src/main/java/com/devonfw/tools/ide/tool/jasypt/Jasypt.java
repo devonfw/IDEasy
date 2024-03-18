@@ -19,9 +19,9 @@ public class Jasypt extends LocalToolCommandlet {
 
   public final EnumProperty<JasyptCommand> command;
 
-  public final PasswordProperty masterPassword;
+  public final PasswordProperty password;
 
-  public final PasswordProperty secret;
+  public final PasswordProperty input;
 
   private static final String CLASS_NAME_ENCRYPTION = "org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI";
 
@@ -37,9 +37,9 @@ public class Jasypt extends LocalToolCommandlet {
     super(context, "jasypt", Set.of(Tag.JAVA, Tag.ENCRYPTION));
 
     this.command = add(new EnumProperty<>("", true, "command", JasyptCommand.class));
-    this.masterPassword = add(new PasswordProperty("", true, "masterPassword"));
-    this.secret = add(new PasswordProperty("", true, "secret"));
-    add(this.arguments);
+    this.password = add(new PasswordProperty("", true, "password"));
+    this.input = add(new PasswordProperty("", true, "input"));
+    //add(this.arguments);
   }
 
   @Override
@@ -71,7 +71,6 @@ public class Jasypt extends LocalToolCommandlet {
     }
 
     JasyptCommand command = this.command.getValue();
-
     switch (command) {
       case ENCRYPT:
         runJasypt(CLASS_NAME_ENCRYPTION);
@@ -93,7 +92,7 @@ public class Jasypt extends LocalToolCommandlet {
     String generatorClassName = jasyptOptions[1];
 
     java.runTool(null, "-cp", resolveJasyptJarPath().toString(), className, algorithm, generatorClassName,
-        "password=" + this.masterPassword.getValue(), "input=" + this.secret.getValue());
+        "password=" + this.password.getValue(), "input=" + this.input.getValue());
   }
 
   private Path resolveJasyptJarPath() {
