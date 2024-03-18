@@ -13,46 +13,14 @@ import java.util.Properties;
 
 public class RepositoryCommandletTest extends AbstractIdeContextTest {
 
-  IdeTestContext context = newContext("basic", null, true);
+  IdeTestContext context = newContext(PROJECT_BASIC);
+
+  private static final String PROPERTIES_FILE = "test.properties";
 
   /**
    * Properties object used to write key-value pairs to the properties file "test.properties"
    */
   Properties properties = new Properties();
-
-  private void createPropertiesFile() {
-
-    try {
-      properties.setProperty("path", "test");
-      properties.setProperty("workingsets", "test");
-      properties.setProperty("workspace", "test");
-      properties.setProperty("git_url", "test");
-      properties.setProperty("git_branch", "test");
-      properties.setProperty("build_path", "test");
-      properties.setProperty("build_cmd", "");
-      properties.setProperty("active", "test");
-
-      Path repositoriesPath = this.context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES);
-      this.context.getFileAccess().mkdirs(repositoriesPath);
-      Path propertiesPath = repositoriesPath.resolve("test.properties");
-      Files.createFile(propertiesPath);
-      saveProperties(properties);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to create properties file during tests.", e);
-    }
-
-  }
-
-  private void saveProperties(Properties properties) {
-
-    Path propertiesPath = this.context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES)
-        .resolve("test.properties");
-    try (var output = Files.newOutputStream(propertiesPath)) {
-      properties.store(output, null);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to save properties file during tests.", e);
-    }
-  }
 
   @Test
   public void testRunWithSpecificRepository() {
@@ -60,11 +28,11 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     // arrange
     RepositoryCommandlet rc = context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
     createPropertiesFile();
-    rc.repository.setValueAsString("test", context);
+    rc.repository.setValueAsString(PROPERTIES_FILE, context);
     // act
     rc.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "Importing repository from test.properties ...");
+    assertLogMessage(context, IdeLogLevel.INFO, "Importing repository from " + PROPERTIES_FILE + " ...");
   }
 
   @Test
@@ -76,7 +44,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     // act
     rc.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "Importing repository from test.properties ...");
+    assertLogMessage(context, IdeLogLevel.INFO, "Importing repository from " + PROPERTIES_FILE + " ...");
     assertLogMessage(context, IdeLogLevel.INFO, "Skipping repository - use force (-f) to setup all repositories ...");
   }
 
@@ -89,12 +57,12 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     properties.setProperty("path", "");
     properties.setProperty("git_url", "");
     saveProperties(properties);
-    rc.repository.setValueAsString("test", context);
+    rc.repository.setValueAsString(PROPERTIES_FILE, context);
     // act
     rc.run();
     // assert
     assertLogMessage(context, IdeLogLevel.WARNING,
-        "Invalid repository configuration test.properties - both 'path' and 'git-url' have to be defined.");
+        "Invalid repository configuration " + PROPERTIES_FILE + " - both 'path' and 'git-url' have to be defined.");
   }
 
   @Test
@@ -109,4 +77,39 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     // assert
     assertLogMessage(context, IdeLogLevel.WARNING, "Cannot find repositories folder nor projects folder.");
   }
+
+  private void createPropertiesFile() {
+
+    try {
+      properties.setProperty("path", "test");
+      properties.setProperty("workingsets", "test");
+      properties.setProperty("workspace", "test");
+      properties.setProperty("git_url", "test");
+      properties.setProperty("git_branch", "test");
+      properties.setProperty("build_path", "test");
+      properties.setProperty("build_cmd", "");
+      properties.setProperty("active", "false");
+
+      Path propertiesPath = this.context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES)
+          .resolve(PROPERTIES_FILE);
+      this.context.getFileAccess().mkdirs(propertiesPath.getParent());
+      Files.createFile(propertiesPath);
+      saveProperties(properties);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to create properties file during tests.", e);
+    }
+
+  }
+
+  private void saveProperties(Properties properties) {
+
+    Path propertiesPath = this.context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES)
+        .resolve(PROPERTIES_FILE);
+    try (var output = Files.newOutputStream(propertiesPath)) {
+      properties.store(output, null);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to save properties file during tests.", e);
+    }
+  }
+
 }
