@@ -226,21 +226,21 @@
                   <goal>copy</goal>
                 </goals>
               </execution>
-              <configuration>
-                <artifactItems>
-                  <artifactItem>
-                    <groupId>${project.groupId}</groupId>
-                    <artifactId>ide-doc</artifactId>
-                    <version>${project.version}</version>
-                    <type>pdf</type>
-                    <destFileName>IDEasy-documentation.pdf</destFileName>
-                  </artifactItem>
-                </artifactItems>
-                <outputDirectory>${project.build.directory}/package</outputDirectory>
-                <overWriteReleases>false</overWriteReleases>
-                <overWriteSnapshots>true</overWriteSnapshots>
-              </configuration>
             </executions>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>ide-doc</artifactId>
+                  <version>${project.version}</version>
+                  <type>pdf</type>
+                  <destFileName>IDEasy-documentation.pdf</destFileName>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+            </configuration>
           </plugin>
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
