@@ -1,11 +1,12 @@
 package com.devonfw.tools.ide.tool.jasypt;
 
+import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
+import java.io.IOException;
 
 /**
  * Integration test of {@link Jasypt}.
@@ -15,57 +16,52 @@ public class JasyptTest extends AbstractIdeContextTest {
   private static final String PROJECT_JASYPT = "jasypt";
 
   @Test
-  public void testJasypt() {
+  public void testJasyptInstallCommandlet() throws IOException {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_JASYPT);
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("jasypt", context);
+    // act
+    install.run();
+
+    // assert
+    checkInstallation(context);
+  }
+
+  @Test
+  public void testJasyptInstall() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_JASYPT);
+
+    Jasypt commandlet = new Jasypt(context);
+
+    // act
+    commandlet.install();
+
+    // assert
+    checkInstallation(context);
+  }
+
+  @Test
+  public void testJasyptRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_JASYPT);
     Jasypt commandlet = new Jasypt(context);
 
-    // act - install
-    commandlet.install();
-
-    // assert - install
-    checkInstallation(context);
-
-    //    commandlet.command.setValue(new EnumProperty<>("", true, "command", JasyptCommand.class).getValue());
     commandlet.command.setValue(JasyptCommand.ENCRYPT);
     commandlet.masterPassword.setValue("master");
     commandlet.secret.setValue("secret");
 
+    // act
     commandlet.run();
 
-    // act and assert - run
-    //    runNoArgs(context, commandlet, null);
-    //    runRightArgs(context, commandlet, List.of("encrypt", "master", "secret"));
-    //    runRightArgs(context, commandlet, List.of("decrypt", "master", "secret"));
-    //    runWrongArgs(context, commandlet, List.of("wrong args"));
-  }
-
-  public void runNoArgs(IdeTestContext context, Jasypt commandlet, List<String> arguments) {
-
-    String expectedMessage = """
-        Jasypt encryption tool
-        Usage:
-         encrypt  <masterpassword>  <secret>             encrypt a secret with a master-password
-         decrypt  <masterpassword>  <secret>             decrypt an encrypted secret with a master-password
-        """;
-    commandlet.arguments.setValue(arguments);
-    commandlet.run();
-    assertLogMessage(context, IdeLogLevel.INFO, expectedMessage);
-  }
-
-  public void runWrongArgs(IdeTestContext context, Jasypt commandlet, List<String> arguments) {
-
-    commandlet.arguments.setValue(arguments);
-    commandlet.run();
-    assertLogMessage(context, IdeLogLevel.WARNING, "Unknown arguments");
-  }
-
-  public void runRightArgs(IdeTestContext context, Jasypt commandlet, List<String> arguments) {
-
-    commandlet.arguments.setValue(arguments);
-    commandlet.run();
+    // assert
     assertLogMessage(context, IdeLogLevel.INFO, "executing java:");
+    assertLogMessage(context, IdeLogLevel.INFO, "This is a jar file.");
+    checkInstallation(context);
   }
 
   private void checkInstallation(IdeTestContext context) {
@@ -74,9 +70,8 @@ public class JasyptTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
 
     // commandlet - jasypt
-    assertThat(context.getSoftwarePath().resolve("jasypt/jasypt-default.jar")).hasContent("This is a jar file.");
+    assertThat(context.getSoftwarePath().resolve("jasypt/jasypt-1.9.3.jar")).hasContent("This is a jar file.");
     assertThat(context.getSoftwarePath().resolve("jasypt/.ide.software.version")).exists().hasContent("1.9.3");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed jasypt in version 1.9.3");
   }
-
 }
