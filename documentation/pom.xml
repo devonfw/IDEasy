@@ -17,6 +17,7 @@
 
   <properties>
     <docgen.asciidoc.page>IDEasy</docgen.asciidoc.page>
+    <docgen.asciidoc.extension>adoc</docgen.asciidoc.extension>
     <revision>dev-SNAPSHOT</revision>
   </properties>
 

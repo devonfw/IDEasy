@@ -3,10 +3,10 @@ toc::[]
 
 = Ide CLI
 
-`IDEasy` is shipped with a central command `ide`. The link:setup.asciidoc[setup] will automatically register this command so it is available in any shell on your system. This page describes the Command Line Interface (CLI) of this command.
+`IDEasy` is shipped with a central command `ide`. The link:setup.adoc[setup] will automatically register this command so it is available in any shell on your system. This page describes the Command Line Interface (CLI) of this command.
 
 == Ide
-Without any argument the `ide` command will determine your `IDE_HOME` and setup your link:variables.asciidoc[environment variables] automatically. In case you are not inside of a `IDEasy` folder the command will echo a message and do nothing.
+Without any argument the `ide` command will determine your `IDE_HOME` and setup your link:variables.adoc[environment variables] automatically. In case you are not inside of a `IDEasy` folder the command will echo a message and do nothing.
 
 [source,bash]
 --------
