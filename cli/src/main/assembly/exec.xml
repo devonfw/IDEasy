@@ -7,6 +7,14 @@
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
+     <fileSet>
+      <directory>${project.build.directory}</directory>
+      <outputDirectory>./bin</outputDirectory>
+      <includes>
+        <include>${imageName}.exe</include>
+        <include>${imageName}</include>
+      </includes>
+    </fileSet>
     <fileSet>
       <directory>${project.build.directory}/package</directory>
       <outputDirectory>.</outputDirectory>
