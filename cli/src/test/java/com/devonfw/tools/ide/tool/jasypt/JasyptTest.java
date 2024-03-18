@@ -27,6 +27,13 @@ public class JasyptTest extends AbstractIdeContextTest {
     // assert - install
     checkInstallation(context);
 
+    //    commandlet.command.setValue(new EnumProperty<>("", true, "command", JasyptCommand.class).getValue());
+    commandlet.command.setValue(JasyptCommand.ENCRYPT);
+    commandlet.masterPassword.setValue("master");
+    commandlet.secret.setValue("secret");
+
+    commandlet.run();
+
     // act and assert - run
     //    runNoArgs(context, commandlet, null);
     //    runRightArgs(context, commandlet, List.of("encrypt", "master", "secret"));

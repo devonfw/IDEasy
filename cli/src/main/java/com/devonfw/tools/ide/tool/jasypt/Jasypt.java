@@ -17,11 +17,11 @@ import java.util.Set;
  */
 public class Jasypt extends LocalToolCommandlet {
 
-  private final EnumProperty<JasyptCommand> command;
+  public final EnumProperty<JasyptCommand> command;
 
-  private final PasswordProperty masterPassword;
+  public final PasswordProperty masterPassword;
 
-  private final PasswordProperty secret;
+  public final PasswordProperty secret;
 
   private static final String CLASS_NAME_ENCRYPTION = "org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI";
 
