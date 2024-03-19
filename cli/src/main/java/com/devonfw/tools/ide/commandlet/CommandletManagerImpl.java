@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.tool.cobigen.Cobigen;
+import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
@@ -67,6 +68,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new EditionSetCommandlet(context));
     add(new EditionListCommandlet(context));
     add(new VersionCommandlet(context));
+    add(new RepositoryCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));
@@ -86,6 +88,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Aws(context));
     add(new Cobigen(context));
     add(new Jmc(context));
+    add(new Docker(context));
     add(new Sonar(context));
   }
 

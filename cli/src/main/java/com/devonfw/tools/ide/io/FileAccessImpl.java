@@ -793,4 +793,20 @@ public class FileAccessImpl implements FileAccess {
     }
     return children;
   }
+
+  @Override
+  public Path findExistingFile(String fileName, List<Path> searchDirs) {
+
+    for (Path dir : searchDirs) {
+      Path filePath = dir.resolve(fileName);
+      try {
+        if (Files.exists(filePath)) {
+          return filePath;
+        }
+      } catch (Exception e) {
+        throw new IllegalStateException("Unexpected error while checking existence of file "+filePath+" .", e);
+      }
+    }
+    return null;
+  }
 }
