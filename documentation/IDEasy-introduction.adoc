@@ -1,0 +1,9 @@
+= Introduction
+
+This document contains the documentation for the tool https://github.com/devonfw/IDEasy[IDEasy].
+It automates the setup and update of local development environments with all the tools including your favorite IDE (integrated development environment).
+
+include::features.adoc[leveloffset=2]
+
+include::setup.adoc[leveloffset=2]
+

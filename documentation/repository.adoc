@@ -3,7 +3,9 @@ toc::[]
 
 = Project import
 
-`IDEasy` supports to automatically check out and import required projects into your IDE during link:setup.asciidoc[setup]. To configure this you put a `.properties` file for each desired project into the `projects` sub-folder in your link:settings.asciidoc[settings]. Each `.properties` file describes one "project" which you would like to check out and (potentially) import:
+`IDEasy` supports to automatically check out and import required git repositories into your IDE during link:setupadoc[setup].
+To configure this you put a `.properties` file for each desired project into the `repository` sub-folder in your link:settingsadoc[settings].
+Each `.properties` file describes one "project" which you would like to check out and (potentially) import:
 
 [source, properties]
 ----
@@ -14,11 +16,11 @@ git_url=http://github.com/someorg/someproject
 git_branch=develop
 build_path=.
 build_cmd=mvn -DskipTests=true -Darchetype.test.skip=true clean install
-eclipse=import
+import=eclipse
 active=true
 ----
 
- .Variables of project import
+ .Variables of repository import
 [options="header"]
 |===
 |*Variable*|*Value*|*Meaning*
@@ -30,9 +32,8 @@ active=true
 |`build_path`|e.g. `.` (default)|(optional) The directory inside `path` where to trigger an initial build after clone or pull (if `build_cmd` is set). For a regular project use `.` to build top-level project.
 |`build_cmd` 
 |e.g. `mvn -D skip Tests=true -Darchetype.test.skip=true clean install`
-|(optional) The _devonfw_ command to invoke to build the project after clone or pull. If omitted no build is triggered.
-|`eclipse`|e.g. `import`|(optional) Desired action for eclipse IDE. If you put `import` here all modules (eclipse projects) in the current project will be imported into eclipse. If you leave this out or put any other value for this parameter, no change in eclipse is done.
-|`active`|`true`|(optional) If set to `false` the project is skipped during the link:setup.asciidoc[setup].
+|(optional) The _IDEasy_ command to build the project after clone or pull.
+If omitted no build is triggered.
+|`import`|e.g. `eclipse`|(optional) Comma separated list of IDEs to import the repository into.
+|`active`|`true`|(optional) If set to `false` the repository is skipped during the link:setup.adoc[setup].
 |===
-
-Please note that the `.properties` file is parsed via shell and not via java. So be careful with "advanced" features `.properties` files normally support.
