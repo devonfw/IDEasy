@@ -21,7 +21,7 @@ public class DependencyJson {
   }
 
   /**
-   * @return the {@link Map} that maps the VersionRange of the tool to the list of {@link DependencyInfo}
+   * @return the {@link Map} that maps the {@link VersionRange} of the tool to the list of {@link DependencyInfo}
    */
   public Map<VersionRange, List<DependencyInfo>> getDependencies() {
 
