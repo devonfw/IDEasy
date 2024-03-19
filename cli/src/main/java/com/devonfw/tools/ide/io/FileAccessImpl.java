@@ -1,20 +1,5 @@
 package com.devonfw.tools.ide.io;
 
-import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.url.model.file.UrlChecksum;
-import com.devonfw.tools.ide.util.DateTimeUtil;
-import com.devonfw.tools.ide.util.FilenameUtil;
-import com.devonfw.tools.ide.util.HexUtil;
-
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
-
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -46,6 +31,21 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.url.model.file.UrlChecksum;
+import com.devonfw.tools.ide.util.DateTimeUtil;
+import com.devonfw.tools.ide.util.FilenameUtil;
+import com.devonfw.tools.ide.util.HexUtil;
 
 /**
  * Implementation of {@link FileAccess}.
@@ -280,10 +280,12 @@ public class FileAccessImpl implements FileAccess {
     if (fileOnly) {
       this.context.debug("Copying file {} to {}", source, target);
       if (Files.isDirectory(target)) {
-        // if we want to copy "file.txt" to the existing folder "path/to/folder/" in a shell this will copy "file.txt" into that folder
+        // if we want to copy "file.txt" to the existing folder "path/to/folder/" in a shell this will copy "file.txt"
+        // into that folder
         // with Java NIO the raw copy method will fail as we cannot copy the file to the path of the target folder
         // even worse if FileCopyMode is override the target folder ("path/to/folder/") would be deleted and the result
-        // of our "file.txt" would later appear in "path/to/folder". To prevent such bugs we append the filename to target
+        // of our "file.txt" would later appear in "path/to/folder". To prevent such bugs we append the filename to
+        // target
         target = target.resolve(source.getFileName());
       }
     } else {
@@ -355,7 +357,7 @@ public class FileAccessImpl implements FileAccess {
    *
    * @param source the {@link Path} to adapt.
    * @param targetLink the {@link Path} used to calculate the relative path to the {@code source} if {@code relative} is
-   * set to {@code true}.
+   *        set to {@code true}.
    * @param relative the {@code relative} flag.
    * @return the adapted {@link Path}.
    * @see FileAccessImpl#symlink(Path, Path, boolean)
@@ -413,7 +415,8 @@ public class FileAccessImpl implements FileAccess {
       } catch (IOException e) {
         throw new IllegalStateException(
             "Since Windows junctions are used, the source must be an absolute path. The transformation of the passed "
-                + "source (" + source + ") to an absolute path failed.", e);
+                + "source (" + source + ") to an absolute path failed.",
+            e);
       }
 
     } else {
@@ -435,9 +438,8 @@ public class FileAccessImpl implements FileAccess {
     try {
       adaptedSource = adaptPath(source, targetLink, relative);
     } catch (IOException e) {
-      throw new IllegalStateException(
-          "Failed to adapt source for source (" + source + ") target (" + targetLink + ") and relative (" + relative
-              + ")", e);
+      throw new IllegalStateException("Failed to adapt source for source (" + source + ") target (" + targetLink
+          + ") and relative (" + relative + ")", e);
     }
     this.context.trace("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative",
         targetLink, adaptedSource);
@@ -451,7 +453,7 @@ public class FileAccessImpl implements FileAccess {
     try {
       Files.createSymbolicLink(targetLink, adaptedSource);
     } catch (FileSystemException e) {
-      if (this.context.getSystemInfo().isWindows()) {
+      if (SystemInfoImpl.INSTANCE.isWindows()) {
         this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
             + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for "
             + "further details. Error was: " + e.getMessage());
@@ -460,9 +462,8 @@ public class FileAccessImpl implements FileAccess {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException(
-          "Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative") + "symbolic link " + targetLink
-              + " pointing to " + source, e);
+      throw new IllegalStateException("Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative")
+          + "symbolic link " + targetLink + " pointing to " + source, e);
     }
   }
 
@@ -505,13 +506,14 @@ public class FileAccessImpl implements FileAccess {
   public void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook, boolean extract) {
 
     if (Files.isDirectory(archiveFile)) {
-      Path properInstallDir = archiveFile; //getProperInstallationSubDirOf(archiveFile, archiveFile);
+      Path properInstallDir = archiveFile; // getProperInstallationSubDirOf(archiveFile, archiveFile);
       if (extract) {
         this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
         copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
       } else {
         move(properInstallDir, targetDir);
       }
+      postExtractHook(postExtractHook, properInstallDir);
       return;
     } else if (!extract) {
       mkdirs(targetDir);
@@ -551,26 +553,31 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     Path properInstallDir = getProperInstallationSubDirOf(tmpDir, archiveFile);
+    postExtractHook(postExtractHook, properInstallDir);
+    move(properInstallDir, targetDir);
+    delete(tmpDir);
+  }
+
+  private void postExtractHook(Consumer<Path> postExtractHook, Path properInstallDir) {
+
     if (postExtractHook != null) {
       postExtractHook.accept(properInstallDir);
     }
-    move(properInstallDir, targetDir);
-    delete(tmpDir);
   }
 
   /**
    * @param path the {@link Path} to start the recursive search from.
    * @return the deepest subdir {@code s} of the passed path such that all directories between {@code s} and the passed
-   * path (including {@code s}) are the sole item in their respective directory and {@code s} is not named "bin".
+   *         path (including {@code s}) are the sole item in their respective directory and {@code s} is not named
+   *         "bin".
    */
   private Path getProperInstallationSubDirOf(Path path, Path archiveFile) {
 
     try (Stream<Path> stream = Files.list(path)) {
       Path[] subFiles = stream.toArray(Path[]::new);
       if (subFiles.length == 0) {
-        throw new CliException(
-            "The downloaded package " + archiveFile + " seems to be empty as you can check in the extracted folder "
-                + path);
+        throw new CliException("The downloaded package " + archiveFile
+            + " seems to be empty as you can check in the extracted folder " + path);
       } else if (subFiles.length == 1) {
         String filename = subFiles[0].getFileName().toString();
         if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS)
@@ -598,7 +605,7 @@ public class FileAccessImpl implements FileAccess {
 
   /**
    * @param permissions The integer as returned by {@link TarArchiveEntry#getMode()} that represents the file
-   * permissions of a file on a Unix file system.
+   *        permissions of a file on a Unix file system.
    * @return A String representing the file permissions. E.g. "rwxrwxr-x" or "rw-rw-r--"
    */
   public static String generatePermissionString(int permissions) {
