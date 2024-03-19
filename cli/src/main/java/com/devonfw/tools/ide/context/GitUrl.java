@@ -19,7 +19,7 @@ public record GitUrl(String url, String branch) {
   public URL parseUrl() {
 
     String parsedUrl = url;
-    if (!branch.isEmpty()) {
+    if (branch != null && !branch.isEmpty()) {
       parsedUrl += "#" + branch;
     }
     URL validUrl;
