@@ -24,7 +24,9 @@ import com.devonfw.tools.ide.process.ProcessResult;
  * Implements the {@link GitContext}.
  */
 public class GitContextImpl implements GitContext {
-  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);;
+  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);
+
+  ;
 
   private final IdeContext context;
 
@@ -40,7 +42,7 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void pullOrCloneIfNeeded(String repoUrl, Path targetRepository) {
+  public void pullOrCloneIfNeeded(String repoUrl, String branch, Path targetRepository) {
 
     Path gitDirectory = targetRepository.resolve(".git");
 
@@ -67,13 +69,13 @@ public class GitContextImpl implements GitContext {
       }
     } else {
       // If the .git directory does not exist, perform git clone
-      pullOrClone(repoUrl, targetRepository);
+      pullOrClone(repoUrl, branch, targetRepository);
     }
   }
 
-  public void pullOrFetchAndResetIfNeeded(String repoUrl, Path targetRepository, String remoteName, String branchName) {
+  public void pullOrFetchAndResetIfNeeded(String repoUrl, String branch, Path targetRepository, String remoteName) {
 
-    pullOrCloneIfNeeded(repoUrl, targetRepository);
+    pullOrCloneIfNeeded(repoUrl, branch, targetRepository);
 
     if (remoteName.isEmpty()) {
       reset(targetRepository, "origin", "master");
@@ -86,6 +88,12 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public void pullOrClone(String gitRepoUrl, Path targetRepository) {
+
+    pullOrClone(gitRepoUrl, null, targetRepository);
+  }
+
+  @Override
+  public void pullOrClone(String gitRepoUrl, String branch, Path targetRepository) {
 
     Objects.requireNonNull(targetRepository);
     Objects.requireNonNull(gitRepoUrl);
@@ -112,17 +120,7 @@ public class GitContextImpl implements GitContext {
         }
       }
     } else {
-      String branch = "";
-      int hashIndex = gitRepoUrl.indexOf("#");
-      if (hashIndex != -1) {
-        branch = gitRepoUrl.substring(hashIndex + 1);
-        gitRepoUrl = gitRepoUrl.substring(0, hashIndex);
-      }
       clone(new GitUrl(gitRepoUrl, branch), targetRepository);
-      if (!branch.isEmpty()) {
-        this.processContext.addArgs("checkout", branch);
-        this.processContext.run();
-      }
     }
   }
 
@@ -130,8 +128,8 @@ public class GitContextImpl implements GitContext {
    * Handles errors which occurred during git pull.
    *
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
-   *        final folder that will contain the ".git" subfolder.
+   * It is not the parent directory where git will by default create a sub-folder by default on clone but the * final
+   * folder that will contain the ".git" subfolder.
    * @param result the {@link ProcessResult} to evaluate.
    */
   private void handleErrors(Path targetRepository, ProcessResult result) {
@@ -144,8 +142,8 @@ public class GitContextImpl implements GitContext {
       } else {
         this.context.error(message);
         if (this.context.isOnline()) {
-          this.context
-              .error("See above error for details. If you have local changes, please stash or revert and retry.");
+          this.context.error(
+              "See above error for details. If you have local changes, please stash or revert and retry.");
         } else {
           this.context.error(
               "It seems you are offline - please ensure Internet connectivity and retry or activate offline mode (-o or --offline).");
@@ -159,8 +157,8 @@ public class GitContextImpl implements GitContext {
    * Lazily initializes the {@link ProcessContext}.
    *
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
-   *        final folder that will contain the ".git" subfolder.
+   * It is not the parent directory where git will by default create a sub-folder by default on clone but the * final
+   * folder that will contain the ".git" subfolder.
    */
   private void initializeProcessContext(Path targetRepository) {
 
@@ -183,10 +181,18 @@ public class GitContextImpl implements GitContext {
       if (this.context.isQuietMode()) {
         this.processContext.addArg("-q");
       }
-      this.processContext.addArgs("--recursive", parsedUrl, "--config", "core.autocrlf=false", ".");
+      this.processContext.addArgs("--recursive", gitRepoUrl.url(), "--config", "core.autocrlf=false", ".");
       result = this.processContext.run(ProcessMode.DEFAULT_CAPTURE);
       if (!result.isSuccessful()) {
         this.context.warning("Git failed to clone {} into {}.", parsedUrl, targetRepository);
+      }
+      String branch = gitRepoUrl.branch();
+      if (branch != null) {
+        this.processContext.addArgs("checkout", branch);
+        result = this.processContext.run(ProcessMode.DEFAULT_CAPTURE);
+        if (!result.isSuccessful()) {
+          this.context.warning("Git failed to checkout to branch {}", branch);
+        }
       }
     } else {
       throw new CliException("Could not clone " + parsedUrl + " to " + targetRepository + " because you are offline.");

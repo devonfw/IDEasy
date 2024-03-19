@@ -7,17 +7,22 @@ import com.devonfw.tools.ide.log.IdeSubLogger;
 
 public class GitContextMock implements GitContext {
   @Override
-  public void pullOrCloneIfNeeded(String repoUrl, Path targetRepository) {
+  public void pullOrCloneIfNeeded(String repoUrl, String branch, Path targetRepository) {
 
   }
 
   @Override
-  public void pullOrFetchAndResetIfNeeded(String repoUrl, Path targetRepository, String remoteName, String branchName) {
+  public void pullOrFetchAndResetIfNeeded(String repoUrl, String branch, Path targetRepository, String remoteName) {
 
   }
 
   @Override
   public void pullOrClone(String gitRepoUrl, Path targetRepository) {
+
+  }
+
+  @Override
+  public void pullOrClone(String gitRepoUrl, String branch, Path targetRepository) {
 
   }
 
