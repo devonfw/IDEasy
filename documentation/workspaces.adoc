@@ -1,0 +1,35 @@
+:toc:
+toc::[]
+
+= workspaces
+
+The `workspaces` folder contains folders for your active work.
+There is a workspace folder `main` dedicated for your primary work.
+You may do all your work inside the `main` workspace.
+Also, you are free to create any number of additional workspace folders named as you like (e.g. `test`, `release`, `testing`, `my-sub-project`, etc.).
+Using multiple workspaces allows to run multiple IDE runtime instances with separate configurations within the same IDEasy project.
+
+Within the workspace folder (e.g. `workspaces/main`) you are again free to create sub-folders for (sub-)projects according to your needs.
+We assume that in most cases you clone link:repository.adoc[git repositories] here.
+The following structure shows an example layout:
+
+.File structure of workspaces
+[subs=+macros]
+----
+/ workspaces/
+├──/ main/
+│  ├──/ link:configurator.adoc[.metadata/]
+│  ├──/ IDEasy/
+│  ├──/ ide-settings/
+│  └──/ test-project/
+└──/ stable/
+   ├──/ link:configurator.adoc[.metadata/]
+   └──/ IDEasy/
+----
+
+In the `main` workspace you may find the cloned forks for regular work as a base to create pull-requests while in the `stable` workspace there is a clone of the official repository.
+Or you have checked out the `main` branch of your project-repository in `main` while in `stable` there is the latest production release branch.
+However, this is just an example.
+Some people like to create separate workspaces for development and maintenance branches with git.
+Other people just switch between those via `git checkout`.
+IDEasy offers you great flexibility and you are free to do what makes sense for you.
