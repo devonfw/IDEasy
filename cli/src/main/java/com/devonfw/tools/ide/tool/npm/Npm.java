@@ -11,9 +11,8 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.node.Node;
 
 /**
- * {@link ToolCommandlet} for <a href="https://nodejs.org/">node</a>.
+ * {@link ToolCommandlet} for <a href="https://www.npmjs.com/">npm</a>.
  */
-
 public class Npm extends LocalToolCommandlet {
 
   /**
