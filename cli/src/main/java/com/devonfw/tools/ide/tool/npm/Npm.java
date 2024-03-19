@@ -22,7 +22,7 @@ public class Npm extends LocalToolCommandlet {
    */
   public Npm(IdeContext context) {
 
-    super(context, "npm", Set.of(Tag.JAVA_SCRIPT, Tag.RUNTIME));
+    super(context, "npm", Set.of(Tag.JAVA_SCRIPT, Tag.BUILD));
   }
 
   @Override
