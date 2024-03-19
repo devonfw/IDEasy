@@ -39,7 +39,6 @@ public class Jasypt extends LocalToolCommandlet {
     this.command = add(new EnumProperty<>("", true, "command", JasyptCommand.class));
     this.password = add(new PasswordProperty("", true, "password"));
     this.input = add(new PasswordProperty("", true, "input"));
-    //add(this.arguments);
   }
 
   @Override
@@ -101,5 +100,4 @@ public class Jasypt extends LocalToolCommandlet {
     String installedVersion = getInstalledVersion().toString();
     return toolPath.resolve("jasypt-" + installedVersion + ".jar");
   }
-
 }

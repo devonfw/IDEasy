@@ -13,6 +13,7 @@ public class PasswordProperty extends StringProperty {
    * @param alias the {@link #getAlias() property alias}.
    */
   public PasswordProperty(String name, boolean required, String alias) {
+
     super(name, required, alias);
   }
 

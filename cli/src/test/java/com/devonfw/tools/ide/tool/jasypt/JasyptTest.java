@@ -6,8 +6,6 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 /**
  * Integration test of {@link Jasypt}.
  */
@@ -16,7 +14,7 @@ public class JasyptTest extends AbstractIdeContextTest {
   private static final String PROJECT_JASYPT = "jasypt";
 
   @Test
-  public void testJasyptInstallCommandlet() throws IOException {
+  public void testJasyptInstallCommandlet() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_JASYPT);
@@ -52,8 +50,8 @@ public class JasyptTest extends AbstractIdeContextTest {
     Jasypt commandlet = new Jasypt(context);
 
     commandlet.command.setValue(JasyptCommand.ENCRYPT);
-    commandlet.password.setValue("master");
-    commandlet.input.setValue("secret");
+    commandlet.password.setValue("password");
+    commandlet.input.setValue("input");
 
     // act
     commandlet.run();
