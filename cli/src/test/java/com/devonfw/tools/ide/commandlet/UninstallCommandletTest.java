@@ -71,7 +71,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
       uninstallCommandlet.run();
     } catch (IllegalStateException e) {
       // assert
-      assertThat(e).hasMessageContaining("Couldn't uninstall " + toolName, e);
+      assertThat(e).hasMessageContaining("Couldn't uninstall " + toolName);
     }
   }
 }
