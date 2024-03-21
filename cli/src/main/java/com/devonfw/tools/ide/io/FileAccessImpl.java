@@ -513,6 +513,7 @@ public class FileAccessImpl implements FileAccess {
       } else {
         move(properInstallDir, targetDir);
       }
+      postExtractHook(postExtractHook, properInstallDir);
       return;
     } else if (!extract) {
       mkdirs(targetDir);
@@ -552,11 +553,16 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     Path properInstallDir = getProperInstallationSubDirOf(tmpDir, archiveFile);
+    postExtractHook(postExtractHook, properInstallDir);
+    move(properInstallDir, targetDir);
+    delete(tmpDir);
+  }
+
+  private void postExtractHook(Consumer<Path> postExtractHook, Path properInstallDir) {
+
     if (postExtractHook != null) {
       postExtractHook.accept(properInstallDir);
     }
-    move(properInstallDir, targetDir);
-    delete(tmpDir);
   }
 
   /**
@@ -786,5 +792,21 @@ public class FileAccessImpl implements FileAccess {
       throw new IllegalStateException("Failed to find children of directory " + dir, e);
     }
     return children;
+  }
+
+  @Override
+  public Path findExistingFile(String fileName, List<Path> searchDirs) {
+
+    for (Path dir : searchDirs) {
+      Path filePath = dir.resolve(fileName);
+      try {
+        if (Files.exists(filePath)) {
+          return filePath;
+        }
+      } catch (Exception e) {
+        throw new IllegalStateException("Unexpected error while checking existence of file "+filePath+" .", e);
+      }
+    }
+    return null;
   }
 }

@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.util.Collection;
 
-import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -48,10 +47,10 @@ public final class EnvironmentCommandlet extends Commandlet {
       if (this.context.getSystemInfo().isWindows()) {
         line = normalizeWindowsValue(line);
       }
+      String lineValue = "\"" + line.getValue() + "\"";
+      line = line.withValue(lineValue);
       this.context.info(line.toString());
     }
-    SystemPath path = this.context.getPath();
-    this.context.info("export PATH={}", path.toString(this.bash.isTrue()));
   }
 
   VariableLine normalizeWindowsValue(VariableLine line) {
