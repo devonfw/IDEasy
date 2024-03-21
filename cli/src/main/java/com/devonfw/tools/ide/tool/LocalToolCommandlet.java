@@ -19,9 +19,9 @@ import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
-import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyJson;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -269,8 +269,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     Path dependencyJsonPath = getDependencyJsonPath();
 
     try (BufferedReader reader = Files.newBufferedReader(dependencyJsonPath)) {
-      DependencyJson dependencyJson = MAPPER.readValue(reader, DependencyJson.class);
-      return findDependenciesFromJson(dependencyJson.getDependencies(), getConfiguredVersion());
+      TypeReference<HashMap<VersionRange, List<DependencyInfo>>> typeRef = new TypeReference<>() {
+      };
+      Map<VersionRange, List<DependencyInfo>> dependencyJson = MAPPER.readValue(reader, typeRef);
+      return findDependenciesFromJson(dependencyJson, getConfiguredVersion());
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
