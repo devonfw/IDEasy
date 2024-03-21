@@ -47,6 +47,8 @@ public final class EnvironmentCommandlet extends Commandlet {
       if (this.context.getSystemInfo().isWindows()) {
         line = normalizeWindowsValue(line);
       }
+      String lineValue = "\"" + line.getValue() + "\"";
+      line = line.withValue(lineValue);
       this.context.info(line.toString());
     }
   }
