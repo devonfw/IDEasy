@@ -293,6 +293,7 @@ public final class Tag {
   /** {@link #Tag} for github. */
   public static final Tag GITHUB = create("github", GIT);
 
+
   /** {@link #Tag} for diff (tools that compare files and determine the difference). */
   public static final Tag DIFF = create("diff", CONFIG_MANAGEMENT, false, "patch");
 
@@ -310,6 +311,12 @@ public final class Tag {
 
   /** {@link #Tag} for Linux. */
   public static final Tag LINUX = create("linux", OS, false);
+
+  /** {@link #getParent() Parent} for cryptography. */
+  public static final Tag CRYPTO = create("cryptography", ROOT, false, "crypto");
+
+  /** {@link #Tag} for encryption. */
+  public static final Tag ENCRYPTION = create("encryption", CRYPTO);
 
   private final String id;
 

@@ -49,9 +49,13 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
   VariableDefinitionString GRAALVM_EDITION = new VariableDefinitionString("GRAALVM_EDITION", null, c -> "community");
 
+  /** {@link VariableDefinition} for options of jasypt */
+  VariableDefinitionString JASYPT_OPTS = new VariableDefinitionString("JASYPT_OPTS", null,
+      c -> "algorithm=PBEWITHHMACSHA512ANDAES_256 ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator");
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE,
-      IDE_TOOLS, CREATE_START_SCRIPTS, IDE_MIN_VERSION, MVN_VERSION, DOCKER_EDITION, GRAALVM_EDITION);
+      IDE_TOOLS, CREATE_START_SCRIPTS, IDE_MIN_VERSION, MVN_VERSION, DOCKER_EDITION, GRAALVM_EDITION, JASYPT_OPTS);
 
   /**
    * @param name the name of the requested {@link VariableDefinition}.

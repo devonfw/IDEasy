@@ -270,7 +270,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
       if (!name.equals(key)) {
         value = this.parent.get(key);
       }
-      if (value != null) {
+      if (value == null) {
         value = var.getDefaultValueAsString(this.context);
       }
     }
