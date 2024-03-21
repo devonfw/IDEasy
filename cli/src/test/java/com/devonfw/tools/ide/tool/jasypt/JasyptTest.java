@@ -50,8 +50,8 @@ public class JasyptTest extends AbstractIdeContextTest {
     Jasypt commandlet = new Jasypt(context);
 
     commandlet.command.setValue(JasyptCommand.ENCRYPT);
-    commandlet.password.setValue("password");
-    commandlet.input.setValue("input");
+    commandlet.masterPassword.setValue("password");
+    commandlet.secret.setValue("input");
 
     // act
     commandlet.run();
