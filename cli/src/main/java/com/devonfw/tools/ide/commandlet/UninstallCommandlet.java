@@ -44,7 +44,7 @@ public class UninstallCommandlet extends Commandlet {
         fileAccess.delete(softwarePath);
         this.context.success("Successfully uninstalled " + commandletName);
       } catch (Exception e) {
-        throw new IllegalStateException("Couldn't uninstall " + commandletName);
+        throw new IllegalStateException("Couldn't uninstall " + commandletName, e);
       }
     } else {
       this.context.info("An installed version of " + commandletName + " does not exist");
