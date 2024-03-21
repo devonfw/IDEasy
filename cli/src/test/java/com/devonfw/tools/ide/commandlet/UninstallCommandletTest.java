@@ -34,7 +34,6 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     // act
     uninstallCommandlet.run();
     // assert
-    Path softwarePath = context.getSoftwarePath();
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully uninstalled " + toolName);
     assertThat(Files.notExists(context.getSoftwarePath().resolve(toolName)));
   }
@@ -50,7 +49,6 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     // act
     uninstallCommandlet.run();
     // assert
-    Path softwarePath = context.getSoftwarePath();
     assertLogMessage(context, IdeLogLevel.INFO, "An installed version of " + toolName + " does not exist");
     assertThat(Files.notExists(context.getSoftwarePath().resolve(toolName)));
   }
@@ -71,9 +69,9 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     // act
     try {
       uninstallCommandlet.run();
-    } catch (Exception e) {
+    } catch (IllegalStateException e) {
       // assert
-      assertThat(e).hasMessageContaining("Couldn't uninstall " + toolName);
+      assertThat(e).hasMessageContaining("Couldn't uninstall " + toolName, e);
     }
   }
 }
