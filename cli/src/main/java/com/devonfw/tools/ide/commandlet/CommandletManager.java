@@ -39,7 +39,8 @@ public interface CommandletManager {
 
   /**
    * @param name the {@link Commandlet#getName() name} of the requested {@link ToolCommandlet}.
-   * @return the requested {@link ToolCommandlet} or {@code null} if not found.
+   * @return the requested {@link ToolCommandlet} if found.
+   * @throws IllegalArgumentException if the commandlet with the given name is not a {@link ToolCommandlet}
    */
   default ToolCommandlet getToolCommandlet(String name) {
 
@@ -50,4 +51,16 @@ public interface CommandletManager {
     throw new IllegalArgumentException("The commandlet " + name + " is not a ToolCommandlet!");
   }
 
+  /**
+   * @param name the {@link Commandlet#getName() name} of the requested {@link ToolCommandlet}.
+   * @return the requested {@link ToolCommandlet} or {@code null} if not found.
+   */
+  default ToolCommandlet getToolCommandletOrNull(String name) {
+
+    Commandlet commandlet = getCommandlet(name);
+    if (commandlet instanceof ToolCommandlet) {
+      return (ToolCommandlet) commandlet;
+    }
+    return null;
+  }
 }

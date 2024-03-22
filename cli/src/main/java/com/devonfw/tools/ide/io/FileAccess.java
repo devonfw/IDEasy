@@ -232,4 +232,10 @@ public interface FileAccess {
    */
   Path findExistingFile(String fileName, List<Path> searchDirs);
 
+  /**
+   * Checks if the given directory is empty.
+   * @param dir The {@link Path} object representing the directory to check.
+   * @return {@code true} if the directory is empty, {@code false} otherwise.
+   */
+  boolean isEmptyDir(Path dir);
 }
