@@ -34,7 +34,7 @@ public class RepositoryCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     addKeyword("setup");
-    this.repository = add(new RepositoryProperty("", false, "repository", true));
+    this.repository = add(new RepositoryProperty("", false, "repository"));
   }
 
   @Override
@@ -65,7 +65,7 @@ public class RepositoryCommandlet extends Commandlet {
         return;
       }
 
-      List <Path> propertiesFiles = this.context.getFileAccess().getChildrenInDir(repositories,
+      List <Path> propertiesFiles = this.context.getFileAccess().listChildren(repositories,
           path -> path.getFileName().toString().endsWith(".properties"));
 
       boolean forceMode = this.context.isForceMode();
@@ -104,12 +104,8 @@ public class RepositoryCommandlet extends Commandlet {
     Path workspacePath = this.context.getIdeHome().resolve("workspaces").resolve(workspace);
     this.context.getFileAccess().mkdirs(workspacePath);
 
-    if (repositoryConfig.gitBranch() != null && !repositoryConfig.gitBranch().isEmpty()) {
-      gitUrl = gitUrl + "#" + repositoryConfig.gitBranch();
-    }
-
     Path repositoryPath = workspacePath.resolve(repository);
-    this.context.getGitContext().pullOrClone(gitUrl, repositoryPath);
+    this.context.getGitContext().pullOrClone(gitUrl, repositoryConfig.gitBranch(), repositoryPath);
 
     String buildCmd = repositoryConfig.buildCmd();
     this.context.debug("Building repository with ide command: {}", buildCmd);

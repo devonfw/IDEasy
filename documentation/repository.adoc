@@ -1,0 +1,39 @@
+:toc:
+toc::[]
+
+= Project import
+
+`IDEasy` supports to automatically check out and import required git repositories into your IDE during link:setupadoc[setup].
+To configure this you put a `.properties` file for each desired project into the `repository` sub-folder in your link:settingsadoc[settings].
+Each `.properties` file describes one "project" which you would like to check out and (potentially) import:
+
+[source, properties]
+----
+path=myproject
+workingsets=Set1,Set2
+workspace=example
+git_url=http://github.com/someorg/someproject
+git_branch=develop
+build_path=.
+build_cmd=mvn -DskipTests=true -Darchetype.test.skip=true clean install
+import=eclipse
+active=true
+----
+
+ .Variables of repository import
+[options="header"]
+|===
+|*Variable*|*Value*|*Meaning*
+|`path`|e.g. `myproject`, will clone into `${WORKSPACE_PATH}/myproject`|(required) Path into which the projects is cloned. This path is relative to the workspace.
+|`working sets`|e.g. `ws1,ws2`|(optional) This will create working sets (in eclipse). Each module (eclipse project) of this project will be part of all these working sets. Working sets will be automatically created if necessary.
+|`workspace`|`main`|Workspace to use for checkout and import. Default is `main`.
+|`git_url`|e.g. `http://github.com/someorg/someproject`|(required) Git URL to use for cloning the project.
+|`git_branch`|e.g. `develop`|(optional) Git branch to checkout. Git default branch is default.
+|`build_path`|e.g. `.` (default)|(optional) The directory inside `path` where to trigger an initial build after clone or pull (if `build_cmd` is set). For a regular project use `.` to build top-level project.
+|`build_cmd` 
+|e.g. `mvn -D skip Tests=true -Darchetype.test.skip=true clean install`
+|(optional) The _IDEasy_ command to build the project after clone or pull.
+If omitted no build is triggered.
+|`import`|e.g. `eclipse`|(optional) Comma separated list of IDEs to import the repository into.
+|`active`|`true`|(optional) If set to `false` the repository is skipped during the link:setup.adoc[setup].
+|===

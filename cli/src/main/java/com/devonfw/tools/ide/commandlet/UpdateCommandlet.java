@@ -46,43 +46,45 @@ public class UpdateCommandlet extends Commandlet {
 
     updateSettings();
     this.context.getFileAccess().mkdirs(this.context.getWorkspacePath());
-    setupConf(this.context.getSettingsPath().resolve("devon"), this.context.getIdeHome());
+    Path templatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
+    if (!Files.exists(templatesFolder)) {
+      Path legacyTemplatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_TEMPLATES);
+      if (Files.exists(legacyTemplatesFolder)) {
+        templatesFolder = legacyTemplatesFolder;
+      } else {
+        this.context.warning("Templates folder is missing in settings folder.");
+        return;
+      }
+    }
+    setupConf(templatesFolder, this.context.getIdeHome());
     updateSoftware();
     updateRepositories();
   }
 
   private void setupConf(Path template, Path conf) {
 
-    try (Stream<Path> childStream = Files.list(template)) {
-      Iterator<Path> iterator = childStream.iterator();
-      while (iterator.hasNext()) {
-        Path child = iterator.next();
-        String basename = child.getFileName().toString();
+    List<Path> children = this.context.getFileAccess().listChildren(template, f -> true);
+    for (Path child : children) {
 
-        if (!basename.equals(".") && !basename.equals("..") && !basename.equals("*")) {
-          Path confPath = conf.resolve(basename);
+      String basename = child.getFileName().toString();
+      Path confPath = conf.resolve(basename);
 
-          if (Files.isDirectory(child)) {
-            if (!Files.exists(confPath) || !Files.isDirectory(confPath)) {
-              this.context.getFileAccess().mkdirs(confPath);
-            }
-            setupConf(child, confPath);
-          } else if (Files.isRegularFile(child)) {
-            if (Files.isRegularFile(confPath)) {
-              this.context.debug("Configuration {} already exists - skipping to copy from {}", confPath, child);
-            } else {
-              if (!basename.equals("settings.xml")) {
-                this.context.info("Copying template {} to {}.", child, confPath);
-                this.context.getFileAccess().copy(child, confPath);
-              }
-            }
+      if (Files.isDirectory(child)) {
+        if (!Files.isDirectory(confPath)) {
+          this.context.getFileAccess().mkdirs(confPath);
+        }
+        setupConf(child, confPath);
+      } else if (Files.isRegularFile(child)) {
+        if (Files.isRegularFile(confPath)) {
+          this.context.debug("Configuration {} already exists - skipping to copy from {}", confPath, child);
+        } else {
+          if (!basename.equals("settings.xml")) {
+            this.context.info("Copying template {} to {}.", child, confPath);
+            this.context.getFileAccess().copy(child, confPath);
           }
         }
       }
-    } catch (IOException e) {
-      throw new IllegalStateException("Could not setup the conf folder.", e);
     }
-
   }
 
   private void updateSettings() {
@@ -123,7 +125,7 @@ public class UpdateCommandlet extends Commandlet {
     Set<ToolCommandlet> toolCommandlets = new HashSet<>();
 
     // installed tools in IDE_HOME/software
-    List<Path> softwares = this.context.getFileAccess().getChildrenInDir(this.context.getSoftwarePath(), Files::isDirectory);
+    List<Path> softwares = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
     for (Path software : softwares) {
       String toolName = software.getFileName().toString();
       ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandletOrNull(toolName);

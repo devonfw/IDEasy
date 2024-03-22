@@ -118,6 +118,10 @@ public interface IdeContext extends IdeLogger {
   /** The default for {@link #getWorkspaceName()}. */
   String WORKSPACE_MAIN = "main";
 
+  String FOLDER_TEMPLATES = "templates";
+
+  String FOLDER_LEGACY_TEMPLATES = "devon";
+
   /**
    * @return {@code true} in case of quiet mode (reduced output), {@code false} otherwise.
    */
