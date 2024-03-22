@@ -66,17 +66,12 @@ public class CreateCommandlet extends Commandlet {
 
   private void initializeInstance(Path newInstancePath) {
 
-    try {
-      FileAccess fileAccess = this.context.getFileAccess();
-      fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SOFTWARE));
-      fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_UPDATES));
-      fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_PLUGINS));
-      fileAccess.mkdirs(newInstancePath.resolve("scripts")); // to be removed after isIdeHome is changed
-      if (!Files.exists(newInstancePath.resolve("setup"))) {
-        Files.createFile(newInstancePath.resolve("setup")); // to be removed after isIdeHome is changed
-      }
-    } catch(IOException e) {
-      throw new IllegalStateException("Could not initialize " + newInstancePath, e);
-    }
+    FileAccess fileAccess = this.context.getFileAccess();
+    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SOFTWARE));
+    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_UPDATES));
+    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_PLUGINS));
+    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_WORKSPACES));
+    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SETTINGS));
+
   }
 }

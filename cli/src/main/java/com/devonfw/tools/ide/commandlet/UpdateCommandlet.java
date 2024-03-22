@@ -91,7 +91,7 @@ public class UpdateCommandlet extends Commandlet {
 
     this.context.info("Updating settings repository ...");
     Path settingsPath = this.context.getSettingsPath();
-    if (Files.isDirectory(settingsPath)) {
+    if (Files.isDirectory(settingsPath) && !this.context.getFileAccess().isEmptyDir(settingsPath)) {
       // perform git pull on the settings repo
       this.context.getGitContext().pull(settingsPath);
       this.context.success("Successfully updated settings repository.");
