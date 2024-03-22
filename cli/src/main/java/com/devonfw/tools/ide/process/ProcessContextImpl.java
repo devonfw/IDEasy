@@ -1,13 +1,5 @@
 package com.devonfw.tools.ide.process;
 
-import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.common.SystemPath;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.VariableLine;
-import com.devonfw.tools.ide.log.IdeSubLogger;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
-import com.devonfw.tools.ide.util.FilenameUtil;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,6 +13,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.SystemPath;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.VariableLine;
+import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.util.FilenameUtil;
 
 /**
  * Implementation of {@link ProcessContext}.
@@ -116,7 +116,7 @@ public class ProcessContextImpl implements ProcessContext {
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");
     }
-    List<String> args = new ArrayList<>(this.arguments.size() + 2);
+    List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(this.executable.toString(), args);
     args.addAll(this.arguments);
     if (this.context.debug().isEnabled()) {
@@ -140,7 +140,7 @@ public class ProcessContextImpl implements ProcessContext {
       List<String> err = null;
 
       if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()));) {
+        try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
           out = outReader.lines().collect(Collectors.toList());
         }
         try (BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
@@ -182,9 +182,9 @@ public class ProcessContextImpl implements ProcessContext {
       sb.append(interpreter);
     }
     int size = this.arguments.size();
-    if (size > 1) {
+    if (size > 0) {
       sb.append(" with arguments");
-      for (int i = 1; i < size; i++) {
+      for (int i = 0; i < size; i++) {
         String arg = this.arguments.get(i);
         sb.append(" '");
         sb.append(arg);
@@ -192,8 +192,7 @@ public class ProcessContextImpl implements ProcessContext {
       }
     }
     sb.append(suffix);
-    String message = sb.toString();
-    return message;
+    return sb.toString();
   }
 
   private String getSheBang(Path file) {
@@ -313,6 +312,10 @@ public class ProcessContextImpl implements ProcessContext {
         }
       }
       args.add(bash);
+    }
+    if ("msi".equalsIgnoreCase(fileExtension)) {
+      args.add(0, "/i");
+      args.add(0, "msiexec");
     }
     args.add(executable);
     return interpreter;

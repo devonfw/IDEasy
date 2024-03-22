@@ -1,16 +1,5 @@
 package com.devonfw.tools.ide.tool;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
-
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -19,6 +8,19 @@ import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptorImpl;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Base class for {@link LocalToolCommandlet}s that support plugins. It can automatically install configured plugins for
+ * the tool managed by this commandlet.
+ */
 public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private Map<String, PluginDescriptor> pluginsMap;
@@ -31,7 +33,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   *        method.
+   * method.
    */
   public PluginBasedCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -47,7 +49,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       Path pluginsPath = getPluginsConfigPath();
       loadPluginsFromDirectory(map, pluginsPath);
 
-      // Load user-specific plugins
+      // Load user-specific plugins, this is done after loading the project-specific plugins so the user can potentially
+      // override plugins (e.g. change active flag).
       Path userPluginsPath = getUserHomePluginsConfigPath();
       loadPluginsFromDirectory(map, userPluginsPath);
 
@@ -59,33 +62,13 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private void loadPluginsFromDirectory(Map<String, PluginDescriptor> map, Path pluginsPath) {
 
-    if (Files.isDirectory(pluginsPath)) {
-      try (Stream<Path> childStream = Files.list(pluginsPath)) {
-        Iterator<Path> iterator = childStream.iterator();
-        while (iterator.hasNext()) {
-          Path child = iterator.next();
-          String filename = child.getFileName().toString();
-          if (filename.endsWith(IdeContext.EXT_PROPERTIES) && Files.exists(child)) {
-            PluginDescriptor descriptor = PluginDescriptorImpl.of(child, this.context, isPluginUrlNeeded());
-
-            // Check if plugin with same id exists
-            boolean pluginExists = map.values().stream()
-                .anyMatch(existingDescriptor -> existingDescriptor.getId().equals(descriptor.getId()));
-
-            if (pluginExists) {
-              // Plugin with same id already exists, overwrite it
-              map.entrySet().stream()
-                  .filter(entry -> entry.getValue().getId().equals(descriptor.getId()))
-                  .findFirst()
-                  .ifPresent(entry -> entry.setValue(descriptor));
-            } else {
-              // Plugin does not exist, add it normally to the map
-              map.put(descriptor.getName(), descriptor);
-            }
-          }
-        }
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to list children of directory " + pluginsPath, e);
+    List<Path> children = this.context.getFileAccess()
+        .listChildren(pluginsPath, p -> p.getFileName().toString().endsWith(IdeContext.EXT_PROPERTIES));
+    for (Path child : children) {
+      PluginDescriptor descriptor = PluginDescriptorImpl.of(child, this.context, isPluginUrlNeeded());
+      PluginDescriptor duplicate = map.put(descriptor.getName(), descriptor);
+      if (duplicate != null) {
+        this.context.info("Plugin {} from project is overridden by {}", descriptor.getName(), child);
       }
     }
   }
@@ -108,7 +91,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private Path getUserHomePluginsConfigPath() {
 
-    return this.context.getUserHome().resolve(Path.of(".ide", "settings", this.tool, IdeContext.FOLDER_PLUGINS));
+    return this.context.getUserHomeIde().resolve("settings").resolve(this.tool).resolve(IdeContext.FOLDER_PLUGINS);
   }
 
   /**
