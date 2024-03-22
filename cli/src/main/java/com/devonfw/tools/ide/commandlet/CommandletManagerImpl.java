@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.helm.Helm;
+import com.devonfw.tools.ide.tool.jasypt.Jasypt;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.jmc.Jmc;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
@@ -90,6 +91,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Cobigen(context));
     add(new Jmc(context));
     add(new DotNet(context));
+    add(new Jasypt(context));
     add(new Docker(context));
     add(new Sonar(context));
   }
