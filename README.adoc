@@ -10,6 +10,7 @@ image:https://img.shields.io/github/license/devonfw/IDEasy.svg?label=License["Ap
 image:https://img.shields.io/maven-central/v/com.devonfw.tools.ide/ide-cli.svg?label=Maven%20Central["Maven Central",link=https://search.maven.org/search?q=g:com.devonfw.tools.ide]
 image:https://github.com/devonfw/IDEasy/actions/workflows/build.yml/badge.svg["Build Status",link="https://github.com/devonfw/IDEasy/actions/workflows/build.yml"]
 image:https://github.com/devonfw/IDEasy/actions/workflows/update-urls.yml/badge.svg["Update URLS Status",link="https://github.com/devonfw/IDEasy/actions/workflows/update-urls.yml"]
+image:https://github.com/devonfw/IDEasy/actions/workflows/nightly-build.yml/badge.svg["Nightly Release", link="https://github.com/devonfw/IDEasy/actions/workflows/nightly-build.yml"]
 image:https://coveralls.io/repos/github/devonfw/IDEasy/badge.svg?branch=main["Coverage Status",link="https://coveralls.io/github/devonfw/IDEasy?branch=main"]
 
 toc::[]
@@ -17,36 +18,26 @@ toc::[]
 == Setup
 
 === Prerequisites
+All you need before installing IDEasy is https://git-scm.com/download/[git].
+
 ** Windows
-
 *** On Windows you need to  *download and install* https://git-scm.com/download/win[git for windows].
-
-*** You need a tool to extract `*.tar.gz` files (`tar` and `gzip`).
-+
-For example https://www.7-zip.org/[7-zip] or https://www.win-rar.com/[WinRar]. 
 ** Linux
-*** On Linux you need to install `curl` and `git` if you don't have them already
-+
-[source,terminal, .text-center]
-----
-sudo apt-get install git curl 
-or
-sudo yum install git-core curl
-----
-
+*** On Linux you only need to install https://git-scm.com/download/linux[git for linux].
 ** MacOS
 *** On MacOS you only need to download and install https://git-scm.com/download/mac[git for mac].
 
 === Install
 
-** Download the latest version of `devonfw-ide` from https://github.com/devonfw/IDEasy/releases[here] and extract it to a folder of your choice.
+** Download the latest version of `IDEasy` from https://github.com/devonfw/IDEasy/releases[here] and execute it.
 +
 (You can find all Releases in https://repo.maven.apache.org/maven2/com/devonfw/tools/IDEasy/ide-cli/[Maven Central])
 ** Run the `setup` in this folder (On Windows you can double click on `setup.bat`)
 +
-A command prompt will open and the setup will start. The setup will ask for a settings URL. In case you do not have a settings URL for your project, you can just press enter to use the default settings.
+A command prompt will open and the setup will start. The setup will ask for a settings URL.
+In case you do not have a settings URL for your project, you can just press enter to use the default settings.
 ** After the setup is finished, you can close the command prompt and open a new one.
-** *You are done! You can now use the `devon` command in your terminal to use the devonfw-ide.*
+** *You are done! You can now use the `ide` command in your terminal to use the `IDEasy`.*
 
 ==== Video Tutorial
 ifdef::env-github[]
@@ -63,23 +54,20 @@ See also our latest video https://vimeo.com/808368450/88d4af9d18[devon ide updat
 
 == Documentation
 
-* link:documentation/features.asciidoc[Features]
-* link:documentation/setup.asciidoc[Download & Setup]
-* link:documentation/usage.asciidoc[Usage]
-* link:documentation/IDEasy-contribution-getting-started.asciidoc[Contribution]
-* link:documentation/configuration.asciidoc[Configuration]
-* link:documentation/structure.asciidoc[Structure]
-* link:documentation/cli.asciidoc[Command Line Interface]
-* link:documentation/variables.asciidoc[Variables]
-* link:documentation/scripts.asciidoc[Scripts]
-* link:documentation/settings.asciidoc[Settings]
-* link:documentation/software.asciidoc[Software Folder]
-* link:documentation/integration.asciidoc[Integration]
-* link:documentation/advanced-tooling.asciidoc[Advanced-tooling]
+* link:documentation/features.adoc[Features]
+* link:documentation/setup.adoc[Download & Setup]
+* link:documentation/usage.adoc[Usage]
+* link:documentation/IDEasy-contribution-getting-started.adoc[Contribution]
+* link:documentation/configuration.adoc[Configuration]
+* link:documentation/structure.adoc[Structure]
+* link:documentation/cli.adoc[Command Line Interface]
+* link:documentation/variables.adoc[Variables]
+* link:documentation/settings.adoc[Settings]
+* link:documentation/advanced-tooling.adoc[Advanced-tooling]
 * link:documentation/[Documentation]
 
 == Contribution Guidelines
-*If you want to contribute to `devon-ide` please read our https://github.com/devonfw/ide/blob/master/documentation/devonfw-ide-contribution-getting-started.asciidoc[Contribution Guidelines].*
+*If you want to contribute to `IDEasy` please read our https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-getting-started.adoc[Contribution Guidelines].*
 
 *We use https://github.com/devonfw/IDEasy/issues[GitHub Issues] to track bugs and submit feature requests.*
 
