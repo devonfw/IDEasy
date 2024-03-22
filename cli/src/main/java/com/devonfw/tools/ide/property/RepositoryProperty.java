@@ -57,5 +57,4 @@ public class RepositoryProperty extends FileProperty {
     return repositoryFile;
   }
 
-
 }
