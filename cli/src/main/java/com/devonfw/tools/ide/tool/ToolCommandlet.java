@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
@@ -11,6 +12,8 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.StringListProperty;
+import com.devonfw.tools.ide.url.model.UrlMetadata;
+import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 import java.io.IOException;
@@ -350,6 +353,13 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     VersionIdentifier resolvedVersion = this.context.getUrls().getVersion(this.tool, edition, version);
     if (version.isPattern()) {
       this.context.debug("Resolved version {} to {} for tool {}/{}", version, resolvedVersion, this.tool, edition);
+    }
+    try {
+      UrlMetadata metadata = this.context.getUrls();
+      UrlVersion urlVersion = metadata.getVersionFolder(tool, edition, version);
+    } catch (IllegalArgumentException e) {
+      throw new CliException(
+          "Version " + version + " for tool " + tool + " does not exist in edition " + edition + ".");
     }
     settingsVariables.set(name, resolvedVersion.toString(), false);
     settingsVariables.save();
