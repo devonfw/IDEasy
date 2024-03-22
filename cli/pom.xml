@@ -11,6 +11,7 @@
   <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>ide-cli</artifactId>
   <version>${revision}</version>
+  <name>${project.artifactId}</name>
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ideasy</mainClass>
     <imageName>ideasy</imageName>

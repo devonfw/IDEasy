@@ -31,6 +31,7 @@ import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
+import com.devonfw.tools.ide.tool.jasypt.Jasypt;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -90,6 +91,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Cobigen(context));
     add(new GraalVm(context));
     add(new Jmc(context));
+    add(new Jasypt(context));
     add(new Docker(context));
     add(new Sonar(context));
   }
