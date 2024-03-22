@@ -9,7 +9,6 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.util.ArrayList;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -33,16 +32,10 @@ public class DotNetTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_DOTNET = "dotnet";
 
-  private static IdeTestContext context;
+  private final IdeTestContext context = newContext(PROJECT_DOTNET);
 
-  private static  DotNet commandlet;
-
-  @BeforeEach
-  public void setUp() {
-    context = newContext(PROJECT_DOTNET);
-    commandlet = new DotNet(context);
-  }
-
+  private final DotNet commandlet = new DotNet(context);
+  
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
   public void dotnetShouldInstallSuccessful(String os) {
