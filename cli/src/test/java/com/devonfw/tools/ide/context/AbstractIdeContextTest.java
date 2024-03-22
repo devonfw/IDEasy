@@ -1,19 +1,21 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.ListAssert;
+
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
+import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ListAssert;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Abstract base class for tests that need mocked instances of {@link IdeContext}.
@@ -216,4 +218,18 @@ public abstract class AbstractIdeContextTest extends Assertions {
     assertProgressBar(context, taskName, maxSize, CHUNK_SIZE, chunkCount, restSize);
   }
 
+  protected static String determineExpectedOutput(AbstractIdeContext context, String expectedOutputWindows,
+      String expectedOutputLinux, String expectedOutputMacOs) {
+
+    SystemInfo systemInfo = context.getSystemInfo();
+    if (systemInfo.isWindows()) {
+      return expectedOutputWindows;
+    } else if (systemInfo.isLinux()) {
+      return expectedOutputLinux;
+    } else if (systemInfo.isMac()) {
+      return expectedOutputMacOs;
+    } else {
+      throw new IllegalStateException("Unexpected operating system!");
+    }
+  }
 }
