@@ -40,34 +40,27 @@ public class GraalVm extends LocalToolCommandlet {
   }
 
   @Override
+  public VersionIdentifier getInstalledVersion() {
+
+    return super.getInstalledVersion(getToolPath());
+  }
+
+  @Override
   public void run() {
 
     Path toolPath = getToolPath();
     try {
-      if(!Files.exists(toolPath)){
-      Files.createDirectories(toolPath);}
+      if (!Files.exists(toolPath)) {
+        Files.createDirectories(toolPath);
+      }
     } catch (IOException e) {
       throw new RuntimeException("Failed to create new directory:" + e);
     }
 
     String[] args = this.arguments.asArray();
+
     runTool(ProcessMode.BACKGROUND, null, args);
-
-    if (args.length > 0) {
-      Path binaryPath = this.context.getUserHome().resolve(toolPath + "/bin");
-      FileAccess fileAccess = this.context.getFileAccess();
-
-      Path executableFile = fileAccess.findFirst(binaryPath,
-          p -> p.getFileName().toString().startsWith(args[0] + ".exe")
-              | p.getFileName().toString().startsWith(args[0] + ".cmd"),
-          false);
-
-      if (executableFile != null) {
-        ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING)
-            .executable(executableFile).addArgs(Arrays.copyOfRange(args, 1, args.length));
-        pc.run(ProcessMode.BACKGROUND);
-      }
-    }
+    runCommand(args, toolPath);
   }
 
   @Override
@@ -85,11 +78,31 @@ public class GraalVm extends LocalToolCommandlet {
 
     super.postInstall();
     Path devonIdeHome = this.context.getConfPath().resolve("devon.properties");
-    final String graalvmExport = "export GRAALVM_HOME="
-        + this.context.getSoftwarePath().resolve("extra").resolve(getName());
+    final String graalvmExport = "export GRAALVM_HOME=" + getToolPath();
 
     if (!isTextInFile(devonIdeHome, graalvmExport)) {
       addTextToFile(devonIdeHome, graalvmExport);
+    }
+  }
+
+  private void runCommand(String[] args, Path toolPath) {
+
+    if (args.length > 0) {
+      Path binaryPath = this.context.getUserHome().resolve(toolPath + "/bin");
+
+      FileAccess fileAccess = this.context.getFileAccess();
+      Path executableFile = fileAccess.findFirst(binaryPath,
+          p -> p.getFileName().toString().startsWith(args[0] + ".exe")
+              | p.getFileName().toString().startsWith(args[0] + ".cmd"),
+          false);
+
+      if (executableFile != null) {
+        ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING)
+            .executable(executableFile).addArgs(Arrays.copyOfRange(args, 1, args.length));
+        pc.run(ProcessMode.BACKGROUND);
+      } else {
+        this.context.warning("Unknown command '" + args[0] + "'");
+      }
     }
   }
 
@@ -103,7 +116,7 @@ public class GraalVm extends LocalToolCommandlet {
         }
       }
     } catch (Exception e) {
-      throw new RuntimeException(("Failed to open a file for reading:" + e));
+      throw new RuntimeException(("Failed to open file for reading:" + e));
     }
     return false;
   }
