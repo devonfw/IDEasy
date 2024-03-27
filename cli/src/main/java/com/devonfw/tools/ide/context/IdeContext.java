@@ -118,6 +118,10 @@ public interface IdeContext extends IdeLogger {
   /** The default for {@link #getWorkspaceName()}. */
   String WORKSPACE_MAIN = "main";
 
+  String FOLDER_TEMPLATES = "templates";
+
+  String FOLDER_LEGACY_TEMPLATES = "devon";
+
   /**
    * @return {@code true} in case of quiet mode (reduced output), {@code false} otherwise.
    */
@@ -176,6 +180,11 @@ public interface IdeContext extends IdeLogger {
    */
   @SuppressWarnings("unchecked")
   <O> O question(String question, O... options);
+
+  /**
+   * @return the input from the end-user (e.g. read from the console).
+   */
+   String readLine();
 
   /**
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue.
