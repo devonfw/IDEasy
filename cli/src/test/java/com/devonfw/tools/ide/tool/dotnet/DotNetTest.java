@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.property.StringListProperty;
@@ -101,30 +102,75 @@ public class DotNetTest extends AbstractIdeContextTest {
     }
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void dotnetShouldRunExecutableSuccessful(String os) {
+  @Test
+  public void dotnetShouldRunExecutableForWindowsSuccessful() {
 
     // arrange
-    String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
-    String expectedOutputLinux = "Dummy dotnet 6.0.419 on linux ";
-    String expectedOutputMacOs = "Dummy dotnet 6.0.419 on mac ";
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
 
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
-    assignDummyUserHome(context, "dummyUserHome");
-    commandlet.install();
+    if(SystemInfoImpl.INSTANCE.isWindows()) {
 
-    // act
-    commandlet.run();
+      String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
+      context.setSystemInfo(systemInfo);
+      assignDummyUserHome(context, "dummyUserHome");
+      commandlet.install();
 
-    String expectedOutput = determineExpectedOutput(context, expectedOutputWindows, expectedOutputLinux,
-        expectedOutputMacOs);
+      // act
+      commandlet.run();
 
-    //assert
+      //assert
+      checkExpectedOutput(expectedOutputWindows);
+      assertThat(context.getIdeHome()).isEqualTo(context.getDefaultExecutionDirectory());
+    }
+  }
+
+  @Test
+  public void dotnetShouldRunExecutableForLinuxSuccessful() {
+
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("linux");
+
+    if(SystemInfoImpl.INSTANCE.isLinux()) {
+
+      String expectedOutputLinux = "Dummy dotnet 6.0.419 on linux ";
+      context.setSystemInfo(systemInfo);
+      assignDummyUserHome(context, "dummyUserHome");
+      commandlet.install();
+
+      // act
+      commandlet.run();
+
+      //assert
+      checkExpectedOutput(expectedOutputLinux);
+      assertThat(context.getIdeHome()).isEqualTo(context.getDefaultExecutionDirectory());
+    }
+  }
+
+  @Test
+  public void dotnetShouldRunExecutableForMacOSSuccessful() {
+
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("mac");
+
+    if(SystemInfoImpl.INSTANCE.isMac()) {
+
+      String expectedOutputMacOs = "Dummy dotnet 6.0.419 on mac ";
+      context.setSystemInfo(systemInfo);
+      assignDummyUserHome(context, "dummyUserHome");
+      commandlet.install();
+
+      // act
+      commandlet.run();
+
+      //assert
+      checkExpectedOutput(expectedOutputMacOs);
+      assertThat(context.getIdeHome()).isEqualTo(context.getDefaultExecutionDirectory());
+    }
+  }
+
+  private void checkExpectedOutput(String expectedOutput){
     assertThat(MOCK_RESULT_PATH.resolve("dotnetTestResult.txt")).exists();
     assertThat(MOCK_RESULT_PATH.resolve("dotnetTestResult.txt")).hasContent(expectedOutput);
-    assertThat(context.getIdeHome()).isEqualTo(context.getDefaultExecutionDirectory());
   }
 
   @Test

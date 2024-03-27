@@ -14,7 +14,6 @@ import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
-import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
 
 /**
@@ -216,20 +215,5 @@ public abstract class AbstractIdeContextTest extends Assertions {
     int chunkCount = (int) (maxSize / CHUNK_SIZE);
     long restSize = maxSize % CHUNK_SIZE;
     assertProgressBar(context, taskName, maxSize, CHUNK_SIZE, chunkCount, restSize);
-  }
-
-  protected static String determineExpectedOutput(AbstractIdeContext context, String expectedOutputWindows,
-      String expectedOutputLinux, String expectedOutputMacOs) {
-
-    SystemInfo systemInfo = context.getSystemInfo();
-    if (systemInfo.isWindows()) {
-      return expectedOutputWindows;
-    } else if (systemInfo.isLinux()) {
-      return expectedOutputLinux;
-    } else if (systemInfo.isMac()) {
-      return expectedOutputMacOs;
-    } else {
-      throw new IllegalStateException("Unexpected operating system!");
-    }
   }
 }
