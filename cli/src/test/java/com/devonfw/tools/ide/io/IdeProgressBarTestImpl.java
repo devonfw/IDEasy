@@ -54,7 +54,8 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
     if (this.end == null) {
       this.end = Instant.now();
     }
-    assert this.total == this.max;
+    long max = (this.max == 0) ? 10000000 : this.max;
+    assert this.total == max;
   }
 
   /**
