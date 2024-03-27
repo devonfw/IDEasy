@@ -390,6 +390,11 @@ public interface IdeContext extends IdeLogger {
   DirectoryMerger getWorkspaceMerger();
 
   /**
+   * @return the {@link Path} to the working directory from where the command is executed.
+   */
+  Path getDefaultExecutionDirectory();
+
+  /**
    * @return the {@link GitContext} used to run several git commands.
    */
   GitContext getGitContext();
