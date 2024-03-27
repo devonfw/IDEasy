@@ -1,5 +1,11 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -7,11 +13,6 @@ import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
-
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Implementation of {@link IdeContext} for testing.
@@ -25,6 +26,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   private final Map<String, IdeProgressBarTestImpl> progressBarMap;
 
   private SystemInfo systemInfo;
+
+  private FileAccess mockFileAccess;
 
   /**
    * The constructor.
@@ -92,5 +95,13 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public void setSystemInfo(SystemInfo systemInfo) {
 
     this.systemInfo = systemInfo;
+  }
+
+
+  /**
+   * @param fileAccess the {@link FileAccess} to use for testing.
+   */
+  public void setMockFileAccess(FileAccess fileAccess){
+    this.mockFileAccess = fileAccess;
   }
 }
