@@ -105,72 +105,49 @@ public class DotNetTest extends AbstractIdeContextTest {
   @Test
   public void dotnetShouldRunExecutableForWindowsSuccessful() {
 
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of("windows");
-
     if(SystemInfoImpl.INSTANCE.isWindows()) {
 
       String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
-      context.setSystemInfo(systemInfo);
-      assignDummyUserHome(context, "dummyUserHome");
-      commandlet.install();
-
-      // act
-      commandlet.run();
-
-      //assert
+      runExecutable("windows");
       checkExpectedOutput(expectedOutputWindows);
-      assertThat(context.getIdeHome()).isEqualTo(context.getDefaultExecutionDirectory());
     }
   }
 
   @Test
   public void dotnetShouldRunExecutableForLinuxSuccessful() {
 
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of("linux");
-
     if(SystemInfoImpl.INSTANCE.isLinux()) {
 
       String expectedOutputLinux = "Dummy dotnet 6.0.419 on linux ";
-      context.setSystemInfo(systemInfo);
-      assignDummyUserHome(context, "dummyUserHome");
-      commandlet.install();
-
-      // act
-      commandlet.run();
-
-      //assert
+      runExecutable("linux");
       checkExpectedOutput(expectedOutputLinux);
-      assertThat(context.getIdeHome()).isEqualTo(context.getDefaultExecutionDirectory());
     }
   }
 
   @Test
   public void dotnetShouldRunExecutableForMacOSSuccessful() {
 
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of("mac");
-
     if(SystemInfoImpl.INSTANCE.isMac()) {
 
       String expectedOutputMacOs = "Dummy dotnet 6.0.419 on mac ";
-      context.setSystemInfo(systemInfo);
-      assignDummyUserHome(context, "dummyUserHome");
-      commandlet.install();
-
-      // act
-      commandlet.run();
-
-      //assert
+      runExecutable("mac");
       checkExpectedOutput(expectedOutputMacOs);
-      assertThat(context.getIdeHome()).isEqualTo(context.getDefaultExecutionDirectory());
     }
+  }
+
+  private void runExecutable(String operatingSystem){
+
+    SystemInfo systemInfo = SystemInfoMock.of(operatingSystem);
+    context.setSystemInfo(systemInfo);
+    assignDummyUserHome(context, "dummyUserHome");
+
+    commandlet.run();
   }
 
   private void checkExpectedOutput(String expectedOutput){
     assertThat(MOCK_RESULT_PATH.resolve("dotnetTestResult.txt")).exists();
     assertThat(MOCK_RESULT_PATH.resolve("dotnetTestResult.txt")).hasContent(expectedOutput);
+    assertThat(context.getIdeHome()).isEqualTo(context.getDefaultExecutionDirectory());
   }
 
   @Test
