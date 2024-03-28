@@ -718,21 +718,20 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public int run(CliArguments arguments) {
 
+    if (this.ideHome == null) {
+      throw new CliException(getMessageIdeHomeNotFound());
+    }
+
     CliArgument current = arguments.current();
     if (!current.isEnd()) {
       String keyword = current.get();
       Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
       boolean matches;
-      if (this.ideHome == null) {
-        throw new CliException(getMessageIdeHomeNotFound());
-      }
-      if (firstCandidate == null) {  // -> no arguments
-
+      if (firstCandidate == null) {  // no arguments
         if (current.getArgs().isEmpty()) {
           info(getMessageIdeHomeFound());
           return ProcessResult.SUCCESS;
         }
-
       } else {
         matches = applyAndRun(arguments.copy(), firstCandidate);
         if (matches) {
