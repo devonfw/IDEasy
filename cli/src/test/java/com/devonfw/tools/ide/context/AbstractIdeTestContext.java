@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -7,11 +12,6 @@ import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
-
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
 
 /**
  * Implementation of {@link IdeContext} for testing.
@@ -69,7 +69,10 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   @Override
   public IdeProgressBar prepareProgressBar(String taskName, long size) {
-
+    //TODO: user feedback is missing!
+    if (size == 0) {
+      size = 10000000;
+    }
     IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
     IdeProgressBarTestImpl duplicate = this.progressBarMap.put(taskName, progressBar);
     // If we have multiple downloads, we may have an existing "Downloading" key

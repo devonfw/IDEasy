@@ -1,10 +1,7 @@
 package com.devonfw.tools.ide.io;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static com.devonfw.tools.ide.io.FileAccessImpl.generatePermissionString;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,8 +12,13 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
-import static com.devonfw.tools.ide.io.FileAccessImpl.generatePermissionString;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.context.IdeTestContextMock;
 
 /**
  * Test of {@link FileAccessImpl}.
@@ -70,6 +72,18 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     // assert
     assertSymlinksExist(dir);
     assertSymlinksWork(dir, readLinks);
+  }
+
+  @Test
+  public void testMissingContentLength(@TempDir Path tempDir) {
+
+    // arrange
+    IdeTestContext context = newContext("npm");
+    FileAccess fileAccess = new FileAccessImpl(context);
+    //String url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
+    String url = "https://getsamplefiles.com/download/zip/sample-1.zip";
+    Path targetFile = context.getSoftwarePath();
+    fileAccess.download(url, targetFile);
   }
 
   /**

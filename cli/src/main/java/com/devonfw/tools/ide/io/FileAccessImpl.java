@@ -110,12 +110,6 @@ public class FileAccessImpl implements FileAccess {
       throws IOException {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
-    if (contentLength == 0) {
-      this.context.warning(
-          "Content-Length was not provided by download source : {} using fallback for the progress bar which will be inaccurate.",
-          url);
-      contentLength = 10000000;
-    }
 
     byte[] data = new byte[1024];
     boolean fileComplete = false;
