@@ -69,10 +69,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   @Override
   public IdeProgressBar prepareProgressBar(String taskName, long size) {
-    //TODO: user feedback is missing!
-    if (size == 0) {
-      size = 10000000;
-    }
+
     IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
     IdeProgressBarTestImpl duplicate = this.progressBarMap.put(taskName, progressBar);
     // If we have multiple downloads, we may have an existing "Downloading" key

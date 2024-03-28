@@ -80,7 +80,6 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext("npm");
     FileAccess fileAccess = new FileAccessImpl(context);
-    //String url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf";
     String url = "https://getsamplefiles.com/download/zip/sample-1.zip";
     Path targetFile = context.getSoftwarePath();
     fileAccess.download(url, targetFile);

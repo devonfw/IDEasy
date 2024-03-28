@@ -110,6 +110,7 @@ public class FileAccessImpl implements FileAccess {
       throws IOException {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
+    setDefaultMaxContentLength(contentLength);
 
     byte[] data = new byte[1024];
     boolean fileComplete = false;
@@ -145,6 +146,8 @@ public class FileAccessImpl implements FileAccess {
         OutputStream out = new FileOutputStream(target.toFile())) {
 
       long size = source.toFile().length();
+      setDefaultMaxContentLength(size);
+
       byte[] buf = new byte[1024];
       int readBytes;
 
@@ -156,6 +159,14 @@ public class FileAccessImpl implements FileAccess {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+    }
+  }
+
+  private void setDefaultMaxContentLength(long contentLength){
+    if (contentLength == 0) {
+      this.context.warning(
+          "Content-Length was not provided by download source : using fallback for the progress bar which will be inaccurate.");
+      contentLength = 10000000;
     }
   }
 
