@@ -1,0 +1,70 @@
+:toc:
+toc::[]
+
+= settings
+
+`IDEasy` requires `settings` with configuration templates for the arbitrary tools.
+
+To get an initial set of these settings we provide the default https://github.com/devonfw/ide-settings[ide-settings] as an initial package.
+These are also released so you can download the latest stable or any history version at http://search.maven.org/#search|ga|1|a%3A%22devonfw-ide-settings%22[maven central].
+
+To test `IDEasy` or for very small projects you can also use these the latest default settings (just hit return when link:setup.adoc[setup] is asking for the `Settings URL`).
+However, for collaborative projects we strongly encourage you to distribute and maintain the settings via a dedicated and project specific `git` repository.
+This gives you the freedom to control and manage the tools with their versions and configurations during the project lifecycle.
+Therefore simply follow the link:usage.adoc#admin[admin usage guide].
+
+== Structure
+The settings folder (see `link:variables.adoc[SETTINGS_PATH]`) has to follow this file structure:
+
+.File structure of settings
+[subs=+macros]
+----
+/settings
+├──/ https://github.com/devonfw/ide-settings/tree/main/template[template]
+│  ├──/ https://github.com/devonfw/ide-settings/tree/main/template/conf[conf]
+│  │  ├──/ https://github.com/devonfw/ide-settings/tree/main/template/conf/.m2[.m2]
+│  │  │  └── https://github.com/devonfw/ide-settings/blob/main/template/.m2/settings.xml[settings.xml]
+│  │  ├──/ https://github.com/devonfw/ide-settings/tree/main/template/conf/npm[npm]
+│  │  │  └── https://github.com/devonfw/ide-settings/blob/main/template/conf/npm/.npmrc[.npmrc]
+│  │  └── https://github.com/devonfw/ide-settings/blob/main/template/conf/ide.properties[ide.properties]
+├──/ https://github.com/devonfw/ide-settings/tree/main/eclipse[eclipse]
+│  ├──/ https://github.com/devonfw/ide-settings/tree/main/eclipse/workspace[workspace]
+│  │  ├──/ https://github.com/devonfw/ide-settings/tree/main/eclipse/workspace/setup[setup]
+│  │  └──/ https://github.com/devonfw/ide-settings/tree/main/eclipse/workspace/update[update]
+│  ├── https://github.com/devonfw/ide-settings/blob/main/eclipse/lifecycle-mapping-metadata.xml[lifecycle-mapping-metadata.xml]
+│  └── https://github.com/devonfw/ide-settings/blob/main/eclipse/project.dictionary[project.dictionary]
+├──/ https://github.com/devonfw/ide-settings/tree/main/intellij[intellij]
+│  └──/ https://github.com/devonfw/ide-settings/tree/main/intellij/workspace[workspace]
+│     ├──/ https://github.com/devonfw/ide-settings/tree/main/intellij/workspace/setup[setup]
+│     └──/ https://github.com/devonfw/ide-settings/tree/main/intellij/workspace/update[update]
+├──/ https://github.com/devonfw/ide-settings/tree/main/vscode[vscode]
+│  └──/ https://github.com/devonfw/ide-settings/tree/main/vscode/workspace[workspace]
+│     ├──/ https://github.com/devonfw/ide-settings/tree/main/vscode/workspace/setup[setup]
+│     └──/ https://github.com/devonfw/ide-settings/tree/main/vscode/workspace/update[update]
+├──/ ...
+└── https://github.com/devonfw/ide-settings/blob/main/ide.properties[ide.properties]
+----
+
+As you can see, the `settings` folder contains various configurations to customize IDEasy to your project needs.
+The key configuration is the top-level `ide.properties` file.
+The `template` folder contains templates that will be applied to `$IDE_HOME` and therefore allow to define the initial content of the `conf` folder with the defaults for the developer specific link:configuration.adoc[configuration] (e.g. `settings.xml` and `ide.properties`).
+Further, for the IDEs such as https://www.eclipse.org/[Eclipse], https://code.visualstudio.com/[VSCode], or https://www.jetbrains.com/idea/[IntelliJ] the according folders contain the templates to manage the workspace via our link:configurator.adoc[configurator].
+
+== Configuration Philosophy
+Different tools and configuration files require a different handling:
+
+* Where suitable, we directly use these configurations from your `settings` (e.g. for `eclipse/lifecycle-mapping-metadata.xml`, or `eclipse/project.dictionary`).
+* The `template` folder in `settings` contains templates for configuration files.
+They are copied to the `IDEasy` installation during link:setup.adoc[setup] (if no such file already exists).
+In this way the `settings` repository can provide reasonable defaults but allows the user to take over control and customize to his personal needs (e.g. `.m2/settings.xml`).
+* For tools with complex configuration structures like Eclipse, IntelliJ, or VScode we provide a smart mechanism via our link:configurator.adoc[configurator].
+
+== Customize Settings
+You can easily customize these settings for the requirements of your project.
+We suggest that one team member is responsible to ensure that everything stays consistent and works.
+However, every team member can contribute changes as pull-/merge-requests.
+
+You may also create new sub-folders in `settings` and put individual items according to your needs.
+E.g. you could add scripts for https://addons.mozilla.org/de/firefox/addon/greasemonkey[greasemonkey] or https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo[tampermonkey],
+as well as scripts for your database or whatever may be useful and worth to share in your team.
+However, to share and maintain knowledge we recommend to use a wiki.

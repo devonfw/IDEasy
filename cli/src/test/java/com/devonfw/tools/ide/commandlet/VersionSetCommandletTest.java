@@ -1,12 +1,11 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.io.IOException;
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.nio.file.Path;
 
 /**
  * Integration test of {@link VersionSetCommandlet}.
@@ -22,8 +21,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
   public void testVersionSetCommandletRun() throws IOException {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
-    IdeContext context = newContext("basic", path, true);
+    IdeContext context = newContext(PROJECT_BASIC);
     VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
     versionSet.tool.setValueAsString("mvn", context);
     versionSet.version.setValueAsString("3.1.0", context);

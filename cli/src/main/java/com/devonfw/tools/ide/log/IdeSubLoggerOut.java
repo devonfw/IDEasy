@@ -3,8 +3,8 @@ package com.devonfw.tools.ide.log;
 import java.io.IOException;
 
 /**
- * Default implementation of {@link IdeSubLogger} that can write to an {@link Appendable} such as {@link System#out} or in
- * case of testing a {@link java.io.StringWriter}.
+ * Default implementation of {@link IdeSubLogger} that can write to an {@link Appendable} such as {@link System#out} or
+ * in case of testing a {@link java.io.StringWriter}.
  */
 public class IdeSubLoggerOut extends AbstractIdeSubLogger {
 
@@ -45,11 +45,15 @@ public class IdeSubLoggerOut extends AbstractIdeSubLogger {
   public void log(String message) {
 
     try {
+      String startColor = null;
       if (this.colored) {
-        this.out.append(this.level.getStartColor());
+        startColor = this.level.getStartColor();
+        if (startColor != null) {
+          this.out.append(startColor);
+        }
       }
       this.out.append(message);
-      if (this.colored) {
+      if (startColor != null) {
         this.out.append(this.level.getEndColor());
       }
       this.out.append("\n");

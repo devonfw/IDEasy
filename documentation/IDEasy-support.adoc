@@ -1,0 +1,8 @@
+= Support
+
+TODO: community, bug-reporting, etc.
+
+<<<<
+
+include::LICENSE.adoc[leveloffset=2]
+

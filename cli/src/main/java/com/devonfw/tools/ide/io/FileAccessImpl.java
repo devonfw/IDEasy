@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -37,9 +38,13 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
+import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.util.HexUtil;
 
 /**
@@ -220,22 +225,41 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
+  private boolean isJunction(Path path) {
+
+    if (!SystemInfoImpl.INSTANCE.isWindows()) {
+      return false;
+    }
+
+    try {
+      BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+      return attr.isOther() && attr.isDirectory();
+    } catch (NoSuchFileException e) {
+      return false; // file doesn't exist
+    } catch (IOException e) {
+      // errors in reading the attributes of the file
+      throw new IllegalStateException(
+          "An unexpected error occurred whilst checking if the file: " + path + " is a junction", e);
+    }
+  }
+
   @Override
   public void backup(Path fileOrFolder) {
 
-    if (Files.isSymbolicLink(fileOrFolder)) {
+    if (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder)) {
       delete(fileOrFolder);
-      return;
+    } else {
+      // fileOrFolder is a directory
+      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
+      LocalDateTime now = LocalDateTime.now();
+      String date = DateTimeUtil.formatDate(now);
+      String time = DateTimeUtil.formatTime(now);
+      Path backupDatePath = backupPath.resolve(date);
+      mkdirs(backupDatePath);
+      Path target = backupDatePath.resolve(fileOrFolder.getFileName().toString() + "_" + time);
+      this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
+      move(fileOrFolder, target);
     }
-    Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
-    LocalDateTime now = LocalDateTime.now();
-    String date = DateTimeUtil.formatDate(now);
-    String time = DateTimeUtil.formatTime(now);
-    Path backupDatePath = backupPath.resolve(date);
-    mkdirs(backupDatePath);
-    Path target = backupDatePath.resolve(fileOrFolder.getFileName().toString() + "_" + time);
-    this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
-    move(fileOrFolder, target);
   }
 
   @Override
@@ -255,6 +279,15 @@ public class FileAccessImpl implements FileAccess {
     boolean fileOnly = mode.isFileOnly();
     if (fileOnly) {
       this.context.debug("Copying file {} to {}", source, target);
+      if (Files.isDirectory(target)) {
+        // if we want to copy "file.txt" to the existing folder "path/to/folder/" in a shell this will copy "file.txt"
+        // into that folder
+        // with Java NIO the raw copy method will fail as we cannot copy the file to the path of the target folder
+        // even worse if FileCopyMode is override the target folder ("path/to/folder/") would be deleted and the result
+        // of our "file.txt" would later appear in "path/to/folder". To prevent such bugs we append the filename to
+        // target
+        target = target.resolve(source.getFileName());
+      }
     } else {
       this.context.debug("Copying {} recursively to {}", source, target);
     }
@@ -287,7 +320,7 @@ public class FileAccessImpl implements FileAccess {
         }
       }
     } else if (Files.exists(source)) {
-      if (mode == FileCopyMode.COPY_TREE_OVERRIDE_FILES) {
+      if (mode.isOverrideFile()) {
         delete(target);
       }
       this.context.trace("Copying {} to {}", source, target);
@@ -307,31 +340,14 @@ public class FileAccessImpl implements FileAccess {
    */
   private void deleteLinkIfExists(Path path) throws IOException {
 
-    boolean exists = false;
-    boolean isJunction = false;
-    if (this.context.getSystemInfo().isWindows()) {
-      try { // since broken junctions are not detected by Files.exists(brokenJunction)
-        BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-        exists = true;
-        isJunction = attr.isOther() && attr.isDirectory();
-      } catch (NoSuchFileException e) {
-        // ignore, since there is no previous file at the location, so nothing to delete
-        return;
-      }
-    }
-    exists = exists || Files.exists(path);
-    boolean isSymlink = exists && Files.isSymbolicLink(path);
+    boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
+    boolean isSymlink = Files.exists(path) && Files.isSymbolicLink(path);
 
     assert !(isSymlink && isJunction);
 
-    if (exists) {
-      if (isJunction || isSymlink) {
-        this.context.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
-        Files.delete(path);
-      } else {
-        throw new IllegalStateException(
-            "The file at " + path + " was not deleted since it is not a symlink or a Windows junction");
-      }
+    if (isJunction || isSymlink) {
+      this.context.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
+      Files.delete(path);
     }
   }
 
@@ -437,7 +453,7 @@ public class FileAccessImpl implements FileAccess {
     try {
       Files.createSymbolicLink(targetLink, adaptedSource);
     } catch (FileSystemException e) {
-      if (this.context.getSystemInfo().isWindows()) {
+      if (SystemInfoImpl.INSTANCE.isWindows()) {
         this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
             + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for "
             + "further details. Error was: " + e.getMessage());
@@ -487,15 +503,104 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void unzip(Path file, Path targetDir) {
+  public void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook, boolean extract) {
 
-    unpack(file, targetDir, in -> new ZipArchiveInputStream(in));
+    if (Files.isDirectory(archiveFile)) {
+      Path properInstallDir = archiveFile; // getProperInstallationSubDirOf(archiveFile, archiveFile);
+      if (extract) {
+        this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
+        copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
+      } else {
+        move(properInstallDir, targetDir);
+      }
+      postExtractHook(postExtractHook, properInstallDir);
+      return;
+    } else if (!extract) {
+      mkdirs(targetDir);
+      move(archiveFile, targetDir.resolve(archiveFile.getFileName()));
+      return;
+    }
+    Path tmpDir = createTempDir("extract-" + archiveFile.getFileName());
+    this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", archiveFile, tmpDir,
+        targetDir);
+    String filename = archiveFile.getFileName().toString();
+    TarCompression tarCompression = TarCompression.of(filename);
+    if (tarCompression != null) {
+      extractTar(archiveFile, tmpDir, tarCompression);
+    } else {
+      String extension = FilenameUtil.getExtension(filename);
+      if (extension == null) {
+        throw new IllegalStateException("Unknown archive format without extension - can not extract " + archiveFile);
+      } else {
+        this.context.trace("Determined file extension {}", extension);
+      }
+      switch (extension) {
+        case "zip", "jar" -> {
+          extractZip(archiveFile, tmpDir);
+        }
+        case "dmg" -> {
+          extractDmg(archiveFile, tmpDir);
+        }
+        case "msi" -> {
+          extractMsi(archiveFile, tmpDir);
+        }
+        case "pkg" -> {
+          extractPkg(archiveFile, tmpDir);
+        }
+        default -> {
+          throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + archiveFile);
+        }
+      }
+    }
+    Path properInstallDir = getProperInstallationSubDirOf(tmpDir, archiveFile);
+    postExtractHook(postExtractHook, properInstallDir);
+    move(properInstallDir, targetDir);
+    delete(tmpDir);
+  }
+
+  private void postExtractHook(Consumer<Path> postExtractHook, Path properInstallDir) {
+
+    if (postExtractHook != null) {
+      postExtractHook.accept(properInstallDir);
+    }
+  }
+
+  /**
+   * @param path the {@link Path} to start the recursive search from.
+   * @return the deepest subdir {@code s} of the passed path such that all directories between {@code s} and the passed
+   *         path (including {@code s}) are the sole item in their respective directory and {@code s} is not named
+   *         "bin".
+   */
+  private Path getProperInstallationSubDirOf(Path path, Path archiveFile) {
+
+    try (Stream<Path> stream = Files.list(path)) {
+      Path[] subFiles = stream.toArray(Path[]::new);
+      if (subFiles.length == 0) {
+        throw new CliException("The downloaded package " + archiveFile
+            + " seems to be empty as you can check in the extracted folder " + path);
+      } else if (subFiles.length == 1) {
+        String filename = subFiles[0].getFileName().toString();
+        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS)
+            && !filename.endsWith(".app") && Files.isDirectory(subFiles[0])) {
+          return getProperInstallationSubDirOf(subFiles[0], archiveFile);
+        }
+      }
+      return path;
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to get sub-files of " + path);
+    }
   }
 
   @Override
-  public void untar(Path file, Path targetDir, TarCompression compression) {
+  public void extractZip(Path file, Path targetDir) {
 
-    unpack(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
+    extractArchive(file, targetDir, in -> new ZipArchiveInputStream(in));
+  }
+
+  @Override
+  public void extractTar(Path file, Path targetDir, TarCompression compression) {
+
+    extractArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
   }
 
   /**
@@ -519,7 +624,7 @@ public class FileAccessImpl implements FileAccess {
     return permissionStringBuilder.toString();
   }
 
-  private void unpack(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
+  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
@@ -553,6 +658,44 @@ public class FileAccessImpl implements FileAccess {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
+  }
+
+  public void extractDmg(Path file, Path targetDir) {
+
+    assert this.context.getSystemInfo().isMac();
+
+    Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
+    mkdirs(mountPath);
+    ProcessContext pc = this.context.newProcess();
+    pc.executable("hdiutil");
+    pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
+    pc.run();
+    Path appPath = findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
+    if (appPath == null) {
+      throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
+    }
+    copy(appPath, targetDir);
+    pc.addArgs("detach", "-force", mountPath);
+    pc.run();
+  }
+
+  public void extractMsi(Path file, Path targetDir) {
+
+    this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + targetDir).run();
+    // msiexec also creates a copy of the MSI
+    Path msiCopy = targetDir.resolve(file.getFileName());
+    delete(msiCopy);
+  }
+
+  public void extractPkg(Path file, Path targetDir) {
+
+    Path tmpDirPkg = createTempDir("ide-pkg-");
+    ProcessContext pc = this.context.newProcess();
+    // we might also be able to use cpio from commons-compression instead of external xar...
+    pc.executable("xar").addArgs("-C", tmpDirPkg, "-xf", file).run();
+    Path contentPath = findFirst(tmpDirPkg, p -> p.getFileName().toString().equals("Payload"), true);
+    extractTar(contentPath, targetDir, TarCompression.GZ);
+    delete(tmpDirPkg);
   }
 
   @Override
@@ -627,4 +770,43 @@ public class FileAccessImpl implements FileAccess {
     return null;
   }
 
+  @Override
+  public List<Path> listChildren(Path dir, Predicate<Path> filter) {
+
+    if (!Files.isDirectory(dir)) {
+      return List.of();
+    }
+    List<Path> children = new ArrayList<>();
+    try (Stream<Path> childStream = Files.list(dir)) {
+      Iterator<Path> iterator = childStream.iterator();
+      while (iterator.hasNext()) {
+        Path child = iterator.next();
+        if (filter.test(child)) {
+          this.context.trace("Accepted file {}", child);
+          children.add(child);
+        } else {
+          this.context.trace("Ignoring file {} according to filter", child);
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to find children of directory " + dir, e);
+    }
+    return children;
+  }
+
+  @Override
+  public Path findExistingFile(String fileName, List<Path> searchDirs) {
+
+    for (Path dir : searchDirs) {
+      Path filePath = dir.resolve(fileName);
+      try {
+        if (Files.exists(filePath)) {
+          return filePath;
+        }
+      } catch (Exception e) {
+        throw new IllegalStateException("Unexpected error while checking existence of file "+filePath+" .", e);
+      }
+    }
+    return null;
+  }
 }

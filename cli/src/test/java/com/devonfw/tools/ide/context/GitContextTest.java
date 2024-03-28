@@ -33,7 +33,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     GitContext gitContext = new GitContextImpl(context);
     // act
     CliException e1 = assertThrows(CliException.class, () -> {
-      gitContext.pullOrClone(gitRepoUrl, tempDir);
+      gitContext.pullOrClone(gitRepoUrl, "", tempDir);
     });
     // assert
     assertThat(e1).hasMessageContaining(gitRepoUrl).hasMessageContaining(tempDir.toString())
@@ -115,7 +115,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
     GitContext gitContext = new GitContextImpl(context);
     // act
-    gitContext.pullOrFetchAndResetIfNeeded(gitRepoUrl, tempDir, "origin", "master");
+    gitContext.pullOrFetchAndResetIfNeeded(gitRepoUrl, "master", tempDir, "origin");
     // assert
     assertThat(modifiedFile).hasContent("original");
   }
@@ -143,7 +143,7 @@ public class GitContextTest extends AbstractIdeContextTest {
       throw new RuntimeException(e);
     }
     // act
-    gitContext.pullOrFetchAndResetIfNeeded(gitRepoUrl, tempDir, "origin", "master");
+    gitContext.pullOrFetchAndResetIfNeeded(gitRepoUrl, "master", tempDir, "origin");
     // assert
     assertThat(tempDir.resolve("new-folder")).doesNotExist();
   }

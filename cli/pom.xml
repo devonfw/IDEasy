@@ -11,6 +11,7 @@
   <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>ide-cli</artifactId>
   <version>${revision}</version>
+  <name>${project.artifactId}</name>
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ideasy</mainClass>
     <imageName>ideasy</imageName>
@@ -58,10 +59,14 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
+      <version>2.0.12</version>
+      <!--optional>true</optional-->
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
+      <version>1.5.3</version>
+      <!--optional>true</optional-->
     </dependency>
     <!-- Needed for WireMock test support -->
     <dependency>
@@ -103,6 +108,29 @@
           </archive>
         </configuration>
       </plugin>
+      <!-- Copy Resources -->
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/package</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -125,17 +153,17 @@
               <configuration>
                 <artifacts>
                   <artifact>
-                    <file>target/${project.artifactId}-linux-x64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-linux-x64.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>linux</classifier>
                   </artifact>
                   <artifact>
-                    <file>target/${project.artifactId}-windows-x64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-windows-x64.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>windows</classifier>
                   </artifact>
                   <artifact>
-                    <file>target/${project.artifactId}-mac-x64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-mac-x64.tar.gz</file>
                     <type>tar.gz</type>
                     <classifier>mac</classifier>
                   </artifact>
@@ -179,14 +207,40 @@
               <agent>
                 <enabled>true</enabled>
               </agent>
-              <imageName>
-                ${imageName}
-              </imageName>
+              <imageName>${imageName}</imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=https</arg>
                 <arg>-H:IncludeResources="nls/.*"</arg>
                 <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
               </buildArgs>
+            </configuration>
+          </plugin>
+          <plugin>
+            <!-- Include documentation into release -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-documentation</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>ide-doc</artifactId>
+                  <version>${project.version}</version>
+                  <type>pdf</type>
+                  <destFileName>IDEasy-documentation.pdf</destFileName>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
             </configuration>
           </plugin>
           <plugin>
@@ -203,7 +257,7 @@
                   <finalName>${releaseName}</finalName>
                   <appendAssemblyId>false</appendAssemblyId>
                   <descriptors>
-                    <descriptor>/src/main/assembly/exec.xml</descriptor>
+                    <descriptor>/src/main/assembly/release.xml</descriptor>
                   </descriptors>
                 </configuration>
               </execution>

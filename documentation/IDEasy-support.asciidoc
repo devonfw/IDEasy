@@ -1,8 +1,0 @@
-= Support
-
-TODO: community, bug-reporting, etc.
-
-<<<<
-
-include::LICENSE.asciidoc[leveloffset=2]
-

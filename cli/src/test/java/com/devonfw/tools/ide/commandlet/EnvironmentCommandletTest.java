@@ -73,31 +73,32 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
   public void testRun() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext("basic", path, false);
+    String path = "project/workspaces/foo-test/my-git-repo";
+    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
     // act
     env.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "MVN_VERSION=3.9.*");
-    assertLogMessage(context, IdeLogLevel.INFO, "SOME=some-${UNDEFINED}");
-    assertLogMessage(context, IdeLogLevel.INFO, "BAR=bar-some-${UNDEFINED}");
-    assertLogMessage(context, IdeLogLevel.INFO, "IDE_TOOLS=mvn,eclipse");
-    assertLogMessage(context, IdeLogLevel.INFO, "ECLIPSE_VERSION=2023-03");
-    assertLogMessage(context, IdeLogLevel.INFO, "FOO=foo-bar-some-${UNDEFINED}");
-    assertLogMessage(context, IdeLogLevel.INFO, "JAVA_VERSION=17*");
-    assertLogMessage(context, IdeLogLevel.INFO, "INTELLIJ_EDITION=ultimate");
-    assertLogMessage(context, IdeLogLevel.INFO, "DOCKER_EDITION=docker");
+    assertLogMessage(context, IdeLogLevel.INFO, "MVN_VERSION=\"3.9.*\"");
+    assertLogMessage(context, IdeLogLevel.INFO, "SOME=\"some-${UNDEFINED}\"");
+    assertLogMessage(context, IdeLogLevel.INFO, "BAR=\"bar-some-${UNDEFINED}\"");
+    assertLogMessage(context, IdeLogLevel.INFO, "IDE_TOOLS=\"mvn,eclipse\"");
+    assertLogMessage(context, IdeLogLevel.INFO, "ECLIPSE_VERSION=\"2023-03\"");
+    assertLogMessage(context, IdeLogLevel.INFO, "FOO=\"foo-bar-some-${UNDEFINED}\"");
+    assertLogMessage(context, IdeLogLevel.INFO, "JAVA_VERSION=\"17*\"");
+    assertLogMessage(context, IdeLogLevel.INFO, "INTELLIJ_EDITION=\"ultimate\"");
+    assertLogMessage(context, IdeLogLevel.INFO, "DOCKER_EDITION=\"docker\"");
   }
+
   /**
-   * Test of {@link EnvironmentCommandlet} does not require home.
+   * Test that {@link EnvironmentCommandlet} requires home.
    */
   @Test
-  public void testThatHomeIsNotReqired() {
+  public void testThatHomeIsRequired() {
 
     // arrange
     EnvironmentCommandlet env = new EnvironmentCommandlet(IdeTestContextMock.get());
     // act & assert
-    assertThat(env.isIdeHomeRequired()).isFalse();
+    assertThat(env.isIdeHomeRequired()).isTrue();
   }
 }
