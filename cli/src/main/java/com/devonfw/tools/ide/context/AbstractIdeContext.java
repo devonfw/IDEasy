@@ -722,23 +722,30 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (!current.isEnd()) {
       String keyword = current.get();
       Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
-
+      boolean matches;
+      if (this.ideHome == null) {
+        throw new CliException(getMessageIdeHomeNotFound());
+      }
       if (firstCandidate == null) {  // -> no arguments
-        if (this.ideHome != null) {  // IDE installation
-          if (current.getArgs().isEmpty()) {
-            info(getMessageIdeHomeFound());
-            return ProcessResult.SUCCESS;
-          }
-        } else { // not IDE installation
-          throw new CliException(getMessageIdeHomeNotFound());
+
+        if (current.getArgs().isEmpty()) {
+          info(getMessageIdeHomeFound());
+          return ProcessResult.SUCCESS;
+        }
+
+      } else {
+        matches = applyAndRun(arguments.copy(), firstCandidate);
+        if (matches) {
+          return ProcessResult.SUCCESS;
         }
       }
 
       for (Commandlet cmd : this.commandletManager.getCommandlets()) {
-        boolean matches;
-        matches = applyAndRun(arguments.copy(), cmd);
-        if (matches) {
-          return ProcessResult.SUCCESS;
+        if (cmd != firstCandidate) {
+          matches = applyAndRun(arguments.copy(), cmd);
+          if (matches) {
+            return ProcessResult.SUCCESS;
+          }
         }
       }
       error("Invalid arguments: {}", current.getArgs());
