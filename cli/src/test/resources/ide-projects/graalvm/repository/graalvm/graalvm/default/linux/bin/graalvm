@@ -1,0 +1,3 @@
+#!/bin/bash
+graalvm "graalvm"
+echo "graalvm linux $*"
