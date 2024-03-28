@@ -126,11 +126,10 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
-   * {@link DefaultToolRepository} will be used.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will be
+   * used.
    */
-  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
-      ToolRepository toolRepository) {
+  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository) {
 
     super();
     this.loggerFactory = factory;
@@ -168,7 +167,6 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.ideHome = currentDir;
     this.workspaceName = workspace;
     if (this.ideHome == null) {
-      info(getMessageIdeHomeNotFound());
       this.workspacePath = null;
       this.ideRoot = null;
       this.confPath = null;
@@ -187,9 +185,8 @@ public abstract class AbstractIdeContext implements IdeContext {
         Path rootPath = Path.of(root);
         if (Files.isDirectory(rootPath)) {
           if (!ideRootPath.equals(rootPath)) {
-            warning(
-                "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
-                root, this.ideHome.getFileName(), ideRootPath);
+            warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", root, this.ideHome.getFileName(),
+                ideRootPath);
           }
           ideRootPath = rootPath;
         } else {
@@ -258,8 +255,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable
-   * initialization.
+   * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable initialization.
    */
   public String getMessageIdeHome() {
 
@@ -321,14 +317,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     AbstractEnvironmentVariables user = extendVariables(system, this.userHomeIde, EnvironmentVariablesType.USER);
     AbstractEnvironmentVariables settings = extendVariables(user, this.settingsPath, EnvironmentVariablesType.SETTINGS);
     // TODO should we keep this workspace properties? Was this feature ever used?
-    AbstractEnvironmentVariables workspace = extendVariables(settings, this.workspacePath,
-        EnvironmentVariablesType.WORKSPACE);
+    AbstractEnvironmentVariables workspace = extendVariables(settings, this.workspacePath, EnvironmentVariablesType.WORKSPACE);
     AbstractEnvironmentVariables conf = extendVariables(workspace, this.confPath, EnvironmentVariablesType.CONF);
     return conf.resolved();
   }
 
-  private AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath,
-      EnvironmentVariablesType type) {
+  private AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
 
     Path propertiesFile = null;
     if (propertiesPath == null) {
@@ -717,8 +711,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its
-   * {@link Commandlet#getProperties() properties} and will execute it.
+   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its {@link Commandlet#getProperties() properties} and will execute it.
    *
    * @param arguments the {@link CliArgument}.
    * @return the return code of the execution.
@@ -734,6 +727,15 @@ public abstract class AbstractIdeContext implements IdeContext {
         matches = applyAndRun(arguments.copy(), firstCandidate);
         if (matches) {
           return ProcessResult.SUCCESS;
+        }
+      } else {  // firstCandidate == null -> no arguments
+        if (this.ideHome != null) {  // IDE installation
+          if (current.getArgs().isEmpty()) {
+            info(getMessageIdeHomeFound());
+            return ProcessResult.SUCCESS;
+          }
+        } else { // not IDE installation
+          throw new CliException(getMessageIdeHomeNotFound());
         }
       }
       for (Commandlet cmd : this.commandletManager.getCommandlets()) {
@@ -751,10 +753,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to
-   * {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run() run}.
-   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   * {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
+   * {@link Commandlet#run() run}.
+   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
+   * {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -814,13 +816,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are
-   * matched. Consider passing a {@link CliArguments#copy() copy} as needed.
+   * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
+   * {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
    * @param collector the {@link CompletionCandidateCollector}.
-   * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have
-   * been applied (set in the {@link Commandlet} and {@link Commandlet#validate() validated}), {@code false} otherwise
-   * (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
+   * and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   public boolean apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
