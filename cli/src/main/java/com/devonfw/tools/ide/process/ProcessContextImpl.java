@@ -225,57 +225,6 @@ public class ProcessContextImpl implements ProcessContext {
     return null;
   }
 
-  private String findBashOnWindows() {
-
-    // Check if Git Bash exists in the default location
-    Path defaultPath = Path.of("C:\\Program Files\\Git\\bin\\bash.exe");
-    if (Files.exists(defaultPath)) {
-      return defaultPath.toString();
-    }
-
-    // If not found in the default location, try the registry query
-    String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
-    String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
-    String regQueryResult;
-    for (String bashVariant : bashVariants) {
-      for (String registryKey : registryKeys) {
-        String toolValueName = ("GitForWindows".equals(bashVariant)) ? "InstallPath" : "rootdir";
-        String command = "reg query " + registryKey + "\\Software\\" + bashVariant + "  /v " + toolValueName + " 2>nul";
-
-        try {
-          Process process = new ProcessBuilder("cmd.exe", "/c", command).start();
-          try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            StringBuilder output = new StringBuilder();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-              output.append(line);
-            }
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-              return null;
-            }
-
-            regQueryResult = output.toString();
-            if (regQueryResult != null) {
-              int index = regQueryResult.indexOf("REG_SZ");
-              if (index != -1) {
-                String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
-                return path + "\\bin\\bash.exe";
-              }
-            }
-
-          }
-        } catch (Exception e) {
-          return null;
-        }
-      }
-    }
-    // no bash found
-    throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
-  }
-
   private String addExecutable(String executable, List<String> args) {
 
     if (!SystemInfoImpl.INSTANCE.isWindows()) {
@@ -306,7 +255,7 @@ public class ProcessContextImpl implements ProcessContext {
       // here we want to have native OS behavior even if OS is mocked during tests...
       // if (this.context.getSystemInfo().isWindows()) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        String findBashOnWindowsResult = findBashOnWindows();
+        String findBashOnWindowsResult = this.context.findBash();
         if (findBashOnWindowsResult != null) {
           bash = findBashOnWindowsResult;
         }
@@ -356,7 +305,7 @@ public class ProcessContextImpl implements ProcessContext {
     // try to use bash in windows to start the process
     if (context.getSystemInfo().isWindows()) {
 
-      String findBashOnWindowsResult = findBashOnWindows();
+      String findBashOnWindowsResult = this.context.findBash();
       if (findBashOnWindowsResult != null) {
 
         bash = findBashOnWindowsResult;

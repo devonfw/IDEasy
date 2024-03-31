@@ -394,4 +394,15 @@ public interface IdeContext extends IdeLogger {
    */
   GitContext getGitContext();
 
+  /**
+   * Finds the path to the Bash executable.
+   * @return the {@link Path} to the Bash executable, or {@code null} if Bash is not found
+   */
+  public Path findBashPath();
+
+  /**
+   * Finds the path to the Bash executable as a {@link String}.
+   * @return the path to the Bash executable as a {@link String}, or {@code null} if Bash is not found
+   */
+  public String findBash();
 }
