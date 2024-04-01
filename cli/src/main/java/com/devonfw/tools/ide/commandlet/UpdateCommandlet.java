@@ -91,7 +91,7 @@ public class UpdateCommandlet extends Commandlet {
 
     this.context.info("Updating settings repository ...");
     Path settingsPath = this.context.getSettingsPath();
-    if (Files.isDirectory(settingsPath)) {
+    if (Files.isDirectory(settingsPath) && !this.context.getFileAccess().isEmptyDir(settingsPath)) {
       // perform git pull on the settings repo
       this.context.getGitContext().pull(settingsPath);
       this.context.success("Successfully updated settings repository.");
@@ -130,7 +130,7 @@ public class UpdateCommandlet extends Commandlet {
       String toolName = software.getFileName().toString();
       ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandletOrNull(toolName);
       if (toolCommandlet != null) {
-        toolCommandlets.add(this.context.getCommandletManager().getToolCommandletOrNull(toolName));
+        toolCommandlets.add(toolCommandlet);
       }
     }
 
