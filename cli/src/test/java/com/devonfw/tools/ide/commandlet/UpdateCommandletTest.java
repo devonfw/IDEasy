@@ -47,7 +47,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
   }
 
   private void deleteTemplatesFolder(IdeContext context) throws IOException {
-    
+
     Path templates = context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES).resolve(IdeContext.FOLDER_CONF);
     Files.delete(templates);
     Files.delete(templates.getParent());
