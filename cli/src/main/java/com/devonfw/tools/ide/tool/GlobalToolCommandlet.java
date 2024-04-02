@@ -33,12 +33,26 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     super(context, tool, tags);
   }
 
+  /**
+   * Performs the installation of the {@link #getName() tool} via a package manager.
+   *
+   * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param commandStrings commandStrings The package manager command strings to execute.
+   * @return {@code true} if installation succeeds with any of the package manager commands, {@code false} otherwise.
+   */
   protected boolean installWithPackageManager(boolean silent, String... commandStrings) {
 
     List<PackageManagerCommand> pmCommands = Arrays.stream(commandStrings).map(PackageManagerCommand::of).toList();
     return installWithPackageManager(silent, pmCommands);
   }
 
+  /**
+   * Performs the installation of the {@link #getName() tool} via a package manager.
+   * 
+   * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param pmCommands A list of {@link PackageManagerCommand} to be used for installation.
+   * @return {@code true} if installation succeeds with any of the package manager commands, {@code false} otherwise.
+   */
   protected boolean installWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
 
     Path bashPath = this.context.findBashPath();
