@@ -17,9 +17,9 @@ public enum SecurityRiskInteractionAnswer {
   LATEST_SAFE,
 
   /**
-   * User answer to use the latest safe version.
+   * User answer to use the latest version.
    */
-  SAFE_LATEST,
+  LATEST,
 
   /**
    * User answer to use the next safe version.

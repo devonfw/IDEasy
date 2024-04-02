@@ -1,8 +1,8 @@
 package com.devonfw.tools.ide.tool;
 
+import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.LATEST;
 import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.LATEST_SAFE;
 import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.NEXT_SAFE;
-import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.SAFE_LATEST;
 import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.STAY;
 
 import java.io.IOException;
@@ -14,9 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
@@ -30,15 +28,8 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.StringListProperty;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
 import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
-import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.util.Pair;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
 
 /**
  * {@link Commandlet} for a tool integrated into the IDE.
@@ -268,7 +259,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     Map<SecurityRiskInteractionAnswer, Pair<String, VersionIdentifier>> options = new HashMap<>();
     options.put(STAY, Pair.of("Stay with the current unsafe version (" + current + ").", configuredVersion));
     options.put(LATEST_SAFE, Pair.of("Install the latest of all safe versions (" + latestSafe + ").", latestSafe));
-    options.put(SAFE_LATEST,
+    options.put(LATEST,
         Pair.of("Install the latest version (" + latest + "). This version is save.", VersionIdentifier.LATEST));
     options.put(NEXT_SAFE, Pair.of("Install the next safe version (" + nextSafe + ").", nextSafe));
 
@@ -278,13 +269,13 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       return getAnswer(options, currentIsUnsafe + "All newer versions are also not safe. " + ask, STAY, LATEST_SAFE);
     } else if (nextSafe.equals(latest)) {
       return getAnswer(options, currentIsUnsafe + "Of the newer versions, only the latest is safe. " + ask, STAY,
-          SAFE_LATEST);
+          LATEST);
     } else if (nextSafe.equals(latestSafe)) {
       return getAnswer(options, currentIsUnsafe + "Of the newer versions, only version " + nextSafe
           + " is safe, which is however not the latest. " + ask, STAY, NEXT_SAFE);
     } else {
       if (latestSafe.equals(latest)) {
-        return getAnswer(options, currentIsUnsafe + ask, STAY, NEXT_SAFE, SAFE_LATEST);
+        return getAnswer(options, currentIsUnsafe + ask, STAY, NEXT_SAFE, LATEST);
       } else {
         return getAnswer(options, currentIsUnsafe + ask, STAY, NEXT_SAFE, LATEST_SAFE);
       }
@@ -445,11 +436,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       return edition;
     } catch (IOException e) {
-      throw new IllegalStateException(
-          "Couldn't determine the edition of " + getName() + " from the directory structure of its software path "
-              + toolPath
-              + ", assuming the name of the parent directory of the real path of the software path to be the edition "
-              + "of the tool.", e);
+      throw new IllegalStateException("Couldn't determine the edition of " + getName()
+          + " from the directory structure of its software path " + toolPath
+          + ", assuming the name of the parent directory of the real path of the software path to be the edition "
+          + "of the tool.", e);
     }
 
   }
