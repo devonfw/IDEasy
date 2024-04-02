@@ -1,5 +1,13 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.ListAssert;
+
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
@@ -7,13 +15,6 @@ import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ListAssert;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Abstract base class for tests that need mocked instances of {@link IdeContext}.
@@ -37,7 +38,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   /**
    * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   * project in {@link #TEST_PROJECTS}. E.g. "basic".
+   *        project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected IdeTestContext newContext(String testProject) {
@@ -47,7 +48,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   /**
    * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   * project in {@link #TEST_PROJECTS}. E.g. "basic".
+   *        project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @return the {@link IdeTestContext} pointing to that project.
    */
@@ -58,15 +59,16 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   /**
    * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   * project in {@link #TEST_PROJECTS}. E.g. "basic".
+   *        project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
-   * {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything in that
-   * project.)
+   *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
+   *        in that project.)
    * @param answers the answers to use for the {@link IdeTestContext}.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
+  protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation,
+      String... answers) {
 
     Path ideRoot = TEST_PROJECTS.resolve(testProject);
     if (copyForMutation) {
@@ -87,7 +89,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(repositoryFolder);
     }
-    IdeTestContext context = new IdeTestContext(ideHome, toolRepository);
+    IdeTestContext context = new IdeTestContext(ideHome, toolRepository, answers);
     if (toolRepository != null) {
       toolRepository.setContext(context);
     }

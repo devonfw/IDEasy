@@ -24,7 +24,7 @@ public class UrlSecurityJsonFileTest extends AbstractIdeContextTest {
   public void testUrlJsonSecurityFileLoad() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
+    String path = "project/workspaces/foo-test/my-git-repo";
     UrlSecurityWarning warning1 = new UrlSecurityWarning();
     warning1.setVersionRange(VersionRange.of("[3.0.6,3.2.1)"));
     warning1.setSeverity(BigDecimal.valueOf(5.8));
@@ -54,7 +54,7 @@ public class UrlSecurityJsonFileTest extends AbstractIdeContextTest {
   public void testUrlJsonSecurityFileAddAndSave() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
+    String path = "project/workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, true);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition("mvn", "mvn").getSecurityJsonFile();
     Path securityFilePath = securityFile.getPath();
@@ -82,7 +82,7 @@ public class UrlSecurityJsonFileTest extends AbstractIdeContextTest {
   public void testUrlSecurityJsonFileContains() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
+    String path = "project/workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, true);
     UrlSecurityJsonFile securityFile = context.getUrls().getEdition("mvn", "mvn").getSecurityJsonFile();
 
@@ -99,7 +99,7 @@ public class UrlSecurityJsonFileTest extends AbstractIdeContextTest {
   public void testUrlSecurityJsonFileContainsIgnoreWarningsThatAffectAllVersions() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
+    String path = "project/workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, true);
     UrlEdition edition = context.getUrls().getEdition("mvn", "mvn");
     UrlSecurityJsonFile securityFile = edition.getSecurityJsonFile();
@@ -114,7 +114,7 @@ public class UrlSecurityJsonFileTest extends AbstractIdeContextTest {
   public void testGetMatchingSecurityWarnings() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
+    String path = "project/workspaces/foo-test/my-git-repo";
     IdeContext context = newContext("basic", path, true);
     UrlEdition edition = context.getUrls().getEdition("mvn", "mvn");
     UrlSecurityJsonFile securityFile = edition.getSecurityJsonFile();

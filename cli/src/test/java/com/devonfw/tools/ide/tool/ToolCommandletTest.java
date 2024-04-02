@@ -314,7 +314,7 @@ public class ToolCommandletTest extends AbstractIdeContextTest {
    */
   private IdeContext getContextForSecurityJsonTests(Class<? extends ToolCommandlet> dummyTool, String... answers) {
 
-    String path = "workspaces/foo-test/my-git-repo";
+    String path = "project/workspaces/foo-test/my-git-repo";
     // if I don't pass answers here I get: End of answers reached!
     IdeContext context = newContext("basic", path, true, answers);
     ToolCommandlet toolCommandlet = context.getCommandletManager().getCommandlet(dummyTool);
