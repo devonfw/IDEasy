@@ -34,30 +34,33 @@ public class CreateCommandlet extends Commandlet {
   }
 
   @Override
+  public boolean isIdeHomeRequired() {
+
+    return false;
+  }
+
+  @Override
   public void run() {
 
-    String newInstanceName = newInstance.getValue();
-    Path newInstancePath;
+    String newProjectName = newInstance.getValue();
+    Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
+    this.context.getFileAccess().mkdirs(newProjectPath);
 
-    newInstancePath = this.context.getIdeRoot().resolve(newInstanceName);
-    this.context.getFileAccess().mkdirs(newInstancePath);
-
-    this.context.info("Creating new IDEasy instance in {}", newInstancePath);
-    if (!this.context.getFileAccess().isEmptyDir(newInstancePath)) {
-      this.context.askToContinue("Directory is not empty, continue?");
+    this.context.info("Creating new IDEasy project in {}", newProjectPath);
+    if (this.context.getFileAccess().isEmptyDir(newProjectPath)) {
+      this.context.askToContinue("Directory " + newProjectPath + " already exists. Do you want to continue?");
+    } else {
+      this.context.getFileAccess().mkdirs(newProjectPath);
     }
 
-    initializeInstance(newInstancePath);
+    initializeInstance(newProjectPath);
   }
 
   private void initializeInstance(Path newInstancePath) {
 
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SOFTWARE));
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_UPDATES));
     fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_PLUGINS));
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_WORKSPACES));
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SETTINGS));
-
+    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN));
   }
 }
