@@ -68,7 +68,7 @@ public class CreateCommandlet extends Commandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SOFTWARE));
     fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_PLUGINS));
-    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_WORKSPACES));
+    fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN));
     fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SETTINGS));
 
   }
