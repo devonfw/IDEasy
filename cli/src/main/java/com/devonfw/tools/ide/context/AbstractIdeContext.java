@@ -688,7 +688,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   /**
    * @return the input from the end-user (e.g. read from the console).
    */
-  public abstract String readLine();
+  protected abstract String readLine();
 
   private static <O> void addMapping(Map<String, O> mapping, String key, O option) {
 

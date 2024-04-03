@@ -25,9 +25,9 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully updated settings repository.");
-    assertThat(Files.exists(context.getConfPath()));
-    assertThat(Files.exists(context.getSettingsPath().resolve("java")));
-    assertThat(Files.exists(context.getSettingsPath().resolve("mvn")));
+    assertThat(context.getConfPath()).exists();
+    assertThat(context.getSoftwarePath().resolve("java")).exists();
+    assertThat(context.getSoftwarePath().resolve("mvn")).exists();
     assertLogMessage(context, IdeLogLevel.SUCCESS, "All 2 steps ended successfully!");
   }
 

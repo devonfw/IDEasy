@@ -109,7 +109,7 @@ public class UpdateCommandlet extends Commandlet {
           this.context.info("In case you just want to test IDEasy you may simply hit return to install the default settings.");
           this.context.info("");
           this.context.info("Settings URL [{}]:", DEFAULT_SETTINGS_REPO_URL);
-          repository = this.context.readLine();
+          repository = null;
         }
       }
       if (repository.isBlank()) {

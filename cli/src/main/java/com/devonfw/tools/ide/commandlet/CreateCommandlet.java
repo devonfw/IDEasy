@@ -24,7 +24,7 @@ public class CreateCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    newInstance = add(new StringProperty("", false, "newInstance"));
+    newInstance = add(new StringProperty("", true, "project"));
   }
 
   @Override
@@ -39,12 +39,8 @@ public class CreateCommandlet extends Commandlet {
     String newInstanceName = newInstance.getValue();
     Path newInstancePath;
 
-    if (newInstanceName == null) {
-      newInstancePath = this.context.getCwd();
-    } else {
-      newInstancePath = this.context.getIdeRoot().resolve(newInstanceName);
-      this.context.getFileAccess().mkdirs(newInstancePath);
-    }
+    newInstancePath = this.context.getIdeRoot().resolve(newInstanceName);
+    this.context.getFileAccess().mkdirs(newInstancePath);
 
     this.context.info("Creating new IDEasy instance in {}", newInstancePath);
     if (!this.context.getFileAccess().isEmptyDir(newInstancePath)) {
@@ -52,14 +48,6 @@ public class CreateCommandlet extends Commandlet {
     }
 
     initializeInstance(newInstancePath);
-    ProcessContext pc = this.context.newProcess().executable("ide");
-    pc.addArgs("update");
-    pc.directory(newInstancePath);
-    if (pc.run() == ProcessResult.SUCCESS) {
-      this.context.success("IDEasy Instance successfully created in {}", newInstancePath);
-    } else {
-      this.context.warning("Could not create IDEasy Instance.");
-    }
   }
 
   private void initializeInstance(Path newInstancePath) {

@@ -182,11 +182,6 @@ public interface IdeContext extends IdeLogger {
   <O> O question(String question, O... options);
 
   /**
-   * @return the input from the end-user (e.g. read from the console).
-   */
-   String readLine();
-
-  /**
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue.
    * Otherwise if the user answers with "no" an exception is thrown to abort further processing.
    *
