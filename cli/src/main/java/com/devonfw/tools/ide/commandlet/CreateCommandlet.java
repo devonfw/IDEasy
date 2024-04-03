@@ -43,12 +43,13 @@ public class CreateCommandlet extends Commandlet {
       newInstancePath = this.context.getCwd();
     } else {
       newInstancePath = this.context.getIdeRoot().resolve(newInstanceName);
-      this.context.getFileAccess().mkdirs(newInstancePath);
     }
 
     this.context.info("Creating new IDEasy instance in {}", newInstancePath);
-    if (!this.context.getFileAccess().isEmptyDir(newInstancePath)) {
-      this.context.askToContinue("Directory is not empty, continue?");
+    if (this.context.getFileAccess().exists(newInstancePath)) {
+      this.context.askToContinue("Directory " + newInstancePath + " already exists. Do you want to continue?");
+    } else {
+      this.context.getFileAccess().mkdirs(newInstancePath);
     }
 
     initializeInstance(newInstancePath);
