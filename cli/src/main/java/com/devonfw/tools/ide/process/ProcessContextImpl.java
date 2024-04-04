@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -134,17 +135,21 @@ public class ProcessContextImpl implements ProcessContext {
 
       this.processBuilder.command(args);
 
+      List<String> out = new ArrayList<>();
+      List<String> err = new ArrayList<>();
+
       Process process = this.processBuilder.start();
 
-      List<String> out = null;
-      List<String> err = null;
-
       if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-          out = outReader.lines().collect(Collectors.toList());
+        CompletableFuture<String> outFut = readInputStream(process.getInputStream());
+        CompletableFuture<String> errFut = readInputStream(process.getErrorStream());
+        String outString = outFut.get();
+        String errString = errFut.get();
+        if (!outString.isEmpty()) {
+          out.add(outString);
         }
-        try (BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-          err = errReader.lines().collect(Collectors.toList());
+        if (!errString.isEmpty()) {
+          err.add(errString);
         }
       }
 
@@ -169,6 +174,30 @@ public class ProcessContextImpl implements ProcessContext {
     } finally {
       this.arguments.clear();
     }
+  }
+
+  /**
+   * Asynchronously and parallel reads {@link InputStream input stream} and stores it in {@link CompletableFuture}.
+   * Taken from:
+   * https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki/57483714#57483714
+   * 
+   * @param is {@link InputStream}.
+   * @return {@link CompletableFuture}.
+   */
+  private static CompletableFuture<String> readInputStream(InputStream is) {
+
+    return CompletableFuture.supplyAsync(() -> {
+      try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr);) {
+        StringBuilder res = new StringBuilder();
+        String inputLine;
+        while ((inputLine = br.readLine()) != null) {
+          res.append(inputLine).append(System.lineSeparator());
+        }
+        return res.toString();
+      } catch (Throwable e) {
+        throw new RuntimeException("There was a problem while executing program", e);
+      }
+    });
   }
 
   private String createCommandMessage(String interpreter, String suffix) {
