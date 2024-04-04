@@ -30,7 +30,7 @@ public class GitContextImpl implements GitContext {
 
   private final IdeContext context;
 
-  private ProcessContext processContext;
+  private final ProcessContext processContext;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -38,7 +38,7 @@ public class GitContextImpl implements GitContext {
   public GitContextImpl(IdeContext context) {
 
     this.context = context;
-
+    this.processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0");
   }
 
   @Override
@@ -102,7 +102,6 @@ public class GitContextImpl implements GitContext {
       throw new IllegalArgumentException("Invalid git URL '" + gitRepoUrl + "'!");
     }
 
-    initializeProcessContext(targetRepository);
     if (Files.isDirectory(targetRepository.resolve(".git"))) {
       // checks for remotes
       ProcessResult result = this.processContext.addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
@@ -128,8 +127,8 @@ public class GitContextImpl implements GitContext {
    * Handles errors which occurred during git pull.
    *
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   * It is not the parent directory where git will by default create a sub-folder by default on clone but the * final
-   * folder that will contain the ".git" subfolder.
+   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
+   *        final folder that will contain the ".git" subfolder.
    * @param result the {@link ProcessResult} to evaluate.
    */
   private void handleErrors(Path targetRepository, ProcessResult result) {
@@ -142,8 +141,8 @@ public class GitContextImpl implements GitContext {
       } else {
         this.context.error(message);
         if (this.context.isOnline()) {
-          this.context.error(
-              "See above error for details. If you have local changes, please stash or revert and retry.");
+          this.context
+              .error("See above error for details. If you have local changes, please stash or revert and retry.");
         } else {
           this.context.error(
               "It seems you are offline - please ensure Internet connectivity and retry or activate offline mode (-o or --offline).");
@@ -153,26 +152,11 @@ public class GitContextImpl implements GitContext {
     }
   }
 
-  /**
-   * Lazily initializes the {@link ProcessContext}.
-   *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   * It is not the parent directory where git will by default create a sub-folder by default on clone but the * final
-   * folder that will contain the ".git" subfolder.
-   */
-  private void initializeProcessContext(Path targetRepository) {
-
-    if (this.processContext == null) {
-      this.processContext = this.context.newProcess().directory(targetRepository).executable("git")
-          .withEnvVar("GIT_TERMINAL_PROMPT", "0");
-    }
-  }
-
   @Override
   public void clone(GitUrl gitRepoUrl, Path targetRepository) {
 
     URL parsedUrl = gitRepoUrl.parseUrl();
-    initializeProcessContext(targetRepository);
+    this.processContext.directory(targetRepository);
     ProcessResult result;
     if (!this.context.isOffline()) {
       this.context.getFileAccess().mkdirs(targetRepository);
@@ -202,7 +186,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public void pull(Path targetRepository) {
 
-    initializeProcessContext(targetRepository);
+    this.processContext.directory(targetRepository);
     ProcessResult result;
     // pull from remote
     result = this.processContext.addArg("--no-pager").addArg("pull").run(ProcessMode.DEFAULT_CAPTURE);
@@ -246,7 +230,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public void reset(Path targetRepository, String remoteName, String branchName) {
 
-    initializeProcessContext(targetRepository);
+    this.processContext.directory(targetRepository);
     ProcessResult result;
     // check for changed files
     result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(ProcessMode.DEFAULT_CAPTURE);
@@ -268,7 +252,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public void cleanup(Path targetRepository) {
 
-    initializeProcessContext(targetRepository);
+    this.processContext.directory(targetRepository);
     ProcessResult result;
     // check for untracked files
     result = this.processContext.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard")
