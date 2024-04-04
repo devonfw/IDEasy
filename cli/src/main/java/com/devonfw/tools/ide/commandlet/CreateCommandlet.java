@@ -12,7 +12,7 @@ import java.nio.file.Path;
  */
 public class CreateCommandlet extends AbstractUpdateCommandlet {
 
-  private final StringProperty newProject;
+  public final StringProperty newProject;
 
   /**
    * The constructor.
@@ -43,10 +43,9 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     String newProjectName = newProject.getValue();
     Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
-    this.context.getFileAccess().mkdirs(newProjectPath);
 
     this.context.info("Creating new IDEasy project in {}", newProjectPath);
-    if (this.context.getFileAccess().isEmptyDir(newProjectPath)) {
+    if (!this.context.getFileAccess().isEmptyDir(newProjectPath)) {
       this.context.askToContinue("Directory " + newProjectPath + " already exists. Do you want to continue?");
     } else {
       this.context.getFileAccess().mkdirs(newProjectPath);
