@@ -6,7 +6,7 @@ import com.devonfw.tools.ide.property.StringProperty;
 /**
  * {@link Commandlet} to update settings, software and repositories
  */
-public class UpdateCommandlet extends BaseCommandlet {
+public class UpdateCommandlet extends AbstractUpdateCommandlet {
 
   /**
    * The constructor.

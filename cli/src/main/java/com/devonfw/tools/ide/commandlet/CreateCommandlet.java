@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -9,9 +10,9 @@ import java.nio.file.Path;
 /**
  * {@link Commandlet} to create a new IDEasy instance
  */
-public class CreateCommandlet extends BaseCommandlet {
+public class CreateCommandlet extends AbstractUpdateCommandlet {
 
-  private final StringProperty newInstance;
+  private final StringProperty newProject;
 
   /**
    * The constructor.
@@ -22,7 +23,7 @@ public class CreateCommandlet extends BaseCommandlet {
 
     super(context);
     addKeyword(getName());
-    newInstance = add(new StringProperty("", true, "project"));
+    newProject = add(new StringProperty("", true, "project"));
   }
 
   @Override
@@ -40,7 +41,7 @@ public class CreateCommandlet extends BaseCommandlet {
   @Override
   public void run() {
 
-    String newProjectName = newInstance.getValue();
+    String newProjectName = newProject.getValue();
     Path newProjectPath = this.context.getIdeRoot().resolve(newProjectName);
     this.context.getFileAccess().mkdirs(newProjectPath);
 
@@ -51,12 +52,15 @@ public class CreateCommandlet extends BaseCommandlet {
       this.context.getFileAccess().mkdirs(newProjectPath);
     }
 
-    initializeInstance(newProjectPath);
+    initializeProject(newProjectPath);
     // TODO: re-initialize the context to newProjectPath
+    ((AbstractIdeContext) context).setIdeHome(newProjectPath);
+
+
     super.run();
   }
 
-  private void initializeInstance(Path newInstancePath) {
+  private void initializeProject(Path newInstancePath) {
 
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SOFTWARE));

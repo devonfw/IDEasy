@@ -15,7 +15,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
   private final String PROJECT_UPDATE = "update";
 
   @Test
-  public void testRunPullSettings() {
+  public void testRunPullSettingsAndUpdateSoftware() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE);

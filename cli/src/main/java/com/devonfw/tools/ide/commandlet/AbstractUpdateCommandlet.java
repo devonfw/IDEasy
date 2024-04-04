@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public abstract class BaseCommandlet extends Commandlet {
+public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private static final String DEFAULT_SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings";
 
@@ -25,7 +25,7 @@ public abstract class BaseCommandlet extends Commandlet {
    *
    * @param context the {@link IdeContext}.
    */
-  public BaseCommandlet(IdeContext context) {
+  public AbstractUpdateCommandlet(IdeContext context) {
 
     super(context);
   }
@@ -36,6 +36,7 @@ public abstract class BaseCommandlet extends Commandlet {
     updateSettings();
     this.context.getFileAccess().mkdirs(this.context.getWorkspacePath());
     Path templatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
+
     if (!Files.exists(templatesFolder)) {
       Path legacyTemplatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_TEMPLATES);
       if (Files.exists(legacyTemplatesFolder)) {
@@ -45,6 +46,7 @@ public abstract class BaseCommandlet extends Commandlet {
         return;
       }
     }
+
     setupConf(templatesFolder, this.context.getIdeHome());
     updateSoftware();
     updateRepositories();
