@@ -647,6 +647,15 @@ public abstract class AbstractIdeContext implements IdeContext {
     return logger;
   }
 
+  public String askForInput(String message, String defaultValue) {
+
+    if (!message.isBlank()) {
+      info(message);
+    }
+    String input = readLine().trim();
+    return input.isEmpty() ? defaultValue : input;
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public <O> O question(String question, O... options) {
@@ -684,6 +693,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     return option;
   }
+
+
 
   /**
    * @return the input from the end-user (e.g. read from the console).

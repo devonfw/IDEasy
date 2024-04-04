@@ -43,7 +43,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     uc.run();
 
     // assert
-    assertLogMessage(context, IdeLogLevel.WARNING, "Templates folder is missing in settings folder.");
+    assertLogMessage(context, IdeLogLevel.WARNING, "Templates folder is missing in settings repository.");
   }
 
   private void deleteTemplatesFolder(IdeContext context) throws IOException {

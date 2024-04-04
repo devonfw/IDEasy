@@ -2,8 +2,6 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
 
 import java.nio.file.Path;
@@ -11,7 +9,7 @@ import java.nio.file.Path;
 /**
  * {@link Commandlet} to create a new IDEasy instance
  */
-public class CreateCommandlet extends Commandlet {
+public class CreateCommandlet extends BaseCommandlet {
 
   private final StringProperty newInstance;
 
@@ -54,6 +52,8 @@ public class CreateCommandlet extends Commandlet {
     }
 
     initializeInstance(newProjectPath);
+    // TODO: re-initialize the context to newProjectPath
+    super.run();
   }
 
   private void initializeInstance(Path newInstancePath) {
