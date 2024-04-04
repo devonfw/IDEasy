@@ -154,3 +154,4 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class).run();
   }
 }
+

@@ -54,7 +54,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     initializeProject(newProjectPath);
     // TODO: re-initialize the context to newProjectPath
-    
+
     super.run();
   }
 

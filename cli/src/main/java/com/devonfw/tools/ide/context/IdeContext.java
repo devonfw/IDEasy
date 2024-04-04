@@ -158,7 +158,7 @@ public interface IdeContext extends IdeLogger {
   boolean isOnline();
 
   /**
-   * Asks the user for a single string input, showing a default value.
+   * Asks the user for a single string input.
    *
    * @param message The information message to display.
    * @param defaultValue The default value to return when no input is provided.

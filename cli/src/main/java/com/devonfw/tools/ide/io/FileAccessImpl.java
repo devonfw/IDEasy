@@ -800,8 +800,6 @@ public class FileAccessImpl implements FileAccess {
     return listChildren(dir, f -> true).isEmpty();
   }
 
-
-
   @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {
 

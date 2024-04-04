@@ -694,8 +694,6 @@ public abstract class AbstractIdeContext implements IdeContext {
     return option;
   }
 
-
-
   /**
    * @return the input from the end-user (e.g. read from the console).
    */
