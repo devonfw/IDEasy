@@ -31,6 +31,4 @@ public class UpdateCommandlet extends AbstractUpdateCommandlet {
 
     super.run();
   }
-
-
 }
