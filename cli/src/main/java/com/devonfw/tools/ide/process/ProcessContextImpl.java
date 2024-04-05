@@ -135,22 +135,16 @@ public class ProcessContextImpl implements ProcessContext {
 
       this.processBuilder.command(args);
 
-      List<String> out = new ArrayList<>();
-      List<String> err = new ArrayList<>();
+      List<String> out = null;
+      List<String> err = null;
 
       Process process = this.processBuilder.start();
 
       if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        CompletableFuture<String> outFut = readInputStream(process.getInputStream());
-        CompletableFuture<String> errFut = readInputStream(process.getErrorStream());
-        String outString = outFut.get();
-        String errString = errFut.get();
-        if (!outString.isEmpty()) {
-          out.add(outString);
-        }
-        if (!errString.isEmpty()) {
-          err.add(errString);
-        }
+        CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
+        CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
+        out = outFut.get();
+        err = errFut.get();
       }
 
       int exitCode;
@@ -178,24 +172,20 @@ public class ProcessContextImpl implements ProcessContext {
 
   /**
    * Asynchronously and parallel reads {@link InputStream input stream} and stores it in {@link CompletableFuture}.
-   * Taken from:
-   * https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki/57483714#57483714
-   * 
+   * Inspired by: <a href=
+   * "https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki/57483714#57483714">StackOverflow</a>
+   *
    * @param is {@link InputStream}.
    * @return {@link CompletableFuture}.
    */
-  private static CompletableFuture<String> readInputStream(InputStream is) {
+  private static CompletableFuture<List<String>> readInputStream(InputStream is) {
 
     return CompletableFuture.supplyAsync(() -> {
-      try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr);) {
-        StringBuilder res = new StringBuilder();
-        String inputLine;
-        while ((inputLine = br.readLine()) != null) {
-          res.append(inputLine).append(System.lineSeparator());
-        }
-        return res.toString();
+
+      try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr)) {
+        return br.lines().toList();
       } catch (Throwable e) {
-        throw new RuntimeException("There was a problem while executing program", e);
+        throw new RuntimeException("There was a problem while executing the program", e);
       }
     });
   }
