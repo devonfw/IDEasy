@@ -26,11 +26,11 @@ import com.devonfw.tools.ide.process.ProcessResult;
 public class GitContextImpl implements GitContext {
   private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);
 
-  ;
-
   private final IdeContext context;
 
   private final ProcessContext processContext;
+
+  private final ProcessMode PROCESS_MODE = ProcessMode.DEFAULT;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -104,7 +104,7 @@ public class GitContextImpl implements GitContext {
 
     if (Files.isDirectory(targetRepository.resolve(".git"))) {
       // checks for remotes
-      ProcessResult result = this.processContext.addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
+      ProcessResult result = this.processContext.addArg("remote").run(PROCESS_MODE);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
         String message = targetRepository
@@ -166,14 +166,14 @@ public class GitContextImpl implements GitContext {
         this.processContext.addArg("-q");
       }
       this.processContext.addArgs("--recursive", gitRepoUrl.url(), "--config", "core.autocrlf=false", ".");
-      result = this.processContext.run(ProcessMode.DEFAULT_CAPTURE);
+      result = this.processContext.run(PROCESS_MODE);
       if (!result.isSuccessful()) {
         this.context.warning("Git failed to clone {} into {}.", parsedUrl, targetRepository);
       }
       String branch = gitRepoUrl.branch();
       if (branch != null) {
         this.processContext.addArgs("checkout", branch);
-        result = this.processContext.run(ProcessMode.DEFAULT_CAPTURE);
+        result = this.processContext.run(PROCESS_MODE);
         if (!result.isSuccessful()) {
           this.context.warning("Git failed to checkout to branch {}", branch);
         }
@@ -189,7 +189,7 @@ public class GitContextImpl implements GitContext {
     this.processContext.directory(targetRepository);
     ProcessResult result;
     // pull from remote
-    result = this.processContext.addArg("--no-pager").addArg("pull").run(ProcessMode.DEFAULT_CAPTURE);
+    result = this.processContext.addArg("--no-pager").addArg("pull").run(PROCESS_MODE);
 
     if (!result.isSuccessful()) {
       Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();
@@ -202,7 +202,7 @@ public class GitContextImpl implements GitContext {
   private Map<String, String> retrieveRemoteAndBranchName() {
 
     Map<String, String> remoteAndBranchName = new HashMap<>();
-    ProcessResult remoteResult = this.processContext.addArg("branch").addArg("-vv").run(ProcessMode.DEFAULT_CAPTURE);
+    ProcessResult remoteResult = this.processContext.addArg("branch").addArg("-vv").run(PROCESS_MODE);
     List<String> remotes = remoteResult.getOut();
     if (!remotes.isEmpty()) {
       for (String remote : remotes) {
@@ -233,14 +233,14 @@ public class GitContextImpl implements GitContext {
     this.processContext.directory(targetRepository);
     ProcessResult result;
     // check for changed files
-    result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(ProcessMode.DEFAULT_CAPTURE);
+    result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(PROCESS_MODE);
 
     if (!result.isSuccessful()) {
       // reset to origin/master
       context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", targetRepository,
           remoteName, branchName);
       result = this.processContext.addArg("reset").addArg("--hard").addArg(remoteName + "/" + branchName)
-          .run(ProcessMode.DEFAULT_CAPTURE);
+          .run(PROCESS_MODE);
 
       if (!result.isSuccessful()) {
         context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, targetRepository);
@@ -256,12 +256,12 @@ public class GitContextImpl implements GitContext {
     ProcessResult result;
     // check for untracked files
     result = this.processContext.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard")
-        .run(ProcessMode.DEFAULT_CAPTURE);
+        .run(PROCESS_MODE);
 
     if (!result.getOut().isEmpty()) {
       // delete untracked files
       context.warning("Git detected untracked files in {} and is attempting a cleanup.", targetRepository);
-      result = this.processContext.addArg("clean").addArg("-df").run(ProcessMode.DEFAULT_CAPTURE);
+      result = this.processContext.addArg("clean").addArg("-df").run(PROCESS_MODE);
 
       if (!result.isSuccessful()) {
         context.warning("Git failed to clean the repository {}.", targetRepository);
