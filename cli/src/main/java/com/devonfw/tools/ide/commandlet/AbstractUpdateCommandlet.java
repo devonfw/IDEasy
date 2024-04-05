@@ -16,9 +16,7 @@ import java.util.Set;
 
 public abstract class AbstractUpdateCommandlet extends Commandlet {
 
-  private static final String DEFAULT_SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings";
-
-  protected StringProperty settingsRepo;
+  protected final StringProperty settingsRepo;
 
   /**
    * The constructor.
@@ -28,13 +26,13 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   public AbstractUpdateCommandlet(IdeContext context) {
 
     super(context);
+    settingsRepo = new StringProperty("", false, "settingsRepository");
   }
 
   @Override
   public void run() {
 
     updateSettings();
-    this.context.getFileAccess().mkdirs(this.context.getWorkspacePath());
     Path templatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
 
     if (!Files.exists(templatesFolder)) {
@@ -49,7 +47,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     setupConf(templatesFolder, this.context.getIdeHome());
     updateSoftware();
-    updateRepositories();
   }
 
   private void setupConf(Path template, Path conf) {
@@ -90,16 +87,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       // check if a settings repository is given then clone, otherwise prompt user for a repository.
       String repository = settingsRepo.getValue();
       if (repository == null) {
-        if (this.context.isBatchMode()) {
-          repository = DEFAULT_SETTINGS_REPO_URL;
-        } else {
           String message = "Missing your settings at " + settingsPath + " and no SETTINGS_URL is defined.\n" +
               "Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.asciidoc\n" +
               "Please contact the technical lead of your project to get the SETTINGS_URL for your project.\n" +
               "In case you just want to test IDEasy you may simply hit return to install the default settings.\n" +
-              "Settings URL [" + DEFAULT_SETTINGS_REPO_URL + "]:";
-          repository = this.context.askForInput(message, DEFAULT_SETTINGS_REPO_URL);
-        }
+              "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
+          repository = this.context.askForInput(message, IdeContext.DEFAULT_SETTINGS_REPO_URL);
       }
       this.context.getGitContext().pullOrClone(repository, settingsPath);
       this.context.success("Successfully cloned settings repository.");
@@ -146,12 +139,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       }
     }
     // summary
-    container.complete();
+    if (!toolCommandlets.isEmpty()) {
+      container.complete();
+    }
   }
 
-  private void updateRepositories() {
-
-    this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class).run();
-  }
 }
 

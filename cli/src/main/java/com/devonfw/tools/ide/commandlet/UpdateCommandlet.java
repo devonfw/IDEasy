@@ -17,7 +17,6 @@ public class UpdateCommandlet extends AbstractUpdateCommandlet {
 
     super(context);
     addKeyword(getName());
-    settingsRepo = add(new StringProperty("", false, "settingsRepository"));
   }
 
   @Override

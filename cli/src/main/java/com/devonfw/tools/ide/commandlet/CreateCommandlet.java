@@ -14,6 +14,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
   public final StringProperty newProject;
 
+
   /**
    * The constructor.
    *
@@ -24,6 +25,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     super(context);
     addKeyword(getName());
     newProject = add(new StringProperty("", true, "project"));
+    add(this.settingsRepo);
   }
 
   @Override
@@ -52,9 +54,10 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     }
 
     initializeProject(newProjectPath);
-    // TODO: re-initialize the context to newProjectPath
-
+    this.context.setIdeHome(newProjectPath);
     super.run();
+    updateRepositories();
+    this.context.success("Successfully created new project '{}'.", newProjectName);
   }
 
   private void initializeProject(Path newInstancePath) {
@@ -63,5 +66,10 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_SOFTWARE));
     fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_PLUGINS));
     fileAccess.mkdirs(newInstancePath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN));
+  }
+
+  private void updateRepositories() {
+
+    this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class).run();
   }
 }

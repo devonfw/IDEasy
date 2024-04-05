@@ -25,6 +25,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public interface IdeContext extends IdeLogger {
 
+  String DEFAULT_SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings";
+
   /** The name of the workspaces folder. */
   String FOLDER_WORKSPACES = "workspaces";
 
@@ -407,4 +409,20 @@ public interface IdeContext extends IdeLogger {
    */
   GitContext getGitContext();
 
+  /**
+   *
+   * @param ideHome
+   */
+  default void setIdeHome(Path ideHome) {
+
+    setCwd(ideHome, WORKSPACE_MAIN, ideHome);
+  }
+
+  /**
+   *
+   * @param userDir
+   * @param workspace
+   * @param ideHome
+   */
+  void setCwd(Path userDir, String workspace, Path ideHome);
 }

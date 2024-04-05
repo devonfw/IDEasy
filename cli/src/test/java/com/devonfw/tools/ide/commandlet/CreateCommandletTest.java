@@ -18,6 +18,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
     // act
     cc.run();
     // assert
