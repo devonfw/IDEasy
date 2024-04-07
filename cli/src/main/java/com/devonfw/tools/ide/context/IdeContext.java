@@ -410,7 +410,7 @@ public interface IdeContext extends IdeLogger {
   GitContext getGitContext();
 
   /**
-   * Updates the current working directory (CWD) and configures the IDE environment paths according to the specified parameters.
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters.
    * This method is central to changing the IDE's notion of where it operates, affecting where configurations, workspaces,
    * settings, and other resources are located or loaded from.
    *
@@ -422,7 +422,7 @@ public interface IdeContext extends IdeLogger {
   }
 
   /**
-   * Updates the current working directory (CWD) and configures the IDE environment paths according to the specified parameters.
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters.
    * This method is central to changing the IDE's notion of where it operates, affecting where configurations, workspaces,
    * settings, and other resources are located or loaded from.
    *
