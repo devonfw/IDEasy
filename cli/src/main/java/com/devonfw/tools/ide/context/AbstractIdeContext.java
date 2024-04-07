@@ -676,7 +676,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <O> O question(String question, O... options) {++++++
+  public <O> O question(String question, O... options) {
 
     assert (options.length >= 2);
     interaction(question);

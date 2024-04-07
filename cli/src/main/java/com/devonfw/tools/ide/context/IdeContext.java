@@ -410,8 +410,11 @@ public interface IdeContext extends IdeLogger {
   GitContext getGitContext();
 
   /**
+   * Updates the current working directory (CWD) and configures the IDE environment paths according to the specified parameters.
+   * This method is central to changing the IDE's notion of where it operates, affecting where configurations, workspaces,
+   * settings, and other resources are located or loaded from.
    *
-   * @param ideHome
+   * @param ideHome The path to the IDE home directory.
    */
   default void setIdeHome(Path ideHome) {
 
@@ -419,10 +422,13 @@ public interface IdeContext extends IdeLogger {
   }
 
   /**
+   * Updates the current working directory (CWD) and configures the IDE environment paths according to the specified parameters.
+   * This method is central to changing the IDE's notion of where it operates, affecting where configurations, workspaces,
+   * settings, and other resources are located or loaded from.
    *
-   * @param userDir
-   * @param workspace
-   * @param ideHome
+   * @param userDir The path to set as the current working directory.
+   * @param workspace The name of the workspace within the IDE's environment.
+   * @param ideHome The path to the IDE home directory.
    */
   void setCwd(Path userDir, String workspace, Path ideHome);
 }
