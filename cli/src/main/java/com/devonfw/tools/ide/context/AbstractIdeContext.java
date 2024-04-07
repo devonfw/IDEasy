@@ -81,13 +81,13 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path cwd;
 
-  private final Path downloadPath;
+  private Path downloadPath;
 
   private Path toolRepository;
 
-  private final Path userHome;
+  private Path userHome;
 
-  private final Path userHomeIde;
+  private Path userHomeIde;
 
   private SystemPath path;
 
@@ -200,19 +200,6 @@ public abstract class AbstractIdeContext implements IdeContext {
     //}
     this.ideRoot = ideRootPath;
 
-    if (isTest()) {
-      // only for testing...
-      if (this.ideHome == null) {
-        this.userHome = Path.of("/non-existing-user-home-for-testing");
-      } else {
-        this.userHome = this.ideHome.resolve("home");
-      }
-    } else {
-      this.userHome = Path.of(System.getProperty("user.home"));
-    }
-    this.userHomeIde = this.userHome.resolve(".ide");
-    this.downloadPath = this.userHome.resolve("Downloads/ide");
-
     if (this.ideRoot == null) {
       this.toolRepository = null;
       this.urlsPath = null;
@@ -251,6 +238,19 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
     this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
     this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
+
+    if (isTest()) {
+      // only for testing...
+      if (this.ideHome == null) {
+        this.userHome = Path.of("/non-existing-user-home-for-testing");
+      } else {
+        this.userHome = this.ideHome.resolve("home");
+      }
+    } else {
+      this.userHome = Path.of(System.getProperty("user.home"));
+    }
+    this.userHomeIde = this.userHome.resolve(".ide");
+    this.downloadPath = this.userHome.resolve("Downloads/ide");
 
     this.variables = createVariables();
     this.path = computeSystemPath();
