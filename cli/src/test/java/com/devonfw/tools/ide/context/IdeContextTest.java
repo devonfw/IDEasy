@@ -1,13 +1,14 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.variable.IdeVariables;
-import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
 
 /**
  * Integration test of {@link IdeContext}.
@@ -42,6 +43,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
     SystemPath systemPath = IdeVariables.PATH.get(context);
     assertThat(systemPath).isSameAs(context.getPath());
     String envPath = System.getenv(IdeVariables.PATH.getName());
+    envPath = envPath.replaceAll("[\\\\][;]", ";").replaceAll("[\\/][:]", ":");
     assertThat(systemPath.toString()).isNotEqualTo(envPath).endsWith(envPath);
     Path softwarePath = context.getSoftwarePath();
     Path javaBin = softwarePath.resolve("java/bin");
