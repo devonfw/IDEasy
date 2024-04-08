@@ -86,6 +86,9 @@ public final class Ideasy {
 
     CliArguments arguments = new CliArguments(args);
     this.context = initContext(arguments);
+    if (this.context.getIdeRoot() == null) {
+      return 1;
+    }
     return this.context.run(arguments);
   }
 
