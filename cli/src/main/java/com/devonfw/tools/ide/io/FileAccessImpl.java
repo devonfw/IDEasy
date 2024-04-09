@@ -795,6 +795,12 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
+  public boolean isEmptyDir(Path dir) {
+
+    return listChildren(dir, f -> true).isEmpty();
+  }
+
+  @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {
 
     for (Path dir : searchDirs) {
