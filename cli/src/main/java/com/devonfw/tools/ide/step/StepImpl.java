@@ -139,7 +139,11 @@ public final class StepImpl implements Step {
       return;
     }
     assert (this.duration == 0);
-    this.duration = System.currentTimeMillis() - this.start;
+    long delay = System.currentTimeMillis() - this.start;
+    if (delay == 0) {
+      delay = 1;
+    }
+    this.duration = delay;
     if (newSuccess == null) {
       newSuccess = Boolean.FALSE;
     }

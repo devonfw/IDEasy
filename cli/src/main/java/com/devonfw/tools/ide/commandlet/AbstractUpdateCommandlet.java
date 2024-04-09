@@ -112,7 +112,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         }
         gitContext.pullOrClone(repository, settingsPath);
       }
-      step.success();
+      step.success("Successfully updated settings repository.");
     } finally {
       if (step != null) {
         step.end();
