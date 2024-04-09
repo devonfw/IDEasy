@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.step;
 /**
  * Simply container for the overall summary of a {@link Step}.
  *
- * @see StepImpl#logSummary()
+ * @see StepImpl#logSummary(boolean)
  */
 class StepSummary {
 

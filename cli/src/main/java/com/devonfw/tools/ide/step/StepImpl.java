@@ -175,8 +175,10 @@ public final class StepImpl implements Step {
 
   /**
    * Logs the summary of this {@link Step}. Should typically only be called on the top-level {@link Step}.
+   *
+   * @param suppressSuccess - {@code true} to suppress the success message, {@code false} otherwise.
    */
-  public void logSummary() {
+  public void logSummary(boolean suppressSuccess) {
 
     if (this.context.trace().isEnabled()) {
       this.context.trace(toString());
@@ -187,7 +189,9 @@ public final class StepImpl implements Step {
     StepSummary summary = new StepSummary();
     logErrorSummary(0, summary);
     if (summary.getError() == 0) {
-      this.context.success("Successfully completed {}", getNameWithParams());
+      if (!suppressSuccess) {
+        this.context.success("Successfully completed {}", getNameWithParams());
+      }
     } else {
       this.context.error(summary.toString());
     }

@@ -783,6 +783,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     CliArgument current = arguments.current();
     assert (this.currentStep == null);
+    boolean supressStepSuccess = false;
     StepImpl step = newStep(true, "ide", (Object[]) current.asArray());
     try {
       if (!current.isEnd()) {
@@ -792,6 +793,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (firstCandidate != null) {
           matches = applyAndRun(arguments.copy(), firstCandidate);
           if (matches) {
+            supressStepSuccess = firstCandidate.isSuppressStepSuccess();
             step.success();
             return ProcessResult.SUCCESS;
           }
@@ -800,6 +802,7 @@ public abstract class AbstractIdeContext implements IdeContext {
           if (cmd != firstCandidate) {
             matches = applyAndRun(arguments.copy(), cmd);
             if (matches) {
+              supressStepSuccess = cmd.isSuppressStepSuccess();
               step.success();
               return ProcessResult.SUCCESS;
             }
@@ -815,7 +818,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     } finally {
       step.end();
       assert (this.currentStep == null);
-      step.logSummary();
+      step.logSummary(supressStepSuccess);
     }
   }
 
