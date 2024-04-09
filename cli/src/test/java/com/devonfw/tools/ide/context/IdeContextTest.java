@@ -1,14 +1,13 @@
 package com.devonfw.tools.ide.context;
 
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.Test;
-
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import org.junit.jupiter.api.Test;
+
+import java.nio.file.Path;
 
 /**
  * Integration test of {@link IdeContext}.
@@ -30,8 +29,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(IdeVariables.DOCKER_EDITION.get(context)).isEqualTo("docker");
     EnvironmentVariables variables = context.getVariables();
     assertThat(variables.get("FOO")).isEqualTo("foo-bar-some-${UNDEFINED}");
-    assertLogMessage(context, IdeLogLevel.WARNING,
-        "Undefined variable UNDEFINED in 'SOME=some-${UNDEFINED}' for root 'FOO=foo-${BAR}'");
+    assertLogMessage(context, IdeLogLevel.WARNING, "Undefined variable UNDEFINED in 'SOME=some-${UNDEFINED}' for root 'FOO=foo-${BAR}'");
     assertThat(context.getIdeHome().resolve("readme")).hasContent("this is the IDE_HOME directory");
     assertThat(context.getIdeRoot().resolve("readme")).hasContent("this is the IDE_ROOT directory");
     assertThat(context.getUserHome().resolve("readme")).hasContent("this is the users HOME directory");
