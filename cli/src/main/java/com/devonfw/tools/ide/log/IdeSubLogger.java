@@ -17,27 +17,30 @@ public interface IdeSubLogger {
    * @param error the {@link Throwable} that was catched and should be logged or {@code null} for no error.
    * @param message the message to log.
    * @param args the dynamic arguments to fill in.
+   * @return the message headline that was logged.
    */
-  default void log(String message, Object... args) {
+  default String log(String message, Object... args) {
 
-    log(null, message, args);
+    return log(null, message, args);
   }
 
   /**
    * @param error the {@link Throwable} that was catched and should be logged or {@code null} for no error.
    * @param message the message to log.
+   * @return the message headline that was logged.
    */
-  default void log(Throwable error, String message) {
+  default String log(Throwable error, String message) {
 
-    log(error, message, (Object[]) null);
+    return log(error, message, (Object[]) null);
   }
 
   /**
    * @param error the {@link Throwable} that was catched and should be logged or {@code null} for no error.
    * @param message the message to log.
    * @param args the dynamic arguments to fill in.
+   * @return the message headline that was logged.
    */
-  void log(Throwable error, String message, Object... args);
+  String log(Throwable error, String message, Object... args);
 
   /**
    * @return {@code true} if this logger is enabled, {@code false} otherwise (this logger does nothing and all

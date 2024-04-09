@@ -107,6 +107,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
               + "In case you just want to test IDEasy you may simply hit return to install the default settings.\n"
               + "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
           repository = this.context.askForInput(message, IdeContext.DEFAULT_SETTINGS_REPO_URL);
+        } else if ("-".equals(repository)) {
+          repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
         }
         gitContext.pullOrClone(repository, settingsPath);
       }
@@ -151,19 +153,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
       // update/install the toolCommandlets
       for (ToolCommandlet toolCommandlet : toolCommandlets) {
-        updateSoftware(toolCommandlet);
+        toolCommandlet.install(false);
       }
-      step.success();
-    } finally {
-      step.end();
-    }
-  }
-
-  private void updateSoftware(ToolCommandlet toolCommandlet) {
-
-    Step step = this.context.newStep(toolCommandlet.getName());
-    try {
-      toolCommandlet.install(false);
       step.success();
     } finally {
       step.end();

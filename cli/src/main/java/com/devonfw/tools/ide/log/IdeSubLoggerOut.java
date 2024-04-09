@@ -46,6 +46,12 @@ public class IdeSubLoggerOut extends AbstractIdeSubLogger {
   }
 
   @Override
+  protected boolean isColored() {
+
+    return this.colored;
+  }
+
+  @Override
   public void log(String message) {
 
     try {
@@ -67,69 +73,20 @@ public class IdeSubLoggerOut extends AbstractIdeSubLogger {
   }
 
   @Override
-  public void log(Throwable error, String message, Object... args) {
+  public String log(Throwable error, String message, Object... args) {
 
     if (args != null) {
       message = compose(message, args);
     }
     log(this.exceptionDetails.format(message, error));
-  }
-
-  /**
-   * Should only be used internally by logger implementation.
-   *
-   * @param message the message template.
-   * @param args the dynamic arguments to fill in.
-   * @return the resolved message with the parameters filled in.
-   */
-  protected String compose(String message, Object... args) {
-
-    int pos = message.indexOf("{}");
-    if (pos < 0) {
-      if (args.length > 0) {
-        invalidMessage(message, false, args);
+    if (message == null) {
+      if (error == null) {
+        return null;
+      } else {
+        return error.toString();
       }
+    } else {
       return message;
-    }
-    int argIndex = 0;
-    int start = 0;
-    int length = message.length();
-    StringBuilder sb = new StringBuilder(length + 48);
-    while (pos >= 0) {
-      sb.append(message, start, pos);
-      sb.append(args[argIndex++]);
-      start = pos + 2;
-      pos = message.indexOf("{}", start);
-      if ((argIndex >= args.length) && (pos > 0)) {
-        invalidMessage(message, true, args);
-        pos = -1;
-      }
-    }
-    if (start < length) {
-      String rest = message.substring(start);
-      sb.append(rest);
-    }
-    if (argIndex < args.length) {
-      invalidMessage(message, false, args);
-    }
-    return sb.toString();
-  }
-
-  private void invalidMessage(String message, boolean more, Object[] args) {
-
-    warning("Invalid log message with " + args.length + " argument(s) but " + (more ? "more" : "less")
-        + " placeholders: " + message);
-  }
-
-  private void warning(String message) {
-
-    if (this.colored) {
-      System.err.print(IdeLogLevel.ERROR.getEndColor());
-      System.err.print(IdeLogLevel.ERROR.getStartColor());
-    }
-    System.err.println(message);
-    if (this.colored) {
-      System.err.print(IdeLogLevel.ERROR.getEndColor());
     }
   }
 

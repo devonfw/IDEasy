@@ -2,15 +2,17 @@ package com.devonfw.tools.ide.step;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeSubLogger;
 
 /**
  * Regular implementation of {@link Step}.
  */
-public class StepImpl implements Step {
+public final class StepImpl implements Step {
 
   private final AbstractIdeContext context;
 
@@ -24,7 +26,11 @@ public class StepImpl implements Step {
 
   private final long start;
 
+  private final boolean silent;
+
   private Boolean success;
+
+  private String errorMessage;
 
   private long duration;
 
@@ -34,27 +40,17 @@ public class StepImpl implements Step {
    * @param context the {@link IdeContext}.
    * @param parent the {@link #getParent() parent step}.
    * @param name the {@link #getName() step name}.
-   */
-  public StepImpl(AbstractIdeContext context, StepImpl parent, String name) {
-
-    this(context, parent, name, NO_PARAMS);
-  }
-
-  /**
-   * Creates and starts a new {@link StepImpl}.
-   *
-   * @param context the {@link IdeContext}.
-   * @param parent the {@link #getParent() parent step}.
-   * @param name the {@link #getName() step name}.
+   * @param silent the {@link #isSilent() silent flag}.
    * @param params the parameters. Should have reasonable {@link Object#toString() string representations}.
    */
-  public StepImpl(AbstractIdeContext context, StepImpl parent, String name, Object... params) {
+  public StepImpl(AbstractIdeContext context, StepImpl parent, String name, boolean silent, Object... params) {
 
     super();
     this.context = context;
     this.parent = parent;
     this.name = name;
     this.params = params;
+    this.silent = silent;
     this.children = new ArrayList<>();
     this.start = System.currentTimeMillis();
     if (parent != null) {
@@ -63,11 +59,17 @@ public class StepImpl implements Step {
     if (params.length == 0) {
       this.context.trace("Starting step {}...", name);
     } else {
-      this.context.trace("Starting step {} with params {}...", name, params);
+      this.context.trace("Starting step {} with params {}...", name, Arrays.toString(params));
     }
-    if (parent != null) {
+    if (!this.silent) {
       this.context.step("Start: {}", name);
     }
+  }
+
+  @Override
+  public StepImpl getParent() {
+
+    return this.parent;
   }
 
   @Override
@@ -92,6 +94,12 @@ public class StepImpl implements Step {
   }
 
   @Override
+  public boolean isSilent() {
+
+    return this.silent;
+  }
+
+  @Override
   public long getDuration() {
 
     return this.duration;
@@ -104,48 +112,114 @@ public class StepImpl implements Step {
   }
 
   @Override
-  public void success() {
+  public void success(String message, Object... args) {
 
-    end(Boolean.TRUE);
+    end(Boolean.TRUE, null, false, message, args);
+  }
+
+  @Override
+  public void error(Throwable error, boolean suppress, String message, Object... args) {
+
+    end(Boolean.FALSE, error, suppress, message, args);
   }
 
   @Override
   public void end() {
 
-    end(Boolean.FALSE);
+    end(null, null, false, null, null);
   }
 
-  private void end(Boolean newSuccess) {
+  private void end(Boolean newSuccess, Throwable error, boolean suppress, String message, Object[] args) {
 
     if (this.success != null) {
       assert (this.duration > 0);
-      // if success() was already called and then end() is called, this is normal and OK
-      assert (this.success.booleanValue() && !newSuccess.booleanValue());
+      // success or error may only be called once per Step, while end() will be called again in finally block
+      assert (newSuccess == null) : "Step " + this.name + " already ended with " + this.success
+          + " and cannot be ended again with " + newSuccess;
       return;
     }
     assert (this.duration == 0);
     this.duration = System.currentTimeMillis() - this.start;
+    if (newSuccess == null) {
+      newSuccess = Boolean.FALSE;
+    }
     this.success = newSuccess;
     if (newSuccess.booleanValue()) {
-      this.context.success("Success: " + this.name);
+      assert (error == null);
+      if (message != null) {
+        this.context.success(message, args);
+      } else if (!this.silent) {
+        this.context.success(this.name);
+      }
+      this.context.debug("Step '{}' ended successfully.", this.name);
     } else {
-      this.context.error("Failed: " + this.name);
+      IdeSubLogger logger;
+      if ((message != null) || (error != null)) {
+        if (suppress) {
+          if (error != null) {
+            this.errorMessage = error.toString();
+          } else {
+            this.errorMessage = message;
+          }
+        } else {
+          this.errorMessage = this.context.error().log(error, message, args);
+        }
+        logger = this.context.debug();
+      } else {
+        logger = this.context.info();
+      }
+      logger.log("Step '{}' ended with failure.", this.name);
     }
     this.context.endStep(this);
   }
 
-  @Override
-  public StepImpl getParent() {
+  /**
+   * Logs the summary of this {@link Step}. Should typically only be called on the top-level {@link Step}.
+   */
+  public void logSummary() {
 
-    return this.parent;
+    if (this.context.trace().isEnabled()) {
+      this.context.trace(toString());
+    }
+    if (this.context.isQuietMode()) {
+      return;
+    }
+    StepSummary summary = new StepSummary();
+    logErrorSummary(0, summary);
+    if (summary.getError() == 0) {
+      this.context.success("Successfully completed {}", getNameWithParams());
+    } else {
+      this.context.error(summary.toString());
+    }
   }
 
-  private void append(int depth, long totalDuration, long parentDuration, StringBuilder sb) {
+  private void logErrorSummary(int depth, StepSummary summary) {
 
-    // indent
-    sb.append(" ".repeat(depth));
+    boolean failure = isFailure();
+    summary.add(failure);
+    if (failure) {
+      this.context.error("{}Step '{}' failed: {}", getIndent(depth), getNameWithParams(), this.errorMessage);
+    }
+    depth++;
+    for (StepImpl child : this.children) {
+      child.logErrorSummary(depth, summary);
+    }
+  }
+
+  private String getNameWithParams() {
+
+    if ((this.params == null) || (this.params.length == 0)) {
+      return this.name;
+    }
+    StringBuilder sb = new StringBuilder(this.name.length() + 3 + this.params.length * 6);
+    getNameWithParams(sb);
+    return sb.toString();
+  }
+
+  private void getNameWithParams(StringBuilder sb) {
+
     sb.append(this.name);
-    sb.append('(');
+    sb.append(" (");
     String seperator = "";
     if (this.params != null) {
       for (Object param : this.params) {
@@ -154,7 +228,15 @@ public class StepImpl implements Step {
         seperator = ",";
       }
     }
-    sb.append(") ");
+    sb.append(')');
+  }
+
+  private void append(int depth, long totalDuration, long parentDuration, StringBuilder sb) {
+
+    // indent
+    sb.append(getIndent(depth));
+    getNameWithParams(sb);
+    sb.append(' ');
     if (this.success == null) {
       sb.append("is still running or was not properly ended due to programming error not using finally block ");
     } else {
@@ -182,6 +264,11 @@ public class StepImpl implements Step {
     for (StepImpl child : this.children) {
       child.append(childDepth, totalDuration, this.duration, sb);
     }
+  }
+
+  private String getIndent(int depth) {
+
+    return " ".repeat(depth);
   }
 
   @Override

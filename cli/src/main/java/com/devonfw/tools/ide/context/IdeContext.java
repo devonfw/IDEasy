@@ -437,7 +437,18 @@ public interface IdeContext extends IdeLogger {
    * @param parameters the {@link Step#getParameter(int) parameters} of the {@link Step}.
    * @return the new {@link Step} that has been created and started.
    */
-  Step newStep(String name, Object... parameters);
+  default Step newStep(String name, Object... parameters) {
+
+    return newStep(false, name, parameters);
+  }
+
+  /**
+   * @param silent the {@link Step#isSilent() silent flag}.
+   * @param name the {@link Step#getName() name} of the new {@link Step}.
+   * @param parameters the {@link Step#getParameter(int) parameters} of the {@link Step}.
+   * @return the new {@link Step} that has been created and started.
+   */
+  Step newStep(boolean silent, String name, Object... parameters);
 
   /**
    * Updates the current working directory (CWD) and configures the environment paths according to the specified

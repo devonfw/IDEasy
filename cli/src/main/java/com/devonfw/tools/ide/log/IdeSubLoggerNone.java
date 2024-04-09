@@ -16,8 +16,9 @@ public final class IdeSubLoggerNone extends AbstractIdeSubLogger {
   }
 
   @Override
-  public void log(Throwable error, String message, Object... args) {
+  public String log(Throwable error, String message, Object... args) {
 
+    return message;
   }
 
   @Override

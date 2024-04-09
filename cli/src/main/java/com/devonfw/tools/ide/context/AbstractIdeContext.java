@@ -755,9 +755,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public Step newStep(String name, Object... parameters) {
+  public StepImpl newStep(boolean silent, String name, Object... parameters) {
 
-    return this.currentStep = new StepImpl(this, this.currentStep, name, parameters);
+    this.currentStep = new StepImpl(this, this.currentStep, name, silent, parameters);
+    return this.currentStep;
   }
 
   /**
@@ -782,8 +783,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     CliArgument current = arguments.current();
     assert (this.currentStep == null);
-    StepImpl step = new StepImpl(this, null, "ide", (Object[]) current.asArray());
-    this.currentStep = step;
+    StepImpl step = newStep(true, "ide", (Object[]) current.asArray());
     try {
       if (!current.isEnd()) {
         String keyword = current.get();
@@ -805,16 +805,17 @@ public abstract class AbstractIdeContext implements IdeContext {
             }
           }
         }
-        error("Invalid arguments: {}", current.getArgs());
+        step.error("Invalid arguments: {}", current.getArgs());
       }
       this.commandletManager.getCommandlet(HelpCommandlet.class).run();
       return 1;
+    } catch (Throwable t) {
+      step.error(t, true);
+      throw t;
     } finally {
       step.end();
-      if (trace().isEnabled()) {
-        trace(step.toString());
-      }
       assert (this.currentStep == null);
+      step.logSummary();
     }
   }
 

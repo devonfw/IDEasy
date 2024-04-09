@@ -33,7 +33,7 @@ public class IdeSlf4jLogger extends AbstractIdeSubLogger {
   }
 
   @Override
-  public void log(Throwable error, String message, Object... args) {
+  public String log(Throwable error, String message, Object... args) {
 
     if ((this.level == IdeLogLevel.STEP) || (this.level == IdeLogLevel.INTERACTION)
         || (this.level == IdeLogLevel.SUCCESS)) {
@@ -47,6 +47,17 @@ public class IdeSlf4jLogger extends AbstractIdeSubLogger {
       builder.log(message);
     } else {
       builder.log(message, args);
+    }
+    if (message == null) {
+      if (error == null) {
+        return null;
+      } else {
+        return error.toString();
+      }
+    } else if (args == null) {
+      return message;
+    } else {
+      return compose(message, args);
     }
   }
 
