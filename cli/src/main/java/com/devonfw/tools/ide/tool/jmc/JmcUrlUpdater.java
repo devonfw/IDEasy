@@ -26,7 +26,6 @@ public class JmcUrlUpdater extends GithubUrlUpdater {
     return "jmc-build";
   }
 
-
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 

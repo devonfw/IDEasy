@@ -99,8 +99,8 @@ public class SystemPath {
       String tool = getTool(path, ideRoot);
       if (tool == null) {
         this.paths.add(path);
+        }
       }
-    }
     collectToolPath(softwarePath);
   }
 
@@ -165,7 +165,7 @@ public class SystemPath {
   /**
    * @param toolPath the {@link Path} to the tool installation.
    * @return the {@link Path} to the binary executable of the tool. E.g. is "software/mvn" is given
-   * "software/mvn/bin/mvn" could be returned.
+   *         "software/mvn/bin/mvn" could be returned.
    */
   public Path findBinary(Path toolPath) {
 
@@ -200,7 +200,7 @@ public class SystemPath {
   /**
    * @param tool the name of the tool.
    * @return the {@link Path} to the directory of the tool where the binaries can be found or {@code null} if the tool
-   * is not installed.
+   *         is not installed.
    */
   public Path getPath(String tool) {
 
@@ -224,7 +224,7 @@ public class SystemPath {
 
   /**
    * @param bash - {@code true} to convert the PATH to bash syntax (relevant for git-bash or cygwin on windows),
-   * {@code false} otherwise.
+   *        {@code false} otherwise.
    * @return this {@link SystemPath} as {@link String} for the PATH environment variable.
    */
   public String toString(boolean bash) {
@@ -265,15 +265,15 @@ public class SystemPath {
    */
   public static String convertWindowsPathToUnixPath(String pathString) {
 
-    char slash = pathString.charAt(2);
-    if ((slash == '\\') || (slash == '/')) {
-      char drive = Character.toLowerCase(pathString.charAt(0));
-      if ((drive >= 'a') && (drive <= 'z')) {
-        pathString = "/" + drive + pathString.substring(2).replace('\\', '/');
+      char slash = pathString.charAt(2);
+      if ((slash == '\\') || (slash == '/')) {
+        char drive = Character.toLowerCase(pathString.charAt(0));
+        if ((drive >= 'a') && (drive <= 'z')) {
+          pathString = "/" + drive + pathString.substring(2).replace('\\', '/');
+        }
       }
-    }
     return pathString;
-  }
+    }
 
   /**
    * Method to validate if a given path string is a Windows path or not

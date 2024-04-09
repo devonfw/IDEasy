@@ -1,5 +1,20 @@
 package com.devonfw.tools.ide.tool;
 
+import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.LATEST;
+import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.LATEST_SAFE;
+import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.NEXT_SAFE;
+import static com.devonfw.tools.ide.tool.SecurityRiskInteractionAnswer.STAY;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
@@ -11,13 +26,10 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.StringListProperty;
+import com.devonfw.tools.ide.url.model.file.UrlSecurityJsonFile;
+import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
+import com.devonfw.tools.ide.util.Pair;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
 
 /**
  * {@link Commandlet} for a tool integrated into the IDE.
@@ -40,7 +52,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   * method.
+   *        method.
    */
   public ToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -94,8 +106,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @param processMode see {@link ProcessMode}
    * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
-   * is installed and use that one. Otherwise, the specified version will be installed in the software repository
-   * without touching and IDE installation and used to run.
+   *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
+   *        without touching and IDE installation and used to run.
    * @param args the command-line arguments to run the tool.
    */
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
@@ -134,7 +146,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /**
    * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as
-   * tool.
+   *         tool.
    * @see #getToolWithEdition(String, String)
    */
   protected final String getToolWithEdition() {
@@ -146,7 +158,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param tool the tool name.
    * @param edition the edition.
    * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as
-   * tool.
+   *         tool.
    */
   protected final static String getToolWithEdition(String tool, String edition) {
 
@@ -169,7 +181,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
    *
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   * nothing has changed.
+   *         nothing has changed.
    */
   public boolean install() {
 
@@ -182,7 +194,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   * nothing has changed.
+   *         nothing has changed.
    */
   public boolean install(boolean silent) {
 
@@ -190,16 +202,153 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * Checks if the given {@link VersionIdentifier} has a matching security warning in the {@link UrlSecurityJsonFile}.
+   *
+   * @param configuredVersion the {@link VersionIdentifier} to be checked.
+   * @return the {@link VersionIdentifier} to be used for installation. If the configured version is safe or there are
+   *         no save versions the potentially unresolved configured version is simply returned. Otherwise, a resolved
+   *         version is returned.
+   */
+  protected VersionIdentifier securityRiskInteraction(VersionIdentifier configuredVersion) {
+
+    UrlSecurityJsonFile securityFile = this.context.getUrls().getEdition(this.tool, this.getEdition())
+        .getSecurityJsonFile();
+
+    VersionIdentifier current = this.context.getUrls().getVersion(this.tool, this.getEdition(), configuredVersion);
+
+    if (!securityFile.contains(current, true, this.context, securityFile.getParent())) {
+      return configuredVersion;
+    }
+
+    List<VersionIdentifier> allVersions = this.context.getUrls().getSortedVersions(this.tool, this.getEdition());
+    VersionIdentifier latest = allVersions.get(0);
+
+    VersionIdentifier nextSafe = getNextSafeVersion(current, securityFile, allVersions);
+    VersionIdentifier latestSafe = getLatestSafe(allVersions, securityFile);
+    String cves = securityFile.getMatchingSecurityWarnings(current).stream().map(UrlSecurityWarning::getCveName)
+        .collect(Collectors.joining(", "));
+    String currentIsUnsafe = "Currently, version " + current + " of " + this.getName() + " is selected, "
+        + "which has one or more vulnerabilities:\n\n" + cves + "\n\n(See also " + securityFile.getPath() + ")\n\n";
+
+    if (latestSafe == null) {
+      this.context.warning(currentIsUnsafe + "There is no safe version available.");
+      return configuredVersion;
+    }
+
+    return whichVersionDoYouWantToInstall(configuredVersion, current, nextSafe, latestSafe, latest, currentIsUnsafe);
+  }
+
+  /**
+   * Using all the safety information about the versions, this method asks the user which version to install.
+   *
+   * @param configuredVersion the version that was configured in the environment variables.
+   * @param current the current version that was resolved from the configured version.
+   * @param nextSafe the next safe version.
+   * @param latestSafe the latest safe version.
+   * @param latest the latest version.
+   * @param currentIsUnsafe the message that is printed if the current version is unsafe.
+   * @return the version that the user wants to install.
+   */
+  private VersionIdentifier whichVersionDoYouWantToInstall(VersionIdentifier configuredVersion,
+      VersionIdentifier current, VersionIdentifier nextSafe, VersionIdentifier latestSafe, VersionIdentifier latest,
+      String currentIsUnsafe) {
+
+    String ask = "Which version do you want to install?";
+
+    // enum id, option message, version that is returned if this option is selected
+    Map<SecurityRiskInteractionAnswer, Pair<String, VersionIdentifier>> options = new HashMap<>();
+    options.put(STAY, Pair.of("Stay with the current unsafe version (" + current + ").", configuredVersion));
+    options.put(LATEST_SAFE, Pair.of("Install the latest of all safe versions (" + latestSafe + ").", latestSafe));
+    options.put(LATEST,
+        Pair.of("Install the latest version (" + latest + "). This version is save.", VersionIdentifier.LATEST));
+    options.put(NEXT_SAFE, Pair.of("Install the next safe version (" + nextSafe + ").", nextSafe));
+
+    if (current.equals(latest)) {
+      return getAnswer(options, currentIsUnsafe + "There are no updates available. " + ask, STAY, LATEST_SAFE);
+    } else if (nextSafe == null) { // install an older version that is safe or stay with the current unsafe version
+      return getAnswer(options, currentIsUnsafe + "All newer versions are also not safe. " + ask, STAY, LATEST_SAFE);
+    } else if (nextSafe.equals(latest)) {
+      return getAnswer(options, currentIsUnsafe + "Of the newer versions, only the latest is safe. " + ask, STAY,
+          LATEST);
+    } else if (nextSafe.equals(latestSafe)) {
+      return getAnswer(options, currentIsUnsafe + "Of the newer versions, only version " + nextSafe
+          + " is safe, which is however not the latest. " + ask, STAY, NEXT_SAFE);
+    } else {
+      if (latestSafe.equals(latest)) {
+        return getAnswer(options, currentIsUnsafe + ask, STAY, NEXT_SAFE, LATEST);
+      } else {
+        return getAnswer(options, currentIsUnsafe + ask, STAY, NEXT_SAFE, LATEST_SAFE);
+      }
+    }
+  }
+
+  private VersionIdentifier getAnswer(Map<SecurityRiskInteractionAnswer, Pair<String, VersionIdentifier>> options,
+      String question, SecurityRiskInteractionAnswer... possibleAnswers) {
+
+    String[] availableOptions = Arrays.stream(possibleAnswers).map(options::get).map(Pair::getFirst)
+        .toArray(String[]::new);
+    String answer = this.context.question(question, availableOptions);
+    for (SecurityRiskInteractionAnswer possibleAnswer : possibleAnswers) {
+      if (options.get(possibleAnswer).getFirst().equals(answer)) {
+        return options.get(possibleAnswer).getSecond();
+      }
+    }
+    throw new IllegalStateException("Invalid answer " + answer);
+  }
+
+  /**
+   * Gets the latest safe version from the list of all versions.
+   *
+   * @param allVersions all versions of the tool.
+   * @param securityFile the {@link UrlSecurityJsonFile} to check if a version is safe or not.
+   * @return the latest safe version or {@code null} if there is no safe version.
+   */
+  private VersionIdentifier getLatestSafe(List<VersionIdentifier> allVersions, UrlSecurityJsonFile securityFile) {
+
+    VersionIdentifier latestSafe = null;
+    for (int i = 0; i < allVersions.size(); i++) {
+      if (!securityFile.contains(allVersions.get(i), true, this.context, securityFile.getParent())) {
+        latestSafe = allVersions.get(i);
+        break;
+      }
+    }
+    return latestSafe;
+  }
+
+  /**
+   * Gets the next safe version from the list of all versions starting from the current version.
+   *
+   * @param current the current version.
+   * @param securityFile the {@link UrlSecurityJsonFile} to check if a version is safe or not.
+   * @param allVersions all versions of the tool.
+   * @return the next safe version or {@code null} if there is no safe version.
+   */
+  private VersionIdentifier getNextSafeVersion(VersionIdentifier current, UrlSecurityJsonFile securityFile,
+      List<VersionIdentifier> allVersions) {
+
+    int currentVersionIndex = allVersions.indexOf(current);
+    VersionIdentifier nextSafe = null;
+    for (int i = currentVersionIndex - 1; i >= 0; i--) {
+      if (!securityFile.contains(allVersions.get(i), true, this.context, securityFile.getParent())) {
+        nextSafe = allVersions.get(i);
+        break;
+      }
+    }
+    return nextSafe;
+  }
+
+  /**
    * Installs or updates the managed {@link #getName() tool}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   * nothing has changed.
+   *         nothing has changed.
    */
   protected abstract boolean doInstall(boolean silent);
 
   /**
-   * This method is called after the tool has been newly installed or updated to a new version.
+   * This method is called after the tool has been newly installed or updated to a new version. Override it to add
+   * custom post installation logic.
    */
   protected void postInstall() {
 
@@ -271,7 +420,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /**
    * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent
-   * directory of the real path corresponding to the passed {@link Path path} must be the name of the edition.
+   *        directory of the real path corresponding to the passed {@link Path path} must be the name of the edition.
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   public String getInstalledEdition(Path toolPath) {
@@ -287,11 +436,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       return edition;
     } catch (IOException e) {
-      throw new IllegalStateException(
-          "Couldn't determine the edition of " + getName() + " from the directory structure of its software path "
-              + toolPath
-              + ", assuming the name of the parent directory of the real path of the software path to be the edition "
-              + "of the tool.", e);
+      throw new IllegalStateException("Couldn't determine the edition of " + getName()
+          + " from the directory structure of its software path " + toolPath
+          + ", assuming the name of the parent directory of the real path of the software path to be the edition "
+          + "of the tool.", e);
     }
 
   }
