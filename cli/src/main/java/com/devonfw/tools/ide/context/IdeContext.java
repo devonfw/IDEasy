@@ -27,7 +27,12 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public interface IdeContext extends IdeLogger {
 
-  String DEFAULT_SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings";
+  /**
+   * The default settings URL.
+   *
+   * @see com.devonfw.tools.ide.commandlet.AbstractUpdateCommandlet
+   */
+  String DEFAULT_SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings.git";
 
   /** The name of the workspaces folder. */
   String FOLDER_WORKSPACES = "workspaces";
@@ -122,8 +127,10 @@ public interface IdeContext extends IdeLogger {
   /** The default for {@link #getWorkspaceName()}. */
   String WORKSPACE_MAIN = "main";
 
+  /** The folder with the configuration template files from the settings. */
   String FOLDER_TEMPLATES = "templates";
 
+  /** Legacy folder name used as compatibility fallback if {@link #FOLDER_TEMPLATES} does not exist. */
   String FOLDER_LEGACY_TEMPLATES = "devon";
 
   /**
@@ -216,7 +223,7 @@ public interface IdeContext extends IdeLogger {
   default void requireOnline(String purpose) {
 
     if (isOfflineMode()) {
-      throw new CliException("You are offline but Internet access is required for " + purpose, 23);
+      throw new CliOfflineException("You are offline but Internet access is required for " + purpose);
     }
   }
 
