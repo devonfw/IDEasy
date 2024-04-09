@@ -5,6 +5,7 @@ import java.util.Locale;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
@@ -17,6 +18,7 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -410,9 +412,30 @@ public interface IdeContext extends IdeLogger {
   GitContext getGitContext();
 
   /**
-   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters.
-   * This method is central to changing the IDE's notion of where it operates, affecting where configurations, workspaces,
-   * settings, and other resources are located or loaded from.
+   * @return the current {@link Step} of processing.
+   */
+  Step getCurrentStep();
+
+  /**
+   * @param name the {@link Step#getName() name} of the new {@link Step}.
+   * @return the new {@link Step} that has been created and started.
+   */
+  default Step newStep(String name) {
+
+    return newStep(name, Step.NO_PARAMS);
+  }
+
+  /**
+   * @param name the {@link Step#getName() name} of the new {@link Step}.
+   * @param parameters the {@link Step#getParameter(int) parameters} of the {@link Step}.
+   * @return the new {@link Step} that has been created and started.
+   */
+  Step newStep(String name, Object... parameters);
+
+  /**
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified
+   * parameters. This method is central to changing the IDE's notion of where it operates, affecting where
+   * configurations, workspaces, settings, and other resources are located or loaded from.
    *
    * @param ideHome The path to the IDE home directory.
    */
@@ -422,9 +445,9 @@ public interface IdeContext extends IdeLogger {
   }
 
   /**
-   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters.
-   * This method is central to changing the IDE's notion of where it operates, affecting where configurations, workspaces,
-   * settings, and other resources are located or loaded from.
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified
+   * parameters. This method is central to changing the IDE's notion of where it operates, affecting where
+   * configurations, workspaces, settings, and other resources are located or loaded from.
    *
    * @param userDir The path to set as the current working directory.
    * @param workspace The name of the workspace within the IDE's environment.
