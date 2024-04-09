@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.log;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
+import org.slf4j.spi.LoggingEventBuilder;
 
 /**
  * Implementation of {@link IdeSubLogger} for testing that delegates to slf4j.
@@ -32,13 +33,21 @@ public class IdeSlf4jLogger extends AbstractIdeSubLogger {
   }
 
   @Override
-  public void log(String message) {
+  public void log(Throwable error, String message, Object... args) {
 
     if ((this.level == IdeLogLevel.STEP) || (this.level == IdeLogLevel.INTERACTION)
         || (this.level == IdeLogLevel.SUCCESS)) {
       message = this.level.name() + ":" + message;
     }
-    LOG.atLevel(this.logLevel).log(message);
+    LoggingEventBuilder builder = LOG.atLevel(this.logLevel);
+    if (error != null) {
+      builder.setCause(error);
+    }
+    if (args == null) {
+      builder.log(message);
+    } else {
+      builder.log(message, args);
+    }
   }
 
   @Override
