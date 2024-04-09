@@ -35,18 +35,19 @@ public class IdeSlf4jLogger extends AbstractIdeSubLogger {
   @Override
   public String log(Throwable error, String message, Object... args) {
 
+    String msg = message;
     if ((this.level == IdeLogLevel.STEP) || (this.level == IdeLogLevel.INTERACTION)
         || (this.level == IdeLogLevel.SUCCESS)) {
-      message = this.level.name() + ":" + message;
+      msg = this.level.name() + ":" + message;
     }
     LoggingEventBuilder builder = LOG.atLevel(this.logLevel);
     if (error != null) {
       builder.setCause(error);
     }
     if (args == null) {
-      builder.log(message);
+      builder.log(msg);
     } else {
-      builder.log(message, args);
+      builder.log(msg, args);
     }
     if (message == null) {
       if (error == null) {
