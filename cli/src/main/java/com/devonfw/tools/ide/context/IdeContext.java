@@ -25,6 +25,8 @@ import java.util.Locale;
  */
 public interface IdeContext extends IdeLogger {
 
+  String DEFAULT_SETTINGS_REPO_URL = "https://github.com/devonfw/ide-settings";
+
   /** The name of the workspaces folder. */
   String FOLDER_WORKSPACES = "workspaces";
 
@@ -115,6 +117,10 @@ public interface IdeContext extends IdeLogger {
   /** The default for {@link #getWorkspaceName()}. */
   String WORKSPACE_MAIN = "main";
 
+  String FOLDER_TEMPLATES = "templates";
+
+  String FOLDER_LEGACY_TEMPLATES = "devon";
+
   /**
    * @return {@code true} in case of quiet mode (reduced output), {@code false} otherwise.
    */
@@ -147,6 +153,15 @@ public interface IdeContext extends IdeLogger {
    * @return {@code true} if we are currently online (Internet access is available), {@code false} otherwise.
    */
   boolean isOnline();
+
+  /**
+   * Asks the user for a single string input.
+   *
+   * @param message The information message to display.
+   * @param defaultValue The default value to return when no input is provided.
+   * @return The string input from the user, or the default value if no input is provided.
+   */
+  String askForInput(String message, String defaultValue);
 
   /**
    * @param question the question to ask.
@@ -386,4 +401,26 @@ public interface IdeContext extends IdeLogger {
     }
   }
 
+  /**
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters.
+   * This method is central to changing the IDE's notion of where it operates, affecting where configurations, workspaces,
+   * settings, and other resources are located or loaded from.
+   *
+   * @param ideHome The path to the IDE home directory.
+   */
+  default void setIdeHome(Path ideHome) {
+
+    setCwd(ideHome, WORKSPACE_MAIN, ideHome);
+  }
+
+  /**
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters.
+   * This method is central to changing the IDE's notion of where it operates, affecting where configurations, workspaces,
+   * settings, and other resources are located or loaded from.
+   *
+   * @param userDir The path to set as the current working directory.
+   * @param workspace The name of the workspace within the IDE's environment.
+   * @param ideHome The path to the IDE home directory.
+   */
+  void setCwd(Path userDir, String workspace, Path ideHome);
 }
