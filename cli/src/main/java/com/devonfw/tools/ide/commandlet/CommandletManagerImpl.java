@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.*;
-
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
@@ -14,6 +12,7 @@ import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.helm.Helm;
+import com.devonfw.tools.ide.tool.jasypt.Jasypt;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.jmc.Jmc;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
@@ -27,7 +26,12 @@ import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.tomcat.Tomcat;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
-import com.devonfw.tools.ide.tool.jasypt.Jasypt;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of {@link CommandletManager}.

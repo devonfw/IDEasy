@@ -1,13 +1,5 @@
 package com.devonfw.tools.ide.tool;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.*;
-import java.util.stream.Stream;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -20,6 +12,18 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * {@link ToolCommandlet} that is installed locally into the IDE.
@@ -208,27 +212,24 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     if (linkDir != rootDir) {
       assert (!linkDir.equals(rootDir));
-      this.context.getFileAccess().copy(toolVersionFile, linkDir.resolve(IdeContext.FILE_SOFTWARE_VERSION),
-          FileCopyMode.COPY_FILE_OVERRIDE);
+      this.context.getFileAccess().copy(toolVersionFile, linkDir.resolve(IdeContext.FILE_SOFTWARE_VERSION), FileCopyMode.COPY_FILE_OVERRIDE);
     }
     return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion, newInstallation);
   }
 
-  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion,
-      Path toolVersionFile) {
+  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile) {
 
     return createToolInstallation(rootDir, resolvedVersion, toolVersionFile, false);
   }
 
   /**
    * Method to get the Path of the dependencies Json file
-   * 
+   *
    * @return the {@link Path} of the dependencies file for the tool
    */
   public Path getDependencyJsonPath() {
 
-    Path urlsPath = this.context.getUrlsPath();
-    Path toolPath = urlsPath.resolve(getName()).resolve(getEdition());
+    Path toolPath = this.context.getUrlsPath().resolve(getName()).resolve(getEdition());
     return toolPath.resolve(DEPENDENCY_FILENAME);
   }
 
