@@ -106,12 +106,10 @@ public class FileAccessImpl implements FileAccess {
    * @param target Path of the target directory.
    * @param response the {@link HttpResponse} to use.
    */
-  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response)
-      throws IOException {
+  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
-    setDefaultMaxContentLength(contentLength);
-
+    informAboutDefaultMaxContentLength(contentLength);
     byte[] data = new byte[1024];
     boolean fileComplete = false;
     int count;
@@ -126,8 +124,15 @@ public class FileAccessImpl implements FileAccess {
           fileComplete = true;
         } else {
           bufferedOut.write(data, 0, count);
-          pb.stepBy(count);
+          if (contentLength > 0) {
+            pb.stepBy(count);
+          } else {
+            break;
+          }
         }
+      }
+      if (contentLength == 0) {
+        pb.stepBy(10000000);
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -142,11 +147,10 @@ public class FileAccessImpl implements FileAccess {
    */
   private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
-    try (InputStream in = new FileInputStream(source.toFile());
-        OutputStream out = new FileOutputStream(target.toFile())) {
+    try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
 
       long size = source.toFile().length();
-      setDefaultMaxContentLength(size);
+      informAboutDefaultMaxContentLength(size);
 
       byte[] buf = new byte[1024];
       int readBytes;
@@ -162,11 +166,10 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  private void setDefaultMaxContentLength(long contentLength){
+  private void informAboutDefaultMaxContentLength(long contentLength) {
+
     if (contentLength == 0) {
-      this.context.warning(
-          "Content-Length was not provided by download source : using fallback for the progress bar which will be inaccurate.");
-      contentLength = 10000000;
+      this.context.warning("Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to 10000000.");
     }
   }
 
