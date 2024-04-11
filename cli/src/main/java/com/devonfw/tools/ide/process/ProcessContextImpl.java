@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -138,18 +139,16 @@ public class ProcessContextImpl implements ProcessContext {
 
       this.processBuilder.command(args);
 
-      Process process = this.processBuilder.start();
-
       List<String> out = null;
       List<String> err = null;
 
+      Process process = this.processBuilder.start();
+
       if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-          out = outReader.lines().collect(Collectors.toList());
-        }
-        try (BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-          err = errReader.lines().collect(Collectors.toList());
-        }
+        CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
+        CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
+        out = outFut.get();
+        err = errFut.get();
       }
 
       int exitCode;
@@ -173,6 +172,26 @@ public class ProcessContextImpl implements ProcessContext {
     } finally {
       this.arguments.clear();
     }
+  }
+
+  /**
+   * Asynchronously and parallel reads {@link InputStream input stream} and stores it in {@link CompletableFuture}.
+   * Inspired by: <a href=
+   * "https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki/57483714#57483714">StackOverflow</a>
+   *
+   * @param is {@link InputStream}.
+   * @return {@link CompletableFuture}.
+   */
+  private static CompletableFuture<List<String>> readInputStream(InputStream is) {
+
+    return CompletableFuture.supplyAsync(() -> {
+
+      try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr)) {
+        return br.lines().toList();
+      } catch (Throwable e) {
+        throw new RuntimeException("There was a problem while executing the program", e);
+      }
+    });
   }
 
   private String createCommandMessage(String interpreter, String suffix) {

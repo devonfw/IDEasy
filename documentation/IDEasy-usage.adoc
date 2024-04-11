@@ -24,8 +24,6 @@ include::conf.adoc[leveloffset=3]
 
 include::log.adoc[leveloffset=3]
 
-include::scripts.adoc[leveloffset=3]
-
 include::settings.adoc[leveloffset=3]
 
 include::software.adoc[leveloffset=3]
