@@ -888,7 +888,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     Path bashPath;
     if (systemInfo.isLinux() || systemInfo.isMac()) {
-      bashPath = Path.of("/bin/bash");
+      bashPath = Path.of("bash");
     } else {
       bashPath = Path.of(findBashOnWindows());
     }
