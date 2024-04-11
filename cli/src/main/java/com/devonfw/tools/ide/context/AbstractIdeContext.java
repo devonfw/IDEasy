@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.context;
 
+import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliException;
@@ -56,45 +57,45 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final Map<IdeLogLevel, IdeSubLogger> loggers;
 
-  private final Path ideHome;
+  private Path ideHome;
 
   private final Path ideRoot;
 
-  private final Path confPath;
+  private Path confPath;
 
-  private final Path settingsPath;
+  private Path settingsPath;
 
-  private final Path softwarePath;
+  private Path softwarePath;
 
-  private final Path softwareRepositoryPath;
+  private Path softwareRepositoryPath;
 
-  private final Path pluginsPath;
+  private Path pluginsPath;
 
-  private final Path workspacePath;
+  private Path workspacePath;
 
-  private final String workspaceName;
+  private String workspaceName;
 
-  private final Path urlsPath;
+  private Path urlsPath;
 
-  private final Path tempPath;
+  private Path tempPath;
 
-  private final Path tempDownloadPath;
+  private Path tempDownloadPath;
 
-  private final Path cwd;
+  private Path cwd;
 
-  private final Path downloadPath;
+  private Path downloadPath;
 
-  private final Path toolRepository;
+  private Path toolRepository;
 
-  private final Path userHome;
+  private Path userHome;
 
-  private final Path userHomeIde;
+  private Path userHomeIde;
 
-  private final SystemPath path;
+  private SystemPath path;
 
   private final SystemInfo systemInfo;
 
-  private final EnvironmentVariables variables;
+  private EnvironmentVariables variables;
 
   private final FileAccess fileAccess;
 
@@ -102,9 +103,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final ToolRepository defaultToolRepository;
 
-  private final CustomToolRepository customToolRepository;
+  private CustomToolRepository customToolRepository;
 
-  private final DirectoryMerger workspaceMerger;
+  private DirectoryMerger workspaceMerger;
 
   private final Function<IdeLogLevel, IdeSubLogger> loggerFactory;
 
@@ -143,12 +144,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.fileAccess = new FileAccessImpl(this);
     String workspace = WORKSPACE_MAIN;
     if (userDir == null) {
-      this.cwd = Path.of(System.getProperty("user.dir"));
+      userDir = Path.of(System.getProperty("user.dir"));
     } else {
-      this.cwd = userDir.toAbsolutePath();
+      userDir = userDir.toAbsolutePath();
     }
     // detect IDE_HOME and WORKSPACE
-    Path currentDir = this.cwd;
+    Path currentDir = userDir;
     String name1 = "";
     String name2 = "";
     while (currentDir != null) {
@@ -167,44 +168,40 @@ public abstract class AbstractIdeContext implements IdeContext {
       currentDir = getParentPath(currentDir);
     }
     // detection completed, initializing variables
-    this.ideHome = currentDir;
-    this.workspaceName = workspace;
-    if (this.ideHome == null) {
+    Path ideRootPath = null;
+    if (currentDir == null) {
       info(getMessageIdeHomeNotFound());
       this.workspacePath = null;
-      this.ideRoot = null;
       this.confPath = null;
       this.settingsPath = null;
       this.softwarePath = null;
       this.pluginsPath = null;
     } else {
       debug(getMessageIdeHomeFound());
-      this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
-      Path ideRootPath = this.ideHome.getParent();
-      String root = null;
-      if (!isTest()) {
-        root = System.getenv("IDE_ROOT");
-      }
+      setCwd(userDir, workspace, currentDir);
+      ideRootPath = this.ideHome.getParent();
+    }
+
+    if (!isTest()) {
+      String root = System.getenv("IDE_ROOT");
       if (root != null) {
         Path rootPath = Path.of(root);
-        if (Files.isDirectory(rootPath)) {
-          if (!ideRootPath.equals(rootPath)) {
-            warning(
-                "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
-                root, this.ideHome.getFileName(), ideRootPath);
-          }
-          ideRootPath = rootPath;
-        } else {
-          warning("Variable IDE_ROOT is not set to a valid directory '{}'." + root);
-          ideRootPath = null;
+        ideRootPath = rootPath;
+        if (!ideRootPath.equals(rootPath)) {
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
+              rootPath, this.ideHome.getFileName(), ideRootPath);
         }
       }
-      this.ideRoot = ideRootPath;
-      this.confPath = this.ideHome.resolve(FOLDER_CONF);
-      this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
-      this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
-      this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
     }
+    if (ideRootPath == null || !Files.isDirectory(ideRootPath)) {
+      error("IDE_ROOT is not set or not a valid directory.");
+    }
+    //if (ideRootPath != null && !Files.isDirectory(ideRootPath)) {
+    //  warning("Variable IDE_ROOT is not set to a valid directory '{}'." + ideRootPath);
+    //  ideRootPath = null;
+    //}
+    this.ideRoot = ideRootPath;
+
     if (this.ideRoot == null) {
       this.toolRepository = null;
       this.urlsPath = null;
@@ -224,6 +221,26 @@ public abstract class AbstractIdeContext implements IdeContext {
         this.fileAccess.mkdirs(this.tempDownloadPath);
       }
     }
+
+    if (toolRepository == null) {
+      this.defaultToolRepository = new DefaultToolRepository(this);
+    } else {
+      this.defaultToolRepository = toolRepository;
+    }
+  }
+
+  public void setCwd(Path userDir, String workspace, Path ideHome) {
+
+    this.cwd = userDir;
+    this.workspaceName = workspace;
+    this.ideHome = ideHome;
+
+    this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
+    this.confPath = this.ideHome.resolve(FOLDER_CONF);
+    this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
+    this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
+    this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
+
     if (isTest()) {
       // only for testing...
       if (this.ideHome == null) {
@@ -236,15 +253,9 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     this.userHomeIde = this.userHome.resolve(".ide");
     this.downloadPath = this.userHome.resolve("Downloads/ide");
+
     this.variables = createVariables();
     this.path = computeSystemPath();
-
-    if (toolRepository == null) {
-      this.defaultToolRepository = new DefaultToolRepository(this);
-    } else {
-      this.defaultToolRepository = toolRepository;
-    }
-
     this.customToolRepository = CustomToolRepositoryImpl.of(this);
     this.workspaceMerger = new DirectoryMerger(this);
   }
@@ -647,6 +658,22 @@ public abstract class AbstractIdeContext implements IdeContext {
     IdeSubLogger logger = this.loggers.get(level);
     Objects.requireNonNull(logger);
     return logger;
+  }
+
+  public String askForInput(String message, String defaultValue) {
+
+    if (!message.isBlank()) {
+      info(message);
+    }
+    if (isBatchMode()) {
+      if (isForceMode()) {
+        return defaultValue;
+      } else {
+        throw new CliAbortException();
+      }
+    }
+    String input = readLine().trim();
+    return input.isEmpty() ? defaultValue : input;
   }
 
   @SuppressWarnings("unchecked")
