@@ -269,16 +269,8 @@ public class ProcessContextImpl implements ProcessContext {
       }
     }
     if (isBashScript) {
-      String bash = "bash";
+      String bash = this.context.findBash();
       interpreter = bash;
-      // here we want to have native OS behavior even if OS is mocked during tests...
-      // if (this.context.getSystemInfo().isWindows()) {
-      if (SystemInfoImpl.INSTANCE.isWindows()) {
-        String findBashOnWindowsResult = this.context.findBash();
-        if (findBashOnWindowsResult != null) {
-          bash = findBashOnWindowsResult;
-        }
-      }
       args.add(bash);
     }
     if ("msi".equalsIgnoreCase(fileExtension)) {
@@ -319,24 +311,7 @@ public class ProcessContextImpl implements ProcessContext {
       throw new IllegalStateException("Cannot handle non background process mode!");
     }
 
-    String bash = "bash";
-
-    // try to use bash in windows to start the process
-    if (context.getSystemInfo().isWindows()) {
-
-      String findBashOnWindowsResult = this.context.findBash();
-      if (findBashOnWindowsResult != null) {
-
-        bash = findBashOnWindowsResult;
-
-      } else {
-        context.warning(
-            "Cannot start background process in windows! No bash installation found, output will be discarded.");
-        this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
-        return;
-      }
-    }
-
+    String bash = this.context.findBash();
     String commandToRunInBackground = buildCommandToRunInBackground();
 
     this.arguments.clear();

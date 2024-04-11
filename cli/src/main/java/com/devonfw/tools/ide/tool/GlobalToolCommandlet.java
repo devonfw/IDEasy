@@ -55,8 +55,6 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    */
   protected boolean installWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
 
-    Path bashPath = this.context.findBashPath();
-
     for (PackageManagerCommand pmCommand : pmCommands) {
       PackageManager packageManager = pmCommand.getPackageManager();
       Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
@@ -65,15 +63,16 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
         continue; // Skip to the next package manager command
       }
 
-      if (executePackageManagerCommand(pmCommand, bashPath, silent)) {
+      if (executePackageManagerCommand(pmCommand, silent)) {
         return true; // Successfully installed
       }
     }
     return false; // None of the package manager commands were successful
   }
 
-  private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, Path bashPath, boolean silent) {
+  private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent) {
 
+    String bashPath = this.context.findBash();
     for (String command : pmCommand.getCommands()) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(bashPath)
           .addArgs("-c", command);

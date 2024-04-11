@@ -884,30 +884,14 @@ public abstract class AbstractIdeContext implements IdeContext {
     return true;
   }
 
-  public Path findBashPath() {
-
-    Path bashPath;
-    if (systemInfo.isLinux() || systemInfo.isMac()) {
-      bashPath = Path.of("/bin/bash");
-    } else {
-      bashPath = Path.of(findBashOnWindows());
-    }
-
-    if (!Files.exists(bashPath)) {
-      warning("Bash was not found on this machine.");
-      bashPath = null;
-    }
-
-    return bashPath;
-  }
-
   public String findBash() {
 
-    Path bashPath = findBashPath();
-    if (bashPath != null) {
-      return bashPath.toString();
+    String bash = "bash";
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      bash = findBashOnWindows();
     }
-    return null;
+
+    return bash;
   }
 
   private String findBashOnWindows() {
