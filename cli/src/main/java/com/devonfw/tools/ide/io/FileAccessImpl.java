@@ -109,7 +109,7 @@ public class FileAccessImpl implements FileAccess {
   private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
-    informAboutDefaultMaxContentLength(contentLength);
+    informAboutSettingDefaultContentLength(contentLength);
     byte[] data = new byte[1024];
     boolean fileComplete = false;
     int count;
@@ -150,7 +150,7 @@ public class FileAccessImpl implements FileAccess {
     try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
 
       long size = source.toFile().length();
-      informAboutDefaultMaxContentLength(size);
+      informAboutSettingDefaultContentLength(size);
 
       byte[] buf = new byte[1024];
       int readBytes;
@@ -166,7 +166,7 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  private void informAboutDefaultMaxContentLength(long contentLength) {
+  private void informAboutSettingDefaultContentLength(long contentLength) {
 
     if (contentLength == 0) {
       this.context.warning("Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to 10000000.");
