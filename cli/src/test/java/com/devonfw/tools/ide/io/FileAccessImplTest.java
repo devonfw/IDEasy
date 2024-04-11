@@ -75,7 +75,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testMissingContentLength(@TempDir Path tempDir) {
+  public void testDownloadWithMissingContentLength() {
 
     // arrange
     IdeTestContext context = newContext("npm");
@@ -85,9 +85,29 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     fileAccess.download(url, targetFile);
   }
 
+  @Test
+  public void testCopyWithMissingContentLength() {
+
+    // arrange
+    Path resourcePath = Path.of("src/test/resources/__files");
+    Path source = resourcePath.resolve("testZip");
+    Path target = resourcePath.resolve("copyTestZip");
+
+    IdeTestContext context = newContext("npm");
+    FileAccess fileAccess = new FileAccessImpl(context);
+
+    try {
+      fileAccess.copy(source, target);
+      assertLogMessage(context, IdeLogLevel.DEBUG, "Copying src\\test\\resources\\__files\\testZip recursively to src\\test\\resources\\__files\\copyTestZip");
+      assertThat(Files.exists(target)).isTrue();
+    } catch (IllegalStateException e) {
+      assertThat(e).hasMessageContaining(
+          "Failed to copy src\\test\\resources\\__files\\testZip to already existing target src\\test\\resources\\__files\\copyTestZip");
+    }
+  }
+
   /**
-   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = false". Passing relative paths as
-   * source.
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = false". Passing relative paths as source.
    */
   @Test
   public void testSymlinkAbsolutePassingRelativeSource(@TempDir Path tempDir) {
