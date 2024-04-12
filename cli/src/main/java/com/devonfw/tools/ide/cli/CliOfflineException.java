@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.cli;
 import com.devonfw.tools.ide.process.ProcessResult;
 
 /**
- * {@link CliException} that is thrown if the user aborted further processing due
+ * {@link CliException} that is thrown if further processing requires network but the user if offline.
  */
 public final class CliOfflineException extends CliException {
 
