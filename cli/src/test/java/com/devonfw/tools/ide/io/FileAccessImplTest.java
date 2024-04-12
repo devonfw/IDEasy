@@ -277,7 +277,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   public void testDownloadWithDefaultValueForMissingContentLength() {
 
     // arrange
-    IdeTestContext context = newContext("npm");
+    IdeTestContext context = newContext("basic");
     FileAccess fileAccess = new FileAccessImpl(context);
     String url = "https://getsamplefiles.com/download/zip/sample-1.zip";
     Path targetFile = context.getSoftwarePath().resolve("testZip");
@@ -299,7 +299,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     String source = resourcePath.resolve("testZip").toString();
     Path target = resourcePath.resolve("copyTestZip");
 
-    IdeTestContext context = newContext("npm");
+    IdeTestContext context = newContext("basic");
     FileAccess fileAccess = new FileAccessImpl(context);
 
     //act
