@@ -51,7 +51,6 @@ public interface Step {
 
   /**
    * @return {@code true} if this step {@link #end() ended} without {@link #success() success} e.g. with an
-
    *         {@link #error(String) error}, {@code false} otherwise.
    */
   default boolean isFailure() {
