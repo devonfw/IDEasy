@@ -111,7 +111,7 @@ public interface GitContext {
   void pull(Path targetRepository);
 
   /**
-   * Runs a git diff-index to detect local changes and if so revers them via git reset.
+   * Runs a git diff-index to detect local changes and if so reverts them via git reset.
    *
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
    *        It is not the parent directory where git will by default create a sub-folder by default on clone but the
