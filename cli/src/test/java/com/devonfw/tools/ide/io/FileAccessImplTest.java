@@ -4,6 +4,8 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -268,39 +270,50 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     }
   }
 
+  /**
+   * Test of {@link FileAccessImpl#download(String, Path)} with default value for missing content length if the url starts with http.
+   */
   @Test
-  public void testDownloadWithMissingContentLength() {
+  public void testDownloadWithDefaultValueForMissingContentLength() {
 
     // arrange
     IdeTestContext context = newContext("npm");
     FileAccess fileAccess = new FileAccessImpl(context);
     String url = "https://getsamplefiles.com/download/zip/sample-1.zip";
-    Path targetFile = context.getSoftwarePath();
+    Path targetFile = context.getSoftwarePath().resolve("testZip");
     fileAccess.download(url, targetFile);
+    checkLogMessageForDefaultContentLength(context);
+    assertThat(Files.exists(targetFile)).isTrue();
   }
 
+  /**
+   * Test of {@link FileAccessImpl#download(String, Path)} with default value for missing content length. The functionality can be tested through code
+   * manipulation with the below provided test data or with a download url for a file with missing content length.
+   */
+  @Disabled
   @Test
-  public void testCopyWithMissingContentLength() {
+  public void testCopyWithDefaultValueForMissingContentLength() {
 
     // arrange
     Path resourcePath = Path.of("src/test/resources/__files");
-    Path source = resourcePath.resolve("testZip");
+    String source = resourcePath.resolve("testZip").toString();
     Path target = resourcePath.resolve("copyTestZip");
 
     IdeTestContext context = newContext("npm");
     FileAccess fileAccess = new FileAccessImpl(context);
 
-    try {
-      fileAccess.copy(source, target);
-      //assertLogMessage(context, IdeLogLevel.DEBUG, "Copying src\\test\\resources\\__files\\testZip recursively to src\\test\\resources\\__files\\copyTestZip");
-      assertThat(Files.exists(target)).isTrue();
-    } catch (IllegalStateException e) {
-      /*
-      assertThat(e).hasMessageContaining(
-          "Failed to copy src\\test\\resources\\__files\\testZip to already existing target src\\test\\resources\\__files\\copyTestZip");
+    //act
+    fileAccess.download(source, target);
+    //assert
+    checkLogMessageForDefaultContentLength(context);
+    assertLogMessage(context, IdeLogLevel.INFO, "Trying to download " + "copyTestZip" + " from " + source);
+    assertThat(Files.exists(target)).isTrue();
+  }
 
-       */
-    }
+  private void checkLogMessageForDefaultContentLength(IdeTestContext context) {
+
+    assertLogMessage(context, IdeLogLevel.WARNING,
+        "Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to 10000000.");
   }
 
   private void createDirs(FileAccess fileAccess, Path dir) {

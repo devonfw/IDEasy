@@ -130,9 +130,7 @@ public class FileAccessImpl implements FileAccess {
           }
         }
       }
-      if (contentLength == 0) {
-        pb.stepBy(10000000);
-      }
+      callStepByWithDefaultContentLength(contentLength, pb);
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -162,12 +160,18 @@ public class FileAccessImpl implements FileAccess {
             break;
           }
         }
-        if (size == 0) {
-          pb.stepBy(10000000);
-        }
+
+        callStepByWithDefaultContentLength(size, pb);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+    }
+  }
+
+  private void callStepByWithDefaultContentLength(long contentLength, IdeProgressBar progressBar) {
+
+    if (contentLength == 0) {
+      progressBar.stepBy(10000000);
     }
   }
 
