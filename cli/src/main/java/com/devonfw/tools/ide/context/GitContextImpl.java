@@ -97,6 +97,7 @@ public class GitContextImpl implements GitContext {
 
     if (Files.isDirectory(targetRepository.resolve(".git"))) {
       // checks for remotes
+      this.processContext.directory(targetRepository);
       ProcessResult result = this.processContext.addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
