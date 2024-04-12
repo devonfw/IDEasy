@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.step;
 
 /**
  * Interface for a {@link Step} of the process. Allows to split larger processes into smaller steps that are traced
-
  * and measured. At the end you can get a report with the hierarchy of all steps and their success/failure status,
  * duration in absolute and relative numbers to gain transparency.<br>
  * The typical use should follow this pattern:
