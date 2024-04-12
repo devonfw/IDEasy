@@ -1,18 +1,22 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.Test;
+
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+
+/**
+ * Test of {@link UpdateCommandlet}.
+ */
 class UpdateCommandletTest extends AbstractIdeContextTest {
 
-  private final String PROJECT_UPDATE = "update";
+  private static final String PROJECT_UPDATE = "update";
 
   @Test
   public void testRunPullSettingsAndUpdateSoftware() {
@@ -28,7 +32,6 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(context.getConfPath()).exists();
     assertThat(context.getSoftwarePath().resolve("java")).exists();
     assertThat(context.getSoftwarePath().resolve("mvn")).exists();
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "All 2 steps ended successfully!");
   }
 
   @Test

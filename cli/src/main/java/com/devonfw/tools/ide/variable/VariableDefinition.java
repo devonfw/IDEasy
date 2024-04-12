@@ -1,10 +1,11 @@
 package com.devonfw.tools.ide.variable;
 
+import java.nio.file.Path;
+import java.util.Collection;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.VariableLine;
-
-import java.nio.file.Path;
 
 /**
  * Interface for a definition of a variable.
@@ -20,7 +21,7 @@ public interface VariableDefinition<V> {
 
   /**
    * @return the optional legacy name that is still supported for downward compatibility. May be {@code null} if
-   * undefined (no legacy support).
+   *         undefined (no legacy support).
    */
   String getLegacyName();
 
@@ -52,8 +53,8 @@ public interface VariableDefinition<V> {
 
   /**
    * @return {@code true} if the {@link #getDefaultValue(IdeContext) default value} shall be used without any
-   * {@link EnvironmentVariables#get(String) variable lookup} (to prevent odd overriding of build in variables like
-   * IDE_HOME), {@code false} otherwise (overriding of default value is allowed and intended).
+   *         {@link EnvironmentVariables#get(String) variable lookup} (to prevent odd overriding of build in variables
+   *         like IDE_HOME), {@code false} otherwise (overriding of default value is allowed and intended).
    */
   boolean isForceDefaultValue();
 
@@ -79,6 +80,15 @@ public interface VariableDefinition<V> {
       return "";
     } else if (value instanceof Path) {
       return value.toString().replace('\\', '/');
+    } else if (value instanceof Collection<?> collection) {
+      StringBuilder sb = new StringBuilder();
+      for (Object element : collection) {
+        if (sb.length() > 0) {
+          sb.append(',');
+        }
+        sb.append(element);
+      }
+      return sb.toString();
     }
     return value.toString();
   }

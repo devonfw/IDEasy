@@ -176,6 +176,15 @@ public abstract class Commandlet {
   }
 
   /**
+   * @return {@code true} to suppress the {@link com.devonfw.tools.ide.step.StepImpl#logSummary(boolean) step summary
+   *         success message}.
+   */
+  public boolean isSuppressStepSuccess() {
+
+    return false;
+  }
+
+  /**
    * Runs this {@link Commandlet}.
    */
   public abstract void run();

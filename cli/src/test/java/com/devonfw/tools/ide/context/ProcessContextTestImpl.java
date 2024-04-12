@@ -4,8 +4,16 @@ import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 
+/**
+ * Extends {@link ProcessContextImpl} for testing.
+ */
 public class ProcessContextTestImpl extends ProcessContextImpl {
 
+  /**
+   * The constructor.
+   *
+   * @param context the {@link IdeContext}.
+   */
   public ProcessContextTestImpl(IdeContext context) {
 
     super(context);

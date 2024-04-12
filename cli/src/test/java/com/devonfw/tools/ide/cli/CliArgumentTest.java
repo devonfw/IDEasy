@@ -34,14 +34,18 @@ public class CliArgumentTest extends Assertions {
     // assert
     assertThat(arg.get()).isEqualTo("one");
     assertThat(arg.isEnd()).isFalse();
+    assertThat(arg.asArray()).isEqualTo(args);
     arg = arg.getNext(true);
     assertThat(arg.get()).isEqualTo("two");
     assertThat(arg.isEnd()).isFalse();
+    assertThat(arg.asArray()).isEqualTo(new String[] { "two", "three" });
     arg = arg.getNext(true);
     assertThat(arg.get()).isEqualTo("three");
     assertThat(arg.isEnd()).isFalse();
+    assertThat(arg.asArray()).isEqualTo(new String[] { "three" });
     arg = arg.getNext(true);
     assertThat(arg.isEnd()).isTrue();
+    assertThat(arg.asArray()).isEmpty();
   }
 
   /**

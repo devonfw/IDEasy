@@ -1,18 +1,28 @@
 #!/usr/bin/env bash
 
-# Call native ideasy with user-provided arguments
-ideasy "$@"
-return_code=$?
-if [ $return_code -ne 0 ]; then  # Check if ideasy exit code is not equal to 0
-  echo -e "\n\033[91mError: IDEasy failed with exit code $return_code \033[91m" >&2  # Print error message to stderr
-  return $return_code  # Return the same error code as ideasy
+_IDEASY="$(dirname "${BASH_SOURCE}")/ideasy"
+if [ $# != 0 ]; then
+  "${_IDEASY}" "$@"
+  return_code=$?
+  if [ $return_code != 0 ]; then
+    echo -e "\n\033[91mError: IDEasy failed with exit code ${return_code}\033[91m" >&2
+    unset _IDEASY
+    return ${return_code}
+  fi
 fi
 
 ide_env=
 if [ "${OSTYPE}" = "cygwin" ] || [ "${OSTYPE}" = "msys" ]; then
-  ide_env="$(ideasy env --bash)"
+  ide_env="$("${_IDEASY}" env --bash)"
 else
-  ide_env="$(ideasy env)"
+  ide_env="$("${_IDEASY}" env)"
 fi
-eval "$ide_env"
+if [ $? = 0 ]; then
+  eval "${ide_env}"
+  if [ $# = 0 ]; then
+    echo "IDE environment variables have been set for ${IDE_HOME} in workspace ${WORKSPACE}"
+  fi
+fi
+unset _IDEASY
 unset ide_env
+unset return_code

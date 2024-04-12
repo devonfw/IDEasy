@@ -1,18 +1,19 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.Set;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.repo.ToolRepository;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.Set;
 
 /**
  * {@link ToolCommandlet} that is installed locally into the IDE.
@@ -25,7 +26,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   * method.
+   *        method.
    */
   public LocalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -42,13 +43,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   /**
    * @return the {@link Path} where the executables of the tool can be found. Typically a "bin" folder inside
-   * {@link #getToolPath() tool path}.
+   *         {@link #getToolPath() tool path}.
    */
   public Path getToolBinPath() {
 
     Path toolPath = getToolPath();
-    Path binPath = this.context.getFileAccess()
-        .findFirst(toolPath, path -> path.getFileName().toString().equals("bin"), false);
+    Path binPath = this.context.getFileAccess().findFirst(toolPath, path -> path.getFileName().toString().equals("bin"),
+        false);
     if ((binPath != null) && Files.isDirectory(binPath)) {
       return binPath;
     }
@@ -61,34 +62,43 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     // get installed version before installInRepo actually may install the software
     VersionIdentifier installedVersion = getInstalledVersion();
-    // install configured version of our tool in the software repository if not already installed
-    ToolInstallation installation = installInRepo(configuredVersion);
+    Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
+    try {
+      // install configured version of our tool in the software repository if not already installed
+      ToolInstallation installation = installInRepo(configuredVersion);
+      // check if we already have this version installed (linked) locally in IDE_HOME/software
+      VersionIdentifier resolvedVersion = installation.resolvedVersion();
+      if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
+        IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
+        this.context.level(level).log("Version {} of tool {} is already installed", installedVersion,
+            getToolWithEdition());
+        step.success();
+        return false;
+      }
+      // we need to link the version or update the link.
+      Path toolPath = getToolPath();
+      FileAccess fileAccess = this.context.getFileAccess();
+      if (Files.exists(toolPath)) {
+        fileAccess.backup(toolPath);
+      }
+      fileAccess.mkdirs(toolPath.getParent());
+      fileAccess.symlink(installation.linkDir(), toolPath);
+      this.context.getPath().setPath(this.tool, installation.binDir());
+      if (installedVersion == null) {
+        step.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
+      } else {
+        step.success("Successfully installed {} in version {} replacing previous version {}", this.tool,
+            resolvedVersion, installedVersion);
+      }
+      postInstall();
+      return true;
+    } catch (RuntimeException e) {
+      step.error(e, true);
+      throw e;
+    } finally {
+      step.end();
+    }
 
-    // check if we already have this version installed (linked) locally in IDE_HOME/software
-    VersionIdentifier resolvedVersion = installation.resolvedVersion();
-    if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
-      IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
-      this.context.level(level)
-          .log("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
-      return false;
-    }
-    // we need to link the version or update the link.
-    Path toolPath = getToolPath();
-    FileAccess fileAccess = this.context.getFileAccess();
-    if (Files.exists(toolPath)) {
-      fileAccess.backup(toolPath);
-    }
-    fileAccess.mkdirs(toolPath.getParent());
-    fileAccess.symlink(installation.linkDir(), toolPath);
-    this.context.getPath().setPath(this.tool, installation.binDir());
-    if (installedVersion == null) {
-      this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
-    } else {
-      this.context.success("Successfully installed {} in version {} replacing previous version {}", this.tool,
-          resolvedVersion, installedVersion);
-    }
-    postInstall();
-    return true;
   }
 
   /**
@@ -97,7 +107,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
-   * {@link VersionIdentifier#isPattern() version pattern}.
+   *        {@link VersionIdentifier#isPattern() version pattern}.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
    */
   public ToolInstallation installInRepo(VersionIdentifier version) {
@@ -111,7 +121,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
-   * {@link VersionIdentifier#isPattern() version pattern}.
+   *        {@link VersionIdentifier#isPattern() version pattern}.
    * @param edition the specific edition to install.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
    */
@@ -126,7 +136,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
-   * {@link VersionIdentifier#isPattern() version pattern}.
+   *        {@link VersionIdentifier#isPattern() version pattern}.
    * @param edition the specific edition to install.
    * @param toolRepository the {@link ToolRepository} to use.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
@@ -191,8 +201,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     if (linkDir != rootDir) {
       assert (!linkDir.equals(rootDir));
-      this.context.getFileAccess()
-          .copy(toolVersionFile, linkDir.resolve(IdeContext.FILE_SOFTWARE_VERSION), FileCopyMode.COPY_FILE_OVERRIDE);
+      this.context.getFileAccess().copy(toolVersionFile, linkDir.resolve(IdeContext.FILE_SOFTWARE_VERSION),
+          FileCopyMode.COPY_FILE_OVERRIDE);
     }
     return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion, newInstallation);
   }

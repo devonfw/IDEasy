@@ -14,6 +14,11 @@ import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManager;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+/**
+ * {@link GlobalToolCommandlet} for <a href="https://www.docker.com/">docker</a> either as
+ * <a href="https://rancherdesktop.io/">Rancher Desktop</a> or as
+ * <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a>.
+ */
 public class Docker extends GlobalToolCommandlet {
   /**
    * The constructor.
@@ -28,9 +33,9 @@ public class Docker extends GlobalToolCommandlet {
   @Override
   public boolean isExtract() {
 
-    return switch (context.getSystemInfo().getOs()) {
+    return switch (this.context.getSystemInfo().getOs()) {
       case WINDOWS -> false;
-      case MAC -> context.getSystemInfo().getArchitecture().equals(SystemArchitecture.ARM64);
+      case MAC -> this.context.getSystemInfo().getArchitecture().equals(SystemArchitecture.ARM64);
       case LINUX -> true;
     };
   }
@@ -38,7 +43,7 @@ public class Docker extends GlobalToolCommandlet {
   @Override
   protected boolean doInstall(boolean silent) {
 
-    if (context.getSystemInfo().isLinux()) {
+    if (this.context.getSystemInfo().isLinux()) {
       return installWithPackageManger(getPackageMangerCommands(), silent);
     } else {
       return super.doInstall(silent);
@@ -70,7 +75,7 @@ public class Docker extends GlobalToolCommandlet {
   @Override
   protected String getBinaryName() {
 
-    if (context.getSystemInfo().isLinux()) {
+    if (this.context.getSystemInfo().isLinux()) {
       return "rancher-desktop";
     } else {
       return super.getBinaryName();
