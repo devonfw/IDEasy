@@ -1,7 +1,8 @@
 package com.devonfw.tools.ide.step;
 
 /**
- * Simply container for the overall summary of a {@link Step}.
+ * Simple container for the overall summary of a {@link Step}.
+
  *
  * @see StepImpl#logSummary(boolean)
  */
