@@ -29,7 +29,8 @@ public interface IdeVariables {
   VariableDefinitionPath WORKSPACE_PATH = new VariableDefinitionPath("WORKSPACE_PATH", null, c -> c.getWorkspacePath(), true);
 
   /** {@link VariableDefinition} for list of tools to install by default. */
-  VariableDefinitionStringList IDE_TOOLS = new VariableDefinitionStringList("IDE_TOOLS", "DEVON_IDE_TOOLS");
+  VariableDefinitionStringList IDE_TOOLS = new VariableDefinitionStringList("IDE_TOOLS", "DEVON_IDE_TOOLS",
+      c -> List.of("mvn", "npm"));
 
   /** {@link VariableDefinition} for list of IDE tools to create start scripts for. */
   VariableDefinitionStringList CREATE_START_SCRIPTS = new VariableDefinitionStringList("CREATE_START_SCRIPTS", "DEVON_CREATE_START_SCRIPTS");
