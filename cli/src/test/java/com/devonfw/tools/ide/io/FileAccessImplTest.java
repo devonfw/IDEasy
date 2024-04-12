@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.io;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -264,6 +265,41 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
       assertSymlinkRead(dir.resolve("link2"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link3"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link4"), dir.resolve("d1"));
+    }
+  }
+
+  @Test
+  public void testDownloadWithMissingContentLength() {
+
+    // arrange
+    IdeTestContext context = newContext("npm");
+    FileAccess fileAccess = new FileAccessImpl(context);
+    String url = "https://getsamplefiles.com/download/zip/sample-1.zip";
+    Path targetFile = context.getSoftwarePath();
+    fileAccess.download(url, targetFile);
+  }
+
+  @Test
+  public void testCopyWithMissingContentLength() {
+
+    // arrange
+    Path resourcePath = Path.of("src/test/resources/__files");
+    Path source = resourcePath.resolve("testZip");
+    Path target = resourcePath.resolve("copyTestZip");
+
+    IdeTestContext context = newContext("npm");
+    FileAccess fileAccess = new FileAccessImpl(context);
+
+    try {
+      fileAccess.copy(source, target);
+      //assertLogMessage(context, IdeLogLevel.DEBUG, "Copying src\\test\\resources\\__files\\testZip recursively to src\\test\\resources\\__files\\copyTestZip");
+      assertThat(Files.exists(target)).isTrue();
+    } catch (IllegalStateException e) {
+      /*
+      assertThat(e).hasMessageContaining(
+          "Failed to copy src\\test\\resources\\__files\\testZip to already existing target src\\test\\resources\\__files\\copyTestZip");
+
+       */
     }
   }
 

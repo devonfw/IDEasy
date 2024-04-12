@@ -1,5 +1,19 @@
 package com.devonfw.tools.ide.io;
 
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.url.model.file.UrlChecksum;
+import com.devonfw.tools.ide.util.DateTimeUtil;
+import com.devonfw.tools.ide.util.FilenameUtil;
+import com.devonfw.tools.ide.util.HexUtil;
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -31,21 +45,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
-
-import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.url.model.file.UrlChecksum;
-import com.devonfw.tools.ide.util.DateTimeUtil;
-import com.devonfw.tools.ide.util.FilenameUtil;
-import com.devonfw.tools.ide.util.HexUtil;
 
 /**
  * Implementation of {@link FileAccess}.
@@ -106,17 +105,10 @@ public class FileAccessImpl implements FileAccess {
    * @param target Path of the target directory.
    * @param response the {@link HttpResponse} to use.
    */
-  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response)
-      throws IOException {
+  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
-    if (contentLength == 0) {
-      this.context.warning(
-          "Content-Length was not provided by download source : {} using fallback for the progress bar which will be inaccurate.",
-          url);
-      contentLength = 10000000;
-    }
-
+    informAboutSettingDefaultContentLength(contentLength);
     byte[] data = new byte[1024];
     boolean fileComplete = false;
     int count;
@@ -131,8 +123,15 @@ public class FileAccessImpl implements FileAccess {
           fileComplete = true;
         } else {
           bufferedOut.write(data, 0, count);
-          pb.stepBy(count);
+          if (contentLength > 0) {
+            pb.stepBy(count);
+          } else {
+            break;
+          }
         }
+      }
+      if (contentLength == 0) {
+        pb.stepBy(10000000);
       }
     } catch (Exception e) {
       throw new RuntimeException(e);
@@ -147,21 +146,35 @@ public class FileAccessImpl implements FileAccess {
    */
   private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
-    try (InputStream in = new FileInputStream(source.toFile());
-        OutputStream out = new FileOutputStream(target.toFile())) {
+    try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
 
       long size = source.toFile().length();
+      informAboutSettingDefaultContentLength(size);
       byte[] buf = new byte[1024];
       int readBytes;
 
       try (IdeProgressBar pb = this.context.prepareProgressBar("Copying", size)) {
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
-          pb.stepByOne();
+          if (size > 0) {
+            pb.stepByOne();
+          } else {
+            break;
+          }
+        }
+        if (size == 0) {
+          pb.stepBy(10000000);
         }
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+    }
+  }
+
+  private void informAboutSettingDefaultContentLength(long contentLength) {
+
+    if (contentLength == 0) {
+      this.context.warning("Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to 10000000.");
     }
   }
 
