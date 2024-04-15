@@ -16,10 +16,15 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 
+/**
+ * Test of {@link GitContext}.
+ */
 public class GitContextTest extends AbstractIdeContextTest {
 
   /**
    * Runs a git clone in offline mode and expects an exception to be thrown with a message.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
   public void testRunGitCloneInOfflineModeThrowsException(@TempDir Path tempDir) {
@@ -43,6 +48,8 @@ public class GitContextTest extends AbstractIdeContextTest {
 
   /**
    * Runs a simulated git clone and checks if a new file with the correct repository URL was created.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
   public void testRunGitClone(@TempDir Path tempDir) {
@@ -62,6 +69,8 @@ public class GitContextTest extends AbstractIdeContextTest {
 
   /**
    * Runs a simulated git pull without force mode, checks if a new file with the current date was created.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
   public void testRunGitPullWithoutForce(@TempDir Path tempDir) {
@@ -85,6 +94,8 @@ public class GitContextTest extends AbstractIdeContextTest {
 
   /**
    * Runs a git pull with force mode, creates temporary files to simulate a proper cleanup.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
   public void testRunGitPullWithForceStartsReset(@TempDir Path tempDir) {
@@ -115,13 +126,15 @@ public class GitContextTest extends AbstractIdeContextTest {
     IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
     GitContext gitContext = new GitContextImpl(context);
     // act
-    gitContext.pullOrFetchAndResetIfNeeded(gitRepoUrl, "master", tempDir, "origin");
+    gitContext.pullOrCloneAndResetIfNeeded(gitRepoUrl, tempDir, "master", "origin");
     // assert
     assertThat(modifiedFile).hasContent("original");
   }
 
   /**
    * Runs a git pull with force and starts a cleanup (checks if an untracked folder was removed).
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
    */
   @Test
   public void testRunGitPullWithForceStartsCleanup(@TempDir Path tempDir) {
@@ -143,7 +156,7 @@ public class GitContextTest extends AbstractIdeContextTest {
       throw new RuntimeException(e);
     }
     // act
-    gitContext.pullOrFetchAndResetIfNeeded(gitRepoUrl, "master", tempDir, "origin");
+    gitContext.pullOrCloneAndResetIfNeeded(gitRepoUrl, tempDir, "master", "origin");
     // assert
     assertThat(tempDir.resolve("new-folder")).doesNotExist();
   }

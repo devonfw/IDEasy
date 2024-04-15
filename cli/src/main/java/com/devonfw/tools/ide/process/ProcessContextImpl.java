@@ -30,6 +30,7 @@ public class ProcessContextImpl implements ProcessContext {
 
   private static final String PREFIX_USR_BIN_ENV = "/usr/bin/env ";
 
+  /** The owning {@link IdeContext}. */
   protected final IdeContext context;
 
   private final ProcessBuilder processBuilder;
@@ -74,7 +75,7 @@ public class ProcessContextImpl implements ProcessContext {
     if (directory != null) {
       this.processBuilder.directory(directory.toFile());
     } else {
-      context.debug(
+      this.context.debug(
           "Could not set the process builder's working directory! Directory of the current java process is used.");
     }
 
@@ -299,14 +300,10 @@ public class ProcessContextImpl implements ProcessContext {
     throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
   }
 
-  private String addExecutable(String executable, List<String> args) {
+  private String addExecutable(String exec, List<String> args) {
 
-    if (!SystemInfoImpl.INSTANCE.isWindows()) {
-      args.add(executable);
-      return null;
-    }
     String interpreter = null;
-    String fileExtension = FilenameUtil.getExtension(executable);
+    String fileExtension = FilenameUtil.getExtension(exec);
     boolean isBashScript = "sh".equals(fileExtension);
     if (!isBashScript) {
       String sheBang = getSheBang(this.executable);
@@ -327,7 +324,6 @@ public class ProcessContextImpl implements ProcessContext {
       String bash = "bash";
       interpreter = bash;
       // here we want to have native OS behavior even if OS is mocked during tests...
-      // if (this.context.getSystemInfo().isWindows()) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
         String findBashOnWindowsResult = findBashOnWindows();
         if (findBashOnWindowsResult != null) {
@@ -335,12 +331,11 @@ public class ProcessContextImpl implements ProcessContext {
         }
       }
       args.add(bash);
+    } else if (SystemInfoImpl.INSTANCE.isWindows() && "msi".equalsIgnoreCase(fileExtension)) {
+      args.add("msiexec");
+      args.add("/i");
     }
-    if ("msi".equalsIgnoreCase(fileExtension)) {
-      args.add(0, "/i");
-      args.add(0, "msiexec");
-    }
-    args.add(executable);
+    args.add(exec);
     return interpreter;
   }
 
@@ -358,7 +353,7 @@ public class ProcessContextImpl implements ProcessContext {
         level = this.context.warning();
       } else {
         level = this.context.error();
-        level.log("Internal error: Undefined error handling {}", this.errorHandling);
+        this.context.error("Internal error: Undefined error handling {}", this.errorHandling);
       }
       level.log(message);
     }
@@ -377,7 +372,7 @@ public class ProcessContextImpl implements ProcessContext {
     String bash = "bash";
 
     // try to use bash in windows to start the process
-    if (context.getSystemInfo().isWindows()) {
+    if (this.context.getSystemInfo().isWindows()) {
 
       String findBashOnWindowsResult = findBashOnWindows();
       if (findBashOnWindowsResult != null) {
@@ -385,7 +380,7 @@ public class ProcessContextImpl implements ProcessContext {
         bash = findBashOnWindowsResult;
 
       } else {
-        context.warning(
+        this.context.warning(
             "Cannot start background process in windows! No bash installation found, output will be discarded.");
         this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
         return;
@@ -404,7 +399,7 @@ public class ProcessContextImpl implements ProcessContext {
 
   private String buildCommandToRunInBackground() {
 
-    if (context.getSystemInfo().isWindows()) {
+    if (this.context.getSystemInfo().isWindows()) {
 
       StringBuilder stringBuilder = new StringBuilder();
 

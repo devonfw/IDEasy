@@ -38,7 +38,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   /**
    * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   * project in {@link #TEST_PROJECTS}. E.g. "basic".
+   *        project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected IdeTestContext newContext(String testProject) {
@@ -48,7 +48,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   /**
    * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   * project in {@link #TEST_PROJECTS}. E.g. "basic".
+   *        project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @return the {@link IdeTestContext} pointing to that project.
    */
@@ -59,11 +59,11 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   /**
    * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   * project in {@link #TEST_PROJECTS}. E.g. "basic".
+   *        project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
-   * {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything in that
-   * project.)
+   *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
+   *        in that project.)
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
@@ -80,14 +80,13 @@ public abstract class AbstractIdeContextTest extends Assertions {
     if (projectPath == null) {
       projectPath = "project";
     }
-    ToolRepositoryMock mock = null;
-    Path ideHome = ideRoot.resolve(projectPath);
+    Path userDir = ideRoot.resolve(projectPath);
     ToolRepositoryMock toolRepository = null;
     Path repositoryFolder = ideRoot.resolve("repository");
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(repositoryFolder);
     }
-    IdeTestContext context = new IdeTestContext(ideHome, toolRepository);
+    IdeTestContext context = new IdeTestContext(userDir, toolRepository);
     if (toolRepository != null) {
       toolRepository.setContext(context);
     }
@@ -137,7 +136,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param level the expected {@link IdeLogLevel}.
    * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
    * @param contains - {@code true} if the given {@code message} may only be a sub-string of the log-message to assert,
-   * {@code false} otherwise (the entire log message including potential parameters being filled in is asserted).
+   *        {@code false} otherwise (the entire log message including potential parameters being filled in is asserted).
    */
   protected static void assertLogMessage(IdeTestContext context, IdeLogLevel level, String message, boolean contains) {
 

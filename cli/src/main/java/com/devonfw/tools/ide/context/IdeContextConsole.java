@@ -26,7 +26,7 @@ public class IdeContextConsole extends AbstractIdeContext {
    */
   public IdeContextConsole(IdeLogLevel minLogLevel, Appendable out, boolean colored) {
 
-    super(minLogLevel, level -> new IdeSubLoggerOut(level, out, colored), null, null);
+    super(minLogLevel, level -> new IdeSubLoggerOut(level, out, colored, minLogLevel), null, null);
     if (System.console() == null) {
       debug("System console not available - using System.in as fallback");
       this.scanner = new Scanner(System.in);
@@ -54,7 +54,7 @@ public class IdeContextConsole extends AbstractIdeContext {
         .rightBracket("│\u001b[0m").block('█').space(' ').fractionSymbols(" ▏▎▍▌▋▊▉").rightSideFractionSymbol(' ')
         .build());
     // set different style for Windows systems (ASCII)
-    if (this.getSystemInfo().isWindows()) {
+    if (getSystemInfo().isWindows()) {
       pbb.setStyle(ProgressBarStyle.builder().refreshPrompt("\r").leftBracket("[").delimitingSequence("")
           .rightBracket("]").block('=').space(' ').fractionSymbols(">").rightSideFractionSymbol(' ').build());
     }
