@@ -269,9 +269,8 @@ public class ProcessContextImpl implements ProcessContext {
       }
     }
     if (isBashScript) {
-      String bash = this.context.findBash();
-      interpreter = bash;
-      args.add(bash);
+      interpreter = "bash";
+      args.add(this.context.findBash());
     }
     if ("msi".equalsIgnoreCase(fileExtension)) {
       args.add(0, "/i");
@@ -312,6 +311,12 @@ public class ProcessContextImpl implements ProcessContext {
     }
 
     String bash = this.context.findBash();
+    if (bash == null) {
+      context.warning(
+          "Cannot start background process via bash because no bash installation was found. Hence, output will be discarded.");
+      this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
+      return;
+    }
     String commandToRunInBackground = buildCommandToRunInBackground();
 
     this.arguments.clear();
