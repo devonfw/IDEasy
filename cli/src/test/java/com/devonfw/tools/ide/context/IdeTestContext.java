@@ -76,29 +76,6 @@ public class IdeTestContext extends AbstractIdeTestContext {
     return super.getUserHome();
   }
 
-  /**
-   *
-   * @return a mocked {@link ProcessContext} for a test. The defined {@link #mockProcessContext} will be returned if it
-   *         is not {@code null}, else see implementation {@link #AbstractIdeContext}.
-   */
-  @Override
-  public ProcessContext newProcess() {
-
-    if (mockProcessContext != null) {
-      return mockProcessContext;
-    }
-    return super.newProcess();
-  }
-
-  /**
-   *
-   * @param mockProcessContext Set up a mocked ProcessContext for testing
-   */
-  public void setMockProcessContext(ProcessContext mockProcessContext) {
-
-    this.mockProcessContext = mockProcessContext;
-  }
-
   @Override
   protected ProcessContext createProcessContext() {
 
