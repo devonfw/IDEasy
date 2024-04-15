@@ -33,7 +33,7 @@ public class GitContextProcessContextMock implements ProcessContext {
    * @param errors List of errors.
    * @param outs List of out texts.
    * @param exitCode the exit code.
-   * @param directory
+   * @param directory the {@link Path} to the git repository.
    */
   public GitContextProcessContextMock(List<String> errors, List<String> outs, int exitCode, Path directory) {
 
@@ -51,7 +51,7 @@ public class GitContextProcessContextMock implements ProcessContext {
   }
 
   @Override
-  public ProcessContext directory(Path directory) {
+  public ProcessContext directory(Path newDirectory) {
 
     return this;
   }
@@ -91,7 +91,7 @@ public class GitContextProcessContextMock implements ProcessContext {
     // part of git cleanup checks if a new directory 'new-folder' exists
     if (this.arguments.contains("ls-files")) {
       if (Files.exists(this.directory.resolve("new-folder"))) {
-        outs.add("new-folder");
+        this.outs.add("new-folder");
         this.exitCode = 0;
       }
     }
@@ -100,7 +100,7 @@ public class GitContextProcessContextMock implements ProcessContext {
         Files.createDirectories(gitFolderPath);
         Path newFile = Files.createFile(gitFolderPath.resolve("url"));
         // 3rd argument = repository Url
-        Files.writeString(newFile, arguments.get(2));
+        Files.writeString(newFile, this.arguments.get(2));
         this.exitCode = 0;
       } catch (IOException e) {
         throw new RuntimeException(e);
@@ -134,7 +134,7 @@ public class GitContextProcessContextMock implements ProcessContext {
       }
     }
     this.arguments.clear();
-    return new ProcessResultImpl(exitCode, outs, errors);
+    return new ProcessResultImpl(this.exitCode, this.outs, this.errors);
   }
 
 }

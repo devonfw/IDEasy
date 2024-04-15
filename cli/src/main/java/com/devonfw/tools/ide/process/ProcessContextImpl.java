@@ -30,6 +30,7 @@ public class ProcessContextImpl implements ProcessContext {
 
   private static final String PREFIX_USR_BIN_ENV = "/usr/bin/env ";
 
+  /** The owning {@link IdeContext}. */
   protected final IdeContext context;
 
   private final ProcessBuilder processBuilder;
@@ -74,7 +75,7 @@ public class ProcessContextImpl implements ProcessContext {
     if (directory != null) {
       this.processBuilder.directory(directory.toFile());
     } else {
-      context.debug(
+      this.context.debug(
           "Could not set the process builder's working directory! Directory of the current java process is used.");
     }
 
@@ -246,12 +247,8 @@ public class ProcessContextImpl implements ProcessContext {
 
   private String addExecutable(String executable, List<String> args) {
 
-    if (!SystemInfoImpl.INSTANCE.isWindows()) {
-      args.add(executable);
-      return null;
-    }
     String interpreter = null;
-    String fileExtension = FilenameUtil.getExtension(executable);
+    String fileExtension = FilenameUtil.getExtension(exec);
     boolean isBashScript = "sh".equals(fileExtension);
     if (!isBashScript) {
       String sheBang = getSheBang(this.executable);
@@ -294,7 +291,7 @@ public class ProcessContextImpl implements ProcessContext {
         level = this.context.warning();
       } else {
         level = this.context.error();
-        level.log("Internal error: Undefined error handling {}", this.errorHandling);
+        this.context.error("Internal error: Undefined error handling {}", this.errorHandling);
       }
       level.log(message);
     }
@@ -317,6 +314,7 @@ public class ProcessContextImpl implements ProcessContext {
       this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
       return;
     }
+
     String commandToRunInBackground = buildCommandToRunInBackground();
 
     this.arguments.clear();
@@ -329,7 +327,7 @@ public class ProcessContextImpl implements ProcessContext {
 
   private String buildCommandToRunInBackground() {
 
-    if (context.getSystemInfo().isWindows()) {
+    if (this.context.getSystemInfo().isWindows()) {
 
       StringBuilder stringBuilder = new StringBuilder();
 
