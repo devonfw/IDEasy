@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Locale;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.variable.VariableDefinition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -23,6 +24,18 @@ public interface EnvironmentVariables {
    * @return the value of the variable with the given {@code name}. Will be {@code null} if no such variable is defined.
    */
   default String get(String name) {
+
+    return get(name, false);
+  }
+
+  /**
+   * @param name the name of the environment variable to get.
+   * @param ignoreDefaultValue - {@code true} if the {@link VariableDefinition#getDefaultValue(IdeContext) default
+   *        value} of a potential {@link VariableDefinition} shall be ignored, {@code false} to return default instead
+   *        of {@code null}.
+   * @return the value of the variable with the given {@code name}. Will be {@code null} if no such variable is defined.
+   */
+  default String get(String name, boolean ignoreDefaultValue) {
 
     String value = getFlat(name);
     if (value == null) {

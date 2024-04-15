@@ -12,9 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -24,13 +22,13 @@ import com.devonfw.tools.ide.process.ProcessResult;
  * Implements the {@link GitContext}.
  */
 public class GitContextImpl implements GitContext {
-  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);
+  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMinutes(30);
 
   private final IdeContext context;
 
   private final ProcessContext processContext;
 
-  private final ProcessMode PROCESS_MODE = ProcessMode.DEFAULT;
+  private static final ProcessMode PROCESS_MODE = ProcessMode.DEFAULT;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -47,41 +45,36 @@ public class GitContextImpl implements GitContext {
     Path gitDirectory = targetRepository.resolve(".git");
 
     // Check if the .git directory exists
-    if (Files.isDirectory(gitDirectory)) {
+    if (!this.context.isForceMode() && Files.isDirectory(gitDirectory)) {
       Path magicFilePath = gitDirectory.resolve("HEAD");
       long currentTime = System.currentTimeMillis();
       // Get the modification time of the magic file
-      long fileMTime;
       try {
-        fileMTime = Files.getLastModifiedTime(magicFilePath).toMillis();
-      } catch (IOException e) {
-        throw new IllegalStateException("Could not read " + magicFilePath, e);
-      }
-
-      // Check if the file modification time is older than the delta threshold
-      if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || context.isForceMode()) {
-        pullOrClone(repoUrl, targetRepository);
-        try {
-          Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
-        } catch (IOException e) {
-          throw new IllegalStateException("Could not read or write in " + magicFilePath, e);
+        long fileModifiedTime = Files.getLastModifiedTime(magicFilePath).toMillis();
+        // Check if the file modification time is older than the delta threshold
+        if ((currentTime - fileModifiedTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis())) {
+          pullOrClone(repoUrl, targetRepository);
+          try {
+            Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
+          } catch (IOException e) {
+            this.context.warning().log(e, "Cound not update modification-time of {}", magicFilePath);
+          }
+          return;
         }
+      } catch (IOException e) {
+        this.context.error(e);
       }
-    } else {
-      // If the .git directory does not exist, perform git clone
-      pullOrClone(repoUrl, branch, targetRepository);
     }
+    // If the .git directory does not exist or in case of an error, perform git operation directly
+    pullOrClone(repoUrl, branch, targetRepository);
   }
 
-  public void pullOrFetchAndResetIfNeeded(String repoUrl, String branch, Path targetRepository, String remoteName) {
+  @Override
+  public void pullOrCloneAndResetIfNeeded(String repoUrl, Path targetRepository, String branch, String remoteName) {
 
     pullOrCloneIfNeeded(repoUrl, branch, targetRepository);
 
-    if (remoteName.isEmpty()) {
-      reset(targetRepository, "origin", "master");
-    } else {
-      reset(targetRepository, remoteName, "master");
-    }
+    reset(targetRepository, "master", remoteName);
 
     cleanup(targetRepository);
   }
@@ -104,7 +97,8 @@ public class GitContextImpl implements GitContext {
 
     if (Files.isDirectory(targetRepository.resolve(".git"))) {
       // checks for remotes
-      ProcessResult result = this.processContext.addArg("remote").run(PROCESS_MODE);
+      this.processContext.directory(targetRepository);
+      ProcessResult result = this.processContext.addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
         String message = targetRepository
@@ -179,7 +173,8 @@ public class GitContextImpl implements GitContext {
         }
       }
     } else {
-      throw new CliException("Could not clone " + parsedUrl + " to " + targetRepository + " because you are offline.");
+      throw new CliOfflineException(
+          "Could not clone " + parsedUrl + " to " + targetRepository + " because you are offline.");
     }
   }
 
@@ -193,7 +188,7 @@ public class GitContextImpl implements GitContext {
 
     if (!result.isSuccessful()) {
       Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();
-      context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"),
+      this.context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"),
           remoteAndBranchName.get("branch"), targetRepository);
       handleErrors(targetRepository, result);
     }
@@ -228,8 +223,11 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void reset(Path targetRepository, String remoteName, String branchName) {
+  public void reset(Path targetRepository, String branchName, String remoteName) {
 
+    if ((remoteName == null) || remoteName.isEmpty()) {
+      remoteName = DEFAULT_REMOTE;
+    }
     this.processContext.directory(targetRepository);
     ProcessResult result;
     // check for changed files
@@ -237,13 +235,13 @@ public class GitContextImpl implements GitContext {
 
     if (!result.isSuccessful()) {
       // reset to origin/master
-      context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", targetRepository,
+      this.context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", targetRepository,
           remoteName, branchName);
       result = this.processContext.addArg("reset").addArg("--hard").addArg(remoteName + "/" + branchName)
           .run(PROCESS_MODE);
 
       if (!result.isSuccessful()) {
-        context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, targetRepository);
+        this.context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, targetRepository);
         handleErrors(targetRepository, result);
       }
     }
@@ -256,22 +254,17 @@ public class GitContextImpl implements GitContext {
     ProcessResult result;
     // check for untracked files
     result = this.processContext.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard")
-        .run(PROCESS_MODE);
+        .run(ProcessMode.DEFAULT_CAPTURE);
 
     if (!result.getOut().isEmpty()) {
       // delete untracked files
-      context.warning("Git detected untracked files in {} and is attempting a cleanup.", targetRepository);
+      this.context.warning("Git detected untracked files in {} and is attempting a cleanup.", targetRepository);
       result = this.processContext.addArg("clean").addArg("-df").run(PROCESS_MODE);
 
       if (!result.isSuccessful()) {
-        context.warning("Git failed to clean the repository {}.", targetRepository);
+        this.context.warning("Git failed to clean the repository {}.", targetRepository);
       }
     }
   }
 
-  @Override
-  public IdeSubLogger level(IdeLogLevel level) {
-
-    return null;
-  }
 }

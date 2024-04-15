@@ -1,15 +1,19 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import org.junit.jupiter.api.Test;
 
-import java.nio.file.Path;
-
+/**
+ * Test of {@link CreateCommandlet}.
+ */
 class CreateCommandletTest extends AbstractIdeContextTest {
 
-  private final String NEW_PROJECT_NAME = "newProject";
+  private static final String NEW_PROJECT_NAME = "newProject";
 
   @Test
   public void testCreateCommandletRun() {
