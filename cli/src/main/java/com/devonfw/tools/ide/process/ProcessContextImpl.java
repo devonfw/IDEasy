@@ -245,7 +245,7 @@ public class ProcessContextImpl implements ProcessContext {
     return null;
   }
 
-  private String addExecutable(String executable, List<String> args) {
+  private String addExecutable(String exec, List<String> args) {
 
     String interpreter = null;
     String fileExtension = FilenameUtil.getExtension(exec);
@@ -273,7 +273,7 @@ public class ProcessContextImpl implements ProcessContext {
       args.add(0, "/i");
       args.add(0, "msiexec");
     }
-    args.add(executable);
+    args.add(exec);
     return interpreter;
   }
 
