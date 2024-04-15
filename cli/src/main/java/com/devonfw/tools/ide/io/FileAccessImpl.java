@@ -56,6 +56,9 @@ public class FileAccessImpl implements FileAccess {
   /** The {@link HttpClient} for HTTP requests. */
   private final HttpClient client;
 
+  /** The default value for missing content length */
+  public static final long defaultContentLength = 10000000L;
+
   /**
    * The constructor.
    *
@@ -125,8 +128,6 @@ public class FileAccessImpl implements FileAccess {
           bufferedOut.write(data, 0, count);
           if (contentLength > 0) {
             pb.stepBy(count);
-          } else {
-            break;
           }
         }
       }
@@ -156,11 +157,8 @@ public class FileAccessImpl implements FileAccess {
           out.write(buf, 0, readBytes);
           if (size > 0) {
             pb.stepByOne();
-          } else {
-            break;
           }
         }
-
         callStepByWithDefaultContentLength(size, pb);
       } catch (Exception e) {
         throw new RuntimeException(e);
@@ -171,14 +169,15 @@ public class FileAccessImpl implements FileAccess {
   private void callStepByWithDefaultContentLength(long contentLength, IdeProgressBar progressBar) {
 
     if (contentLength == 0) {
-      progressBar.stepBy(10000000);
+      progressBar.stepBy(defaultContentLength);
     }
   }
 
   private void informAboutSettingDefaultContentLength(long contentLength) {
 
     if (contentLength == 0) {
-      this.context.warning("Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to 10000000.");
+      this.context.warning("Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to {}.",
+          defaultContentLength);
     }
   }
 

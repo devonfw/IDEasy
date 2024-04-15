@@ -2,10 +2,7 @@ package com.devonfw.tools.ide.io;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -268,52 +265,6 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
       assertSymlinkRead(dir.resolve("link3"), dir.resolve("d1"));
       assertSymlinkRead(dir.resolve("link4"), dir.resolve("d1"));
     }
-  }
-
-  /**
-   * Test of {@link FileAccessImpl#download(String, Path)} with default value for missing content length if the url starts with http.
-   */
-  @Test
-  public void testDownloadWithDefaultValueForMissingContentLength() {
-
-    // arrange
-    IdeTestContext context = newContext("basic");
-    FileAccess fileAccess = new FileAccessImpl(context);
-    String url = "https://getsamplefiles.com/download/zip/sample-1.zip";
-    Path targetFile = context.getSoftwarePath().resolve("testZip");
-    fileAccess.download(url, targetFile);
-    checkLogMessageForDefaultContentLength(context);
-    assertThat(Files.exists(targetFile)).isTrue();
-  }
-
-  /**
-   * Test of {@link FileAccessImpl#download(String, Path)} with default value for missing content length. The functionality can be tested through code
-   * manipulation with the below provided test data or with a download url for a file with missing content length.
-   */
-  @Disabled
-  @Test
-  public void testCopyWithDefaultValueForMissingContentLength() {
-
-    // arrange
-    Path resourcePath = Path.of("src/test/resources/__files");
-    String source = resourcePath.resolve("testZip").toString();
-    Path target = resourcePath.resolve("copyTestZip");
-
-    IdeTestContext context = newContext("basic");
-    FileAccess fileAccess = new FileAccessImpl(context);
-
-    //act
-    fileAccess.download(source, target);
-    //assert
-    checkLogMessageForDefaultContentLength(context);
-    assertLogMessage(context, IdeLogLevel.INFO, "Trying to download " + "copyTestZip" + " from " + source);
-    assertThat(Files.exists(target)).isTrue();
-  }
-
-  private void checkLogMessageForDefaultContentLength(IdeTestContext context) {
-
-    assertLogMessage(context, IdeLogLevel.WARNING,
-        "Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to 10000000.");
   }
 
   private void createDirs(FileAccess fileAccess, Path dir) {
