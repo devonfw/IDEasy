@@ -1,11 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
@@ -32,6 +26,12 @@ import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -71,6 +71,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new EditionListCommandlet(context));
     add(new VersionCommandlet(context));
     add(new RepositoryCommandlet(context));
+    add(new UninstallCommandlet(context));
     add(new UpdateCommandlet(context));
     add(new CreateCommandlet(context));
     add(new Gh(context));
