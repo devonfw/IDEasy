@@ -121,7 +121,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       tmpDir = fileAccess.createTempDir(getName());
       Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
       fileAccess.extract(target, downloadBinaryPath);
-      downloadBinaryPath = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
+      executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(executable);
     int exitCode = pc.run();
