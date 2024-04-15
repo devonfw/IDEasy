@@ -44,13 +44,13 @@ public class Docker extends GlobalToolCommandlet {
   protected boolean doInstall(boolean silent) {
 
     if (this.context.getSystemInfo().isLinux()) {
-      return installWithPackageManger(getPackageMangerCommands(), silent);
+      return installWithPackageManager(silent, getPackageManagerCommands());
     } else {
       return super.doInstall(silent);
     }
   }
 
-  private List<PackageManagerCommand> getPackageMangerCommands() {
+  private List<PackageManagerCommand> getPackageManagerCommands() {
 
     String edition = getEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
