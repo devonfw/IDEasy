@@ -47,7 +47,7 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     JsonMerger jsonMerger = new JsonMerger(context);
     this.extension2mergerMap.put("json", jsonMerger);
     TextMerger textMerger = new TextMerger(context);
-    this.extension2mergerMap.put("name", textMerger);
+    this.extension2mergerMap.put("name", textMerger); // intellij specific
     this.fallbackMerger = new FallbackMerger(context);
   }
 
