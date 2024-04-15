@@ -70,6 +70,13 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return false; // None of the package manager commands were successful
   }
 
+  /**
+   * Executes the provided package manager command.
+   *
+   * @param pmCommand The {@link PackageManagerCommand} containing the commands to execute.
+   * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @return {@code true} if the package manager commands execute successfully, {@code false} otherwise.
+   */
   private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent) {
 
     String bashPath = this.context.findBash();
