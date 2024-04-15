@@ -1,0 +1,11 @@
+:toc:
+toc::[]
+
+= updates
+
+The `updates` folder is used for temporary data. This includes:
+
+* extracted archives for installation and updates
+* backups of old content on updates to prevent data loss
+
+If all works fine you may clean this folder to save some kilo- or mega-bytes. Otherwise, you can ignore it unless you are looking for a backup after a failed or unplanned upgrade.

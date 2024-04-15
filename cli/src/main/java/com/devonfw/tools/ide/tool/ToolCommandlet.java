@@ -1,6 +1,12 @@
 package com.devonfw.tools.ide.tool;
 
 import com.devonfw.tools.ide.cli.CliException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
@@ -14,12 +20,6 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.StringListProperty;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
 
 /**
  * {@link Commandlet} for a tool integrated into the IDE.
@@ -42,7 +42,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   * method.
+   *        method.
    */
   public ToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -96,8 +96,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @param processMode see {@link ProcessMode}
    * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
-   * is installed and use that one. Otherwise, the specified version will be installed in the software repository
-   * without touching and IDE installation and used to run.
+   *        is installed and use that one. Otherwise, the specified version will be installed in the software repository
+   *        without touching and IDE installation and used to run.
    * @param args the command-line arguments to run the tool.
    */
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
@@ -136,7 +136,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /**
    * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as
-   * tool.
+   *         tool.
    * @see #getToolWithEdition(String, String)
    */
   protected final String getToolWithEdition() {
@@ -148,7 +148,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param tool the tool name.
    * @param edition the edition.
    * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as
-   * tool.
+   *         tool.
    */
   protected final static String getToolWithEdition(String tool, String edition) {
 
@@ -171,7 +171,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
    *
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   * nothing has changed.
+   *         nothing has changed.
    */
   public boolean install() {
 
@@ -184,7 +184,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   * nothing has changed.
+   *         nothing has changed.
    */
   public boolean install(boolean silent) {
 
@@ -196,7 +196,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   * nothing has changed.
+   *         nothing has changed.
    */
   protected abstract boolean doInstall(boolean silent);
 
@@ -273,7 +273,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /**
    * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent
-   * directory of the real path corresponding to the passed {@link Path path} must be the name of the edition.
+   *        directory of the real path corresponding to the passed {@link Path path} must be the name of the edition.
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   public String getInstalledEdition(Path toolPath) {
@@ -289,11 +289,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       return edition;
     } catch (IOException e) {
-      throw new IllegalStateException(
-          "Couldn't determine the edition of " + getName() + " from the directory structure of its software path "
-              + toolPath
-              + ", assuming the name of the parent directory of the real path of the software path to be the edition "
-              + "of the tool.", e);
+      throw new IllegalStateException("Couldn't determine the edition of " + getName()
+          + " from the directory structure of its software path " + toolPath
+          + ", assuming the name of the parent directory of the real path of the software path to be the edition "
+          + "of the tool.", e);
     }
 
   }
