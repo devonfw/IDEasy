@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.step;
 
+import com.devonfw.tools.ide.context.AbstractIdeContext;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeSubLogger;
+
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.log.IdeSubLogger;
 
 /**
  * Regular implementation of {@link Step}.
@@ -133,21 +133,24 @@ public final class StepImpl implements Step {
 
     if (this.success != null) {
       assert (this.duration > 0);
-      // success or error may only be called once per Step, while end() will be called again in finally block
-      assert (newSuccess == null) : "Step " + this.name + " already ended with " + this.success
-          + " and cannot be ended again with " + newSuccess;
-      return;
+      if (newSuccess != null) {
+        this.context.warning("Step '{}' already ended with {} and now ended again with {}.", this.name, this.success,
+            newSuccess);
+      } else {
+        return;
+      }
     }
-    assert (this.duration == 0);
     long delay = System.currentTimeMillis() - this.start;
     if (delay == 0) {
       delay = 1;
     }
-    this.duration = delay;
     if (newSuccess == null) {
       newSuccess = Boolean.FALSE;
     }
-    this.success = newSuccess;
+    if (this.success != Boolean.FALSE) { // never allow a failed step to change to success
+      this.duration = delay;
+      this.success = newSuccess;
+    }
     if (newSuccess.booleanValue()) {
       assert (error == null);
       if (message != null) {
