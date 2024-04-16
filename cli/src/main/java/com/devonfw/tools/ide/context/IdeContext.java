@@ -398,7 +398,7 @@ public interface IdeContext extends IdeLogger {
   GitContext getGitContext();
 
   /**
-   * @return the String value for the variable MAVEN_ARGS, or empty String if called outside an IDEasy installation.
+   * @return the String value for the variable MAVEN_ARGS, or null if called outside an IDEasy installation.
    */
   default String getMavenArgs() {
 
@@ -406,7 +406,7 @@ public interface IdeContext extends IdeLogger {
     if (ideHome != null) {
       return "-s " + ideHome.resolve("conf/.m2/settings.xml");
     } else {
-      return "";
+      return null;
     }
   }
 
