@@ -39,8 +39,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   * method.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
   public ToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -93,9 +92,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
    * @param processMode see {@link ProcessMode}
-   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
-   * is installed and use that one. Otherwise, the specified version will be installed in the software repository
-   * without touching and IDE installation and used to run.
+   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version is installed and use that one. Otherwise,
+   * the specified version will be installed in the software repository without touching and IDE installation and used to run.
    * @param args the command-line arguments to run the tool.
    */
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
@@ -108,8 +106,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
-        .addArgs(args);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
 
     pc.run(processMode);
   }
@@ -133,8 +130,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as
-   * tool.
+   * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as tool.
    * @see #getToolWithEdition(String, String)
    */
   protected final String getToolWithEdition() {
@@ -145,8 +141,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @param tool the tool name.
    * @param edition the edition.
-   * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as
-   * tool.
+   * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as tool.
    */
   protected final static String getToolWithEdition(String tool, String edition) {
 
@@ -165,11 +160,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * Method to be called for {@link #install(boolean)} from dependent
-   * {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
+   * Method to be called for {@link #install(boolean)} from dependent {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
    *
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   * nothing has changed.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
   public boolean install() {
 
@@ -177,12 +170,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} managed by this
-   * {@link com.devonfw.tools.ide.commandlet.Commandlet}.
+   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   * nothing has changed.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
   public boolean install(boolean silent) {
 
@@ -193,8 +184,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * Installs or updates the managed {@link #getName() tool}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   * nothing has changed.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
   protected abstract boolean doInstall(boolean silent);
 
@@ -270,8 +260,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent
-   * directory of the real path corresponding to the passed {@link Path path} must be the name of the edition.
+   * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent directory of the real path corresponding to
+   * the passed {@link Path path} must be the name of the edition.
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   public String getInstalledEdition(Path toolPath) {
@@ -287,11 +277,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       return edition;
     } catch (IOException e) {
-      throw new IllegalStateException(
-          "Couldn't determine the edition of " + getName() + " from the directory structure of its software path "
-              + toolPath
-              + ", assuming the name of the parent directory of the real path of the software path to be the edition "
-              + "of the tool.", e);
+      throw new IllegalStateException("Couldn't determine the edition of " + getName() + " from the directory structure of its software path " + toolPath
+          + ", assuming the name of the parent directory of the real path of the software path to be the edition " + "of the tool.", e);
     }
 
   }
@@ -343,9 +330,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void setVersion(VersionIdentifier version, boolean hint) {
 
+    String edition = getEdition();
+    this.context.getUrls().getVersionFolder(tool, edition, version); // CliException is thrown if the version is not existing
+
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
-    String edition = getEdition();
     String name = EnvironmentVariables.getToolVersionVariable(this.tool);
     VersionIdentifier resolvedVersion = this.context.getUrls().getVersion(this.tool, edition, version);
     if (version.isPattern()) {
@@ -356,9 +345,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.context.info("{}={} has been set in {}", name, version, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning(
-          "The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
-          name, declaringVariables.getSource());
+      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+          declaringVariables.getSource());
     }
     if (hint) {
       this.context.info("To install that version call the following command:");
@@ -401,9 +389,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.context.info("{}={} has been set in {}", name, edition, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning(
-          "The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
-          name, declaringVariables.getSource());
+      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+          declaringVariables.getSource());
     }
     if (hint) {
       this.context.info("To install that edition call the following command:");

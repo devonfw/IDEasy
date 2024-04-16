@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.context;
 
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -28,17 +29,18 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   private SystemInfo systemInfo;
 
+  private FileAccess mockFileAccess;
+
   /**
    * The constructor.
    *
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
-   * {@link DefaultToolRepository} will be used.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will be
+   * used.
    * @param answers the automatic answers simulating a user in test.
    */
-  public AbstractIdeTestContext(Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
-      ToolRepository toolRepository, String... answers) {
+  public AbstractIdeTestContext(Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository, String... answers) {
 
     super(IdeLogLevel.TRACE, factory, userDir, toolRepository);
     this.answers = answers;
@@ -98,5 +100,13 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public void setSystemInfo(SystemInfo systemInfo) {
 
     this.systemInfo = systemInfo;
+  }
+
+  /**
+   * @param fileAccess the {@link FileAccess} to use for testing.
+   */
+  public void setMockFileAccess(FileAccess fileAccess) {
+
+    this.mockFileAccess = fileAccess;
   }
 }
