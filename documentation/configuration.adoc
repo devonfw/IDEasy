@@ -8,7 +8,7 @@ The configuration of the link:cli.adoc[ide] command and environment variables ta
 The following list shows these configuration files in the order they are loaded so files can override variables from files above in the list:
 
 1. build in defaults (for `JAVA_HOME`, `MAVEN_ARGS`, etc.)
-2. `~/ide.properties` - user specific global defaults (on windows in `%USERPROFILE%/ide.properties`)
+2. `~/.ide/ide.properties` - user specific global defaults (on Windows in `%USERPROFILE%/.ide/ide.properties`)
 3. `https://github.com/devonfw/ide-settings/blob/main/ide.properties[settings/ide.properties]` (`settings/ide.properties`) - project specific configurations from link:settings.adoc[settings].
 4. `workspaces/${WORKSPACE}/ide.properties` - optional workspace specific configurations (especially helpful in projects using docker).
 5. `https://github.com/devonfw/ide-settings/blob/main/template/conf/ide.properties[conf/ide.properties]` - user specific configurations (e.g. `M2_REPO=~/.m2/repository`).
