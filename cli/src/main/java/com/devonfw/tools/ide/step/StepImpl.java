@@ -131,7 +131,8 @@ public final class StepImpl implements Step {
 
   private void end(Boolean newSuccess, Throwable error, boolean suppress, String message, Object[] args) {
 
-    if (this.success != null) {
+    boolean firstCallOfEnd = (this.success == null);
+    if (!firstCallOfEnd) {
       assert (this.duration > 0);
       if (newSuccess != null) {
         this.context.warning("Step '{}' already ended with {} and now ended again with {}.", this.name, this.success,
@@ -177,7 +178,9 @@ public final class StepImpl implements Step {
       }
       logger.log("Step '{}' ended with failure.", this.name);
     }
-    this.context.endStep(this);
+    if (firstCallOfEnd) {
+      this.context.endStep(this);
+    }
   }
 
   /**

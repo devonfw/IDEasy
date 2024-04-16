@@ -132,7 +132,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
-   *        {@link DefaultToolRepository} will be used.
+   * {@link DefaultToolRepository} will be used.
    */
   public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
       ToolRepository toolRepository) {
@@ -273,7 +273,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable
-   *         initialization.
+   * initialization.
    */
   public String getMessageIdeHome() {
 
@@ -612,7 +612,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @return the {@link #getDefaultExecutionDirectory() default execution directory} in which a command process is
-   *         executed.
+   * executed.
    */
   public Path getDefaultExecutionDirectory() {
 
@@ -768,13 +768,20 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public void endStep(StepImpl step) {
 
-    assert (step == this.currentStep);
-    this.currentStep = this.currentStep.getParent();
+    if (step == this.currentStep) {
+      this.currentStep = this.currentStep.getParent();
+    } else {
+      String currentStepName = "null";
+      if (this.currentStep != null) {
+        currentStepName = this.currentStep.getName();
+      }
+      warning("endStep called with wrong step '{}' but expected '{}'", step.getName(), currentStepName);
+    }
   }
 
   /**
-   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its {@link Commandlet#getProperties()
-   * properties} and will execute it.
+   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its
+   * {@link Commandlet#getProperties() properties} and will execute it.
    *
    * @param arguments the {@link CliArgument}.
    * @return the return code of the execution.
@@ -827,7 +834,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    *        {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run()
    *        run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -888,7 +895,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are
-   *        matched. Consider passing a {@link CliArguments#copy() copy} as needed.
+   * matched. Consider passing a {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have
