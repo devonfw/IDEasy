@@ -158,7 +158,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
 
     Path tmpDownloadFile = createTempDownload(downloadFilename);
     try {
-      this.context.getFileAccess().download(url, tmpDownloadFile);
+      this.context.getFileAccess().download(url, tmpDownloadFile, false);
       if (resolvedVersion.toString().equals("latest")) {
         // Some software vendors violate best-practices and provide the latest version only under a fixed URL.
         // Therefore if a newer version of that file gets released, the same URL suddenly leads to a different

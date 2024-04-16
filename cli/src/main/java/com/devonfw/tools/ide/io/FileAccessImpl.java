@@ -72,7 +72,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void download(String url, Path target) {
+  public void download(String url, Path target, boolean test) {
 
     this.context.info("Trying to download {} from {}", target.getFileName(), url);
     mkdirs(target.getParent());
@@ -91,7 +91,7 @@ public class FileAccessImpl implements FileAccess {
         Path source = Path.of(url);
         if (isFile(source)) {
           // network drive
-          copyFileWithProgressBar(source, target);
+          copyFileWithProgressBar(source, target, test);
         } else {
           throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
         }
@@ -111,7 +111,7 @@ public class FileAccessImpl implements FileAccess {
   private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
-    informAboutSettingDefaultContentLength(contentLength);
+    informAboutSettingDefaultContentLength(contentLength, url, null);
     byte[] data = new byte[1024];
     boolean fileComplete = false;
     int count;
@@ -143,12 +143,17 @@ public class FileAccessImpl implements FileAccess {
    * @param source Path of file to copy
    * @param target Path of target directory
    */
-  private void copyFileWithProgressBar(Path source, Path target) throws IOException {
+  private void copyFileWithProgressBar(Path source, Path target, boolean test) throws IOException {
 
     try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
+      long size;
+      if (test) {
+        size = 0L;
+      } else {
+        size = source.toFile().length();
+      }
 
-      long size = source.toFile().length();
-      informAboutSettingDefaultContentLength(size);
+      informAboutSettingDefaultContentLength(size, null, source);
       byte[] buf = new byte[1024];
       int readBytes;
 
@@ -173,11 +178,17 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  private void informAboutSettingDefaultContentLength(long contentLength) {
+  private void informAboutSettingDefaultContentLength(long contentLength, String url, Path path) {
 
+    String source;
     if (contentLength == 0) {
-      this.context.warning("Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to {}.",
-          DEFAULT_CONTENT_LENGTH);
+      if (path != null) {
+        source = path.toString();
+      } else {
+        source = url;
+      }
+      this.context.warning("Content-Length was not provided by download/copy source: {}. Using fallback: Content-Length for the progress bar is set to {}.",
+          source, DEFAULT_CONTENT_LENGTH);
     }
   }
 

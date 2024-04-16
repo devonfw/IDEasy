@@ -21,8 +21,10 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
  */
 @WireMockTest(httpPort = 8080)
 public class IdeProgressBarTest extends AbstractIdeContextTest {
-  
+
   private static final int MAX_LENGTH = 10_000;
+
+  private static final String TEST_URL = "http://localhost:8080/os/windows_x64_url.tgz";
 
   /**
    * Tests if a download of a file with a valid content length was displaying an {@link IdeProgressBar} properly.
@@ -37,13 +39,13 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
 
     IdeContext context = newContext(tempDir);
     FileAccess impl = context.getFileAccess();
-    impl.download("http://localhost:8080/os/windows_x64_url.tgz", tempDir.resolve("windows_x64_url.tgz"));
+    impl.download(TEST_URL, tempDir.resolve("windows_x64_url.tgz"), true);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     assertProgressBar(context, "Downloading", MAX_LENGTH);
   }
 
   /**
-   * Tests if {@link FileAccessImpl#download(String, Path)} with default value for missing content length is working properly.
+   * Tests if {@link FileAccessImpl#download(String, Path, boolean)} with default value for missing content length is working properly.
    *
    * @param tempDir temporary directory to use.
    */
@@ -55,28 +57,24 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody(new byte[MAX_LENGTH])));
     IdeTestContext context = newContext(tempDir);
     FileAccess impl = context.getFileAccess();
-
     //act
-    impl.download("http://localhost:8080/os/windows_x64_url.tgz", tempDir.resolve("windows_x64_url.tgz"));
+    impl.download(TEST_URL, tempDir.resolve("windows_x64_url.tgz"), true);
 
     //assert
-    checkLogMessageForDefaultContentLength(context);
+    checkLogMessageForDefaultContentLength(context, TEST_URL);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
     assertThat(progressBar.getMaxSize()).isEqualTo(DEFAULT_CONTENT_LENGTH);
   }
 
-  private void checkLogMessageForDefaultContentLength(IdeTestContext context) {
+  private void checkLogMessageForDefaultContentLength(IdeTestContext context, String source) {
 
-    String expectedMessage =
-        "Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to " + DEFAULT_CONTENT_LENGTH
-            + ".";
     assertLogMessage(context, IdeLogLevel.WARNING,
-        "Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to 10000000.");
+        "Content-Length was not provided by download/copy source: " + source + ". Using fallback: Content-Length for the progress bar is set to 10000000.");
   }
 
   /**
-   * Tests if {@link FileAccessImpl#download(String, Path)} with default value for missing content length is working properly.
+   * Tests if {@link FileAccessImpl#download(String, Path, boolean)} with default value for missing content length is working properly.
    *
    * @param tempDir temporary directory to use.
    */
@@ -86,18 +84,15 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     //arrange
     String taskName = "Copying";
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody(new byte[MAX_LENGTH])));
-    //Path pathStub = mock(Path.class);
-    //when(pathStub.toFile().length()).thenReturn(0L);
-
     IdeTestContext context = newContext(tempDir);
     FileAccess impl = context.getFileAccess();
     String source = Path.of("src/test/resources/__files").resolve("testZip").toString();
 
     //act
-    impl.download(source, tempDir.resolve("windows_x64_url.tgz"));
+    impl.download(source, tempDir.resolve("windows_x64_url.tgz"), true);
 
     //assert
-    checkLogMessageForDefaultContentLength(context);
+    checkLogMessageForDefaultContentLength(context, source);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
     assertThat(progressBar.getMaxSize()).isEqualTo(DEFAULT_CONTENT_LENGTH);

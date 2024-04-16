@@ -36,9 +36,8 @@ public class Mvn extends PluginBasedCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    Path mavenPlugin = this.context.getSoftwarePath().resolve(this.tool)
-        .resolve("lib/ext/" + plugin.getName() + ".jar");
-    this.context.getFileAccess().download(plugin.getUrl(), mavenPlugin);
+    Path mavenPlugin = this.context.getSoftwarePath().resolve(this.tool).resolve("lib/ext/" + plugin.getName() + ".jar");
+    this.context.getFileAccess().download(plugin.getUrl(), mavenPlugin, false);
     if (Files.exists(mavenPlugin)) {
       this.context.success("Successfully added {} to {}", plugin.getName(), mavenPlugin.toString());
     } else {

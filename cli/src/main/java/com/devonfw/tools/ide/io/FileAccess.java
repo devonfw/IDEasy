@@ -14,10 +14,9 @@ public interface FileAccess {
    * Downloads a file from an arbitrary location.
    *
    * @param url the location of the binary file to download. May also be a local or remote path to copy from.
-   * @param targetFile the {@link Path} to the target file to download to. Should not already exists. Missing parent
-   *        directories will be created automatically.
+   * @param targetFile the {@link Path} to the target file to download to. Should not already exists. Missing parent directories will be created automatically.
    */
-  void download(String url, Path targetFile);
+  void download(String url, Path targetFile, boolean test);
 
   /**
    * Creates the entire {@link Path} as directories if not already existing.
