@@ -10,21 +10,19 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Path;
 
-import static com.devonfw.tools.ide.io.FileAccessImpl.defaultContentLength;
+import static com.devonfw.tools.ide.io.FileAccessImpl.DEFAULT_CONTENT_LENGTH;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Test of {@link IdeProgressBar}.
  */
 @WireMockTest(httpPort = 8080)
 public class IdeProgressBarTest extends AbstractIdeContextTest {
-
-  private final static int maxLength = 10_000;
+  
+  private static final int MAX_LENGTH = 10_000;
 
   /**
    * Tests if a download of a file with a valid content length was displaying an {@link IdeProgressBar} properly.
@@ -35,13 +33,13 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
   public void testProgressBarDownloadWithValidContentLength(@TempDir Path tempDir) {
 
     stubFor(any(urlMatching("/os/.*")).willReturn(
-        aResponse().withStatus(200).withBody(new byte[maxLength]).withHeader("Content-Length", String.valueOf(maxLength))));
+        aResponse().withStatus(200).withBody(new byte[MAX_LENGTH]).withHeader("Content-Length", String.valueOf(MAX_LENGTH))));
 
     IdeContext context = newContext(tempDir);
     FileAccess impl = context.getFileAccess();
     impl.download("http://localhost:8080/os/windows_x64_url.tgz", tempDir.resolve("windows_x64_url.tgz"));
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
-    assertProgressBar(context, "Downloading", maxLength);
+    assertProgressBar(context, "Downloading", MAX_LENGTH);
   }
 
   /**
@@ -54,7 +52,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
 
     //arrange
     String taskName = "Downloading";
-    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody(new byte[maxLength])));
+    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody(new byte[MAX_LENGTH])));
     IdeTestContext context = newContext(tempDir);
     FileAccess impl = context.getFileAccess();
 
@@ -65,13 +63,14 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     checkLogMessageForDefaultContentLength(context);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
-    assertThat(progressBar.getMaxSize()).isEqualTo(defaultContentLength);
+    assertThat(progressBar.getMaxSize()).isEqualTo(DEFAULT_CONTENT_LENGTH);
   }
 
   private void checkLogMessageForDefaultContentLength(IdeTestContext context) {
 
     String expectedMessage =
-        "Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to " + defaultContentLength + ".";
+        "Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to " + DEFAULT_CONTENT_LENGTH
+            + ".";
     assertLogMessage(context, IdeLogLevel.WARNING,
         "Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to 10000000.");
   }
@@ -86,9 +85,9 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
 
     //arrange
     String taskName = "Copying";
-    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody(new byte[maxLength])));
-    Path pathStub = mock(Path.class);
-    when(pathStub.toFile().length()).thenReturn(0L);
+    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody(new byte[MAX_LENGTH])));
+    //Path pathStub = mock(Path.class);
+    //when(pathStub.toFile().length()).thenReturn(0L);
 
     IdeTestContext context = newContext(tempDir);
     FileAccess impl = context.getFileAccess();
@@ -101,6 +100,6 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     checkLogMessageForDefaultContentLength(context);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
-    assertThat(progressBar.getMaxSize()).isEqualTo(defaultContentLength);
+    assertThat(progressBar.getMaxSize()).isEqualTo(DEFAULT_CONTENT_LENGTH);
   }
 }

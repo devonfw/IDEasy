@@ -57,7 +57,7 @@ public class FileAccessImpl implements FileAccess {
   private final HttpClient client;
 
   /** The default value for missing content length */
-  public static final long defaultContentLength = 10000000L;
+  public static final long DEFAULT_CONTENT_LENGTH = 10000000L;
 
   /**
    * The constructor.
@@ -169,7 +169,7 @@ public class FileAccessImpl implements FileAccess {
   private void callStepByWithDefaultContentLength(long contentLength, IdeProgressBar progressBar) {
 
     if (contentLength == 0) {
-      progressBar.stepBy(defaultContentLength);
+      progressBar.stepBy(DEFAULT_CONTENT_LENGTH);
     }
   }
 
@@ -177,7 +177,7 @@ public class FileAccessImpl implements FileAccess {
 
     if (contentLength == 0) {
       this.context.warning("Content-Length was not provided by download/copy source. Using fallback: Content-Length for the progress bar is set to {}.",
-          defaultContentLength);
+          DEFAULT_CONTENT_LENGTH);
     }
   }
 

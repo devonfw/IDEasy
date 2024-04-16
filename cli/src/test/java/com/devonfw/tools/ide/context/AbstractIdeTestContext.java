@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
-import static com.devonfw.tools.ide.io.FileAccessImpl.defaultContentLength;
+import static com.devonfw.tools.ide.io.FileAccessImpl.DEFAULT_CONTENT_LENGTH;
 
 /**
  * Implementation of {@link IdeContext} for testing.
@@ -73,7 +73,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public IdeProgressBar prepareProgressBar(String taskName, long size) {
 
     if (size == 0) {
-      size = defaultContentLength;
+      size = DEFAULT_CONTENT_LENGTH;
     }
 
     IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
