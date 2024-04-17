@@ -1,3 +1,2 @@
 #!/bin/bash
-node "ideash"
-echo "ideash windows $*"
+echo "intellij linux $*"
