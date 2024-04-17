@@ -7,8 +7,6 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
@@ -30,7 +28,7 @@ public class GraalVm extends LocalToolCommandlet {
   @Override
   public Path getToolPath() {
 
-    return this.context.getSoftwarePath().resolve("extra").resolve(getName());
+    return this.context.getSoftwareExtraPath().resolve(getName());
   }
 
   @Override
@@ -42,17 +40,7 @@ public class GraalVm extends LocalToolCommandlet {
   @Override
   public void run() {
 
-    Path toolPath = getToolPath();
-    try {
-      if (!Files.exists(toolPath)) {
-        Files.createDirectories(toolPath);
-
-      }
-    } catch (IOException e) {
-      throw new RuntimeException("Failed to create new directory:" + e);
-    }
     super.install(true);
-
   }
 
   @Override
