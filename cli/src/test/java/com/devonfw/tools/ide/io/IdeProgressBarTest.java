@@ -83,7 +83,6 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
 
     //arrange
     String taskName = "Copying";
-    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody(new byte[MAX_LENGTH])));
     IdeTestContext context = newContext(tempDir);
     FileAccess impl = context.getFileAccess();
     String source = Path.of("src/test/resources/__files").resolve("testZip").toString();

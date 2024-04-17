@@ -142,6 +142,7 @@ public class FileAccessImpl implements FileAccess {
    *
    * @param source Path of file to copy
    * @param target Path of target directory
+   * @param test the flag about calling this method from test classes.
    */
   private void copyFileWithProgressBar(Path source, Path target, boolean test) throws IOException {
 
