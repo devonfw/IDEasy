@@ -82,6 +82,9 @@ public interface IdeContext extends IdeLogger {
   /** The name of the app folder inside a MacOS app. */
   String FOLDER_APP = "app";
 
+  /** The name of the extra folder inside the software folder */
+  String FOLDER_EXTRA = "extra";
+
   /**
    * The name of the {@link #getPluginsPath() plugins folder} and also the plugins folder inside the IDE folders of {@link #getSettingsPath() settings} (e.g.
    * settings/eclipse/plugins).
@@ -306,6 +309,12 @@ public interface IdeContext extends IdeLogger {
   Path getSoftwarePath();
 
   /**
+   * @return the {@link Path} to the extra folder inside software folder inside {@link #getIdeHome() IDE_HOME}. All tools for that IDE instance will be linked
+   * here from the {@link #getSoftwareRepositoryPath() software repository} as sub-folder named after the according tool.
+   */
+  Path getSoftwareExtraPath();
+
+  /**
    * @return the {@link Path} to the global software repository. This is the central directory where the tools are extracted physically on the local disc. Those
    * are shared among all IDE instances (see {@link #getIdeHome() IDE_HOME}) via symbolic links (see {@link #getSoftwarePath()}). Therefore this repository
    * follows the sub-folder structure {@code «repository»/«tool»/«edition»/«version»/}. So multiple versions of the same tool exist here as different folders.
@@ -411,9 +420,9 @@ public interface IdeContext extends IdeLogger {
   }
 
   /**
-   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters.
-   * This method is central to changing the IDE's notion of where it operates, affecting where configurations, workspaces,
-   * settings, and other resources are located or loaded from.
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters. This method is central to changing
+   * the IDE's notion of where it operates, affecting where configurations, workspaces, settings, and other resources are located or loaded from.
+   *
    * @return the current {@link Step} of processing.
    */
   Step getCurrentStep();
@@ -446,9 +455,8 @@ public interface IdeContext extends IdeLogger {
   Step newStep(boolean silent, String name, Object... parameters);
 
   /**
-   * Updates the current working directory (CWD) and configures the environment paths according to the specified
-   * parameters. This method is central to changing the IDE's notion of where it operates, affecting where
-   * configurations, workspaces, settings, and other resources are located or loaded from.
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters. This method is central to changing
+   * the IDE's notion of where it operates, affecting where configurations, workspaces, settings, and other resources are located or loaded from.
    *
    * @param ideHome The path to the IDE home directory.
    */
@@ -458,9 +466,8 @@ public interface IdeContext extends IdeLogger {
   }
 
   /**
-   * Updates the current working directory (CWD) and configures the environment paths according to the specified
-   * parameters. This method is central to changing the IDE's notion of where it operates, affecting where
-   * configurations, workspaces, settings, and other resources are located or loaded from.
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters. This method is central to changing
+   * the IDE's notion of where it operates, affecting where configurations, workspaces, settings, and other resources are located or loaded from.
    *
    * @param userDir The path to set as the current working directory.
    * @param workspace The name of the workspace within the IDE's environment.

@@ -1,9 +1,8 @@
 package com.devonfw.tools.ide.tool.graalvm;
 
-import org.junit.jupiter.api.Test;
-
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import org.junit.jupiter.api.Test;
 
 /**
  * Integration test of {@link GraalVm}.
@@ -24,7 +23,7 @@ public class GraalVmTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(context.getSoftwarePath().resolve("extra/graalvm/bin/HelloWorld.txt")).exists();
-    assertThat(context.getSoftwarePath().resolve("extra/graalvm/.ide.software.version")).exists().hasContent("22.3.3");
+    assertThat(context.getSoftwareExtraPath().resolve("graalvm/bin/HelloWorld.txt")).exists();
+    assertThat(context.getSoftwareExtraPath().resolve("graalvm/.ide.software.version")).exists().hasContent("22.3.3");
   }
 }

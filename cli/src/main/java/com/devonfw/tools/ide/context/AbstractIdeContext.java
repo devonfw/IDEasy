@@ -1,17 +1,5 @@
 package com.devonfw.tools.ide.context;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -48,6 +36,18 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+
 /**
  * Abstract base implementation of {@link IdeContext}.
  */
@@ -66,6 +66,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   private Path settingsPath;
 
   private Path softwarePath;
+
+  private Path softwareExtraPath;
 
   private Path softwareRepositoryPath;
 
@@ -131,11 +133,10 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
-   *        {@link DefaultToolRepository} will be used.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will be
+   * used.
    */
-  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
-      ToolRepository toolRepository) {
+  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository) {
 
     super();
     this.loggerFactory = factory;
@@ -186,8 +187,8 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (ideRootPath == null) {
           ideRootPath = rootPath;
         } else if (!ideRootPath.equals(rootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
-              rootPath, this.ideHome.getFileName(), ideRootPath);
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath, this.ideHome.getFileName(),
+              ideRootPath);
         }
       }
     }
@@ -234,12 +235,14 @@ public abstract class AbstractIdeContext implements IdeContext {
       this.confPath = null;
       this.settingsPath = null;
       this.softwarePath = null;
+      this.softwareExtraPath = null;
       this.pluginsPath = null;
     } else {
       this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
       this.confPath = this.ideHome.resolve(FOLDER_CONF);
       this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
       this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
+      this.softwareExtraPath = this.softwarePath.resolve(FOLDER_EXTRA);
       this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
     }
     if (isTest()) {
@@ -272,8 +275,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable
-   *         initialization.
+   * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable initialization.
    */
   public String getMessageIdeHome() {
 
@@ -335,14 +337,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     AbstractEnvironmentVariables user = extendVariables(system, this.userHomeIde, EnvironmentVariablesType.USER);
     AbstractEnvironmentVariables settings = extendVariables(user, this.settingsPath, EnvironmentVariablesType.SETTINGS);
     // TODO should we keep this workspace properties? Was this feature ever used?
-    AbstractEnvironmentVariables workspace = extendVariables(settings, this.workspacePath,
-        EnvironmentVariablesType.WORKSPACE);
+    AbstractEnvironmentVariables workspace = extendVariables(settings, this.workspacePath, EnvironmentVariablesType.WORKSPACE);
     AbstractEnvironmentVariables conf = extendVariables(workspace, this.confPath, EnvironmentVariablesType.CONF);
     return conf.resolved();
   }
 
-  private AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath,
-      EnvironmentVariablesType type) {
+  private AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
 
     Path propertiesFile = null;
     if (propertiesPath == null) {
@@ -450,6 +450,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   public Path getSoftwarePath() {
 
     return this.softwarePath;
+  }
+
+  @Override
+  public Path getSoftwareExtraPath() {
+
+    return this.softwareExtraPath;
   }
 
   @Override
@@ -611,8 +617,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @return the {@link #getDefaultExecutionDirectory() default execution directory} in which a command process is
-   *         executed.
+   * @return the {@link #getDefaultExecutionDirectory() default execution directory} in which a command process is executed.
    */
   public Path getDefaultExecutionDirectory() {
 
@@ -773,8 +778,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its {@link Commandlet#getProperties()
-   * properties} and will execute it.
+   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its {@link Commandlet#getProperties() properties} and will execute it.
    *
    * @param arguments the {@link CliArgument}.
    * @return the return code of the execution.
@@ -823,11 +827,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to
-   *        {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run()
-   *        run}.
-   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
+   * {@link Commandlet#run() run}.
+   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
+   * {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -887,13 +890,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are
-   *        matched. Consider passing a {@link CliArguments#copy() copy} as needed.
+   * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
+   * {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
    * @param collector the {@link CompletionCandidateCollector}.
-   * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have
-   *         been applied (set in the {@link Commandlet} and {@link Commandlet#validate() validated}), {@code false}
-   *         otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
+   * and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   public boolean apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
