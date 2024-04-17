@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.io;
 
 import java.nio.file.Path;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -14,7 +15,7 @@ public interface FileAccess {
    *
    * @param url the location of the binary file to download. May also be a local or remote path to copy from.
    * @param targetFile the {@link Path} to the target file to download to. Should not already exists. Missing parent
-   * directories will be created automatically.
+   *        directories will be created automatically.
    */
   void download(String url, Path targetFile);
 
@@ -22,21 +23,21 @@ public interface FileAccess {
    * Creates the entire {@link Path} as directories if not already existing.
    *
    * @param directory the {@link Path} to
-   * {@link java.nio.file.Files#createDirectories(Path, java.nio.file.attribute.FileAttribute...) create}.
+   *        {@link java.nio.file.Files#createDirectories(Path, java.nio.file.attribute.FileAttribute...) create}.
    */
   void mkdirs(Path directory);
 
   /**
    * @param file the {@link Path} to check.
    * @return {@code true} if the given {@code file} points to an existing file, {@code false} otherwise (the given
-   * {@link Path} does not exist or is a directory).
+   *         {@link Path} does not exist or is a directory).
    */
   boolean isFile(Path file);
 
   /**
    * @param folder the {@link Path} to check.
    * @return {@code true} if the given {@code folder} points to an existing directory, {@code false} otherwise (a
-   * warning is logged in this case).
+   *         warning is logged in this case).
    */
   boolean isExpectedFolder(Path folder);
 
@@ -86,7 +87,7 @@ public interface FileAccess {
   /**
    * @param source the source {@link Path file or folder} to copy.
    * @param target the {@link Path} to copy {@code source} to. See {@link #copy(Path, Path, FileCopyMode)} for details.
-   * will always ensure that in the end you will find the same content of {@code source} in {@code target}.
+   *        will always ensure that in the end you will find the same content of {@code source} in {@code target}.
    */
   default void copy(Path source, Path target) {
 
@@ -96,13 +97,13 @@ public interface FileAccess {
   /**
    * @param source the source {@link Path file or folder} to copy.
    * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not
-   * take the filename of {@code source} and copy that to {@code target} in case that is an existing folder. Instead it
-   * will always be simple and stupid and just copy from {@code source} to {@code target}. Therefore the result is
-   * always clear and easy to predict and understand. Also you can easily rename a file to copy. While
-   * {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always
-   * ensure that in the end you will find the same content of {@code source} in {@code target}.
+   *        take the filename of {@code source} and copy that to {@code target} in case that is an existing folder.
+   *        Instead it will always be simple and stupid and just copy from {@code source} to {@code target}. Therefore
+   *        the result is always clear and easy to predict and understand. Also you can easily rename a file to copy.
+   *        While {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method
+   *        will always ensure that in the end you will find the same content of {@code source} in {@code target}.
    * @param fileOnly - {@code true} if {@code fileOrFolder} is expected to be a file and an exception shall be thrown if
-   * it is a directory, {@code false} otherwise (copy recursively).
+   *        it is a directory, {@code false} otherwise (copy recursively).
    */
   void copy(Path source, Path target, FileCopyMode fileOnly);
 
@@ -119,7 +120,7 @@ public interface FileAccess {
    * @param archiveFile the {@link Path} to the archive file to extract.
    * @param targetDir the {@link Path} to the directory where to extract the {@code archiveFile}.
    * @param postExtractHook the {@link Consumer} to be called after the extraction on the final folder before it is
-   * moved to {@code targetDir}.
+   *        moved to {@code targetDir}.
    */
   default void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook) {
 
@@ -130,7 +131,7 @@ public interface FileAccess {
    * @param archiveFile the {@link Path} to the archive file to extract.
    * @param targetDir the {@link Path} to the directory where to extract the {@code archiveFile}.
    * @param postExtractHook the {@link Consumer} to be called after the extraction on the final folder before it is
-   * moved to {@code targetDir}.
+   *        moved to {@code targetDir}.
    * @param extract {@code true} if the {@code archiveFile} should be extracted (default), {@code false} otherwise.
    */
   void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook, boolean extract);
@@ -200,7 +201,7 @@ public interface FileAccess {
    * {@link #delete(Path) delete} it after the work is done.
    *
    * @param name the default name of the temporary directory to create. A prefix or suffix may be added to ensure
-   * uniqueness.
+   *        uniqueness.
    * @return the {@link Path} to the newly created and unique temporary directory.
    */
   Path createTempDir(String name);
@@ -213,4 +214,28 @@ public interface FileAccess {
    */
   Path findFirst(Path dir, Predicate<Path> filter, boolean recursive);
 
+  /**
+   * @param dir the {@link Path} to the directory where to list the children.
+   * @param filter the {@link Predicate} used to {@link Predicate#test(Object) decide} which children to include (if
+   *        {@code true} is returned).
+   * @return all children of the given {@link Path} that match the given {@link Predicate}. Will be the empty list of
+   *         the given {@link Path} is not an existing directory.
+   */
+  List<Path> listChildren(Path dir, Predicate<Path> filter);
+
+  /**
+   * Finds the existing file with the specified name in the given list of directories.
+   *
+   * @param fileName The name of the file to find.
+   * @param searchDirs The list of directories to search for the file.
+   * @return The {@code Path} of the existing file, or {@code null} if the file is not found.
+   */
+  Path findExistingFile(String fileName, List<Path> searchDirs);
+
+  /**
+   * Checks if the given directory is empty.
+   * @param dir The {@link Path} object representing the directory to check.
+   * @return {@code true} if the directory is empty, {@code false} otherwise.
+   */
+  boolean isEmptyDir(Path dir);
 }

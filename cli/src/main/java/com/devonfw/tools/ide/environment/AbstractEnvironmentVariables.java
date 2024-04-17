@@ -208,16 +208,14 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     StringBuilder sb = new StringBuilder(value.length() + EXTRA_CAPACITY);
     do {
       String variableName = matcher.group(2);
-      String variableValue = resolvedVars.getValue(variableName);
+      String variableValue = resolvedVars.getValue(variableName, false);
       if (variableValue == null) {
         this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, src, value, rootSrc,
             rootValue);
         continue;
       }
       EnvironmentVariables lowestFound = findVariable(variableName);
-      boolean isNotSelfReferencing = lowestFound == null || !lowestFound.getFlat(variableName).equals(value);
-
-      if (isNotSelfReferencing) {
+      if ((lowestFound == null) || !lowestFound.getFlat(variableName).equals(value)) {
         // looking for "variableName" starting from resolved upwards the hierarchy
         String replacement = resolvedVars.resolve(variableValue, variableName, recursion, rootSrc, rootValue,
             resolvedVars);
@@ -254,9 +252,12 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    * default values.
    *
    * @param name the name of the variable to get.
+   * @param ignoreDefaultValue - {@code true} if the {@link VariableDefinition#getDefaultValue(IdeContext) default
+   *        value} of a potential {@link VariableDefinition} shall be ignored, {@code false} to return default instead
+   *        of {@code null}.
    * @return the value of the variable.
    */
-  protected String getValue(String name) {
+  protected String getValue(String name, boolean ignoreDefaultValue) {
 
     VariableDefinition<?> var = IdeVariables.get(name);
     String value;
@@ -268,9 +269,11 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     if ((value == null) && (var != null)) {
       String key = var.getName();
       if (!name.equals(key)) {
+        // try new name (e.g. IDE_TOOLS or IDE_HOME) if no value could be found by given legacy name (e.g.
+        // DEVON_IDE_TOOLS or DEVON_IDE_HOME)
         value = this.parent.get(key);
       }
-      if (value != null) {
+      if ((value == null) && !ignoreDefaultValue) {
         value = var.getDefaultValueAsString(this.context);
       }
     }
