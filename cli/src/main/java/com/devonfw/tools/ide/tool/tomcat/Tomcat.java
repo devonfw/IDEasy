@@ -71,6 +71,7 @@ public class Tomcat extends LocalToolCommandlet {
         break;
       case STOP:
         arguments.setValueAsString("stop", context);
+        super.run();
         break;
       default:
     }

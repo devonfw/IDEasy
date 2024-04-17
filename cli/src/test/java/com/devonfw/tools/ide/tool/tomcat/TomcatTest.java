@@ -30,9 +30,34 @@ public class TomcatTest extends AbstractIdeContextTest {
     checkDependencyInstallation(context);
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = { "mac", "windows", "linux" })
+  public void testTomcatZRun(String os) {
+
+    IdeTestContext context = newContext(PROJECT_TOMCAT);
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    context.setSystemInfo(systemInfo);
+    Tomcat tomcatCommandlet = new Tomcat(context);
+    tomcatCommandlet.command.setValue(TomcatCommand.START);
+
+    // act
+    tomcatCommandlet.run();
+
+    // assert
+    checkRunningTomcat(context);
+  }
+
   private void checkDependencyInstallation(IdeTestContext context) {
 
-    assertLogMessage(context, IdeLogLevel.INFO, "Necessary version of the dependency java is already installed in repository");
+    assertLogMessage(context, IdeLogLevel.INFO, "The version 17.0.10_7 of the dependency java is being installed");
+    assertLogMessage(context, IdeLogLevel.INFO, "The version 17.0.10_7 of the dependency java was successfully installed");
+
+  }
+
+  private void checkRunningTomcat(IdeTestContext context) {
+
+    assertLogMessage(context, IdeLogLevel.INFO, "Tomcat is running at localhost on the following port (default 8080):");
+    assertLogMessage(context, IdeLogLevel.INFO, "49152");
 
   }
 
