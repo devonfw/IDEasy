@@ -32,7 +32,7 @@ public class TomcatTest extends AbstractIdeContextTest {
 
   @ParameterizedTest
   @ValueSource(strings = { "mac", "windows", "linux" })
-  public void testTomcatZRun(String os) {
+  public void testTomcatRun(String os) {
 
     IdeTestContext context = newContext(PROJECT_TOMCAT);
     SystemInfo systemInfo = SystemInfoMock.of(os);
