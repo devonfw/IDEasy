@@ -3,16 +3,19 @@ package com.devonfw.tools.ide.tool.intellij;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.tool.jmc.Jmc;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import org.junit.jupiter.api.Test;
 
 /**
- * Integration test of {@link Jmc}.
+ * Integration test of {@link Intellij}.
  */
 public class IntellijTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_INTELLIJ = "intellij";
 
+  /**
+   * Tests if the {@link Intellij} install works correctly.
+   */
   @Test
   public void testIntellijInstall() {
 
@@ -29,7 +32,7 @@ public class IntellijTest extends AbstractIdeContextTest {
 
   private void checkInstallation(IdeTestContext context) {
 
-    if (context.getSystemInfo().isLinux()) {
+    if (SystemInfoImpl.INSTANCE.isLinux()) {
       assertThat(context.getSoftwarePath().resolve("intellij/bin/idea")).exists().isSymbolicLink();
     }
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");

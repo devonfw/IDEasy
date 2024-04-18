@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.intellij;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -113,7 +114,7 @@ public class Intellij extends IdeToolCommandlet {
     super.postInstall();
 
     Path binPath = getToolBinPath();
-    if (this.context.getSystemInfo().isLinux()) {
+    if (SystemInfoImpl.INSTANCE.isLinux()) {
       Path ideaShLink = binPath.resolve(IDEA_BASH_SCRIPT);
       Path ideaLink = binPath.resolve(IDEA);
       if (Files.exists(ideaShLink)) {
