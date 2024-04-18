@@ -26,7 +26,7 @@ public class AndroidStudio extends IdeToolCommandlet {
 
   private static final String STUDIO64_EXE = STUDIO + "64.exe";
 
-  private static final String STUDIO_SCRIPT = STUDIO + ".sh";
+  private static final String STUDIO_BASH = STUDIO + ".sh";
 
   /**
    * The constructor.
@@ -46,10 +46,10 @@ public class AndroidStudio extends IdeToolCommandlet {
     Step stepRun = this.context.newStep("Running Android Studio");
     try {
       ProcessResult result;
-      if (this.context.getSystemInfo().isMac()) {
-        result = runAndroidStudio(ProcessMode.BACKGROUND, CliArgument.prepend(args, "open", "-na", this.context.getWorkspacePath().toString()));
-      } else {
+      if (this.context.getSystemInfo().isWindows()) {
         result = runAndroidStudio(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
+      } else {
+        result = runAndroidStudio(ProcessMode.BACKGROUND, CliArgument.prepend(args, "open", "-na", this.context.getWorkspacePath().toString()));
       }
       if (result.isSuccessful()) {
         stepRun.success("Running Android Studio successfully.");
@@ -58,7 +58,7 @@ public class AndroidStudio extends IdeToolCommandlet {
       }
 
     } catch (Exception e) {
-      stepRun.error(e, "Failed to do something.");
+      stepRun.error(e, "Failed to run Android Studio.");
     } finally {
       stepRun.end();
     }
@@ -76,16 +76,22 @@ public class AndroidStudio extends IdeToolCommandlet {
 
     Path toolPath;
     // TODO: Check if this can be optimized.
-    if (this.context.getSystemInfo().isMac()) {
+    if (this.context.getSystemInfo().isWindows()) {
+      toolPath = getToolBinPath().resolve(STUDIO64_EXE);
+    } else {
+      // check bin folder
       toolPath = getToolBinPath().resolve(STUDIO);
       if (!Files.exists(toolPath)) {
+        // check tool root folder
         toolPath = getToolPath().resolve(STUDIO);
       }
-    } else {
-      toolPath = getToolBinPath().resolve(STUDIO64_EXE);
     }
     ProcessContext pc = this.context.newProcess();
-    pc.executable(toolPath);
+
+    if (Files.exists(toolPath)) {
+      pc.executable(toolPath);
+    }
+
     if (processMode == ProcessMode.DEFAULT_CAPTURE) {
       pc.errorHandling(ProcessErrorHandling.ERROR);
     }
@@ -105,7 +111,7 @@ public class AndroidStudio extends IdeToolCommandlet {
   protected void postInstall() {
 
     super.postInstall();
-    Path scriptPath = getToolBinPath().resolve(STUDIO_SCRIPT);
+    Path scriptPath = getToolBinPath().resolve(STUDIO_BASH);
 
     // TODO: Check if this is still needed.
     if (Files.exists(scriptPath)) {
