@@ -1,4 +1,4 @@
-name: Build and deploy a release including native-images
+name: Release
 
 # Runs manually
 on:
@@ -19,7 +19,7 @@ jobs:
 
       - uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '17.0.7'
+          java-version: '21.0.2'
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
@@ -75,8 +75,9 @@ jobs:
           git commit -m "set release version to ${next_version}"
           git tag -a "release/${next_version}" -m "tagged version ${next_version}"
           export GPG_TTY=$TTY
+          mkdir -p ./cli/target/
+          mv ./natives/* ./cli/target/
           mvn --settings .mvn/settings.xml -B -ntp deploy -Pdeploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
-          mv ./natives/* ./cli/target/package/bin/
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
