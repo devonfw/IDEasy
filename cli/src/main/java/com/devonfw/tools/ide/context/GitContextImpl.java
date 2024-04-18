@@ -12,9 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -24,11 +22,13 @@ import com.devonfw.tools.ide.process.ProcessResult;
  * Implements the {@link GitContext}.
  */
 public class GitContextImpl implements GitContext {
-  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMillis(30 * 60 * 1000);;
+  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMinutes(30);
 
   private final IdeContext context;
 
-  private ProcessContext processContext;
+  private final ProcessContext processContext;
+
+  private static final ProcessMode PROCESS_MODE = ProcessMode.DEFAULT;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -36,56 +36,57 @@ public class GitContextImpl implements GitContext {
   public GitContextImpl(IdeContext context) {
 
     this.context = context;
-
+    this.processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0");
   }
 
   @Override
-  public void pullOrCloneIfNeeded(String repoUrl, Path targetRepository) {
+  public void pullOrCloneIfNeeded(String repoUrl, String branch, Path targetRepository) {
 
     Path gitDirectory = targetRepository.resolve(".git");
 
     // Check if the .git directory exists
-    if (Files.isDirectory(gitDirectory)) {
+    if (!this.context.isForceMode() && Files.isDirectory(gitDirectory)) {
       Path magicFilePath = gitDirectory.resolve("HEAD");
       long currentTime = System.currentTimeMillis();
       // Get the modification time of the magic file
-      long fileMTime;
       try {
-        fileMTime = Files.getLastModifiedTime(magicFilePath).toMillis();
-      } catch (IOException e) {
-        throw new IllegalStateException("Could not read " + magicFilePath, e);
-      }
-
-      // Check if the file modification time is older than the delta threshold
-      if ((currentTime - fileMTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis()) || context.isForceMode()) {
-        pullOrClone(repoUrl, targetRepository);
-        try {
-          Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
-        } catch (IOException e) {
-          throw new IllegalStateException("Could not read or write in " + magicFilePath, e);
+        long fileModifiedTime = Files.getLastModifiedTime(magicFilePath).toMillis();
+        // Check if the file modification time is older than the delta threshold
+        if ((currentTime - fileModifiedTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis())) {
+          pullOrClone(repoUrl, targetRepository);
+          try {
+            Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
+          } catch (IOException e) {
+            this.context.warning().log(e, "Cound not update modification-time of {}", magicFilePath);
+          }
+          return;
         }
+      } catch (IOException e) {
+        this.context.error(e);
       }
-    } else {
-      // If the .git directory does not exist, perform git clone
-      pullOrClone(repoUrl, targetRepository);
     }
+    // If the .git directory does not exist or in case of an error, perform git operation directly
+    pullOrClone(repoUrl, branch, targetRepository);
   }
 
-  public void pullOrFetchAndResetIfNeeded(String repoUrl, Path targetRepository, String remoteName, String branchName) {
+  @Override
+  public void pullOrCloneAndResetIfNeeded(String repoUrl, Path targetRepository, String branch, String remoteName) {
 
-    pullOrCloneIfNeeded(repoUrl, targetRepository);
+    pullOrCloneIfNeeded(repoUrl, branch, targetRepository);
 
-    if (remoteName.isEmpty()) {
-      reset(targetRepository, "origin", "master");
-    } else {
-      reset(targetRepository, remoteName, "master");
-    }
+    reset(targetRepository, "master", remoteName);
 
     cleanup(targetRepository);
   }
 
   @Override
   public void pullOrClone(String gitRepoUrl, Path targetRepository) {
+
+    pullOrClone(gitRepoUrl, null, targetRepository);
+  }
+
+  @Override
+  public void pullOrClone(String gitRepoUrl, String branch, Path targetRepository) {
 
     Objects.requireNonNull(targetRepository);
     Objects.requireNonNull(gitRepoUrl);
@@ -94,9 +95,9 @@ public class GitContextImpl implements GitContext {
       throw new IllegalArgumentException("Invalid git URL '" + gitRepoUrl + "'!");
     }
 
-    initializeProcessContext(targetRepository);
     if (Files.isDirectory(targetRepository.resolve(".git"))) {
       // checks for remotes
+      this.processContext.directory(targetRepository);
       ProcessResult result = this.processContext.addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
@@ -112,17 +113,7 @@ public class GitContextImpl implements GitContext {
         }
       }
     } else {
-      String branch = "";
-      int hashIndex = gitRepoUrl.indexOf("#");
-      if (hashIndex != -1) {
-        branch = gitRepoUrl.substring(hashIndex + 1);
-        gitRepoUrl = gitRepoUrl.substring(0, hashIndex);
-      }
       clone(new GitUrl(gitRepoUrl, branch), targetRepository);
-      if (!branch.isEmpty()) {
-        this.processContext.addArgs("checkout", branch);
-        this.processContext.run();
-      }
     }
   }
 
@@ -155,26 +146,11 @@ public class GitContextImpl implements GitContext {
     }
   }
 
-  /**
-   * Lazily initializes the {@link ProcessContext}.
-   *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
-   *        final folder that will contain the ".git" subfolder.
-   */
-  private void initializeProcessContext(Path targetRepository) {
-
-    if (this.processContext == null) {
-      this.processContext = this.context.newProcess().directory(targetRepository).executable("git")
-          .withEnvVar("GIT_TERMINAL_PROMPT", "0");
-    }
-  }
-
   @Override
   public void clone(GitUrl gitRepoUrl, Path targetRepository) {
 
     URL parsedUrl = gitRepoUrl.parseUrl();
-    initializeProcessContext(targetRepository);
+    this.processContext.directory(targetRepository);
     ProcessResult result;
     if (!this.context.isOffline()) {
       this.context.getFileAccess().mkdirs(targetRepository);
@@ -183,27 +159,36 @@ public class GitContextImpl implements GitContext {
       if (this.context.isQuietMode()) {
         this.processContext.addArg("-q");
       }
-      this.processContext.addArgs("--recursive", parsedUrl, "--config", "core.autocrlf=false", ".");
-      result = this.processContext.run(ProcessMode.DEFAULT_CAPTURE);
+      this.processContext.addArgs("--recursive", gitRepoUrl.url(), "--config", "core.autocrlf=false", ".");
+      result = this.processContext.run(PROCESS_MODE);
       if (!result.isSuccessful()) {
         this.context.warning("Git failed to clone {} into {}.", parsedUrl, targetRepository);
       }
+      String branch = gitRepoUrl.branch();
+      if (branch != null) {
+        this.processContext.addArgs("checkout", branch);
+        result = this.processContext.run(PROCESS_MODE);
+        if (!result.isSuccessful()) {
+          this.context.warning("Git failed to checkout to branch {}", branch);
+        }
+      }
     } else {
-      throw new CliException("Could not clone " + parsedUrl + " to " + targetRepository + " because you are offline.");
+      throw new CliOfflineException(
+          "Could not clone " + parsedUrl + " to " + targetRepository + " because you are offline.");
     }
   }
 
   @Override
   public void pull(Path targetRepository) {
 
-    initializeProcessContext(targetRepository);
+    this.processContext.directory(targetRepository);
     ProcessResult result;
     // pull from remote
-    result = this.processContext.addArg("--no-pager").addArg("pull").run(ProcessMode.DEFAULT_CAPTURE);
+    result = this.processContext.addArg("--no-pager").addArg("pull").run(PROCESS_MODE);
 
     if (!result.isSuccessful()) {
       Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();
-      context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"),
+      this.context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"),
           remoteAndBranchName.get("branch"), targetRepository);
       handleErrors(targetRepository, result);
     }
@@ -212,7 +197,7 @@ public class GitContextImpl implements GitContext {
   private Map<String, String> retrieveRemoteAndBranchName() {
 
     Map<String, String> remoteAndBranchName = new HashMap<>();
-    ProcessResult remoteResult = this.processContext.addArg("branch").addArg("-vv").run(ProcessMode.DEFAULT_CAPTURE);
+    ProcessResult remoteResult = this.processContext.addArg("branch").addArg("-vv").run(PROCESS_MODE);
     List<String> remotes = remoteResult.getOut();
     if (!remotes.isEmpty()) {
       for (String remote : remotes) {
@@ -238,22 +223,25 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void reset(Path targetRepository, String remoteName, String branchName) {
+  public void reset(Path targetRepository, String branchName, String remoteName) {
 
-    initializeProcessContext(targetRepository);
+    if ((remoteName == null) || remoteName.isEmpty()) {
+      remoteName = DEFAULT_REMOTE;
+    }
+    this.processContext.directory(targetRepository);
     ProcessResult result;
     // check for changed files
-    result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(ProcessMode.DEFAULT_CAPTURE);
+    result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(PROCESS_MODE);
 
     if (!result.isSuccessful()) {
       // reset to origin/master
-      context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", targetRepository,
+      this.context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", targetRepository,
           remoteName, branchName);
       result = this.processContext.addArg("reset").addArg("--hard").addArg(remoteName + "/" + branchName)
-          .run(ProcessMode.DEFAULT_CAPTURE);
+          .run(PROCESS_MODE);
 
       if (!result.isSuccessful()) {
-        context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, targetRepository);
+        this.context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, targetRepository);
         handleErrors(targetRepository, result);
       }
     }
@@ -262,7 +250,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public void cleanup(Path targetRepository) {
 
-    initializeProcessContext(targetRepository);
+    this.processContext.directory(targetRepository);
     ProcessResult result;
     // check for untracked files
     result = this.processContext.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard")
@@ -270,18 +258,13 @@ public class GitContextImpl implements GitContext {
 
     if (!result.getOut().isEmpty()) {
       // delete untracked files
-      context.warning("Git detected untracked files in {} and is attempting a cleanup.", targetRepository);
-      result = this.processContext.addArg("clean").addArg("-df").run(ProcessMode.DEFAULT_CAPTURE);
+      this.context.warning("Git detected untracked files in {} and is attempting a cleanup.", targetRepository);
+      result = this.processContext.addArg("clean").addArg("-df").run(PROCESS_MODE);
 
       if (!result.isSuccessful()) {
-        context.warning("Git failed to clean the repository {}.", targetRepository);
+        this.context.warning("Git failed to clean the repository {}.", targetRepository);
       }
     }
   }
 
-  @Override
-  public IdeSubLogger level(IdeLogLevel level) {
-
-    return null;
-  }
 }

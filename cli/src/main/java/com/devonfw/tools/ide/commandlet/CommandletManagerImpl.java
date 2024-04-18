@@ -1,33 +1,36 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.tool.cobigen.Cobigen;
+import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.helm.Helm;
+import com.devonfw.tools.ide.tool.jasypt.Jasypt;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.jmc.Jmc;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.node.Node;
+import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -66,10 +69,15 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new EditionSetCommandlet(context));
     add(new EditionListCommandlet(context));
     add(new VersionCommandlet(context));
+    add(new RepositoryCommandlet(context));
+    add(new UninstallCommandlet(context));
+    add(new UpdateCommandlet(context));
+    add(new CreateCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));
     add(new Node(context));
+    add(new Npm(context));
     add(new Mvn(context));
     add(new GcViewer(context));
     add(new Gradle(context));
@@ -84,6 +92,8 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Aws(context));
     add(new Cobigen(context));
     add(new Jmc(context));
+    add(new Jasypt(context));
+    add(new Docker(context));
     add(new Sonar(context));
   }
 

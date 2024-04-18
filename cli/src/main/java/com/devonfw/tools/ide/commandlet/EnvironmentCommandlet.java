@@ -2,11 +2,11 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.util.Collection;
 
-import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.property.FlagProperty;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * {@link Commandlet} to print the environment variables.
@@ -41,6 +41,12 @@ public final class EnvironmentCommandlet extends Commandlet {
   }
 
   @Override
+  public boolean isSuppressStepSuccess() {
+
+    return true;
+  }
+
+  @Override
   public void run() {
 
     Collection<VariableLine> variables = this.context.getVariables().collectVariables();
@@ -48,10 +54,14 @@ public final class EnvironmentCommandlet extends Commandlet {
       if (this.context.getSystemInfo().isWindows()) {
         line = normalizeWindowsValue(line);
       }
+      String lineValue = line.getValue();
+      if (IdeVariables.PATH.getName().equals(line.getName())) {
+        lineValue = this.context.getPath().toString(this.bash.isTrue());
+      }
+      lineValue = "\"" + lineValue + "\"";
+      line = line.withValue(lineValue);
       this.context.info(line.toString());
     }
-    SystemPath path = this.context.getPath();
-    this.context.info("export PATH={}", path.toString(this.bash.isTrue()));
   }
 
   VariableLine normalizeWindowsValue(VariableLine line) {

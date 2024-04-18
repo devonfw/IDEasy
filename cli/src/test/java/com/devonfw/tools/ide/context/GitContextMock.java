@@ -2,22 +2,27 @@ package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
 
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
-
+/**
+ * Mock implementation of {@link GitContext}.
+ */
 public class GitContextMock implements GitContext {
   @Override
-  public void pullOrCloneIfNeeded(String repoUrl, Path targetRepository) {
+  public void pullOrCloneIfNeeded(String repoUrl, String branch, Path targetRepository) {
 
   }
 
   @Override
-  public void pullOrFetchAndResetIfNeeded(String repoUrl, Path targetRepository, String remoteName, String branchName) {
+  public void pullOrCloneAndResetIfNeeded(String repoUrl, Path targetRepository, String branch, String remoteName) {
 
   }
 
   @Override
   public void pullOrClone(String gitRepoUrl, Path targetRepository) {
+
+  }
+
+  @Override
+  public void pullOrClone(String gitRepoUrl, String branch, Path targetRepository) {
 
   }
 
@@ -32,7 +37,7 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public void reset(Path targetRepository, String remoteName, String branchName) {
+  public void reset(Path targetRepository, String branchName, String remoteName) {
 
   }
 
@@ -41,9 +46,4 @@ public class GitContextMock implements GitContext {
 
   }
 
-  @Override
-  public IdeSubLogger level(IdeLogLevel level) {
-
-    return null;
-  }
 }
