@@ -25,7 +25,7 @@ public abstract class FileMerger extends AbstractWorkspaceMerger {
    * @param sourceFile Path to source file.
    * @param targetFile Path to target file.
    */
-  public void copy(Path sourceFile, Path targetFile) {
+  protected void copy(Path sourceFile, Path targetFile) {
 
     ensureParentDirectoryExists(targetFile);
     try {
