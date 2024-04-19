@@ -1,27 +1,23 @@
 package com.devonfw.tools.ide.tool;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Stream;
-
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.TarCompression;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.StringListProperty;
-import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 
 /**
  * {@link Commandlet} for a tool integrated into the IDE.
@@ -31,7 +27,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /** @see #getName() */
   protected final String tool;
 
-  private final Set<String> tags;
+  private final Set<Tag> tags;
 
   /** The commandline arguments to pass to the tool. */
   public final StringListProperty arguments;
@@ -43,16 +39,24 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   *        method.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
-  public ToolCommandlet(IdeContext context, String tool, Set<String> tags) {
+  public ToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context);
     this.tool = tool;
     this.tags = tags;
     addKeyword(tool);
-    this.arguments = add(new StringListProperty("", false, "args"));
+    this.arguments = new StringListProperty("", false, "args");
+    initProperties();
+  }
+
+  /**
+   * Add initial Properties to the tool
+   */
+  protected void initProperties() {
+
+    add(this.arguments);
   }
 
   /**
@@ -73,7 +77,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   @Override
-  public final Set<String> getTags() {
+  public final Set<Tag> getTags() {
 
     return this.tags;
   }
@@ -81,43 +85,52 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   @Override
   public void run() {
 
-    runTool(null, this.arguments.asArray());
+    runTool(ProcessMode.DEFAULT, null, this.arguments.asArray());
   }
 
   /**
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
-   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version
-   *        is installed and use that one. Otherwise the specified version will be installed in the software repository
-   *        without touching and IDE installation and used to run.
-   * @param args the commandline arguments to run the tool.
+   * @param processMode see {@link ProcessMode}
+   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version is installed and use that one. Otherwise,
+   * the specified version will be installed in the software repository without touching and IDE installation and used to run.
+   * @param args the command-line arguments to run the tool.
    */
-  public void runTool(VersionIdentifier toolVersion, String... args) {
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
     Path binaryPath;
-    Path toolPath = Paths.get(getBinaryName());
+    Path toolPath = Path.of(getBinaryName());
     if (toolVersion == null) {
       install(true);
       binaryPath = toolPath;
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath)
-        .addArgs(args);
-    pc.run();
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
+
+    pc.run(processMode);
+  }
+
+  /**
+   * @param toolVersion the explicit {@link VersionIdentifier} of the tool to run.
+   * @param args the command-line arguments to run the tool.
+   * @see ToolCommandlet#runTool(ProcessMode, VersionIdentifier, String...)
+   */
+  public void runTool(VersionIdentifier toolVersion, String... args) {
+
+    runTool(ProcessMode.DEFAULT, toolVersion, args);
   }
 
   /**
    * @return the {@link EnvironmentVariables#getToolEdition(String) tool edition}.
    */
-  protected String getEdition() {
+  public String getEdition() {
 
     return this.context.getVariables().getToolEdition(getName());
   }
 
   /**
-   * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as
-   *         tool.
+   * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as tool.
    * @see #getToolWithEdition(String, String)
    */
   protected final String getToolWithEdition() {
@@ -128,8 +141,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @param tool the tool name.
    * @param edition the edition.
-   * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as
-   *         tool.
+   * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as tool.
    */
   protected final static String getToolWithEdition(String tool, String edition) {
 
@@ -148,10 +160,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * Method to be called for {@link #install(boolean)} from dependent {@link Commandlet}s.
+   * Method to be called for {@link #install(boolean)} from dependent {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
    *
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   *         nothing has changed.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
   public boolean install() {
 
@@ -159,11 +170,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} managed by this {@link Commandlet}.
+   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   *         nothing has changed.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
   public boolean install(boolean silent) {
 
@@ -174,8 +184,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * Installs or updates the managed {@link #getName() tool}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   *         nothing has changed.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
   protected abstract boolean doInstall(boolean silent);
 
@@ -185,93 +194,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   protected void postInstall() {
 
     // nothing to do by default
-  }
-
-  /**
-   * @param path the {@link Path} to start the recursive search from.
-   * @return the deepest subdir {@code s} of the passed path such that all directories between {@code s} and the passed
-   *         path (including {@code s}) are the sole item in their respective directory and {@code s} is not named
-   *         "bin".
-   */
-  private Path getProperInstallationSubDirOf(Path path) {
-
-    try (Stream<Path> stream = Files.list(path)) {
-      Path[] subFiles = stream.toArray(Path[]::new);
-      if (subFiles.length == 0) {
-        throw new CliException("The downloaded package for the tool " + this.tool
-            + " seems to be empty as you can check in the extracted folder " + path);
-      } else if (subFiles.length == 1) {
-        String filename = subFiles[0].getFileName().toString();
-        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS)
-            && !filename.endsWith(".app") && Files.isDirectory(subFiles[0])) {
-          return getProperInstallationSubDirOf(subFiles[0]);
-        }
-      }
-      return path;
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to get sub-files of " + path);
-    }
-  }
-
-  /**
-   * @param file the {@link Path} to the file to extract.
-   * @param targetDir the {@link Path} to the directory where to extract (or copy) the file.
-   */
-  protected void extract(Path file, Path targetDir) {
-
-    FileAccess fileAccess = this.context.getFileAccess();
-    if (isExtract()) {
-      Path tmpDir = this.context.getFileAccess().createTempDir("extract-" + file.getFileName());
-      this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", file, tmpDir, targetDir);
-      String extension = FilenameUtil.getExtension(file.getFileName().toString());
-      this.context.trace("Determined file extension {}", extension);
-      TarCompression tarCompression = TarCompression.of(extension);
-      if (tarCompression != null) {
-        fileAccess.untar(file, tmpDir, tarCompression);
-      } else if ("zip".equals(extension) || "jar".equals(extension)) {
-        fileAccess.unzip(file, tmpDir);
-      } else if ("dmg".equals(extension)) {
-        assert this.context.getSystemInfo().isMac();
-        Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
-        fileAccess.mkdirs(mountPath);
-        ProcessContext pc = this.context.newProcess();
-        pc.executable("hdiutil");
-        pc.addArgs("attach", "-quiet", "-nobrowse", "-mountpoint", mountPath, file);
-        pc.run();
-        Path appPath = fileAccess.findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
-        if (appPath == null) {
-          throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
-        }
-        fileAccess.copy(appPath, tmpDir);
-        pc.addArgs("detach", "-force", mountPath);
-        pc.run();
-        // if [ -e "${target_dir}/Applications" ]
-        // then
-        // rm "${target_dir}/Applications"
-        // fi
-      } else if ("msi".equals(extension)) {
-        this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + tmpDir).run();
-        // msiexec also creates a copy of the MSI
-        Path msiCopy = tmpDir.resolve(file.getFileName());
-        fileAccess.delete(msiCopy);
-      } else if ("pkg".equals(extension)) {
-
-        Path tmpDirPkg = fileAccess.createTempDir("ide-pkg-");
-        ProcessContext pc = this.context.newProcess();
-        // we might also be able to use cpio from commons-compression instead of external xar...
-        pc.executable("xar").addArgs("-C", tmpDirPkg, "-xf", file).run();
-        Path contentPath = fileAccess.findFirst(tmpDirPkg, p -> p.getFileName().toString().equals("Payload"), true);
-        fileAccess.untar(contentPath, tmpDir, TarCompression.GZ);
-        fileAccess.delete(tmpDirPkg);
-      } else {
-        throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + file);
-      }
-      fileAccess.move(getProperInstallationSubDirOf(tmpDir), targetDir);
-      fileAccess.delete(tmpDir);
-    } else {
-      this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", getName(), file);
-      fileAccess.move(file, targetDir);
-    }
   }
 
   /**
@@ -330,6 +252,49 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * @return the installed edition of this tool or {@code null} if not installed.
+   */
+  public String getInstalledEdition() {
+
+    return getInstalledEdition(this.context.getSoftwarePath().resolve(getName()));
+  }
+
+  /**
+   * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent directory of the real path corresponding to
+   * the passed {@link Path path} must be the name of the edition.
+   * @return the installed edition of this tool or {@code null} if not installed.
+   */
+  public String getInstalledEdition(Path toolPath) {
+
+    if (!Files.isDirectory(toolPath)) {
+      this.context.debug("Tool {} not installed in {}", getName(), toolPath);
+      return null;
+    }
+    try {
+      String edition = toolPath.toRealPath().getParent().getFileName().toString();
+      if (!this.context.getUrls().getSortedEditions(getName()).contains(edition)) {
+        edition = getEdition();
+      }
+      return edition;
+    } catch (IOException e) {
+      throw new IllegalStateException("Couldn't determine the edition of " + getName() + " from the directory structure of its software path " + toolPath
+          + ", assuming the name of the parent directory of the real path of the software path to be the edition " + "of the tool.", e);
+    }
+
+  }
+
+  /**
+   * List the available editions of this tool.
+   */
+  public void listEditions() {
+
+    List<String> editions = this.context.getUrls().getSortedEditions(getName());
+    for (String edition : editions) {
+      this.context.info(edition);
+    }
+  }
+
+  /**
    * List the available versions of this tool.
    */
   public void listVersions() {
@@ -365,9 +330,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void setVersion(VersionIdentifier version, boolean hint) {
 
+    String edition = getEdition();
+    this.context.getUrls().getVersionFolder(tool, edition, version); // CliException is thrown if the version is not existing
+
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
-    String edition = getEdition();
     String name = EnvironmentVariables.getToolVersionVariable(this.tool);
     VersionIdentifier resolvedVersion = this.context.getUrls().getVersion(this.tool, edition, version);
     if (version.isPattern()) {
@@ -378,12 +345,55 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.context.info("{}={} has been set in {}", name, version, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning(
-          "The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
-          name, declaringVariables.getSource());
+      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+          declaringVariables.getSource());
     }
     if (hint) {
       this.context.info("To install that version call the following command:");
+      this.context.info("ide install {}", this.tool);
+    }
+  }
+
+  /**
+   * Sets the tool edition in the environment variable configuration file.
+   *
+   * @param edition the edition to set.
+   */
+  public void setEdition(String edition) {
+
+    setEdition(edition, true);
+  }
+
+  /**
+   * Sets the tool edition in the environment variable configuration file.
+   *
+   * @param edition the edition to set
+   * @param hint - {@code true} to print the installation hint, {@code false} otherwise.
+   */
+  public void setEdition(String edition, boolean hint) {
+
+    if ((edition == null) || edition.isBlank()) {
+      throw new IllegalStateException("Edition has to be specified!");
+    }
+
+    if (!Files.exists(this.context.getUrls().getEdition(getName(), edition).getPath())) {
+      this.context.warning("Edition {} seems to be invalid", edition);
+
+    }
+    EnvironmentVariables variables = this.context.getVariables();
+    EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
+    String name = EnvironmentVariables.getToolEditionVariable(this.tool);
+    settingsVariables.set(name, edition, false);
+    settingsVariables.save();
+
+    this.context.info("{}={} has been set in {}", name, edition, settingsVariables.getSource());
+    EnvironmentVariables declaringVariables = variables.findVariable(name);
+    if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
+      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+          declaringVariables.getSource());
+    }
+    if (hint) {
+      this.context.info("To install that edition call the following command:");
       this.context.info("ide install {}", this.tool);
     }
   }

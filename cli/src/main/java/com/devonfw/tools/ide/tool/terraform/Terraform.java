@@ -2,7 +2,9 @@ package com.devonfw.tools.ide.tool.terraform;
 
 import java.util.Set;
 
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
@@ -18,13 +20,13 @@ public class Terraform extends LocalToolCommandlet {
    */
   public Terraform(IdeContext context) {
 
-    super(context, "terraform", Set.of(TAG_CLOUD, TAG_IAC));
+    super(context, "terraform", Set.of(Tag.IAC));
   }
 
   @Override
   protected void postInstall() {
 
     super.postInstall();
-    runTool(null, "-install-autocomplete");
+    runTool(ProcessMode.DEFAULT, null, "-install-autocomplete");
   }
 }

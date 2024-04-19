@@ -2,14 +2,15 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * An internal {@link Commandlet} to set a tool version.
+ * An internal {@link Commandlet} to get the installed version for a tool.
  *
- * @see ToolCommandlet#setVersion(VersionIdentifier, boolean)
+ * @see ToolCommandlet#getInstalledVersion()
  */
 public class VersionGetCommandlet extends Commandlet {
 
@@ -40,7 +41,7 @@ public class VersionGetCommandlet extends Commandlet {
     ToolCommandlet commandlet = this.tool.getValue();
     VersionIdentifier installedVersion = commandlet.getInstalledVersion();
     if (installedVersion == null) {
-      throw new CliException("Tool " + commandlet.getName() + " is not installed!", 4);
+      throw new CliException("Tool " + commandlet.getName() + " is not installed!", ProcessResult.TOOL_NOT_INSTALLED);
     }
     this.context.info(installedVersion.toString());
   }

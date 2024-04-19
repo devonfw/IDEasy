@@ -2,7 +2,9 @@ package com.devonfw.tools.ide.property;
 
 import java.util.function.Consumer;
 
-import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
@@ -48,10 +50,23 @@ public class ToolProperty extends Property<ToolCommandlet> {
   }
 
   @Override
-  public ToolCommandlet parse(String valueAsString) {
+  public ToolCommandlet parse(String valueAsString, IdeContext context) {
 
-    // needs to be initialized before calling this...
-    return CommandletManagerImpl.get().getToolCommandlet(valueAsString);
+    return context.getCommandletManager().getToolCommandlet(valueAsString);
+  }
+
+  @Override
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
+
+    for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
+      if (cmd instanceof ToolCommandlet) {
+        String cmdName = cmd.getName();
+        if (cmdName.startsWith(arg)) {
+          collector.add(cmdName, null, null, cmd);
+        }
+      }
+    }
   }
 
 }

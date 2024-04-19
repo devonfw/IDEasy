@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogger;
 
@@ -25,7 +25,7 @@ public class PluginDescriptorImpl implements PluginDescriptor {
 
   private final boolean active;
 
-  private final Set<String> tags;
+  private final Set<Tag> tags;
 
   /**
    * The constructor.
@@ -36,7 +36,7 @@ public class PluginDescriptorImpl implements PluginDescriptor {
    * @param active the {@link #isActive() active flag}.
    * @param tags the {@link #getTags() tags}.
    */
-  public PluginDescriptorImpl(String id, String name, String url, boolean active, Set<String> tags) {
+  public PluginDescriptorImpl(String id, String name, String url, boolean active, Set<Tag> tags) {
 
     super();
     this.id = id;
@@ -71,7 +71,7 @@ public class PluginDescriptorImpl implements PluginDescriptor {
   }
 
   @Override
-  public Set<String> getTags() {
+  public Set<Tag> getTags() {
 
     return this.tags;
   }
@@ -100,12 +100,7 @@ public class PluginDescriptorImpl implements PluginDescriptor {
     }
     boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile, logger);
     String tagsCsv = getString(properties, "tags", "plugin_tags");
-    Set<String> tags;
-    if ((tagsCsv == null) || tagsCsv.isBlank()) {
-      tags = Collections.emptySet();
-    } else {
-      tags = Set.of(tagsCsv.split(","));
-    }
+    Set<Tag> tags = Tag.parseCsv(tagsCsv);
     return new PluginDescriptorImpl(id, name, url, active, tags);
   }
 

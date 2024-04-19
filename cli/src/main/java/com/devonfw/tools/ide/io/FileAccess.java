@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.io;
 
 import java.nio.file.Path;
+import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 /**
@@ -62,7 +64,7 @@ public interface FileAccess {
    * Creates a symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a Windows
    * junction, it will be replaced. In case of missing privileges, Windows Junctions may be used as fallback, which must
    * point to absolute paths. Therefore, the created link will be absolute instead of relative.
-   * 
+   *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
    * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
@@ -73,7 +75,7 @@ public interface FileAccess {
    * Creates a relative symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a
    * Windows junction, it will be replaced. In case of missing privileges, Windows Junctions may be used as fallback,
    * which must point to absolute paths. Therefore, the created link will be absolute instead of relative.
-   * 
+   *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
    */
@@ -106,17 +108,80 @@ public interface FileAccess {
   void copy(Path source, Path target, FileCopyMode fileOnly);
 
   /**
+   * @param archiveFile the {@link Path} to the file to extract.
+   * @param targetDir the {@link Path} to the directory where to extract the {@code archiveFile} to.
+   */
+  default void extract(Path archiveFile, Path targetDir) {
+
+    extract(archiveFile, targetDir, null);
+  }
+
+  /**
+   * @param archiveFile the {@link Path} to the archive file to extract.
+   * @param targetDir the {@link Path} to the directory where to extract the {@code archiveFile}.
+   * @param postExtractHook the {@link Consumer} to be called after the extraction on the final folder before it is
+   *        moved to {@code targetDir}.
+   */
+  default void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook) {
+
+    extract(archiveFile, targetDir, postExtractHook, true);
+  }
+
+  /**
+   * @param archiveFile the {@link Path} to the archive file to extract.
+   * @param targetDir the {@link Path} to the directory where to extract the {@code archiveFile}.
+   * @param postExtractHook the {@link Consumer} to be called after the extraction on the final folder before it is
+   *        moved to {@code targetDir}.
+   * @param extract {@code true} if the {@code archiveFile} should be extracted (default), {@code false} otherwise.
+   */
+  void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook, boolean extract);
+
+  /**
+   * Extracts a ZIP file what is the common archive format on Windows. Initially invented by PKZIP for MS-DOS and also
+   * famous from WinZIP software for Windows.
+   *
    * @param file the ZIP file to extract.
    * @param targetDir the {@link Path} with the directory to unzip to.
    */
-  void unzip(Path file, Path targetDir);
+  void extractZip(Path file, Path targetDir);
 
   /**
    * @param file the ZIP file to extract.
    * @param targetDir the {@link Path} with the directory to unzip to.
    * @param compression the {@link TarCompression} to use.
    */
-  void untar(Path file, Path targetDir, TarCompression compression);
+  void extractTar(Path file, Path targetDir, TarCompression compression);
+
+  /**
+   * Extracts an Apple DMG (Disk Image) file that is similar to an ISO image. DMG files are commonly used for software
+   * releases on MacOS. Double-clicking such files on MacOS mounts them and show the application together with a
+   * symbolic link to the central applications folder and some help instructions. The user then copies the application
+   * to the applications folder via drag and drop in order to perform the installation.
+   *
+   * @param file the DMG file to extract.
+   * @param targetDir the target directory where to extract the contents to.
+   */
+  void extractDmg(Path file, Path targetDir);
+
+  /**
+   * Extracts an MSI (Microsoft Installer) file. MSI files are commonly used for software releases on Windows that allow
+   * an installation wizard and easy later uninstallation.
+   *
+   * @param file the MSI file to extract.
+   * @param targetDir the target directory where to extract the contents to.
+   */
+  void extractMsi(Path file, Path targetDir);
+
+  /**
+   * Extracts an Apple PKG (Package) file. PKG files are used instead of {@link #extractDmg(Path, Path) DMG files} if
+   * additional changes have to be performed like drivers to be installed. Similar to what
+   * {@link #extractMsi(Path, Path) MSI} is on Windows. PKG files are internally a xar based archive with a specific
+   * structure.
+   *
+   * @param file the PKG file to extract.
+   * @param targetDir the target directory where to extract the contents to.
+   */
+  void extractPkg(Path file, Path targetDir);
 
   /**
    * @param path the {@link Path} to convert.
@@ -149,4 +214,28 @@ public interface FileAccess {
    */
   Path findFirst(Path dir, Predicate<Path> filter, boolean recursive);
 
+  /**
+   * @param dir the {@link Path} to the directory where to list the children.
+   * @param filter the {@link Predicate} used to {@link Predicate#test(Object) decide} which children to include (if
+   *        {@code true} is returned).
+   * @return all children of the given {@link Path} that match the given {@link Predicate}. Will be the empty list of
+   *         the given {@link Path} is not an existing directory.
+   */
+  List<Path> listChildren(Path dir, Predicate<Path> filter);
+
+  /**
+   * Finds the existing file with the specified name in the given list of directories.
+   *
+   * @param fileName The name of the file to find.
+   * @param searchDirs The list of directories to search for the file.
+   * @return The {@code Path} of the existing file, or {@code null} if the file is not found.
+   */
+  Path findExistingFile(String fileName, List<Path> searchDirs);
+
+  /**
+   * Checks if the given directory is empty.
+   * @param dir The {@link Path} object representing the directory to check.
+   * @return {@code true} if the directory is empty, {@code false} otherwise.
+   */
+  boolean isEmptyDir(Path dir);
 }

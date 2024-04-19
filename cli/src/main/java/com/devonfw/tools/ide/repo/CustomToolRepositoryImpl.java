@@ -164,7 +164,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
           String url = getString(jsonToolObject, "url", defaultUrl);
           boolean osAgnostic = getBoolean(jsonToolObject, "os-agnostic", Boolean.FALSE);
           boolean archAgnostic = getBoolean(jsonToolObject, "arch-agnostic", Boolean.TRUE);
-          if (defaultUrl.isEmpty()) {
+          if (url.isEmpty()) {
             throw new IllegalStateException("Missing 'url' property for tool '" + name + "'!");
           }
           // TODO
@@ -189,7 +189,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
       }
       return defaultValue.booleanValue();
     }
-    ValueType valueType = json.getValueType();
+    ValueType valueType = value.getValueType();
     if (valueType == ValueType.TRUE) {
       return true;
     } else if (valueType == ValueType.FALSE) {
@@ -213,8 +213,8 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
       }
       return defaultValue;
     }
-    require(json, ValueType.STRING);
-    return ((JsonString) json).getString();
+    require(value, ValueType.STRING);
+    return ((JsonString) value).getString();
   }
 
   /**

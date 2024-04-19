@@ -12,8 +12,10 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
@@ -38,10 +40,20 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
    *        method.
    */
-  public IdeToolCommandlet(IdeContext context, String tool, Set<String> tags) {
+  public IdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
-    assert (tags.contains(TAG_IDE));
+    assert (hasIde(tags));
+  }
+
+  private boolean hasIde(Set<Tag> tags) {
+
+    for (Tag tag : tags) {
+      if (tag.isAncestorOf(Tag.IDE)) {
+        return true;
+      }
+    }
+    throw new IllegalStateException("Tags of IdeTool hat to be connected with tag IDE: " + tags);
   }
 
   private Map<String, PluginDescriptor> getPluginsMap() {
@@ -196,7 +208,7 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
    */
   protected void runIde(String... args) {
 
-    runTool(null, args);
+    runTool(ProcessMode.DEFAULT, null, args);
   }
 
   /**
