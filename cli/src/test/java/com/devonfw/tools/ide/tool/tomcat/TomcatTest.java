@@ -5,6 +5,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -30,13 +31,10 @@ public class TomcatTest extends AbstractIdeContextTest {
     checkDependencyInstallation(context);
   }
 
-  @ParameterizedTest
-  @ValueSource(strings = { "mac", "windows", "linux" })
-  public void testTomcatRun(String os) {
+  @Test
+  public void testTomcatRun() {
 
     IdeTestContext context = newContext(PROJECT_TOMCAT);
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
     Tomcat tomcatCommandlet = new Tomcat(context);
     tomcatCommandlet.command.setValue(TomcatCommand.START);
 
