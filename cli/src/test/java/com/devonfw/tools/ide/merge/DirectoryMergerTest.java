@@ -1,22 +1,21 @@
 package com.devonfw.tools.ide.merge;
 
-import java.nio.file.Path;
-import java.util.Map.Entry;
-import java.util.Properties;
-
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 /**
  * Test of {@link DirectoryMerger}.
  */
 public class DirectoryMergerTest extends AbstractIdeContextTest {
 
-  private static final String IDE_HOME = TEST_PROJECTS.resolve(PROJECT_BASIC).resolve("project").toAbsolutePath()
-      .toString().replace('\\', '/');
+  private static final String IDE_HOME = TEST_PROJECTS.resolve(PROJECT_BASIC).resolve("project").toAbsolutePath().toString().replace('\\', '/');
 
   private static final Prop JAVA_VERSION = new Prop("java.version", "1.11");
 
@@ -54,6 +53,9 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     Path templates = Path.of("src/test/resources/templates");
     Path setup = templates.resolve(IdeContext.FOLDER_SETUP);
     Path update = templates.resolve(IdeContext.FOLDER_UPDATE);
+    Path namePath = workspaceDir.resolve(".name");
+    // to check overwrite for Text files
+    Files.createFile(namePath);
     merger.merge(setup, update, context.getVariables(), workspaceDir);
 
     // assert
@@ -114,6 +116,8 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     // assert
     mainPrefs = PropertiesMerger.load(mainPrefsFile);
     assertThat(mainPrefs).containsOnly(JAVA_VERSION, JAVA_HOME, THEME_HACKED, UI_HACKED, EDITOR, INDENTATION_HACKED);
+
+    assertThat(namePath).hasContent("project - main\ntest");
   }
 
   private static class Prop implements Entry<String, String> {
