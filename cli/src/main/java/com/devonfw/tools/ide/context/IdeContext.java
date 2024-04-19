@@ -471,4 +471,12 @@ public interface IdeContext extends IdeLogger {
    * @param ideHome The path to the IDE home directory.
    */
   void setCwd(Path userDir, String workspace, Path ideHome);
+
+  /**
+   * Finds the path to the Bash executable.
+   *
+   * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
+   */
+  String findBash();
+
 }
