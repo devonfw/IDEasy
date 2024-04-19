@@ -1,15 +1,22 @@
 package com.devonfw.tools.ide.tool.mvn;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.PluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.Set;
 
 /**
  * {@link ToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
@@ -84,7 +91,7 @@ public class Mvn extends PluginBasedCommandlet {
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
 
     return result.getOut().toString();
-    
+
   }
 
   private void mvnSettingsSecurity(Path settingsSecurityFile) {
