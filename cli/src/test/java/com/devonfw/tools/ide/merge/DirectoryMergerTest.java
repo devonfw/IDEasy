@@ -117,7 +117,7 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     mainPrefs = PropertiesMerger.load(mainPrefsFile);
     assertThat(mainPrefs).containsOnly(JAVA_VERSION, JAVA_HOME, THEME_HACKED, UI_HACKED, EDITOR, INDENTATION_HACKED);
 
-    assertThat(namePath).hasContent("project" + " - main\ntest");
+    assertThat(namePath).hasContent("project - main\ntest");
   }
 
   private static class Prop implements Entry<String, String> {
