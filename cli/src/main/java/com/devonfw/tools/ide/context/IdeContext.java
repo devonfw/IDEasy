@@ -411,9 +411,9 @@ public interface IdeContext extends IdeLogger {
   }
 
   /**
-   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters.
-   * This method is central to changing the IDE's notion of where it operates, affecting where configurations, workspaces,
-   * settings, and other resources are located or loaded from.
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters. This method is central to changing
+   * the IDE's notion of where it operates, affecting where configurations, workspaces, settings, and other resources are located or loaded from.
+   *
    * @return the current {@link Step} of processing.
    */
   Step getCurrentStep();
@@ -446,9 +446,8 @@ public interface IdeContext extends IdeLogger {
   Step newStep(boolean silent, String name, Object... parameters);
 
   /**
-   * Updates the current working directory (CWD) and configures the environment paths according to the specified
-   * parameters. This method is central to changing the IDE's notion of where it operates, affecting where
-   * configurations, workspaces, settings, and other resources are located or loaded from.
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters. This method is central to changing
+   * the IDE's notion of where it operates, affecting where configurations, workspaces, settings, and other resources are located or loaded from.
    *
    * @param ideHome The path to the IDE home directory.
    */
@@ -458,9 +457,8 @@ public interface IdeContext extends IdeLogger {
   }
 
   /**
-   * Updates the current working directory (CWD) and configures the environment paths according to the specified
-   * parameters. This method is central to changing the IDE's notion of where it operates, affecting where
-   * configurations, workspaces, settings, and other resources are located or loaded from.
+   * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters. This method is central to changing
+   * the IDE's notion of where it operates, affecting where configurations, workspaces, settings, and other resources are located or loaded from.
    *
    * @param userDir The path to set as the current working directory.
    * @param workspace The name of the workspace within the IDE's environment.
