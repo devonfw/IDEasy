@@ -26,14 +26,16 @@ public class TextMerger extends FileMerger {
   @Override
   public void merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
 
-    if (Files.exists(update)) {
-      copy(update, workspace);
-    } else if (Files.exists(setup) && !Files.exists(workspace)) {
-      copy(setup, workspace);
+    Path template = update;
+    if (!Files.exists(template)) {
+      template = setup;
+      assert Files.exists(template);
+      if (Files.exists(workspace)) {
+        return; // setup is only applied for initial setup if workspace file does not yet exist
+      }
     }
-
     StringBuilder inputBuffer = new StringBuilder();
-    try (BufferedReader reader = Files.newBufferedReader(update)) {
+    try (BufferedReader reader = Files.newBufferedReader(template)) {
       String line;
       String resolvedValue;
       while ((line = reader.readLine()) != null) {

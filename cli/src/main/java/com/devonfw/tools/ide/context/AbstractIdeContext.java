@@ -395,6 +395,15 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public String getProjectName() {
+
+    if (this.ideHome != null) {
+      return this.ideHome.getFileName().toString();
+    }
+    return "";
+  }
+
+  @Override
   public Path getIdeRoot() {
 
     return this.ideRoot;
