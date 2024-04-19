@@ -15,8 +15,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Base64;
+import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * {@link ToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
@@ -55,13 +59,22 @@ public class Mvn extends PluginBasedCommandlet {
     Path settingsTemplate = this.context.getSettingsPath().resolve("devon/conf/.m2/settings.xml");
     try {
       String content = Files.readString(settingsTemplate);
+
+      List<String> variables = findVariables(content);
+
+      // Prompt the user for input for each variable and replace them in the content
+      for (String variable : variables) {
+        String secret = getEncryptedPassword(variable);
+        content = content.replace("$[" + variable + "]", secret);
+      }
       this.context.info(content);
+      Files.writeString(mvnSettings, content);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
 
-    String input = this.context.askForInput("please input", "INPUT");
-    this.context.info(input);
+    //    String input = this.context.askForInput("please input", "INPUT");
+    //    this.context.info(input);
 
     this.context.warning(getEncryptedPassword("ciao"));
 
@@ -92,6 +105,17 @@ public class Mvn extends PluginBasedCommandlet {
 
     return result.getOut().toString();
 
+  }
+
+  private List<String> findVariables(String content) {
+
+    List<String> variables = new ArrayList<>();
+    Pattern pattern = Pattern.compile("\\$\\[(\\w+)]");
+    Matcher matcher = pattern.matcher(content);
+    while (matcher.find()) {
+      variables.add(matcher.group(1));
+    }
+    return variables;
   }
 
   private void mvnSettingsSecurity(Path settingsSecurityFile) {
