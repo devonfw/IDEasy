@@ -1,5 +1,18 @@
 package com.devonfw.tools.ide.context;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+
+import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.cli.CliException;
@@ -31,19 +44,9 @@ import com.devonfw.tools.ide.repo.CustomToolRepository;
 import com.devonfw.tools.ide.repo.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
+import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
-
-import java.io.IOException;
-import java.net.InetAddress;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * Abstract base implementation of {@link IdeContext}.
@@ -54,45 +57,45 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final Map<IdeLogLevel, IdeSubLogger> loggers;
 
-  private final Path ideHome;
+  private Path ideHome;
 
   private final Path ideRoot;
 
-  private final Path confPath;
+  private Path confPath;
 
-  private final Path settingsPath;
+  private Path settingsPath;
 
-  private final Path softwarePath;
+  private Path softwarePath;
 
-  private final Path softwareRepositoryPath;
+  private Path softwareRepositoryPath;
 
-  private final Path pluginsPath;
+  private Path pluginsPath;
 
-  private final Path workspacePath;
+  private Path workspacePath;
 
-  private final String workspaceName;
+  private String workspaceName;
 
-  private final Path urlsPath;
+  private Path urlsPath;
 
-  private final Path tempPath;
+  private Path tempPath;
 
-  private final Path tempDownloadPath;
+  private Path tempDownloadPath;
 
-  private final Path cwd;
+  private Path cwd;
 
-  private final Path downloadPath;
+  private Path downloadPath;
 
-  private final Path toolRepository;
+  private Path toolRepository;
 
-  private final Path userHome;
+  private Path userHome;
 
-  private final Path userHomeIde;
+  private Path userHomeIde;
 
-  private final SystemPath path;
+  private SystemPath path;
 
   private final SystemInfo systemInfo;
 
-  private final EnvironmentVariables variables;
+  private EnvironmentVariables variables;
 
   private final FileAccess fileAccess;
 
@@ -100,9 +103,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final ToolRepository defaultToolRepository;
 
-  private final CustomToolRepository customToolRepository;
+  private CustomToolRepository customToolRepository;
 
-  private final DirectoryMerger workspaceMerger;
+  private DirectoryMerger workspaceMerger;
 
   private final Function<IdeLogLevel, IdeSubLogger> loggerFactory;
 
@@ -120,6 +123,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path defaultExecutionDirectory;
 
+  private StepImpl currentStep;
+
   /**
    * The constructor.
    *
@@ -127,7 +132,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
-   * {@link DefaultToolRepository} will be used.
+   *        {@link DefaultToolRepository} will be used.
    */
   public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
       ToolRepository toolRepository) {
@@ -141,12 +146,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.fileAccess = new FileAccessImpl(this);
     String workspace = WORKSPACE_MAIN;
     if (userDir == null) {
-      this.cwd = Path.of(System.getProperty("user.dir"));
+      userDir = Path.of(System.getProperty("user.dir"));
     } else {
-      this.cwd = userDir.toAbsolutePath();
+      userDir = userDir.toAbsolutePath();
     }
     // detect IDE_HOME and WORKSPACE
-    Path currentDir = this.cwd;
+    Path currentDir = userDir;
     String name1 = "";
     String name2 = "";
     while (currentDir != null) {
@@ -165,44 +170,32 @@ public abstract class AbstractIdeContext implements IdeContext {
       currentDir = getParentPath(currentDir);
     }
     // detection completed, initializing variables
-    this.ideHome = currentDir;
-    this.workspaceName = workspace;
-    if (this.ideHome == null) {
+    setCwd(userDir, workspace, currentDir);
+    Path ideRootPath = null;
+    if (currentDir == null) {
       info(getMessageIdeHomeNotFound());
-      this.workspacePath = null;
-      this.ideRoot = null;
-      this.confPath = null;
-      this.settingsPath = null;
-      this.softwarePath = null;
-      this.pluginsPath = null;
     } else {
       debug(getMessageIdeHomeFound());
-      this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
-      Path ideRootPath = this.ideHome.getParent();
-      String root = null;
-      if (!isTest()) {
-        root = System.getenv("IDE_ROOT");
-      }
+      ideRootPath = this.ideHome.getParent();
+    }
+
+    if (!isTest()) {
+      String root = System.getenv("IDE_ROOT");
       if (root != null) {
         Path rootPath = Path.of(root);
-        if (Files.isDirectory(rootPath)) {
-          if (!ideRootPath.equals(rootPath)) {
-            warning(
-                "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
-                root, this.ideHome.getFileName(), ideRootPath);
-          }
+        if (ideRootPath == null) {
           ideRootPath = rootPath;
-        } else {
-          warning("Variable IDE_ROOT is not set to a valid directory '{}'." + root);
-          ideRootPath = null;
+        } else if (!ideRootPath.equals(rootPath)) {
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
+              rootPath, this.ideHome.getFileName(), ideRootPath);
         }
       }
-      this.ideRoot = ideRootPath;
-      this.confPath = this.ideHome.resolve(FOLDER_CONF);
-      this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
-      this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
-      this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
     }
+    if (ideRootPath == null || !Files.isDirectory(ideRootPath)) {
+      error("IDE_ROOT is not set or not a valid directory.");
+    }
+    this.ideRoot = ideRootPath;
+
     if (this.ideRoot == null) {
       this.toolRepository = null;
       this.urlsPath = null;
@@ -222,6 +215,33 @@ public abstract class AbstractIdeContext implements IdeContext {
         this.fileAccess.mkdirs(this.tempDownloadPath);
       }
     }
+
+    if (toolRepository == null) {
+      this.defaultToolRepository = new DefaultToolRepository(this);
+    } else {
+      this.defaultToolRepository = toolRepository;
+    }
+  }
+
+  @Override
+  public void setCwd(Path userDir, String workspace, Path ideHome) {
+
+    this.cwd = userDir;
+    this.workspaceName = workspace;
+    this.ideHome = ideHome;
+    if (ideHome == null) {
+      this.workspacePath = null;
+      this.confPath = null;
+      this.settingsPath = null;
+      this.softwarePath = null;
+      this.pluginsPath = null;
+    } else {
+      this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
+      this.confPath = this.ideHome.resolve(FOLDER_CONF);
+      this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
+      this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
+      this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
+    }
     if (isTest()) {
       // only for testing...
       if (this.ideHome == null) {
@@ -234,15 +254,9 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     this.userHomeIde = this.userHome.resolve(".ide");
     this.downloadPath = this.userHome.resolve("Downloads/ide");
+
     this.variables = createVariables();
     this.path = computeSystemPath();
-
-    if (toolRepository == null) {
-      this.defaultToolRepository = new DefaultToolRepository(this);
-    } else {
-      this.defaultToolRepository = toolRepository;
-    }
-
     this.customToolRepository = CustomToolRepositoryImpl.of(this);
     this.workspaceMerger = new DirectoryMerger(this);
   }
@@ -259,7 +273,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable
-   * initialization.
+   *         initialization.
    */
   public String getMessageIdeHome() {
 
@@ -497,7 +511,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        this.getGitContext().pullOrFetchAndResetIfNeeded(IDE_URLS_GIT, "master", this.urlsPath, "origin");
+        getGitContext().pullOrCloneAndResetIfNeeded(IDE_URLS_GIT, this.urlsPath, null);
       }
       this.urlMetadata = new UrlMetadata(this);
     }
@@ -597,7 +611,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @return the {@link #defaultExecutionDirectory} the directory in which a command process is executed.
+   * @return the {@link #getDefaultExecutionDirectory() default execution directory} in which a command process is
+   *         executed.
    */
   public Path getDefaultExecutionDirectory() {
 
@@ -645,6 +660,23 @@ public abstract class AbstractIdeContext implements IdeContext {
     IdeSubLogger logger = this.loggers.get(level);
     Objects.requireNonNull(logger);
     return logger;
+  }
+
+  @Override
+  public String askForInput(String message, String defaultValue) {
+
+    if (!message.isBlank()) {
+      info(message);
+    }
+    if (isBatchMode()) {
+      if (isForceMode()) {
+        return defaultValue;
+      } else {
+        throw new CliAbortException();
+      }
+    }
+    String input = readLine().trim();
+    return input.isEmpty() ? defaultValue : input;
   }
 
   @SuppressWarnings("unchecked")
@@ -716,9 +748,33 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
   }
 
+  @Override
+  public Step getCurrentStep() {
+
+    return this.currentStep;
+  }
+
+  @Override
+  public StepImpl newStep(boolean silent, String name, Object... parameters) {
+
+    this.currentStep = new StepImpl(this, this.currentStep, name, silent, parameters);
+    return this.currentStep;
+  }
+
   /**
-   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its
-   * {@link Commandlet#getProperties() properties} and will execute it.
+   * Internal method to end the running {@link Step}.
+   *
+   * @param step the current {@link Step} to end.
+   */
+  public void endStep(StepImpl step) {
+
+    assert (step == this.currentStep);
+    this.currentStep = this.currentStep.getParent();
+  }
+
+  /**
+   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its {@link Commandlet#getProperties()
+   * properties} and will execute it.
    *
    * @param arguments the {@link CliArgument}.
    * @return the return code of the execution.
@@ -726,35 +782,52 @@ public abstract class AbstractIdeContext implements IdeContext {
   public int run(CliArguments arguments) {
 
     CliArgument current = arguments.current();
-    if (!current.isEnd()) {
-      String keyword = current.get();
-      Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
-      boolean matches;
-      if (firstCandidate != null) {
-        matches = applyAndRun(arguments.copy(), firstCandidate);
-        if (matches) {
-          return ProcessResult.SUCCESS;
-        }
-      }
-      for (Commandlet cmd : this.commandletManager.getCommandlets()) {
-        if (cmd != firstCandidate) {
-          matches = applyAndRun(arguments.copy(), cmd);
+    assert (this.currentStep == null);
+    boolean supressStepSuccess = false;
+    StepImpl step = newStep(true, "ide", (Object[]) current.asArray());
+    try {
+      if (!current.isEnd()) {
+        String keyword = current.get();
+        Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
+        boolean matches;
+        if (firstCandidate != null) {
+          matches = applyAndRun(arguments.copy(), firstCandidate);
           if (matches) {
+            supressStepSuccess = firstCandidate.isSuppressStepSuccess();
+            step.success();
             return ProcessResult.SUCCESS;
           }
         }
+        for (Commandlet cmd : this.commandletManager.getCommandlets()) {
+          if (cmd != firstCandidate) {
+            matches = applyAndRun(arguments.copy(), cmd);
+            if (matches) {
+              supressStepSuccess = cmd.isSuppressStepSuccess();
+              step.success();
+              return ProcessResult.SUCCESS;
+            }
+          }
+        }
+        step.error("Invalid arguments: {}", current.getArgs());
       }
-      error("Invalid arguments: {}", current.getArgs());
+      this.commandletManager.getCommandlet(HelpCommandlet.class).run();
+      return 1;
+    } catch (Throwable t) {
+      step.error(t, true);
+      throw t;
+    } finally {
+      step.end();
+      assert (this.currentStep == null);
+      step.logSummary(supressStepSuccess);
     }
-    this.commandletManager.getCommandlet(HelpCommandlet.class).run();
-    return 1;
   }
 
   /**
    * @param cmd the potential {@link Commandlet} to
-   * {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run() run}.
+   *        {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run()
+   *        run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   * {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   *         {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -815,12 +888,12 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are
-   * matched. Consider passing a {@link CliArguments#copy() copy} as needed.
+   *        matched. Consider passing a {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have
-   * been applied (set in the {@link Commandlet} and {@link Commandlet#validate() validated}), {@code false} otherwise
-   * (the {@link Commandlet} did not match and we have to try a different candidate).
+   *         been applied (set in the {@link Commandlet} and {@link Commandlet#validate() validated}), {@code false}
+   *         otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   public boolean apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
