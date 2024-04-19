@@ -38,7 +38,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   /**
    * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   *        project in {@link #TEST_PROJECTS}. E.g. "basic".
+   * project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected IdeTestContext newContext(String testProject) {
@@ -48,7 +48,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   /**
    * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   *        project in {@link #TEST_PROJECTS}. E.g. "basic".
+   * project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @return the {@link IdeTestContext} pointing to that project.
    */
@@ -59,7 +59,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
   /**
    * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   *        project in {@link #TEST_PROJECTS}. E.g. "basic".
+   * project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
    *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
@@ -136,7 +136,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param level the expected {@link IdeLogLevel}.
    * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
    * @param contains - {@code true} if the given {@code message} may only be a sub-string of the log-message to assert,
-   *        {@code false} otherwise (the entire log message including potential parameters being filled in is asserted).
+   * {@code false} otherwise (the entire log message including potential parameters being filled in is asserted).
    */
   protected static void assertLogMessage(IdeTestContext context, IdeLogLevel level, String message, boolean contains) {
 
@@ -152,6 +152,43 @@ public abstract class AbstractIdeContextTest extends Assertions {
       assertion.filteredOn(condition).isNotEmpty();
     } else {
       assertion.contains(message);
+    }
+  }
+
+  /**
+   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
+   * @param level the expected {@link IdeLogLevel}.
+   * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that should not have been
+   * logged.
+   */
+  protected static void assertNoLogMessage(IdeTestContext context, IdeLogLevel level, String message) {
+
+    assertNoLogMessage(context, level, message, false);
+  }
+
+  /**
+   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
+   * @param level the expected {@link IdeLogLevel}.
+   * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that should not have been
+   * logged.
+   * @param contains - {@code true} if the given {@code message} may only be a sub-string of the log-message to assert,
+   * {@code false} otherwise (the entire log message including potential parameters being filled in is asserted).
+   */
+  protected static void assertNoLogMessage(IdeTestContext context, IdeLogLevel level, String message,
+      boolean contains) {
+
+    IdeTestLogger logger = context.level(level);
+    ListAssert<String> assertion = assertThat(logger.getMessages()).as(level.name() + "-Log messages");
+    if (contains) {
+      Condition<String> condition = new Condition<>() {
+        public boolean matches(String e) {
+
+          return e.contains(message);
+        }
+      };
+      assertion.filteredOn(condition).isEmpty();
+    } else {
+      assertion.doesNotContain(message);
     }
   }
 

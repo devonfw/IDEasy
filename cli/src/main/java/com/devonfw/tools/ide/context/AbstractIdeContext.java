@@ -774,8 +774,15 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public void endStep(StepImpl step) {
 
-    assert (step == this.currentStep);
-    this.currentStep = this.currentStep.getParent();
+    if (step == this.currentStep) {
+      this.currentStep = this.currentStep.getParent();
+    } else {
+      String currentStepName = "null";
+      if (this.currentStep != null) {
+        currentStepName = this.currentStep.getName();
+      }
+      warning("endStep called with wrong step '{}' but expected '{}'", step.getName(), currentStepName);
+    }
   }
 
   /**
