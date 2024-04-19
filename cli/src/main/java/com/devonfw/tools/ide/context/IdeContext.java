@@ -173,6 +173,14 @@ public interface IdeContext extends IdeLogger {
   String askForInput(String message, String defaultValue);
 
   /**
+   * Asks the user for a single string input.
+   *
+   * @param message The information message to display.
+   * @return The string input from the user, or the default value if no input is provided.
+   */
+  String askForInput(String message);
+
+  /**
    * @param question the question to ask.
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
    */

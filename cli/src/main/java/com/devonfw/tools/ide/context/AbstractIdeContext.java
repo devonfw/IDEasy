@@ -679,6 +679,18 @@ public abstract class AbstractIdeContext implements IdeContext {
     return input.isEmpty() ? defaultValue : input;
   }
 
+  @Override
+  public String askForInput(String message) {
+
+    String input;
+    do {
+      info(message);
+      input = readLine().trim();
+    } while (input.isEmpty());
+
+    return input;
+  }
+
   @SuppressWarnings("unchecked")
   @Override
   public <O> O question(String question, O... options) {
