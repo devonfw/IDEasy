@@ -27,6 +27,8 @@ import java.util.regex.Pattern;
  */
 public class Mvn extends PluginBasedCommandlet {
 
+  private final String IDE_SETTINGS_GIT_URL = "https://github.com/devonfw/ide-settings.git";
+
   /**
    * The constructor.
    *
@@ -45,53 +47,48 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   @Override
+  public void postInstall() {
+
+  }
+
+  @Override
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    Path settingsSecurityFile = this.context.getIdeHome().resolve("conf/.m2/test.xml");
+    Path settingsSecurityFile = this.context.getIdeHome().resolve("conf/.m2/settings-security_test.xml");
     if (!Files.exists(settingsSecurityFile)) {
-      mvnSettingsSecurity(settingsSecurityFile);
+      setSettingsSecurityFile(settingsSecurityFile);
     }
 
-    this.context.warning(getSettingsGitUrl());
+    Path settingsFile = this.context.getConfPath().resolve(".m2/settings_test.xml");
+    if (!Files.exists(settingsFile)) {
+      setSettingsFile(settingsFile);
+    }
+  }
 
-    Path mvnSettings = this.context.getConfPath().resolve(".m2/settings_test.xml");
+  private void setSettingsSecurityFile(Path settingsSecurityFile) {
 
-    Path settingsTemplate = this.context.getSettingsPath().resolve("devon/conf/.m2/settings.xml");
+    SecureRandom secureRandom = new SecureRandom();
+    byte[] randomBytes = new byte[20];
+
+    secureRandom.nextBytes(randomBytes);
+    String base64String = Base64.getEncoder().encodeToString(randomBytes);
+
+    ProcessContext pc = this.context.newProcess().executable("mvn");
+    pc.addArgs("--encrypt-master-password", base64String);
+
+    ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
+
+    String encryptedMasterPassword = result.getOut().toString();
+
+    String settingsSecurityXml =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<settingsSecurity>\n" + "  <master>" + encryptedMasterPassword + "</master>\n"
+            + "</settingsSecurity>";
     try {
-      String content = Files.readString(settingsTemplate);
-
-      List<String> variables = findVariables(content);
-
-      // Prompt the user for input for each variable and replace them in the content
-      for (String variable : variables) {
-        String secret = getEncryptedPassword(variable);
-        content = content.replace("$[" + variable + "]", secret);
-      }
-      this.context.info(content);
-      Files.writeString(mvnSettings, content);
+      Files.writeString(settingsSecurityFile, settingsSecurityXml);
+      this.context.success("Successfully created maven security settings file at " + settingsSecurityFile);
     } catch (IOException e) {
-      throw new RuntimeException(e);
+      throw new IllegalStateException("Failed to create file " + settingsSecurityFile, e);
     }
-
-    //    String input = this.context.askForInput("please input", "INPUT");
-    //    this.context.info(input);
-
-    this.context.warning(getEncryptedPassword("ciao"));
-
-    this.context.warning(mvnSettings.toString());
-
-    //    ProcessContext pc = this.context.newProcess();
-    //
-    //    pc.executable("mvn");
-    //
-    //    pc.addArgs("--help");
-    //
-    //    ProcessResult processResult = pc.run(ProcessMode.DEFAULT_CAPTURE);
-    //
-    //    //String line = processResult.getOut().get(0);
-    //
-    //    this.context.warning(processResult.getOut().toString());
-
   }
 
   private String getEncryptedPassword(String variable) {
@@ -104,7 +101,6 @@ public class Mvn extends PluginBasedCommandlet {
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
 
     return result.getOut().toString();
-
   }
 
   private List<String> findVariables(String content) {
@@ -118,34 +114,6 @@ public class Mvn extends PluginBasedCommandlet {
     return variables;
   }
 
-  private void mvnSettingsSecurity(Path settingsSecurityFile) {
-
-    SecureRandom secureRandom = new SecureRandom();
-
-    byte[] randomBytes = new byte[20];
-    secureRandom.nextBytes(randomBytes);
-
-    String base64String = Base64.getEncoder().encodeToString(randomBytes);
-
-    ProcessContext pc = this.context.newProcess().executable("mvn");
-    pc.addArgs("--encrypt-master-password", base64String);
-
-    ProcessResult processResult = pc.run(ProcessMode.DEFAULT_CAPTURE);
-
-    String encryptedMasterPassword = processResult.getOut().toString();
-
-    String settingsSecurityXml =
-        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<settingsSecurity>\n" + "  <master>" + encryptedMasterPassword + "</master>\n"
-            + "</settingsSecurity>";
-    try {
-      Files.writeString(settingsSecurityFile, settingsSecurityXml);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-
-    System.out.println(base64String);
-  }
-
   private String getSettingsGitUrl() {
 
     ProcessContext pc = this.context.newProcess().executable("git");
@@ -154,12 +122,31 @@ public class Mvn extends PluginBasedCommandlet {
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("(fetch)")) {
-          // Extract the URL from the line
-          return line.split("\\s+")[1];
+          return line.split("\\s+")[1]; // Extract the URL from the line
         }
       }
     }
-    return null;
+    throw new IllegalStateException("Failed to retrieve settings git URL.");
+  }
+
+  private void setSettingsFile(Path settingsFile) {
+
+    Path settingsTemplate = this.context.getSettingsPath().resolve("devon/conf/.m2/settings.xml");
+    try {
+      String content = Files.readString(settingsTemplate);
+
+      if (!getSettingsGitUrl().equals(IDE_SETTINGS_GIT_URL)) {
+        List<String> variables = findVariables(content);
+        for (String variable : variables) {
+          String secret = getEncryptedPassword(variable);
+          content = content.replace("$[" + variable + "]", secret);
+        }
+      }
+      Files.writeString(settingsFile, content);
+      this.context.success("Successfully created maven settings file at " + settingsFile);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to write to file " + settingsFile, e);
+    }
   }
 
   @Override
