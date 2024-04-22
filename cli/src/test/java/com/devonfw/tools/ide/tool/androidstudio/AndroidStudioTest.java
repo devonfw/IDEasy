@@ -20,7 +20,6 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
     context.setSystemInfo(systemInfo);
-    IdeTestContext context = newContext(PROJECT_ANDROID_STUDIO);
     AndroidStudio commandlet = new AndroidStudio(context);
 
     // act
@@ -30,16 +29,35 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
     checkInstallation(context);
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  public void testAndroidStudioRun(String os) {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    context.setSystemInfo(systemInfo);
+    AndroidStudio commandlet = new AndroidStudio(context);
+
+    // act
+    commandlet.run();
+
+    // assert
+    if (context.getSystemInfo().isMac()) {
+      assertLogMessage(context, IdeLogLevel.INFO, "android-studio mac open -na " + context.getWorkspacePath());
+    }
+    if (context.getSystemInfo().isLinux()) {
+      assertLogMessage(context, IdeLogLevel.INFO, "android-studio linux open -na " + context.getWorkspacePath());
+    }
+    if (context.getSystemInfo().isWindows()) {
+      assertLogMessage(context, IdeLogLevel.INFO, "android-studio windows " + context.getWorkspacePath());
+    }
+    checkInstallation(context);
+  }
+
   private void checkInstallation(IdeTestContext context) {
     // install - java
     assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
 
     // commandlet - android-studio
-    if (context.getSystemInfo().isWindows()) {
-      assertThat(context.getSoftwarePath().resolve("android-studio/bin/studio")).doesNotExist();
-    } else {
-      assertThat(context.getSoftwarePath().resolve("android-studio/bin/studio")).exists().isSymbolicLink();
-    }
     assertThat(context.getSoftwarePath().resolve("android-studio/.ide.software.version")).exists().hasContent("2024.1.1.1");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed android-studio in version 2024.1.1.1");

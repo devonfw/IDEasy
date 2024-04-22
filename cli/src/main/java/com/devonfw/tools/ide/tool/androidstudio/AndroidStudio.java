@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.androidstudio;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -80,10 +79,10 @@ public class AndroidStudio extends IdeToolCommandlet {
       toolPath = getToolBinPath().resolve(STUDIO64_EXE);
     } else {
       // check bin folder
-      toolPath = getToolBinPath().resolve(STUDIO);
+      toolPath = getToolBinPath().resolve(STUDIO_BASH);
       if (!Files.exists(toolPath)) {
         // check tool root folder
-        toolPath = getToolPath().resolve(STUDIO);
+        toolPath = getToolPath().resolve(STUDIO_BASH);
       }
     }
     ProcessContext pc = this.context.newProcess();
@@ -105,19 +104,6 @@ public class AndroidStudio extends IdeToolCommandlet {
 
     getCommandlet(Java.class).install();
     return super.install(silent);
-  }
-
-  @Override
-  protected void postInstall() {
-
-    super.postInstall();
-    Path scriptPath = getToolBinPath().resolve(STUDIO_BASH);
-
-    // TODO: Check if this is still needed.
-    if (Files.exists(scriptPath)) {
-      FileAccess fileAccess = this.context.getFileAccess();
-      fileAccess.symlink(scriptPath, getToolBinPath().resolve(STUDIO), true);
-    }
   }
 
   @Override
