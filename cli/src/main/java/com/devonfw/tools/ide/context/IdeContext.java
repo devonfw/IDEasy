@@ -268,6 +268,12 @@ public interface IdeContext extends IdeLogger {
   Path getIdeHome();
 
   /**
+   * @return the name of the current project.
+   * @see com.devonfw.tools.ide.variable.IdeVariables#PROJECT_NAME
+   */
+  String getProjectName();
+
+  /**
    * @return the {@link Path} to the IDE installation root directory. This is the top-level folder where the {@link #getIdeHome() IDE instances} are located as
    * sub-folder. There is a reserved ".ide" folder where central IDE data is stored such as the {@link #getUrlsPath() download metadata} and the central
    * software repository.
@@ -475,4 +481,12 @@ public interface IdeContext extends IdeLogger {
    * @param ideHome The path to the IDE home directory.
    */
   void setCwd(Path userDir, String workspace, Path ideHome);
+
+  /**
+   * Finds the path to the Bash executable.
+   *
+   * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
+   */
+  String findBash();
+
 }
