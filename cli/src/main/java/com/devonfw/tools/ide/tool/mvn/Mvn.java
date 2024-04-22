@@ -46,18 +46,13 @@ public class Mvn extends PluginBasedCommandlet {
     return super.install(silent);
   }
 
-  //  @Override
-  //  public void postInstall() {
-  //
-  //  }
-
   @Override
   //  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
   public void postInstall() {
 
     Path settingsSecurityFile = this.context.getIdeHome().resolve("conf/.m2/settings-security.xml");
     if (!Files.exists(settingsSecurityFile)) {
-      Step step = this.context.newStep("Create maven security settings file at " + settingsSecurityFile);
+      Step step = this.context.newStep("Create maven settings security file at " + settingsSecurityFile);
       try {
         createSettingsSecurityFile(settingsSecurityFile);
         step.success();
@@ -112,7 +107,10 @@ public class Mvn extends PluginBasedCommandlet {
 
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
 
-    return result.getOut().toString();
+    String encryptedPassword = result.getOut().toString();
+    this.context.info("Encrypted as " + encryptedPassword);
+
+    return encryptedPassword;
   }
 
   private List<String> findVariables(String content) {

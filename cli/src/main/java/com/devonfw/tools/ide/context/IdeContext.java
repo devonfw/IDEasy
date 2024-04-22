@@ -421,8 +421,7 @@ public interface IdeContext extends IdeLogger {
     if (ideHome != null && Files.exists(ideHome.resolve("conf/.m2/settings.xml"))) {
       return "-s " + ideHome.resolve("conf/.m2/settings.xml");
     } else {
-      //return null;
-      return "";
+      return null;
     }
   }
 
