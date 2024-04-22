@@ -418,11 +418,14 @@ public interface IdeContext extends IdeLogger {
   default String getMavenArgs() {
 
     Path ideHome = getIdeHome();
-    if (ideHome != null && Files.exists(ideHome.resolve("conf/.m2/settings.xml"))) {
-      return "-s " + ideHome.resolve("conf/.m2/settings.xml");
-    } else {
-      return null;
+    if (ideHome != null) {
+      Path mavenSettingsFile = ideHome.resolve("conf/.m2/settings.xml");
+      if (Files.exists(mavenSettingsFile)) {
+        return "-s " + mavenSettingsFile;
+      }
     }
+    return null;
+
   }
 
   /**
