@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 
@@ -411,10 +412,11 @@ public interface IdeContext extends IdeLogger {
   default String getMavenArgs() {
 
     Path ideHome = getIdeHome();
-    if (ideHome != null) {
+    if (ideHome != null && Files.exists(ideHome.resolve("conf/.m2/settings.xml"))) {
       return "-s " + ideHome.resolve("conf/.m2/settings.xml");
     } else {
-      return null;
+      //return null;
+      return "";
     }
   }
 

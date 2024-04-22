@@ -5,11 +5,11 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.PluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -46,26 +46,39 @@ public class Mvn extends PluginBasedCommandlet {
     return super.install(silent);
   }
 
+  //  @Override
+  //  public void postInstall() {
+  //
+  //  }
+
   @Override
+  //  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
   public void postInstall() {
 
-  }
-
-  @Override
-  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
-
-    Path settingsSecurityFile = this.context.getIdeHome().resolve("conf/.m2/settings-security_test.xml");
+    Path settingsSecurityFile = this.context.getIdeHome().resolve("conf/.m2/settings-security.xml");
     if (!Files.exists(settingsSecurityFile)) {
-      setSettingsSecurityFile(settingsSecurityFile);
+      Step step = this.context.newStep("Create maven security settings file at " + settingsSecurityFile);
+      try {
+        createSettingsSecurityFile(settingsSecurityFile);
+        step.success();
+      } finally {
+        step.end();
+      }
     }
 
-    Path settingsFile = this.context.getConfPath().resolve(".m2/settings_test.xml");
+    Path settingsFile = this.context.getConfPath().resolve(".m2/settings.xml");
     if (!Files.exists(settingsFile)) {
-      setSettingsFile(settingsFile);
+      Step step = this.context.newStep("Create maven settings file at " + settingsFile);
+      try {
+        createSettingsFile(settingsFile);
+        step.success();
+      } finally {
+        step.end();
+      }
     }
   }
 
-  private void setSettingsSecurityFile(Path settingsSecurityFile) {
+  private void createSettingsSecurityFile(Path settingsSecurityFile) {
 
     SecureRandom secureRandom = new SecureRandom();
     byte[] randomBytes = new byte[20];
@@ -85,7 +98,6 @@ public class Mvn extends PluginBasedCommandlet {
             + "</settingsSecurity>";
     try {
       Files.writeString(settingsSecurityFile, settingsSecurityXml);
-      this.context.success("Successfully created maven security settings file at " + settingsSecurityFile);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create file " + settingsSecurityFile, e);
     }
@@ -119,17 +131,15 @@ public class Mvn extends PluginBasedCommandlet {
     ProcessContext pc = this.context.newProcess().executable("git");
     pc.addArgs("-C", this.context.getSettingsPath(), "remote", "-v");
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
-    if (result.isSuccessful()) {
-      for (String line : result.getOut()) {
-        if (line.contains("(fetch)")) {
-          return line.split("\\s+")[1]; // Extract the URL from the line
-        }
+    for (String line : result.getOut()) {
+      if (line.contains("(fetch)")) {
+        return line.split("\\s+")[1]; // Extract the URL from the line
       }
     }
     throw new IllegalStateException("Failed to retrieve settings git URL.");
   }
 
-  private void setSettingsFile(Path settingsFile) {
+  private void createSettingsFile(Path settingsFile) {
 
     Path settingsTemplate = this.context.getSettingsPath().resolve("devon/conf/.m2/settings.xml");
     try {
@@ -143,7 +153,6 @@ public class Mvn extends PluginBasedCommandlet {
         }
       }
       Files.writeString(settingsFile, content);
-      this.context.success("Successfully created maven settings file at " + settingsFile);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to write to file " + settingsFile, e);
     }
