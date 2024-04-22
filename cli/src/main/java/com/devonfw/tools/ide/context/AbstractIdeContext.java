@@ -1,5 +1,19 @@
 package com.devonfw.tools.ide.context;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.InetAddress;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -399,6 +413,15 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public String getProjectName() {
+
+    if (this.ideHome != null) {
+      return this.ideHome.getFileName().toString();
+    }
+    return "";
+  }
+
+  @Override
   public Path getIdeRoot() {
 
     return this.ideRoot;
@@ -773,8 +796,15 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public void endStep(StepImpl step) {
 
-    assert (step == this.currentStep);
-    this.currentStep = this.currentStep.getParent();
+    if (step == this.currentStep) {
+      this.currentStep = this.currentStep.getParent();
+    } else {
+      String currentStepName = "null";
+      if (this.currentStep != null) {
+        currentStepName = this.currentStep.getName();
+      }
+      warning("endStep called with wrong step '{}' but expected '{}'", step.getName(), currentStepName);
+    }
   }
 
   /**
@@ -928,6 +958,67 @@ public abstract class AbstractIdeContext implements IdeContext {
       currentArgument = arguments.current();
     }
     return true;
+  }
+
+  public String findBash() {
+
+    String bash = "bash";
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      bash = findBashOnWindows();
+    }
+
+    return bash;
+  }
+
+  private String findBashOnWindows() {
+
+    // Check if Git Bash exists in the default location
+    Path defaultPath = Path.of("C:\\Program Files\\Git\\bin\\bash.exe");
+    if (Files.exists(defaultPath)) {
+      return defaultPath.toString();
+    }
+
+    // If not found in the default location, try the registry query
+    String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
+    String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
+    String regQueryResult;
+    for (String bashVariant : bashVariants) {
+      for (String registryKey : registryKeys) {
+        String toolValueName = ("GitForWindows".equals(bashVariant)) ? "InstallPath" : "rootdir";
+        String command = "reg query " + registryKey + "\\Software\\" + bashVariant + "  /v " + toolValueName + " 2>nul";
+
+        try {
+          Process process = new ProcessBuilder("cmd.exe", "/c", command).start();
+          try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+            StringBuilder output = new StringBuilder();
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+              output.append(line);
+            }
+
+            int exitCode = process.waitFor();
+            if (exitCode != 0) {
+              return null;
+            }
+
+            regQueryResult = output.toString();
+            if (regQueryResult != null) {
+              int index = regQueryResult.indexOf("REG_SZ");
+              if (index != -1) {
+                String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
+                return path + "\\bin\\bash.exe";
+              }
+            }
+
+          }
+        } catch (Exception e) {
+          return null;
+        }
+      }
+    }
+    // no bash found
+    throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
   }
 
 }
