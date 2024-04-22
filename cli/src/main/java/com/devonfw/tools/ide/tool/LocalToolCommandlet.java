@@ -26,7 +26,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   *        method.
+   * method.
    */
   public LocalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -43,7 +43,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   /**
    * @return the {@link Path} where the executables of the tool can be found. Typically a "bin" folder inside
-   *         {@link #getToolPath() tool path}.
+   * {@link #getToolPath() tool path}.
    */
   public Path getToolBinPath() {
 
@@ -84,13 +84,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       fileAccess.mkdirs(toolPath.getParent());
       fileAccess.symlink(installation.linkDir(), toolPath);
       this.context.getPath().setPath(this.tool, installation.binDir());
+      postInstall();
       if (installedVersion == null) {
         step.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
       } else {
         step.success("Successfully installed {} in version {} replacing previous version {}", this.tool,
             resolvedVersion, installedVersion);
       }
-      postInstall();
       return true;
     } catch (RuntimeException e) {
       step.error(e, true);
@@ -107,7 +107,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
-   *        {@link VersionIdentifier#isPattern() version pattern}.
+   * {@link VersionIdentifier#isPattern() version pattern}.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
    */
   public ToolInstallation installInRepo(VersionIdentifier version) {
@@ -121,7 +121,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
-   *        {@link VersionIdentifier#isPattern() version pattern}.
+   * {@link VersionIdentifier#isPattern() version pattern}.
    * @param edition the specific edition to install.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
    */
@@ -136,7 +136,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * IDE installation.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a
-   *        {@link VersionIdentifier#isPattern() version pattern}.
+   * {@link VersionIdentifier#isPattern() version pattern}.
    * @param edition the specific edition to install.
    * @param toolRepository the {@link ToolRepository} to use.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
