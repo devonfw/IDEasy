@@ -22,7 +22,7 @@ public class GraalVm extends LocalToolCommandlet {
    */
   public GraalVm(IdeContext context) {
 
-    super(context, "graalvm", Set.of(Tag.JAVA));
+    super(context, "graalvm", Set.of(Tag.JAVA, Tag.RUNTIME));
   }
 
   @Override
@@ -38,9 +38,9 @@ public class GraalVm extends LocalToolCommandlet {
   }
 
   @Override
-  public void run() {
+  protected String getBinaryName() {
 
-    super.install(true);
+    return getToolPath().resolve(IdeContext.FOLDER_BIN).resolve("java").toString();
   }
 
   @Override
