@@ -12,10 +12,6 @@ import com.devonfw.tools.ide.repo.ToolRepository;
  */
 public class IdeTestContext extends AbstractIdeTestContext {
 
-  private Path dummyUserHome;
-
-  private ProcessContext mockProcessContext;
-
   /**
    * The constructor.
    *
@@ -50,30 +46,6 @@ public class IdeTestContext extends AbstractIdeTestContext {
   public GitContext getGitContext() {
 
     return new GitContextMock();
-  }
-
-  /**
-   *
-   * @param dummyUserHome mock path which will be used in {@link #getUserHome()}
-   */
-  public void setDummyUserHome(Path dummyUserHome) {
-
-    this.dummyUserHome = dummyUserHome;
-  }
-
-  /**
-   *
-   * @return a dummy UserHome path to avoid global path access in a commandlet test. The defined {@link #dummyUserHome}
-   *         will be returned if it is not {@code null}, else see implementation {@link #AbstractIdeContext}.
-   */
-  @Override
-  public Path getUserHome() {
-
-    if (dummyUserHome != null) {
-      return dummyUserHome;
-    }
-
-    return super.getUserHome();
   }
 
   @Override
