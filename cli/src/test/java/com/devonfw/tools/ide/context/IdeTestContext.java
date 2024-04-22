@@ -14,8 +14,6 @@ public class IdeTestContext extends AbstractIdeTestContext {
 
   private Path dummyUserHome;
 
-  private ProcessContext mockProcessContext;
-
   /**
    * The constructor.
    *
