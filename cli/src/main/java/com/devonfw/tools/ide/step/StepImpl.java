@@ -9,10 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.log.IdeSubLogger;
-
 /**
  * Regular implementation of {@link Step}.
  */
@@ -139,8 +135,7 @@ public final class StepImpl implements Step {
     if (!firstCallOfEnd) {
       assert (this.duration > 0);
       if (newSuccess != null) {
-        this.context.warning("Step '{}' already ended with {} and now ended again with {}.", this.name, this.success,
-            newSuccess);
+        this.context.warning("Step '{}' already ended with {} and now ended again with {}.", this.name, this.success, newSuccess);
       } else {
         return;
       }
