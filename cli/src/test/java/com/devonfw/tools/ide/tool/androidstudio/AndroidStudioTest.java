@@ -8,12 +8,20 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+/**
+ * Test class for {@link AndroidStudio Android Studio IDE} tests.
+ */
 public class AndroidStudioTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_ANDROID_STUDIO = "android-studio";
 
   private final IdeTestContext context = newContext(PROJECT_ANDROID_STUDIO);
 
+  /**
+   * Tests if {@link AndroidStudio Android Studio IDE} can be installed.
+   *
+   * @param os String of the OS to use.
+   */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
   public void testAndroidStudioInstall(String os) {
@@ -29,6 +37,11 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
     checkInstallation(context);
   }
 
+  /**
+   * Tests if {@link AndroidStudio Android Studio IDE} can be run.
+   *
+   * @param os String of the OS to use.
+   */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
   public void testAndroidStudioRun(String os) {
@@ -54,12 +67,8 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
   }
 
   private void checkInstallation(IdeTestContext context) {
-    // install - java
-    assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
-
     // commandlet - android-studio
     assertThat(context.getSoftwarePath().resolve("android-studio/.ide.software.version")).exists().hasContent("2024.1.1.1");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed android-studio in version 2024.1.1.1");
   }
 

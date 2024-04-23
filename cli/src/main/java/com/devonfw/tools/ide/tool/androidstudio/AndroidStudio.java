@@ -10,7 +10,6 @@ import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
-import com.devonfw.tools.ide.tool.java.Java;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -102,7 +101,6 @@ public class AndroidStudio extends IdeToolCommandlet {
   @Override
   public boolean install(boolean silent) {
 
-    getCommandlet(Java.class).install();
     return super.install(silent);
   }
 
