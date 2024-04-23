@@ -99,7 +99,7 @@ public class Mvn extends PluginBasedCommandlet {
 
   private void createSettingsFile(Path settingsFile) {
 
-    Path settingsTemplate = this.context.getSettingsPath().resolve("devon/conf/.m2/settings.xml");
+    Path settingsTemplate = this.context.getSettingsPath().resolve("ide/conf/.m2/settings.xml");
     try {
       String content = Files.readString(settingsTemplate);
 
