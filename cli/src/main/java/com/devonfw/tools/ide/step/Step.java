@@ -1,10 +1,11 @@
 package com.devonfw.tools.ide.step;
 
+import java.util.concurrent.Callable;
+
 /**
- * Interface for a {@link Step} of the process. Allows to split larger processes into smaller steps that are traced
- * and measured. At the end you can get a report with the hierarchy of all steps and their success/failure status,
- * duration in absolute and relative numbers to gain transparency.<br>
- * The typical use should follow this pattern:
+ * Interface for a {@link Step} of the process. Allows to split larger processes into smaller steps that are traced and measured. At the end you can get a
+ * report with the hierarchy of all steps and their success/failure status, duration in absolute and relative numbers to gain transparency.<br> The typical use
+ * should follow this pattern:
  *
  * <pre>
  * Step step = context.{@link com.devonfw.tools.ide.context.IdeContext#newStep(String) newStep}("My step description");
@@ -29,15 +30,13 @@ public interface Step {
   String getName();
 
   /**
-   * @return the duration of this {@link Step} from construction to {@link #success()} or {@link #end()}. Will be
-   *         {@code 0} if not {@link #end() ended}.
+   * @return the duration of this {@link Step} from construction to {@link #success()} or {@link #end()}. Will be {@code 0} if not {@link #end() ended}.
    */
   long getDuration();
 
   /**
-   * @return {@code Boolean#TRUE} if this {@link Step} has {@link #success() succeeded}, {@code Boolean#FALSE} if the
-   *         {@link Step} has {@link #end() ended} without {@link #success() success} and {@code null} if the
-   *         {@link Step} is still running.
+   * @return {@code Boolean#TRUE} if this {@link Step} has {@link #success() succeeded}, {@code Boolean#FALSE} if the {@link Step} has {@link #end() ended}
+   * without {@link #success() success} and {@code null} if the {@link Step} is still running.
    */
   Boolean getSuccess();
 
@@ -50,8 +49,8 @@ public interface Step {
   }
 
   /**
-   * @return {@code true} if this step {@link #end() ended} without {@link #success() success} e.g. with an
-   *         {@link #error(String) error}, {@code false} otherwise.
+   * @return {@code true} if this step {@link #end() ended} without {@link #success() success} e.g. with an {@link #error(String) error}, {@code false}
+   * otherwise.
    */
   default boolean isFailure() {
 
@@ -95,8 +94,7 @@ public interface Step {
   void end();
 
   /**
-   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message. May be
-   * called only once.
+   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message. May be called only once.
    *
    * @param message the explicit message to log as error.
    */
@@ -106,8 +104,8 @@ public interface Step {
   }
 
   /**
-   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or
-   * {@link Throwable exception}. May be called only once.
+   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
+   * only once.
    *
    * @param message the explicit message to log as error.
    * @param args the optional arguments to fill as placeholder into the {@code message}.
@@ -118,8 +116,8 @@ public interface Step {
   }
 
   /**
-   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or
-   * {@link Throwable exception}. May be called only once.
+   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
+   * only once.
    *
    * @param error the catched {@link Throwable}.
    */
@@ -129,12 +127,11 @@ public interface Step {
   }
 
   /**
-   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or
-   * {@link Throwable exception}. May be called only once.
+   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
+   * only once.
    *
    * @param error the catched {@link Throwable}.
-   * @param suppress to suppress the error logging (if error will be rethrown and duplicated error messages shall be
-   *        avoided).
+   * @param suppress to suppress the error logging (if error will be rethrown and duplicated error messages shall be avoided).
    */
   default void error(Throwable error, boolean suppress) {
 
@@ -143,8 +140,8 @@ public interface Step {
   }
 
   /**
-   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or
-   * {@link Throwable exception}. May be called only once.
+   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
+   * only once.
    *
    * @param error the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
    * @param message the explicit message to log as error.
@@ -155,8 +152,8 @@ public interface Step {
   }
 
   /**
-   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or
-   * {@link Throwable exception}. May be called only once.
+   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
+   * only once.
    *
    * @param error the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
    * @param message the explicit message to log as error.
@@ -168,12 +165,11 @@ public interface Step {
   }
 
   /**
-   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or
-   * {@link Throwable exception}. May be called only once.
+   * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
+   * only once.
    *
    * @param error the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
-   * @param suppress to suppress the error logging (if error will be rethrown and duplicated error messages shall be
-   *        avoided).
+   * @param suppress to suppress the error logging (if error will be rethrown and duplicated error messages shall be avoided).
    * @param message the explicit message to log as error.
    * @param args the optional arguments to fill as placeholder into the {@code message}.
    */
@@ -186,7 +182,7 @@ public interface Step {
 
   /**
    * @param i the index of the requested parameter. Should be in the range from {@code 0} to
-   *        <code>{@link #getParameterCount()}-1</code>.
+   * <code>{@link #getParameterCount()}-1</code>.
    * @return the parameter at the given index {@code i} or {@code null} if no such parameter exists.
    */
   Object getParameter(int i);
@@ -196,4 +192,48 @@ public interface Step {
    */
   int getParameterCount();
 
+  /**
+   * @param stepCode the {@link Runnable} to {@link Runnable#run() execute} for this {@link Step}.
+   */
+  default void run(Runnable stepCode) {
+
+    try {
+      stepCode.run();
+      if (getSuccess() == null) {
+        success();
+      }
+    } catch (RuntimeException | Error e) {
+      error(e);
+      throw e;
+    } finally {
+      end();
+    }
+  }
+
+  /**
+   * @param stepCode the {@link Callable} to {@link Callable#call() execute} for this {@link Step}.
+   * @param <R> type of the return value.
+   * @return the value returned from {@link Callable#call()}.
+   */
+  default <R> R call(Callable<R> stepCode) {
+
+    try {
+      R result = stepCode.call();
+      if (getSuccess() == null) {
+        success();
+      }
+      return result;
+    } catch (Throwable e) {
+      error(e);
+      if (e instanceof RuntimeException re) {
+        throw re;
+      } else if (e instanceof Error error) {
+        throw error;
+      } else {
+        throw new IllegalStateException(e);
+      }
+    } finally {
+      end();
+    }
+  }
 }
