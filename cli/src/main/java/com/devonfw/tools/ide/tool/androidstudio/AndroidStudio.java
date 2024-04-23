@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.androidstudio;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -11,8 +12,11 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
 /**
@@ -72,20 +76,25 @@ public class AndroidStudio extends IdeToolCommandlet {
    */
   protected ProcessResult runAndroidStudio(ProcessMode processMode, String... args) {
 
-    Path toolPath;
+    Path toolPath = null;
     // TODO: Check if this can be optimized.
     if (this.context.getSystemInfo().isWindows()) {
       toolPath = getToolBinPath().resolve(STUDIO64_EXE);
-    } else {
-      // check bin folder
-      toolPath = getToolBinPath().resolve(STUDIO_BASH);
-      if (!Files.exists(toolPath)) {
-        // check tool root folder
-        toolPath = getToolPath().resolve(STUDIO_BASH);
-      }
     }
+
+    if (this.context.getSystemInfo().isLinux()) {
+      toolPath = getToolBinPath().resolve(STUDIO_BASH);
+    }
+
+    if (this.context.getSystemInfo().isMac()) {
+      //      if (Files.exists(getToolBinPath().resolve(STUDIO))) {
+      toolPath = getToolPath().resolve("Studio.app").resolve("Contents").resolve("MacOS").resolve("studio");
+      //      }
+    }
+
     ProcessContext pc = this.context.newProcess();
 
+    assert toolPath != null;
     if (Files.exists(toolPath)) {
       pc.executable(toolPath);
     }
@@ -102,6 +111,46 @@ public class AndroidStudio extends IdeToolCommandlet {
   public boolean install(boolean silent) {
 
     return super.install(silent);
+  }
+
+  @Override
+  protected void postInstall() {
+
+    super.postInstall();
+    if (this.context.getSystemInfo().isMac()) {
+      if (getEdition().equals("ultimate")) {
+
+      } else {
+        this.context.getFileAccess().move(getToolPath().resolve("Android Studio Preview.app"), getToolPath().resolve("Studio.app"));
+        //        this.context.getFileAccess().mkdirs(getToolPath().resolve("bin"));
+        //        Path binaryFile;
+        //        try {
+        //          binaryFile = Files.createFile(getToolBinPath().resolve("studio"));
+        //          Files.writeString(binaryFile,
+        //              "#!/usr/bin/env bash\n'" + getToolPath().resolve("Studio.app").resolve("Contents").resolve("MacOS").resolve("studio") + "' \\$@");
+        //        } catch (IOException e) {
+        //          throw new RuntimeException(e);
+        //        }
+        //        // Setting execute permissions is only required if executed on a real MacOS, won't work on Windows.
+        //        if (SystemInfoImpl.INSTANCE.isMac()) {
+        //          setMacOsFilePermissions(binaryFile);
+        //        }
+
+      }
+    }
+  }
+
+  private static void setMacOsFilePermissions(Path binaryFile) {
+
+    if (Files.exists(binaryFile)) {
+      String permissionStr = FileAccessImpl.generatePermissionString(111);
+      Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
+      try {
+        Files.setPosixFilePermissions(binaryFile, permissions);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   @Override
