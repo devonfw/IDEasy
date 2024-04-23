@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.intellij;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -46,23 +45,21 @@ public class Intellij extends IdeToolCommandlet {
     Step stepRun = this.context.newStep("Running IntelliJ");
     try {
       ProcessResult result;
-      if (this.context.getSystemInfo().isMac()) {
-        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, "open", "-na", this.context.getWorkspacePath().toString()));
-      } else {
+      if (this.context.getSystemInfo().isWindows()) {
         result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
+      } else {
+        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, "open", "-na", this.context.getWorkspacePath().toString()));
       }
       if (result.isSuccessful()) {
         stepRun.success("Running IntelliJ successfully.");
       } else {
         stepRun.isFailure();
       }
-
     } catch (Exception e) {
-      stepRun.error(e, "Failed to start IntelliJ.");
+      stepRun.error(e, "Failed to run IntelliJ.");
     } finally {
       stepRun.end();
     }
-
   }
 
   /**
@@ -75,20 +72,19 @@ public class Intellij extends IdeToolCommandlet {
   protected ProcessResult runIntelliJ(ProcessMode processMode, String... args) {
 
     Path toolPath;
-    toolPath = getToolBinPath().resolve(IDEA64_EXE);
-    if (!Files.exists(toolPath)) {
-      toolPath = getToolBinPath().resolve(IDEA);
-    }
-    if (!Files.exists(toolPath)) {
-      toolPath = getToolPath().resolve(IDEA);
+    if (this.context.getSystemInfo().isWindows()) {
+      toolPath = getToolBinPath().resolve(IDEA64_EXE);
+    } else {
+      toolPath = getToolBinPath().resolve(IDEA_BASH_SCRIPT);
+      if (!Files.exists(toolPath)) {
+        toolPath = getToolPath().resolve(IDEA_BASH_SCRIPT);
+      }
     }
 
     ProcessContext pc = this.context.newProcess();
-
     if (processMode == ProcessMode.DEFAULT_CAPTURE) {
       pc.errorHandling(ProcessErrorHandling.ERROR);
     }
-
     pc.executable(toolPath);
     pc.addArgs(args);
 
@@ -105,21 +101,5 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    // no override needed
-  }
-
-  @Override
-  public void postInstall() {
-
-    super.postInstall();
-
-    Path binPath = getToolBinPath();
-    if (SystemInfoImpl.INSTANCE.isLinux()) {
-      Path ideaShLink = binPath.resolve(IDEA_BASH_SCRIPT);
-      Path ideaLink = binPath.resolve(IDEA);
-      if (Files.exists(ideaShLink)) {
-        this.context.getFileAccess().symlink(ideaShLink, ideaLink, true);
-      }
-    }
   }
 }

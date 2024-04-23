@@ -6,3 +6,6 @@
 *.tar binary
 *.bz2 binary
 *.gz binary
+
+# special handling for test files
+cli/src/test/resources/ide-projects/android-studio/repository/android-studio/android-studio/default/windows/bin/studio64.exe text
