@@ -140,12 +140,10 @@ public final class StepImpl implements Step {
         return;
       }
     }
-
     long delay = System.currentTimeMillis() - this.start;
     if (delay == 0) {
       delay = 1;
     }
-
     if (newSuccess == null) {
       newSuccess = Boolean.FALSE;
     }
@@ -153,7 +151,6 @@ public final class StepImpl implements Step {
       this.duration = delay;
       this.success = newSuccess;
     }
-
     if (newSuccess.booleanValue()) {
       assert (error == null);
       if (message != null) {
@@ -180,7 +177,6 @@ public final class StepImpl implements Step {
       }
       logger.log("Step '{}' ended with failure.", this.name);
     }
-
     if (firstCallOfEnd) {
       this.context.endStep(this);
     }
