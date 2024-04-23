@@ -1,3 +1,0 @@
-#!/bin/bash
-graalvm "graalvm"
-echo "graalvm mac $*"
