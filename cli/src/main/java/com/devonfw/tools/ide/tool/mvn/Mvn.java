@@ -47,12 +47,11 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   @Override
-  //  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
   public void postInstall() {
 
     Path settingsSecurityFile = this.context.getIdeHome().resolve("conf/.m2/settings-security.xml");
     if (!Files.exists(settingsSecurityFile)) {
-      Step step = this.context.newStep("Create maven settings security file at " + settingsSecurityFile);
+      Step step = this.context.newStep("Create mvn settings security file at " + settingsSecurityFile);
       try {
         createSettingsSecurityFile(settingsSecurityFile);
         step.success();
@@ -63,7 +62,7 @@ public class Mvn extends PluginBasedCommandlet {
 
     Path settingsFile = this.context.getConfPath().resolve(".m2/settings.xml");
     if (!Files.exists(settingsFile)) {
-      Step step = this.context.newStep("Create maven settings file at " + settingsFile);
+      Step step = this.context.newStep("Create mvn settings file at " + settingsFile);
       try {
         createSettingsFile(settingsFile);
         step.success();
@@ -95,6 +94,25 @@ public class Mvn extends PluginBasedCommandlet {
       Files.writeString(settingsSecurityFile, settingsSecurityXml);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create file " + settingsSecurityFile, e);
+    }
+  }
+
+  private void createSettingsFile(Path settingsFile) {
+
+    Path settingsTemplate = this.context.getSettingsPath().resolve("devon/conf/.m2/settings.xml");
+    try {
+      String content = Files.readString(settingsTemplate);
+
+      if (!getSettingsGitUrl().equals(IDE_SETTINGS_GIT_URL)) {
+        List<String> variables = findVariables(content);
+        for (String variable : variables) {
+          String secret = getEncryptedPassword(variable);
+          content = content.replace("$[" + variable + "]", secret);
+        }
+      }
+      Files.writeString(settingsFile, content);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to write to file " + settingsFile, e);
     }
   }
 
@@ -135,25 +153,6 @@ public class Mvn extends PluginBasedCommandlet {
       }
     }
     throw new IllegalStateException("Failed to retrieve settings git URL.");
-  }
-
-  private void createSettingsFile(Path settingsFile) {
-
-    Path settingsTemplate = this.context.getSettingsPath().resolve("devon/conf/.m2/settings.xml");
-    try {
-      String content = Files.readString(settingsTemplate);
-
-      if (!getSettingsGitUrl().equals(IDE_SETTINGS_GIT_URL)) {
-        List<String> variables = findVariables(content);
-        for (String variable : variables) {
-          String secret = getEncryptedPassword(variable);
-          content = content.replace("$[" + variable + "]", secret);
-        }
-      }
-      Files.writeString(settingsFile, content);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to write to file " + settingsFile, e);
-    }
   }
 
   @Override
