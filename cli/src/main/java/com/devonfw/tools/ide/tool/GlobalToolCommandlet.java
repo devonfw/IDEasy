@@ -2,8 +2,8 @@ package com.devonfw.tools.ide.tool;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -26,7 +26,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   *        method.
+   * method.
    */
   public GlobalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -36,57 +36,63 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   /**
    * Performs the installation of the {@link #getName() tool} via a package manager.
    *
-   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @param commands - A {@link Map} containing the commands used to perform the installation for each package manager.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and
-   *         nothing has changed.
+   * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param commandStrings commandStrings The package manager command strings to execute.
+   * @return {@code true} if installation succeeds with any of the package manager commands, {@code false} otherwise.
    */
-  protected boolean installWithPackageManger(Map<PackageManager, List<String>> commands, boolean silent) {
+  protected boolean installWithPackageManager(boolean silent, String... commandStrings) {
 
-    Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
+    List<PackageManagerCommand> pmCommands = Arrays.stream(commandStrings).map(PackageManagerCommand::of).toList();
+    return installWithPackageManager(silent, pmCommands);
+  }
 
-    if (binaryPath != null && Files.exists(binaryPath) && !this.context.isForceMode()) {
-      IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
-      this.context.level(level).log("{} is already installed at {}", this.tool, binaryPath);
-      return false;
+  /**
+   * Performs the installation of the {@link #getName() tool} via a package manager.
+   * 
+   * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param pmCommands A list of {@link PackageManagerCommand} to be used for installation.
+   * @return {@code true} if installation succeeds with any of the package manager commands, {@code false} otherwise.
+   */
+  protected boolean installWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
+
+    for (PackageManagerCommand pmCommand : pmCommands) {
+      PackageManager packageManager = pmCommand.packageManager();
+      Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
+      if (packageManagerPath == null || !Files.exists(packageManagerPath)) {
+        this.context.debug("{} is not installed", packageManager.toString());
+        continue; // Skip to the next package manager command
+      }
+
+      if (executePackageManagerCommand(pmCommand, silent)) {
+        return true; // Successfully installed
+      }
     }
+    return false; // None of the package manager commands were successful
+  }
 
-    Path bashPath = this.context.getPath().findBinary(Path.of("bash"));
-    if (bashPath == null || !Files.exists(bashPath)) {
-      context.warning("Bash was not found on this machine. Not Proceeding with installation of tool " + this.tool);
-      return false;
-    }
+  /**
+   * Executes the provided package manager command.
+   *
+   * @param pmCommand The {@link PackageManagerCommand} containing the commands to execute.
+   * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @return {@code true} if the package manager commands execute successfully, {@code false} otherwise.
+   */
+  private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent) {
 
-    PackageManager foundPackageManager = null;
-    for (PackageManager pm : commands.keySet()) {
-      if (Files.exists(this.context.getPath().findBinary(Path.of(pm.toString().toLowerCase())))) {
-        foundPackageManager = pm;
-        break;
+    String bashPath = this.context.findBash();
+    for (String command : pmCommand.commands()) {
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(bashPath)
+          .addArgs("-c", command);
+      int exitCode = pc.run();
+      if (exitCode != 0) {
+        this.context.warning("{} command did not execute successfully", command);
+        return false;
       }
     }
 
-    int finalExitCode = 0;
-    if (foundPackageManager == null) {
-      context.warning("No supported Package Manager found for installation");
-      return false;
-    } else {
-      List<String> commandList = commands.get(foundPackageManager);
-      if (commandList != null) {
-        for (String command : commandList) {
-          ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(bashPath)
-              .addArgs("-c", command);
-          finalExitCode = pc.run();
-        }
-      }
-    }
-
-    if (finalExitCode == 0) {
+    if (!silent) {
       this.context.success("Successfully installed {}", this.tool);
-    } else {
-      this.context.warning("{} was not successfully installed", this.tool);
-      return false;
     }
-    postInstall();
     return true;
   }
 
@@ -122,7 +128,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       tmpDir = fileAccess.createTempDir(getName());
       Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
       fileAccess.extract(target, downloadBinaryPath);
-      downloadBinaryPath = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
+      executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(executable);
     int exitCode = pc.run();

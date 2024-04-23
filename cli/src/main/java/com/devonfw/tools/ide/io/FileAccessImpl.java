@@ -112,6 +112,7 @@ public class FileAccessImpl implements FileAccess {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
     informAboutSettingDefaultContentLength(contentLength, url, null);
+
     byte[] data = new byte[1024];
     boolean fileComplete = false;
     int count;
@@ -266,8 +267,7 @@ public class FileAccessImpl implements FileAccess {
       return false; // file doesn't exist
     } catch (IOException e) {
       // errors in reading the attributes of the file
-      throw new IllegalStateException(
-          "An unexpected error occurred whilst checking if the file: " + path + " is a junction", e);
+      throw new IllegalStateException("An unexpected error occurred whilst checking if the file: " + path + " is a junction", e);
     }
   }
 
@@ -359,9 +359,8 @@ public class FileAccessImpl implements FileAccess {
   }
 
   /**
-   * Deletes the given {@link Path} if it is a symbolic link or a Windows junction. And throws an
-   * {@link IllegalStateException} if there is a file at the given {@link Path} that is neither a symbolic link nor a
-   * Windows junction.
+   * Deletes the given {@link Path} if it is a symbolic link or a Windows junction. And throws an {@link IllegalStateException} if there is a file at the given
+   * {@link Path} that is neither a symbolic link nor a Windows junction.
    *
    * @param path the {@link Path} to delete.
    * @throws IOException if the actual {@link Files#delete(Path) deletion} fails.
@@ -380,12 +379,11 @@ public class FileAccessImpl implements FileAccess {
   }
 
   /**
-   * Adapts the given {@link Path} to be relative or absolute depending on the given {@code relative} flag.
-   * Additionally, {@link Path#toRealPath(LinkOption...)} is applied to {@code source}.
+   * Adapts the given {@link Path} to be relative or absolute depending on the given {@code relative} flag. Additionally, {@link Path#toRealPath(LinkOption...)}
+   * is applied to {@code source}.
    *
    * @param source the {@link Path} to adapt.
-   * @param targetLink the {@link Path} used to calculate the relative path to the {@code source} if {@code relative} is
-   *        set to {@code true}.
+   * @param targetLink the {@link Path} used to calculate the relative path to the {@code source} if {@code relative} is set to {@code true}.
    * @param relative the {@code relative} flag.
    * @return the adapted {@link Path}.
    * @see FileAccessImpl#symlink(Path, Path, boolean)
@@ -396,8 +394,7 @@ public class FileAccessImpl implements FileAccess {
       try {
         source = source.toRealPath(LinkOption.NOFOLLOW_LINKS); // to transform ../d1/../d2 to ../d2
       } catch (IOException e) {
-        throw new IOException(
-            "Calling toRealPath() on the source (" + source + ") in method FileAccessImpl.adaptPath() failed.", e);
+        throw new IOException("Calling toRealPath() on the source (" + source + ") in method FileAccessImpl.adaptPath() failed.", e);
       }
       if (relative) {
         source = targetLink.getParent().relativize(source);
@@ -408,15 +405,13 @@ public class FileAccessImpl implements FileAccess {
       if (relative) {
         // even though the source is already relative, toRealPath should be called to transform paths like
         // this ../d1/../d2 to ../d2
-        source = targetLink.getParent()
-            .relativize(targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS));
+        source = targetLink.getParent().relativize(targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS));
         source = (source.toString().isEmpty()) ? Path.of(".") : source;
       } else { // !relative
         try {
           source = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
         } catch (IOException e) {
-          throw new IOException("Calling toRealPath() on " + targetLink + ".resolveSibling(" + source
-              + ") in method FileAccessImpl.adaptPath() failed.", e);
+          throw new IOException("Calling toRealPath() on " + targetLink + ".resolveSibling(" + source + ") in method FileAccessImpl.adaptPath() failed.", e);
         }
       }
     }
@@ -434,17 +429,14 @@ public class FileAccessImpl implements FileAccess {
     this.context.trace("Creating a Windows junction at " + targetLink + " with " + source + " as source.");
     Path fallbackPath;
     if (!source.isAbsolute()) {
-      this.context.warning(
-          "You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
-              + "alternative, however, these can not point to relative paths. So the source (" + source
-              + ") is interpreted as an absolute path.");
+      this.context.warning("You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
+          + "alternative, however, these can not point to relative paths. So the source (" + source + ") is interpreted as an absolute path.");
       try {
         fallbackPath = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
       } catch (IOException e) {
         throw new IllegalStateException(
-            "Since Windows junctions are used, the source must be an absolute path. The transformation of the passed "
-                + "source (" + source + ") to an absolute path failed.",
-            e);
+            "Since Windows junctions are used, the source must be an absolute path. The transformation of the passed " + "source (" + source
+                + ") to an absolute path failed.", e);
       }
 
     } else {
@@ -452,11 +444,9 @@ public class FileAccessImpl implements FileAccess {
     }
     if (!Files.isDirectory(fallbackPath)) { // if source is a junction. This returns true as well.
       throw new IllegalStateException(
-          "These junctions can only point to directories or other junctions. Please make sure that the source ("
-              + fallbackPath + ") is one of these.");
+          "These junctions can only point to directories or other junctions. Please make sure that the source (" + fallbackPath + ") is one of these.");
     }
-    this.context.newProcess().executable("cmd")
-        .addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), fallbackPath.toString()).run();
+    this.context.newProcess().executable("cmd").addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), fallbackPath.toString()).run();
   }
 
   @Override
@@ -466,11 +456,9 @@ public class FileAccessImpl implements FileAccess {
     try {
       adaptedSource = adaptPath(source, targetLink, relative);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to adapt source for source (" + source + ") target (" + targetLink
-          + ") and relative (" + relative + ")", e);
+      throw new IllegalStateException("Failed to adapt source for source (" + source + ") target (" + targetLink + ") and relative (" + relative + ")", e);
     }
-    this.context.trace("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative",
-        targetLink, adaptedSource);
+    this.context.trace("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative", targetLink, adaptedSource);
 
     try {
       deleteLinkIfExists(targetLink);
@@ -483,15 +471,15 @@ public class FileAccessImpl implements FileAccess {
     } catch (FileSystemException e) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
         this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
-            + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for "
-            + "further details. Error was: " + e.getMessage());
+            + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for " + "further details. Error was: "
+            + e.getMessage());
         createWindowsJunction(adaptedSource, targetLink);
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative")
-          + "symbolic link " + targetLink + " pointing to " + source, e);
+      throw new IllegalStateException(
+          "Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative") + "symbolic link " + targetLink + " pointing to " + source, e);
     }
   }
 
@@ -549,8 +537,7 @@ public class FileAccessImpl implements FileAccess {
       return;
     }
     Path tmpDir = createTempDir("extract-" + archiveFile.getFileName());
-    this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", archiveFile, tmpDir,
-        targetDir);
+    this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", archiveFile, tmpDir, targetDir);
     String filename = archiveFile.getFileName().toString();
     TarCompression tarCompression = TarCompression.of(filename);
     if (tarCompression != null) {
@@ -595,21 +582,19 @@ public class FileAccessImpl implements FileAccess {
 
   /**
    * @param path the {@link Path} to start the recursive search from.
-   * @return the deepest subdir {@code s} of the passed path such that all directories between {@code s} and the passed
-   *         path (including {@code s}) are the sole item in their respective directory and {@code s} is not named
-   *         "bin".
+   * @return the deepest subdir {@code s} of the passed path such that all directories between {@code s} and the passed path (including {@code s}) are the sole
+   * item in their respective directory and {@code s} is not named "bin".
    */
   private Path getProperInstallationSubDirOf(Path path, Path archiveFile) {
 
     try (Stream<Path> stream = Files.list(path)) {
       Path[] subFiles = stream.toArray(Path[]::new);
       if (subFiles.length == 0) {
-        throw new CliException("The downloaded package " + archiveFile
-            + " seems to be empty as you can check in the extracted folder " + path);
+        throw new CliException("The downloaded package " + archiveFile + " seems to be empty as you can check in the extracted folder " + path);
       } else if (subFiles.length == 1) {
         String filename = subFiles[0].getFileName().toString();
-        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS)
-            && !filename.endsWith(".app") && Files.isDirectory(subFiles[0])) {
+        if (!filename.equals(IdeContext.FOLDER_BIN) && !filename.equals(IdeContext.FOLDER_CONTENTS) && !filename.endsWith(".app") && Files.isDirectory(
+            subFiles[0])) {
           return getProperInstallationSubDirOf(subFiles[0], archiveFile);
         }
       }
@@ -632,8 +617,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   /**
-   * @param permissions The integer as returned by {@link TarArchiveEntry#getMode()} that represents the file
-   *        permissions of a file on a Unix file system.
+   * @param permissions The integer as returned by {@link TarArchiveEntry#getMode()} that represents the file permissions of a file on a Unix file system.
    * @return A String representing the file permissions. E.g. "rwxrwxr-x" or "rw-rw-r--"
    */
   public static String generatePermissionString(int permissions) {
@@ -735,7 +719,7 @@ public class FileAccessImpl implements FileAccess {
     }
     this.context.debug("Deleting {} ...", path);
     try {
-      if (Files.isSymbolicLink(path)) {
+      if (Files.isSymbolicLink(path) || isJunction(path)) {
         Files.delete(path);
       } else {
         deleteRecursive(path);
@@ -838,7 +822,7 @@ public class FileAccessImpl implements FileAccess {
           return filePath;
         }
       } catch (Exception e) {
-        throw new IllegalStateException("Unexpected error while checking existence of file "+filePath+" .", e);
+        throw new IllegalStateException("Unexpected error while checking existence of file " + filePath + " .", e);
       }
     }
     return null;
