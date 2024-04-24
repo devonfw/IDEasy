@@ -26,8 +26,6 @@ public class Intellij extends IdeToolCommandlet {
 
   private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
 
-  private final Path IDEA_PATH = getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA);
-
   /**
    * The constructor.
    *
@@ -47,7 +45,8 @@ public class Intellij extends IdeToolCommandlet {
     try {
       ProcessResult result;
       if (this.context.getSystemInfo().isMac()) {
-        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, "-na", IDEA_PATH.toString(), this.context.getWorkspacePath().toString()));
+        Path ideaPath = getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA);
+        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, "-na", ideaPath.toString(), this.context.getWorkspacePath().toString()));
       } else {
         result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
       }
