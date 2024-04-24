@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
@@ -74,11 +73,10 @@ public class Intellij extends IdeToolCommandlet {
     Path toolPath;
     if (this.context.getSystemInfo().isWindows()) {
       toolPath = getToolBinPath().resolve(IDEA64_EXE);
-    } else {
+    } else if (this.context.getSystemInfo().isLinux()) {
       toolPath = getToolBinPath().resolve(IDEA_BASH_SCRIPT);
-      if (!Files.exists(toolPath)) {
-        toolPath = getToolPath().resolve(IDEA_BASH_SCRIPT);
-      }
+    } else {
+      toolPath = getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA);
     }
 
     ProcessContext pc = this.context.newProcess();
