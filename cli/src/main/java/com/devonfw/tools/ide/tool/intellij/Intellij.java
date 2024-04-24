@@ -26,6 +26,8 @@ public class Intellij extends IdeToolCommandlet {
 
   private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
 
+  private final Path IDEA_PATH = getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA);
+
   /**
    * The constructor.
    *
@@ -44,10 +46,10 @@ public class Intellij extends IdeToolCommandlet {
     Step stepRun = this.context.newStep("Running IntelliJ");
     try {
       ProcessResult result;
-      if (this.context.getSystemInfo().isWindows()) {
-        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
+      if (this.context.getSystemInfo().isMac()) {
+        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, "-na", IDEA_PATH.toString(), this.context.getWorkspacePath().toString()));
       } else {
-        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, "open", "-na", this.context.getWorkspacePath().toString()));
+        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
       }
       if (result.isSuccessful()) {
         stepRun.success("Running IntelliJ successfully.");
@@ -76,7 +78,7 @@ public class Intellij extends IdeToolCommandlet {
     } else if (this.context.getSystemInfo().isLinux()) {
       toolPath = getToolBinPath().resolve(IDEA_BASH_SCRIPT);
     } else {
-      toolPath = getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA);
+      toolPath = Path.of("open");
     }
 
     ProcessContext pc = this.context.newProcess();
