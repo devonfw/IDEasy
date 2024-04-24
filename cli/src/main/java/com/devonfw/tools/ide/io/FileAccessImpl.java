@@ -20,6 +20,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.SocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -53,21 +57,51 @@ public class FileAccessImpl implements FileAccess {
 
   private final IdeContext context;
 
-  /** The {@link HttpClient} for HTTP requests. */
   private final HttpClient client;
 
-  /**
-   * The constructor.
-   *
-   * @param context the {@link IdeContext} to use.
-   */
   public FileAccessImpl(IdeContext context) {
 
     super();
     this.context = context;
-    this.client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
+    this.client = createHttpClient();
   }
 
+  private HttpClient createHttpClient() {
+
+    HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
+    ProxySelector proxySelector = getDefaultProxySelector();
+    if (proxySelector != ProxySelector.getDefault()) {
+      builder.proxy(proxySelector);
+    }
+    return builder.build();
+  }
+
+  private ProxySelector getDefaultProxySelector() {
+
+    Proxy proxy = getDefaultProxy();
+    if (proxy != Proxy.NO_PROXY) {
+      this.context.info("PROXY FOUND!!!");
+      SocketAddress address = proxy.address();
+      if (address instanceof InetSocketAddress) {
+        return ProxySelector.of((InetSocketAddress) address);
+      } else {
+        throw new IllegalStateException("Unsupported proxy address type: " + address.getClass().getName());
+      }
+    }
+    return ProxySelector.getDefault();
+  }
+
+  private Proxy getDefaultProxy() {
+
+    return ProxySelector.getDefault().select(URI.create("http://example.com")).stream().filter(p -> p.type() != Proxy.Type.DIRECT).findFirst()
+        .orElse(Proxy.NO_PROXY);
+  }
+
+  /**
+   * The constructor.
+   *
+   * to use.
+   */
   @Override
   public void download(String url, Path target) {
 
