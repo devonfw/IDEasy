@@ -48,11 +48,14 @@ public class AndroidStudio extends IdeToolCommandlet {
     Step stepRun = this.context.newStep("Running Android Studio");
     try {
       ProcessResult result;
-      if (this.context.getSystemInfo().isWindows()) {
-        result = runAndroidStudio(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
+      if (this.context.getSystemInfo().isMac()) {
+        result = runAndroidStudio(ProcessMode.BACKGROUND,
+            CliArgument.prepend(args, getToolPath().resolve("Contents").resolve("MacOS").resolve("studio").toString(),
+                this.context.getWorkspacePath().toString()));
       } else {
-        result = runAndroidStudio(ProcessMode.BACKGROUND, CliArgument.prepend(args, "open", "-na", this.context.getWorkspacePath().toString()));
+        result = runAndroidStudio(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
       }
+
       if (result.isSuccessful()) {
         stepRun.success("Running Android Studio successfully.");
       } else {
@@ -76,25 +79,18 @@ public class AndroidStudio extends IdeToolCommandlet {
    */
   protected ProcessResult runAndroidStudio(ProcessMode processMode, String... args) {
 
-    Path toolPath = null;
+    Path toolPath;
     // TODO: Check if this can be optimized.
     if (this.context.getSystemInfo().isWindows()) {
       toolPath = getToolBinPath().resolve(STUDIO64_EXE);
-    }
-
-    if (this.context.getSystemInfo().isLinux()) {
+    } else if (this.context.getSystemInfo().isLinux()) {
       toolPath = getToolBinPath().resolve(STUDIO_BASH);
-    }
-
-    if (this.context.getSystemInfo().isMac()) {
-      //      if (Files.exists(getToolBinPath().resolve(STUDIO))) {
-      toolPath = getToolPath().resolve("Studio.app").resolve("Contents").resolve("MacOS").resolve("studio");
-      //      }
+    } else {
+      toolPath = Path.of("open");
     }
 
     ProcessContext pc = this.context.newProcess();
 
-    assert toolPath != null;
     if (Files.exists(toolPath)) {
       pc.executable(toolPath);
     }
@@ -111,33 +107,6 @@ public class AndroidStudio extends IdeToolCommandlet {
   public boolean install(boolean silent) {
 
     return super.install(silent);
-  }
-
-  @Override
-  protected void postInstall() {
-
-    super.postInstall();
-    if (this.context.getSystemInfo().isMac()) {
-      if (getEdition().equals("ultimate")) {
-
-      } else {
-        this.context.getFileAccess().move(getToolPath().resolve("Android Studio Preview.app"), getToolPath().resolve("Studio.app"));
-        //        this.context.getFileAccess().mkdirs(getToolPath().resolve("bin"));
-        //        Path binaryFile;
-        //        try {
-        //          binaryFile = Files.createFile(getToolBinPath().resolve("studio"));
-        //          Files.writeString(binaryFile,
-        //              "#!/usr/bin/env bash\n'" + getToolPath().resolve("Studio.app").resolve("Contents").resolve("MacOS").resolve("studio") + "' \\$@");
-        //        } catch (IOException e) {
-        //          throw new RuntimeException(e);
-        //        }
-        //        // Setting execute permissions is only required if executed on a real MacOS, won't work on Windows.
-        //        if (SystemInfoImpl.INSTANCE.isMac()) {
-        //          setMacOsFilePermissions(binaryFile);
-        //        }
-
-      }
-    }
   }
 
   private static void setMacOsFilePermissions(Path binaryFile) {
