@@ -46,7 +46,8 @@ public class Intellij extends IdeToolCommandlet {
       ProcessResult result;
       if (this.context.getSystemInfo().isMac()) {
         Path ideaPath = getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA);
-        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, "-na", ideaPath.toString(), this.context.getWorkspacePath().toString()));
+        result = runIntelliJ(ProcessMode.BACKGROUND,
+            CliArgument.prepend(args, "-na", ideaPath.toString(), "--args", this.context.getWorkspacePath().toString()));
       } else {
         result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
       }

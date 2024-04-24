@@ -60,14 +60,20 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     // assert
     SystemInfo currentSystemInfo = context.getSystemInfo();
+
     if (currentSystemInfo.isMac()) {
-      assertLogMessage(context, IdeLogLevel.INFO, "intellij mac open -na " + context.getWorkspacePath());
+      String expectedMessage =
+          "Running command 'open' with arguments '-na' " + "'" + commandlet.getToolPath().resolve("Contents/MacOS/idea") + "' " + "'--args' '"
+              + this.context.getWorkspacePath() + "'" + " ...";
+      assertLogMessage(context, IdeLogLevel.DEBUG, expectedMessage);
     } else if (currentSystemInfo.isLinux()) {
-      assertLogMessage(context, IdeLogLevel.INFO, "intellij linux open -na " + context.getWorkspacePath());
+      assertLogMessage(context, IdeLogLevel.INFO, "intellij linux " + context.getWorkspacePath());
     } else if (currentSystemInfo.isWindows()) {
       assertLogMessage(context, IdeLogLevel.INFO, "intellij windows " + context.getWorkspacePath());
     }
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Running IntelliJ successfully.");
+    if (!currentSystemInfo.isMac()) {
+      assertLogMessage(context, IdeLogLevel.SUCCESS, "Running IntelliJ successfully.");
+    }
     checkInstallation(context);
   }
 
