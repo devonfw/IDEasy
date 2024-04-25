@@ -4,7 +4,6 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -63,16 +62,8 @@ public class IntellijTest extends AbstractIdeContextTest {
     SystemInfo currentSystemInfo = context.getSystemInfo();
 
     if (currentSystemInfo.isMac()) {
-      String openPath = "";
-      if (SystemInfoImpl.INSTANCE.isMac()) {
-        openPath = "/usr/bin/open";
-      } else {
-        openPath = "open";
-      }
-      String expectedMessageMac =
-          "Running command '" + openPath + "' with arguments '-na' " + "'" + commandlet.getToolPath().resolve("Contents/MacOS/idea") + "' " + "'--args' '"
-              + this.context.getWorkspacePath() + "'" + " ...";
-      assertLogMessage(context, IdeLogLevel.DEBUG, expectedMessageMac);
+      String expectedMessageMac = "intellij mac -na " + commandlet.getToolPath().resolve("Contents/MacOS/idea") + " --args " + this.context.getWorkspacePath();
+      assertLogMessage(context, IdeLogLevel.INFO, expectedMessageMac);
     } else if (currentSystemInfo.isLinux()) {
       assertLogMessage(context, IdeLogLevel.INFO, "intellij linux " + context.getWorkspacePath());
     } else if (currentSystemInfo.isWindows()) {
