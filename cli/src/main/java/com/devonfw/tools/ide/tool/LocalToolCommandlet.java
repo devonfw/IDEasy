@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.tool;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
@@ -252,20 +254,50 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         continue;
       }
       String defaultToolRepositoryId = this.context.getDefaultToolRepository().getId();
-      Path dependencyRepository = this.context.getSoftwareRepositoryPath().resolve(defaultToolRepositoryId)
-          .resolve(dependencyName).resolve(dependencyTool.getEdition());
+      Path dependencyRepository = this.context.getSoftwareRepositoryPath().resolve(defaultToolRepositoryId).resolve(dependencyName)
+          .resolve(dependencyTool.getEdition());
 
-      if (versionExistsInRepository(dependencyRepository, dependencyVersionRangeFound)) {
-        this.context.info("Necessary version of the dependency {} is already installed in repository", dependencyName);
-      } else {
-        this.context.info("The version {} of the dependency {} is being installed", dependencyVersionToInstall,
-            dependencyName);
+      Path versionExistingInRepository = versionExistsInRepository(dependencyRepository, dependencyVersionRangeFound);
+
+      if (versionExistingInRepository.equals(Path.of(""))) {
+        this.context.info("The version {} of the dependency {} is being installed", dependencyVersionToInstall, dependencyName);
         LocalToolCommandlet dependencyLocal = (LocalToolCommandlet) dependencyTool;
         dependencyLocal.installInRepo(dependencyVersionToInstall);
-        this.context.info("The version {} of the dependency {} was successfully installed", dependencyVersionToInstall,
-            dependencyName);
+        this.context.info("The version {} of the dependency {} was successfully installed", dependencyVersionToInstall, dependencyName);
+
+        if (getDependencyEnvironmentName().isEmpty()) {
+          setDependencyEnvironmentPath(dependencyName.toUpperCase() + "_HOME", dependencyRepository.resolve(dependencyVersionToInstall.toString()));
+        } else {
+          setDependencyEnvironmentPath(getDependencyEnvironmentName().toUpperCase(), dependencyRepository.resolve(dependencyVersionToInstall.toString()));
+        }
+
+      } else {
+        this.context.info("Necessary version of the dependency {} is already installed in repository", dependencyName);
+        if (getDependencyEnvironmentName().isEmpty()) {
+          setDependencyEnvironmentPath(dependencyName.toUpperCase() + "_HOME", versionExistingInRepository);
+        } else {
+          setDependencyEnvironmentPath(getDependencyEnvironmentName().toUpperCase(), versionExistingInRepository);
+        }
       }
     }
+  }
+
+  private void setDependencyEnvironmentPath(String dependencyEnvironmentName, Path dependencyPath) {
+
+    EnvironmentVariables variables = this.context.getVariables();
+    EnvironmentVariables typeVariables = variables.getByType(EnvironmentVariablesType.CONF);
+    typeVariables.set(dependencyEnvironmentName, dependencyPath.toString(), true);
+  }
+
+  /**
+   * Method to get return the specific name of the tool for setting the environment variable for the dependency. In the cases the environment variable of the
+   * dependency is just the dependency name and _HOME, this method returns an empty string, and the variable is set automatically
+   *
+   * @return the {@link String} of the dependency environment variable name, for example JAVA_HOME
+   */
+  protected String getDependencyEnvironmentName() {
+
+    return "";
   }
 
   private List<DependencyInfo> readJson() {
@@ -305,32 +337,30 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Method to check if in the repository of the dependency there is a Version greater or equal to the version range to
-   * be installed
+   * Method to check if in the repository of the dependency there is a Version greater or equal to the version range to be installed
    *
    * @param dependencyRepositoryPath the {@link Path} of the dependency repository
    * @param dependencyVersionRangeFound the {@link VersionRange} of the dependency version to be installed
-   *
    * @return the {@code true} if such version exists in repository already, or {@code false} otherwise
    */
-  private boolean versionExistsInRepository(Path dependencyRepositoryPath, VersionRange dependencyVersionRangeFound) {
+  private Path versionExistsInRepository(Path dependencyRepositoryPath, VersionRange dependencyVersionRangeFound) {
 
     try (Stream<Path> versions = Files.list(dependencyRepositoryPath)) {
       Iterator<Path> versionsIterator = versions.iterator();
       while (versionsIterator.hasNext()) {
         VersionIdentifier versionFound = VersionIdentifier.of(versionsIterator.next().getFileName().toString());
         if (dependencyVersionRangeFound.contains(versionFound)) {
-          return true;
+          assert versionFound != null;
+          return dependencyRepositoryPath.resolve(versionFound.toString());
         }
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to iterate through " + dependencyRepositoryPath, e);
     }
-    return false;
+    return Path.of("");
   }
 
-  private List<DependencyInfo> findDependenciesFromJson(Map<VersionRange, List<DependencyInfo>> dependencies,
-      VersionIdentifier toolVersionToCheck) {
+  private List<DependencyInfo> findDependenciesFromJson(Map<VersionRange, List<DependencyInfo>> dependencies, VersionIdentifier toolVersionToCheck) {
 
     for (Map.Entry<VersionRange, List<DependencyInfo>> map : dependencies.entrySet()) {
 

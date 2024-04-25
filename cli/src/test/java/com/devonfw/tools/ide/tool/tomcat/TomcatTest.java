@@ -3,45 +3,29 @@ package com.devonfw.tools.ide.tool.tomcat;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoMock;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 public class TomcatTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_TOMCAT = "tomcat";
 
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "linux", "mac" })
-  public void testTomcatInstall(String os) {
+  @Test
+  public void testTomcat() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_TOMCAT);
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
     Tomcat tomcatCommandlet = new Tomcat(context);
 
     // install
     tomcatCommandlet.install();
 
-    // assert
-    checkInstallation(context);
-    checkDependencyInstallation(context);
-  }
-
-  @Test
-  public void testTomcatRun() {
-
-    IdeTestContext context = newContext(PROJECT_TOMCAT);
-    Tomcat tomcatCommandlet = new Tomcat(context);
+    // run
     tomcatCommandlet.command.setValue(TomcatCommand.START);
-
-    // act
     tomcatCommandlet.run();
 
     // assert
+    checkInstallation(context);
+    checkDependencyInstallation(context);
     checkRunningTomcat(context);
   }
 
@@ -55,18 +39,20 @@ public class TomcatTest extends AbstractIdeContextTest {
   private void checkRunningTomcat(IdeTestContext context) {
 
     assertLogMessage(context, IdeLogLevel.INFO, "Tomcat is running at localhost on the following port (default 8080):");
-    assertLogMessage(context, IdeLogLevel.INFO, "49152");
+    assertLogMessage(context, IdeLogLevel.INFO, "8080");
+    assertLogMessage(context, IdeLogLevel.DEBUG,
+        "Set variable 'CATALINA_HOME=" + context.getSoftwarePath().resolve("tomcat") + "' in " + context.getConfPath().resolve("ide.properties"));
+    assertLogMessage(context, IdeLogLevel.DEBUG,
+        "Set variable 'JAVA_HOME=" + context.getSoftwareRepositoryPath().resolve("default").resolve("java").resolve("java").resolve("17.0.10_7") + "' in "
+            + context.getConfPath().resolve("ide.properties"));
 
   }
 
   private void checkInstallation(IdeTestContext context) {
 
-    if (context.getSystemInfo().isWindows() || context.getSystemInfo().isLinux()) {
-      assertThat(context.getSoftwarePath().resolve("tomcat/bin/tomcat")).exists().hasContent("#!/bin/bash\n" + "echo \"tomcat $*\"");
-      assertThat(context.getSoftwarePath().resolve("tomcat/bin/tomcat.cmd")).exists().hasContent("@echo off\n" + "echo tomcat %*");
-    } else if (context.getSystemInfo().isMac()) {
-      assertThat(context.getSoftwarePath().resolve("tomcat/tomcat")).exists();
-    }
+    assertThat(context.getSoftwarePath().resolve("tomcat/bin/startup.bat")).exists().hasContent("@echo test for windows");
+    assertThat(context.getSoftwarePath().resolve("tomcat/bin/startup.sh")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
+
     assertThat(context.getSoftwarePath().resolve("tomcat/.ide.software.version")).exists().hasContent("10.1.14");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed tomcat in version 10.1.14");
   }

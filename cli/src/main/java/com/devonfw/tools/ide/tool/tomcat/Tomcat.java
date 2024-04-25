@@ -31,13 +31,7 @@ public class Tomcat extends LocalToolCommandlet {
 
     super(context, "tomcat", Set.of(Tag.JAVA));
     this.command = add(new EnumProperty<>("", true, "command", TomcatCommand.class));
-    add(this.arguments);
-  }
-
-  @Override
-  public boolean install(boolean silent) {
-
-    return super.install(silent);
+    //  add(this.arguments);
   }
 
   @Override
@@ -55,7 +49,7 @@ public class Tomcat extends LocalToolCommandlet {
   @Override
   protected void initProperties() {
 
-    // Empty on purpose
+    // Empty on purpose, because no initial properties are added to the tool
   }
 
   @Override
