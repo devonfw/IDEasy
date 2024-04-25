@@ -14,7 +14,6 @@ public interface IdeSubLogger {
   }
 
   /**
-   * @param error the {@link Throwable} that was catched and should be logged or {@code null} for no error.
    * @param message the message to log.
    * @param args the dynamic arguments to fill in.
    * @return the message headline that was logged.
@@ -43,8 +42,8 @@ public interface IdeSubLogger {
   String log(Throwable error, String message, Object... args);
 
   /**
-   * @return {@code true} if this logger is enabled, {@code false} otherwise (this logger does nothing and all
-   *         {@link #log(String) logged messages} with be ignored).
+   * @return {@code true} if this logger is enabled, {@code false} otherwise (this logger does nothing and all {@link #log(String) logged messages} with be
+   * ignored). >>>>>>> main
    */
   boolean isEnabled();
 
