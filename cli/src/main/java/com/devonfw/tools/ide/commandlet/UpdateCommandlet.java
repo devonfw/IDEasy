@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.StringProperty;
 
 /**
  * {@link Commandlet} to update settings, software and repositories
