@@ -57,19 +57,19 @@ public class FileAccessImpl implements FileAccess {
 
   private final IdeContext context;
 
-  private final HttpClient client;
+  //  private final HttpClient client;
 
   public FileAccessImpl(IdeContext context) {
 
     super();
     this.context = context;
-    this.client = createHttpClient();
+    //    this.client = createHttpClient();
   }
 
-  private HttpClient createHttpClient() {
+  private HttpClient createHttpClient(String url) {
 
     HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
-    ProxySelector proxySelector = getDefaultProxySelector();
+    ProxySelector proxySelector = getDefaultProxySelector(url);
     if (proxySelector != ProxySelector.getDefault()) {
       this.context.info("PROXY selector different than default!!!");
       builder.proxy(proxySelector);
@@ -77,9 +77,9 @@ public class FileAccessImpl implements FileAccess {
     return builder.build();
   }
 
-  private ProxySelector getDefaultProxySelector() {
+  private ProxySelector getDefaultProxySelector(String url) {
 
-    Proxy proxy = getDefaultProxy();
+    Proxy proxy = getDefaultProxy(url);
     if (proxy != Proxy.NO_PROXY) {
       this.context.info("PROXY FOUND!!!");
       SocketAddress address = proxy.address();
@@ -105,10 +105,9 @@ public class FileAccessImpl implements FileAccess {
   //    return Proxy.NO_PROXY;
   //  }
 
-  private Proxy getDefaultProxy() {
+  private Proxy getDefaultProxy(String url) {
 
-    return ProxySelector.getDefault().select(URI.create("http://example.com")).stream().filter(p -> p.type() != Proxy.Type.DIRECT).findFirst()
-        .orElse(Proxy.NO_PROXY);
+    return ProxySelector.getDefault().select(URI.create(url)).stream().filter(p -> p.type() != Proxy.Type.DIRECT).findFirst().orElse(Proxy.NO_PROXY);
   }
 
   /**
@@ -125,7 +124,8 @@ public class FileAccessImpl implements FileAccess {
       if (url.startsWith("http")) {
 
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-        HttpResponse<InputStream> response = this.client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        HttpClient client = createHttpClient(url);
+        HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
 
         if (response.statusCode() == 200) {
           downloadFileWithProgressBar(url, target, response);
