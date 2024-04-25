@@ -71,6 +71,7 @@ public class FileAccessImpl implements FileAccess {
     HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
     ProxySelector proxySelector = getDefaultProxySelector();
     if (proxySelector != ProxySelector.getDefault()) {
+      this.context.info("PROXY selector different than default!!!");
       builder.proxy(proxySelector);
     }
     return builder.build();
@@ -90,6 +91,19 @@ public class FileAccessImpl implements FileAccess {
     }
     return ProxySelector.getDefault();
   }
+
+  //  private Proxy getDefaultProxy() {
+  //
+  //    String proxyHost = System.getProperty("http.proxyHost");
+  //    String proxyPort = System.getProperty("http.proxyPort");
+  //
+  //    if (proxyHost != null && proxyPort != null) {
+  //      int port = Integer.parseInt(proxyPort);
+  //      return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, port));
+  //    }
+  //
+  //    return Proxy.NO_PROXY;
+  //  }
 
   private Proxy getDefaultProxy() {
 
