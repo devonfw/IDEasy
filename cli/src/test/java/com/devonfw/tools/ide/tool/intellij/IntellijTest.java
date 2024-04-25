@@ -65,12 +65,10 @@ public class IntellijTest extends AbstractIdeContextTest {
     if (currentSystemInfo.isMac()) {
       String expectedMessage = "";
       String openPath = "";
-      if (currentSystemInfo.isMac()) {
-        if (SystemInfoImpl.INSTANCE.isMac()) {
-          openPath = "/usr/bin/open";
-        } else {
-          openPath = "open";
-        }
+      if (SystemInfoImpl.INSTANCE.isMac()) {
+        openPath = "/usr/bin/open";
+      } else {
+        openPath = "open";
       }
       expectedMessage =
           "Running command '" + openPath + "' with arguments '-na' " + "'" + commandlet.getToolPath().resolve("Contents/MacOS/idea") + "' " + "'--args' '"
