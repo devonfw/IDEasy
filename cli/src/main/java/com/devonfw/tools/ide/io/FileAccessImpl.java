@@ -70,7 +70,7 @@ public class FileAccessImpl implements FileAccess {
     HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
     Proxy proxy = getDefaultProxy(url);
     if (proxy != Proxy.NO_PROXY) {
-      this.context.info("PROXY selector different than default!!!");
+      this.context.info("Downloading through proxy: " + proxy);
       InetSocketAddress proxyAddress = (InetSocketAddress) proxy.address();
       builder.proxy(ProxySelector.of(proxyAddress));
     }
