@@ -63,17 +63,16 @@ public class IntellijTest extends AbstractIdeContextTest {
     SystemInfo currentSystemInfo = context.getSystemInfo();
 
     if (currentSystemInfo.isMac()) {
-      String expectedMessage = "";
       String openPath = "";
       if (SystemInfoImpl.INSTANCE.isMac()) {
         openPath = "/usr/bin/open";
       } else {
         openPath = "open";
       }
-      expectedMessage =
+      String expectedMessageMac =
           "Running command '" + openPath + "' with arguments '-na' " + "'" + commandlet.getToolPath().resolve("Contents/MacOS/idea") + "' " + "'--args' '"
               + this.context.getWorkspacePath() + "'" + " ...";
-      assertLogMessage(context, IdeLogLevel.DEBUG, expectedMessage);
+      assertLogMessage(context, IdeLogLevel.DEBUG, expectedMessageMac);
     } else if (currentSystemInfo.isLinux()) {
       assertLogMessage(context, IdeLogLevel.INFO, "intellij linux " + context.getWorkspacePath());
     } else if (currentSystemInfo.isWindows()) {
