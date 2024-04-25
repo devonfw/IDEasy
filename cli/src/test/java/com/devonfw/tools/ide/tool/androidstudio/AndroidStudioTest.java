@@ -13,9 +13,9 @@ import org.junit.jupiter.params.provider.ValueSource;
  */
 public class AndroidStudioTest extends AbstractIdeContextTest {
 
-  private static final String PROJECT_ANDROID_STUDIO = "android-studio";
+  private static final String ANDROID_STUDIO = "android-studio";
 
-  private final IdeTestContext context = newContext(PROJECT_ANDROID_STUDIO);
+  private final IdeTestContext context = newContext(ANDROID_STUDIO);
 
   /**
    * Tests if {@link AndroidStudio Android Studio IDE} can be installed.
@@ -27,14 +27,14 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
   public void testAndroidStudioInstall(String os) {
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
-    AndroidStudio commandlet = new AndroidStudio(context);
+    this.context.setSystemInfo(systemInfo);
+    AndroidStudio commandlet = new AndroidStudio(this.context);
 
     // act
     commandlet.install();
 
     // assert
-    checkInstallation(context);
+    checkInstallation(this.context);
   }
 
   /**
@@ -47,23 +47,24 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
   public void testAndroidStudioRun(String os) {
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
-    AndroidStudio commandlet = new AndroidStudio(context);
+    this.context.setSystemInfo(systemInfo);
+    AndroidStudio commandlet = new AndroidStudio(this.context);
 
     // act
     commandlet.run();
 
     // assert
-    if (context.getSystemInfo().isMac()) {
-      assertLogMessage(context, IdeLogLevel.INFO, "android-studio mac open -na " + context.getWorkspacePath());
+    if (this.context.getSystemInfo().isMac()) {
+      assertLogMessage(this.context, IdeLogLevel.INFO,
+          ANDROID_STUDIO + " mac -na " + commandlet.getToolPath().resolve("Contents/MacOS/studio") + " --args " + this.context.getWorkspacePath());
+    } else if (this.context.getSystemInfo().isLinux()) {
+      assertLogMessage(this.context, IdeLogLevel.INFO, ANDROID_STUDIO + " linux " + this.context.getWorkspacePath());
+    } else if (this.context.getSystemInfo().isWindows()) {
+      assertLogMessage(this.context, IdeLogLevel.INFO, ANDROID_STUDIO + " windows " + this.context.getWorkspacePath());
     }
-    if (context.getSystemInfo().isLinux()) {
-      assertLogMessage(context, IdeLogLevel.INFO, "android-studio linux open -na " + context.getWorkspacePath());
-    }
-    if (context.getSystemInfo().isWindows()) {
-      assertLogMessage(context, IdeLogLevel.INFO, "android-studio windows " + context.getWorkspacePath());
-    }
-    checkInstallation(context);
+
+    assertLogMessage(this.context, IdeLogLevel.SUCCESS, "Running Android Studio successfully.");
+    checkInstallation(this.context);
   }
 
   private void checkInstallation(IdeTestContext context) {

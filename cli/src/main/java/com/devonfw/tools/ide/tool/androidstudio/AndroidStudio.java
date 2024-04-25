@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.androidstudio;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -12,11 +11,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
 /**
@@ -49,9 +44,9 @@ public class AndroidStudio extends IdeToolCommandlet {
     try {
       ProcessResult result;
       if (this.context.getSystemInfo().isMac()) {
+        Path studioPath = getToolPath().resolve("Contents").resolve("MacOS").resolve(STUDIO);
         result = runAndroidStudio(ProcessMode.BACKGROUND,
-            CliArgument.prepend(args, getToolPath().resolve("Contents").resolve("MacOS").resolve("studio").toString(),
-                this.context.getWorkspacePath().toString()));
+            CliArgument.prepend(args, "-na", studioPath.toString(), "--args", this.context.getWorkspacePath().toString()));
       } else {
         result = runAndroidStudio(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
       }
@@ -91,9 +86,7 @@ public class AndroidStudio extends IdeToolCommandlet {
 
     ProcessContext pc = this.context.newProcess();
 
-    if (Files.exists(toolPath)) {
-      pc.executable(toolPath);
-    }
+    pc.executable(toolPath);
 
     if (processMode == ProcessMode.DEFAULT_CAPTURE) {
       pc.errorHandling(ProcessErrorHandling.ERROR);
@@ -107,19 +100,6 @@ public class AndroidStudio extends IdeToolCommandlet {
   public boolean install(boolean silent) {
 
     return super.install(silent);
-  }
-
-  private static void setMacOsFilePermissions(Path binaryFile) {
-
-    if (Files.exists(binaryFile)) {
-      String permissionStr = FileAccessImpl.generatePermissionString(111);
-      Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
-      try {
-        Files.setPosixFilePermissions(binaryFile, permissions);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
   }
 
   @Override
