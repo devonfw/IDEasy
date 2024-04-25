@@ -23,7 +23,6 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.ProxySelector;
-import java.net.SocketAddress;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -69,41 +68,14 @@ public class FileAccessImpl implements FileAccess {
   private HttpClient createHttpClient(String url) {
 
     HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
-    ProxySelector proxySelector = getDefaultProxySelector(url);
-    if (proxySelector != ProxySelector.getDefault()) {
+    Proxy proxy = getDefaultProxy(url);
+    if (proxy != Proxy.NO_PROXY) {
       this.context.info("PROXY selector different than default!!!");
-      builder.proxy(proxySelector);
+      InetSocketAddress proxyAddress = (InetSocketAddress) proxy.address();
+      builder.proxy(ProxySelector.of(proxyAddress));
     }
     return builder.build();
   }
-
-  private ProxySelector getDefaultProxySelector(String url) {
-
-    Proxy proxy = getDefaultProxy(url);
-    if (proxy != Proxy.NO_PROXY) {
-      this.context.info("PROXY FOUND!!!");
-      SocketAddress address = proxy.address();
-      if (address instanceof InetSocketAddress) {
-        return ProxySelector.of((InetSocketAddress) address);
-      } else {
-        throw new IllegalStateException("Unsupported proxy address type: " + address.getClass().getName());
-      }
-    }
-    return ProxySelector.getDefault();
-  }
-
-  //  private Proxy getDefaultProxy() {
-  //
-  //    String proxyHost = System.getProperty("http.proxyHost");
-  //    String proxyPort = System.getProperty("http.proxyPort");
-  //
-  //    if (proxyHost != null && proxyPort != null) {
-  //      int port = Integer.parseInt(proxyPort);
-  //      return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, port));
-  //    }
-  //
-  //    return Proxy.NO_PROXY;
-  //  }
 
   private Proxy getDefaultProxy(String url) {
 
