@@ -104,7 +104,9 @@ public class Mvn extends PluginBasedCommandlet {
     try {
       String content = Files.readString(settingsTemplate);
 
-      if (!getSettingsGitUrl().equals(IDE_SETTINGS_GIT_URL)) {
+      String gitSettingsUrl = this.context.getGitContext().retrieveGitUrl(this.context.getSettingsPath());
+
+      if (!gitSettingsUrl.equals(IDE_SETTINGS_GIT_URL)) {
         List<String> variables = findVariables(content);
         for (String variable : variables) {
           String secret = getEncryptedPassword(variable);
@@ -143,19 +145,6 @@ public class Mvn extends PluginBasedCommandlet {
       variables.add(matcher.group(1));
     }
     return variables;
-  }
-
-  private String getSettingsGitUrl() {
-
-    ProcessContext pc = this.context.newProcess().executable("git");
-    pc.addArgs("-C", this.context.getSettingsPath(), "remote", "-v");
-    ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
-    for (String line : result.getOut()) {
-      if (line.contains("(fetch)")) {
-        return line.split("\\s+")[1]; // Extract the URL from the line
-      }
-    }
-    throw new IllegalStateException("Failed to retrieve settings git URL.");
   }
 
   @Override
