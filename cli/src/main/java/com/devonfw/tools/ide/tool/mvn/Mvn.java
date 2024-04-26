@@ -27,7 +27,11 @@ import java.util.regex.Pattern;
  */
 public class Mvn extends PluginBasedCommandlet {
 
-  private final String IDE_SETTINGS_GIT_URL = "https://github.com/devonfw/ide-settings.git";
+  private static final String IDE_SETTINGS_GIT_URL = "https://github.com/devonfw/ide-settings.git";
+
+  private final Path SETTINGS_SECURITY_FILE = this.context.getIdeHome().resolve("conf/.m2/settings-security.xml");
+
+  private final Path SETTINGS_FILE = this.context.getConfPath().resolve(".m2/settings.xml");
 
   /**
    * The constructor.
@@ -49,22 +53,21 @@ public class Mvn extends PluginBasedCommandlet {
   @Override
   public void postInstall() {
 
-    Path settingsSecurityFile = this.context.getIdeHome().resolve("conf/.m2/settings-security.xml");
-    if (!Files.exists(settingsSecurityFile)) {
-      Step step = this.context.newStep("Create mvn settings security file at " + settingsSecurityFile);
+    if (!Files.exists(SETTINGS_SECURITY_FILE)) {
+      Step step = this.context.newStep("Create mvn settings security file at " + SETTINGS_SECURITY_FILE);
       try {
-        createSettingsSecurityFile(settingsSecurityFile);
+        createSettingsSecurityFile(SETTINGS_SECURITY_FILE);
         step.success();
       } finally {
         step.end();
+
       }
     }
 
-    Path settingsFile = this.context.getConfPath().resolve(".m2/settings.xml");
-    if (!Files.exists(settingsFile)) {
-      Step step = this.context.newStep("Create mvn settings file at " + settingsFile);
+    if (!Files.exists(SETTINGS_FILE)) {
+      Step step = this.context.newStep("Create mvn settings file at " + SETTINGS_FILE);
       try {
-        createSettingsFile(settingsFile);
+        createSettingsFile(SETTINGS_FILE);
         step.success();
       } finally {
         step.end();
@@ -158,7 +161,7 @@ public class Mvn extends PluginBasedCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    Path mavenPlugin = this.context.getSoftwarePath().resolve(this.tool).resolve("lib/ext/" + plugin.getName() + ".jar");
+    Path mavenPlugin = this.getToolPath().resolve("lib/ext/" + plugin.getName() + ".jar");
     this.context.getFileAccess().download(plugin.getUrl(), mavenPlugin);
     if (Files.exists(mavenPlugin)) {
       this.context.success("Successfully added {} to {}", plugin.getName(), mavenPlugin.toString());
