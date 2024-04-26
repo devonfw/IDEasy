@@ -56,19 +56,21 @@ public class FileAccessImpl implements FileAccess {
 
   private final IdeContext context;
 
-  //  private final HttpClient client;
-
+  /**
+   * The constructor.
+   *
+   * @param context the {@link IdeContext} to use.
+   */
   public FileAccessImpl(IdeContext context) {
 
     super();
     this.context = context;
-    //    this.client = createHttpClient();
   }
 
   private HttpClient createHttpClient(String url) {
 
     HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
-    Proxy proxy = getDefaultProxy(url);
+    Proxy proxy = getProxy(url);
     if (proxy != Proxy.NO_PROXY) {
       this.context.info("Downloading through proxy: " + proxy);
       InetSocketAddress proxyAddress = (InetSocketAddress) proxy.address();
@@ -77,16 +79,11 @@ public class FileAccessImpl implements FileAccess {
     return builder.build();
   }
 
-  private Proxy getDefaultProxy(String url) {
+  private Proxy getProxy(String url) {
 
     return ProxySelector.getDefault().select(URI.create(url)).stream().filter(p -> p.type() != Proxy.Type.DIRECT).findFirst().orElse(Proxy.NO_PROXY);
   }
 
-  /**
-   * The constructor.
-   *
-   * to use.
-   */
   @Override
   public void download(String url, Path target) {
 
@@ -114,6 +111,10 @@ public class FileAccessImpl implements FileAccess {
         }
       }
     } catch (Exception e) {
+      if (getProxy(url) != Proxy.NO_PROXY) {
+        //TODO: implement message for wrong host or port
+        this.context.warning("");
+      }
       throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, e);
     }
   }
