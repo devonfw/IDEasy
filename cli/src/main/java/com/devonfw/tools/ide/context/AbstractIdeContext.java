@@ -1,19 +1,5 @@
 package com.devonfw.tools.ide.context;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
-
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -50,7 +36,9 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -80,6 +68,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   private Path settingsPath;
 
   private Path softwarePath;
+
+  private Path softwareExtraPath;
 
   private Path softwareRepositoryPath;
 
@@ -247,12 +237,14 @@ public abstract class AbstractIdeContext implements IdeContext {
       this.confPath = null;
       this.settingsPath = null;
       this.softwarePath = null;
+      this.softwareExtraPath = null;
       this.pluginsPath = null;
     } else {
       this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
       this.confPath = this.ideHome.resolve(FOLDER_CONF);
       this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
       this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
+      this.softwareExtraPath = this.softwarePath.resolve(FOLDER_EXTRA);
       this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
     }
     if (isTest()) {
@@ -469,6 +461,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   public Path getSoftwarePath() {
 
     return this.softwarePath;
+  }
+
+  @Override
+  public Path getSoftwareExtraPath() {
+
+    return this.softwareExtraPath;
   }
 
   @Override
