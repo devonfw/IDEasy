@@ -82,6 +82,9 @@ public interface IdeContext extends IdeLogger {
   /** The name of the app folder inside a MacOS app. */
   String FOLDER_APP = "app";
 
+  /** The name of the extra folder inside the software folder */
+  String FOLDER_EXTRA = "extra";
+
   /**
    * The name of the {@link #getPluginsPath() plugins folder} and also the plugins folder inside the IDE folders of {@link #getSettingsPath() settings} (e.g.
    * settings/eclipse/plugins).
@@ -310,6 +313,12 @@ public interface IdeContext extends IdeLogger {
    * {@link #getSoftwareRepositoryPath() software repository} as sub-folder named after the according tool.
    */
   Path getSoftwarePath();
+
+  /**
+   * @return the {@link Path} to the extra folder inside software folder inside {@link #getIdeHome() IDE_HOME}. All tools for that IDE instance will be linked
+   * here from the {@link #getSoftwareRepositoryPath() software repository} as sub-folder named after the according tool.
+   */
+  Path getSoftwareExtraPath();
 
   /**
    * @return the {@link Path} to the global software repository. This is the central directory where the tools are extracted physically on the local disc. Those
