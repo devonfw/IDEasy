@@ -56,6 +56,10 @@ public class FileAccessImpl implements FileAccess {
 
   private final IdeContext context;
 
+  private static final String PROXY_FORMAT_WARNING_MESSAGE =
+      "Please note that IDEasy can properly detect a proxy only if the proxy environmental variables are formatted with separate values to store the host and the port. "
+          + "For example, use HTTP_PROXY_HOST=<host> and HTTP_PROXY_PORT=<port>.";
+
   /**
    * The constructor.
    *
@@ -112,8 +116,7 @@ public class FileAccessImpl implements FileAccess {
       }
     } catch (Exception e) {
       if (getProxy(url) != Proxy.NO_PROXY) {
-        //TODO: implement message for wrong host or port
-        this.context.warning("");
+        this.context.warning(PROXY_FORMAT_WARNING_MESSAGE);
       }
       throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, e);
     }
