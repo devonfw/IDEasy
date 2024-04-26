@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.tool.java.Java;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -28,10 +29,6 @@ import java.util.regex.Pattern;
 public class Mvn extends PluginBasedCommandlet {
 
   private static final String IDE_SETTINGS_GIT_URL = "https://github.com/devonfw/ide-settings.git";
-
-  private final Path SETTINGS_SECURITY_FILE = this.context.getIdeHome().resolve("conf/.m2/settings-security.xml");
-
-  private final Path SETTINGS_FILE = this.context.getConfPath().resolve(".m2/settings.xml");
 
   /**
    * The constructor.
@@ -53,21 +50,22 @@ public class Mvn extends PluginBasedCommandlet {
   @Override
   public void postInstall() {
 
-    if (!Files.exists(SETTINGS_SECURITY_FILE)) {
-      Step step = this.context.newStep("Create mvn settings security file at " + SETTINGS_SECURITY_FILE);
+    final Path settingsSecurityFile = this.context.getIdeHome().resolve("conf/.m2/settings-security.xml");
+    if (!Files.exists(settingsSecurityFile)) {
+      Step step = this.context.newStep("Create mvn settings security file at " + settingsSecurityFile);
       try {
-        createSettingsSecurityFile(SETTINGS_SECURITY_FILE);
+        createSettingsSecurityFile(settingsSecurityFile);
         step.success();
       } finally {
         step.end();
-
       }
     }
 
-    if (!Files.exists(SETTINGS_FILE)) {
-      Step step = this.context.newStep("Create mvn settings file at " + SETTINGS_FILE);
+    final Path settingsFile = this.context.getConfPath().resolve(".m2/settings.xml");
+    if (!Files.exists(settingsFile)) {
+      Step step = this.context.newStep("Create mvn settings file at " + settingsFile);
       try {
-        createSettingsFile(SETTINGS_FILE);
+        createSettingsFile(settingsFile);
         step.success();
       } finally {
         step.end();
@@ -114,8 +112,10 @@ public class Mvn extends PluginBasedCommandlet {
         }
       }
       Files.writeString(settingsFile, content);
+    } catch (NoSuchFileException e) {
+      throw new IllegalStateException("Settings template file not found: " + settingsTemplate, e);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to write to file " + settingsFile, e);
+      throw new IllegalStateException("Failed to create settings file: " + settingsFile, e);
     }
   }
 
