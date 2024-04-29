@@ -51,6 +51,38 @@ public class DotNetTest extends AbstractIdeContextTest {
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed dotnet in version 6.0.419", false);
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  public void dotnetShouldRunExecutableSuccessful(String os) {
+
+    String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
+    String expectedOutputLinux = "Dummy dotnet 6.0.419 on linux ";
+    String expectedOutputMacOs = "Dummy dotnet 6.0.419 on mac ";
+    runExecutable(os);
+
+    if (context.getSystemInfo().isWindows()) {
+      checkExpectedOutput(expectedOutputWindows);
+    } else if (context.getSystemInfo().isLinux()) {
+      checkExpectedOutput(expectedOutputLinux);
+    } else if (context.getSystemInfo().isMac()) {
+      checkExpectedOutput(expectedOutputMacOs);
+    }
+  }
+
+  private void checkExpectedOutput(String expectedOutput) {
+
+    assertLogMessage(context, IdeLogLevel.INFO, expectedOutput);
+  }
+
+  private void runExecutable(String operatingSystem) {
+
+    SystemInfo systemInfo = SystemInfoMock.of(operatingSystem);
+    context.setSystemInfo(systemInfo);
+    assignDummyUserHome(context, "dummyUserHome");
+
+    commandlet.run();
+  }
+
   private static void assignDummyUserHome(IdeTestContext context, String pathString) {
 
     Path dummyUserHomePath = PROJECTS_TARGET_PATH.resolve(PROJECT_DOTNET).resolve(pathString);

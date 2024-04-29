@@ -1,1 +1,1 @@
-echo Dummy dotnet 6.0.419 on windows %*> dotnetTestResult.txt
+echo Dummy dotnet 6.0.419 on windows %*
