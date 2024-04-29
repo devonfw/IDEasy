@@ -252,5 +252,4 @@ public abstract class AbstractIdeContextTest extends Assertions {
     long restSize = maxSize % CHUNK_SIZE;
     assertProgressBar(context, taskName, maxSize, CHUNK_SIZE, chunkCount, restSize);
   }
-
 }
