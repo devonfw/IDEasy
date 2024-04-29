@@ -30,6 +30,8 @@ public class Mvn extends PluginBasedCommandlet {
 
   private static final String IDE_SETTINGS_GIT_URL = "https://github.com/devonfw/ide-settings.git";
 
+  private static final String ERROR_CONFIGURATION_MESSAGE = "A problem occurred while configuring maven. Please try to reinstall the tool. If the problem persists, consider reinstalling IDEasy.";
+
   /**
    * The constructor.
    *
@@ -50,7 +52,7 @@ public class Mvn extends PluginBasedCommandlet {
   @Override
   public void postInstall() {
 
-    final Path settingsSecurityFile = this.context.getIdeHome().resolve("conf/.m2/settings-security.xml");
+    Path settingsSecurityFile = this.context.getConfPath().resolve(".m2/settings-security.xml");
     if (!Files.exists(settingsSecurityFile)) {
       Step step = this.context.newStep("Create mvn settings security file at " + settingsSecurityFile);
       try {
@@ -61,7 +63,7 @@ public class Mvn extends PluginBasedCommandlet {
       }
     }
 
-    final Path settingsFile = this.context.getConfPath().resolve(".m2/settings.xml");
+    Path settingsFile = this.context.getConfPath().resolve(".m2/settings.xml");
     if (!Files.exists(settingsFile)) {
       Step step = this.context.newStep("Create mvn settings file at " + settingsFile);
       try {
@@ -94,6 +96,7 @@ public class Mvn extends PluginBasedCommandlet {
     try {
       Files.writeString(settingsSecurityFile, settingsSecurityXml);
     } catch (IOException e) {
+      this.context.error(ERROR_CONFIGURATION_MESSAGE);
       throw new IllegalStateException("Failed to create file " + settingsSecurityFile, e);
     }
   }
@@ -115,8 +118,10 @@ public class Mvn extends PluginBasedCommandlet {
       }
       Files.writeString(settingsFile, content);
     } catch (NoSuchFileException e) {
+      this.context.error(ERROR_CONFIGURATION_MESSAGE);
       throw new IllegalStateException("Settings template file not found: " + settingsTemplate, e);
     } catch (IOException e) {
+      this.context.error(ERROR_CONFIGURATION_MESSAGE);
       throw new IllegalStateException("Failed to create settings file: " + settingsFile, e);
     }
   }
