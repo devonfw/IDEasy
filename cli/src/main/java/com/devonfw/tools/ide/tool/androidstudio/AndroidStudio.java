@@ -66,16 +66,15 @@ public class AndroidStudio extends IdeToolCommandlet {
   }
 
   /**
-   * Runs AndroidStudio application.
+   * Runs the Android Studio application.
    *
    * @param processMode - the {@link ProcessMode}.
    * @param args the individual arguments to pass to Android Studio.
    * @return the {@link ProcessResult}.
    */
-  protected ProcessResult runAndroidStudio(ProcessMode processMode, String... args) {
+  private ProcessResult runAndroidStudio(ProcessMode processMode, String... args) {
 
     Path toolPath;
-    // TODO: Check if this can be optimized.
     if (this.context.getSystemInfo().isWindows()) {
       toolPath = getToolBinPath().resolve(STUDIO64_EXE);
     } else if (this.context.getSystemInfo().isLinux()) {
