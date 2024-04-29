@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -13,7 +12,6 @@ import java.nio.file.Path;
 public class CreateCommandlet extends AbstractUpdateCommandlet {
 
   public final StringProperty newProject;
-
 
   /**
    * The constructor.

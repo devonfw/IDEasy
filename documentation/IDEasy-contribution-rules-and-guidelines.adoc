@@ -20,10 +20,10 @@ is already a solution implemented. The PR may be in draft state,
 otherwise the PR should be in one of the following two columns.
 * *Team Review*: [.underline]#Pull Request# that is to be or currently
 under review by a member of the dev team. The reviewer is the assignee
-of the PR.
+of the PR and the author remains assignee (2 assignees).
 * *In Review*: [.underline]#Pull Request# that is to be or currently
-under review by a final reviewer that should also be the assignee of the
-PR. Typically the final reviewer is the Project Owner (currently
+under review by a final reviewer that is the assignee of the
+PR together with the author (2 assignees). Typically the final reviewer is the Project Owner (currently
 hohwille) but it may also be done by team members with longer experience
 in the project.
 * *Done*: [.underline]#Issues# and [.underline]#Pull Request# that have
