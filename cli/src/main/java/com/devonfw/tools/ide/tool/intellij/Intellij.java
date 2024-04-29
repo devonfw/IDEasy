@@ -1,32 +1,17 @@
 package com.devonfw.tools.ide.tool.intellij;
 
-import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Set;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
  */
 public class Intellij extends IdeToolCommandlet {
-
-  private static final String IDEA = "idea";
-
-  private static final String IDEA64_EXE = IDEA + "64.exe";
-
-  private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
 
   /**
    * The constructor.
@@ -39,63 +24,6 @@ public class Intellij extends IdeToolCommandlet {
   }
 
   @Override
-  protected void runIde(String... args) {
-
-    install(true);
-
-    Step stepRun = this.context.newStep("Running IntelliJ");
-    try {
-      ProcessResult result;
-      if (this.context.getSystemInfo().isMac()) {
-        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, "open", "-na", this.context.getWorkspacePath().toString()));
-      } else {
-        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
-      }
-      if (result.isSuccessful()) {
-        stepRun.success("Running IntelliJ successfully.");
-      } else {
-        stepRun.isFailure();
-      }
-
-    } catch (Exception e) {
-      stepRun.error(e, "Failed to start IntelliJ.");
-    } finally {
-      stepRun.end();
-    }
-
-  }
-
-  /**
-   * Runs IntelliJ application.
-   *
-   * @param processMode - the {@link ProcessMode}.
-   * @param args the individual arguments to pass to IntelliJ.
-   * @return the {@link ProcessResult}.
-   */
-  protected ProcessResult runIntelliJ(ProcessMode processMode, String... args) {
-
-    Path toolPath;
-    toolPath = getToolBinPath().resolve(IDEA64_EXE);
-    if (!Files.exists(toolPath)) {
-      toolPath = getToolBinPath().resolve(IDEA);
-    }
-    if (!Files.exists(toolPath)) {
-      toolPath = getToolPath().resolve(IDEA);
-    }
-
-    ProcessContext pc = this.context.newProcess();
-
-    if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-      pc.errorHandling(ProcessErrorHandling.ERROR);
-    }
-
-    pc.executable(toolPath);
-    pc.addArgs(args);
-
-    return pc.run(processMode);
-  }
-
-  @Override
   public boolean install(boolean silent) {
 
     getCommandlet(Java.class).install();
@@ -105,21 +33,8 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    // no override needed
+    // TODO Auto-generated method stub
+
   }
 
-  @Override
-  public void postInstall() {
-
-    super.postInstall();
-
-    Path binPath = getToolBinPath();
-    if (SystemInfoImpl.INSTANCE.isLinux()) {
-      Path ideaShLink = binPath.resolve(IDEA_BASH_SCRIPT);
-      Path ideaLink = binPath.resolve(IDEA);
-      if (Files.exists(ideaShLink)) {
-        this.context.getFileAccess().symlink(ideaShLink, ideaLink, true);
-      }
-    }
-  }
 }
