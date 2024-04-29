@@ -57,8 +57,8 @@ public class DotNetTest extends AbstractIdeContextTest {
     String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
     if (SystemInfoImpl.INSTANCE.isWindows()) {
       runExecutable("windows");
+      checkExpectedOutput(expectedOutputWindows);
     }
-    checkExpectedOutput(expectedOutputWindows);
   }
 
   @ParameterizedTest
