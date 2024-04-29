@@ -106,12 +106,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       fileAccess.mkdirs(toolPath.getParent());
       fileAccess.symlink(installation.linkDir(), toolPath);
       this.context.getPath().setPath(this.tool, installation.binDir());
+      postInstall();
       if (installedVersion == null) {
         step.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
       } else {
         step.success("Successfully installed {} in version {} replacing previous version {}", this.tool, resolvedVersion, installedVersion);
       }
-      postInstall();
       return true;
     } catch (RuntimeException e) {
       step.error(e, true);

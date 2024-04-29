@@ -29,8 +29,7 @@ public interface IdeVariables {
   VariableDefinitionPath WORKSPACE_PATH = new VariableDefinitionPath("WORKSPACE_PATH", null, c -> c.getWorkspacePath(), true);
 
   /** {@link VariableDefinition} for list of tools to install by default. */
-  VariableDefinitionStringList IDE_TOOLS = new VariableDefinitionStringList("IDE_TOOLS", "DEVON_IDE_TOOLS",
-      c -> List.of("mvn", "npm"));
+  VariableDefinitionStringList IDE_TOOLS = new VariableDefinitionStringList("IDE_TOOLS", "DEVON_IDE_TOOLS", c -> List.of("mvn", "npm"));
 
   /** {@link VariableDefinition} for list of IDE tools to create start scripts for. */
   VariableDefinitionStringList CREATE_START_SCRIPTS = new VariableDefinitionStringList("CREATE_START_SCRIPTS", "DEVON_CREATE_START_SCRIPTS");
@@ -49,15 +48,17 @@ public interface IdeVariables {
   VariableDefinitionString DOCKER_EDITION = new VariableDefinitionString("DOCKER_EDITION", null, c -> "rancher");
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
-  VariableDefinitionString GRAALVM_EDITION = new VariableDefinitionString("GRAALVM_EDITION", null, c -> "community");
 
   /** {@link VariableDefinition} for options of jasypt */
   VariableDefinitionString JASYPT_OPTS = new VariableDefinitionString("JASYPT_OPTS", null,
       c -> "algorithm=PBEWITHHMACSHA512ANDAES_256 ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator");
 
+  /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() PROJECT_NAME}. */
+  VariableDefinitionString PROJECT_NAME = new VariableDefinitionString("PROJECT_NAME", null, c -> c.getProjectName());
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, CREATE_START_SCRIPTS,
-      IDE_MIN_VERSION, MVN_VERSION, DOCKER_EDITION, GRAALVM_EDITION, JASYPT_OPTS, MAVEN_ARGS);
+      IDE_MIN_VERSION, MVN_VERSION, DOCKER_EDITION, JASYPT_OPTS, MAVEN_ARGS, PROJECT_NAME);
 
   /**
    * @param name the name of the requested {@link VariableDefinition}.
