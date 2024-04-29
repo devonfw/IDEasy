@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.mvn;
 
 import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -107,9 +108,11 @@ public class Mvn extends PluginBasedCommandlet {
     try {
       String content = Files.readString(settingsTemplate);
 
-      String gitSettingsUrl = this.context.getGitContext().retrieveGitUrl(this.context.getSettingsPath());
+      GitContext gitContext = this.context.getGitContext();
 
-      if (!gitSettingsUrl.equals(IDE_SETTINGS_GIT_URL)) {
+      String gitSettingsUrl = gitContext.retrieveGitUrl(this.context.getSettingsPath());
+
+      if (gitSettingsUrl == null || !gitSettingsUrl.equals(gitContext.DEFAULT_SETTINGS_GIT_URL)) {
         List<String> variables = findVariables(content);
         for (String variable : variables) {
           String secret = getEncryptedPassword(variable);

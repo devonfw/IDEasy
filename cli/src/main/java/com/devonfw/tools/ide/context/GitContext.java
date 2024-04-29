@@ -12,6 +12,9 @@ public interface GitContext {
   /** The default git remote name. */
   String DEFAULT_REMOTE = "origin";
 
+  /** The default git url of the settings repository for IDEasy developers */
+  String DEFAULT_SETTINGS_GIT_URL = "https://github.com/devonfw/ide-settings.git";
+
   /**
    * Checks if the Git repository in the specified target folder needs an update by inspecting the modification time of a magic file.
    *
@@ -145,7 +148,7 @@ public interface GitContext {
   /**
    * Returns the URL of a git repository
    *
-   * @param repository the {@link Path} to the folder where the git repository should be hosted.
+   * @param repository the {@link Path} to the folder where the git repository is located.
    * @return the url of the repository as a {@link String}.
    */
   String retrieveGitUrl(Path repository);

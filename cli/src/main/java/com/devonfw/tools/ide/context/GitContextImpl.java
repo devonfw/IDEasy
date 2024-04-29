@@ -269,7 +269,8 @@ public class GitContextImpl implements GitContext {
       }
     }
 
-    throw new IllegalStateException("Failed to retrieve git URL for repository: " + repository);
+    this.context.error("Failed to retrieve git URL for repository: " + repository);
+    return null;
   }
 }
 
