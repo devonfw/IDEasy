@@ -1,0 +1,3 @@
+#!/bin/bash
+
+echo "Dummy dotnet 6.0.419 on linux $*"
