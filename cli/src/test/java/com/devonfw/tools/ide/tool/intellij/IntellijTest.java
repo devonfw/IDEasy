@@ -69,9 +69,7 @@ public class IntellijTest extends AbstractIdeContextTest {
     } else if (currentSystemInfo.isWindows()) {
       assertLogMessage(context, IdeLogLevel.INFO, "intellij windows " + context.getWorkspacePath());
     }
-    if (!currentSystemInfo.isMac()) {
-      assertLogMessage(context, IdeLogLevel.SUCCESS, "Running IntelliJ successfully.");
-    }
+
     checkInstallation(context);
   }
 

@@ -3,11 +3,7 @@ package com.devonfw.tools.ide.tool.intellij;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
@@ -40,62 +36,26 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
+    if (this.context.getSystemInfo().isMac()) {
+      Path studioPath = getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA);
+      args = CliArgument.prepend(args, "-na", studioPath.toString(), "--args", this.context.getWorkspacePath().toString());
+    } else {
+      args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
+    }
+
     super.runTool(processMode, toolVersion, args);
-
-    Step stepRun = this.context.newStep("Running IntelliJ");
-    try {
-      ProcessResult result;
-      if (this.context.getSystemInfo().isMac()) {
-        Path ideaPath = getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA);
-        result = runIntelliJ(ProcessMode.BACKGROUND,
-            CliArgument.prepend(args, "-na", ideaPath.toString(), "--args", this.context.getWorkspacePath().toString()));
-      } else {
-        result = runIntelliJ(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
-      }
-      if (result.isSuccessful()) {
-        stepRun.success("Running IntelliJ successfully.");
-      } else {
-        stepRun.isFailure();
-      }
-    } catch (Exception e) {
-      stepRun.error(e, "Failed to run IntelliJ.");
-    } finally {
-      stepRun.end();
-    }
-  }
-
-  /**
-   * Runs IntelliJ application.
-   *
-   * @param processMode - the {@link ProcessMode}.
-   * @param args the individual arguments to pass to IntelliJ.
-   * @return the {@link ProcessResult}.
-   */
-  protected ProcessResult runIntelliJ(ProcessMode processMode, String... args) {
-
-    Path toolPath = getToolPath();
-    ProcessContext pc = this.context.newProcess();
-    if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-      pc.errorHandling(ProcessErrorHandling.ERROR);
-    }
-    pc.executable(toolPath);
-    pc.addArgs(args);
-
-    return pc.run(processMode);
   }
 
   @Override
-  public Path getToolPath() {
+  protected String getBinaryName() {
 
-    Path toolPath;
     if (this.context.getSystemInfo().isWindows()) {
-      toolPath = getToolBinPath().resolve(IDEA64_EXE);
+      return IDEA64_EXE;
     } else if (this.context.getSystemInfo().isLinux()) {
-      toolPath = getToolBinPath().resolve(IDEA_BASH_SCRIPT);
+      return IDEA_BASH_SCRIPT;
     } else {
-      toolPath = Path.of("open");
+      return "open";
     }
-    return toolPath;
   }
 
   @Override
