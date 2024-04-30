@@ -269,7 +269,7 @@ public class GitContextImpl implements GitContext {
       }
     }
 
-    this.context.error("Failed to retrieve git URL for repository: " + repository);
+    this.context.error("Failed to retrieve git URL for repository: {}", repository);
     return null;
   }
 }
