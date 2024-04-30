@@ -62,8 +62,7 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
     } else if (this.context.getSystemInfo().isWindows()) {
       assertLogMessage(this.context, IdeLogLevel.INFO, ANDROID_STUDIO + " windows " + this.context.getWorkspacePath());
     }
-
-    assertLogMessage(this.context, IdeLogLevel.SUCCESS, "Running Android Studio successfully.");
+    
     checkInstallation(this.context);
   }
 

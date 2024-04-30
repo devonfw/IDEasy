@@ -3,13 +3,10 @@ package com.devonfw.tools.ide.tool.androidstudio;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.process.ProcessResult;
-import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 import java.nio.file.Path;
 import java.util.Set;
@@ -36,63 +33,28 @@ public class AndroidStudio extends IdeToolCommandlet {
   }
 
   @Override
-  protected void runIde(String... args) {
+  protected String getBinaryName() {
 
-    install(true);
-
-    Step stepRun = this.context.newStep("Running Android Studio");
-    try {
-      ProcessResult result;
-      if (this.context.getSystemInfo().isMac()) {
-        Path studioPath = getToolPath().resolve("Contents").resolve("MacOS").resolve(STUDIO);
-        result = runAndroidStudio(ProcessMode.BACKGROUND,
-            CliArgument.prepend(args, "-na", studioPath.toString(), "--args", this.context.getWorkspacePath().toString()));
-      } else {
-        result = runAndroidStudio(ProcessMode.BACKGROUND, CliArgument.prepend(args, this.context.getWorkspacePath().toString()));
-      }
-
-      if (result.isSuccessful()) {
-        stepRun.success("Running Android Studio successfully.");
-      } else {
-        stepRun.isFailure();
-      }
-
-    } catch (Exception e) {
-      stepRun.error(e, "Failed to run Android Studio.");
-    } finally {
-      stepRun.end();
+    if (this.context.getSystemInfo().isWindows()) {
+      return STUDIO64_EXE;
+    } else if (this.context.getSystemInfo().isLinux()) {
+      return STUDIO_BASH;
+    } else {
+      return "open";
     }
-
   }
 
-  /**
-   * Runs the Android Studio application.
-   *
-   * @param processMode - the {@link ProcessMode}.
-   * @param args the individual arguments to pass to Android Studio.
-   * @return the {@link ProcessResult}.
-   */
-  private ProcessResult runAndroidStudio(ProcessMode processMode, String... args) {
+  @Override
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    Path toolPath;
-    if (this.context.getSystemInfo().isWindows()) {
-      toolPath = getToolBinPath().resolve(STUDIO64_EXE);
-    } else if (this.context.getSystemInfo().isLinux()) {
-      toolPath = getToolBinPath().resolve(STUDIO_BASH);
+    if (this.context.getSystemInfo().isMac()) {
+      Path studioPath = getToolPath().resolve("Contents").resolve("MacOS").resolve(STUDIO);
+      args = CliArgument.prepend(args, "-na", studioPath.toString(), "--args", this.context.getWorkspacePath().toString());
     } else {
-      toolPath = Path.of("open");
+      args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
     }
+    super.runTool(processMode, toolVersion, args);
 
-    ProcessContext pc = this.context.newProcess();
-
-    pc.executable(toolPath);
-
-    if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-      pc.errorHandling(ProcessErrorHandling.ERROR);
-    }
-    pc.addArgs(args);
-
-    return pc.run(processMode);
   }
 
   @Override
