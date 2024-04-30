@@ -6,6 +6,7 @@
 *.bak
 .*
 !.gitignore
+!.gitkeep
 !.ide.software.version
 !.devon.software.version
 !.ide
