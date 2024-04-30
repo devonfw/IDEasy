@@ -115,6 +115,10 @@ public class ProcessContextImpl implements ProcessContext {
       this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
     }
 
+    if (processMode == ProcessMode.DEFAULT_SILENT) {
+      this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
+    }
+
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");
     }

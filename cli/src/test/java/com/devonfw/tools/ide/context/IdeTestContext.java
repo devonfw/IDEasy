@@ -27,8 +27,8 @@ public class IdeTestContext extends AbstractIdeTestContext {
    * The constructor.
    *
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} *
-   * {@link com.devonfw.tools.ide.repo.DefaultToolRepository} will be used.
+   * @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} * {@link com.devonfw.tools.ide.repo.DefaultToolRepository}
+   * will be used.
    * @param answers the automatic answers simulating a user in test.
    */
   public IdeTestContext(Path userDir, ToolRepository toolRepository, String... answers) {

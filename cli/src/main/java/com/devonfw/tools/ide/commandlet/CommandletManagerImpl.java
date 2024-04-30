@@ -7,6 +7,7 @@ import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.tool.cobigen.Cobigen;
 import com.devonfw.tools.ide.tool.docker.Docker;
+import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
 import com.devonfw.tools.ide.tool.gh.Gh;
@@ -94,6 +95,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Aws(context));
     add(new Cobigen(context));
     add(new Jmc(context));
+    add(new DotNet(context));
     add(new Intellij(context));
     add(new Jasypt(context));
     add(new Docker(context));
