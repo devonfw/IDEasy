@@ -27,10 +27,14 @@ import java.util.regex.Pattern;
  * {@link ToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
  */
 public class Mvn extends PluginBasedCommandlet {
-  
-  private static final String ERROR_SETTINGS_FILE_MESSAGE = "Failed to create settings file at: {}. The settings file will not be set.";
 
-  private static final String ERROR_SETTINGS_SECURITY_FILE_MESSAGE = "Failed to create settings security file at: {}. The settings security file will not be set.";
+  private static final String DOCUMENTATION_PAGE_CONF = "https://github.com/devonfw/IDEasy/blob/main/documentation/conf.adoc";
+
+  private static final String ERROR_SETTINGS_FILE_MESSAGE =
+      "Failed to create settings file at: {}. The settings file will not be set. For further details see: " + DOCUMENTATION_PAGE_CONF;
+
+  private static final String ERROR_SETTINGS_SECURITY_FILE_MESSAGE =
+      "Failed to create settings security file at: {}. The settings security file will not be set. For further details see: " + DOCUMENTATION_PAGE_CONF;
 
   /**
    * The constructor.
