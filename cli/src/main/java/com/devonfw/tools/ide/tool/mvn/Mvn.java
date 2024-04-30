@@ -14,7 +14,6 @@ import com.devonfw.tools.ide.tool.java.Java;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -28,10 +27,10 @@ import java.util.regex.Pattern;
  * {@link ToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
  */
 public class Mvn extends PluginBasedCommandlet {
+  
+  private static final String ERROR_SETTINGS_FILE_MESSAGE = "Failed to create settings file at: {}. The settings file will not be set.";
 
-  private static final String IDE_SETTINGS_GIT_URL = "https://github.com/devonfw/ide-settings.git";
-
-  private static final String ERROR_CONFIGURATION_MESSAGE = "A problem occurred while configuring maven. Please try to reinstall the tool. If the problem persists, consider reinstalling IDEasy.";
+  private static final String ERROR_SETTINGS_SECURITY_FILE_MESSAGE = "Failed to create settings security file at: {}. The settings security file will not be set.";
 
   /**
    * The constructor.
@@ -97,8 +96,7 @@ public class Mvn extends PluginBasedCommandlet {
     try {
       Files.writeString(settingsSecurityFile, settingsSecurityXml);
     } catch (IOException e) {
-      this.context.error(ERROR_CONFIGURATION_MESSAGE);
-      throw new IllegalStateException("Failed to create file " + settingsSecurityFile, e);
+      this.context.warning(ERROR_SETTINGS_SECURITY_FILE_MESSAGE, settingsSecurityFile);
     }
   }
 
@@ -112,7 +110,12 @@ public class Mvn extends PluginBasedCommandlet {
 
       String gitSettingsUrl = gitContext.retrieveGitUrl(this.context.getSettingsPath());
 
-      if (gitSettingsUrl == null || !gitSettingsUrl.equals(gitContext.DEFAULT_SETTINGS_GIT_URL)) {
+      if (gitSettingsUrl == null) {
+        this.context.warning(ERROR_SETTINGS_FILE_MESSAGE, settingsFile);
+        return;
+      }
+
+      if (!gitSettingsUrl.equals(gitContext.DEFAULT_SETTINGS_GIT_URL)) {
         List<String> variables = findVariables(content);
         for (String variable : variables) {
           String secret = getEncryptedPassword(variable);
@@ -120,12 +123,8 @@ public class Mvn extends PluginBasedCommandlet {
         }
       }
       Files.writeString(settingsFile, content);
-    } catch (NoSuchFileException e) {
-      this.context.error(ERROR_CONFIGURATION_MESSAGE);
-      throw new IllegalStateException("Settings template file not found: " + settingsTemplate, e);
     } catch (IOException e) {
-      this.context.error(ERROR_CONFIGURATION_MESSAGE);
-      throw new IllegalStateException("Failed to create settings file: " + settingsFile, e);
+      this.context.warning(ERROR_SETTINGS_FILE_MESSAGE, settingsFile);
     }
   }
 
