@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 import java.nio.file.Path;
 import java.util.Set;
@@ -37,9 +38,9 @@ public class Intellij extends IdeToolCommandlet {
   }
 
   @Override
-  protected void runIde(String... args) {
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    install(true);
+    super.runTool(processMode, toolVersion, args);
 
     Step stepRun = this.context.newStep("Running IntelliJ");
     try {
@@ -72,15 +73,7 @@ public class Intellij extends IdeToolCommandlet {
    */
   protected ProcessResult runIntelliJ(ProcessMode processMode, String... args) {
 
-    Path toolPath;
-    if (this.context.getSystemInfo().isWindows()) {
-      toolPath = getToolBinPath().resolve(IDEA64_EXE);
-    } else if (this.context.getSystemInfo().isLinux()) {
-      toolPath = getToolBinPath().resolve(IDEA_BASH_SCRIPT);
-    } else {
-      toolPath = Path.of("open");
-    }
-
+    Path toolPath = getToolPath();
     ProcessContext pc = this.context.newProcess();
     if (processMode == ProcessMode.DEFAULT_CAPTURE) {
       pc.errorHandling(ProcessErrorHandling.ERROR);
@@ -89,6 +82,20 @@ public class Intellij extends IdeToolCommandlet {
     pc.addArgs(args);
 
     return pc.run(processMode);
+  }
+
+  @Override
+  public Path getToolPath() {
+
+    Path toolPath;
+    if (this.context.getSystemInfo().isWindows()) {
+      toolPath = getToolBinPath().resolve(IDEA64_EXE);
+    } else if (this.context.getSystemInfo().isLinux()) {
+      toolPath = getToolBinPath().resolve(IDEA_BASH_SCRIPT);
+    } else {
+      toolPath = Path.of("open");
+    }
+    return toolPath;
   }
 
   @Override
