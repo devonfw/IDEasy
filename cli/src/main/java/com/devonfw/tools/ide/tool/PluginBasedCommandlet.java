@@ -170,7 +170,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       key = key.substring(0, key.length() - IdeContext.EXT_PROPERTIES.length());
     }
 
-    PluginDescriptor pluginDescriptor = getPluginsMap().getById().get(key);
+    PluginDescriptor pluginDescriptor = getPluginsMap().getById(key);
 
     if (pluginDescriptor == null) {
       pluginDescriptor = getPluginsMap().getByName().get(key);
