@@ -37,6 +37,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   private static final String DEPENDENCY_FILENAME = "dependencies.json";
 
+  protected HashMap<String, String> dependenciesEnvVariableNames = new HashMap<>();
+
   /**
    * The constructor.
    *
