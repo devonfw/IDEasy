@@ -43,7 +43,7 @@ public class TomcatTest extends AbstractIdeContextTest {
     assertLogMessage(context, IdeLogLevel.DEBUG,
         "Set variable 'CATALINA_HOME=" + context.getSoftwarePath().resolve("tomcat") + "' in " + context.getConfPath().resolve("ide.properties"));
     assertLogMessage(context, IdeLogLevel.DEBUG,
-        "Set variable 'JAVA_HOME=" + context.getSoftwareRepositoryPath().resolve("default").resolve("java").resolve("java").resolve("17.0.10_7") + "' in "
+        "Set variable 'JRE_HOME=" + context.getSoftwareRepositoryPath().resolve("default").resolve("java").resolve("java").resolve("17.0.10_7") + "' in "
             + context.getConfPath().resolve("ide.properties"));
 
   }
