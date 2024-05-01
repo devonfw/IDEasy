@@ -16,11 +16,14 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Set;
 
 public class Tomcat extends LocalToolCommandlet {
 
   public final EnumProperty<TomcatCommand> command;
+
+  protected HashMap<String, String> dependenciesEnvVariableNames = new HashMap<>();
 
   /**
    * The constructor.
@@ -102,9 +105,10 @@ public class Tomcat extends LocalToolCommandlet {
   }
 
   @Override
-  protected String[] getCustomDependenciesEnvironmentNames() {
+  protected HashMap<String, String> listOfDependencyEnvVariableNames() {
 
-    return new String[] { "JRE_HOME" };
+    dependenciesEnvVariableNames.put("java", "JRE_HOME");
+    return dependenciesEnvVariableNames;
   }
 
   private void printTomcatPort() {

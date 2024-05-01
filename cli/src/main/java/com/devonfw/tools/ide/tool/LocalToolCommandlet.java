@@ -264,11 +264,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         LocalToolCommandlet dependencyLocal = (LocalToolCommandlet) dependencyTool;
         dependencyLocal.installInRepo(dependencyVersionToInstall);
         this.context.info("The version {} of the dependency {} was successfully installed", dependencyVersionToInstall, dependencyName);
-        setDependencyEnvironmentPath(setDependencyEnvironmentName(dependencyName, dependencies.indexOf(dependencyInfo)),
-            dependencyRepository.resolve(dependencyVersionToInstall.toString()));
+        setDependencyEnvironmentPath(getDependencyEnvironmentName(dependencyName), dependencyRepository.resolve(dependencyVersionToInstall.toString()));
       } else {
         this.context.info("Necessary version of the dependency {} is already installed in repository", dependencyName);
-        setDependencyEnvironmentPath(setDependencyEnvironmentName(dependencyName, dependencies.indexOf(dependencyInfo)), versionExistingInRepository);
+        setDependencyEnvironmentPath(getDependencyEnvironmentName(dependencyName), versionExistingInRepository);
       }
     }
   }
@@ -286,19 +285,21 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *
    * @return the {@link String} of the dependency environment variable name, for example JAVA_HOME
    */
-  protected String[] getCustomDependenciesEnvironmentNames() {
 
-    return null;
+  protected HashMap<String, String> listOfDependencyEnvVariableNames() {
+
+    return dependenciesEnvVariableNames;
   }
 
-  protected String setDependencyEnvironmentName(String dependencyName, int index) {
+  private String getDependencyEnvironmentName(String dependencyName) {
 
-    if (getCustomDependenciesEnvironmentNames() == null) {
-      return dependencyName + "_HOME";
-    } else {
-      return getCustomDependenciesEnvironmentNames()[index];
+    String envVariableName = listOfDependencyEnvVariableNames().get(dependencyName);
+
+    if (envVariableName != null) {
+      return envVariableName;
     }
 
+    return dependencyName + "_HOME";
   }
 
   private List<DependencyInfo> readJson() {
