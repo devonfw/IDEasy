@@ -101,6 +101,12 @@ public class Tomcat extends LocalToolCommandlet {
     return toolBinPath.resolve(tomcatHome).toString();
   }
 
+  @Override
+  protected String[] getCustomDependenciesEnvironmentNames() {
+
+    return new String[] { "JRE_HOME" };
+  }
+
   private void printTomcatPort() {
 
     this.context.info("Tomcat is running at localhost on the following port (default 8080):");

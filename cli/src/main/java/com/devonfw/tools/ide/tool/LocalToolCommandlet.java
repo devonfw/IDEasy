@@ -264,20 +264,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         LocalToolCommandlet dependencyLocal = (LocalToolCommandlet) dependencyTool;
         dependencyLocal.installInRepo(dependencyVersionToInstall);
         this.context.info("The version {} of the dependency {} was successfully installed", dependencyVersionToInstall, dependencyName);
-
-        if (getDependencyEnvironmentName().isEmpty()) {
-          setDependencyEnvironmentPath(dependencyName.toUpperCase() + "_HOME", dependencyRepository.resolve(dependencyVersionToInstall.toString()));
-        } else {
-          setDependencyEnvironmentPath(getDependencyEnvironmentName().toUpperCase(), dependencyRepository.resolve(dependencyVersionToInstall.toString()));
-        }
-
+        setDependencyEnvironmentPath(setDependencyEnvironmentName(dependencyName, dependencies.indexOf(dependencyInfo)),
+            dependencyRepository.resolve(dependencyVersionToInstall.toString()));
       } else {
         this.context.info("Necessary version of the dependency {} is already installed in repository", dependencyName);
-        if (getDependencyEnvironmentName().isEmpty()) {
-          setDependencyEnvironmentPath(dependencyName.toUpperCase() + "_HOME", versionExistingInRepository);
-        } else {
-          setDependencyEnvironmentPath(getDependencyEnvironmentName().toUpperCase(), versionExistingInRepository);
-        }
+        setDependencyEnvironmentPath(setDependencyEnvironmentName(dependencyName, dependencies.indexOf(dependencyInfo)), versionExistingInRepository);
       }
     }
   }
@@ -295,9 +286,19 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *
    * @return the {@link String} of the dependency environment variable name, for example JAVA_HOME
    */
-  protected String getDependencyEnvironmentName() {
+  protected String[] getCustomDependenciesEnvironmentNames() {
 
-    return "";
+    return null;
+  }
+
+  protected String setDependencyEnvironmentName(String dependencyName, int index) {
+
+    if (getCustomDependenciesEnvironmentNames() == null) {
+      return dependencyName + "_HOME";
+    } else {
+      return getCustomDependenciesEnvironmentNames()[index];
+    }
+
   }
 
   private List<DependencyInfo> readJson() {
