@@ -37,7 +37,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   private static final String DEPENDENCY_FILENAME = "dependencies.json";
 
-  protected HashMap<String, String> dependenciesEnvVariableNames = new HashMap<>();
+  protected HashMap<String, String> dependenciesEnvVariableNames = null;
 
   /**
    * The constructor.
@@ -278,14 +278,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables typeVariables = variables.getByType(EnvironmentVariablesType.CONF);
-    typeVariables.set(dependencyEnvironmentName, dependencyPath.toString(), true);
+    typeVariables.set(dependencyEnvironmentName, dependencyPath.toString(), false);
   }
 
   /**
-   * Method to get return the specific name of the tool for setting the environment variable for the dependency. In the cases the environment variable of the
-   * dependency is just the dependency name and _HOME, this method returns an empty string, and the variable is set automatically
+   * Method to return the list of the environment variable name for the dependencies.
    *
-   * @return the {@link String} of the dependency environment variable name, for example JAVA_HOME
+   * @return the {@link HashMap} with the dependency name mapped to the env variable, for example ( java: JAVA_HOME )
    */
 
   protected HashMap<String, String> listOfDependencyEnvVariableNames() {
@@ -301,7 +300,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       return envVariableName;
     }
 
-    return dependencyName + "_HOME";
+    return dependencyName.toUpperCase() + "_HOME";
   }
 
   private List<DependencyInfo> readJson() {
