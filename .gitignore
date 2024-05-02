@@ -11,6 +11,7 @@
 !.ide
 !.anyedit.properties
 !.ide.properties
+!.templateengine
 target/
 eclipse-target/
 generated/
