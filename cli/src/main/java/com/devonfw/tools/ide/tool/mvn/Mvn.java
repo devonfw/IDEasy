@@ -28,6 +28,16 @@ import java.util.regex.Pattern;
  */
 public class Mvn extends PluginBasedCommandlet {
 
+  /** The name of the .m2 folder */
+  public static final String M2_REPO = ".m2";
+
+  /** The name of the settings.xml */
+  public static final String SETTINGS_FILE = "settings.xml";
+
+  private static final String SETTINGS_SECURITY_FILE = "settings-security.xml";
+
+  private static final String FOLDER_TEMPLATE_MVN = "mvn";
+
   private static final String DOCUMENTATION_PAGE_CONF = "https://github.com/devonfw/IDEasy/blob/main/documentation/conf.adoc";
 
   private static final String ERROR_SETTINGS_FILE_MESSAGE =
@@ -56,7 +66,7 @@ public class Mvn extends PluginBasedCommandlet {
   @Override
   public void postInstall() {
 
-    Path settingsSecurityFile = this.context.getConfPath().resolve(".m2/settings-security.xml");
+    Path settingsSecurityFile = this.context.getConfPath().resolve(M2_REPO).resolve(SETTINGS_SECURITY_FILE);
     if (!Files.exists(settingsSecurityFile)) {
       Step step = this.context.newStep("Create mvn settings security file at " + settingsSecurityFile);
       try {
@@ -67,7 +77,7 @@ public class Mvn extends PluginBasedCommandlet {
       }
     }
 
-    Path settingsFile = this.context.getConfPath().resolve(".m2/settings.xml");
+    Path settingsFile = this.context.getConfPath().resolve(M2_REPO).resolve(SETTINGS_FILE);
     if (!Files.exists(settingsFile)) {
       Step step = this.context.newStep("Create mvn settings file at " + settingsFile);
       try {
@@ -106,7 +116,16 @@ public class Mvn extends PluginBasedCommandlet {
 
   private void createSettingsFile(Path settingsFile) {
 
-    Path settingsTemplate = this.context.getSettingsPath().resolve("ide/conf/.m2/settings.xml");
+    Path settingsTemplate = this.context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES).resolve(FOLDER_TEMPLATE_MVN).resolve(SETTINGS_FILE);
+    if (!Files.exists(settingsTemplate)) {
+      settingsTemplate = this.context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_TEMPLATES).resolve(IdeContext.FOLDER_CONF).resolve(M2_REPO)
+          .resolve(SETTINGS_FILE);
+      if (!Files.exists(settingsTemplate)) {
+        this.context.warning("Templates folder is missing in settings repository.");
+        this.context.warning(ERROR_SETTINGS_FILE_MESSAGE, settingsFile);
+        return;
+      }
+    }
     try {
       String content = Files.readString(settingsTemplate);
 

@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -431,11 +432,10 @@ public interface IdeContext extends IdeLogger {
    */
   default String getMavenArgs() {
 
-    Path ideHome = getIdeHome();
-    if (ideHome != null) {
-      Path mavenSettingsFile = ideHome.resolve("conf/.m2/settings.xml");
-      if (Files.exists(mavenSettingsFile)) {
-        return "-s " + mavenSettingsFile;
+    if (getIdeHome() != null) {
+      Path mvnSettingsFile = getConfPath().resolve(Mvn.M2_REPO).resolve(Mvn.SETTINGS_FILE);
+      if (Files.exists(mvnSettingsFile)) {
+        return "-s " + mvnSettingsFile;
       }
     }
     return null;
