@@ -4,6 +4,7 @@ import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccessImpl;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
@@ -54,6 +55,7 @@ public class AndroidStudio extends IdeToolCommandlet {
 
     args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
 
+    install(true);
     super.runTool(processMode, toolVersion, args);
 
   }
@@ -75,15 +77,18 @@ public class AndroidStudio extends IdeToolCommandlet {
 
   private static void setMacOsFilePermissions(Path binaryFile) {
 
-    if (Files.exists(binaryFile)) {
-      String permissionStr = FileAccessImpl.generatePermissionString(493);
-      Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
-      try {
-        Files.setPosixFilePermissions(binaryFile, permissions);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+    if (SystemInfoImpl.INSTANCE.isMac()) {
+      if (Files.exists(binaryFile)) {
+        String permissionStr = FileAccessImpl.generatePermissionString(493);
+        Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
+        try {
+          Files.setPosixFilePermissions(binaryFile, permissions);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       }
     }
+
   }
 
   @Override

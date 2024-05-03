@@ -55,14 +55,13 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
 
     // assert
     if (this.context.getSystemInfo().isMac()) {
-      assertLogMessage(this.context, IdeLogLevel.INFO,
-          ANDROID_STUDIO + " mac -na " + commandlet.getToolPath().resolve("Contents/MacOS/studio") + " --args " + this.context.getWorkspacePath());
+      assertLogMessage(this.context, IdeLogLevel.INFO, ANDROID_STUDIO + " mac " + this.context.getWorkspacePath());
     } else if (this.context.getSystemInfo().isLinux()) {
       assertLogMessage(this.context, IdeLogLevel.INFO, ANDROID_STUDIO + " linux " + this.context.getWorkspacePath());
     } else if (this.context.getSystemInfo().isWindows()) {
       assertLogMessage(this.context, IdeLogLevel.INFO, ANDROID_STUDIO + " windows " + this.context.getWorkspacePath());
     }
-    
+
     checkInstallation(this.context);
   }
 
