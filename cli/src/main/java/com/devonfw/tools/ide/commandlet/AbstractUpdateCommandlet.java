@@ -8,6 +8,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.repo.CustomTool;
 import com.devonfw.tools.ide.step.Step;
@@ -23,6 +24,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   /** {@link StringProperty} for the settings repository URL. */
   protected final StringProperty settingsRepo;
 
+  /** {@link FlagProperty} for skipping installation/updating of tools */
+  protected final FlagProperty skipTools;
+
   /**
    * The constructor.
    *
@@ -32,6 +36,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     super(context);
     this.settingsRepo = new StringProperty("", false, "settingsRepository");
+    this.skipTools = new FlagProperty("--skip-tools", false, "skipTools");
   }
 
   @Override
@@ -57,7 +62,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     } finally {
       step.end();
     }
-    updateSoftware();
+
+    if (!skipTools.isTrue()) {
+      updateSoftware();
+    }
   }
 
   private void setupConf(Path template, Path conf) {
