@@ -46,6 +46,8 @@ public class Mvn extends PluginBasedCommandlet {
   private static final String ERROR_SETTINGS_SECURITY_FILE_MESSAGE =
       "Failed to create settings security file at: {}. The settings security file will not be set. For further details see: " + DOCUMENTATION_PAGE_CONF;
 
+  private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\[(\\w+)]");
+
   /**
    * The constructor.
    *
@@ -121,8 +123,7 @@ public class Mvn extends PluginBasedCommandlet {
       settingsTemplate = this.context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_TEMPLATES).resolve(IdeContext.FOLDER_CONF).resolve(M2_REPO)
           .resolve(SETTINGS_FILE);
       if (!Files.exists(settingsTemplate)) {
-        this.context.warning("Templates folder is missing in settings repository.");
-        this.context.warning(ERROR_SETTINGS_FILE_MESSAGE, settingsFile);
+        this.context.warning(SETTINGS_FILE + " template not found in settings folder. " + ERROR_SETTINGS_FILE_MESSAGE, settingsFile);
         return;
       }
     }
@@ -169,10 +170,12 @@ public class Mvn extends PluginBasedCommandlet {
   private List<String> findVariables(String content) {
 
     List<String> variables = new ArrayList<>();
-    Pattern pattern = Pattern.compile("\\$\\[(\\w+)]");
-    Matcher matcher = pattern.matcher(content);
+    Matcher matcher = VARIABLE_PATTERN.matcher(content);
     while (matcher.find()) {
-      variables.add(matcher.group(1));
+      String variableName = matcher.group(1);
+      if (!variables.contains(variableName)) {
+        variables.add(variableName);
+      }
     }
     return variables;
   }
