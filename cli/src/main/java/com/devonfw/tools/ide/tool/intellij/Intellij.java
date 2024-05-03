@@ -3,13 +3,18 @@ package com.devonfw.tools.ide.tool.intellij;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
 /**
@@ -36,25 +41,20 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    if (this.context.getSystemInfo().isMac()) {
-      Path studioPath = getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA);
-      args = CliArgument.prepend(args, "-na", studioPath.toString(), "--args", this.context.getWorkspacePath().toString());
-    } else {
-      args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
-    }
-
+    args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
     super.runTool(processMode, toolVersion, args);
   }
 
   @Override
   protected String getBinaryName() {
 
+    Path toolBinPath = getToolBinPath();
     if (this.context.getSystemInfo().isWindows()) {
-      return IDEA64_EXE;
+      return toolBinPath.resolve(IDEA64_EXE).toString();
     } else if (this.context.getSystemInfo().isLinux()) {
-      return IDEA_BASH_SCRIPT;
+      return toolBinPath.resolve(IDEA_BASH_SCRIPT).toString();
     } else {
-      return "open";
+      return getToolPath().resolve("IDEA.app").resolve("Contents").resolve("MacOS").resolve(IDEA).toString();
     }
   }
 
@@ -63,6 +63,28 @@ public class Intellij extends IdeToolCommandlet {
 
     getCommandlet(Java.class).install();
     return super.install(silent);
+  }
+
+  @Override
+  protected void postInstall() {
+
+    super.postInstall();
+    if (this.context.getSystemInfo().isMac()) {
+      setMacOsFilePermissions(getToolPath().resolve("IDEA.app").resolve("Contents").resolve("MacOS").resolve(IDEA));
+    }
+  }
+
+  private static void setMacOsFilePermissions(Path binaryFile) {
+
+    if (Files.exists(binaryFile)) {
+      String permissionStr = FileAccessImpl.generatePermissionString(493);
+      Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
+      try {
+        Files.setPosixFilePermissions(binaryFile, permissions);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    }
   }
 
   @Override
