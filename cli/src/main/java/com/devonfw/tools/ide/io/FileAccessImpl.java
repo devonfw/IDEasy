@@ -56,9 +56,11 @@ public class FileAccessImpl implements FileAccess {
 
   private final IdeContext context;
 
+  private static final String PROXY_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc";
+
   private static final String PROXY_FORMAT_WARNING_MESSAGE =
-      "Please note that IDEasy can properly detect a proxy only if the proxy environmental variables are formatted with separate values to store the host and the port. "
-          + "For example, use HTTP_PROXY_HOST=<host> and HTTP_PROXY_PORT=<port>.";
+      "Please note that IDEasy can detect a proxy only if the corresponding environmental variables are properly formatted. " + "For further details, see "
+          + PROXY_DOCUMENTATION_PAGE;
 
   /**
    * The constructor.
@@ -85,7 +87,7 @@ public class FileAccessImpl implements FileAccess {
 
   private Proxy getProxy(String url) {
 
-    return ProxySelector.getDefault().select(URI.create(url)).stream().filter(p -> p.type() != Proxy.Type.DIRECT).findFirst().orElse(Proxy.NO_PROXY);
+    return ProxySelector.getDefault().select(URI.create(url)).stream().filter(p -> p.type() == Proxy.Type.HTTP).findFirst().orElse(Proxy.NO_PROXY);
   }
 
   @Override
