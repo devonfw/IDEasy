@@ -433,7 +433,7 @@ public interface IdeContext extends IdeLogger {
   default String getMavenArgs() {
 
     if (getIdeHome() != null) {
-      Path mvnSettingsFile = getConfPath().resolve(Mvn.M2_REPO).resolve(Mvn.SETTINGS_FILE);
+      Path mvnSettingsFile = getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
       if (Files.exists(mvnSettingsFile)) {
         return "-s " + mvnSettingsFile;
       }
