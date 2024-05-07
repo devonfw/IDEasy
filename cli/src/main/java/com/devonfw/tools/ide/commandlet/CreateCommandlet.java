@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 
 import java.nio.file.Path;
@@ -11,7 +12,11 @@ import java.nio.file.Path;
  */
 public class CreateCommandlet extends AbstractUpdateCommandlet {
 
+  /** {@link StringProperty} for the name of the new project */
   public final StringProperty newProject;
+
+  /** {@link FlagProperty} for skipping the setup of git repositories */
+  public final FlagProperty skipRepositories;
 
   /**
    * The constructor.
@@ -24,6 +29,8 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     addKeyword(getName());
     newProject = add(new StringProperty("", true, "project"));
     add(this.settingsRepo);
+    this.skipRepositories = add(new FlagProperty("--skip-repositories", false, "skipRepositories"));
+    add(this.skipTools);
   }
 
   @Override
@@ -54,7 +61,9 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     initializeProject(newProjectPath);
     this.context.setIdeHome(newProjectPath);
     super.run();
-    updateRepositories();
+    if (!this.skipRepositories.isTrue()) {
+      updateRepositories();
+    }
     this.context.success("Successfully created new project '{}'.", newProjectName);
   }
 
