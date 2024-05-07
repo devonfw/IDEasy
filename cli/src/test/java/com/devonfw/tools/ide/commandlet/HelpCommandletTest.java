@@ -86,7 +86,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     NlsBundle bundleRoot = new NlsBundle(context, Locale.ROOT);
-    NlsBundle bundle = new NlsBundle(context, Locale.of(locale));
+    NlsBundle bundle = new NlsBundle(context, Locale.forLanguageTag(locale));
     SoftAssertions soft = new SoftAssertions();
     // act
     for (Commandlet commandlet : context.getCommandletManager().getCommandlets()) {
