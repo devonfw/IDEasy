@@ -133,14 +133,12 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
    */
   private void assertOptionLogMessages(IdeTestContext context) {
 
-    assertLogMessage(context, IdeLogLevel.INFO, "--locale        the locale (e.g. 'de' for German language).");
+    assertLogMessage(context, IdeLogLevel.INFO, "--locale        the locale (e.g. '--locale=de' for German language).");
     assertLogMessage(context, IdeLogLevel.INFO, "-b | --batch    enable batch mode (non-interactive).");
     assertLogMessage(context, IdeLogLevel.INFO, "-d | --debug    enable debug logging.");
     assertLogMessage(context, IdeLogLevel.INFO, "-f | --force    enable force mode.");
-    assertLogMessage(context, IdeLogLevel.INFO,
-        "-o | --offline  enable offline mode (skip updates or git pull, fail downloads or git clone).");
-    assertLogMessage(context, IdeLogLevel.INFO,
-        "-q | --quiet    disable info logging (only log success, warning or error).");
+    assertLogMessage(context, IdeLogLevel.INFO, "-o | --offline  enable offline mode (skip updates or git pull, fail downloads or git clone).");
+    assertLogMessage(context, IdeLogLevel.INFO, "-q | --quiet    disable info logging (only log success, warning or error).");
     assertLogMessage(context, IdeLogLevel.INFO, "-t | --trace    enable trace logging.");
   }
 
