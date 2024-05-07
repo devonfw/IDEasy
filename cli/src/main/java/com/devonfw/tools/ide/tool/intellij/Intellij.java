@@ -41,6 +41,7 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
+    install(true);
     args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
     super.runTool(processMode, toolVersion, args);
   }
@@ -54,7 +55,7 @@ public class Intellij extends IdeToolCommandlet {
     } else if (this.context.getSystemInfo().isLinux()) {
       return toolBinPath.resolve(IDEA_BASH_SCRIPT).toString();
     } else {
-      return getToolPath().resolve("IDEA.app").resolve("Contents").resolve("MacOS").resolve(IDEA).toString();
+      return getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA).toString();
     }
   }
 
@@ -70,7 +71,7 @@ public class Intellij extends IdeToolCommandlet {
 
     super.postInstall();
     if (this.context.getSystemInfo().isMac()) {
-      setMacOsFilePermissions(getToolPath().resolve("IDEA.app").resolve("Contents").resolve("MacOS").resolve(IDEA));
+      setMacOsFilePermissions(getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA));
     }
   }
 
