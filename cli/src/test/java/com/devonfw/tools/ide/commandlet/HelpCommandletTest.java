@@ -1,11 +1,20 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.util.Locale;
+
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
+import com.devonfw.tools.ide.nls.NlsBundle;
+import com.devonfw.tools.ide.property.KeywordProperty;
+import com.devonfw.tools.ide.property.Property;
 
 /**
  * Integration test of {@link HelpCommandlet}.
@@ -60,6 +69,30 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     assertLogMessage(context, IdeLogLevel.INFO, "Usage: ide [option]* mvn [<args>*]");
     assertLogMessage(context, IdeLogLevel.INFO, "Tool commandlet for Maven (Build-Tool).");
     assertOptionLogMessages(context);
+  }
+
+  /**
+   * Ensure that for every {@link Commandlet} and each of their {@link Property} a help text is defined.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "", "de" })
+  public void testEnsureAllNlsPropertiesPresent(String locale) {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    NlsBundle bundle = new NlsBundle(context, Locale.of(locale));
+    SoftAssertions soft = new SoftAssertions();
+    // act
+    for (Commandlet commandlet : context.getCommandletManager().getCommandlets()) {
+      soft.assertThat(bundle.get(commandlet)).doesNotStartWith("?");
+      for (Property<?> property : commandlet.getProperties()) {
+        if (!(property instanceof KeywordProperty)) {
+          soft.assertThat(bundle.get(commandlet, property)).doesNotStartWith("?");
+        }
+      }
+    }
+    // assert
+    soft.assertAll();
   }
 
   /**
