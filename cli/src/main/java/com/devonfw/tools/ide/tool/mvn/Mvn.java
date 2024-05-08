@@ -83,7 +83,7 @@ public class Mvn extends PluginBasedCommandlet {
     if (!Files.exists(settingsFile)) {
       Step step = this.context.newStep("Create mvn settings file at " + settingsFile);
       try {
-        createSettingsFile(settingsFile);
+        createSettingsFile(settingsFile, settingsSecurityFile);
         step.success();
       } finally {
         step.end();
@@ -110,13 +110,14 @@ public class Mvn extends PluginBasedCommandlet {
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<settingsSecurity>\n" + "  <master>" + encryptedMasterPassword + "</master>\n"
             + "</settingsSecurity>";
     try {
+      Files.createDirectories(settingsSecurityFile.getParent());
       Files.writeString(settingsSecurityFile, settingsSecurityXml);
     } catch (IOException e) {
       this.context.warning(ERROR_SETTINGS_SECURITY_FILE_MESSAGE, settingsSecurityFile);
     }
   }
 
-  private void createSettingsFile(Path settingsFile) {
+  private void createSettingsFile(Path settingsFile, Path settingsSecurityFile) {
 
     Path settingsTemplate = this.context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES).resolve(IdeContext.FOLDER_CONF).resolve(MVN_CONFIG_FOLDER)
         .resolve(SETTINGS_FILE);
@@ -143,22 +144,23 @@ public class Mvn extends PluginBasedCommandlet {
       if (!gitSettingsUrl.equals(gitContext.DEFAULT_SETTINGS_GIT_URL)) {
         List<String> variables = findVariables(content);
         for (String variable : variables) {
-          String secret = getEncryptedPassword(variable);
+          String secret = getEncryptedPassword(variable, settingsSecurityFile);
           content = content.replace("$[" + variable + "]", secret);
         }
       }
+      Files.createDirectories(settingsFile.getParent());
       Files.writeString(settingsFile, content);
     } catch (IOException e) {
       this.context.warning(ERROR_SETTINGS_FILE_MESSAGE, settingsFile);
     }
   }
 
-  private String getEncryptedPassword(String variable) {
+  private String getEncryptedPassword(String variable, Path settingsSecurityFile) {
 
     String input = this.context.askForInput("Please enter secret value for variable: " + variable);
 
     ProcessContext pc = this.context.newProcess().executable("mvn");
-    pc.addArgs("--encrypt-password", input);
+    pc.addArgs("--encrypt-password", input, "-Dsettings.security=" + settingsSecurityFile);
 
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
 
