@@ -1,5 +1,11 @@
 package com.devonfw.tools.ide.context;
 
+import com.devonfw.tools.ide.cli.CliOfflineException;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
+
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -11,12 +17,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
-import com.devonfw.tools.ide.cli.CliOfflineException;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.process.ProcessResult;
 
 /**
  * Implements the {@link GitContext}.
@@ -101,8 +101,7 @@ public class GitContextImpl implements GitContext {
       ProcessResult result = this.processContext.addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
       List<String> remotes = result.getOut();
       if (remotes.isEmpty()) {
-        String message = targetRepository
-            + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
+        String message = targetRepository + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
             + "Do you want to ignore the problem and continue anyhow?";
         this.context.askToContinue(message);
       } else {
@@ -120,9 +119,8 @@ public class GitContextImpl implements GitContext {
   /**
    * Handles errors which occurred during git pull.
    *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled.
-   *        It is not the parent directory where git will by default create a sub-folder by default on clone but the *
-   *        final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
+   * will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
    * @param result the {@link ProcessResult} to evaluate.
    */
   private void handleErrors(Path targetRepository, ProcessResult result) {
@@ -135,11 +133,9 @@ public class GitContextImpl implements GitContext {
       } else {
         this.context.error(message);
         if (this.context.isOnline()) {
-          this.context
-              .error("See above error for details. If you have local changes, please stash or revert and retry.");
+          this.context.error("See above error for details. If you have local changes, please stash or revert and retry.");
         } else {
-          this.context.error(
-              "It seems you are offline - please ensure Internet connectivity and retry or activate offline mode (-o or --offline).");
+          this.context.error("It seems you are offline - please ensure Internet connectivity and retry or activate offline mode (-o or --offline).");
         }
         this.context.askToContinue("Typically you should abort and fix the problem. Do you want to continue anyways?");
       }
@@ -173,8 +169,7 @@ public class GitContextImpl implements GitContext {
         }
       }
     } else {
-      throw new CliOfflineException(
-          "Could not clone " + parsedUrl + " to " + targetRepository + " because you are offline.");
+      throw new CliOfflineException("Could not clone " + parsedUrl + " to " + targetRepository + " because you are offline.");
     }
   }
 
@@ -188,8 +183,8 @@ public class GitContextImpl implements GitContext {
 
     if (!result.isSuccessful()) {
       Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();
-      this.context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"),
-          remoteAndBranchName.get("branch"), targetRepository);
+      this.context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"), remoteAndBranchName.get("branch"),
+          targetRepository);
       handleErrors(targetRepository, result);
     }
   }
@@ -206,8 +201,7 @@ public class GitContextImpl implements GitContext {
           remoteAndBranchName.put("remote", checkedOutBranch.substring(0, checkedOutBranch.indexOf("/")));
           // check if current repo is behind remote and omit message
           if (checkedOutBranch.contains(":")) {
-            remoteAndBranchName.put("branch",
-                checkedOutBranch.substring(checkedOutBranch.indexOf("/") + 1, checkedOutBranch.indexOf(":")));
+            remoteAndBranchName.put("branch", checkedOutBranch.substring(checkedOutBranch.indexOf("/") + 1, checkedOutBranch.indexOf(":")));
           } else {
             remoteAndBranchName.put("branch", checkedOutBranch.substring(checkedOutBranch.indexOf("/") + 1));
           }
@@ -215,8 +209,7 @@ public class GitContextImpl implements GitContext {
         }
       }
     } else {
-      return Map.ofEntries(new AbstractMap.SimpleEntry<>("remote", "unknown"),
-          new AbstractMap.SimpleEntry<>("branch", "unknown"));
+      return Map.ofEntries(new AbstractMap.SimpleEntry<>("remote", "unknown"), new AbstractMap.SimpleEntry<>("branch", "unknown"));
     }
 
     return remoteAndBranchName;
@@ -235,10 +228,8 @@ public class GitContextImpl implements GitContext {
 
     if (!result.isSuccessful()) {
       // reset to origin/master
-      this.context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", targetRepository,
-          remoteName, branchName);
-      result = this.processContext.addArg("reset").addArg("--hard").addArg(remoteName + "/" + branchName)
-          .run(PROCESS_MODE);
+      this.context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", targetRepository, remoteName, branchName);
+      result = this.processContext.addArg("reset").addArg("--hard").addArg(remoteName + "/" + branchName).run(PROCESS_MODE);
 
       if (!result.isSuccessful()) {
         this.context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, targetRepository);
@@ -253,8 +244,7 @@ public class GitContextImpl implements GitContext {
     this.processContext.directory(targetRepository);
     ProcessResult result;
     // check for untracked files
-    result = this.processContext.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard")
-        .run(ProcessMode.DEFAULT_CAPTURE);
+    result = this.processContext.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard").run(ProcessMode.DEFAULT_CAPTURE);
 
     if (!result.getOut().isEmpty()) {
       // delete untracked files
