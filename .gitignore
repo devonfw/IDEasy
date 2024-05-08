@@ -16,6 +16,7 @@
 target/
 eclipse-target/
 generated/
+node_modules
 
 # Package Files #
 *.jar
