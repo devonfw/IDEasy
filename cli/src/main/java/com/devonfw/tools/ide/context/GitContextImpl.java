@@ -179,7 +179,7 @@ public class GitContextImpl implements GitContext {
     this.processContext.directory(targetRepository);
     ProcessResult result;
     // pull from remote
-    result = this.processContext.addArg("--no-pager").addArg("pull").run(PROCESS_MODE);
+    result = this.processContext.addArg("--no-pager").addArg("pull").addArg("--quiet").run(PROCESS_MODE);
 
     if (!result.isSuccessful()) {
       Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();
