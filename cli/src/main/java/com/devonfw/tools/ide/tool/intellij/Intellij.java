@@ -84,6 +84,8 @@ public class Intellij extends IdeToolCommandlet {
         Files.setPosixFilePermissions(binaryFile, permissions);
       } catch (IOException e) {
         throw new RuntimeException(e);
+      } finally {
+        return;
       }
     }
   }

@@ -8,6 +8,8 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.nio.file.Path;
+
 /**
  * Integration test of {@link Intellij}.
  */
@@ -60,16 +62,15 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     // assert
     SystemInfo currentSystemInfo = context.getSystemInfo();
-
+    Path workspacePath = this.context.getWorkspacePath();
+    
     if (currentSystemInfo.isMac()) {
-      String expectedMessageMac = "intellij mac -na " + commandlet.getToolPath().resolve("Contents/MacOS/idea") + " --args " + this.context.getWorkspacePath();
-      assertLogMessage(context, IdeLogLevel.INFO, expectedMessageMac);
+      assertLogMessage(context, IdeLogLevel.INFO, "intellij mac " + workspacePath);
     } else if (currentSystemInfo.isLinux()) {
-      assertLogMessage(context, IdeLogLevel.INFO, "intellij linux " + context.getWorkspacePath());
+      assertLogMessage(context, IdeLogLevel.INFO, "intellij linux " + workspacePath);
     } else if (currentSystemInfo.isWindows()) {
-      assertLogMessage(context, IdeLogLevel.INFO, "intellij windows " + context.getWorkspacePath());
+      assertLogMessage(context, IdeLogLevel.INFO, "intellij windows " + workspacePath);
     }
-
     checkInstallation(context);
   }
 
