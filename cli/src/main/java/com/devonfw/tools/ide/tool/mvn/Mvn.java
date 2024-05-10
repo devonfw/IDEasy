@@ -16,9 +16,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Base64;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -34,7 +33,7 @@ public class Mvn extends PluginBasedCommandlet {
   /** The name of the settings.xml */
   public static final String SETTINGS_FILE = "settings.xml";
 
-  private static final String M2_REPO = ".m2";
+  private static final String M2_CONFIG_FOLDER = ".m2";
 
   private static final String SETTINGS_SECURITY_FILE = "settings-security.xml";
 
@@ -80,7 +79,7 @@ public class Mvn extends PluginBasedCommandlet {
     }
 
     Path settingsFile = this.context.getConfPath().resolve(MVN_CONFIG_FOLDER).resolve(SETTINGS_FILE);
-    if (!Files.exists(settingsFile)) {
+    if (!Files.exists(settingsFile) && Files.exists(settingsSecurityFile)) {
       Step step = this.context.newStep("Create mvn settings file at " + settingsFile);
       try {
         createSettingsFile(settingsFile, settingsSecurityFile);
@@ -122,7 +121,7 @@ public class Mvn extends PluginBasedCommandlet {
     Path settingsTemplate = this.context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES).resolve(IdeContext.FOLDER_CONF).resolve(MVN_CONFIG_FOLDER)
         .resolve(SETTINGS_FILE);
     if (!Files.exists(settingsTemplate)) {
-      settingsTemplate = this.context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_TEMPLATES).resolve(IdeContext.FOLDER_CONF).resolve(M2_REPO)
+      settingsTemplate = this.context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_TEMPLATES).resolve(IdeContext.FOLDER_CONF).resolve(M2_CONFIG_FOLDER)
           .resolve(SETTINGS_FILE);
       if (!Files.exists(settingsTemplate)) {
         this.context.warning(SETTINGS_FILE + " template not found in settings folder. " + ERROR_SETTINGS_FILE_MESSAGE, settingsFile);
@@ -142,7 +141,7 @@ public class Mvn extends PluginBasedCommandlet {
       }
 
       if (!gitSettingsUrl.equals(gitContext.DEFAULT_SETTINGS_GIT_URL)) {
-        List<String> variables = findVariables(content);
+        Set<String> variables = findVariables(content);
         for (String variable : variables) {
           String secret = getEncryptedPassword(variable, settingsSecurityFile);
           content = content.replace("$[" + variable + "]", secret);
@@ -170,15 +169,13 @@ public class Mvn extends PluginBasedCommandlet {
     return encryptedPassword;
   }
 
-  private List<String> findVariables(String content) {
+  private Set<String> findVariables(String content) {
 
-    List<String> variables = new ArrayList<>();
+    Set<String> variables = new LinkedHashSet<>();
     Matcher matcher = VARIABLE_PATTERN.matcher(content);
     while (matcher.find()) {
       String variableName = matcher.group(1);
-      if (!variables.contains(variableName)) {
-        variables.add(variableName);
-      }
+      variables.add(variableName);
     }
     return variables;
   }
