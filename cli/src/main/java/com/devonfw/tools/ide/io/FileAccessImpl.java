@@ -20,10 +20,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.Authenticator;
 import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.PasswordAuthentication;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
+import java.net.URL;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
@@ -85,9 +89,70 @@ public class FileAccessImpl implements FileAccess {
     return builder.build();
   }
 
-  private Proxy getProxy(String url) {
+  //  private Proxy getProxy(String url) {
+  //
+  //    return ProxySelector.getDefault().select(URI.create(url)).stream().filter(p -> p.type() == Proxy.Type.HTTP).findFirst().orElse(Proxy.NO_PROXY);
+  //  }
 
-    return ProxySelector.getDefault().select(URI.create(url)).stream().filter(p -> p.type() == Proxy.Type.HTTP).findFirst().orElse(Proxy.NO_PROXY);
+  private Proxy getProxy(String url) {
+    // Logic to detect proxy based on URL or environment variable
+    //String proxyHost = System.getenv("HTTP_PROXY");
+    String proxyHost = this.context.getProxyContext().getHttpProxyConfig().getHost();
+    int proxyPort = this.context.getProxyContext().getHttpProxyConfig().getPort();
+    if (proxyHost != null && !proxyHost.isEmpty()) {
+      return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort)); // Adjust port as needed
+    } else {
+      return Proxy.NO_PROXY;
+    }
+  }
+
+  //  private Proxy getProxy(String url) {
+  //    // Logic to detect proxy based on URL or environment variable
+  //    String httpProxy = System.getenv("HTTP_PROXY");
+  //    String httpsProxy = System.getenv("HTTPS_PROXY");
+  //
+  //    // Prefer lowercase environment variables
+  //    if (httpProxy == null) {
+  //      httpProxy = System.getenv("http_proxy");
+  //    }
+  //    if (httpsProxy == null) {
+  //      httpsProxy = System.getenv("https_proxy");
+  //    }
+  //
+  //    // Parse proxy URL and extract host, port, and credentials
+  //    if (httpProxy != null && !httpProxy.isEmpty()) {
+  //      return parseProxyUrl(httpProxy);
+  //    } else if (httpsProxy != null && !httpsProxy.isEmpty()) {
+  //      return parseProxyUrl(httpsProxy);
+  //    } else {
+  //      return Proxy.NO_PROXY;
+  //    }
+  //  }
+
+  private Proxy parseProxyUrl(String proxyUrl) {
+
+    try {
+      URL url = new URL(proxyUrl);
+      String host = url.getHost();
+      int port = url.getPort() != -1 ? url.getPort() : 8888; // Default port if not specified
+      String userInfo = url.getUserInfo();
+
+      if (userInfo != null) {
+        String[] userInfoArray = userInfo.split(":");
+        String username = userInfoArray[0];
+        String password = userInfoArray.length > 1 ? userInfoArray[1] : null;
+        Authenticator.setDefault(new Authenticator() {
+          protected PasswordAuthentication getPasswordAuthentication() {
+
+            return new PasswordAuthentication(username, password.toCharArray());
+          }
+        });
+      }
+
+      return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(host, port));
+    } catch (MalformedURLException e) {
+      return Proxy.NO_PROXY;
+    }
   }
 
   @Override

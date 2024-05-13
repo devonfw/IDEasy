@@ -412,6 +412,8 @@ public interface IdeContext extends IdeLogger {
    */
   Path getDefaultExecutionDirectory();
 
+  ProxyContext getProxyContext();
+
   /**
    * @return the {@link GitContext} used to run several git commands.
    */

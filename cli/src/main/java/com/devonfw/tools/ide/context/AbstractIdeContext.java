@@ -646,6 +646,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public ProxyContext getProxyContext() {
+
+    return new ProxyContext(this);
+  }
+
+  @Override
   public GitContext getGitContext() {
 
     return new GitContextImpl(this);
