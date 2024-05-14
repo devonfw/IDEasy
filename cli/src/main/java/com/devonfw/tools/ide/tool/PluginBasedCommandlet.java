@@ -22,8 +22,7 @@ import java.util.Set;
  */
 public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
-  private Map<String, PluginDescriptor> pluginsMapById;
-  private Map<String, PluginDescriptor> pluginsMapByName;
+  private Map<String, PluginDescriptor> pluginsMap;
 
   private Collection<PluginDescriptor> configuredPlugins;
 
@@ -40,52 +39,37 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     super(context, tool, tags);
   }
 
-  protected PluginMaps getPluginsMap() {
+  protected Map<String, PluginDescriptor> getPluginsMap() {
 
-    if (this.pluginsMapById == null && this.pluginsMapByName == null) {
-      Map<String, PluginDescriptor> mapById = new HashMap<>();
-      Map<String, PluginDescriptor> mapByName = new HashMap<>();
+    if (this.pluginsMap == null) {
+      Map<String, PluginDescriptor> map = new HashMap<>();
 
       // Load project-specific plugins
       Path pluginsPath = getPluginsConfigPath();
-      loadPluginsFromDirectory(mapById, mapByName, pluginsPath);
+      loadPluginsFromDirectory(map, pluginsPath);
 
       // Load user-specific plugins, this is done after loading the project-specific plugins so the user can potentially
       // override plugins (e.g. change active flag).
       Path userPluginsPath = getUserHomePluginsConfigPath();
-      loadPluginsFromDirectory(mapById, mapByName, userPluginsPath);
+      loadPluginsFromDirectory(map, userPluginsPath);
 
-      this.pluginsMapById = mapById;
-      this.pluginsMapByName = mapByName;
+      this.pluginsMap = map;
     }
 
-    return new PluginMaps(this.pluginsMapById, this.pluginsMapByName);
+    return this.pluginsMap;
   }
 
-  /**
-   * Loads plugin descriptors from a directory into two maps: one keyed by plugin ID and the other keyed by plugin name.
-   *
-   * @param mapById   A map with plugin IDs as keys and corresponding plugin descriptors as values.
-   * @param mapByName A map with plugin names as keys and corresponding plugin descriptors as values.
-   * @param pluginsPath The path to the directory containing plugin configuration files.
-   */
-  private void loadPluginsFromDirectory(Map<String, PluginDescriptor> mapById, Map<String, PluginDescriptor> mapByName, Path pluginsPath) {
+  private void loadPluginsFromDirectory(Map<String, PluginDescriptor> map, Path pluginsPath) {
 
-    this.context.getFileAccess()
-        .listChildren(pluginsPath, p -> p.getFileName().toString().endsWith(IdeContext.EXT_PROPERTIES))
-        .forEach(child -> {
-          PluginDescriptor descriptor = PluginDescriptorImpl.of(child, this.context, isPluginUrlNeeded());
-          if (!descriptor.getId().isEmpty()) {
-            PluginDescriptor duplicateById = mapById.put(descriptor.getId(), descriptor);
-            if (duplicateById != null)
-              this.context.info("Plugin {} from project is overridden by {}", descriptor.getId(), child);
-          }
-          if (!descriptor.getName().isEmpty()) {
-            PluginDescriptor duplicateByName = mapByName.put(descriptor.getName(), descriptor);
-            if (duplicateByName != null)
-              this.context.info("Plugin {} from project is overridden by {}", descriptor.getName(), child);
-          }
-        });
+    List<Path> children = this.context.getFileAccess()
+        .listChildren(pluginsPath, p -> p.getFileName().toString().endsWith(IdeContext.EXT_PROPERTIES));
+    for (Path child : children) {
+      PluginDescriptor descriptor = PluginDescriptorImpl.of(child, this.context, isPluginUrlNeeded());
+      PluginDescriptor duplicate = map.put(descriptor.getName(), descriptor);
+      if (duplicate != null) {
+        this.context.info("Plugin {} from project is overridden by {}", descriptor.getName(), child);
+      }
+    }
   }
 
   /**
@@ -115,7 +99,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   public Collection<PluginDescriptor> getConfiguredPlugins() {
 
     if (this.configuredPlugins == null) {
-      this.configuredPlugins = Collections.unmodifiableCollection(getPluginsMap().getById().values());
+      this.configuredPlugins = Collections.unmodifiableCollection(getPluginsMap().values());
     }
     return this.configuredPlugins;
   }
@@ -155,10 +139,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * Retrieves the plugin descriptor for the specified key, which can be either the ID or filename of the plugin properties file.
-   *
-   * @param key The key representing the plugin, which can be either the ID or filename
-   * (excluding the ".properties" extension) of the plugin configuration file.
+   * @param key the filename of the properties file configuring the requested plugin (typically excluding the
+   * ".properties" extension).
    * @return the {@link PluginDescriptor} for the given {@code key}.
    */
   public PluginDescriptor getPlugin(String key) {
@@ -169,13 +151,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     if (key.endsWith(IdeContext.EXT_PROPERTIES)) {
       key = key.substring(0, key.length() - IdeContext.EXT_PROPERTIES.length());
     }
-
-    PluginDescriptor pluginDescriptor = getPluginsMap().getById(key);
-
-    if (pluginDescriptor == null) {
-      pluginDescriptor = getPluginsMap().getByName().get(key);
-    }
-
+    
+    PluginDescriptor pluginDescriptor = getPluginsMap().get(key);
     if (pluginDescriptor == null) {
       throw new CliException(
           "Could not find plugin " + key + " at " + getPluginsConfigPath().resolve(key) + ".properties");
@@ -183,9 +160,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     return pluginDescriptor;
   }
 
-  /**
-   * Iterates over plugins from both maps by name and ID, installing missing plugins and handling inactive ones.
-   */
+  
   @Override
   protected boolean doInstall(boolean silent) {
 
@@ -199,14 +174,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       installPlugins = true;
     }
     if (installPlugins) {
-      for (PluginDescriptor plugin : getPluginsMap().getPlugins()) {
-          if (plugin.isActive()) {
-            installPlugin(plugin);
-          } else {
-            handleInstall4InactivePlugin(plugin);
-          }
-        }
-      }
+      for (PluginDescriptor plugin : getPluginsMap().values()) {
         if (plugin.isActive()) {
           installPlugin(plugin);
         } else {
