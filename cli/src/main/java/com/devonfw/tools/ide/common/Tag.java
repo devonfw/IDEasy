@@ -318,6 +318,9 @@ public final class Tag {
   /** {@link #Tag} for encryption. */
   public static final Tag ENCRYPTION = create("encryption", CRYPTO);
 
+  /** {@link #Tag} for uninstall. */
+  public static final Tag UNINSTALL = create("uninstall", ROOT, false, "remove");
+
   private final String id;
 
   private final Tag parent;
