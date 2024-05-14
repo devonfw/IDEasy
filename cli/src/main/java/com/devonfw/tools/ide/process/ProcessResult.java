@@ -9,11 +9,26 @@ import java.util.List;
  */
 public interface ProcessResult {
 
-  /** Exit code for success. */
+  /** Return code for success. */
   int SUCCESS = 0;
 
-  /** Exit code if tool was requested that is not installed. */
+  /** Return code if tool was requested that is not installed. */
   int TOOL_NOT_INSTALLED = 4;
+
+  /**
+   * Return code to abort gracefully.
+   *
+   * @see com.devonfw.tools.ide.cli.CliAbortException
+   */
+  int ABORT = 22;
+
+  /**
+   * Return code if {@link com.devonfw.tools.ide.context.IdeContext#isOffline() offline} but network is required for
+   * requested operation.
+   *
+   * @see com.devonfw.tools.ide.cli.CliOfflineException
+   */
+  int OFFLINE = 23;
 
   /**
    * @return the exit code. Will be {@link #SUCCESS} on successful completion of the {@link Process}.

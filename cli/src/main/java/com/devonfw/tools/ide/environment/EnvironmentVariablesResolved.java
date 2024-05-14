@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.environment;
 
+import java.util.Set;
+
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
-
-import java.util.Set;
 
 /**
  * Implementation of {@link EnvironmentVariables} that resolves variables recursively.
@@ -33,9 +33,9 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
   }
 
   @Override
-  public String get(String name) {
+  public String get(String name, boolean ignoreDefaultValue) {
 
-    String value = getValue(name);
+    String value = getValue(name, ignoreDefaultValue);
     if (value != null) {
       value = resolve(value, name);
     }

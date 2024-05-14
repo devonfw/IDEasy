@@ -1,8 +1,5 @@
 package com.devonfw.tools.ide.log;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 /**
  * Interface for interaction with the user allowing to input and output information.
  */
@@ -229,59 +226,17 @@ public interface IdeLogger {
    */
   default void error(Throwable error, String message) {
 
-    boolean hasMessage = !isBlank(message);
-    if (error == null) {
-      if (hasMessage) {
-        error(message);
-      } else {
-        error("Internal error: Throwable is null!");
-      }
-      return;
-    }
-    boolean traceEnabled = true;
-    boolean debugEnabled = debug().isEnabled();
-    String errorMessage = error.getMessage();
-    if (errorMessage == null) {
-      errorMessage = "";
-    } else if (errorMessage.isBlank()) {
-      errorMessage = error.getClass().getName();
-    }
-    int capacity = 0;
-    if (hasMessage) {
-      capacity = message.length();
-    } else if (!debugEnabled) {
-      capacity = errorMessage.length();
-    }
-    if (debugEnabled) {
-      capacity = capacity + 32 + errorMessage.length();
-    }
-    if (traceEnabled) {
-      capacity = capacity + 512;
-    }
-    StringWriter sw = new StringWriter(capacity);
-    if (hasMessage) {
-      sw.append(message);
-    }
-    if (traceEnabled) {
-      sw.append('\n');
-      try (PrintWriter pw = new PrintWriter(sw)) {
-        error.printStackTrace(pw);
-      }
-    } else if (debugEnabled) {
-      sw.append('\n');
-      sw.append(error.toString());
-    } else {
-      sw.append(errorMessage);
-    }
-    error(sw.toString());
+    error().log(error, message);
   }
 
-  private static boolean isBlank(String string) {
+  /**
+   * @param error the {@link Throwable} that caused the error.
+   * @param message the {@link IdeSubLogger#log(String, Object...) message to log} with {@link IdeLogLevel#ERROR}.
+   * @param args the dynamic arguments to fill in.
+   */
+  default void error(Throwable error, String message, Object... args) {
 
-    if ((string == null) || (string.isBlank())) {
-      return true;
-    }
-    return false;
+    error().log(error, message, args);
   }
 
 }

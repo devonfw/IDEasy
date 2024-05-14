@@ -23,10 +23,11 @@ public class IdeTestLogger extends IdeSlf4jLogger {
   }
 
   @Override
-  public void log(String message) {
+  public String log(Throwable error, String message, Object... args) {
 
-    super.log(message);
-    this.messages.add(message);
+    String result = super.log(error, message, args);
+    this.messages.add(result);
+    return result;
   }
 
   /**

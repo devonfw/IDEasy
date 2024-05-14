@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.cli;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -254,6 +256,20 @@ public class CliArgument {
 
     assert (!isStart());
     return new CliArgument(NAME_START, this);
+  }
+
+  /**
+   * @return a {@link String} array with all arguments starting from this one.
+   */
+  public String[] asArray() {
+
+    List<String> args = new ArrayList<>();
+    CliArgument current = this;
+    while (!current.isEnd()) {
+      args.add(current.arg);
+      current = current.next;
+    }
+    return args.toArray(size -> new String[size]);
   }
 
   @Override

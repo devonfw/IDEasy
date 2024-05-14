@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -29,6 +30,7 @@ public class ProcessContextImpl implements ProcessContext {
 
   private static final String PREFIX_USR_BIN_ENV = "/usr/bin/env ";
 
+  /** The owning {@link IdeContext}. */
   protected final IdeContext context;
 
   private final ProcessBuilder processBuilder;
@@ -73,7 +75,7 @@ public class ProcessContextImpl implements ProcessContext {
     if (directory != null) {
       this.processBuilder.directory(directory.toFile());
     } else {
-      context.debug(
+      this.context.debug(
           "Could not set the process builder's working directory! Directory of the current java process is used.");
     }
 
@@ -113,6 +115,10 @@ public class ProcessContextImpl implements ProcessContext {
       this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
     }
 
+    if (processMode == ProcessMode.DEFAULT_SILENT) {
+      this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
+    }
+
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");
     }
@@ -134,18 +140,16 @@ public class ProcessContextImpl implements ProcessContext {
 
       this.processBuilder.command(args);
 
-      Process process = this.processBuilder.start();
-
       List<String> out = null;
       List<String> err = null;
 
+      Process process = this.processBuilder.start();
+
       if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        try (BufferedReader outReader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-          out = outReader.lines().collect(Collectors.toList());
-        }
-        try (BufferedReader errReader = new BufferedReader(new InputStreamReader(process.getErrorStream()))) {
-          err = errReader.lines().collect(Collectors.toList());
-        }
+        CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
+        CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
+        out = outFut.get();
+        err = errFut.get();
       }
 
       int exitCode;
@@ -169,6 +173,26 @@ public class ProcessContextImpl implements ProcessContext {
     } finally {
       this.arguments.clear();
     }
+  }
+
+  /**
+   * Asynchronously and parallel reads {@link InputStream input stream} and stores it in {@link CompletableFuture}.
+   * Inspired by: <a href=
+   * "https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki/57483714#57483714">StackOverflow</a>
+   *
+   * @param is {@link InputStream}.
+   * @return {@link CompletableFuture}.
+   */
+  private static CompletableFuture<List<String>> readInputStream(InputStream is) {
+
+    return CompletableFuture.supplyAsync(() -> {
+
+      try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr)) {
+        return br.lines().toList();
+      } catch (Throwable e) {
+        throw new RuntimeException("There was a problem while executing the program", e);
+      }
+    });
   }
 
   private String createCommandMessage(String interpreter, String suffix) {
@@ -225,65 +249,10 @@ public class ProcessContextImpl implements ProcessContext {
     return null;
   }
 
-  private String findBashOnWindows() {
+  private String addExecutable(String exec, List<String> args) {
 
-    // Check if Git Bash exists in the default location
-    Path defaultPath = Path.of("C:\\Program Files\\Git\\bin\\bash.exe");
-    if (Files.exists(defaultPath)) {
-      return defaultPath.toString();
-    }
-
-    // If not found in the default location, try the registry query
-    String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
-    String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
-    String regQueryResult;
-    for (String bashVariant : bashVariants) {
-      for (String registryKey : registryKeys) {
-        String toolValueName = ("GitForWindows".equals(bashVariant)) ? "InstallPath" : "rootdir";
-        String command = "reg query " + registryKey + "\\Software\\" + bashVariant + "  /v " + toolValueName + " 2>nul";
-
-        try {
-          Process process = new ProcessBuilder("cmd.exe", "/c", command).start();
-          try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-            StringBuilder output = new StringBuilder();
-            String line;
-
-            while ((line = reader.readLine()) != null) {
-              output.append(line);
-            }
-
-            int exitCode = process.waitFor();
-            if (exitCode != 0) {
-              return null;
-            }
-
-            regQueryResult = output.toString();
-            if (regQueryResult != null) {
-              int index = regQueryResult.indexOf("REG_SZ");
-              if (index != -1) {
-                String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
-                return path + "\\bin\\bash.exe";
-              }
-            }
-
-          }
-        } catch (Exception e) {
-          return null;
-        }
-      }
-    }
-    // no bash found
-    throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
-  }
-
-  private String addExecutable(String executable, List<String> args) {
-
-    if (!SystemInfoImpl.INSTANCE.isWindows()) {
-      args.add(executable);
-      return null;
-    }
     String interpreter = null;
-    String fileExtension = FilenameUtil.getExtension(executable);
+    String fileExtension = FilenameUtil.getExtension(exec);
     boolean isBashScript = "sh".equals(fileExtension);
     if (!isBashScript) {
       String sheBang = getSheBang(this.executable);
@@ -301,23 +270,14 @@ public class ProcessContextImpl implements ProcessContext {
       }
     }
     if (isBashScript) {
-      String bash = "bash";
-      interpreter = bash;
-      // here we want to have native OS behavior even if OS is mocked during tests...
-      // if (this.context.getSystemInfo().isWindows()) {
-      if (SystemInfoImpl.INSTANCE.isWindows()) {
-        String findBashOnWindowsResult = findBashOnWindows();
-        if (findBashOnWindowsResult != null) {
-          bash = findBashOnWindowsResult;
-        }
-      }
-      args.add(bash);
+      interpreter = "bash";
+      args.add(this.context.findBash());
     }
     if ("msi".equalsIgnoreCase(fileExtension)) {
       args.add(0, "/i");
       args.add(0, "msiexec");
     }
-    args.add(executable);
+    args.add(exec);
     return interpreter;
   }
 
@@ -335,7 +295,7 @@ public class ProcessContextImpl implements ProcessContext {
         level = this.context.warning();
       } else {
         level = this.context.error();
-        level.log("Internal error: Undefined error handling {}", this.errorHandling);
+        this.context.error("Internal error: Undefined error handling {}", this.errorHandling);
       }
       level.log(message);
     }
@@ -351,22 +311,12 @@ public class ProcessContextImpl implements ProcessContext {
       throw new IllegalStateException("Cannot handle non background process mode!");
     }
 
-    String bash = "bash";
-
-    // try to use bash in windows to start the process
-    if (context.getSystemInfo().isWindows()) {
-
-      String findBashOnWindowsResult = findBashOnWindows();
-      if (findBashOnWindowsResult != null) {
-
-        bash = findBashOnWindowsResult;
-
-      } else {
-        context.warning(
-            "Cannot start background process in windows! No bash installation found, output will be discarded.");
-        this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
-        return;
-      }
+    String bash = this.context.findBash();
+    if (bash == null) {
+      context.warning(
+          "Cannot start background process via bash because no bash installation was found. Hence, output will be discarded.");
+      this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
+      return;
     }
 
     String commandToRunInBackground = buildCommandToRunInBackground();
@@ -381,7 +331,7 @@ public class ProcessContextImpl implements ProcessContext {
 
   private String buildCommandToRunInBackground() {
 
-    if (context.getSystemInfo().isWindows()) {
+    if (this.context.getSystemInfo().isWindows()) {
 
       StringBuilder stringBuilder = new StringBuilder();
 

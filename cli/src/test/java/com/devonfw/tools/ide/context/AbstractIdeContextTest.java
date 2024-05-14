@@ -1,5 +1,13 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.ListAssert;
+
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
@@ -7,13 +15,6 @@ import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ListAssert;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Abstract base class for tests that need mocked instances of {@link IdeContext}.
@@ -61,8 +62,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * project in {@link #TEST_PROJECTS}. E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
-   * {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything in that
-   * project.)
+   *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
+   *        in that project.)
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
@@ -79,14 +80,13 @@ public abstract class AbstractIdeContextTest extends Assertions {
     if (projectPath == null) {
       projectPath = "project";
     }
-    ToolRepositoryMock mock = null;
-    Path ideHome = ideRoot.resolve(projectPath);
+    Path userDir = ideRoot.resolve(projectPath);
     ToolRepositoryMock toolRepository = null;
     Path repositoryFolder = ideRoot.resolve("repository");
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(repositoryFolder);
     }
-    IdeTestContext context = new IdeTestContext(ideHome, toolRepository);
+    IdeTestContext context = new IdeTestContext(userDir, toolRepository);
     if (toolRepository != null) {
       toolRepository.setContext(context);
     }
@@ -156,6 +156,43 @@ public abstract class AbstractIdeContextTest extends Assertions {
   }
 
   /**
+   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
+   * @param level the expected {@link IdeLogLevel}.
+   * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that should not have been
+   * logged.
+   */
+  protected static void assertNoLogMessage(IdeTestContext context, IdeLogLevel level, String message) {
+
+    assertNoLogMessage(context, level, message, false);
+  }
+
+  /**
+   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
+   * @param level the expected {@link IdeLogLevel}.
+   * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that should not have been
+   * logged.
+   * @param contains - {@code true} if the given {@code message} may only be a sub-string of the log-message to assert,
+   * {@code false} otherwise (the entire log message including potential parameters being filled in is asserted).
+   */
+  protected static void assertNoLogMessage(IdeTestContext context, IdeLogLevel level, String message,
+      boolean contains) {
+
+    IdeTestLogger logger = context.level(level);
+    ListAssert<String> assertion = assertThat(logger.getMessages()).as(level.name() + "-Log messages");
+    if (contains) {
+      Condition<String> condition = new Condition<>() {
+        public boolean matches(String e) {
+
+          return e.contains(message);
+        }
+      };
+      assertion.filteredOn(condition).isEmpty();
+    } else {
+      assertion.doesNotContain(message);
+    }
+  }
+
+  /**
    * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default
    * behavior
    *
@@ -215,5 +252,4 @@ public abstract class AbstractIdeContextTest extends Assertions {
     long restSize = maxSize % CHUNK_SIZE;
     assertProgressBar(context, taskName, maxSize, CHUNK_SIZE, chunkCount, restSize);
   }
-
 }

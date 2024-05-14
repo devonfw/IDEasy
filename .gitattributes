@@ -1,0 +1,8 @@
+* eol=lf
+*.bat eol=crlf
+*.png binary
+*.zip binary
+*.tgz binary
+*.tar binary
+*.bz2 binary
+*.gz binary

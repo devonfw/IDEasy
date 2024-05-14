@@ -106,4 +106,20 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
     }
     return line;
   }
+
+  @Override
+  public String toString(List<String> value) {
+
+    if (value == null) {
+      return "";
+    }
+    StringBuilder sb = new StringBuilder(value.size() * 5);
+    for (Object element : value) {
+      if (sb.length() > 0) {
+        sb.append(',');
+      }
+      sb.append(element);
+    }
+    return sb.toString();
+  }
 }
