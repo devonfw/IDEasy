@@ -170,7 +170,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       key = key.substring(0, key.length() - IdeContext.EXT_PROPERTIES.length());
     }
 
-    PluginDescriptor pluginDescriptor = getPluginsMap().getById().get(key);
+    PluginDescriptor pluginDescriptor = getPluginsMap().getById(key);
 
     if (pluginDescriptor == null) {
       pluginDescriptor = getPluginsMap().getByName().get(key);
@@ -199,11 +199,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       installPlugins = true;
     }
     if (installPlugins) {
-      Map<String, PluginDescriptor> mapById = getPluginsMap().getById();
-      Map<String, PluginDescriptor> mapByName = getPluginsMap().getByName();
-
-      for (PluginDescriptor plugin : mapByName.values()) {
-        if (!mapById.containsKey(plugin.getId())) {
+      for (PluginDescriptor plugin : getPluginsMap().getPlugins()) {
           if (plugin.isActive()) {
             installPlugin(plugin);
           } else {
@@ -211,7 +207,6 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
           }
         }
       }
-      for (PluginDescriptor plugin : mapById.values()) {
         if (plugin.isActive()) {
           installPlugin(plugin);
         } else {

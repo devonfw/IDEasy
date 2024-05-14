@@ -11,32 +11,58 @@ public class PluginMaps {
   private final Map<String, PluginDescriptor> mapById;
   private final Map<String, PluginDescriptor> mapByName;
 
+  
+  private final IdeContext context;
+
   /**
-   * Constructs a new PluginMaps object with the specified maps.
-   *
-   * @param mapById   A map with plugin IDs as keys and corresponding plugin descriptors as values.
-   * @param mapByName A map with plugin names as keys and corresponding plugin descriptors as values.
+   * The constructor.
+   * @param context the {@link IdeContext}.
    */
-  public PluginMaps(Map<String, PluginDescriptor> mapById, Map<String, PluginDescriptor> mapByName) {
-    this.mapById = mapById;
-    this.mapByName = mapByName;
+  public PluginMaps(IdeContext context) {
+    super();
+    this.context = context;
+    this.mapById = new HashMap<>();
+    this.mapByName = new HashMap<>();
   }
 
   /**
-   * Returns the map of plugin descriptors keyed by plugin ID.
-   *
-   * @return The map of plugin descriptors keyed by plugin ID.
+   * @return the {@link PluginDescriptor} for the given {@link PluginDescriptor#getId() ID} or {@code null} if not found.
    */
-  public Map<String, PluginDescriptor> getById() {
-    return mapById;
+  public PluginDescriptor getById(String id) {
+    return this.mapById.get(id);
   }
 
   /**
-   * Returns the map of plugin descriptors keyed by plugin name.
-   *
-   * @return The map of plugin descriptors keyed by plugin name.
+   * @return the {@link PluginDescriptor} for the given {@link PluginDescriptor#getName() name} or {@code null} if not found.
    */
-  public Map<String, PluginDescriptor> getByName() {
-    return mapByName;
+  public PluginDescriptor getByName(String name) {
+    return this.mapByName.get(name);
+  }
+  
+  public Collection<PluginDescriptor> getPlugins() {
+    
+    Map<String, PluginDescriptor> map = this.mapById;
+    if (map.isEmpty()) {
+      map = this.mapByName; // potentially plugins for this tool have no ID
+    }
+    return Collections.unmodifyableCollection(map.values());
+  }
+  
+  /**
+   * Registers a {@link PluginDescriptor} to this map.
+   */
+  protected void add(PluginDescriptor descriptor) {
+    put(decriptor.getName(), descriptor, this.mapByName);
+    String id = descriptor.getId();
+    if ((id != null) && !id.isEmpty()) {
+      put(id, descriptor, this.mapById);
+    }
+  }
+  
+  private void put(String key, PluginDescriptor descriptor, Map<String, PluginDescriptor> map) {
+    PluginDescriptor duplicate = map.put(key, descriptor);
+    if (duplicate != null) {
+      this.context.info("Plugin with key {} was {} but got overridden by {}", key, duplicate, descriptor);
+    }
   }
 }
