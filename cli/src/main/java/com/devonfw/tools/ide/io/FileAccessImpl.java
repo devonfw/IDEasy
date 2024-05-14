@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.io;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.ProxyConfig;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
@@ -77,7 +76,8 @@ public class FileAccessImpl implements FileAccess {
   private HttpClient createHttpClient(String url) {
 
     HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
-    Proxy proxy = getProxy(url);
+    Proxy proxy = this.context.getProxyContext().getProxy(url);
+    //    Proxy proxy = getProxy(url);
     if (proxy != Proxy.NO_PROXY) {
       this.context.info("Downloading through proxy: " + proxy);
       InetSocketAddress proxyAddress = (InetSocketAddress) proxy.address();
@@ -91,19 +91,19 @@ public class FileAccessImpl implements FileAccess {
   //    return ProxySelector.getDefault().select(URI.create(url)).stream().filter(p -> p.type() == Proxy.Type.HTTP).findFirst().orElse(Proxy.NO_PROXY);
   //  }
 
-  private Proxy getProxy(String url) {
-
-    ProxyConfig proxyConfig = this.context.getProxyContext().getProxyConfig(url);
-    if (proxyConfig != null) {
-      String proxyHost = proxyConfig.getHost();
-      int proxyPort = proxyConfig.getPort();
-
-      if (proxyHost != null && !proxyHost.isEmpty() && proxyPort > 0 && proxyPort <= 65535) {
-        return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
-      }
-    }
-    return Proxy.NO_PROXY;
-  }
+  //  private Proxy getProxy(String url) {
+  //
+  //    ProxyConfig proxyConfig = this.context.getProxyContext().getProxyConfig(url);
+  //    if (proxyConfig != null) {
+  //      String proxyHost = proxyConfig.getHost();
+  //      int proxyPort = proxyConfig.getPort();
+  //
+  //      if (proxyHost != null && !proxyHost.isEmpty() && proxyPort > 0 && proxyPort <= 65535) {
+  //        return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+  //      }
+  //    }
+  //    return Proxy.NO_PROXY;
+  //  }
 
   //  private Proxy getProxy(String url) {
   //    // Logic to detect proxy based on URL or environment variable
@@ -155,9 +155,6 @@ public class FileAccessImpl implements FileAccess {
         }
       }
     } catch (Exception e) {
-      if (getProxy(url) != Proxy.NO_PROXY) {
-        this.context.warning(PROXY_FORMAT_WARNING_MESSAGE);
-      }
       throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, e);
     }
   }

@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.context;
 
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URL;
 
 public class ProxyContext {
@@ -21,6 +23,20 @@ public class ProxyContext {
 
     httpProxyConfig = new ProxyConfig(HTTP_PROXY);
     httpsProxyConfig = new ProxyConfig(HTTPS_PROXY);
+  }
+
+  public Proxy getProxy(String url) {
+
+    ProxyConfig proxyConfig = getProxyConfig(url);
+    if (proxyConfig != null) {
+      String proxyHost = proxyConfig.getHost();
+      int proxyPort = proxyConfig.getPort();
+
+      if (proxyHost != null && !proxyHost.isEmpty() && proxyPort > 0 && proxyPort <= 65535) {
+        return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+      }
+    }
+    return Proxy.NO_PROXY;
   }
 
   public ProxyConfig getProxyConfig(String url) {
