@@ -4,6 +4,9 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 public class ProxyConfig {
+
+  private String protocol;
+
   private String host;
 
   private int port;
@@ -27,12 +30,11 @@ public class ProxyConfig {
 
     try {
       URL url = new URL(proxyUrl);
+      protocol = url.getProtocol();
       host = url.getHost();
       port = url.getPort() != -1 ? url.getPort() : 8888; // Default port if not specified
     } catch (MalformedURLException e) {
       // TODO: send and appropriate error message
-      host = null;
-      port = -1;
     }
   }
 

@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.context;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 public class ProxyContext {
 
   private final IdeContext context;
@@ -18,6 +21,22 @@ public class ProxyContext {
 
     httpProxyConfig = new ProxyConfig(HTTP_PROXY);
     httpsProxyConfig = new ProxyConfig(HTTPS_PROXY);
+  }
+
+  public ProxyConfig getProxyConfig(String url) {
+
+    try {
+      URL parsedUrl = new URL(url);
+      String protocol = parsedUrl.getProtocol();
+      if ("http".equalsIgnoreCase(protocol)) {
+        return httpProxyConfig;
+      } else if ("https".equalsIgnoreCase(protocol)) {
+        return httpsProxyConfig;
+      }
+    } catch (MalformedURLException e) {
+      // Handle the error appropriately
+    }
+    return null; // Unsupported protocol or invalid URL
   }
 
   // Getters for proxy configurations
