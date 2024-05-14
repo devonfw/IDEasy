@@ -1,7 +1,11 @@
 package com.devonfw.tools.ide.tool;
 
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -45,14 +49,14 @@ public class PluginMaps {
     if (map.isEmpty()) {
       map = this.mapByName; // potentially plugins for this tool have no ID
     }
-    return Collections.unmodifyableCollection(map.values());
+    return Collections.unmodifiableCollection(map.values());
   }
   
   /**
    * Registers a {@link PluginDescriptor} to this map.
    */
   protected void add(PluginDescriptor descriptor) {
-    put(decriptor.getName(), descriptor, this.mapByName);
+    put(descriptor.getName(), descriptor, this.mapByName);
     String id = descriptor.getId();
     if ((id != null) && !id.isEmpty()) {
       put(id, descriptor, this.mapById);
