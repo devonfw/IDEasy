@@ -5,13 +5,17 @@ import java.net.URL;
 
 public class ProxyConfig {
 
+  private final IdeContext context;
+
   private String protocol;
 
   private String host;
 
   private int port;
 
-  public ProxyConfig(String proxyEnvVariable) {
+  public ProxyConfig(String proxyEnvVariable, IdeContext context) {
+
+    this.context = context;
 
     String proxyUrl = parseProxyValue(proxyEnvVariable);
     parseProxyUrl(proxyUrl);
@@ -32,8 +36,9 @@ public class ProxyConfig {
       URL url = new URL(proxyUrl);
       protocol = url.getProtocol();
       host = url.getHost();
-      port = url.getPort() != -1 ? url.getPort() : 8888; // Default port if not specified
+      port = url.getPort();
     } catch (MalformedURLException e) {
+      this.context.warning(ProxyContext.PROXY_FORMAT_WARNING_MESSAGE);
       // TODO: send and appropriate error message
     }
   }

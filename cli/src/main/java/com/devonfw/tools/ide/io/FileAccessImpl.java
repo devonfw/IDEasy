@@ -56,12 +56,6 @@ public class FileAccessImpl implements FileAccess {
 
   private final IdeContext context;
 
-  private static final String PROXY_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc";
-
-  private static final String PROXY_FORMAT_WARNING_MESSAGE =
-      "Please note that IDEasy can detect a proxy only if the corresponding environmental variables are properly formatted. " + "For further details, see "
-          + PROXY_DOCUMENTATION_PAGE;
-
   /**
    * The constructor.
    *

@@ -13,6 +13,12 @@ public class ProxyContext {
 
   private static final String HTTPS_PROXY = "https_proxy";
 
+  public static final String PROXY_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc";
+
+  public static final String PROXY_FORMAT_WARNING_MESSAGE =
+      "Please note that IDEasy can detect a proxy only if the corresponding environmental variables are properly formatted. " + "For further details, see "
+          + PROXY_DOCUMENTATION_PAGE;
+
   private ProxyConfig httpProxyConfig;
 
   private ProxyConfig httpsProxyConfig;
@@ -21,8 +27,8 @@ public class ProxyContext {
 
     this.context = context;
 
-    httpProxyConfig = new ProxyConfig(HTTP_PROXY);
-    httpsProxyConfig = new ProxyConfig(HTTPS_PROXY);
+    httpProxyConfig = new ProxyConfig(HTTP_PROXY, context);
+    httpsProxyConfig = new ProxyConfig(HTTPS_PROXY, context);
   }
 
   public Proxy getProxy(String url) {
@@ -50,20 +56,10 @@ public class ProxyContext {
         return httpsProxyConfig;
       }
     } catch (MalformedURLException e) {
-      // Handle the error appropriately
+      this.context.warning(ProxyContext.PROXY_FORMAT_WARNING_MESSAGE);
     }
     return null; // Unsupported protocol or invalid URL
   }
-
-  // Getters for proxy configurations
-  public ProxyConfig getHttpProxyConfig() {
-
-    return httpProxyConfig;
-  }
-
-  public ProxyConfig getHttpsProxyConfig() {
-
-    return httpsProxyConfig;
-  }
+  
 }
 
