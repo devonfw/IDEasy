@@ -51,7 +51,7 @@ public class UninstallCommandlet extends LocalToolCommandlet {
           this.context.warning("An installed version of " + commandletName + " does not exist");
         }
       } catch (Exception e) {
-        throw new IllegalStateException("Failed to uninstall", e);
+        throw new IllegalStateException(e.getMessage());
       }
     }
   }

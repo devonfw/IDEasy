@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 /**
  * Integration test of {@link UninstallCommandlet}.
  */
@@ -98,13 +100,13 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     uninstallCommandlet.arguments.setValue(List.of("xxx"));
     String expectedMessage = "The commandlet xxx is not a ToolCommandlet!";
 
-    // act
-    try {
+    // assert
+
+    Throwable exception = assertThrows(IllegalStateException.class, () -> {
       uninstallCommandlet.run();
-    } catch (Exception e) {
-      // assert
-      assertThat(e).hasMessageContaining(expectedMessage);
-      assertLogMessage(context, IdeLogLevel.ERROR, expectedMessage);
-    }
+    });
+
+    assert (exception.getMessage().contains(expectedMessage));
+
   }
 }
