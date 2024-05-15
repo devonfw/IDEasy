@@ -13,7 +13,7 @@ public class ProxyContext {
 
   private static final String HTTP_PROXY = "http_proxy";
 
-  private static final String HTTPS_PROXY = "httpss_proxy";
+  private static final String HTTPS_PROXY = "https_proxy";
 
   private static final String PROXY_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc";
 
@@ -26,6 +26,11 @@ public class ProxyContext {
 
   final private ProxyConfig httpsProxyConfig;
 
+  /**
+   * Class to detect system proxy configurations
+   *
+   * @param context the {@link IdeContext}
+   */
   public ProxyContext(IdeContext context) {
 
     this.context = context;
@@ -42,6 +47,13 @@ public class ProxyContext {
     return (proxyUrl != null && !proxyUrl.isEmpty()) ? new ProxyConfig(proxyUrl, context) : null;
   }
 
+  /**
+   * Retrieves the system proxy for a given URL.
+   *
+   * @param url The URL of the request for which to detect a proxy. This is used to determine the corresponding proxy based on the protocol.
+   * @return A {@link Proxy} object representing the system proxy for the given URL, or {@link Proxy#NO_PROXY} if no valid proxy is found or if the proxy
+   * configuration is invalid.
+   */
   public Proxy getProxy(String url) {
 
     ProxyConfig proxyConfig = getProxyConfig(url);
@@ -52,7 +64,7 @@ public class ProxyContext {
       if (proxyHost != null && !proxyHost.isEmpty() && proxyPort > 0 && proxyPort <= 65535) {
         InetSocketAddress proxyAddress = new InetSocketAddress(proxyHost, proxyPort);
         if (proxyAddress.isUnresolved()) {
-          this.context.warning(ProxyContext.PROXY_FORMAT_WARNING_MESSAGE + " CONFIG");
+          this.context.warning(ProxyContext.PROXY_FORMAT_WARNING_MESSAGE);
           return Proxy.NO_PROXY;
         }
         return new Proxy(Proxy.Type.HTTP, proxyAddress);
@@ -61,7 +73,7 @@ public class ProxyContext {
     return Proxy.NO_PROXY;
   }
 
-  public ProxyConfig getProxyConfig(String url) {
+  private ProxyConfig getProxyConfig(String url) {
 
     try {
       URL parsedUrl = new URL(url);
@@ -72,9 +84,9 @@ public class ProxyContext {
         return httpsProxyConfig;
       }
     } catch (MalformedURLException e) {
-      this.context.warning(ProxyContext.PROXY_FORMAT_WARNING_MESSAGE + " CONTEXT");
+      this.context.warning(ProxyContext.PROXY_FORMAT_WARNING_MESSAGE);
     }
-    return null; // Unsupported protocol or invalid URL
+    return null;
   }
 
 }

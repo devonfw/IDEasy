@@ -80,48 +80,6 @@ public class FileAccessImpl implements FileAccess {
     return builder.build();
   }
 
-  //  private Proxy getProxy(String url) {
-  //
-  //    return ProxySelector.getDefault().select(URI.create(url)).stream().filter(p -> p.type() == Proxy.Type.HTTP).findFirst().orElse(Proxy.NO_PROXY);
-  //  }
-
-  //  private Proxy getProxy(String url) {
-  //
-  //    ProxyConfig proxyConfig = this.context.getProxyContext().getProxyConfig(url);
-  //    if (proxyConfig != null) {
-  //      String proxyHost = proxyConfig.getHost();
-  //      int proxyPort = proxyConfig.getPort();
-  //
-  //      if (proxyHost != null && !proxyHost.isEmpty() && proxyPort > 0 && proxyPort <= 65535) {
-  //        return new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
-  //      }
-  //    }
-  //    return Proxy.NO_PROXY;
-  //  }
-
-  //  private Proxy getProxy(String url) {
-  //    // Logic to detect proxy based on URL or environment variable
-  //    String httpProxy = System.getenv("HTTP_PROXY");
-  //    String httpsProxy = System.getenv("HTTPS_PROXY");
-  //
-  //    // Prefer lowercase environment variables
-  //    if (httpProxy == null) {
-  //      httpProxy = System.getenv("http_proxy");
-  //    }
-  //    if (httpsProxy == null) {
-  //      httpsProxy = System.getenv("https_proxy");
-  //    }
-  //
-  //    // Parse proxy URL and extract host, port, and credentials
-  //    if (httpProxy != null && !httpProxy.isEmpty()) {
-  //      return parseProxyUrl(httpProxy);
-  //    } else if (httpsProxy != null && !httpsProxy.isEmpty()) {
-  //      return parseProxyUrl(httpsProxy);
-  //    } else {
-  //      return Proxy.NO_PROXY;
-  //    }
-  //  }
-
   @Override
   public void download(String url, Path target) {
 
