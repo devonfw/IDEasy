@@ -2,42 +2,35 @@ package com.devonfw.tools.ide.tool;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
-import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.version.VersionRange;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * {@link ToolCommandlet} that is installed locally into the IDE.
  */
 public abstract class LocalToolCommandlet extends ToolCommandlet {
 
-  private static final ObjectMapper MAPPER = JsonMapping.create();
-
-  private static final String DEPENDENCY_FILENAME = "dependencies.json";
-
   protected HashMap<String, String> dependenciesEnvVariableNames = null;
+
+  protected HashMap<String, String> dependenciesEnvVariablePaths = new HashMap<>();
+
+  private final Dependency dependency = new Dependency(this.context, this.tool);
 
   /**
    * The constructor.
@@ -77,12 +70,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   @Override
   protected boolean doInstall(boolean silent) {
-
-    if (Files.exists(getDependencyJsonPath())) {
-      installDependencies();
-    } else {
-      this.context.trace("No Dependencies file found");
-    }
 
     VersionIdentifier configuredVersion = getConfiguredVersion();
     // get installed version before installInRepo actually may install the software
@@ -164,6 +151,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    */
   public ToolInstallation installInRepo(VersionIdentifier version, String edition, ToolRepository toolRepository) {
 
+    if (Files.exists(this.dependency.getDependencyJsonPath(getEdition()))) {
+      installDependencies(version);
+    } else {
+      this.context.trace("No Dependencies file found");
+    }
+
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version);
     Path toolPath = this.context.getSoftwareRepositoryPath().resolve(toolRepository.getId()).resolve(this.tool)
         .resolve(edition).resolve(resolvedVersion.toString());
@@ -232,53 +225,85 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return createToolInstallation(rootDir, resolvedVersion, toolVersionFile, false);
   }
 
-  /**
-   * Method to get the Path of the dependencies Json file
-   *
-   * @return the {@link Path} of the dependencies file for the tool
-   */
-  public Path getDependencyJsonPath() {
+  @Override
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    Path toolPath = this.context.getUrlsPath().resolve(getName()).resolve(getEdition());
-    return toolPath.resolve(DEPENDENCY_FILENAME);
+    setDependencyRepository(getConfiguredVersion());
+
+    Path binaryPath;
+    Path toolPath = Path.of(getBinaryName());
+    if (toolVersion == null) {
+      install(true);
+      binaryPath = toolPath;
+    } else {
+      throw new UnsupportedOperationException("Not yet implemented!");
+    }
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
+
+    for (String key : this.dependenciesEnvVariablePaths.keySet()) {
+
+      String dependencyPath = this.dependenciesEnvVariablePaths.get(key);
+      pc = pc.withEnvVar(key, dependencyPath);
+    }
+
+    pc.run(processMode);
   }
 
-  private void installDependencies() {
+  private void installDependencies(VersionIdentifier version) {
 
-    List<DependencyInfo> dependencies = readJson();
+    List<DependencyInfo> dependencies = this.dependency.readJson(version, getEdition());
 
     for (DependencyInfo dependencyInfo : dependencies) {
-      VersionRange dependencyVersionRangeFound = dependencyInfo.getVersionRange();
+
       String dependencyName = dependencyInfo.getTool();
-      ToolCommandlet dependencyTool = this.context.getCommandletManager().getToolCommandlet(dependencyName);
-      VersionIdentifier dependencyVersionToInstall = findDependencyVersionToInstall(dependencyInfo);
+      VersionIdentifier dependencyVersionToInstall = this.dependency.findDependencyVersionToInstall(dependencyInfo);
       if (dependencyVersionToInstall == null) {
         continue;
       }
-      String defaultToolRepositoryId = this.context.getDefaultToolRepository().getId();
-      Path dependencyRepository = this.context.getSoftwareRepositoryPath().resolve(defaultToolRepositoryId).resolve(dependencyName)
-          .resolve(dependencyTool.getEdition());
-
-      Path versionExistingInRepository = versionExistsInRepository(dependencyRepository, dependencyVersionRangeFound);
+      ToolCommandlet dependencyTool = this.context.getCommandletManager().getToolCommandlet(dependencyName);
+      Path versionExistingInRepository = this.dependency.versionExistsInRepository(getDependencySoftwareRepository(dependencyName, dependencyTool.getEdition()),
+          dependencyInfo.getVersionRange());
 
       if (versionExistingInRepository.equals(Path.of(""))) {
         this.context.info("The version {} of the dependency {} is being installed", dependencyVersionToInstall, dependencyName);
         LocalToolCommandlet dependencyLocal = (LocalToolCommandlet) dependencyTool;
         dependencyLocal.installInRepo(dependencyVersionToInstall);
         this.context.info("The version {} of the dependency {} was successfully installed", dependencyVersionToInstall, dependencyName);
-        setDependencyEnvironmentPath(getDependencyEnvironmentName(dependencyName), dependencyRepository.resolve(dependencyVersionToInstall.toString()));
       } else {
         this.context.info("Necessary version of the dependency {} is already installed in repository", dependencyName);
-        setDependencyEnvironmentPath(getDependencyEnvironmentName(dependencyName), versionExistingInRepository);
       }
     }
   }
 
-  private void setDependencyEnvironmentPath(String dependencyEnvironmentName, Path dependencyPath) {
+  protected void setDependencyRepository(VersionIdentifier version) {
 
-    EnvironmentVariables variables = this.context.getVariables();
-    EnvironmentVariables typeVariables = variables.getByType(EnvironmentVariablesType.CONF);
-    typeVariables.set(dependencyEnvironmentName, dependencyPath.toString(), false);
+    List<DependencyInfo> dependencies = this.dependency.readJson(version, getEdition());
+
+    for (DependencyInfo dependencyInfo : dependencies) {
+      String dependencyName = dependencyInfo.getTool();
+      VersionIdentifier dependencyVersionToInstall = this.dependency.findDependencyVersionToInstall(dependencyInfo);
+      if (dependencyVersionToInstall == null) {
+        continue;
+      }
+
+      ToolCommandlet dependencyTool = this.context.getCommandletManager().getToolCommandlet(dependencyName);
+      Path dependencyRepository = getDependencySoftwareRepository(dependencyName, dependencyTool.getEdition());
+      Path versionExistingInRepository = this.dependency.versionExistsInRepository(dependencyRepository, dependencyInfo.getVersionRange());
+      Path dependencyPath;
+
+      if (versionExistingInRepository.equals(Path.of(""))) {
+        dependencyPath = dependencyRepository.resolve(dependencyVersionToInstall.toString());
+      } else {
+        dependencyPath = dependencyRepository.resolve(versionExistingInRepository);
+      }
+      setDependencyEnvironmentPath(getDependencyEnvironmentName(dependencyName), dependencyPath);
+    }
+  }
+
+  protected void setDependencyEnvironmentPath(String dependencyEnvironmentName, Path dependencyPath) {
+
+    this.dependenciesEnvVariablePaths.put(dependencyEnvironmentName, dependencyPath.toString());
+
   }
 
   /**
@@ -294,85 +319,21 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   private String getDependencyEnvironmentName(String dependencyName) {
 
-    String envVariableName = listOfDependencyEnvVariableNames().get(dependencyName);
+    HashMap<String, String> envVariableName = listOfDependencyEnvVariableNames();
 
     if (envVariableName != null) {
-      return envVariableName;
+      return envVariableName.get(dependencyName);
     }
 
     return dependencyName.toUpperCase() + "_HOME";
   }
 
-  private List<DependencyInfo> readJson() {
+  private Path getDependencySoftwareRepository(String dependencyName, String dependencyEdition) {
 
-    Path dependencyJsonPath = getDependencyJsonPath();
+    String defaultToolRepositoryId = this.context.getDefaultToolRepository().getId();
+    Path dependencyRepository = this.context.getSoftwareRepositoryPath().resolve(defaultToolRepositoryId).resolve(dependencyName).resolve(dependencyEdition);
 
-    try (BufferedReader reader = Files.newBufferedReader(dependencyJsonPath)) {
-      TypeReference<HashMap<VersionRange, List<DependencyInfo>>> typeRef = new TypeReference<>() {
-      };
-      Map<VersionRange, List<DependencyInfo>> dependencyJson = MAPPER.readValue(reader, typeRef);
-      return findDependenciesFromJson(dependencyJson, getConfiguredVersion());
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    return dependencyRepository;
   }
 
-  /**
-   * Method to search the List of versions available in the ide and find the right version to install
-   *
-   * @param dependencyFound the {@link DependencyInfo} of the dependency that was found that needs to be installed
-   *
-   * @return {@link VersionIdentifier} of the dependency that is to be installed
-   */
-  private VersionIdentifier findDependencyVersionToInstall(DependencyInfo dependencyFound) {
-
-    String dependencyEdition = this.context.getVariables().getToolEdition(dependencyFound.getTool());
-
-    List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(dependencyFound.getTool(),
-        dependencyEdition);
-
-    for (VersionIdentifier vi : versions) {
-      if (dependencyFound.getVersionRange().contains(vi)) {
-        return vi;
-      }
-    }
-    return null;
-  }
-
-  /**
-   * Method to check if in the repository of the dependency there is a Version greater or equal to the version range to be installed
-   *
-   * @param dependencyRepositoryPath the {@link Path} of the dependency repository
-   * @param dependencyVersionRangeFound the {@link VersionRange} of the dependency version to be installed
-   * @return the {@code true} if such version exists in repository already, or {@code false} otherwise
-   */
-  private Path versionExistsInRepository(Path dependencyRepositoryPath, VersionRange dependencyVersionRangeFound) {
-
-    try (Stream<Path> versions = Files.list(dependencyRepositoryPath)) {
-      Iterator<Path> versionsIterator = versions.iterator();
-      while (versionsIterator.hasNext()) {
-        VersionIdentifier versionFound = VersionIdentifier.of(versionsIterator.next().getFileName().toString());
-        if (dependencyVersionRangeFound.contains(versionFound)) {
-          assert versionFound != null;
-          return dependencyRepositoryPath.resolve(versionFound.toString());
-        }
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to iterate through " + dependencyRepositoryPath, e);
-    }
-    return Path.of("");
-  }
-
-  private List<DependencyInfo> findDependenciesFromJson(Map<VersionRange, List<DependencyInfo>> dependencies, VersionIdentifier toolVersionToCheck) {
-
-    for (Map.Entry<VersionRange, List<DependencyInfo>> map : dependencies.entrySet()) {
-
-      VersionRange foundToolVersionRange = map.getKey();
-
-      if (foundToolVersionRange.contains(toolVersionToCheck)) {
-        return map.getValue();
-      }
-    }
-    return null;
-  }
 }

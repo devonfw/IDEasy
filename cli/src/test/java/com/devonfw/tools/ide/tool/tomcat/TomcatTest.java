@@ -40,12 +40,6 @@ public class TomcatTest extends AbstractIdeContextTest {
 
     assertLogMessage(context, IdeLogLevel.INFO, "Tomcat is running at localhost on the following port (default 8080):");
     assertLogMessage(context, IdeLogLevel.INFO, "8080");
-    assertLogMessage(context, IdeLogLevel.DEBUG,
-        "Set variable 'CATALINA_HOME=" + context.getSoftwarePath().resolve("tomcat") + "' in " + context.getConfPath().resolve("ide.properties"));
-    assertLogMessage(context, IdeLogLevel.DEBUG,
-        "Set variable 'JRE_HOME=" + context.getSoftwareRepositoryPath().resolve("default").resolve("java").resolve("java").resolve("17.0.10_7") + "' in "
-            + context.getConfPath().resolve("ide.properties"));
-
   }
 
   private void checkInstallation(IdeTestContext context) {
