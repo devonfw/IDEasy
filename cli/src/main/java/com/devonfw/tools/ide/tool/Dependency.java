@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-public class Dependencies {
+public class Dependency {
 
   private final IdeContext context;
 
@@ -34,7 +34,7 @@ public class Dependencies {
    * @param context the {@link IdeContext}.
    * @param tool the tool of the context
    */
-  public Dependencies(IdeContext context, String tool) {
+  public Dependency(IdeContext context, String tool) {
 
     this.context = context;
     this.tool = tool;
