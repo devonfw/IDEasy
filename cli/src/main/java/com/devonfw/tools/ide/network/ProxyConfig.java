@@ -1,23 +1,23 @@
-package com.devonfw.tools.ide.context;
+package com.devonfw.tools.ide.network;
+
+import com.devonfw.tools.ide.context.IdeContext;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 
-public class ProxyConfig {
+class ProxyConfig {
 
   private final IdeContext context;
-
-  private String protocol;
 
   private String host;
 
   private int port;
 
-  public ProxyConfig(String proxyEnvVariable, IdeContext context) {
+  ProxyConfig(String proxyUrl, IdeContext context) {
 
     this.context = context;
 
-    String proxyUrl = parseProxyValue(proxyEnvVariable);
+    //String proxyUrl = parseProxyValue(proxyEnvVariable);
     parseProxyUrl(proxyUrl);
   }
 
@@ -34,22 +34,24 @@ public class ProxyConfig {
 
     try {
       URL url = new URL(proxyUrl);
-      protocol = url.getProtocol();
       host = url.getHost();
       port = url.getPort();
     } catch (MalformedURLException e) {
-      this.context.warning(ProxyContext.PROXY_FORMAT_WARNING_MESSAGE);
+      this.context.warning(ProxyContext.PROXY_FORMAT_WARNING_MESSAGE + " CONFIG");
+      host = null;
+      port = 0;
+      this.context.warning("host and port" + host + port);
       // TODO: send and appropriate error message
     }
   }
 
   // Getters for host and port
-  public String getHost() {
+  String getHost() {
 
     return host;
   }
 
-  public int getPort() {
+  int getPort() {
 
     return port;
   }
