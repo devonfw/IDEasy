@@ -82,6 +82,9 @@ public interface IdeContext extends IdeLogger {
   /** The name of the app folder inside a MacOS app. */
   String FOLDER_APP = "app";
 
+  /** The name of the extra folder inside the software folder */
+  String FOLDER_EXTRA = "extra";
+
   /**
    * The name of the {@link #getPluginsPath() plugins folder} and also the plugins folder inside the IDE folders of {@link #getSettingsPath() settings} (e.g.
    * settings/eclipse/plugins).
@@ -312,6 +315,12 @@ public interface IdeContext extends IdeLogger {
   Path getSoftwarePath();
 
   /**
+   * @return the {@link Path} to the extra folder inside software folder inside {@link #getIdeHome() IDE_HOME}. All tools for that IDE instance will be linked
+   * here from the {@link #getSoftwareRepositoryPath() software repository} as sub-folder named after the according tool.
+   */
+  Path getSoftwareExtraPath();
+
+  /**
    * @return the {@link Path} to the global software repository. This is the central directory where the tools are extracted physically on the local disc. Those
    * are shared among all IDE instances (see {@link #getIdeHome() IDE_HOME}) via symbolic links (see {@link #getSoftwarePath()}). Therefore this repository
    * follows the sub-folder structure {@code «repository»/«tool»/«edition»/«version»/}. So multiple versions of the same tool exist here as different folders.
@@ -397,6 +406,11 @@ public interface IdeContext extends IdeLogger {
    * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
    */
   DirectoryMerger getWorkspaceMerger();
+
+  /**
+   * @return the {@link Path} to the working directory from where the command is executed.
+   */
+  Path getDefaultExecutionDirectory();
 
   /**
    * @return the {@link GitContext} used to run several git commands.

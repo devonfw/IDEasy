@@ -31,6 +31,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   private FileAccess mockFileAccess;
 
+  private Path dummyUserHome;
+
   /**
    * The constructor.
    *
@@ -108,5 +110,27 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public void setMockFileAccess(FileAccess fileAccess) {
 
     this.mockFileAccess = fileAccess;
+  }
+
+  /**
+   * @param dummyUserHome mock path which will be used in {@link #getUserHome()}
+   */
+  public void setUserHome(Path dummyUserHome) {
+
+    this.dummyUserHome = dummyUserHome;
+  }
+
+  /**
+   * @return a dummy UserHome path to avoid global path access in a commandlet test. The defined {@link #dummyUserHome} will be returned if it is not
+   * {@code null}, else see implementation {@link #AbstractIdeContext}.
+   */
+  @Override
+  public Path getUserHome() {
+
+    if (dummyUserHome != null) {
+      return dummyUserHome;
+    }
+
+    return super.getUserHome();
   }
 }
