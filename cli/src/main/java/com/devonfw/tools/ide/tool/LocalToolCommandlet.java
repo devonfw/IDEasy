@@ -264,19 +264,29 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       if (dependencyVersionToInstall == null) {
         continue;
       }
-      ToolCommandlet dependencyTool = this.context.getCommandletManager().getToolCommandlet(dependencyName);
-      Path versionExistingInRepository = this.dependency.versionExistsInRepository(getDependencySoftwareRepository(dependencyName, dependencyTool.getEdition()),
-          dependencyInfo.getVersionRange());
 
-      if (versionExistingInRepository.equals(Path.of(""))) {
-        this.context.info("The version {} of the dependency {} is being installed", dependencyVersionToInstall, dependencyName);
-        LocalToolCommandlet dependencyLocal = (LocalToolCommandlet) dependencyTool;
-        dependencyLocal.installInRepo(dependencyVersionToInstall);
-        this.context.info("The version {} of the dependency {} was successfully installed", dependencyVersionToInstall, dependencyName);
+      ToolCommandlet dependencyTool = this.context.getCommandletManager().getToolCommandlet(dependencyName);
+      Path dependencyRepository = getDependencySoftwareRepository(dependencyName, dependencyTool.getEdition());
+
+      if (!Files.exists(dependencyRepository)) {
+        installDependencyInRepo(dependencyName, dependencyTool, dependencyVersionToInstall);
       } else {
-        this.context.info("Necessary version of the dependency {} is already installed in repository", dependencyName);
+        Path versionExistingInRepository = this.dependency.versionExistsInRepository(dependencyRepository, dependencyInfo.getVersionRange());
+        if (versionExistingInRepository.equals(Path.of(""))) {
+          installDependencyInRepo(dependencyName, dependencyTool, dependencyVersionToInstall);
+        } else {
+          this.context.info("Necessary version of the dependency {} is already installed in repository", dependencyName);
+        }
       }
     }
+  }
+
+  private void installDependencyInRepo(String dependencyName, ToolCommandlet dependencyTool, VersionIdentifier dependencyVersionToInstall) {
+
+    this.context.info("The version {} of the dependency {} is being installed", dependencyVersionToInstall, dependencyName);
+    LocalToolCommandlet dependencyLocal = (LocalToolCommandlet) dependencyTool;
+    dependencyLocal.installInRepo(dependencyVersionToInstall);
+    this.context.info("The version {} of the dependency {} was successfully installed", dependencyVersionToInstall, dependencyName);
   }
 
   protected void setDependencyRepository(VersionIdentifier version) {
