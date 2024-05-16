@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.merge;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.merge.xmlMerger.XmlMerger;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import org.jline.utils.Log;
 

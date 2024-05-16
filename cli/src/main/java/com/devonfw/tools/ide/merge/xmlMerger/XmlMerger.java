@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.merge;
+package com.devonfw.tools.ide.merge.xmlMerger;
 
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -11,6 +11,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import com.devonfw.tools.ide.merge.FileMerger;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
