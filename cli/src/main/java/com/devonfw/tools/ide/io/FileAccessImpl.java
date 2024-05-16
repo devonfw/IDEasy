@@ -71,7 +71,6 @@ public class FileAccessImpl implements FileAccess {
 
     HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
     Proxy proxy = this.context.getProxyContext().getProxy(url);
-    //    Proxy proxy = getProxy(url);
     if (proxy != Proxy.NO_PROXY) {
       this.context.info("Downloading through proxy: " + proxy);
       InetSocketAddress proxyAddress = (InetSocketAddress) proxy.address();

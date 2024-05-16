@@ -21,14 +21,3 @@ https_proxy=https://<host>:<port>
 ----
 
 IDEasy utilizes these environment variables to detect and configure proxy settings during runtime.
-
-[[proxy-support.adoc_Advanced-Settings]]
-== Advanced Settings
-
-More advanced users can modify the wrapper script to input custom JVM arguments by overriding the `proxy_args` variable.
-
-[source,bash]
-----
-# example for proxies that need user authentication
-proxy_args="-Dhttps.proxyHost=<host> -Dhttps.proxyPort=<port> -Dhttps.proxyUser=<user> -Dhttps.proxyPassword=<password>"
-----

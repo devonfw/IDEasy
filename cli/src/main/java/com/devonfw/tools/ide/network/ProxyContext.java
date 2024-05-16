@@ -7,6 +7,11 @@ import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
 
+/**
+ * Class for handling system proxy settings.
+ * This class is responsible for detecting and managing the proxy configurations
+ * for HTTP and HTTPS protocols based on the system's environment variables.
+ */
 public class ProxyContext {
 
   private final IdeContext context;
@@ -73,7 +78,13 @@ public class ProxyContext {
     return Proxy.NO_PROXY;
   }
 
-  private ProxyConfig getProxyConfig(String url) {
+  /**
+   * Retrieves the appropriate {@link ProxyConfig} object based on the given request URL.
+   *
+   * @param url a {@link String} representing the URL for which the related proxy is to be determined
+   * @return a {@link ProxyConfig} object with the correct settings, or {@code null} if the URL is malformed
+   */
+  public ProxyConfig getProxyConfig(String url) {
 
     try {
       URL parsedUrl = new URL(url);

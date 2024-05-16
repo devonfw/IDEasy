@@ -5,7 +5,10 @@ import com.devonfw.tools.ide.context.IdeContext;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-class ProxyConfig {
+/**
+ * Class responsible for parsing and storing the host and port information from a given proxy URL.
+ */
+public class ProxyConfig {
 
   private final IdeContext context;
 
@@ -26,12 +29,18 @@ class ProxyConfig {
     }
   }
 
-  String getHost() {
+  /**
+   * @return a {@link String} representing the host of the proxy
+   */
+  public String getHost() {
 
     return host;
   }
 
-  int getPort() {
+  /**
+   * @return an {@code int} representing the port of the proxy
+   */
+  public int getPort() {
 
     return port;
   }
