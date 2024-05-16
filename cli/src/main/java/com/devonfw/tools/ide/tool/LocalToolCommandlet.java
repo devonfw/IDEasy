@@ -228,7 +228,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   @Override
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    setDependencyRepository(getConfiguredVersion());
+    if (Files.exists(this.dependency.getDependencyJsonPath(getEdition()))) {
+      setDependencyRepository(getConfiguredVersion());
+    } else {
+      this.context.trace("No Dependencies file found");
+    }
 
     Path binaryPath;
     Path toolPath = Path.of(getBinaryName());
