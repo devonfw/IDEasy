@@ -78,6 +78,9 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Ensure that for every {@link Commandlet} and each of their {@link Property} a help text is defined.
+   *
+   * @param locale the {@link String} representation of the {@link Locale} to test. The empty {@link String} will be
+   *        used for {@link Locale#ROOT}.
    */
   @ParameterizedTest
   @ValueSource(strings = { "", "de" })
