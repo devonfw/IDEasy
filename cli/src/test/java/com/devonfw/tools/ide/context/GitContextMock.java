@@ -46,4 +46,9 @@ public class GitContextMock implements GitContext {
 
   }
 
+  @Override
+  public String retrieveGitUrl(Path repository) {
+
+    return null;
+  }
 }
