@@ -42,7 +42,10 @@ public class PluginMaps {
   public PluginDescriptor getByName(String name) {
     return this.mapByName.get(name);
   }
-  
+
+  /**
+   * @return the immutable {@link Collection} of {@link PluginDescriptor}s configured for this IDE tool.
+   */
   public Collection<PluginDescriptor> getPlugins() {
     
     Map<String, PluginDescriptor> map = this.mapById;
@@ -63,7 +66,7 @@ public class PluginMaps {
     }
   }
   
-  private void put(String key, PluginDescriptor descriptor, Map<String, PluginDescriptor> map) {
+  public void put(String key, PluginDescriptor descriptor, Map<String, PluginDescriptor> map) {
     PluginDescriptor duplicate = map.put(key, descriptor);
     if (duplicate != null) {
       this.context.info("Plugin with key {} was {} but got overridden by {}", key, duplicate, descriptor);
