@@ -1,20 +1,8 @@
 #!/usr/bin/env bash
 
 _IDEASY="$(dirname "${BASH_SOURCE}")/ideasy"
-
-# Check if proxy environment variables are set and pass them as JVM arguments
-proxy_args=""
-if [ -n "${http_proxy}" ]; then
-  proxy_args+=" -Dhttp.proxyHost=$(echo "${http_proxy}" | cut -d: -f2 | sed 's/\/\///')"
-  proxy_args+=" -Dhttp.proxyPort=$(echo "${http_proxy}" | cut -d: -f3)"
-fi
-if [ -n "${https_proxy}" ]; then
-  proxy_args+=" -Dhttps.proxyHost=$(echo "${https_proxy}" | cut -d: -f2 | sed 's/\/\///')"
-  proxy_args+=" -Dhttps.proxyPort=$(echo "${https_proxy}" | cut -d: -f3)"
-fi
-
 if [ $# != 0 ]; then
-  "${_IDEASY}" ${proxy_args} "$@"
+  "${_IDEASY}" "$@"
   return_code=$?
   if [ $return_code != 0 ]; then
     echo -e "\n\033[91mError: IDEasy failed with exit code ${return_code}\033[91m" >&2
