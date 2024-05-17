@@ -10,7 +10,7 @@ IDEasy provides built-in support for automatic HTTP and HTTPS proxy recognition.
 == Configuring Proxy Settings
 
 To enable automatic proxy recognition, users need to set the appropriate environment variables in their system, or check if they are already set.
-These variables should be formatted as follows:
+These variables should be formatted as follows, lowercase or uppercase:
 
 [source,bash]
 ----

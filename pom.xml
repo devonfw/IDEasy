@@ -47,8 +47,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
-
+  
   <modules>
     <module>documentation</module>
     <module>cli</module>
