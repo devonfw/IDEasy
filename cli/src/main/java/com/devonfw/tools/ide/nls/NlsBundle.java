@@ -33,6 +33,17 @@ public class NlsBundle {
    * The constructor.
    *
    * @param context the {@link IdeContext}.
+   * @param locale the explicit {@link Locale} to use.
+   */
+  public NlsBundle(IdeContext context, Locale locale) {
+
+    this(context, "Help", locale);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param context the {@link IdeContext}.
    * @param name the simple name of {@link ResourceBundle} (e.g. "Cli").
    * @param locale the explicit {@link Locale} to use.
    */
@@ -76,7 +87,7 @@ public class NlsBundle {
    */
   public String get(Commandlet commandlet) {
 
-    return get("cmd-" + commandlet.getName());
+    return get("cmd." + commandlet.getName());
   }
 
   /**
@@ -86,17 +97,16 @@ public class NlsBundle {
    */
   public String get(Commandlet commandlet, Property<?> property) {
 
-    String prefix = "opt";
-    String suffix = property.getNameOrAlias();
+    String prefix = "opt.";
     if (property.isValue()) {
-      prefix = "val";
-      suffix = "-" + suffix;
+      prefix = "val.";
     }
+    String key = prefix + property.getNameOrAlias();
 
-    String key = prefix + "-" + commandlet.getName() + suffix;
-    String value = getOrNull(key);
+    String qualifiedKey = "cmd." + commandlet.getName() + "." + key;
+    String value = getOrNull(qualifiedKey);
     if (value == null) {
-      value = getOrNull(prefix + suffix); // fallback to share messages across commandlets
+      value = getOrNull(key); // fallback to share messages across commandlets
       if (value == null) {
         value = get(key); // will fail to resolve but we want to reuse the code
       }
@@ -105,24 +115,12 @@ public class NlsBundle {
   }
 
   /**
-   * @param commandlet the {@link com.devonfw.tools.ide.commandlet.Commandlet#getName() name} of the
-   *        {@link com.devonfw.tools.ide.commandlet.Commandlet}.
-   * @param value the {@link com.devonfw.tools.ide.property.Property#getNameOrAlias() name or alias} of the
-   *        {@link com.devonfw.tools.ide.property.Property#isValue() value}.
-   * @return the localized message (translated to the users language).
-   */
-  public String getValue(String commandlet, String value) {
-
-    return get("val-" + value);
-  }
-
-  /**
    * @param context the {@link IdeContext}.
    * @return the {@link NlsBundle} for "Cli".
    */
   public static NlsBundle of(IdeContext context) {
 
-    return new NlsBundle(context, "Ide", context.getLocale());
+    return new NlsBundle(context, context.getLocale());
   }
 
 }
