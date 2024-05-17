@@ -2,13 +2,19 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Integration test of {@link UninstallCommandlet}.
@@ -64,7 +70,6 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     assertThat(Files.notExists(context.getSoftwarePath().resolve(AWS)));
   }
 
-  /*TODO
   @Test
   public void testUninstallCommandletRun_UninstallingValidToolThrowsException() {
 
@@ -78,18 +83,17 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     when(mockContext.getCommandletManager()).thenReturn(new CommandletManagerImpl(mockContext));
     when(mockContext.getSoftwarePath()).thenReturn(softwarePath);
 
-    doThrow(new IllegalStateException("Couldn't uninstall")).when(mockFileAccess).delete(softwarePath);
+    doThrow(new IllegalStateException("Couldn't uninstall")).when(mockFileAccess).delete(any());
 
     UninstallCommandlet uninstallCommandlet = mockContext.getCommandletManager().getCommandlet(UninstallCommandlet.class);
     uninstallCommandlet.arguments.setValue(List.of(NPM));
 
-    // assert
-    assertThrows(IllegalStateException.class, () -> {
-      uninstallCommandlet.run();
-    });
-  }
+    //act
+    uninstallCommandlet.run();
 
-   */
+    // assert
+    verify(mockContext).error("Couldn't uninstall " + NPM);
+  }
 
   @Test
   public void testUninstallCommandletRun_UninstallingInvalidToolThrowsException() {
@@ -100,13 +104,11 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     uninstallCommandlet.arguments.setValue(List.of("xxx"));
     String expectedMessage = "The commandlet xxx is not a ToolCommandlet!";
 
+    //act
+    uninstallCommandlet.run();
+
     // assert
-
-    Throwable exception = assertThrows(IllegalStateException.class, () -> {
-      uninstallCommandlet.run();
-    });
-
-    assert (exception.getMessage().contains(expectedMessage));
+    assertLogMessage(context, IdeLogLevel.ERROR, expectedMessage);
 
   }
 }

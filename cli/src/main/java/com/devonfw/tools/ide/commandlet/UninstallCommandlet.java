@@ -45,13 +45,13 @@ public class UninstallCommandlet extends LocalToolCommandlet {
             context.getFileAccess().delete(softwarePath);
             this.context.success("Successfully uninstalled " + commandletName);
           } catch (Exception e) {
-            throw new IllegalStateException("Couldn't uninstall " + commandletName, e);
+            this.context.error("Couldn't uninstall " + commandletName);
           }
         } else {
           this.context.warning("An installed version of " + commandletName + " does not exist");
         }
       } catch (Exception e) {
-        throw new IllegalStateException(e.getMessage());
+        this.context.error(e.getMessage());
       }
     }
   }
