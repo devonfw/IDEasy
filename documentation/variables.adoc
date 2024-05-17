@@ -24,7 +24,7 @@ Please note that we are trying to minimize any potential side-effect from `IDEas
 |*`JAVA_HOME`*|`$IDE_HOME/software/java`|Path to JDK
 |*`MVN_REPO`*|`$IDE_HOME/conf/mvn/repository`|Path to your local maven repository. For projects without high security demands, you may change this to the maven default `~/.m2/repository` and share your repository among multiple projects.
 |*`MVN_HOME`*|`$IDE_HOME/software/mvn`|Path to Maven
-|*`MAVEN_OPTS`*|`-Xmx512m -s $IDE_HOME/conf/mvn/settings.xml`|Maven options
+|*`MAVEN_ARGS`*|`-s $IDE_HOME/conf/mvn/settings.xml`|Maven arguments. This variable is set just if the `settings.xml` file in link:conf.adoc[conf] is found.
 |*`DOCKER_EDITION`*|e.g. `rancher`| If set as `docker` the command `ide install docker` will setup Docker Desktop globally at the users computer what requires a subscription/license for professional usage. If set to `rancher` or undefined it will install Rancher Desktop instead.
 |*`GRAALVM_HOME`*|`$IDE_HOME/software/extra/graalvm`|Path to GraalVM
 |`ECLIPSE_VMARGS`|`-Xms128M -Xmx768M -XX:MaxPermSize=256M`|JVM options for Eclipse
