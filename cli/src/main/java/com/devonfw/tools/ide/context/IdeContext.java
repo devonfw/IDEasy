@@ -16,9 +16,11 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 
@@ -174,6 +176,14 @@ public interface IdeContext extends IdeLogger {
    * @return The string input from the user, or the default value if no input is provided.
    */
   String askForInput(String message, String defaultValue);
+
+  /**
+   * Asks the user for a single string input.
+   *
+   * @param message The information message to display.
+   * @return The string input from the user, or the default value if no input is provided.
+   */
+  String askForInput(String message);
 
   /**
    * @param question the question to ask.
@@ -422,12 +432,14 @@ public interface IdeContext extends IdeLogger {
    */
   default String getMavenArgs() {
 
-    Path ideHome = getIdeHome();
-    if (ideHome != null) {
-      return "-s " + ideHome.resolve("conf/.m2/settings.xml");
-    } else {
-      return null;
+    if (getIdeHome() != null) {
+      Path mvnSettingsFile = getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
+      if (Files.exists(mvnSettingsFile)) {
+        return "-s " + mvnSettingsFile;
+      }
     }
+    return null;
+
   }
 
   /**
