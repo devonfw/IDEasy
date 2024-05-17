@@ -4,7 +4,7 @@ import org.w3c.dom.Element;
 
 public class MergeAnnotation {
 
-  private static final String MERGE_NS_URI = "https://github.com/devonfw/IDEasy/merge";
+  public static final String MERGE_NS_URI = "https://github.com/devonfw/IDEasy/merge";
 
   public static MergeStrategy getMergeStrategy(Element element) {
 
@@ -19,12 +19,12 @@ public class MergeAnnotation {
     return null;
   }
 
-  public static String getIdExpression(Element element) {
+  public static String getMergeId(Element element) {
 
     return element.getAttributeNS(MERGE_NS_URI, "id");
   }
 
-  public static String getChildrenIdExpression(Element element) {
+  public static String getMergeChildrenId(Element element) {
 
     return element.getAttributeNS(MERGE_NS_URI, "childrenId");
   }

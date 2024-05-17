@@ -4,13 +4,25 @@ import org.w3c.dom.Attr;
 
 public class MergeAttribute {
 
-  private final Attr attribute;
+  private final Attr attr;
 
-  public MergeAttribute(Attr attribute) {
-    this.attribute = attribute;
+  public MergeAttribute(Attr attr) {
+    this.attr = attr;
   }
 
-  public Attr getAttribute() {
-    return attribute;
+  public Attr getAttr() {
+    return attr;
+  }
+
+  public String getName() {
+    return attr.getName();
+  }
+
+  public String getValue() {
+    return attr.getValue();
+  }
+
+  public boolean isMergeNSAttr() {
+    return MergeAnnotation.MERGE_NS_URI.equals(attr.getNamespaceURI());
   }
 }

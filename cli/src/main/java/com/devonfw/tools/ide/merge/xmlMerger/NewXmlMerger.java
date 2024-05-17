@@ -31,9 +31,101 @@ public class NewXmlMerger extends FileMerger {
       throw new IllegalStateException("Invalid XML DOM support in JDK.", e);
     }
   }
+
   public NewXmlMerger(IdeContext context) {
 
     super(context);
+  }
+
+  @Override
+  public void merge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
+
+    Document document = null;
+    boolean updateFileExists = Files.exists(update);
+    if (Files.exists(workspace)) {
+      if (!updateFileExists) {
+        return; // nothing to do ...
+      }
+      document = load(workspace);
+    } else if (Files.exists(setup)) {
+      document = load(setup);
+    }
+    if (updateFileExists) {
+      if (document == null) {
+        document = load(update);
+      } else {
+        Document updateDocument = load(update);
+        merge(updateDocument, document);
+      }
+    }
+    resolve(document, resolver, false, workspace.getFileName());
+    save(document, workspace);
+  }
+
+  private void merge(Document updateDocument, Document targetDocument) {
+
+    Element updateRootElement = updateDocument.getDocumentElement();
+    NodeList updateList = updateRootElement.getChildNodes();
+    for (int i = 0; i < updateList.getLength(); i++) {
+      Node node = updateList.item(i);
+      if (node.getNodeType() == Node.ELEMENT_NODE) {
+        Element updateElement = (Element) node;
+        mergeElement(updateElement, targetDocument);
+      }
+    }
+  }
+
+  private void mergeElement(Element updateElement, Document targetDocument) {
+
+    MergeElement mergeUpdateElement = new MergeElement(updateElement);
+    Element targetElement = matchElement(mergeUpdateElement, targetDocument);
+
+    if (targetElement != null) {
+      MergeStrategy strategy = mergeUpdateElement.getMergingStrategy();
+      if (strategy == MergeStrategy.OVERRIDE) {
+        overrideElements(mergeUpdateElement, new MergeElement(targetElement));
+      } else if (strategy == MergeStrategy.COMBINE) {
+        combineElements(mergeUpdateElement, new MergeElement(targetElement));
+      } else if (strategy == MergeStrategy.KEEP) {
+        // do nothing ...
+      }
+    } else {
+      Element importedNode = (Element) targetDocument.importNode(updateElement, true);
+      targetDocument.getDocumentElement().appendChild(importedNode);
+    }
+  }
+
+  private void combineElements(MergeElement updateElement, MergeElement targetElement) {
+    for (MergeAttribute updateAttr : updateElement.getAttributes()) {
+      if (!updateAttr.isMergeNSAttr()) {
+        targetElement.getElement().setAttribute(updateAttr.getName(), updateAttr.getValue());
+      }
+    }
+    for (MergeElement updateChild : updateElement.getChildElements()) {
+      mergeElement(updateChild.getElement(), targetElement.getElement().getOwnerDocument());
+    }
+  }
+
+  private void overrideElements(MergeElement updateElement, MergeElement targetElement) {
+    Node parentNode = targetElement.getElement().getParentNode();
+    if (parentNode != null) {
+      Element importedElement = (Element) targetElement.getElement().getOwnerDocument().importNode(updateElement.getElement(), true);
+      updateElement.removeMergeNSAttributes();
+      parentNode.replaceChild(importedElement, targetElement.getElement());
+    }
+  }
+
+  /**
+   * @param workspace the workspace {@link Path} where to get the changes from.
+   * @param variables the {@link EnvironmentVariables} to
+   * {@link EnvironmentVariables#inverseResolve(String, Object) inverse resolve variables}.
+   * @param addNewProperties - {@code true} to also add new properties to the {@code updateFile}, {@code false}
+   * otherwise (to only update existing properties).
+   * @param update the update {@link Path}
+   */
+  @Override
+  public void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update) {
+
   }
 
   /**
@@ -109,43 +201,5 @@ public class NewXmlMerger extends FileMerger {
       }
       attribute.setValue(resolvedValue);
     }
-  }
-
-  @Override
-  public void merge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
-
-    Document document = null;
-    boolean updateFileExists = Files.exists(update);
-    if (Files.exists(workspace)) {
-      if (!updateFileExists) {
-        return; // nothing to do ...
-      }
-      document = load(workspace);
-    } else if (Files.exists(setup)) {
-      document = load(setup);
-    }
-    if (updateFileExists) {
-      if (document == null) {
-        document = load(update);
-      } else {
-        Document updateDocument = load(update);
-        merge(updateDocument, document, true, true);
-      }
-    }
-    resolve(document, resolver, false, workspace.getFileName());
-    save(document, workspace);
-  }
-
-  /**
-   * @param workspace the workspace {@link Path} where to get the changes from.
-   * @param variables the {@link EnvironmentVariables} to
-   * {@link EnvironmentVariables#inverseResolve(String, Object) inverse resolve variables}.
-   * @param addNewProperties - {@code true} to also add new properties to the {@code updateFile}, {@code false}
-   * otherwise (to only update existing properties).
-   * @param update the update {@link Path}
-   */
-  @Override
-  public void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update) {
-
   }
 }
