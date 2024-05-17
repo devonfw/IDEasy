@@ -257,4 +257,21 @@ public class GitContextImpl implements GitContext {
     }
   }
 
+  @Override
+  public String retrieveGitUrl(Path repository) {
+
+    this.processContext.directory(repository);
+    ProcessResult result;
+    result = this.processContext.addArgs("-C", repository, "remote", "-v").run(ProcessMode.DEFAULT_CAPTURE);
+    for (String line : result.getOut()) {
+      if (line.contains("(fetch)")) {
+        return line.split("\\s+")[1]; // Extract the URL from the line
+      }
+    }
+
+    this.context.error("Failed to retrieve git URL for repository: {}", repository);
+    return null;
+  }
 }
+
+
