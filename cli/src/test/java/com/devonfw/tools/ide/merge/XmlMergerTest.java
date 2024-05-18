@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.merge;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.merge.xmlMerger.NewXmlMerger;
 import com.devonfw.tools.ide.merge.xmlMerger.XmlMerger;
 import org.junit.jupiter.api.Test;
 
@@ -11,11 +12,11 @@ import java.nio.file.Path;
 
 public class XmlMergerTest extends AbstractIdeContextTest {
 
-  private static final Path TEST_DIR = Path.of("src/test/resources/xmlmerger");
+  private static final Path TEST_DIR = Path.of("C:\\Users\\saboucha\\Desktop\\tests1");
 
   private IdeContext context = newContext(PROJECT_BASIC, null, false);
 
-  private XmlMerger merger = new XmlMerger(context);
+  private NewXmlMerger merger = new NewXmlMerger(context);
 
   @Test
   public void combine() {

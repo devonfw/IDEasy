@@ -7,6 +7,7 @@ import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -85,6 +86,8 @@ public class NewXmlMerger extends FileMerger {
     ensureParentDirectoryExists(file);
     try {
       Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "4");
       DOMSource source = new DOMSource(document);
       StreamResult result = new StreamResult(file.toFile());
       transformer.transform(source, result);

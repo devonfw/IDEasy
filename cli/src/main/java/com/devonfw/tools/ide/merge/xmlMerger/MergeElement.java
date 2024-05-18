@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.merge.xmlMerger;
 
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
@@ -44,7 +45,7 @@ public class MergeElement {
       return parentChildrenId;
     }
 
-    String idAttr = element.getAttribute("id");
+    String idAttr = element.getAttribute("id"); // use Annotation for this
     if (!idAttr.isEmpty()) {
       return idAttr;
     }
@@ -58,15 +59,16 @@ public class MergeElement {
 
   private String getChildrenId() {
 
-    Element parent = (Element) element.getParentNode();
-    if (parent != null) {
-      String childrenId = MergeAnnotation.getMergeChildrenId(element);
-      if (!childrenId.isEmpty()) {
-        return childrenId;
-      }
-      return new MergeElement(parent).getChildrenId();
+    Node parentNode = element.getParentNode();
+    if (parentNode == null || parentNode.getNodeType() != Node.ELEMENT_NODE) { // root's parent is document, cant be cast to elem
+      return null;
     }
-    return null;
+    Element parent = (Element) parentNode;
+    String childrenId = MergeAnnotation.getMergeChildrenId(element);
+    if (!childrenId.isEmpty()) {
+      return childrenId;
+    }
+    return new MergeElement(parent).getChildrenId();
   }
 
   public List<MergeAttribute> getAttributes() {
@@ -101,7 +103,15 @@ public class MergeElement {
   }
 
   public String getXPath() {
-    // Method to get the XPath of the element
-    return "";
+
+    StringBuilder xpath = new StringBuilder();
+    Node current = element;
+    while (current != null && current.getNodeType() == Node.ELEMENT_NODE) {
+      Element currentElement = (Element) current;
+      String tagName = currentElement.getTagName();
+      xpath.insert(0, "/" + tagName);
+      current = current.getParentNode();
+    }
+    return xpath.toString();
   }
 }

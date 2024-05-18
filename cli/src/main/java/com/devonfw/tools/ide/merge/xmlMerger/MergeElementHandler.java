@@ -2,10 +2,14 @@ package com.devonfw.tools.ide.merge.xmlMerger;
 
 import org.w3c.dom.*;
 
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+
 public class MergeElementHandler {
 
   public void merge(Document updateDocument, Document targetDocument) {
-
     MergeElement updateRootElement = new MergeElement(updateDocument.getDocumentElement());
     MergeElement targetRootElement = new MergeElement(targetDocument.getDocumentElement());
 
@@ -19,7 +23,6 @@ public class MergeElementHandler {
   }
 
   private void mergeAttributes(MergeElement updateElement, MergeElement targetElement) {
-
     MergeStrategy strategy = updateElement.getMergingStrategy();
     switch (strategy) {
       case OVERRIDE:
@@ -37,16 +40,14 @@ public class MergeElementHandler {
   }
 
   private void combineAttributes(MergeElement updateElement, MergeElement targetElement) {
-
     for (MergeAttribute updateAttr : updateElement.getAttributes()) {
-      if (!updateAttr.isMergeNSAttr()) {
+      if (!updateAttr.isMergeNSAttr() && !updateAttr.getValue().equals(MergeAnnotation.MERGE_NS_URI)) {
         targetElement.getElement().setAttribute(updateAttr.getName(), updateAttr.getValue());
       }
     }
   }
 
   private void overrideAttributes(MergeElement updateElement, MergeElement targetElement) {
-
     NamedNodeMap targetAttributes = targetElement.getElement().getAttributes();
     while (targetAttributes.getLength() > 0) {
       targetElement.getElement().removeAttributeNode((Attr) targetAttributes.item(0));
@@ -59,7 +60,6 @@ public class MergeElementHandler {
   }
 
   private void keepAttributes(MergeElement updateElement, MergeElement targetElement) {
-
     for (MergeAttribute updateAttr : updateElement.getAttributes()) {
       if (!updateAttr.isMergeNSAttr() && !targetElement.getElement().hasAttribute(updateAttr.getName())) {
         targetElement.getElement().setAttribute(updateAttr.getName(), updateAttr.getValue());
@@ -68,7 +68,6 @@ public class MergeElementHandler {
   }
 
   private void mergeElement(Element updateElement, Document targetDocument) {
-
     MergeElement mergeUpdateElement = new MergeElement(updateElement);
     Element targetElement = matchElement(mergeUpdateElement, targetDocument);
 
@@ -83,13 +82,20 @@ public class MergeElementHandler {
         // do nothing ...
       }
     } else {
-      Element importedNode = (Element) targetDocument.importNode(updateElement, true);
-      targetDocument.getDocumentElement().appendChild(importedNode);
+      // append the element
+      Element parent = (Element) updateElement.getParentNode();
+      Element matchParent = matchElement(new MergeElement(parent), targetDocument);
+      if (matchParent != null) {
+        Element importedNode = (Element) targetDocument.importNode(updateElement, true);
+        matchParent.appendChild(importedNode);
+      } else {
+        // should actually never happen, since appending is for children and parent is at least root, remove
+        throw new IllegalStateException("Cannot find matching parent element for: " + updateElement.getTagName());
+      }
     }
   }
 
   private void combineElements(MergeElement updateElement, MergeElement targetElement) {
-
     combineAttributes(updateElement, targetElement);
     for (MergeElement updateChild : updateElement.getChildElements()) {
       mergeElement(updateChild.getElement(), targetElement.getElement().getOwnerDocument());
@@ -97,7 +103,6 @@ public class MergeElementHandler {
   }
 
   private void overrideElements(MergeElement updateElement, MergeElement targetElement) {
-
     Node parentNode = targetElement.getElement().getParentNode();
     if (parentNode != null) {
       Element importedElement = (Element) targetElement.getElement().getOwnerDocument()
@@ -109,6 +114,55 @@ public class MergeElementHandler {
 
   private Element matchElement(MergeElement updateElement, Document targetDocument) {
 
+
+    if (updateElement.getElement().getParentNode() instanceof Document) { // if element is root
+      if (targetDocument.getDocumentElement().getTagName().equals(updateElement.getElement().getTagName())) {
+        return targetDocument.getDocumentElement();
+      }
+      return null;
+    }
+
+    String id = updateElement.getId();
+    if (id == null || id.isEmpty()) {
+      return null;
+    }
+
+    try {
+      XPath xpath = XPathFactory.newInstance().newXPath();
+      String xpathExpression = buildXPathExpression(id, updateElement);
+
+      // Evaluate the XPath expression in the context of the targetDocument
+      XPathExpression expr = xpath.compile(xpathExpression);
+      NodeList result = (NodeList) expr.evaluate(targetDocument, XPathConstants.NODESET);
+
+      if (result.getLength() > 0) {
+        return (Element) result.item(0); // Return the first matching element
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to match element with id: " + id, e);
+    }
+
     return null;
+  }
+
+  private String buildXPathExpression(String id, MergeElement updateElement) {
+    Element contextElement = updateElement.getElement();
+    String xPath = updateElement.getXPath();
+
+    if (id.startsWith("./") || id.startsWith("/")) {
+      return xPath + id;
+    } else if (id.startsWith("@")) {
+      String attributeName = id.substring(1);
+      String attributeValue = contextElement.getAttribute(attributeName);
+      return xPath + String.format("[@%s='%s']", attributeName, attributeValue);
+    } else if (id.equals("name()")) {
+      String tagName = contextElement.getTagName();
+      return xPath + String.format("[name()='%s']", tagName);
+    } else if (id.equals("text()")) {
+      String textContent = contextElement.getTextContent();
+      return xPath + String.format("[text()='%s']", textContent);
+    } else {
+      return xPath + id; // Assume it's a custom XPath
+    }
   }
 }
