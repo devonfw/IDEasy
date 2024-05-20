@@ -18,6 +18,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+/**
+ * Class to represent the functionality of installing the dependencies when a tool is being installed.
+ */
 public class Dependency {
 
   private final IdeContext context;
@@ -40,12 +43,25 @@ public class Dependency {
     this.tool = tool;
   }
 
+  /**
+   * Method to get the dependency json file path
+   *
+   * @param toolEdition the edition of the tool.
+   * @return the {@link Path} of the dependency.json file
+   */
   public Path getDependencyJsonPath(String toolEdition) {
 
     Path toolPath = this.context.getUrlsPath().resolve(tool).resolve(toolEdition);
     return toolPath.resolve(DEPENDENCY_FILENAME);
   }
 
+  /**
+   * Method to read the Json file
+   *
+   * @param version of the main tool to be installed.
+   * @param toolEdition of the main tool, so that the correct folder can be checked to find the dependency json file
+   * @return the {@link List} of {@link DependencyInfo} to be installed
+   */
   public List<DependencyInfo> readJson(VersionIdentifier version, String toolEdition) {
 
     Path dependencyJsonPath = getDependencyJsonPath(toolEdition);
@@ -81,11 +97,12 @@ public class Dependency {
   }
 
   /**
-   * Method to check if in the repository of the dependency there is a Version greater or equal to the version range to be installed
+   * Method to check if in the repository of the dependency there is a Version greater or equal to the version range to be installed, and to return the path of
+   * this version if it exists
    *
    * @param dependencyRepositoryPath the {@link Path} of the dependency repository
    * @param dependencyVersionRangeFound the {@link VersionRange} of the dependency version to be installed
-   * @return the {@code true} if such version exists in repository already, or {@code false} otherwise
+   * @return the {@link Path} of such version if it exists in repository already, an empty Path
    */
   public Path versionExistsInRepository(Path dependencyRepositoryPath, VersionRange dependencyVersionRangeFound) {
 
@@ -104,7 +121,7 @@ public class Dependency {
     return Path.of("");
   }
 
-  public List<DependencyInfo> findDependenciesFromJson(Map<VersionRange, List<DependencyInfo>> dependencies, VersionIdentifier toolVersionToCheck) {
+  private List<DependencyInfo> findDependenciesFromJson(Map<VersionRange, List<DependencyInfo>> dependencies, VersionIdentifier toolVersionToCheck) {
 
     for (Map.Entry<VersionRange, List<DependencyInfo>> map : dependencies.entrySet()) {
 

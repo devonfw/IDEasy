@@ -151,8 +151,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    */
   public ToolInstallation installInRepo(VersionIdentifier version, String edition, ToolRepository toolRepository) {
 
+    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version);
+
     if (Files.exists(this.dependency.getDependencyJsonPath(getEdition()))) {
-      installDependencies(version);
+      installDependencies(resolvedVersion);
     } else {
       this.context.trace("No Dependencies file found");
     }
@@ -228,12 +230,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   @Override
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    if (Files.exists(this.dependency.getDependencyJsonPath(getEdition()))) {
-      setDependencyRepository(getConfiguredVersion());
-    } else {
-      this.context.trace("No Dependencies file found");
-    }
-
     Path binaryPath;
     Path toolPath = Path.of(getBinaryName());
     if (toolVersion == null) {
@@ -242,6 +238,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
+    
+    if (Files.exists(this.dependency.getDependencyJsonPath(getEdition()))) {
+      setDependencyRepository(getInstalledVersion());
+    } else {
+      this.context.trace("No Dependencies file found");
+    }
+
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
 
     for (String key : this.dependenciesEnvVariablePaths.keySet()) {
