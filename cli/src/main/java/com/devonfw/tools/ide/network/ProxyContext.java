@@ -3,14 +3,11 @@ package com.devonfw.tools.ide.network;
 import com.devonfw.tools.ide.context.IdeContext;
 
 import java.net.InetSocketAddress;
-import java.net.MalformedURLException;
 import java.net.Proxy;
-import java.net.URL;
 
 /**
- * Class for handling system proxy settings.
- * This class is responsible for detecting and managing the proxy configurations
- * for HTTP and HTTPS protocols based on the system's environment variables.
+ * Class for handling system proxy settings. This class is responsible for detecting and managing the proxy configurations for HTTP and HTTPS protocols based on
+ * the system's environment variables.
  */
 public class ProxyContext {
 
@@ -86,19 +83,14 @@ public class ProxyContext {
    */
   public ProxyConfig getProxyConfig(String url) {
 
-    try {
-      URL parsedUrl = new URL(url);
-      String protocol = parsedUrl.getProtocol();
-      if ("http".equalsIgnoreCase(protocol)) {
-        return httpProxyConfig;
-      } else if ("https".equalsIgnoreCase(protocol)) {
-        return httpsProxyConfig;
-      }
-    } catch (MalformedURLException e) {
-      this.context.warning(ProxyContext.PROXY_FORMAT_WARNING_MESSAGE);
+    if (url.startsWith("http://")) {
+      return httpProxyConfig;
+    } else if (url.startsWith("https://")) {
+      return httpsProxyConfig;
+    } else {
+      this.context.warning("Download URL wrongly formatted: " + url);
+      return null;
     }
-    return null;
   }
-
 }
 
