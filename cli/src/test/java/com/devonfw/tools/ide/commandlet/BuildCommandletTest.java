@@ -3,11 +3,7 @@ package com.devonfw.tools.ide.commandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoMock;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Path;
 
@@ -44,7 +40,7 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     buildCommandlet.run();
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed mvn in version 3.9.6");
-    assertLogMessage(context, IdeLogLevel.INFO, "mvn " + workspacePath);
+    assertLogMessage(context, IdeLogLevel.INFO, "Building project at: " + workspacePath + " with: mvn");
   }
 
   /**
@@ -60,27 +56,22 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     buildCommandlet.run();
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed gradle in version 8.7");
-    assertLogMessage(context, IdeLogLevel.INFO, "gradle " + workspacePath);
+    assertLogMessage(context, IdeLogLevel.INFO, "Building project at: " + workspacePath + " with: gradle");
   }
 
   /**
    * Tests a {@link com.devonfw.tools.ide.tool.npm.Npm} build on a provided path.
-   *
-   * @param os String of OS.
    */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows" })
-  public void testNpmBuildWithProvidedPath(String os) {
+  @Test
+  public void testNpmBuildWithProvidedPath() {
 
-    SystemInfo systemInfo = SystemInfoMock.of(os);
     IdeTestContext context = newContext(PROJECT_BUILD);
-    context.setSystemInfo(systemInfo);
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
     Path workspacePath = context.getWorkspacePath().resolve("npm");
     buildCommandlet.path.setValue(workspacePath);
     buildCommandlet.run();
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed node in version v18.19.1");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed npm in version 9.9.2");
-    assertLogMessage(context, IdeLogLevel.INFO, "npmcmdbin " + workspacePath);
+    assertLogMessage(context, IdeLogLevel.INFO, "Building project at: " + workspacePath + " with: npm");
   }
 }
