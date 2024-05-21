@@ -132,8 +132,9 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     if (key.endsWith(IdeContext.EXT_PROPERTIES)) {
       key = key.substring(0, key.length() - IdeContext.EXT_PROPERTIES.length());
     }
-    
-    PluginDescriptor pluginDescriptor = pluginsMap.getByName(key);
+
+    PluginMaps pluginMaps = getPluginsMap();
+    PluginDescriptor pluginDescriptor = pluginMaps.getByName(key);
     if (pluginDescriptor == null) {
       throw new CliException(
           "Could not find plugin " + key + " at " + getPluginsConfigPath().resolve(key) + ".properties");
@@ -155,7 +156,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       installPlugins = true;
     }
     if (installPlugins) {
-      for (PluginDescriptor plugin : pluginsMap.getPlugins()) {
+      PluginMaps pluginMaps = getPluginsMap();
+      for (PluginDescriptor plugin : pluginMaps.getPlugins()) {
         if (plugin.isActive()) {
           installPlugin(plugin);
         } else {
