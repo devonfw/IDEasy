@@ -3,7 +3,11 @@ package com.devonfw.tools.ide.commandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.nio.file.Path;
 
@@ -61,11 +65,16 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Tests a {@link com.devonfw.tools.ide.tool.npm.Npm} build on a provided path.
+   *
+   * @param os String of OS.
    */
-  @Test
-  public void testNpmBuildWithProvidedPath() {
+  @ParameterizedTest
+  @ValueSource(strings = { "windows" })
+  public void testNpmBuildWithProvidedPath(String os) {
 
+    SystemInfo systemInfo = SystemInfoMock.of(os);
     IdeTestContext context = newContext(PROJECT_BUILD);
+    context.setSystemInfo(systemInfo);
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
     Path workspacePath = context.getWorkspacePath().resolve("npm");
     buildCommandlet.path.setValue(workspacePath);
