@@ -60,15 +60,17 @@ public class PathProperty extends Property<Path> {
   @Override
   public boolean validate() {
 
-    if (this.value != null) {
-      if (Files.exists(this.value)) {
-        if (isPathRequiredToBeFile() && !Files.isRegularFile(this.value)) {
-          throw new IllegalStateException("Path " + this.value + " is not a file.");
-        } else if (isPathRequiredToBeFolder() && !Files.isDirectory(this.value)) {
-          throw new IllegalStateException("Path " + this.value + " is not a folder.");
+    for (Path path : this.value) {
+      if (path != null) {
+        if (Files.exists(path)) {
+          if (isPathRequiredToBeFile() && !Files.isRegularFile(path)) {
+            throw new IllegalStateException("Path " + path + " is not a file.");
+          } else if (isPathRequiredToBeFolder() && !Files.isDirectory(path)) {
+            throw new IllegalStateException("Path " + path + " is not a folder.");
+          }
+        } else if (isPathRequiredToExist()) {
+          throw new IllegalStateException("Path " + path + " does not exist.");
         }
-      } else if (isPathRequiredToExist()) {
-        throw new IllegalStateException("Path " + this.value + " does not exist.");
       }
     }
     return super.validate();
@@ -121,12 +123,13 @@ public class PathProperty extends Property<Path> {
 
   private boolean isValidPath(Path path, String filename) {
 
-    if (isPathRequiredToBeFile() && !Files.isRegularFile(this.value)) {
-      return false;
-    } else if (isPathRequiredToBeFolder() && !Files.isDirectory(this.value)) {
-      return false;
+    for (Path path1 : this.value) {
+      if (isPathRequiredToBeFile() && !Files.isRegularFile(path1)) {
+        return false;
+      } else if (isPathRequiredToBeFolder() && !Files.isDirectory(path1)) {
+        return false;
+      }
     }
     return path.getFileName().toString().startsWith(filename);
   }
-
 }

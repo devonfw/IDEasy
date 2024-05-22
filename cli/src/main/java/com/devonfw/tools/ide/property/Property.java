@@ -1,8 +1,5 @@
 package com.devonfw.tools.ide.property;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -10,14 +7,16 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorAdapter;
 import com.devonfw.tools.ide.context.IdeContext;
 
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
+
 /**
- * A {@link Property} is a simple container for a {@link #getValue() value} with a fixed {@link #getName() name} and
- * {@link #getValueType() type}. Further we use a {@link Property} as {@link CliArgument CLI argument} so it is either
- * an {@link #isOption() option} or a {@link #isValue() value}.<br>
- * In classic Java Beans a property only exists implicit as a combination of a getter and a setter. This class makes it
- * an explicit construct that allows to {@link #getValue() get} and {@link #setValue(Object) set} the value of a
- * property easily in a generic way including to retrieve its {@link #getName() name} and {@link #getValueType() type}.
- * Besides simplification this also prevents the use of reflection for generic CLI parsing with assigning and validating
+ * A {@link Property} is a simple container for a {@link #getValue() value} with a fixed {@link #getName() name} and {@link #getValueType() type}. Further we
+ * use a {@link Property} as {@link CliArgument CLI argument} so it is either an {@link #isOption() option} or a {@link #isValue() value}.<br> In classic Java
+ * Beans a property only exists implicit as a combination of a getter and a setter. This class makes it an explicit construct that allows to
+ * {@link #getValue() get} and {@link #setValue(Object) set} the value of a property easily in a generic way including to retrieve its {@link #getName() name}
+ * and {@link #getValueType() type}. Besides simplification this also prevents the use of reflection for generic CLI parsing with assigning and validating
  * arguments what is beneficial for compiling the Java code to a native image using GraalVM.
  *
  * @param <V> the {@link #getValueType() value type}.
@@ -40,7 +39,7 @@ public abstract class Property<V> {
   private final Consumer<V> validator;
 
   /** @see #getValue() */
-  protected V value;
+  protected List<V> value;
 
   /**
    * The constructor.
@@ -160,7 +159,10 @@ public abstract class Property<V> {
    */
   public V getValue() {
 
-    return this.value;
+    if (this.value.size() == 1) {
+      return this.value.get(0);
+    }
+    return null;
   }
 
   /**
@@ -169,10 +171,10 @@ public abstract class Property<V> {
    */
   public String getValueAsString() {
 
-    if (this.value == null) {
+    if (this.value.get(0) == null) {
       return null;
     }
-    return format(this.value);
+    return format(this.value.get(0));
   }
 
   /**
@@ -190,7 +192,9 @@ public abstract class Property<V> {
    */
   public void setValue(V value) {
 
-    this.value = value;
+    if (this.value.size() == 1) {
+      this.value.set(0, value);
+    }
   }
 
   /**
@@ -201,9 +205,9 @@ public abstract class Property<V> {
   public void setValueAsString(String valueAsString, IdeContext context) {
 
     if (valueAsString == null) {
-      this.value = getNullValue();
+      this.value.set(0, getNullValue());
     } else {
-      this.value = parse(valueAsString, context);
+      this.value.set(0, parse(valueAsString, context));
     }
   }
 
@@ -391,7 +395,9 @@ public abstract class Property<V> {
       return false;
     }
     if (this.validator != null) {
-      this.validator.accept(this.value);
+      for (V val : this.value) {
+        this.validator.accept(val);
+      }
     }
     return true;
   }

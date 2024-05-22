@@ -1,16 +1,12 @@
 package com.devonfw.tools.ide.property;
 
+import com.devonfw.tools.ide.context.IdeContext;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
-
-import com.devonfw.tools.ide.cli.CliArgument;
-import com.devonfw.tools.ide.cli.CliArguments;
-import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
-import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * {@link Property} with {@link #getValueType() value type} {@link String}.
@@ -90,9 +86,10 @@ public class StringListProperty extends Property<List<String>> {
     return list.toArray(new String[list.size()]);
   }
 
+  /*
   @Override
-  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context,
-      Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
 
     this.value = new ArrayList<>();
     this.value.add(argValue);
@@ -103,5 +100,5 @@ public class StringListProperty extends Property<List<String>> {
     args.next();
     return true;
   }
-
+   */
 }
