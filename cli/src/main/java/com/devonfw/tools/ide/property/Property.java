@@ -159,8 +159,10 @@ public abstract class Property<V> {
    */
   public V getValue() {
 
-    if (this.value.size() == 1) {
-      return this.value.get(0);
+    if (this.value != null) {
+      if (this.value.size() == 1) {
+        return this.value.get(0);
+      }
     }
     return null;
   }
