@@ -1,9 +1,6 @@
 package com.devonfw.tools.ide.merge.xmlMerger;
 
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +18,7 @@ public class MergeElement {
   }
 
   public MergeStrategy getMergingStrategy() {
+
     MergeStrategy mergeStrategy = MergeAnnotation.getMergeStrategy(element);
     if (mergeStrategy != null) {
       return mergeStrategy;
@@ -34,6 +32,7 @@ public class MergeElement {
   }
 
   public String getId() {
+
     // priority: merge:id -> parent's childrenId -> id attribute -> inherited merge:id
     String mergeId = MergeAnnotation.getMergeId(element);
     if (!mergeId.isEmpty()) {
@@ -75,7 +74,7 @@ public class MergeElement {
     NamedNodeMap attributes = element.getAttributes();
     List<MergeAttribute> attributeList = new ArrayList<>();
     for (int i = 0; i < attributes.getLength(); i++) {
-      attributeList.add(new MergeAttribute((org.w3c.dom.Attr) attributes.item(i)));
+      attributeList.add(new MergeAttribute((Attr) attributes.item(i)));
     }
     return attributeList;
   }
@@ -90,6 +89,15 @@ public class MergeElement {
       }
     }
     return childElements;
+  }
+
+  public boolean isRootElement() {
+
+    Node parent = this.element.getParentNode();
+    if (parent != null) {
+      return parent.getNodeType() == Node.DOCUMENT_NODE;
+    }
+    return false;
   }
 
   public void removeMergeNSAttributes() {
@@ -114,4 +122,5 @@ public class MergeElement {
     }
     return xpath.toString();
   }
+
 }

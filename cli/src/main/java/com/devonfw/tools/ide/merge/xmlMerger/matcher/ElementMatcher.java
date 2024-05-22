@@ -1,0 +1,73 @@
+package com.devonfw.tools.ide.merge.xmlMerger.matcher;
+
+import com.devonfw.tools.ide.merge.xmlMerger.MergeElement;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathFactory;
+
+public class ElementMatcher {
+
+  public Element matchElement(MergeElement updateElement, Document targetDocument) {
+
+    if (updateElement.isRootElement()) {
+      if (targetDocument.getDocumentElement().getTagName().equals(updateElement.getElement().getTagName())) {
+        // roots match
+        return targetDocument.getDocumentElement();
+      } else {
+        throw new IllegalStateException("XML Document have different root tag names.");
+      }
+    }
+
+    // if element is empty, match by tag name on same xpath
+
+    String id = updateElement.getId();
+    if (id == null || id.isEmpty()) {
+      // TODO: check if element is empty, if so then match by tag name on same xpath
+      return null;
+    }
+
+    try {
+      XPath xpath = XPathFactory.newInstance().newXPath();
+      String xpathExpression = buildXPathExpression(updateElement);
+
+      // Evaluate the XPath expression in the context of the targetDocument
+      XPathExpression expr = xpath.compile(xpathExpression);
+      NodeList result = (NodeList) expr.evaluate(targetDocument, XPathConstants.NODESET);
+
+      if (result.getLength() > 0) {
+        return (Element) result.item(0); // Return the first matching element (should normally always be only 1)
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to match element with id: " + id, e);
+    }
+
+    return null;
+  }
+
+  public String buildXPathExpression(MergeElement mergeElement) {
+
+    String xPath = mergeElement.getXPath();
+    String id = mergeElement.getId();
+
+    if (id.startsWith("./") || id.startsWith("/")) {
+      return xPath + id;
+    } else if (id.startsWith("@")) {
+      String attributeName = id.substring(1);
+      String attributeValue = mergeElement.getElement().getAttribute(attributeName);
+      return xPath + String.format("[@%s='%s']", attributeName, attributeValue);
+    } else if (id.equals("name()")) {
+      String tagName = mergeElement.getElement().getTagName();
+      return xPath + String.format("[name()='%s']", tagName);
+    } else if (id.equals("text()")) {
+      String textContent = mergeElement.getElement().getTextContent();
+      return xPath + String.format("[text()='%s']", textContent);
+    } else {
+      return xPath + id; // Assume it's a custom XPath
+    }
+  }
+}

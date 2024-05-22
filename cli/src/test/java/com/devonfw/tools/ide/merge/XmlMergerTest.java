@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.merge;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.merge.xmlMerger.NewXmlMerger;
 import com.devonfw.tools.ide.merge.xmlMerger.XmlMerger;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +15,7 @@ public class XmlMergerTest extends AbstractIdeContextTest {
 
   private IdeContext context = newContext(PROJECT_BASIC, null, false);
 
-  private NewXmlMerger merger = new NewXmlMerger(context);
+  private XmlMerger merger = new XmlMerger(context);
 
   @Test
   public void combine() {
@@ -33,6 +32,24 @@ public class XmlMergerTest extends AbstractIdeContextTest {
     // assert
     assertThat(workspace).hasContent(xmlToString(result));
   }
+
+  @Test
+  public void override() {
+
+    // arrange
+    Path xmlFiles = TEST_DIR.resolve("override");
+    Path update = xmlFiles.resolve("template.xml");
+    Path workspace = xmlFiles.resolve("workspace.xml");
+    Path result = xmlFiles.resolve("result.xml");
+
+    // act
+    merger.merge(null, update, context.getVariables(), workspace);
+
+    // assert
+    assertThat(workspace).hasContent(xmlToString(result));
+  }
+
+
 
   public static String xmlToString(Path xmlFilePath) {
 

@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.merge;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.merge.xmlMerger.XmlMerger;
+import com.devonfw.tools.ide.merge.xmlMerger.OldXmlMerger;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import org.jline.utils.Log;
 
@@ -41,7 +41,7 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     PropertiesMerger propertiesMerger = new PropertiesMerger(context);
     this.extension2mergerMap.put("properties", propertiesMerger);
     this.extension2mergerMap.put("prefs", propertiesMerger); // Eclipse specific
-    XmlMerger xmlMerger = new XmlMerger(context);
+    OldXmlMerger xmlMerger = new OldXmlMerger(context);
     this.extension2mergerMap.put("xml", xmlMerger);
     this.extension2mergerMap.put("xmi", xmlMerger);
     this.extension2mergerMap.put("launch", xmlMerger); // Eclipse specific
