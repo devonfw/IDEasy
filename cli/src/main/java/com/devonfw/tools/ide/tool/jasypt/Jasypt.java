@@ -12,8 +12,8 @@ import java.nio.file.Path;
 import java.util.Set;
 
 /**
- * {@link ToolCommandlet} for <a href="http://www.jasypt.org/">Jasypt</a>, The java library which allows to add basic
- * encryption capabilities with minimum effort.
+ * {@link ToolCommandlet} for <a href="http://www.jasypt.org/">Jasypt</a>, The java library which allows to add basic encryption capabilities with minimum
+ * effort.
  */
 public class Jasypt extends LocalToolCommandlet {
 
@@ -90,8 +90,8 @@ public class Jasypt extends LocalToolCommandlet {
     String algorithm = jasyptOptions[0];
     String generatorClassName = jasyptOptions[1];
 
-    java.runTool(null, "-cp", resolveJasyptJarPath().toString(), className, algorithm, generatorClassName,
-        "password=" + this.masterPassword.getValue(), "input=" + this.secret.getValue());
+    java.runTool(null, "-cp", resolveJasyptJarPath().toString(), className, "password=" + this.masterPassword.getValue(), "input=" + this.secret.getValue(),
+        algorithm, generatorClassName);
   }
 
   private Path resolveJasyptJarPath() {
