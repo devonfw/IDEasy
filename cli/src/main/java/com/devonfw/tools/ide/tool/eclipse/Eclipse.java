@@ -67,7 +67,6 @@ public class Eclipse extends IdeToolCommandlet {
     pc.executable(toolPath);
     Path configurationPath = getPluginsInstallationPath().resolve("configuration");
     this.context.getFileAccess().mkdirs(configurationPath);
-    pc.addArg("-application " + toolPath);
     pc.addArg("-data").addArg(this.context.getWorkspacePath());
     pc.addArg("-clean");
     pc.addArg("-keyring").addArg(this.context.getUserHome().resolve(".eclipse").resolve(".keyring"));
@@ -87,8 +86,8 @@ public class Eclipse extends IdeToolCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    ProcessResult result = runEclipse(ProcessMode.DEFAULT_CAPTURE, "org.eclipse.equinox.p2.director", "-repository", plugin.getUrl(), "-installIU",
-        plugin.getId());
+    ProcessResult result = runEclipse(ProcessMode.DEFAULT_CAPTURE, "-application", "org.eclipse.equinox.p2.director", "-repository", plugin.getUrl(),
+        "-installIU", plugin.getId());
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
