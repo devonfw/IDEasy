@@ -1,11 +1,19 @@
 package com.devonfw.tools.ide.tool.jasypt;
 
 import com.devonfw.tools.ide.url.updater.MavenBasedUrlUpdater;
+import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
+
+import java.util.regex.Pattern;
 
 /**
  * {@link MavenBasedUrlUpdater} for jasypt
  */
 public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
+
+  public static final DefaultArtifactVersion MIN_VERSION = new DefaultArtifactVersion("1.9.3");
+
+  private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)");
+
   @Override
   protected String getTool() {
 
@@ -22,6 +30,13 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
   protected String getMavenArtifcatId() {
 
     return "jasypt";
+  }
+
+  @Override
+  public boolean isValidVersion(String version) {
+
+    DefaultArtifactVersion artifactVersion = new DefaultArtifactVersion(version);
+    return artifactVersion.compareTo(MIN_VERSION) >= 0;
   }
 
 }
