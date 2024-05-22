@@ -317,14 +317,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
   }
 
-  protected void setDependencyEnvironmentPath(String dependencyEnvironmentName, Path dependencyPath) {
+  private void setDependencyEnvironmentPath(String dependencyEnvironmentName, Path dependencyPath) {
 
     this.dependenciesEnvVariablePaths.put(dependencyEnvironmentName, dependencyPath.toString());
 
   }
 
   /**
-   * Method to return the list of the environment variable name for the dependencies.
+   * Method to return the list of the environment variable name for the dependencies. If necessary, it should be overridden in the specific tool
    *
    * @return the {@link HashMap} with the dependency name mapped to the env variable, for example ( java: JAVA_HOME )
    */

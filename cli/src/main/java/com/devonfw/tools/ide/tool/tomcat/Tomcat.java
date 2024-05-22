@@ -21,7 +21,7 @@ import java.util.Set;
 
 public class Tomcat extends LocalToolCommandlet {
 
-  protected HashMap<String, String> dependenciesEnvVariableNames = new HashMap<>();
+  private final HashMap<String, String> dependenciesEnvVariableNames = new HashMap<>();
 
   public final EnumProperty<TomcatCommand> command;
 
