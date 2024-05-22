@@ -159,7 +159,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.trace("No Dependencies file found");
     }
 
-    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version);
     Path toolPath = this.context.getSoftwareRepositoryPath().resolve(toolRepository.getId()).resolve(this.tool)
         .resolve(edition).resolve(resolvedVersion.toString());
     Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
