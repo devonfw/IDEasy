@@ -55,7 +55,7 @@ public class Intellij extends IdeToolCommandlet {
     } else if (this.context.getSystemInfo().isLinux()) {
       return toolBinPath.resolve(IDEA_BASH_SCRIPT).toString();
     } else {
-      return getToolPath().resolve("Contents").resolve("MacOS").resolve(IDEA).toString();
+      return getToolBinPath().resolve(IDEA).toString();
     }
   }
 
