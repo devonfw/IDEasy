@@ -43,7 +43,7 @@ public abstract class Property<V> {
   private final boolean multiValued;
 
   /** @see #getValue() */
-  protected List<V> value = new ArrayList<>();
+  protected final List<V> value = new ArrayList<>();
 
   /**
    * The constructor.
@@ -162,12 +162,11 @@ public abstract class Property<V> {
    */
   public V getValue() {
 
-    if (this.value != null && !this.value.isEmpty()) {
-      return this.value.get(0);
-    } else {
+    if (this.value.isEmpty()) {
       return null;
+    } else {
+      return this.value.get(0);
     }
-
   }
 
   /**
@@ -214,6 +213,17 @@ public abstract class Property<V> {
    */
   public void setValue(V value) {
 
+    if (!this.multiValued) {
+      this.value.clear();
+    }
+    this.value.add(value);
+  }
+
+  public void addValue(V value) {
+
+    if (!this.multiValued) {
+      throw new IllegalStateException("not multivalued");
+    }
     this.value.add(value);
   }
 
@@ -337,8 +347,17 @@ public abstract class Property<V> {
       CompletionCandidateCollector collector) {
 
     boolean success = assignValueAsString(argValue, context, commandlet);
+
     if (success) {
-      args.next();
+      if (multiValued) {
+        while (success && args.hasNext()) {
+          CliArgument arg = args.next();
+          this.value.add((V) arg.get());
+          success = assignValueAsString(arg.getValue(), context, commandlet);
+        }
+      } else {
+        args.next();
+      }
     }
     return success;
   }

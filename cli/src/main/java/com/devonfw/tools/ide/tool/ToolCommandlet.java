@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.property.StringListProperty;
+import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   private final Set<Tag> tags;
 
   /** The commandline arguments to pass to the tool. */
-  public final StringListProperty arguments;
+  public final StringProperty arguments;
 
   private MacOsHelper macOsHelper;
 
@@ -41,13 +41,13 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
-  public ToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
+  public ToolCommandlet(IdeContext context, String tool, Set<Tag> tags, boolean multivalued) {
 
     super(context);
     this.tool = tool;
     this.tags = tags;
     addKeyword(tool);
-    this.arguments = new StringListProperty("", false, "args", true);
+    this.arguments = new StringProperty("", false, "args", multivalued);
     initProperties();
   }
 

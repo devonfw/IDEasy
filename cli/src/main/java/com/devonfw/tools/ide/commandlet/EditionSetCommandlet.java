@@ -25,7 +25,7 @@ public class EditionSetCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.tool = add(new ToolProperty("", true, "tool"));
+    this.tool = add(new ToolProperty("", true, "tool", false));
     this.edition = add(new EditionProperty("", true, "edition"));
   }
 

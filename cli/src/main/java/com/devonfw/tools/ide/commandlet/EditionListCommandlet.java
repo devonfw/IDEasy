@@ -23,7 +23,7 @@ public class EditionListCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.tool = add(new ToolProperty("", true, "tool"));
+    this.tool = add(new ToolProperty("", true, "tool", false));
   }
 
   @Override

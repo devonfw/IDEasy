@@ -1,11 +1,10 @@
 package com.devonfw.tools.ide.commandlet;
 
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.property.ToolProperty;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.property.ToolProperty;
 
 /**
  * An internal {@link Commandlet} to uninstall a tool.
@@ -13,7 +12,8 @@ import com.devonfw.tools.ide.property.ToolProperty;
 public class UninstallCommandlet extends Commandlet {
 
   /** The tool to uninstall. */
-  public final ToolProperty tool;
+  public final ToolProperty tools;
+  //TODO toolprop
 
   /**
    * The constructor.
@@ -24,7 +24,7 @@ public class UninstallCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.tool = add(new ToolProperty("", true, "tool"));
+    this.tools = add(new ToolProperty("", true, "tool", true));
   }
 
   @Override
@@ -36,18 +36,24 @@ public class UninstallCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    String commandletName = this.tool.getValue().getName();
-    Path softwarePath = context.getSoftwarePath().resolve(commandletName);
-    if (Files.exists(softwarePath)) {
-      FileAccess fileAccess = context.getFileAccess();
+    for (int i = 0; i < this.tools.getValueCount(); i++) {
+      String toolName = this.tools.getValue(i).getName();
       try {
-        fileAccess.delete(softwarePath);
-        this.context.success("Successfully uninstalled " + commandletName);
+        String commandletName = this.context.getCommandletManager().getToolCommandlet(toolName).getName();
+        Path softwarePath = context.getSoftwarePath().resolve(commandletName);
+        if (Files.exists(softwarePath)) {
+          try {
+            context.getFileAccess().delete(softwarePath);
+            this.context.success("Successfully uninstalled " + commandletName);
+          } catch (Exception e) {
+            this.context.error("Couldn't uninstall " + commandletName);
+          }
+        } else {
+          this.context.warning("An installed version of " + commandletName + " does not exist");
+        }
       } catch (Exception e) {
-        throw new IllegalStateException("Couldn't uninstall " + commandletName, e);
+        this.context.error(e.getMessage());
       }
-    } else {
-      this.context.info("An installed version of " + commandletName + " does not exist");
     }
   }
 }

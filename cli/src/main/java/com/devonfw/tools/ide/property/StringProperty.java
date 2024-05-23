@@ -48,4 +48,9 @@ public class StringProperty extends Property<String> {
     return valueAsString;
   }
 
+  public String[] asArray() {
+
+    return this.value.toArray(new String[0]);
+  }
+
 }
