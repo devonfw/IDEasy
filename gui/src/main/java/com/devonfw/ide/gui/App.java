@@ -3,6 +3,7 @@ package com.devonfw.ide.gui;
 import com.devonfw.tools.ide.version.IdeVersion;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
@@ -47,8 +48,8 @@ public class App extends Application {
   @Override
   public void start(Stage stage) throws IOException {
 
-    FXMLLoader fxmlLoader = new FXMLLoader(App.class.getResource("hello-view.fxml"));
-    Scene scene = new Scene(fxmlLoader.load(), 320, 240);
+    Parent root = FXMLLoader.load(App.class.getResource("main-view.fxml"));
+    App.scene = new Scene(root, 320, 240);
 
     stage.setTitle("IDEasy - version " + IdeVersion.get());
     stage.setScene(scene);
