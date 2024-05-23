@@ -22,17 +22,17 @@ public class MergeHandler {
   public void merge(Document updateDocument, Document targetDocument) {
 
     MergeElement updateRootElement = new MergeElement(updateDocument.getDocumentElement());
-    MergeElement targetRootElement = new MergeElement(targetDocument.getDocumentElement());
-    mergeElements(updateRootElement, targetRootElement, targetDocument);
+    mergeElements(updateRootElement, targetDocument);
   }
 
-  private void mergeElements(MergeElement updateElement, MergeElement targetElement, Document targetDocument) {
+  private void mergeElements(MergeElement updateElement, Document targetDocument) {
 
     context.debug("Merging {} ...", updateElement.getXPath());
     Element matchedTargetElement = elementMatcher.matchElement(updateElement, targetDocument);
 
     if (matchedTargetElement != null) {
-      targetElement = new MergeElement(matchedTargetElement);
+      this.context.debug("Match found for {}", updateElement.getXPath());
+      MergeElement targetElement = new MergeElement(matchedTargetElement);
       MergeStrategy strategy = updateElement.getMergingStrategy();
       context.debug("Merge strategy {}", strategy);
 
@@ -79,20 +79,33 @@ public class MergeHandler {
 
       if (updateChild.getNodeType() == Node.ELEMENT_NODE) {
         MergeElement mergeUpdateChild = new MergeElement((Element) updateChild);
-        mergeElements(mergeUpdateChild, targetElement, targetElement.getElement().getOwnerDocument());
-      } else if (updateChild.getNodeType() == Node.TEXT_NODE || updateChild.getNodeType() == Node.CDATA_SECTION_NODE) {
-        targetElement.getElement().setTextContent(updateChild.getTextContent());
+        mergeElements(mergeUpdateChild, targetElement.getElement().getOwnerDocument());
       }
     }
+
+    /*else if (updateChild.getNodeType() == Node.TEXT_NODE || updateChild.getNodeType() == Node.CDATA_SECTION_NODE) {
+      if (!updateChild.getTextContent().isBlank()) {
+        targetElement.getElement().setTextContent(updateChild.getTextContent());
+      }
+    } */
   }
 
   private void overrideElement(MergeElement updateElement, MergeElement targetElement) {
 
-    Node parentNode = targetElement.getElement().getParentNode();
-    if (parentNode != null) {
-      Element importedElement = (Element) parentNode.getOwnerDocument().importNode(updateElement.getElement(), true);
+    if (updateElement.isRootElement()) {
+      // Handle root element override
+      Document targetDocument = targetElement.getElement().getOwnerDocument();
       updateElement.removeMergeNSAttributes();
-      parentNode.replaceChild(importedElement, targetElement.getElement());
+      Node newRoot = targetDocument.importNode(updateElement.getElement(), true);
+      targetDocument.replaceChild(newRoot, targetDocument.getDocumentElement());
+    } else {
+      // Handle non-root element override
+      Node parentNode = targetElement.getElement().getParentNode();
+      if (parentNode != null) {
+        updateElement.removeMergeNSAttributes();
+        Element importedElement = (Element) parentNode.getOwnerDocument().importNode(updateElement.getElement(), true);
+        parentNode.replaceChild(importedElement, targetElement.getElement());
+      }
     }
   }
 

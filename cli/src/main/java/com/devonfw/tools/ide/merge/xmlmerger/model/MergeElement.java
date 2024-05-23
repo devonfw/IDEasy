@@ -67,7 +67,7 @@ public class MergeElement {
 
     Element parent = getParentElement();
     if (parent != null) {
-      String childrenId = MergeAnnotation.getMergeChildrenId(element);
+      String childrenId = MergeAnnotation.getMergeChildrenId(parent);
       if (!childrenId.isEmpty()) {
         return childrenId;
       }

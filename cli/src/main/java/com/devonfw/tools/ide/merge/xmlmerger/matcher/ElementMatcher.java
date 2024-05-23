@@ -33,7 +33,7 @@ public class ElementMatcher {
 
     try {
       XPath xpath = XPathFactory.newInstance().newXPath();
-      String xpathExpression = buildXPathExpression(updateElement);
+      String xpathExpression = buildXPathExpression(updateElement, id);
 
       // Evaluate the XPath expression in the context of the targetDocument
       XPathExpression expr = xpath.compile(xpathExpression);
@@ -49,10 +49,10 @@ public class ElementMatcher {
     return null;
   }
 
-  public String buildXPathExpression(MergeElement mergeElement) {
+  public String buildXPathExpression(MergeElement mergeElement, String id) {
 
     String xPath = mergeElement.getXPath();
-    String id = mergeElement.getId();
+
 
     if (id.startsWith("./") || id.startsWith("/")) {
       return xPath + id;

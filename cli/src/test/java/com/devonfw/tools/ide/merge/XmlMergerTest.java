@@ -49,6 +49,22 @@ public class XmlMergerTest extends AbstractIdeContextTest {
     assertThat(workspace).hasContent(xmlToString(result));
   }
 
+  @Test
+  public void differentMergingStrategies() {
+
+    // arrange
+    Path xmlFiles = TEST_DIR.resolve("different_merging_strategies");
+    Path update = xmlFiles.resolve("template.xml");
+    Path workspace = xmlFiles.resolve("workspace.xml");
+    Path result = xmlFiles.resolve("result.xml");
+
+    // act
+    merger.merge(null, update, context.getVariables(), workspace);
+
+    // assert
+    assertThat(workspace).hasContent(xmlToString(result));
+  }
+
 
 
   public static String xmlToString(Path xmlFilePath) {
