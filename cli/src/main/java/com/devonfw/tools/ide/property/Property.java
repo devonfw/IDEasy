@@ -1,8 +1,5 @@
 package com.devonfw.tools.ide.property;
 
-import java.util.Objects;
-import java.util.function.Consumer;
-
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -10,14 +7,17 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorAdapter;
 import com.devonfw.tools.ide.context.IdeContext;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
+
 /**
- * A {@link Property} is a simple container for a {@link #getValue() value} with a fixed {@link #getName() name} and
- * {@link #getValueType() type}. Further we use a {@link Property} as {@link CliArgument CLI argument} so it is either
- * an {@link #isOption() option} or a {@link #isValue() value}.<br>
- * In classic Java Beans a property only exists implicit as a combination of a getter and a setter. This class makes it
- * an explicit construct that allows to {@link #getValue() get} and {@link #setValue(Object) set} the value of a
- * property easily in a generic way including to retrieve its {@link #getName() name} and {@link #getValueType() type}.
- * Besides simplification this also prevents the use of reflection for generic CLI parsing with assigning and validating
+ * A {@link Property} is a simple container for a {@link #getValue() value} with a fixed {@link #getName() name} and {@link #getValueType() type}. Further we
+ * use a {@link Property} as {@link CliArgument CLI argument} so it is either an {@link #isOption() option} or a {@link #isValue() value}.<br> In classic Java
+ * Beans a property only exists implicit as a combination of a getter and a setter. This class makes it an explicit construct that allows to
+ * {@link #getValue() get} and {@link #setValue(Object) set} the value of a property easily in a generic way including to retrieve its {@link #getName() name}
+ * and {@link #getValueType() type}. Besides simplification this also prevents the use of reflection for generic CLI parsing with assigning and validating
  * arguments what is beneficial for compiling the Java code to a native image using GraalVM.
  *
  * @param <V> the {@link #getValueType() value type}.
@@ -39,8 +39,11 @@ public abstract class Property<V> {
 
   private final Consumer<V> validator;
 
+  /** @see #isMultiValued() */
+  private final boolean multiValued;
+
   /** @see #getValue() */
-  protected V value;
+  protected List<V> value = new ArrayList<>();
 
   /**
    * The constructor.
@@ -50,13 +53,14 @@ public abstract class Property<V> {
    * @param alias the {@link #getAlias() property alias}.
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public Property(String name, boolean required, String alias, Consumer<V> validator) {
+  public Property(String name, boolean required, String alias, Consumer<V> validator, boolean multiValued) {
 
     super();
     this.name = name;
     this.required = required;
     this.alias = alias;
     this.validator = validator;
+    this.multiValued = multiValued;
   }
 
   /**
@@ -77,8 +81,7 @@ public abstract class Property<V> {
   }
 
   /**
-   * @return the {@link #getName() name} or the {@link #getAlias() alias} if {@link #getName() name} is
-   *         {@link String#isEmpty() empty}.
+   * @return the {@link #getName() name} or the {@link #getAlias() alias} if {@link #getName() name} is {@link String#isEmpty() empty}.
    */
   public String getNameOrAlias() {
 
@@ -89,8 +92,8 @@ public abstract class Property<V> {
   }
 
   /**
-   * @return {@code true} if this property is required (if argument is not present the {@link Commandlet} cannot be
-   *         invoked), {@code false} otherwise (if optional).
+   * @return {@code true} if this property is required (if argument is not present the {@link Commandlet} cannot be invoked), {@code false} otherwise (if
+   * optional).
    */
   public boolean isRequired() {
 
@@ -106,8 +109,8 @@ public abstract class Property<V> {
   }
 
   /**
-   * Determines if this {@link Property} is an option. Canonical options have a long-option {@link #getName() name}
-   * (e.g. "--force") and a short-option {@link #getAlias() alias} (e.g. "-f").
+   * Determines if this {@link Property} is an option. Canonical options have a long-option {@link #getName() name} (e.g. "--force") and a short-option
+   * {@link #getAlias() alias} (e.g. "-f").
    *
    * @return {@code true} if this {@link Property} is an option, {@code false} otherwise (if a positional argument).
    */
@@ -117,8 +120,8 @@ public abstract class Property<V> {
   }
 
   /**
-   * @return {@code true} if this {@link Property} forces an implicit {@link CliArgument#isEndOptions() end-options} as
-   *         if "--" was provided before its first {@link CliArgument argument}.
+   * @return {@code true} if this {@link Property} forces an implicit {@link CliArgument#isEndOptions() end-options} as if "--" was provided before its first
+   * {@link CliArgument argument}.
    */
   public boolean isEndOptions() {
 
@@ -126,21 +129,20 @@ public abstract class Property<V> {
   }
 
   /**
-   * Determines if this {@link Property} is multi-valued and accepts any number of values. A multi-valued
-   * {@link Property} needs to be the last {@link Property} of a {@link Commandlet}.
+   * Determines if this {@link Property} is multi-valued and accepts any number of values. A multi-valued {@link Property} needs to be the last {@link Property}
+   * of a {@link Commandlet}.
    *
    * @return {@code true} if multi-valued, {@code false} otherwise.
    */
   public boolean isMultiValued() {
 
-    return false;
+    return multiValued;
   }
 
   /**
-   * Determines if this a value {@link Property}. Such value is either a {@link KeywordProperty} with the keyword as
-   * {@link #getName() name} or a raw indexed value argument. In the latter case the command-line argument at this index
-   * will be the immediate value of the {@link Property}, the {@link #getName() name} is {@link String#isEmpty() empty}
-   * and the {@link #getAlias() alias} is a logical name of the value to display to users.
+   * Determines if this a value {@link Property}. Such value is either a {@link KeywordProperty} with the keyword as {@link #getName() name} or a raw indexed
+   * value argument. In the latter case the command-line argument at this index will be the immediate value of the {@link Property}, the {@link #getName() name}
+   * is {@link String#isEmpty() empty} and the {@link #getAlias() alias} is a logical name of the value to display to users.
    *
    * @return {@code true} if value, {@code false} otherwise.
    */
@@ -160,7 +162,29 @@ public abstract class Property<V> {
    */
   public V getValue() {
 
-    return this.value;
+    if (this.value != null && !this.value.isEmpty()) {
+      return this.value.get(0);
+    } else {
+      return null;
+    }
+
+  }
+
+  /**
+   * @param i the position to get.
+   * @return the value of this property.
+   */
+  public V getValue(int i) {
+
+    return this.value.get(i);
+  }
+
+  /**
+   * @return amount of values.
+   */
+  public int getValueCount() {
+
+    return this.value.size();
   }
 
   /**
@@ -169,10 +193,10 @@ public abstract class Property<V> {
    */
   public String getValueAsString() {
 
-    if (this.value == null) {
+    if (getValue() == null) {
       return null;
     }
-    return format(this.value);
+    return format(getValue());
   }
 
   /**
@@ -190,7 +214,16 @@ public abstract class Property<V> {
    */
   public void setValue(V value) {
 
-    this.value = value;
+    this.value.add(value);
+  }
+
+  /**
+   * @param value the new {@link #getValue() value} to set.
+   * @param i the position to set.
+   */
+  public void setValue(V value, int i) {
+
+    this.value.set(i, value);
   }
 
   /**
@@ -201,9 +234,9 @@ public abstract class Property<V> {
   public void setValueAsString(String valueAsString, IdeContext context) {
 
     if (valueAsString == null) {
-      this.value = getNullValue();
+      setValue(getNullValue());
     } else {
-      this.value = parse(valueAsString, context);
+      setValue(parse(valueAsString, context));
     }
   }
 
@@ -246,15 +279,13 @@ public abstract class Property<V> {
   public abstract V parse(String valueAsString, IdeContext context);
 
   /**
-   * @param args the {@link CliArguments} already {@link CliArguments#current() pointing} the {@link CliArgument} to
-   *        apply.
+   * @param args the {@link CliArguments} already {@link CliArguments#current() pointing} the {@link CliArgument} to apply.
    * @param context the {@link IdeContext}.
    * @param commandlet the {@link Commandlet} owning this property.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if it matches, {@code false} otherwise.
    */
-  public boolean apply(CliArguments args, IdeContext context, Commandlet commandlet,
-      CompletionCandidateCollector collector) {
+  public boolean apply(CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     CliArgument argument = args.current();
     if (argument.isCompletion()) {
@@ -295,16 +326,15 @@ public abstract class Property<V> {
 
   /**
    * @param argValue the value to set as {@link String}.
-   * @param lookahead - {@code true} if the given {@code argValue} is taken as lookahead from the next value,
-   *        {@code false} otherwise.
+   * @param lookahead - {@code true} if the given {@code argValue} is taken as lookahead from the next value, {@code false} otherwise.
    * @param args the {@link CliArguments}.
    * @param context the {@link IdeContext}.
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if it matches, {@code false} otherwise.
    */
-  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context,
-      Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
 
     boolean success = assignValueAsString(argValue, context, commandlet);
     if (success) {
@@ -322,8 +352,7 @@ public abstract class Property<V> {
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
    */
-  protected void complete(CliArgument argument, CliArguments args, IdeContext context, Commandlet commandlet,
-      CompletionCandidateCollector collector) {
+  protected void complete(CliArgument argument, CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     String arg = argument.get();
     if (this.name.isEmpty()) {
@@ -351,7 +380,7 @@ public abstract class Property<V> {
     if (value != null) {
       String key = argument.getKey();
       if (this.name.equals(key) || Objects.equals(this.alias, key)) {
-        completeValue(value, context, commandlet, new CompletionCandidateCollectorAdapter(key+"=", collector));
+        completeValue(value, context, commandlet, new CompletionCandidateCollectorAdapter(key + "=", collector));
       }
     }
   }
@@ -364,15 +393,13 @@ public abstract class Property<V> {
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
    */
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
-      CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
   }
 
   /**
    * @param nameOrAlias the potential {@link #getName() name} or {@link #getAlias() alias} to match.
-   * @return {@code true} if the given {@code nameOrAlias} is equal to {@link #getName() name} or {@link #getAlias()
-   *         alias}, {@code false} otherwise.
+   * @return {@code true} if the given {@code nameOrAlias} is equal to {@link #getName() name} or {@link #getAlias() alias}, {@code false} otherwise.
    */
   public boolean matches(String nameOrAlias) {
 
@@ -380,10 +407,10 @@ public abstract class Property<V> {
   }
 
   /**
-   * @return {@code true} if this {@link Property} is valid, {@code false} if it is {@link #isRequired() required} but
-   *         no {@link #getValue() value} has been set.
-   * @throws RuntimeException if the {@link #getValue() value} is violating given constraints. This is checked by the
-   *         optional {@link Consumer} function given at construction time.
+   * @return {@code true} if this {@link Property} is valid, {@code false} if it is {@link #isRequired() required} but no {@link #getValue() value} has been
+   * set.
+   * @throws RuntimeException if the {@link #getValue() value} is violating given constraints. This is checked by the optional {@link Consumer} function given
+   * at construction time.
    */
   public boolean validate() {
 
@@ -391,7 +418,7 @@ public abstract class Property<V> {
       return false;
     }
     if (this.validator != null) {
-      this.validator.accept(this.value);
+      this.validator.accept(getValue());
     }
     return true;
   }

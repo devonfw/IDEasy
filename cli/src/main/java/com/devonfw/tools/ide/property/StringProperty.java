@@ -1,8 +1,8 @@
 package com.devonfw.tools.ide.property;
 
-import java.util.function.Consumer;
-
 import com.devonfw.tools.ide.context.IdeContext;
+
+import java.util.function.Consumer;
 
 /**
  * {@link Property} with {@link #getValueType() value type} {@link String}.
@@ -15,10 +15,11 @@ public class StringProperty extends Property<String> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
+   * @param multiValued
    */
-  public StringProperty(String name, boolean required, String alias) {
+  public StringProperty(String name, boolean required, String alias, boolean multiValued) {
 
-    this(name, required, alias, null);
+    this(name, required, alias, null, multiValued);
   }
 
   /**
@@ -28,10 +29,11 @@ public class StringProperty extends Property<String> {
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   * @param multiValued
    */
-  public StringProperty(String name, boolean required, String alias, Consumer<String> validator) {
+  public StringProperty(String name, boolean required, String alias, Consumer<String> validator, boolean multiValued) {
 
-    super(name, required, alias, validator);
+    super(name, required, alias, validator, multiValued);
   }
 
   @Override

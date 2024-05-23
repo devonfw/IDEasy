@@ -14,7 +14,7 @@ public class PasswordProperty extends StringProperty {
    */
   public PasswordProperty(String name, boolean required, String alias) {
 
-    super(name, required, alias);
+    super(name, required, alias, false);
   }
 
 }
