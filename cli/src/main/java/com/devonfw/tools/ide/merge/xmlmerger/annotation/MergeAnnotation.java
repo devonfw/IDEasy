@@ -1,5 +1,6 @@
-package com.devonfw.tools.ide.merge.xmlMerger;
+package com.devonfw.tools.ide.merge.xmlmerger.annotation;
 
+import com.devonfw.tools.ide.merge.xmlmerger.model.MergeStrategy;
 import org.w3c.dom.Element;
 
 public class MergeAnnotation {

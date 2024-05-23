@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.merge.xmlMerger;
+package com.devonfw.tools.ide.merge.xmlmerger;
 
 import java.io.InputStream;
 import java.nio.file.Files;

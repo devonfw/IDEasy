@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.merge.xmlMerger;
+package com.devonfw.tools.ide.merge.xmlmerger.model;
 
 public enum MergeStrategy {
 

@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.merge;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.merge.xmlMerger.XmlMerger;
+import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;

@@ -1,6 +1,6 @@
-package com.devonfw.tools.ide.merge.xmlMerger.matcher;
+package com.devonfw.tools.ide.merge.xmlmerger.matcher;
 
-import com.devonfw.tools.ide.merge.xmlMerger.MergeElement;
+import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;

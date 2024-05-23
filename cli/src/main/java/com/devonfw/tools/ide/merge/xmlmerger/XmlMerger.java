@@ -1,10 +1,16 @@
-package com.devonfw.tools.ide.merge.xmlMerger;
+package com.devonfw.tools.ide.merge.xmlmerger;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.merge.FileMerger;
-import com.devonfw.tools.ide.merge.xmlMerger.matcher.ElementMatcher;
+import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NamedNodeMap;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.w3c.dom.Text;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -74,11 +80,6 @@ public class XmlMerger extends FileMerger {
 
   }
 
-  private void resolve(Document document, EnvironmentVariables resolver, boolean inverse, Object src) {
-
-    NodeResolver.resolve(document, resolver, inverse, src);
-  }
-
   public Document load(Path file) {
     try (InputStream in = Files.newInputStream(file)) {
       return DOCUMENT_BUILDER.parse(in);
@@ -98,6 +99,50 @@ public class XmlMerger extends FileMerger {
       transformer.transform(source, result);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to save XML to file: " + file, e);
+    }
+  }
+
+  private void resolve(Document document, EnvironmentVariables resolver, boolean inverse, Object src) {
+
+    NodeList nodeList = document.getElementsByTagName("*");
+    for (int i = 0; i < nodeList.getLength(); i++) {
+      Element element = (Element) nodeList.item(i);
+      resolve(element, resolver, inverse, src);
+    }
+  }
+
+  private void resolve(Element element, EnvironmentVariables variables, boolean inverse, Object src) {
+
+    resolve(element.getAttributes(), variables, inverse, src);
+    NodeList nodeList = element.getChildNodes();
+
+    for (int i = 0; i < nodeList.getLength(); i++) {
+      Node node = nodeList.item(i);
+      if (node instanceof Text text) {
+        String value = text.getNodeValue();
+        String resolvedValue;
+        if (inverse) {
+          resolvedValue = variables.inverseResolve(value, src);
+        } else {
+          resolvedValue = variables.resolve(value, src);
+        }
+        text.setNodeValue(resolvedValue);
+      }
+    }
+  }
+
+  private void resolve(NamedNodeMap attributes, EnvironmentVariables variables, boolean inverse, Object src) {
+
+    for (int i = 0; i < attributes.getLength(); i++) {
+      Attr attribute = (Attr) attributes.item(i);
+      String value = attribute.getValue();
+      String resolvedValue;
+      if (inverse) {
+        resolvedValue = variables.inverseResolve(value, src);
+      } else {
+        resolvedValue = variables.resolve(value, src);
+      }
+      attribute.setValue(resolvedValue);
     }
   }
 
