@@ -58,6 +58,11 @@ public class Tomcat extends LocalToolCommandlet {
   @Override
   public void run() {
 
+    Path toolPath = getToolPath();
+    if (!toolPath.toFile().exists()) {
+      super.install(true);
+    }
+
     TomcatCommand command = this.command.getValue();
 
     switch (command) {
