@@ -9,6 +9,9 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -17,11 +20,11 @@ import java.util.Set;
  */
 public class Jasypt extends LocalToolCommandlet {
 
-  public final EnumProperty<JasyptCommand> command;
+  final EnumProperty<JasyptCommand> command;
 
-  public final PasswordProperty masterPassword;
+  final PasswordProperty masterPassword;
 
-  public final PasswordProperty secret;
+  final PasswordProperty secret;
 
   private static final String CLASS_NAME_ENCRYPTION = "org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI";
 
@@ -84,14 +87,18 @@ public class Jasypt extends LocalToolCommandlet {
 
   private void runJasypt(String className) {
 
+    List<String> arguments = new ArrayList<>(
+        Arrays.asList("-cp", resolveJasyptJarPath().toString(), className, "password=" + this.masterPassword.getValue(), "input=" + this.secret.getValue()));
+
+    String jasyptOpts = this.context.getVariables().get("JASYPT_OPTS");
+    if (jasyptOpts != null && !jasyptOpts.trim().isEmpty()) {
+      String[] jasyptOptions = jasyptOpts.split("\\s+");
+
+      arguments.addAll(Arrays.asList(jasyptOptions));
+    }
+
     Java java = getCommandlet(Java.class);
-
-    String[] jasyptOptions = this.context.getVariables().get("JASYPT_OPTS").split(" ");
-    String algorithm = jasyptOptions[0];
-    String generatorClassName = jasyptOptions[1];
-
-    java.runTool(null, "-cp", resolveJasyptJarPath().toString(), className, "password=" + this.masterPassword.getValue(), "input=" + this.secret.getValue(),
-        algorithm, generatorClassName);
+    java.runTool(null, arguments.toArray(new String[0]));
   }
 
   private Path resolveJasyptJarPath() {
