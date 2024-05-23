@@ -5,10 +5,7 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.*;
 
 public class ElementMatcher {
 
@@ -42,7 +39,7 @@ public class ElementMatcher {
       if (result.getLength() > 0) {
         return (Element) result.item(0); // Return the first matching element (should normally always be only 1)
       }
-    } catch (Exception e) {
+    } catch (XPathExpressionException e) {
       throw new IllegalStateException("Failed to match element with id: " + id, e);
     }
 
