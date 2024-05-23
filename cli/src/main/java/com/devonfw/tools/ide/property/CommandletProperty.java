@@ -3,7 +3,8 @@ package com.devonfw.tools.ide.property;
 import java.util.function.Consumer;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * {@link Property} with {@link #getValueType() value type} {@link Commandlet}.
@@ -48,10 +49,21 @@ public class CommandletProperty extends Property<Commandlet> {
   }
 
   @Override
-  public Commandlet parse(String valueAsString) {
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
 
-    // needs to be initialized before calling this...
-    Commandlet commandlet = CommandletManagerImpl.get().getCommandlet(valueAsString);
+    for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
+      String cmdName = cmd.getName();
+      if (cmdName.startsWith(arg)) {
+        collector.add(cmdName, null, null, cmd);
+      }
+    }
+  }
+
+  @Override
+  public Commandlet parse(String valueAsString, IdeContext context) {
+
+    Commandlet commandlet = context.getCommandletManager().getCommandlet(valueAsString);
     if (commandlet == null) {
       throw new IllegalArgumentException(valueAsString);
     }

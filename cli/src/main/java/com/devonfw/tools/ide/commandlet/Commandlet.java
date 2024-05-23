@@ -10,6 +10,8 @@ import java.util.Objects;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * A {@link Commandlet} is a sub-command of the IDE CLI.
@@ -84,6 +86,18 @@ public abstract class Commandlet {
       this.firstKeyword = keyword;
     }
     add(new KeywordProperty(keyword, true, null));
+  }
+
+  /**
+   * @param property the keyword {@link Property} to {@link #add(Property) add}.
+   */
+  protected void addKeyword(Property<?> property) {
+
+    if (!this.properties.isEmpty()) {
+      throw new IllegalStateException();
+    }
+    this.firstKeyword = property.getNameOrAlias();
+    add(property);
   }
 
   /**
@@ -162,6 +176,15 @@ public abstract class Commandlet {
   }
 
   /**
+   * @return {@code true} to suppress the {@link com.devonfw.tools.ide.step.StepImpl#logSummary(boolean) step summary
+   *         success message}.
+   */
+  public boolean isSuppressStepSuccess() {
+
+    return false;
+  }
+
+  /**
    * Runs this {@link Commandlet}.
    */
   public abstract void run();
@@ -191,5 +214,14 @@ public abstract class Commandlet {
   public String toString() {
 
     return getClass().getSimpleName() + "[" + getName() + "]";
+  }
+
+  /**
+   * @return the {@link ToolCommandlet} set in a {@link Property} of this commandlet used for auto-completion of a
+   *         {@link VersionIdentifier} or {@code null} if not exists or not configured.
+   */
+  public ToolCommandlet getToolForVersionCompletion() {
+
+    return null;
   }
 }

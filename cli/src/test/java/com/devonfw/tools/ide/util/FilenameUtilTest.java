@@ -20,6 +20,7 @@ public class FilenameUtilTest extends Assertions {
     assertThat(FilenameUtil.getExtension("file.name.tar.gz")).isEqualTo("tar.gz");
     assertThat(FilenameUtil.getExtension("file.name.Tar.Gz")).isEqualTo("tar.gz");
     assertThat(FilenameUtil.getExtension("FILE.NAME.TAR.GZ")).isEqualTo("tar.gz");
+    assertThat(FilenameUtil.getExtension("windows\\tool\\1.0\\script")).isNull();
     assertThat(FilenameUtil.getExtension("https://server.com/")).isNull();
     assertThat(FilenameUtil.getExtension("https://server.com/folder.zip")).isEqualTo("zip");
     assertThat(FilenameUtil.getExtension("https://server.com/folder.zip/")).isNull();

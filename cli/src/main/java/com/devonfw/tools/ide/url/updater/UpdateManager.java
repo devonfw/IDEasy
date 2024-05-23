@@ -17,6 +17,7 @@ import com.devonfw.tools.ide.tool.docker.DockerRancherDesktopUrlUpdater;
 import com.devonfw.tools.ide.tool.dotnet.DotNetUrlUpdater;
 import com.devonfw.tools.ide.tool.eclipse.EclipseCppUrlUpdater;
 import com.devonfw.tools.ide.tool.eclipse.EclipseJavaUrlUpdater;
+import com.devonfw.tools.ide.tool.eclipse.EclipseJeeUrlUpdater;
 import com.devonfw.tools.ide.tool.gcloud.GCloudUrlUpdater;
 import com.devonfw.tools.ide.tool.gcviewer.GcViewerUrlUpdater;
 import com.devonfw.tools.ide.tool.gh.GhUrlUpdater;
@@ -31,6 +32,7 @@ import com.devonfw.tools.ide.tool.jmc.JmcUrlUpdater;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNativeUrlUpdater;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincUrlUpdater;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDockerUrlUpdater;
+import com.devonfw.tools.ide.tool.mvn.Mvn4UrlUpdater;
 import com.devonfw.tools.ide.tool.mvn.MvnUrlUpdater;
 import com.devonfw.tools.ide.tool.node.NodeUrlUpdater;
 import com.devonfw.tools.ide.tool.npm.NpmUrlUpdater;
@@ -43,6 +45,7 @@ import com.devonfw.tools.ide.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.tool.vscode.VsCodeUrlUpdater;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.tool.jasypt.JasyptUrlUpdater;
 
 /**
  * The {@code UpdateManager} class manages the update process for various tools by using a list of
@@ -56,16 +59,16 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
 
   private final UrlRepository urlRepository;
 
-  /**private final List<AbstractUrlUpdater> updaters = Arrays.asList(new AndroidStudioUrlUpdater(), new AwsUrlUpdater(),
-      new AzureUrlUpdater(), new CobigenUrlUpdater(), new DockerDesktopUrlUpdater() , new DotNetUrlUpdater(), new EclipseCppUrlUpdater(),
-      new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(), new GcViewerUrlUpdater(), new GhUrlUpdater(),
-      new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(), new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(),
-      new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(),
-      new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(),
+  private final List<AbstractUrlUpdater> updaters = Arrays.asList(new AndroidStudioUrlUpdater(), new AwsUrlUpdater(),
+      new AzureUrlUpdater(), new CobigenUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
+      new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
+      new GcViewerUrlUpdater(), new GhUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
+      new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JavaUrlUpdater(),
+      new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(),
+      new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new Mvn4UrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(),
       new PipUrlUpdater(), new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(),
-      new SonarUrlUpdater(), new TerraformUrlUpdater(), new TomcatUrlUpdater(), new VsCodeUrlUpdater());*/
-
-  private final List<AbstractUrlUpdater> updaters = Arrays.asList(new GcViewerUrlUpdater(), new JenkinsUrlUpdater());
+      new SonarUrlUpdater(), new TerraformUrlUpdater(), new TomcatUrlUpdater(), new VsCodeUrlUpdater(),
+      new JasyptUrlUpdater());
 
   /**
    * The constructor.

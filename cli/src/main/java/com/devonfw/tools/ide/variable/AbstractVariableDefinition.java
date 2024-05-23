@@ -4,6 +4,7 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 /**
  * Abstract base implementation of {@link VariableDefinition}.
@@ -22,6 +23,8 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
   private final Function<IdeContext, V> defaultValueFactory;
 
   private final boolean forceDefaultValue;
+
+  private final boolean export;
 
   /**
    * The constructor.
@@ -50,6 +53,20 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
    * @param name the {@link #getName() variable name}.
    * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
+   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   */
+  public AbstractVariableDefinition(String name, String legacyName, Function<IdeContext, V> defaultValueFactory,
+      boolean forceDefaultValue) {
+
+    this(name, legacyName, defaultValueFactory, forceDefaultValue, false);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
+   * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
    */
   public AbstractVariableDefinition(String name, String legacyName, Function<IdeContext, V> defaultValueFactory) {
 
@@ -63,15 +80,17 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
    * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
    * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   * @param export the {@link #isExport() export} flag.
    */
   public AbstractVariableDefinition(String name, String legacyName, Function<IdeContext, V> defaultValueFactory,
-      boolean forceDefaultValue) {
+      boolean forceDefaultValue, boolean export) {
 
     super();
     this.name = name;
     this.legacyName = legacyName;
     this.defaultValueFactory = defaultValueFactory;
     this.forceDefaultValue = forceDefaultValue;
+    this.export = export;
   }
 
   @Override
@@ -104,10 +123,11 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
     Objects.requireNonNull(context);
     String valueAsString = null;
     if (!this.forceDefaultValue) {
-      valueAsString = context.getVariables().get(this.name);
+      EnvironmentVariables variables = context.getVariables();
+      valueAsString = variables.get(this.name, true);
       if (valueAsString == null) {
         if (this.legacyName != null) {
-          valueAsString = context.getVariables().get(this.legacyName);
+          valueAsString = variables.get(this.legacyName, true);
         }
       }
     }
@@ -118,6 +138,12 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
       value = fromString(valueAsString, context);
     }
     return value;
+  }
+
+  @Override
+  public boolean isExport() {
+
+    return this.export;
   }
 
   @Override

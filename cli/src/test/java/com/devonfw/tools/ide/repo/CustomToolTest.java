@@ -1,10 +1,9 @@
 package com.devonfw.tools.ide.repo;
 
+import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import com.devonfw.tools.ide.os.SystemInformationMock;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link CustomTool}.
@@ -32,8 +31,8 @@ public class CustomToolTest extends Assertions {
     assertThat(tool.isOsAgnostic()).isEqualTo(osAgnostic);
     assertThat(tool.isArchAgnostic()).isEqualTo(archAgnostic);
     assertThat(tool.getRepositoryUrl()).isEqualTo(repositoryUrl);
-    assertThat(tool.getUrl())
-        .isEqualTo("https://host.domain.tld:8443/folder/repo/jboss-eap/7.4.5.GA/jboss-eap-7.4.5.GA.tgz");
+    assertThat(tool.getUrl()).isEqualTo(
+        "https://host.domain.tld:8443/folder/repo/jboss-eap/7.4.5.GA/jboss-eap-7.4.5.GA.tgz");
     assertThat(tool.getChecksum()).isEqualTo(checksum);
   }
 
@@ -52,15 +51,15 @@ public class CustomToolTest extends Assertions {
     boolean archAgnostic = true;
     // act
     CustomTool tool = new CustomTool(name, version, osAgnostic, archAgnostic, repositoryUrl, checksum,
-        SystemInformationMock.WINDOWS_X64);
+        SystemInfoMock.WINDOWS_X64);
     // assert
     assertThat(tool.getTool()).isEqualTo(name);
     assertThat(tool.getVersion()).isSameAs(version);
     assertThat(tool.isOsAgnostic()).isEqualTo(osAgnostic);
     assertThat(tool.isArchAgnostic()).isEqualTo(archAgnostic);
     assertThat(tool.getRepositoryUrl()).isEqualTo(repositoryUrl);
-    assertThat(tool.getUrl())
-        .isEqualTo("https://host.domain.tld:8443/folder/repo/firefox/70.0.1/firefox-70.0.1-windows.tgz");
+    assertThat(tool.getUrl()).isEqualTo(
+        "https://host.domain.tld:8443/folder/repo/firefox/70.0.1/firefox-70.0.1-windows.tgz");
     assertThat(tool.getChecksum()).isEqualTo(checksum);
   }
 

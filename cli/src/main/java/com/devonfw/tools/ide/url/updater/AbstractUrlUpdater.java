@@ -95,6 +95,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected final String getToolWithEdition() {
 
     String tool = getTool();
+
     String edition = getEdition();
     if (tool.equals(edition)) {
       return tool;

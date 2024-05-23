@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.devonfw.tools.IDEasy.dev</groupId>
@@ -11,12 +11,15 @@
   <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>ide-cli</artifactId>
   <version>${revision}</version>
+  <name>${project.artifactId}</name>
   <properties>
-    <mainClass>com.devonfw.tools.ide.cli.Ide</mainClass>
-    <imageName>ide</imageName>
+    <mainClass>com.devonfw.tools.ide.cli.Ideasy</mainClass>
+    <imageName>ideasy</imageName>
     <releaseName>${project.artifactId}-${os.detected.classifier}-${os.detected.arch}</releaseName>
     <java.version>17</java.version>
     <native.maven.plugin.version>0.9.28</native.maven.plugin.version>
+    <jline.version>3.24.1</jline.version>
+    <jansi.version>2.4.0</jansi.version>
   </properties>
 
   <dependencies>
@@ -52,16 +55,18 @@
       <artifactId>jackson-dataformat-xml</artifactId>
       <version>2.14.1</version>
     </dependency>
-    <!-- Logging -->
+    <!-- Logging (only for URL-Updaters) -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>2.0.3</version>
+      <version>2.0.12</version>
+      <!--optional>true</optional-->
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.4.7</version>
+      <version>1.5.3</version>
+      <!--optional>true</optional-->
     </dependency>
     <!-- Needed for WireMock test support -->
     <dependency>
@@ -74,6 +79,16 @@
       <groupId>me.tongfei</groupId>
       <artifactId>progressbar</artifactId>
       <version>0.10.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jline</groupId>
+      <artifactId>jline</artifactId>
+      <version>${jline.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.fusesource.jansi</groupId>
+      <artifactId>jansi</artifactId>
+      <version>${jansi.version}</version>
     </dependency>
   </dependencies>
 
@@ -93,6 +108,29 @@
           </archive>
         </configuration>
       </plugin>
+      <!-- Copy Resources -->
+      <plugin>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.3.1</version>
+        <executions>
+          <execution>
+            <id>copy-resources</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>copy-resources</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <resources>
+                <resource>
+                  <directory>src/main/package</directory>
+                  <filtering>true</filtering>
+                </resource>
+              </resources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 
@@ -100,41 +138,41 @@
     <profile>
       <id>deploy</id>
       <build>
-      <plugins>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>build-helper-maven-plugin</artifactId>
-          <version>3.4.0</version>
-          <executions>
-            <execution>
-              <id>attach-artifacts</id>
-              <phase>package</phase>
-              <goals>
-                <goal>attach-artifact</goal>
-              </goals>
-              <configuration>
-                <artifacts>
-                  <artifact>
-                    <file>target/${project.artifactId}-linux-x64.tar.gz</file>
-                    <type>tar.gz</type>
-                    <classifier>linux</classifier>
-                  </artifact>
-                  <artifact>
-                    <file>target/${project.artifactId}-windows-x64.tar.gz</file>
-                    <type>tar.gz</type>
-                    <classifier>windows</classifier>
-                  </artifact>
-                  <artifact>
-                    <file>target/${project.artifactId}-mac-x64.tar.gz</file>
-                    <type>tar.gz</type>
-                    <classifier>mac</classifier>
-                  </artifact>
-                </artifacts>
-              </configuration>
-            </execution>
-          </executions>
-        </plugin>
-      </plugins>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.4.0</version>
+            <executions>
+              <execution>
+                <id>attach-artifacts</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.build.directory}/${project.artifactId}-linux-x64.tar.gz</file>
+                      <type>tar.gz</type>
+                      <classifier>linux</classifier>
+                    </artifact>
+                    <artifact>
+                      <file>${project.build.directory}/${project.artifactId}-windows-x64.tar.gz</file>
+                      <type>tar.gz</type>
+                      <classifier>windows</classifier>
+                    </artifact>
+                    <artifact>
+                      <file>${project.build.directory}/${project.artifactId}-mac-x64.tar.gz</file>
+                      <type>tar.gz</type>
+                      <classifier>mac</classifier>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
       </build>
     </profile>
     <profile>
@@ -169,14 +207,40 @@
               <agent>
                 <enabled>true</enabled>
               </agent>
-              <imageName>
-                ${imageName}
-              </imageName>
+              <imageName>${imageName}</imageName>
               <buildArgs>
-                <arg>--enable-url-protocols=https</arg>
+                <arg>--enable-url-protocols=http,https</arg>
                 <arg>-H:IncludeResources="nls/.*"</arg>
                 <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
               </buildArgs>
+            </configuration>
+          </plugin>
+          <plugin>
+            <!-- Include documentation into release -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-documentation</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>ide-doc</artifactId>
+                  <version>${project.version}</version>
+                  <type>pdf</type>
+                  <destFileName>IDEasy-documentation.pdf</destFileName>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
             </configuration>
           </plugin>
           <plugin>
@@ -193,7 +257,7 @@
                   <finalName>${releaseName}</finalName>
                   <appendAssemblyId>false</appendAssemblyId>
                   <descriptors>
-                    <descriptor>/src/main/assembly/exec.xml</descriptor>
+                    <descriptor>/src/main/assembly/release.xml</descriptor>
                   </descriptors>
                 </configuration>
               </execution>

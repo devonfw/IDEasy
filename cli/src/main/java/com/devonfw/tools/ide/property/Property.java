@@ -4,7 +4,11 @@ import java.util.Objects;
 import java.util.function.Consumer;
 
 import com.devonfw.tools.ide.cli.CliArgument;
+import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollectorAdapter;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * A {@link Property} is a simple container for a {@link #getValue() value} with a fixed {@link #getName() name} and
@@ -16,9 +20,13 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
  * Besides simplification this also prevents the use of reflection for generic CLI parsing with assigning and validating
  * arguments what is beneficial for compiling the Java code to a native image using GraalVM.
  *
- * @param <T> the {@link #getValueType() value type}.
+ * @param <V> the {@link #getValueType() value type}.
  */
-public abstract class Property<T> {
+public abstract class Property<V> {
+
+  private static final String INVALID_ARGUMENT = "Invalid CLI argument '{}' for property '{}' of commandlet '{}'";
+
+  private static final String INVALID_ARGUMENT_WITH_CAUSE = INVALID_ARGUMENT + ":{}";
 
   /** @see #getName() */
   protected final String name;
@@ -29,9 +37,10 @@ public abstract class Property<T> {
   /** @see #isRequired() */
   protected final boolean required;
 
-  private final Consumer<T> validator;
+  private final Consumer<V> validator;
 
-  private T value;
+  /** @see #getValue() */
+  protected V value;
 
   /**
    * The constructor.
@@ -41,7 +50,7 @@ public abstract class Property<T> {
    * @param alias the {@link #getAlias() property alias}.
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public Property(String name, boolean required, String alias, Consumer<T> validator) {
+  public Property(String name, boolean required, String alias, Consumer<V> validator) {
 
     super();
     this.name = name;
@@ -143,20 +152,20 @@ public abstract class Property<T> {
   /**
    * @return the {@link Class} reflecting the type of the {@link #getValue() value}.
    */
-  public abstract Class<T> getValueType();
+  public abstract Class<V> getValueType();
 
   /**
    * @return the value of this property.
    * @see #setValue(Object)
    */
-  public T getValue() {
+  public V getValue() {
 
     return this.value;
   }
 
   /**
    * @return the {@link #getValue() value} as {@link String}.
-   * @see #setValueAsString(String)
+   * @see #setValueAsString(String, IdeContext)
    */
   public String getValueAsString() {
 
@@ -170,51 +179,204 @@ public abstract class Property<T> {
    * @param valueToFormat the value to format.
    * @return the given {@code value} formatted as {@link String}.
    */
-  protected String format(T valueToFormat) {
+  protected String format(V valueToFormat) {
 
-    return this.value.toString();
+    return valueToFormat.toString();
   }
 
   /**
    * @param value the new {@link #getValue() value} to set.
    * @see #getValue()
    */
-  public void setValue(T value) {
+  public void setValue(V value) {
 
     this.value = value;
   }
 
   /**
    * @param valueAsString the new {@link #getValue() value} as {@link String}.
+   * @param context the {@link IdeContext}
    * @see #getValueAsString()
    */
-  public void setValueAsString(String valueAsString) {
+  public void setValueAsString(String valueAsString, IdeContext context) {
 
     if (valueAsString == null) {
       this.value = getNullValue();
     } else {
-      this.value = parse(valueAsString);
+      this.value = parse(valueAsString, context);
+    }
+  }
+
+  /**
+   * Like {@link #setValueAsString(String, IdeContext)} but with exception handling.
+   *
+   * @param valueAsString the new {@link #getValue() value} as {@link String}.
+   * @param context the {@link IdeContext}
+   * @param commandlet the {@link Commandlet} owning this property.
+   * @return {@code true} if the value has been assigned successfully, {@code false} otherwise (an error occurred).
+   */
+  public final boolean assignValueAsString(String valueAsString, IdeContext context, Commandlet commandlet) {
+
+    try {
+      setValueAsString(valueAsString, context);
+      return true;
+    } catch (Exception e) {
+      String message = INVALID_ARGUMENT_WITH_CAUSE;
+      if (e instanceof IllegalArgumentException) {
+        message = INVALID_ARGUMENT;
+      }
+      context.warning(message, valueAsString, getNameOrAlias(), commandlet.getName(), e.getMessage());
+      return false;
     }
   }
 
   /**
    * @return the {@code null} value.
    */
-  protected T getNullValue() {
+  protected V getNullValue() {
 
     return null;
   }
 
   /**
    * @param valueAsString the value to parse given as {@link String}.
+   * @param context the {@link IdeContext}.
    * @return the parsed value.
    */
-  public abstract T parse(String valueAsString);
+  public abstract V parse(String valueAsString, IdeContext context);
 
-  @Override
-  public int hashCode() {
+  /**
+   * @param args the {@link CliArguments} already {@link CliArguments#current() pointing} the {@link CliArgument} to
+   *        apply.
+   * @param context the {@link IdeContext}.
+   * @param commandlet the {@link Commandlet} owning this property.
+   * @param collector the {@link CompletionCandidateCollector}.
+   * @return {@code true} if it matches, {@code false} otherwise.
+   */
+  public boolean apply(CliArguments args, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
 
-    return Objects.hash(this.name, this.value);
+    CliArgument argument = args.current();
+    if (argument.isCompletion()) {
+      int size = collector.getCandidates().size();
+      complete(argument, args, context, commandlet, collector);
+      if (collector.getCandidates().size() > size) { // completions added so complete matched?
+        return true;
+      }
+    }
+    boolean option = isOption();
+    if (option && !argument.isOption()) {
+      return false;
+    }
+    String argValue = null;
+    boolean lookahead = false;
+    if (this.name.isEmpty()) {
+      argValue = argument.get();
+    } else {
+      if (!matches(argument.getKey())) {
+        return false;
+      }
+      argValue = argument.getValue();
+      if (argValue == null) {
+        argument = args.next();
+        if (argument.isCompletion()) {
+          completeValue(argument.get(), context, commandlet, collector);
+          return true;
+        } else {
+          if (!argument.isEnd()) {
+            argValue = argument.get();
+          }
+          lookahead = true;
+        }
+      }
+    }
+    return applyValue(argValue, lookahead, args, context, commandlet, collector);
+  }
+
+  /**
+   * @param argValue the value to set as {@link String}.
+   * @param lookahead - {@code true} if the given {@code argValue} is taken as lookahead from the next value,
+   *        {@code false} otherwise.
+   * @param args the {@link CliArguments}.
+   * @param context the {@link IdeContext}.
+   * @param commandlet the {@link Commandlet} owning this {@link Property}.
+   * @param collector the {@link CompletionCandidateCollector}.
+   * @return {@code true} if it matches, {@code false} otherwise.
+   */
+  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context,
+      Commandlet commandlet, CompletionCandidateCollector collector) {
+
+    boolean success = assignValueAsString(argValue, context, commandlet);
+    if (success) {
+      args.next();
+    }
+    return success;
+  }
+
+  /**
+   * Performs auto-completion for the {@code arg}.
+   *
+   * @param argument the {@link CliArgument CLI argument}.
+   * @param args the {@link CliArguments}.
+   * @param context the {@link IdeContext}.
+   * @param commandlet the {@link Commandlet} owning this {@link Property}.
+   * @param collector the {@link CompletionCandidateCollector}.
+   */
+  protected void complete(CliArgument argument, CliArguments args, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
+
+    String arg = argument.get();
+    if (this.name.isEmpty()) {
+      int count = collector.getCandidates().size();
+      completeValue(arg, context, commandlet, collector);
+      if (collector.getCandidates().size() > count) {
+        args.next();
+      }
+      return;
+    }
+    if (this.name.startsWith(arg)) {
+      collector.add(this.name, null, this, commandlet);
+    }
+    if (this.alias != null) {
+      if (this.alias.startsWith(arg)) {
+        collector.add(this.alias, null, this, commandlet);
+      } else if ((this.alias.length() == 2) && (this.alias.charAt(0) == '-') && argument.isShortOption()) {
+        char opt = this.alias.charAt(1); // e.g. arg="-do" and alias="-f" -complete-> "-dof"
+        if (arg.indexOf(opt) < 0) {
+          collector.add(arg + opt, null, this, commandlet);
+        }
+      }
+    }
+    String value = argument.getValue();
+    if (value != null) {
+      String key = argument.getKey();
+      if (this.name.equals(key) || Objects.equals(this.alias, key)) {
+        completeValue(value, context, commandlet, new CompletionCandidateCollectorAdapter(key+"=", collector));
+      }
+    }
+  }
+
+  /**
+   * Performs auto-completion for the {@code arg} as {@link #getValue() property value}.
+   *
+   * @param arg the {@link CliArgument#get() CLI argument}.
+   * @param context the {@link IdeContext}.
+   * @param commandlet the {@link Commandlet} owning this {@link Property}.
+   * @param collector the {@link CompletionCandidateCollector}.
+   */
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
+
+  }
+
+  /**
+   * @param nameOrAlias the potential {@link #getName() name} or {@link #getAlias() alias} to match.
+   * @return {@code true} if the given {@code nameOrAlias} is equal to {@link #getName() name} or {@link #getAlias()
+   *         alias}, {@code false} otherwise.
+   */
+  public boolean matches(String nameOrAlias) {
+
+    return this.name.equals(nameOrAlias) || Objects.equals(this.alias, nameOrAlias);
   }
 
   /**
@@ -232,6 +394,12 @@ public abstract class Property<T> {
       this.validator.accept(this.value);
     }
     return true;
+  }
+
+  @Override
+  public int hashCode() {
+
+    return Objects.hash(this.name, this.value);
   }
 
   @Override

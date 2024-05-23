@@ -1,10 +1,9 @@
 package com.devonfw.tools.ide.commandlet;
 
-import org.junit.jupiter.api.Test;
-
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import org.junit.jupiter.api.Test;
 
 /**
  * Integration test of {@link VersionListCommandlet}.
@@ -18,10 +17,9 @@ public class VersionListCommandletTest extends AbstractIdeContextTest {
   public void testVersionListCommandletRun() {
 
     // arrange
-    String path = "workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext("basic", path, false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     VersionListCommandlet versionList = context.getCommandletManager().getCommandlet(VersionListCommandlet.class);
-    versionList.tool.setValueAsString("mvn");
+    versionList.tool.setValueAsString("mvn", context);
     // act
     versionList.run();
     // assert

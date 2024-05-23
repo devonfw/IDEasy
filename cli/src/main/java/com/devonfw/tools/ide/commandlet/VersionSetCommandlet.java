@@ -46,4 +46,10 @@ public class VersionSetCommandlet extends Commandlet {
     commandlet.setVersion(versionIdentifier, true);
   }
 
+  @Override
+  public ToolCommandlet getToolForVersionCompletion() {
+
+    return this.tool.getValue();
+  }
+
 }

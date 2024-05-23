@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+_IDEASY="$(dirname "${BASH_SOURCE}")/ideasy"
+if [ $# != 0 ]; then
+  "${_IDEASY}" "$@"
+  return_code=$?
+  if [ $return_code != 0 ]; then
+    echo -e "\n\033[91mError: IDEasy failed with exit code ${return_code}\033[91m" >&2
+    unset _IDEASY
+    return ${return_code}
+  fi
+fi
+
+ide_env=
+if [ "${OSTYPE}" = "cygwin" ] || [ "${OSTYPE}" = "msys" ]; then
+  ide_env="$("${_IDEASY}" env --bash)"
+else
+  ide_env="$("${_IDEASY}" env)"
+fi
+if [ $? = 0 ]; then
+  eval "${ide_env}"
+  if [ $# = 0 ]; then
+    echo "IDE environment variables have been set for ${IDE_HOME} in workspace ${WORKSPACE}"
+  fi
+fi
+unset _IDEASY
+unset ide_env
+unset return_code

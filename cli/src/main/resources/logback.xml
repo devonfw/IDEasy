@@ -1,16 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE configuration>
 <configuration>
-  <import class="ch.qos.logback.classic.encoder.PatternLayoutEncoder"/>
-  <import class="ch.qos.logback.core.ConsoleAppender"/>
-
-  <appender name="STDOUT" class="ConsoleAppender">
-    <encoder class="PatternLayoutEncoder">
-      <pattern>%-5level %logger{0} -%kvp- %msg%n</pattern>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <Pattern>%d{HH:mm:ss.SSS} [%thread] - %-5level - %logger{36} - %msg%n
+      </Pattern>
     </encoder>
   </appender>
 
-  <root level="debug">
+  <root level="INFO">
     <appender-ref ref="STDOUT"/>
   </root>
+  <logger name="com.devonfw.tools.ide" level="DEBUG"/>
 </configuration>

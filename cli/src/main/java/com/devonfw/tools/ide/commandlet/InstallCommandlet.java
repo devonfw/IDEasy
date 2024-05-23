@@ -49,4 +49,9 @@ public class InstallCommandlet extends Commandlet {
     commandlet.install(false);
   }
 
+  @Override
+  public ToolCommandlet getToolForVersionCompletion() {
+
+    return this.tool.getValue();
+  }
 }

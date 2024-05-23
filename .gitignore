@@ -5,6 +5,13 @@
 *.log
 *.bak
 .*
+!.gitignore
+!.ide.software.version
+!.devon.software.version
+!.ide
+!.anyedit.properties
+!.ide.properties
+!.templateengine
 target/
 eclipse-target/
 generated/

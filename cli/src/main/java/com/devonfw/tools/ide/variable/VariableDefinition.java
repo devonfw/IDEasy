@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.variable;
 
 import java.nio.file.Path;
+import java.util.Collection;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
@@ -38,7 +39,6 @@ public interface VariableDefinition<V> {
   /**
    * @param context the {@link IdeContext}.
    * @return the default value as {@link String}. May be {@code null}.
-   *
    * @see #getDefaultValue(IdeContext)
    * @see #toString(Object)
    */
@@ -60,10 +60,15 @@ public interface VariableDefinition<V> {
 
   /**
    * @param value the value as {@link String}. May NOT be {@code null}.
-   * @param context TODO
+   * @param context the {@link IdeContext}.
    * @return the value converted to the {@link #getValueType() value type}.
    */
   V fromString(String value, IdeContext context);
+
+  /**
+   * @return {@code true} if the variable needs to be exported, {@code false} otherwise.
+   */
+  boolean isExport();
 
   /**
    * @param value the typed value.
@@ -75,6 +80,15 @@ public interface VariableDefinition<V> {
       return "";
     } else if (value instanceof Path) {
       return value.toString().replace('\\', '/');
+    } else if (value instanceof Collection<?> collection) {
+      StringBuilder sb = new StringBuilder();
+      for (Object element : collection) {
+        if (sb.length() > 0) {
+          sb.append(',');
+        }
+        sb.append(element);
+      }
+      return sb.toString();
     }
     return value.toString();
   }

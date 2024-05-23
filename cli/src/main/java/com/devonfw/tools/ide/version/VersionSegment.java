@@ -33,7 +33,6 @@ public class VersionSegment implements VersionObject<VersionSegment> {
    * @param separator the {@link #getSeparator() separator}.
    * @param letters the {@link #getLettersString() letters}.
    * @param digits the {@link #getDigits() digits}.
-   * @param pattern the {@link #getPattern() pattern}.
    */
   VersionSegment(String separator, String letters, String digits) {
 
@@ -262,10 +261,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
         }
       }
     } else {
-      if (this.number != other.number) {
-        return VersionMatchResult.MISMATCH;
-      }
-      if (!this.separator.equals(other.separator)) {
+      if ((this.number != other.number) || !this.separator.equals(other.separator)) {
         return VersionMatchResult.MISMATCH;
       }
     }

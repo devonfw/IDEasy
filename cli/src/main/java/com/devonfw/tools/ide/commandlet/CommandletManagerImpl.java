@@ -1,36 +1,44 @@
 package com.devonfw.tools.ide.commandlet;
 
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.property.KeywordProperty;
+import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.aws.Aws;
+import com.devonfw.tools.ide.tool.az.Azure;
+import com.devonfw.tools.ide.tool.cobigen.Cobigen;
+import com.devonfw.tools.ide.tool.docker.Docker;
+import com.devonfw.tools.ide.tool.dotnet.DotNet;
+import com.devonfw.tools.ide.tool.eclipse.Eclipse;
+import com.devonfw.tools.ide.tool.gcviewer.GcViewer;
+import com.devonfw.tools.ide.tool.gh.Gh;
+import com.devonfw.tools.ide.tool.graalvm.GraalVm;
+import com.devonfw.tools.ide.tool.gradle.Gradle;
+import com.devonfw.tools.ide.tool.helm.Helm;
+import com.devonfw.tools.ide.tool.intellij.Intellij;
+import com.devonfw.tools.ide.tool.jasypt.Jasypt;
+import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.tool.jmc.Jmc;
+import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
+import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.node.Node;
+import com.devonfw.tools.ide.tool.npm.Npm;
+import com.devonfw.tools.ide.tool.oc.Oc;
+import com.devonfw.tools.ide.tool.quarkus.Quarkus;
+import com.devonfw.tools.ide.tool.sonar.Sonar;
+import com.devonfw.tools.ide.tool.terraform.Terraform;
+import com.devonfw.tools.ide.tool.vscode.Vscode;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.KeywordProperty;
-import com.devonfw.tools.ide.property.Property;
-import com.devonfw.tools.ide.tool.az.Azure;
-import com.devonfw.tools.ide.tool.eclipse.Eclipse;
-import com.devonfw.tools.ide.tool.gh.Gh;
-import com.devonfw.tools.ide.tool.gradle.Gradle;
-import com.devonfw.tools.ide.tool.helm.Helm;
-import com.devonfw.tools.ide.tool.java.Java;
-import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
-import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
-import com.devonfw.tools.ide.tool.mvn.Mvn;
-import com.devonfw.tools.ide.tool.node.Node;
-import com.devonfw.tools.ide.tool.oc.Oc;
-import com.devonfw.tools.ide.tool.quarkus.Quarkus;
-import com.devonfw.tools.ide.tool.terraform.Terraform;
-import com.devonfw.tools.ide.tool.vscode.Vscode;
-
 /**
  * Implementation of {@link CommandletManager}.
  */
 public final class CommandletManagerImpl implements CommandletManager {
-
-  private static CommandletManagerImpl INSTANCE;
 
   private final Map<Class<? extends Commandlet>, Commandlet> commandletTypeMap;
 
@@ -45,7 +53,7 @@ public final class CommandletManagerImpl implements CommandletManager {
    *
    * @param context the {@link IdeContext}.
    */
-  private CommandletManagerImpl(IdeContext context) {
+  public CommandletManagerImpl(IdeContext context) {
 
     super();
     this.commandletTypeMap = new HashMap<>();
@@ -54,15 +62,27 @@ public final class CommandletManagerImpl implements CommandletManager {
     this.commandlets = Collections.unmodifiableCollection(this.commandletTypeMap.values());
     add(new HelpCommandlet(context));
     add(new EnvironmentCommandlet(context));
+    add(new CompleteCommandlet(context));
+    add(new ShellCommandlet(context));
     add(new InstallCommandlet(context));
     add(new VersionSetCommandlet(context));
     add(new VersionGetCommandlet(context));
     add(new VersionListCommandlet(context));
+    add(new EditionGetCommandlet(context));
+    add(new EditionSetCommandlet(context));
+    add(new EditionListCommandlet(context));
+    add(new VersionCommandlet(context));
+    add(new RepositoryCommandlet(context));
+    add(new UninstallCommandlet(context));
+    add(new UpdateCommandlet(context));
+    add(new CreateCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));
     add(new Node(context));
+    add(new Npm(context));
     add(new Mvn(context));
+    add(new GcViewer(context));
     add(new Gradle(context));
     add(new Eclipse(context));
     add(new Terraform(context));
@@ -72,6 +92,15 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new KotlincNative(context));
     add(new Vscode(context));
     add(new Azure(context));
+    add(new Aws(context));
+    add(new Cobigen(context));
+    add(new Jmc(context));
+    add(new DotNet(context));
+    add(new Intellij(context));
+    add(new Jasypt(context));
+    add(new Docker(context));
+    add(new Sonar(context));
+    add(new GraalVm(context));
   }
 
   private void add(Commandlet commandlet) {
@@ -127,57 +156,6 @@ public final class CommandletManagerImpl implements CommandletManager {
   public Commandlet getCommandletByFirstKeyword(String keyword) {
 
     return this.firstKeywordMap.get(keyword);
-  }
-
-  /**
-   * This method gives global access to the {@link CommandletManager} instance. Typically you should have access to
-   * {@link IdeContext} and use {@link IdeContext#getCommandletManager()} to access the proper instance of
-   * {@link CommandletManager}. Only in very specific cases where there is no {@link IdeContext} available, you may use
-   * this method to access it (e.g. from {@link com.devonfw.tools.ide.property.CommandletProperty})
-   *
-   * @return the static instance of this {@link CommandletManager} implementation that has already been initialized.
-   * @throws IllegalStateException if the instance has not been previously initialized via
-   *         {@link #getOrCreate(IdeContext)}.
-   */
-  public static CommandletManager get() {
-
-    return getOrCreate(null);
-  }
-
-  /**
-   * This method has to be called initially from {@link IdeContext} to create the instance of this
-   * {@link CommandletManager} implementation. It will store that instance internally in a static variable so it can
-   * later be retrieved with {@link #get()}.
-   *
-   * @param context the {@link IdeContext}.
-   * @return the {@link CommandletManager}.
-   */
-  public static CommandletManager getOrCreate(IdeContext context) {
-
-    if (context == null) {
-      if (INSTANCE == null) {
-        throw new IllegalStateException("Not initialized!");
-      }
-    } else {
-      if (context instanceof AbstractIdeContext c) {
-        if (c.isMock()) {
-          return new CommandletManagerImpl(context);
-        }
-      }
-      if (INSTANCE != null) {
-        System.out.println("Multiple initializations!");
-      }
-      INSTANCE = new CommandletManagerImpl(context);
-    }
-    return INSTANCE;
-  }
-
-  /**
-   * Internal method to reset internal instance. May only be used for testing!
-   */
-  static void reset() {
-
-    INSTANCE = null;
   }
 
 }
