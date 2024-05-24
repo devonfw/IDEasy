@@ -29,7 +29,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    */
   public LocalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
-    super(context, tool, tags, false);
+    super(context, tool, tags);
   }
 
   /**

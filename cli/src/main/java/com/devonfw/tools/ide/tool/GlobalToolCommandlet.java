@@ -27,9 +27,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
-  public GlobalToolCommandlet(IdeContext context, String tool, Set<Tag> tags, boolean multivalued) {
+  public GlobalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
-    super(context, tool, tags, multivalued);
+    super(context, tool, tags);
   }
 
   /**

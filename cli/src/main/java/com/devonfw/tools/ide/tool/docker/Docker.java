@@ -27,7 +27,7 @@ public class Docker extends GlobalToolCommandlet {
    */
   public Docker(IdeContext context) {
 
-    super(context, "docker", Set.of(Tag.DOCKER), false);
+    super(context, "docker", Set.of(Tag.DOCKER));
   }
 
   @Override

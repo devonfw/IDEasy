@@ -41,13 +41,13 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param tool the {@link #getName() tool name}.
    * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
-  public ToolCommandlet(IdeContext context, String tool, Set<Tag> tags, boolean multivalued) {
+  public ToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context);
     this.tool = tool;
     this.tags = tags;
     addKeyword(tool);
-    this.arguments = new StringProperty("", false, "args", multivalued);
+    this.arguments = new StringProperty("", false, "args", true);
     initProperties();
   }
 
