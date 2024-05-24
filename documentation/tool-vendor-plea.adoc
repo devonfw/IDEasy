@@ -114,15 +114,6 @@ If `P1` installs `npm` version `V1` or `P2` installs `npm` version `v2` one will
 You get exactly the same problem when you replace `node` with `python` and `npm` with `pip`.
 It gets even worse if you install additional tools and libraries (e.g. `npm install -g @angular/cli` or `pip install urllib3`).
 
-=== Conclusion
-Aspects like this are fundamental design decisions that cannot be changed easily after.
-Therefore, we do not expect `pyhton` or `node` to change to make us happy.
-However, we hope that probably new tools will consider best-practices when they are created and therefore with this page we want to spread the word.
-Please help us to make IT better and prevent flaws by not considering common sense and knowledge that has already been matured over decades.
-The tool `npm` could have learned so much from https://maven.apache.org/[maven] (or https://gradle.org/[gradle]) also in other regards of their design (e.g. of `node_modules`) to make life and UX of developers so much better.
-We got many headaches and sleepless nights while building our product over the years hitting all the anti-patterns descrived above that we took our time to document this.
-Finally we want to give praises and thanks to all vendors that intuitively do everything properly from the start (e.g. apache software foundation tools, etc.) and also for all developers of tools that may have some flaw or anti-pattern but take time to read this page and consider any kind of improvement.
-
 == CLI
 Tools typically can take parameters and options.
 Please consider best practices from POSIX, GNU, IEE, and Open Group (e.g. see https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html[here]) from the start.
@@ -158,3 +149,12 @@ The worst is https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux[wsl] that
 === Help
 Awesome tools also have a build in help printed if `-h` or `--help` or `help` is given as argument.
 We do not have any requirements on this but end-users will love this if they do not have to do a web-search to figure out the CLI options and then may find the wrong information not applicable for the actual tool version they have installed.
+
+== Conclusion
+Aspects like "Keep installations pristine" are fundamental design decisions that cannot be changed easily after.
+Therefore, we do not expect `pyhton` or `node` to change in this regard to make us happy.
+However, we hope that probably new tools will consider best-practices when they are created and therefore with this page we want to spread the word.
+Please help us to make IT better and prevent flaws by not considering best-practices, common sense and knowledge that is already available and matured over decades.
+The tool `npm` could have learned so much from https://maven.apache.org/[maven] (or https://gradle.org/[gradle]) also in other regards of their design (e.g. of `node_modules`) to make life and UX of developers so much better.
+We got many headaches and sleepless nights while building our product over the years hitting all the anti-patterns described above that we took our time to document this.
+Finally, we want to give praises and thanks to all vendors that intuitively do everything properly from the start (e.g. apache software foundation tools, etc.) and also for all developers of tools that may have some flaw or anti-pattern but take time to read this page and consider any kind of improvement.
