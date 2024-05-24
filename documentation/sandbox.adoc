@@ -24,6 +24,8 @@ However, from the start we belived that developers want the following things:
 
 Therefore we simply isolate projects as folders on your hard-drive.
 While following https://en.wikipedia.org/wiki/KISS_principle[KISS] we invented some simple but smart ideas to make the sandbox work for you as simple as possible.
+In a nutshell inside such project folder we also "install" the software tools you want in a `software` folder and while keeping the configuration in a `conf` folder (see link:structure.adoc[structure] for details).
+On top of that idea we provide some simple but effective integrations into your operating system (we support `Windows`, `Mac` and `Linux`) to launch tools and shells with the environment setup specific to your project without global side effects (like changing global system environments, registry, etc.).
 As a result you can switch between projects seamlessly and work in parallel without inteference and without undesired side-effects.
 
 If you have not yet tried IDEasy, please give it a try and link:setup.adoc[set it up].
