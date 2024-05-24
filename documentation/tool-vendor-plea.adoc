@@ -1,0 +1,62 @@
+:toc:
+toc::[]
+
+= A plea to all tool vendors
+
+With IDEasy we are trying our best to bring great tools to developers seamless and easy.
+So as a tool vendor you should try to see us as your friend helping you to reach more users and making your tool more famous.
+
+With this page, we want to make a plea to you, dear tool vendor, to follow some best-practices to make integration smooth.
+This will not only make our lives easier but also help any other similar tool like https://sdkman.io/[SDKMAN] and also end-users still trying to install tools manually.
+The following sections and sub-sections contain the best-practices that would be lovely to be followed by all great tools.
+
+== Releases
+Even though it should be common sense how to do configuration- and release-management we learned that a lot of tools, including famous and world wide tools do violate such common sense.
+
+== Binary Releases
+First of all a reasonable tool should offer binary releases for all major platforms. A minimum requirement for major platforms should be:
+
+* Windows on x86 architecture
+* MacOS on ARM architecture
+* Linux on x86 architecture
+
+Additional plafroms like MacOS on x86 architecture would also be lovely to have if you want your tool to be used worldwide.
+Do not leave your users left in the rain saying "build the release from the source-code" without shipping ready to use binaries!
+Nowadays platforms like github and others make it easy to automate cross platform builds and publishing releases with the click of a button.
+Tools that tell MacOS users to build the binary manually from the source-code (with complex and maybe vague instructions) should not be considered premium.
+
+Just to give an example https://www.python.org/[Python] is a tool that does not offer binary releases for Linux and makes users to build it from the sources.
+However, worth to mention is that they are continously improving and already added https://www.python.org/downloads/macos/[binaries for MacOS] what is a great progress.
+
+== Stable and consistent download URLs
+If a version of a tool has been released, the download link of that tool for a particular OS and architecture should be stable and consistent.
+
+With _stable_ we mean that at any point of time in the future you will get the same binary file downloaded for this URL. You will not get a different binary at any time nor a 404 or 500 (except maybe in case of a short temporary technical problem).
+
+With _consistent_ we mean that the URL has a logical structure and could also be build from a pattern with the following variables filled in:
+
+* `${version}` - the exact version of the release (same for all platforms)
+* `${os}` - the operating system (ideally using `windows`, `mac`, or `linux`)
+* `${arch}` - the architecture (ideally using `x86` or `arm`)
+* `${edition}` - the optional edition (if the tool comes in different editions like e.g. `community` or `enterprise`).
+
+We have seen a lot of anti-patterns in this regards:
+
+* Tools using a computed hash in the download URL that cannot be derived from the variables above. If you really think this is necessary for some reason then please avoid some URL fulfilling the requirements above that redirects to the actual URL containing the magic hash.
+* Tools using a symbolic version like `latest` for the latest version. While it is a nice feature to have some URL always pointing to the latest version (e.g. via some automatic redirect) it is a severe anti-pattern to only have the latest release available under some static link that changes its content and therefore the hash of the binary download. Please understand that we compute SHA-256 hashes of your binaries centrally and IDEasy verifies this after download. Therefore the same URL for a dedicated combination of the above parameters must always result in the same binary.
+* Tools using totally different conventions for the download URL depending on operating system or other parameters.
+* Tools that had a CVE and the vendors thought it would be smart to replace an already published binary release with a modified one with the CVE being fixed. Thanks that you are fixing CVEs! That is great! But please follow best-practices and common sense and publish them as a new release with a new unique and increased version.
+* Tools that have been published and then after some time the download disappeared leading to errors like 404
+
+== Comparable versions
+We really do not want to dicatate anything regarding your versioning scheme. There are many contradicting philosophies like https://semver.org/[semantic versioning] or date/timestamp based versioning, etc.
+However, as common sense we expect the following best-practices for a reasonable tool:
+
+* *Comparable version numbers* - given two different versions it must always be possible to say which one is lower and which one is higher. We have invested a lot of hard work for edge-cases like `4.0.0-beta2 > 4.0.0-alpha3` or for Java that uses strange versions with `21_35 < 21.0.2_13 < 21.0.3_9`.
+* *Consistently mark unstable versions* - please use officially agreed development phases like `alpha`, `beta`, `test[*]`, `rc`/`release-candidate` to mark unstable or less stable versions correctly.
+
+Again we have seen anti-patterns here:
+
+* Tools using code-names for mandatory version semantic. So if you have `1.0-Water` and `1.0-Carbon` als versions your project team may internally know if the `Water` release was before the `Carbon` release or vice-versa. In such case all we can do is falling back to alphabetical comparison. So if you think it is a cool idea use code-names for relelase planning either omit them in the released version and just use them for fun and marketing or if you include them please use them only as an additional redundant information (e.g. `1.0-Water` and `1.1-Carbon` and now two releases with the same digits but different code-names).
+* Tools using development phases in regional languages (e.g. Polish or Chinese) or using cryptic shortcuts like `u` that for one tool stands for `update` so do not use it for `unstable` in your tool.
+
