@@ -66,8 +66,8 @@ Again we have seen anti-patterns here:
 
 * Tools using code-names for mandatory version semantic.
 So if you have `1.0-Water` and `1.0-Carbon` as versions your project team may internally know if the `Water` release was before the `Carbon` release or vice-versa.
-In such case all we can do is falling back to alphabetical comparison.
-So if you think it is a cool idea use code-names for relelase planning either omit them in the released version and just use them for fun and marketing or if you include them please use them only as an additional redundant information (e.g. `1.0-Water` and `1.1-Carbon` and now two releases with the same digits but different code-names).
+As we cannot know all we can do is falling back to alphabetical comparison.
+So if you think it is a cool idea to use code-names for relelase planning either omit them in the released version and just use them for fun and marketing or if you include them please use them only as an additional redundant information (e.g. `1.0-Water` and `1.1-Carbon` and now two releases with the same digits but different code-names).
 * Tools using development phases in regional languages (e.g. Polish or Chinese) or using cryptic shortcuts like `u` that for one tool stands for `update` so do not use it for `unstable` in your tool.
 * Tools including artificial parts to versions like a `v` or `ver` prefix (e.g. https://nodejs.org/[node] prints its version as something like `v19.7.0`).
 While we can cope with this, it is generally a bad idea.
