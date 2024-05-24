@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.ToolProperty;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,9 +38,10 @@ public class UninstallCommandlet extends Commandlet {
   public void run() {
 
     for (int i = 0; i < this.tools.getValueCount(); i++) {
-      String toolName = this.tools.getValue(i).getName();
+      ToolCommandlet toolCommandlet = this.tools.getValue(i);
+
       try {
-        String commandletName = this.context.getCommandletManager().getToolCommandlet(toolName).getName();
+        String commandletName = toolCommandlet.getName();
         Path softwarePath = context.getSoftwarePath().resolve(commandletName);
         if (Files.exists(softwarePath)) {
           try {

@@ -350,11 +350,12 @@ public abstract class Property<V> {
 
     if (success) {
       if (multiValued) {
+
         while (success && args.hasNext()) {
           CliArgument arg = args.next();
-          this.value.add((V) arg.get());
-          success = assignValueAsString(arg.getValue(), context, commandlet);
+          success = assignValueAsString(arg.get(), context, commandlet);
         }
+        args.next();
       } else {
         args.next();
       }
