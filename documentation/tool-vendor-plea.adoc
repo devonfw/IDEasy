@@ -122,3 +122,39 @@ Please help us to make IT better and prevent flaws by not considering common sen
 The tool `npm` could have learned so much from https://maven.apache.org/[maven] (or https://gradle.org/[gradle]) also in other regards of their design (e.g. of `node_modules`) to make life and UX of developers so much better.
 We got many headaches and sleepless nights while building our product over the years hitting all the anti-patterns descrived above that we took our time to document this.
 Finally we want to give praises and thanks to all vendors that intuitively do everything properly from the start (e.g. apache software foundation tools, etc.) and also for all developers of tools that may have some flaw or anti-pattern but take time to read this page and consider any kind of improvement.
+
+== CLI
+Tools typically can take parameters and options.
+Please consider best practices from POSIX, GNU, IEE, and Open Group (e.g. see https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html[here]) from the start.
+Most CLIs violate such rules for no good reason.
+As an example distinguish between short options (`-h`, `-v`, `-q`, `-f`) that typically can be combined (`-qf` for `-q -f`) and long-options (`--help` or `--version`).
+Also a good convention is the end options argument (`--`) that e.g. allows you to delete an accidentally created file named `-f` in bash (via `rm -- -f`).
+
+=== Version
+Every tool should have the CLI option to print its version via `-v` or `--version`.
+Please note that Java used to have `-version` instead of `--version` but later added support also for the latter (thanks guys!).
+Further, invoking this feature should *printing the version number and nothing else*.
+Please consider that often you need to make a choice on a version in a shell script and tool vendors make life for this use-case unneccesary hard if they print lots of other information alongside.
+If you want to do this add an extra option (e.g. `--verbose --version`) for this but *never* print it when `-v` was given as only argument.
+
+So this is great:
+```
+$ npm -v
+9.6.0
+```
+While this is not perfect:
+```
+$ mvn -v
+Apache Maven 3.9.6 (bc0240f3c744dd6b6ec2920b3cd08dcc295161ae)
+Maven home: D:\projects\mmm\software\mvn
+Java version: 17.0.11, vendor: Eclipse Adoptium, runtime: D:\projects\salog\software\java
+Default locale: en_US, platform encoding: UTF-8
+OS name: "windows 10", version: "10.0", arch: "amd64", family: "windows"
+$ docker -v
+Docker version 25.0.4-rd, build c4cd0a9
+```
+The worst is https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux[wsl] that does not offer any option to get the version or reliably figure out if WSL1 or WSL2 is installed.
+
+=== Help
+Awesome tools also have a build in help printed if `-h` or `--help` or `help` is given as argument.
+We do not have any requirements on this but end-users will love this if they do not have to do a web-search to figure out the CLI options and then may find the wrong information not applicable for the actual tool version they have installed.
