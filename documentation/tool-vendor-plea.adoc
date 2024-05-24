@@ -42,7 +42,7 @@ With _consistent_ we mean that the URL has a logical structure and could also be
 
 We have seen a lot of anti-patterns in this regards:
 
-* Tools using a computed hash in the download URL that cannot be derived from the variables above. If you really think this is necessary for some reason then please avoid some URL fulfilling the requirements above that redirects to the actual URL containing the magic hash.
+* Tools using a computed hash in the download URL that cannot be derived from the variables above. If you really think this is necessary for some reason then please provide some URL fulfilling the requirements above that redirects to the actual URL containing the magic hash.
 * Tools using a symbolic version like `latest` for the latest version. While it is a nice feature to have some URL always pointing to the latest version (e.g. via some automatic redirect) it is a severe anti-pattern to only have the latest release available under some static link that changes its content and therefore the hash of the binary download. Please understand that we compute SHA-256 hashes of your binaries centrally and IDEasy verifies this after download. Therefore the same URL for a dedicated combination of the above parameters must always result in the same binary.
 * Tools using totally different conventions for the download URL depending on operating system or other parameters.
 * Tools that had a CVE and the vendors thought it would be smart to replace an already published binary release with a modified one with the CVE being fixed. Thanks that you are fixing CVEs! That is great! But please follow best-practices and common sense and publish them as a new release with a new unique and increased version.
