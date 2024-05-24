@@ -13,7 +13,7 @@ The following sections and sub-sections contain the best-practices that would be
 == Releases
 Even though it should be common sense how to do configuration- and release-management we learned that a lot of tools, including famous and world wide tools do violate such common sense.
 
-== Binary Releases
+=== Binary Releases
 First of all a reasonable tool should offer binary releases for all major platforms. A minimum requirement for major platforms should be:
 
 * Windows on x86 architecture
@@ -28,7 +28,7 @@ Tools that tell MacOS users to build the binary manually from the source-code (w
 Just to give an example https://www.python.org/[Python] is a tool that does not offer binary releases for Linux and makes users to build it from the sources.
 However, worth to mention is that they are continously improving and already added https://www.python.org/downloads/macos/[binaries for MacOS] what is a great progress.
 
-== Stable and consistent download URLs
+=== Stable and consistent download URLs
 If a version of a tool has been released, the download link of that tool for a particular OS and architecture should be stable and consistent.
 
 With _stable_ we mean that at any point of time in the future you will get the same binary file downloaded for this URL. You will not get a different binary at any time nor a 404 or 500 (except maybe in case of a short temporary technical problem).
@@ -48,7 +48,7 @@ We have seen a lot of anti-patterns in this regards:
 * Tools that had a CVE and the vendors thought it would be smart to replace an already published binary release with a modified one with the CVE being fixed. Thanks that you are fixing CVEs! That is great! But please follow best-practices and common sense and publish them as a new release with a new unique and increased version.
 * Tools that have been published and then after some time the download disappeared leading to errors like 404
 
-== Comparable versions
+=== Comparable versions
 We really do not want to dicatate anything regarding your versioning scheme. There are many contradicting philosophies like https://semver.org/[semantic versioning] or date/timestamp based versioning, etc.
 However, as common sense we expect the following best-practices for a reasonable tool:
 
@@ -59,4 +59,51 @@ Again we have seen anti-patterns here:
 
 * Tools using code-names for mandatory version semantic. So if you have `1.0-Water` and `1.0-Carbon` als versions your project team may internally know if the `Water` release was before the `Carbon` release or vice-versa. In such case all we can do is falling back to alphabetical comparison. So if you think it is a cool idea use code-names for relelase planning either omit them in the released version and just use them for fun and marketing or if you include them please use them only as an additional redundant information (e.g. `1.0-Water` and `1.1-Carbon` and now two releases with the same digits but different code-names).
 * Tools using development phases in regional languages (e.g. Polish or Chinese) or using cryptic shortcuts like `u` that for one tool stands for `update` so do not use it for `unstable` in your tool.
+* Tools including artificial parts to versions like a `v` or `ver` prefix (e.g. https://nodejs.org/[node] prints its version as something like `v19.7.0`). While we can cope with this, it is generally a bad idea.
+* Tools changed their versioning scheme on the go. So when you have published releases `2020.01` and `2021.06` do not think that it is a good idea to then switch to semantic versioning and publish a `4.0.1.17` release. How can we determine that this is newer than any of the previous versions?
 
+We would even love to see more semantic in your versions so end-users can distinghuish security fixes, bugfixes and new feature releases and think it will be beneficial for your tool.
+However, we do not directly suffer or get blocked so only those minimal requirements discussed above are what we need.
+
+== Keep installations pristine
+Your tool may be installed in a location with restricted permissions.
+Do not write to the installation location of your tool when using the tool!
+In general most great tools like https://www.java.com/[java], https://dotnet.microsoft.com/[dotnet], etc. are following the principle of a pristine tool installation.
+
+=== Rationale
+For arbitary reasons we introduced the concept of a shared link:software.adoc#repository[software repository] what is a powerful feature giving many advantages and on Windows seems to be the only reasonable way to allow upgrading/downgrading tools without hitting the famous https://techcommunity.microsoft.com/t5/windows-blog-archive/the-case-of-the-mysterious-locked-file/ba-p/723349[Windows file locking error].
+Another important aspect is to consider the link:sandbox.adoc[sandbox] principle of IDEasy.
+
+=== Plugins
+A challenge are tools that support plugins as these are typically "installed" inside the installation itself.
+However, if project `A` installs plugin `P1` for tool `T` then project `B` should not automatically get plugin `P1` if it also uses tool `T` (in the same version).
+
+As a tool vendor designing a plugin concept please consider the possiblity to relocate the folder where plugins are managed e.g. via a CLI option.
+
+We solved this for the IDEs we support by a dedicated plugins folder inside the projects and relocation of the plugins for a tool into such dedicated project specific folder via some launch parameter or configuration.
+Beside some edge-cases (see https://github.com/devonfw/IDEasy/issues/224[#224]) this is also solved and working for the products we support.
+
+=== Dependencies
+If your tool is a foundation like a runtime or SDK that other tools are build on top and require as a dependency then please allow that such tools can be installed separated from your tool. 
+
+Tools that are widely used but do not support this principle are:
+
+* https://www.python.org/[Python] with https://pypi.org/project/pip/[pip]
+* https://nodejs.org/[node] with https://www.npmjs.com/[npm]
+
+These tools have their package manager as an individual tool with its own release cycles that lives inside the runtime of the tool itself.
+Even worse, other tools from their ecosystem installed via the package manager are also installed inside the runtime installation itself violating the principle of a pristine software installation.
+
+==== Example
+Let us assume that project `P1` and `P2` both want to use the latest version of `node` and therefore share the same installation on your computer.
+Now if `P1` and `P2` have different requirements for the version of `npm` we have a conflict that cannot be resolved.
+If `P1` installs `npm` version `V1` or `P2` installs `npm` version `v2` one will override the other version causing undesired side-effects.
+You get exactly the same problem when you replace `node` with `python` and `npm` with `pip`.
+It gets even worse if you install additional tools and libraries (e.g. `npm install -g @angular/cli` or `pip install urllib3`).
+
+=== Conclusion
+Aspects like this are fundamental design decisions that cannot be changed easily after.
+Therefore, we do not expect `pyhton` or `node` to change to make us happy.
+However, we hope that probably new tools will consider best-practices when they are created and therefore with this page we want to spread the word.
+Please help us to make IT better and prevent flaws by not considering common sense and knowledge that has already been matured over decades.
+The tool `npm` could have learned so much from https://maven.apache.org/[maven] (or https://gradle.org/[gradle]) also in other regards of their design (e.g. of `node_modules`) to make life and UX of developers so much better.
