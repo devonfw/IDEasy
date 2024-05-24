@@ -107,3 +107,5 @@ Therefore, we do not expect `pyhton` or `node` to change to make us happy.
 However, we hope that probably new tools will consider best-practices when they are created and therefore with this page we want to spread the word.
 Please help us to make IT better and prevent flaws by not considering common sense and knowledge that has already been matured over decades.
 The tool `npm` could have learned so much from https://maven.apache.org/[maven] (or https://gradle.org/[gradle]) also in other regards of their design (e.g. of `node_modules`) to make life and UX of developers so much better.
+We got many headaches and sleepless nights while building our product over the years hitting all the anti-patterns descrived above that we took our time to document this.
+Finally we want to give praises and thanks to all vendors that intuitively do everything properly from the start (e.g. apache software foundation tools, etc.) and also for all developers of tools that may have some flaw or anti-pattern but take time to read this page and consider any kind of improvement.
