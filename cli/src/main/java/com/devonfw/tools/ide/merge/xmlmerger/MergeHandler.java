@@ -1,126 +1,136 @@
-package com.devonfw.tools.ide.merge.xmlmerger;
+  package com.devonfw.tools.ide.merge.xmlmerger;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeAttribute;
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeStrategy;
-import org.w3c.dom.*;
+  import com.devonfw.tools.ide.context.IdeContext;
+  import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
+  import com.devonfw.tools.ide.merge.xmlmerger.model.MergeAttribute;
+  import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
+  import com.devonfw.tools.ide.merge.xmlmerger.model.MergeStrategy;
+  import org.w3c.dom.*;
 
-public class MergeHandler {
+  import javax.xml.namespace.QName;
+  import java.util.HashMap;
+  import java.util.Map;
 
-  private final ElementMatcher elementMatcher;
-  
-  private final IdeContext context;
+  public class MergeHandler {
 
-  public MergeHandler(ElementMatcher elementMatcher, IdeContext context) {
+    private final ElementMatcher elementMatcher;
 
-    this.elementMatcher = elementMatcher;
-    this.context = context;
-  }
+    private final IdeContext context;
 
-  public void merge(Document updateDocument, Document targetDocument) {
+    private Map<QName, String> qNameIdMap;
 
-    MergeElement updateRootElement = new MergeElement(updateDocument.getDocumentElement());
-    mergeElements(updateRootElement, targetDocument);
-  }
+    public MergeHandler(ElementMatcher elementMatcher, IdeContext context) {
 
-  private void mergeElements(MergeElement updateElement, Document targetDocument) {
-
-    context.debug("Merging {} ...", updateElement.getXPath());
-    Element matchedTargetElement = elementMatcher.matchElement(updateElement, targetDocument);
-
-    if (matchedTargetElement != null) {
-      this.context.debug("Match found for {}", updateElement.getXPath());
-      MergeElement targetElement = new MergeElement(matchedTargetElement);
-      MergeStrategy strategy = updateElement.getMergingStrategy();
-      context.debug("Merge strategy {}", strategy);
-
-      switch (strategy) {
-        case COMBINE:
-          combineElements(updateElement, targetElement);
-          break;
-        case OVERRIDE:
-          overrideElement(updateElement, targetElement);
-          break;
-        case KEEP:
-          // Do nothing if the element already exists
-          break;
-        default:
-          context.debug("Unknown merging strategy, skipping element {}", updateElement.getXPath());
-      }
-    } else {
-      // Element doesn't exist in the target document, append it
-      appendElement(updateElement, targetDocument);
+      this.elementMatcher = elementMatcher;
+      this.context = context;
+      this.qNameIdMap = new HashMap<>();
     }
-  }
 
-  private void combineElements(MergeElement updateElement, MergeElement targetElement) {
+    public void merge(Document updateDocument, Document targetDocument) {
 
-    combineAttributes(updateElement, targetElement);
-    combineChildNodes(updateElement, targetElement);
-  }
-
-  private void combineAttributes(MergeElement updateElement, MergeElement targetElement) {
-
-    for (MergeAttribute updateAttr : updateElement.getElementAttributes()) {
-      if (!updateAttr.isMergeNSAttr()) {
-        targetElement.getElement().setAttribute(updateAttr.getName(), updateAttr.getValue());
-      }
+      MergeElement updateRootElement = new MergeElement(updateDocument.getDocumentElement());
+      mergeElements(updateRootElement, targetDocument);
     }
-  }
 
-  private void combineChildNodes(MergeElement updateElement, MergeElement targetElement) {
+    private void mergeElements(MergeElement updateElement, Document targetDocument) {
 
-    NodeList updateChildNodes = updateElement.getElement().getChildNodes();
+      context.debug("Merging {} ...", updateElement.getXPath());
+      Element matchedTargetElement = elementMatcher.matchElement(updateElement, targetDocument, qNameIdMap);
 
-    for (int i = 0; i < updateChildNodes.getLength(); i++) {
-      Node updateChild = updateChildNodes.item(i);
+      if (matchedTargetElement != null) {
+        this.context.debug("Match found for {}", updateElement.getXPath());
+        MergeElement targetElement = new MergeElement(matchedTargetElement);
+        MergeStrategy strategy = updateElement.getMergingStrategy();
+        context.debug("Merge strategy {}", strategy);
 
-      if (updateChild.getNodeType() == Node.ELEMENT_NODE) {
-        MergeElement mergeUpdateChild = new MergeElement((Element) updateChild);
-        mergeElements(mergeUpdateChild, targetElement.getElement().getOwnerDocument());
+        switch (strategy) {
+          case COMBINE:
+            combineElements(updateElement, targetElement);
+            break;
+          case OVERRIDE:
+            overrideElement(updateElement, targetElement);
+            break;
+          case KEEP:
+            context.debug("Element already exists, skipping merge");
+            break;
+          default:
+            context.debug("Unknown merging strategy, skipping element {}", updateElement.getXPath());
+        }
+      } else {
+        context.debug("No match found for {}, appending element", updateElement.getXPath());
+        appendElement(updateElement, targetDocument);
       }
     }
 
-    /*else if (updateChild.getNodeType() == Node.TEXT_NODE || updateChild.getNodeType() == Node.CDATA_SECTION_NODE) {
-      if (!updateChild.getTextContent().isBlank()) {
-        targetElement.getElement().setTextContent(updateChild.getTextContent());
+    private void combineElements(MergeElement updateElement, MergeElement targetElement) {
+
+      context.debug("Combining attributes for {}", updateElement.getXPath());
+      combineAttributes(updateElement, targetElement);
+
+      context.debug("Combining child nodes for {}", updateElement.getXPath());
+      combineChildNodes(updateElement, targetElement);
+    }
+
+    private void combineAttributes(MergeElement updateElement, MergeElement targetElement) {
+
+      for (MergeAttribute updateAttr : updateElement.getElementAttributes()) {
+        if (!updateAttr.isMergeNSAttr()) {
+         // targetElement.getElement().setAttribute(updateAttr.getName(), updateAttr.getValue());
+          String namespaceURI = updateAttr.getAttr().getNamespaceURI();
+          String attrName = updateAttr.getAttr().getLocalName();
+          targetElement.getElement().setAttributeNS(namespaceURI, attrName, updateAttr.getValue());
+        }
       }
-    } */
-  }
+    }
 
-  private void overrideElement(MergeElement updateElement, MergeElement targetElement) {
+    private void combineChildNodes(MergeElement updateElement, MergeElement targetElement) {
 
-    if (updateElement.isRootElement()) {
-      // Handle root element override
-      Document targetDocument = targetElement.getElement().getOwnerDocument();
-      updateElement.removeMergeNSAttributes();
-      Node newRoot = targetDocument.importNode(updateElement.getElement(), true);
-      targetDocument.replaceChild(newRoot, targetDocument.getDocumentElement());
-    } else {
-      // Handle non-root element override
-      Node parentNode = targetElement.getElement().getParentNode();
-      if (parentNode != null) {
+      NodeList updateChildNodes = updateElement.getElement().getChildNodes();
+
+      for (int i = 0; i < updateChildNodes.getLength(); i++) {
+        Node updateChild = updateChildNodes.item(i);
+        if (updateChild.getNodeType() == Node.ELEMENT_NODE) {
+          MergeElement mergeUpdateChild = new MergeElement((Element) updateChild);
+          mergeElements(mergeUpdateChild, targetElement.getElement().getOwnerDocument());
+        } else if (updateChild.getNodeType() == Node.TEXT_NODE || updateChild.getNodeType() == Node.CDATA_SECTION_NODE) {
+          targetElement.getElement().setTextContent(updateChild.getTextContent());
+        }
+      }
+    }
+
+    private void overrideElement(MergeElement updateElement, MergeElement targetElement) {
+
+      this.context.debug("Overriding element {}", updateElement.getXPath());
+      if (updateElement.isRootElement()) {
+        // Handle root element override
+        Document targetDocument = targetElement.getElement().getOwnerDocument();
         updateElement.removeMergeNSAttributes();
-        Element importedElement = (Element) parentNode.getOwnerDocument().importNode(updateElement.getElement(), true);
-        parentNode.replaceChild(importedElement, targetElement.getElement());
+        Node newRoot = targetDocument.importNode(updateElement.getElement(), true);
+        targetDocument.replaceChild(newRoot, targetDocument.getDocumentElement());
+      } else {
+        // Handle non-root element override
+        Node parentNode = targetElement.getElement().getParentNode();
+        if (parentNode != null) {
+          updateElement.removeMergeNSAttributes();
+          Element importedElement = (Element) parentNode.getOwnerDocument().importNode(updateElement.getElement(), true);
+          parentNode.replaceChild(importedElement, targetElement.getElement());
+        }
+      }
+    }
+
+    private void appendElement(MergeElement updateElement, Document targetDocument) {
+
+      // add all merge:id to the map, remove all merge ns attributes, then append ... 
+
+      context.debug("Appending element {}", updateElement.getXPath());
+      Element parent = (Element) updateElement.getElement().getParentNode();
+      Element matchParent = elementMatcher.matchElement(new MergeElement(parent), targetDocument, qNameIdMap);
+      if (matchParent != null) {
+        Element importedNode = (Element) targetDocument.importNode(updateElement.getElement(), true);
+        matchParent.appendChild(importedNode);
+      } else {
+        // should actually never happen, since appending is for children and parent is at least root
+        this.context.debug("Cannot find matching parent element for {} ", updateElement.getXPath());
       }
     }
   }
-
-  private void appendElement(MergeElement updateElement, Document targetDocument) {
-
-    Element parent = (Element) updateElement.getElement().getParentNode();
-    Element matchParent = elementMatcher.matchElement(new MergeElement(parent), targetDocument);
-    if (matchParent != null) {
-      Element importedNode = (Element) targetDocument.importNode(updateElement.getElement(), true);
-      matchParent.appendChild(importedNode);
-    } else {
-      // should actually never happen, since appending is for children and parent is at least root
-      this.context.debug("Cannot find matching parent element for {} ", updateElement.getXPath());
-    }
-  }
-
-
-}

@@ -24,9 +24,4 @@ public class MergeAnnotation {
 
     return element.getAttributeNS(MERGE_NS_URI, "id");
   }
-
-  public static String getMergeChildrenId(Element element) {
-
-    return element.getAttributeNS(MERGE_NS_URI, "childrenId");
-  }
 }

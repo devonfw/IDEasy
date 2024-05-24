@@ -5,29 +5,26 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import javax.xml.namespace.QName;
 import javax.xml.xpath.*;
+import java.util.Map;
 
 public class ElementMatcher {
 
-  public Element matchElement(MergeElement updateElement, Document targetDocument) {
+  public Element matchElement(MergeElement updateElement, Document targetDocument, Map<QName, String> qNameIdMap) {
 
-    if (updateElement.isRootElement()) {
+    if (updateElement.isRootElement()) { // check additionally for ns
       if (targetDocument.getDocumentElement().getTagName().equals(updateElement.getElement().getTagName())) {
-        // roots match
         return targetDocument.getDocumentElement();
       } else {
-        throw new IllegalStateException("XML Document have different root tag names.");
+        throw new IllegalStateException("XML Documents don't have matching root elements!");
       }
     }
-
-    // if element is empty, match by tag name on same xpath
-
-    String id = updateElement.getId();
+    String id = updateElement.getId(qNameIdMap);
     if (id == null || id.isEmpty()) {
       // TODO: check if element is empty, if so then match by tag name on same xpath
       return null;
     }
-
     try {
       XPath xpath = XPathFactory.newInstance().newXPath();
       String xpathExpression = buildXPathExpression(updateElement, id);
@@ -35,9 +32,11 @@ public class ElementMatcher {
       // Evaluate the XPath expression in the context of the targetDocument
       XPathExpression expr = xpath.compile(xpathExpression);
       NodeList result = (NodeList) expr.evaluate(targetDocument, XPathConstants.NODESET);
-
-      if (result.getLength() > 0) {
-        return (Element) result.item(0); // Return the first matching element (should normally always be only 1)
+      for (int i = 0; i < result.getLength(); i++) {
+        Element nodeElement = (Element) result.item(i);
+        if (new MergeElement(nodeElement).getXPath().equals(updateElement.getXPath())) {
+          return nodeElement;
+        }
       }
     } catch (XPathExpressionException e) {
       throw new IllegalStateException("Failed to match element with id: " + id, e);

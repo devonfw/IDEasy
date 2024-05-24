@@ -92,8 +92,6 @@ public class XmlMerger extends FileMerger {
     ensureParentDirectoryExists(file);
     try {
       Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
-      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
       DOMSource source = new DOMSource(document);
       StreamResult result = new StreamResult(file.toFile());
       transformer.transform(source, result);

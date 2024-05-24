@@ -3,8 +3,10 @@ package com.devonfw.tools.ide.merge.xmlmerger.model;
 import com.devonfw.tools.ide.merge.xmlmerger.annotation.MergeAnnotation;
 import org.w3c.dom.*;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Represents an XML element during the merge process.
@@ -38,43 +40,37 @@ public class MergeElement {
     return MergeStrategy.KEEP; // Default strategy
   }
 
-  public String getId() {
+  public String getId(Map<QName, String> qNameIdMap) {
 
     String mergeId = MergeAnnotation.getMergeId(element);
+    QName qname = getQName();
+
     if (!mergeId.isEmpty()) {
+      qNameIdMap.put(qname, mergeId);
       return mergeId;
     }
 
-    String parentChildrenId = getParentMergeChildrenId();
-    if (parentChildrenId != null) {
-      return parentChildrenId;
+    String cachedMergeId = qNameIdMap.get(qname);
+    if (cachedMergeId != null) {
+      return cachedMergeId;
     }
 
+    // still support this?
     String idAttr = element.getAttribute("id");
     if (!idAttr.isEmpty()) {
       return idAttr;
     }
-
-    Element parent = getParentElement();
-    if (parent != null) {
-      return new MergeElement(parent).getId();
-    }
-
     return null;
   }
 
-  private String getParentMergeChildrenId() {
+  private QName getQName() {
 
-    Element parent = getParentElement();
-    if (parent != null) {
-      String childrenId = MergeAnnotation.getMergeChildrenId(parent);
-      if (!childrenId.isEmpty()) {
-        return childrenId;
-      }
-      return new MergeElement(parent).getParentMergeChildrenId();
-    }
-    return null;
+    String namespaceURI = this.element.getNamespaceURI();
+    String localName = this.element.getLocalName();
+    return new QName(namespaceURI, localName);
   }
+
+
 
   private Element getParentElement() {
 
