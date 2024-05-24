@@ -11,7 +11,7 @@ This will not only make our lives easier but also help any other similar tool li
 The following sections and sub-sections contain the best-practices that would be lovely to be followed by all great tools.
 
 == Releases
-Even though it should be common sense how to do configuration- and release-management we learned that a lot of tools, including famous and world wide tools do violate such common sense.
+Even though it should be common sense how to do configuration- and release-management we learned that a lot of tools, including famous and widely-used tools, do violate such common sense.
 
 === Binary Releases
 First of all a reasonable tool should offer binary releases for all major platforms. A minimum requirement for major platforms should be:
