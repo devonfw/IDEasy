@@ -1,0 +1,31 @@
+:toc:
+toc::[]
+
+= Sandbox Principle
+With IDEasy we follow the sandbox principle for the projects managed by our tool.
+That is each project may peacefully coexist with other projects on the same computer.
+Changes and work in one project do not have side-effects to other projects so the projects are isolated from each other.
+This principle is not very easy to archive on the same computer since you have to consider the following requirements.
+Different projects on the same computer...
+
+* ... may want to use the same tool (`java`, `mvn`, `node`, `python`, you name it).
+* ... want define their on version for tool `xyz` to be used that may be the same or differ between the projects.
+* ... want to have their individual configuration for a tool (e.g. assuming your are using `AWS CLI` in two projects on the same computer but for two different tenants. You do not want to accidentally deploy something for the wrong account because you share a global configuration for your login, do you?)
+* ... may want to use the same tool (e.g. an IDE like `Intellij`, `Eclipse`, `VSCode`, etc.) but with different plugins.
+ 
+== Concept
+There are differnet concepts and implementations how to archive this sandbox principle.
+An obvious one is virtualization (using VMs) or para-virtualization (using "docker" containers).
+Microsoft is using the latter with https://containers.dev/[development containers].
+However, from the start we belived that developers want the following things:
+
+* Get the most out of your resources (CPU, memory, disc) avoiding overhead and waste as your computer can never be fast enough.
+* Have the full freedom and flexibility for your way of working as you do not want to be fenced in a virtual environment without access to your host and vice versa (e.g. if you have manually installed Notepad++ and want to edit some file with it you do not want to realize that the file is actually hidden in some WSL, container or VM complicating your workflows).
+
+Therefore we simply isolate projects as folders on your hard-drive.
+While following https://en.wikipedia.org/wiki/KISS_principle[KISS] we invented some simple but smart ideas to make the sandbox work for you as simple as possible.
+In a nutshell inside such project folder we also "install" the software tools you want in a `software` folder and while keeping the configuration in a `conf` folder (see link:structure.adoc[structure] for details).
+On top of that idea we provide some simple but effective integrations into your operating system (we support `Windows`, `Mac` and `Linux`) to launch tools and shells with the environment setup specific to your project without global side effects (like changing global system environments, registry, etc.).
+As a result you can switch between projects seamlessly and work in parallel without inteference and without undesired side-effects.
+
+If you have not yet tried IDEasy, please give it a try and link:setup.adoc[set it up].
