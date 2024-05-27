@@ -33,7 +33,7 @@ public class StringProperty extends Property<String> {
    */
   public StringProperty(String name, boolean required, String alias, boolean multiValued, Consumer<String> validator) {
 
-    super(name, required, alias, validator, multiValued);
+    super(name, required, alias, multiValued, validator);
   }
 
   @Override
