@@ -1,10 +1,10 @@
-  package com.devonfw.tools.ide.merge.xmlmerger;
+  package com.devonfw.tools.ide.merge.xmlmerger.old;
 
   import com.devonfw.tools.ide.context.IdeContext;
   import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
   import com.devonfw.tools.ide.merge.xmlmerger.model.MergeAttribute;
   import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
-  import com.devonfw.tools.ide.merge.xmlmerger.model.MergeStrategy;
+  import com.devonfw.tools.ide.merge.xmlmerger.strategy.MergeStrategy;
   import org.w3c.dom.*;
 
   import javax.xml.namespace.QName;
@@ -13,7 +13,7 @@
 
   public class MergeHandler {
 
-    private final ElementMatcher elementMatcher;
+   /* private final ElementMatcher elementMatcher;
 
     private final IdeContext context;
 
@@ -35,7 +35,7 @@
     private void mergeElements(MergeElement updateElement, Document targetDocument) {
 
       context.debug("Merging {} ...", updateElement.getXPath());
-      Element matchedTargetElement = elementMatcher.matchElement(updateElement, targetDocument, qNameIdMap);
+      Element matchedTargetElement = elementMatcher.matchElement(updateElement, targetDocument);
 
       if (matchedTargetElement != null) {
         this.context.debug("Match found for {}", updateElement.getXPath());
@@ -124,7 +124,7 @@
 
       context.debug("Appending element {}", updateElement.getXPath());
       Element parent = (Element) updateElement.getElement().getParentNode();
-      Element matchParent = elementMatcher.matchElement(new MergeElement(parent), targetDocument, qNameIdMap);
+      Element matchParent = elementMatcher.matchElement(new MergeElement(parent), targetDocument);
       if (matchParent != null) {
         Element importedNode = (Element) targetDocument.importNode(updateElement.getElement(), true);
         matchParent.appendChild(importedNode);
@@ -132,5 +132,5 @@
         // should actually never happen, since appending is for children and parent is at least root
         this.context.debug("Cannot find matching parent element for {} ", updateElement.getXPath());
       }
-    }
+    } */
   }

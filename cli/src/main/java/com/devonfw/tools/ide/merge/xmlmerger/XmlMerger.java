@@ -4,6 +4,9 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.merge.FileMerger;
 import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
+import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
+import com.devonfw.tools.ide.merge.xmlmerger.strategy.Strategy;
+import com.devonfw.tools.ide.merge.xmlmerger.strategy.StrategyFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -14,7 +17,6 @@ import org.w3c.dom.Text;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -25,11 +27,12 @@ import java.nio.file.Path;
 
 public class XmlMerger extends FileMerger {
 
-  private final MergeHandler mergeHandler;
+  private final ElementMatcher elementMatcher;
   private static final DocumentBuilder DOCUMENT_BUILDER;
   private static final TransformerFactory TRANSFORMER_FACTORY;
+  private final StrategyFactory strategyFactory;
 
-  private final ElementMatcher elementMatcher;
+
 
   static {
     try {
@@ -46,7 +49,7 @@ public class XmlMerger extends FileMerger {
 
     super(context);
     this.elementMatcher = new ElementMatcher();
-    this.mergeHandler = new MergeHandler(this.elementMatcher, context);
+    this.strategyFactory = new StrategyFactory(context, elementMatcher);
   }
 
   @Override
@@ -67,20 +70,26 @@ public class XmlMerger extends FileMerger {
         document = load(update);
       } else {
         Document updateDocument = load(update);
-        mergeHandler.merge(updateDocument, document);
+        merge(updateDocument, document);
       }
     }
     resolve(document, resolver, false, workspace.getFileName());
     save(document, workspace);
   }
 
+  public void merge(Document sourceDocument, Document targetDocument) {
+
+    MergeElement updateRootElement = new MergeElement(sourceDocument.getDocumentElement());
+    Strategy strategy = strategyFactory.createStrategy(updateRootElement.getMergingStrategy());
+    strategy.merge(updateRootElement, targetDocument);
+  }
   @Override
   public void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update) {
-
 
   }
 
   public Document load(Path file) {
+
     try (InputStream in = Files.newInputStream(file)) {
       return DOCUMENT_BUILDER.parse(in);
     } catch (Exception e) {
@@ -89,6 +98,7 @@ public class XmlMerger extends FileMerger {
   }
 
   public void save(Document document, Path file) {
+
     ensureParentDirectoryExists(file);
     try {
       Transformer transformer = TRANSFORMER_FACTORY.newTransformer();

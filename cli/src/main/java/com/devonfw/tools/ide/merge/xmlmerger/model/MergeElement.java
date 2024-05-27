@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.merge.xmlmerger.model;
 
 import com.devonfw.tools.ide.merge.xmlmerger.annotation.MergeAnnotation;
+import com.devonfw.tools.ide.merge.xmlmerger.strategy.MergeStrategy;
 import org.w3c.dom.*;
 
 import javax.xml.namespace.QName;
@@ -55,7 +56,7 @@ public class MergeElement {
       return cachedMergeId;
     }
 
-    // still support this?
+    // still support id attribute?
     String idAttr = element.getAttribute("id");
     if (!idAttr.isEmpty()) {
       return idAttr;
@@ -63,7 +64,7 @@ public class MergeElement {
     return null;
   }
 
-  private QName getQName() {
+  public QName getQName() {
 
     String namespaceURI = this.element.getNamespaceURI();
     String localName = this.element.getLocalName();
@@ -117,5 +118,20 @@ public class MergeElement {
       current = current.getParentNode();
     }
     return xpath.toString();
+  }
+
+  public List<MergeElement> getChildElements() {
+
+    List<MergeElement> childElements = new ArrayList<>();
+    NodeList nodeList = element.getChildNodes();
+
+    for (int i = 0; i < nodeList.getLength(); i++) {
+      Node node = nodeList.item(i);
+      if (node.getNodeType() == Node.ELEMENT_NODE) {
+        childElements.add(new MergeElement((Element) node));
+      }
+    }
+
+    return childElements;
   }
 }

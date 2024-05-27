@@ -7,23 +7,35 @@ import org.w3c.dom.NodeList;
 
 import javax.xml.namespace.QName;
 import javax.xml.xpath.*;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ElementMatcher {
 
-  public Element matchElement(MergeElement updateElement, Document targetDocument, Map<QName, String> qNameIdMap) {
+  private final Map<QName, String> qNameIdMap;
+
+  public ElementMatcher() {
+
+    qNameIdMap = new HashMap<>();
+  }
+
+  public void updateId(QName qname, String id) {
+
+    qNameIdMap.put(qname, id);
+  }
+
+  public MergeElement matchElement(MergeElement updateElement, Document targetDocument) {
 
     if (updateElement.isRootElement()) { // check additionally for ns
       if (targetDocument.getDocumentElement().getTagName().equals(updateElement.getElement().getTagName())) {
-        return targetDocument.getDocumentElement();
+        return new MergeElement(targetDocument.getDocumentElement());
       } else {
         throw new IllegalStateException("XML Documents don't have matching root elements!");
       }
     }
     String id = updateElement.getId(qNameIdMap);
     if (id == null || id.isEmpty()) {
-      // TODO: check if element is empty, if so then match by tag name on same xpath
-      return null;
+
     }
     try {
       XPath xpath = XPathFactory.newInstance().newXPath();
@@ -35,7 +47,7 @@ public class ElementMatcher {
       for (int i = 0; i < result.getLength(); i++) {
         Element nodeElement = (Element) result.item(i);
         if (new MergeElement(nodeElement).getXPath().equals(updateElement.getXPath())) {
-          return nodeElement;
+          return new MergeElement(nodeElement);
         }
       }
     } catch (XPathExpressionException e) {

@@ -27,4 +27,9 @@ public class MergeAttribute {
 
     return MergeAnnotation.MERGE_NS_URI.equals(attr.getNamespaceURI()) || MergeAnnotation.MERGE_NS_URI.equals(attr.getValue());
   }
+
+  public boolean isMergeNsIdAttr() {
+
+    return isMergeNSAttr() && attr.getName().equals("id");
+  }
 }
