@@ -53,7 +53,7 @@ public abstract class Property<V> {
    * @param alias the {@link #getAlias() property alias}.
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public Property(String name, boolean required, String alias, Consumer<V> validator, boolean multiValued) {
+  public Property(String name, boolean required, String alias, boolean multiValued, Consumer<V> validator) {
 
     super();
     this.name = name;
