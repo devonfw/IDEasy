@@ -10,11 +10,7 @@ import com.devonfw.tools.ide.tool.ide.PluginDescriptorImpl;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -23,9 +19,7 @@ import java.util.Set;
  */
 public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
-  private Map<String, PluginDescriptor> pluginsMap;
-
-  private Collection<PluginDescriptor> configuredPlugins;
+  private PluginMaps pluginsMap;
 
   /**
    * The constructor.
@@ -40,10 +34,10 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     super(context, tool, tags);
   }
 
-  protected Map<String, PluginDescriptor> getPluginsMap() {
+  protected PluginMaps getPluginsMap() {
 
     if (this.pluginsMap == null) {
-      Map<String, PluginDescriptor> map = new HashMap<>();
+      PluginMaps map = new PluginMaps(context);
 
       // Load project-specific plugins
       Path pluginsPath = getPluginsConfigPath();
@@ -60,16 +54,13 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     return this.pluginsMap;
   }
 
-  private void loadPluginsFromDirectory(Map<String, PluginDescriptor> map, Path pluginsPath) {
+  private void loadPluginsFromDirectory(PluginMaps map, Path pluginsPath) {
 
     List<Path> children = this.context.getFileAccess()
         .listChildren(pluginsPath, p -> p.getFileName().toString().endsWith(IdeContext.EXT_PROPERTIES));
     for (Path child : children) {
       PluginDescriptor descriptor = PluginDescriptorImpl.of(child, this.context, isPluginUrlNeeded());
-      PluginDescriptor duplicate = map.put(descriptor.getName(), descriptor);
-      if (duplicate != null) {
-        this.context.info("Plugin {} from project is overridden by {}", descriptor.getName(), child);
-      }
+      map.add(descriptor);
     }
   }
 
@@ -92,17 +83,6 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   private Path getUserHomePluginsConfigPath() {
 
     return this.context.getUserHomeIde().resolve("settings").resolve(this.tool).resolve(IdeContext.FOLDER_PLUGINS);
-  }
-
-  /**
-   * @return the immutable {@link Collection} of {@link PluginDescriptor}s configured for this IDE tool.
-   */
-  public Collection<PluginDescriptor> getConfiguredPlugins() {
-
-    if (this.configuredPlugins == null) {
-      this.configuredPlugins = Collections.unmodifiableCollection(getPluginsMap().values());
-    }
-    return this.configuredPlugins;
   }
 
   /**
@@ -152,7 +132,9 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     if (key.endsWith(IdeContext.EXT_PROPERTIES)) {
       key = key.substring(0, key.length() - IdeContext.EXT_PROPERTIES.length());
     }
-    PluginDescriptor pluginDescriptor = getPluginsMap().get(key);
+
+    PluginMaps pluginMaps = getPluginsMap();
+    PluginDescriptor pluginDescriptor = pluginMaps.getByName(key);
     if (pluginDescriptor == null) {
       throw new CliException(
           "Could not find plugin " + key + " at " + getPluginsConfigPath().resolve(key) + ".properties");
@@ -160,6 +142,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     return pluginDescriptor;
   }
 
+  
   @Override
   protected boolean doInstall(boolean silent) {
 
@@ -173,7 +156,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
       installPlugins = true;
     }
     if (installPlugins) {
-      for (PluginDescriptor plugin : getPluginsMap().values()) {
+      PluginMaps pluginMaps = getPluginsMap();
+      for (PluginDescriptor plugin : pluginMaps.getPlugins()) {
         if (plugin.isActive()) {
           installPlugin(plugin);
         } else {
