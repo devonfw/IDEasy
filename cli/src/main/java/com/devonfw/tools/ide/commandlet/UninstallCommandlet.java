@@ -14,7 +14,6 @@ public class UninstallCommandlet extends Commandlet {
 
   /** The tool to uninstall. */
   public final ToolProperty tools;
-  //TODO toolprop
 
   /**
    * The constructor.
