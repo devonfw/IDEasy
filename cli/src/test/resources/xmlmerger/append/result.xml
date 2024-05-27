@@ -1,0 +1,8 @@
+<root>
+  <element name="elem1" attr1="value1">
+    Some text
+  </element>
+  <newElement name="elem2" attr1="value1">
+    Some text
+  </newElement>
+</root>

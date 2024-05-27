@@ -33,6 +33,7 @@ public abstract class AbstractStrategy implements Strategy {
 
   protected void appendElement(MergeElement updateElement, Document targetDocument) {
 
+    this.context.debug("Appending {}", updateElement.getXPath());
     updateAndRemoveNsAttributes(updateElement);
 
     Element parent = (Element) updateElement.getElement().getParentNode();
@@ -48,6 +49,7 @@ public abstract class AbstractStrategy implements Strategy {
 
   protected void updateAndRemoveNsAttributes(MergeElement mergeElement) {
 
+    // TODO: update element's id attribute if exists
     for (MergeElement element : mergeElement.getChildElements()) {
       for (MergeAttribute attribute : element.getElementAttributes()) {
         if (attribute.isMergeNsIdAttr()) {

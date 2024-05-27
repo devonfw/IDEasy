@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<root>
+  <element name="elem1" attr1="oldValue" attr3="value3">
+    Old text
+  </element>
+</root>

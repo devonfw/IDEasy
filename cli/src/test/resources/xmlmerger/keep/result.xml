@@ -1,0 +1,5 @@
+<root>
+  <element name="elem1" attr1="oldValue" attr2="value2">
+    Old text
+  </element>
+</root>

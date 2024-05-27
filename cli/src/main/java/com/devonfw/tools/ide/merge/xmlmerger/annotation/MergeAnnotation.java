@@ -9,7 +9,7 @@ public class MergeAnnotation {
 
   public static MergeStrategy getMergeStrategy(Element element) {
 
-    String strategy = element.getAttributeNS(MERGE_NS_URI, "strategy");
+    String strategy = element.getAttributeNS(MERGE_NS_URI, "strategy").toLowerCase();
     if ("combine".equals(strategy)) {
       return MergeStrategy.COMBINE;
     } else if ("override".equals(strategy)) {

@@ -61,10 +61,13 @@ public class ElementMatcher {
 
     String xPath = mergeElement.getXPath();
 
+    //todo: trim text
 
-    if (id.startsWith("./") || id.startsWith("/")) {
-      return xPath + id;
-    } else if (id.startsWith("@")) {
+    if (id.startsWith(".")) {
+      return xPath + "/" + id;
+    } else if (id.startsWith("/")) {
+      return id;
+    }else if (id.startsWith("@")) {
       String attributeName = id.substring(1);
       String attributeValue = mergeElement.getElement().getAttribute(attributeName);
       return xPath + String.format("[@%s='%s']", attributeName, attributeValue);
@@ -74,8 +77,7 @@ public class ElementMatcher {
     } else if (id.equals("text()")) {
       String textContent = mergeElement.getElement().getTextContent();
       return xPath + String.format("[text()='%s']", textContent);
-    } else {
-      return xPath + id; // Assume it's a custom XPath
     }
+    return null;
   }
 }

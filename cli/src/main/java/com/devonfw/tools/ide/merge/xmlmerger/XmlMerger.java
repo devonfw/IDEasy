@@ -14,14 +14,18 @@ import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
+import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import java.io.InputStream;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -96,15 +100,24 @@ public class XmlMerger extends FileMerger {
       throw new IllegalStateException("Failed to load XML from: " + file, e);
     }
   }
-
   public void save(Document document, Path file) {
-
     ensureParentDirectoryExists(file);
     try {
       Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+
+      StringWriter writer = new StringWriter();
+      StreamResult result = new StreamResult(writer);
       DOMSource source = new DOMSource(document);
-      StreamResult result = new StreamResult(file.toFile());
       transformer.transform(source, result);
+
+      String xmlString = writer.toString();
+      InputSource inputSource = new InputSource(new StringReader(xmlString));
+      Document formattedDocument = DOCUMENT_BUILDER.parse(inputSource);
+
+      StreamResult fileResult = new StreamResult(file.toFile());
+      transformer.transform(new DOMSource(formattedDocument), fileResult);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to save XML to file: " + file, e);
     }
