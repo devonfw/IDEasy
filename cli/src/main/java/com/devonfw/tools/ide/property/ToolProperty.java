@@ -35,7 +35,7 @@ public class ToolProperty extends Property<ToolCommandlet> {
    */
   public ToolProperty(String name, boolean required, String alias, boolean multivalued, Consumer<ToolCommandlet> validator) {
 
-    super(name, required, alias, validator, multivalued);
+    super(name, required, alias, multivalued, validator);
   }
 
   @Override
