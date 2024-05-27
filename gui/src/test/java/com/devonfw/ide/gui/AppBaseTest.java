@@ -31,6 +31,7 @@ public class AppBaseTest extends ApplicationTest {
 
     if (Boolean.getBoolean("headless")) {
       System.setProperty("testfx.robot", "glass");
+      System.setProperty("glass.platform", "Monocle");
       System.setProperty("testfx.headless", "true");
       System.setProperty("prism.order", "sw");
       System.setProperty("java.awt.headless", "true");

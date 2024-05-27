@@ -3,8 +3,10 @@ package com.devonfw.ide.gui;
 import com.devonfw.tools.ide.version.IdeVersion;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -20,7 +22,9 @@ public class App extends Application {
   public void start(Stage primaryStage) throws IOException {
 
     root = FXMLLoader.load(App.class.getResource("main-view.fxml"));
-    Scene scene = new Scene(root, 320, 240);
+
+    Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
+    Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
 
     primaryStage.setTitle("IDEasy - version " + IdeVersion.get());
     primaryStage.setScene(scene);
