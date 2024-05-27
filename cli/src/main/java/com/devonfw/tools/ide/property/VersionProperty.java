@@ -40,7 +40,7 @@ public class VersionProperty extends Property<VersionIdentifier> {
    */
   public VersionProperty(String name, boolean required, String alias, Consumer<VersionIdentifier> validator) {
 
-    super(name, required, alias, validator, false);
+    super(name, required, alias, false, validator);
   }
 
   @Override
