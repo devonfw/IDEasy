@@ -8,51 +8,27 @@ import javafx.scene.Scene;
 import javafx.stage.Stage;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
+/**
+ * GUI Application for IDEasy
+ */
 public class App extends Application {
 
-  /**
-   * latch for waiting for the app
-   */
-  public static final CountDownLatch latch = new CountDownLatch(1);
-
-  /**
-   * The app itself
-   */
-  public static App app = null;
-
-  /**
-   * The scene to set in the window
-   */
-  private static Scene scene;
-
-  /**
-   * The window to show in the app
-   */
-  public Stage window;
-
-  /**
-   * @return the app when it is ready
-   */
-  public static App waitForApp() {
-
-    try {
-      latch.await();
-    } catch (InterruptedException e) {
-      e.printStackTrace();
-    }
-    return app;
-  }
+  Parent root;
 
   @Override
-  public void start(Stage stage) throws IOException {
+  public void start(Stage primaryStage) throws IOException {
 
-    Parent root = FXMLLoader.load(App.class.getResource("main-view.fxml"));
-    App.scene = new Scene(root, 320, 240);
+    root = FXMLLoader.load(App.class.getResource("main-view.fxml"));
+    Scene scene = new Scene(root, 320, 240);
 
-    stage.setTitle("IDEasy - version " + IdeVersion.get());
-    stage.setScene(scene);
-    stage.show();
+    primaryStage.setTitle("IDEasy - version " + IdeVersion.get());
+    primaryStage.setScene(scene);
+    primaryStage.show();
+  }
+
+  public static void main(String[] args) {
+
+    launch(args);
   }
 }
