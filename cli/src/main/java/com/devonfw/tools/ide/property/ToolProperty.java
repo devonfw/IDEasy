@@ -33,7 +33,7 @@ public class ToolProperty extends Property<ToolCommandlet> {
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    * @param multivalued
    */
-  public ToolProperty(String name, boolean required, String alias, Consumer<ToolCommandlet> validator, boolean multivalued) {
+  public ToolProperty(String name, boolean required, String alias, boolean multivalued, Consumer<ToolCommandlet> validator) {
 
     super(name, required, alias, validator, multivalued);
   }
