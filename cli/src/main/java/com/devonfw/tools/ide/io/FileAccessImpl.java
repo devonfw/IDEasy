@@ -282,18 +282,18 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void copy(Path source, Path target, FileCopyMode mode) {
 
+    if (mode != FileCopyMode.COPY_TREE_CONTENT) {
+      // if we want to copy "file.txt" to the existing folder "path/to/folder/" in a shell this will copy "file.txt"
+      // into that folder
+      // with Java NIO the raw copy method will fail as we cannot copy the file to the path of the target folder
+      // even worse if FileCopyMode is override the target folder ("path/to/folder/") would be deleted and the result
+      // of our "file.txt" would later appear in "path/to/folder". To prevent such bugs we append the filename to
+      // target
+      target = target.resolve(source.getFileName());
+    }
     boolean fileOnly = mode.isFileOnly();
     if (fileOnly) {
       this.context.debug("Copying file {} to {}", source, target);
-      if (Files.isDirectory(target)) {
-        // if we want to copy "file.txt" to the existing folder "path/to/folder/" in a shell this will copy "file.txt"
-        // into that folder
-        // with Java NIO the raw copy method will fail as we cannot copy the file to the path of the target folder
-        // even worse if FileCopyMode is override the target folder ("path/to/folder/") would be deleted and the result
-        // of our "file.txt" would later appear in "path/to/folder". To prevent such bugs we append the filename to
-        // target
-        target = target.resolve(source.getFileName());
-      }
     } else {
       this.context.debug("Copying {} recursively to {}", source, target);
     }
@@ -501,12 +501,12 @@ public class FileAccessImpl implements FileAccess {
 
     if (Files.isDirectory(archiveFile)) {
       Path properInstallDir = archiveFile; // getProperInstallationSubDirOf(archiveFile, archiveFile);
-      if (extract) {
-        this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
-        copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-      } else {
-        move(properInstallDir, targetDir);
-      }
+      //      if (extract) {
+      this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
+      copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_CONTENT);
+      //      } else {
+      //        move(properInstallDir, targetDir);
+      //      }
       postExtractHook(postExtractHook, properInstallDir);
       return;
     } else if (!extract) {
@@ -663,9 +663,6 @@ public class FileAccessImpl implements FileAccess {
     Path appPath = findFirst(mountPath, p -> p.getFileName().toString().endsWith(".app"), false);
     if (appPath == null) {
       throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
-    }
-    if (Files.isDirectory(appPath)) {
-      appPath = appPath.getParent();
     }
     copy(appPath, targetDir);
     pc.addArgs("detach", "-force", mountPath);
