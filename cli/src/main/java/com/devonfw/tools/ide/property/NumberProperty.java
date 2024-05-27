@@ -31,7 +31,7 @@ public class NumberProperty extends Property<Long> {
    */
   public NumberProperty(String name, boolean required, String alias, Consumer<Long> validator) {
 
-    super(name, required, alias, validator, false);
+    super(name, required, alias, false, validator);
   }
 
   @Override

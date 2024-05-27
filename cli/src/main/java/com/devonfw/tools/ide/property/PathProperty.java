@@ -41,7 +41,7 @@ public class PathProperty extends Property<Path> {
    */
   public PathProperty(String name, boolean required, String alias, boolean mustExist, Consumer<Path> validator) {
 
-    super(name, required, alias, validator, false);
+    super(name, required, alias, false, validator);
     this.mustExist = mustExist;
   }
 

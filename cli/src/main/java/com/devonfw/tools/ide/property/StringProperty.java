@@ -19,7 +19,7 @@ public class StringProperty extends Property<String> {
    */
   public StringProperty(String name, boolean required, String alias, boolean multiValued) {
 
-    this(name, required, alias, null, multiValued);
+    this(name, required, alias, multiValued, null);
   }
 
   /**
