@@ -1,9 +1,9 @@
 package com.devonfw.ide.gui;
 
 import javafx.stage.Stage;
-import org.junit.Before;
-import org.junit.Test;
-import org.testfx.framework.junit.ApplicationTest;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.testfx.framework.junit5.ApplicationTest;
 import org.testfx.matcher.base.NodeMatchers;
 
 import java.io.IOException;
@@ -26,8 +26,8 @@ public class AppBaseTest extends ApplicationTest {
    *
    * @throws IOException
    */
-  @Before
-  public void setupHeadlessMode() throws IOException {
+  @BeforeAll
+  public static void setupHeadlessMode() {
 
     if (Boolean.getBoolean("headless")) {
       System.setProperty("testfx.robot", "glass");

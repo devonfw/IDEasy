@@ -45,7 +45,7 @@
     </dependency>
     <dependency>
       <groupId>org.testfx</groupId>
-      <artifactId>testfx-junit</artifactId>
+      <artifactId>testfx-junit5</artifactId>
       <version>${testfx.version}</version>
       <scope>test</scope>
     </dependency>
