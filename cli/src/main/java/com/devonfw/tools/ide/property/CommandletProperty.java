@@ -33,7 +33,7 @@ public class CommandletProperty extends Property<Commandlet> {
    */
   public CommandletProperty(String name, boolean required, String alias, Consumer<Commandlet> validator) {
 
-    super(name, required, alias, validator, false);
+    super(name, required, alias, false, validator);
   }
 
   @Override
