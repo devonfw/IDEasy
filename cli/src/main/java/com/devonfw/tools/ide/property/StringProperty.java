@@ -31,7 +31,7 @@ public class StringProperty extends Property<String> {
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    * @param multiValued
    */
-  public StringProperty(String name, boolean required, String alias, Consumer<String> validator, boolean multiValued) {
+  public StringProperty(String name, boolean required, String alias, boolean multiValued, Consumer<String> validator) {
 
     super(name, required, alias, validator, multiValued);
   }
