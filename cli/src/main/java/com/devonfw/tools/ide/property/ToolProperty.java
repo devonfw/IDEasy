@@ -21,7 +21,7 @@ public class ToolProperty extends Property<ToolCommandlet> {
    */
   public ToolProperty(String name, boolean required, String alias, boolean multiValued) {
 
-    this(name, required, alias, null, multiValued);
+    this(name, required, alias, multiValued, null);
   }
 
   /**
