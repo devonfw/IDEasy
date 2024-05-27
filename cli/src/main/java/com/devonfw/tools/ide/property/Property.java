@@ -355,10 +355,8 @@ public abstract class Property<V> {
           CliArgument arg = args.next();
           success = assignValueAsString(arg.get(), context, commandlet);
         }
-        args.next();
-      } else {
-        args.next();
       }
+      args.next();
     }
     return success;
   }
@@ -434,7 +432,7 @@ public abstract class Property<V> {
    */
   public boolean validate() {
 
-    if (this.required && (this.value == null)) {
+    if (this.required && (getValue() == null)) {
       return false;
     }
     if (this.validator != null) {

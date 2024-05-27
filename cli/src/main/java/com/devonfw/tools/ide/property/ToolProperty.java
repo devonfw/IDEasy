@@ -31,7 +31,7 @@ public class ToolProperty extends Property<ToolCommandlet> {
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
-   * @param multivalued
+   * @param multivalued the boolean flag about multiple arguments
    */
   public ToolProperty(String name, boolean required, String alias, Consumer<ToolCommandlet> validator, boolean multivalued) {
 

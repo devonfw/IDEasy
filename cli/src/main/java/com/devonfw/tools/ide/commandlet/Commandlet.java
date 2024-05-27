@@ -106,10 +106,9 @@ public abstract class Commandlet {
    */
   protected <P extends Property<?>> P add(P property) {
 
-    //    if (this.multiValued != null) {
-    //      throw new IllegalStateException(
-    //          "The multi-valued property " + this.multiValued + " can not be followed by " + property);
-    //    }
+    if (this.multiValued != null) {
+      throw new IllegalStateException("The multi-valued property " + this.multiValued + " can not be followed by " + property);
+    }
     this.propertiesList.add(property);
     if (property.isOption()) {
       add(property.getName(), property, false);
