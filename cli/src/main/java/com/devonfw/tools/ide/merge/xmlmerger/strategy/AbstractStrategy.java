@@ -33,31 +33,32 @@ public abstract class AbstractStrategy implements Strategy {
 
   protected void appendElement(MergeElement updateElement, Document targetDocument) {
 
-    this.context.debug("Appending {}", updateElement.getXPath());
-    updateAndRemoveNsAttributes(updateElement);
-
-    Element parent = (Element) updateElement.getElement().getParentNode();
-    MergeElement matchParent = elementMatcher.matchElement(new MergeElement(parent), targetDocument);
-    if (matchParent != null) {
-      Element importedNode = (Element) targetDocument.importNode(updateElement.getElement(), true);
-      matchParent.getElement().appendChild(importedNode);
-    } else {
-      // This should not happen since appending is for children and the parent is at least the root
-      throw new IllegalStateException("Cannot find matching parent element for " + updateElement.getXPath());
+    try {
+      this.context.debug("Appending {}", updateElement.getXPath());
+      updateAndRemoveNsAttributes(updateElement);
+      Element parent = (Element) updateElement.getElement().getParentNode();
+      MergeElement matchParent = elementMatcher.matchElement(new MergeElement(parent), targetDocument);
+      if (matchParent != null) {
+        Element importedNode = (Element) targetDocument.importNode(updateElement.getElement(), true);
+        matchParent.getElement().appendChild(importedNode);
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to append element: " + updateElement.getXPath(), e);
     }
   }
 
   protected void updateAndRemoveNsAttributes(MergeElement mergeElement) {
 
-    // TODO: update element's id attribute if exists
-    for (MergeElement element : mergeElement.getChildElements()) {
-      for (MergeAttribute attribute : element.getElementAttributes()) {
-        if (attribute.isMergeNsIdAttr()) {
-          elementMatcher.updateId(element.getQName(), attribute.getValue());
-        }
+    for (MergeAttribute attribute : mergeElement.getElementAttributes()) {
+      if (attribute.isMergeNsIdAttr()) {
+        elementMatcher.updateId(mergeElement.getQName(), attribute.getValue());
       }
-      element.removeMergeNSAttributes();
     }
-    mergeElement.removeMergeNSAttributes();
+    mergeElement.removeMergeNsAttributes();
+
+    for (MergeElement childElement : mergeElement.getChildElements()) {
+      updateAndRemoveNsAttributes(childElement);
+    }
   }
+
 }

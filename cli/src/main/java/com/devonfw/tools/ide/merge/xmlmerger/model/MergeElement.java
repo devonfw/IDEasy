@@ -97,13 +97,17 @@ public class MergeElement {
     return element.getParentNode().getNodeType() == Node.DOCUMENT_NODE;
   }
 
-  public void removeMergeNSAttributes() {
+  public void removeMergeNsAttributes() {
 
     List<MergeAttribute> attributes = getElementAttributes();
-    for (MergeAttribute attribute : attributes) {
-      if (attribute.isMergeNSAttr()) {
-        element.removeAttributeNode(attribute.getAttr());
+    try {
+      for (MergeAttribute attribute : attributes) {
+        if (attribute.isMergeNSAttr()) {
+          element.removeAttributeNode(attribute.getAttr());
+        }
       }
+    } catch (DOMException e) {
+      throw new IllegalStateException("Failed to remove merge namespace attributes for element:" + getXPath(), e);
     }
   }
 
@@ -134,4 +138,5 @@ public class MergeElement {
 
     return childElements;
   }
+
 }

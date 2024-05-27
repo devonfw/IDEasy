@@ -13,6 +13,7 @@ import java.util.Map;
 public class ElementMatcher {
 
   private final Map<QName, String> qNameIdMap;
+  private static final XPathFactory XPATH_FACTORY = XPathFactory.newInstance();
 
   public ElementMatcher() {
 
@@ -26,7 +27,7 @@ public class ElementMatcher {
 
   public MergeElement matchElement(MergeElement updateElement, Document targetDocument) {
 
-    if (updateElement.isRootElement()) { // check additionally for ns
+    if (updateElement.isRootElement()) {  //TODO: check additionally for ns
       if (targetDocument.getDocumentElement().getTagName().equals(updateElement.getElement().getTagName())) {
         return new MergeElement(targetDocument.getDocumentElement());
       } else {
@@ -34,14 +35,16 @@ public class ElementMatcher {
       }
     }
     String id = updateElement.getId(qNameIdMap);
-    if (id == null || id.isEmpty()) {
+    if (id == null || id.isEmpty()) { //TODO: if no id and element is empty then match by tagname
+      if (updateElement.getElementAttributes().isEmpty()) {
 
+      } else {
+
+      }
     }
     try {
-      XPath xpath = XPathFactory.newInstance().newXPath();
+      XPath xpath = XPATH_FACTORY.newXPath();
       String xpathExpression = buildXPathExpression(updateElement, id);
-
-      // Evaluate the XPath expression in the context of the targetDocument
       XPathExpression expr = xpath.compile(xpathExpression);
       NodeList result = (NodeList) expr.evaluate(targetDocument, XPathConstants.NODESET);
       for (int i = 0; i < result.getLength(); i++) {
@@ -60,9 +63,6 @@ public class ElementMatcher {
   public String buildXPathExpression(MergeElement mergeElement, String id) {
 
     String xPath = mergeElement.getXPath();
-
-    //todo: trim text
-
     if (id.startsWith(".")) {
       return xPath + "/" + id;
     } else if (id.startsWith("/")) {

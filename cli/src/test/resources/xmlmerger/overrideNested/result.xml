@@ -1,5 +1,5 @@
 <root>
-  <element name="elem1" attr1="value1">
+  <element name="elem1" attr1="newValue">
     <child name="child1" attr2="newValue">
       New text
     </child>

@@ -86,7 +86,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
     Path folderPath = TEST_RESOURCES.resolve("append");
     Path sourcePath = folderPath.resolve("source.xml");
-    Path targetPath = folderPath.resolve("target.xml");
+    Path targetPath = tempDir.resolve("target.xml");
     Path resultPath = folderPath.resolve("result.xml");
 
     Files.copy(folderPath.resolve("target.xml"), targetPath);

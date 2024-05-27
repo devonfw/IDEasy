@@ -106,18 +106,12 @@ public class XmlMerger extends FileMerger {
       Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
       transformer.setOutputProperty(OutputKeys.INDENT, "yes");
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+      transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
 
-      StringWriter writer = new StringWriter();
-      StreamResult result = new StreamResult(writer);
       DOMSource source = new DOMSource(document);
+      StreamResult result = new StreamResult(file.toFile());
       transformer.transform(source, result);
-
-      String xmlString = writer.toString();
-      InputSource inputSource = new InputSource(new StringReader(xmlString));
-      Document formattedDocument = DOCUMENT_BUILDER.parse(inputSource);
-
-      StreamResult fileResult = new StreamResult(file.toFile());
-      transformer.transform(new DOMSource(formattedDocument), fileResult);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to save XML to file: " + file, e);
     }

@@ -22,17 +22,19 @@ public class OverrideStrategy extends AbstractStrategy {
 
   private void overrideElement(MergeElement updateElement, MergeElement targetElement) {
 
-    updateAndRemoveNsAttributes(updateElement);
-
-    Node targetNode = targetElement.getElement();
-    Node parentNode = targetNode.getParentNode();
-    Document targetDocument = targetNode.getOwnerDocument();
-    Node importedNode = targetDocument.importNode(updateElement.getElement(), true);
-
-    if (parentNode.getNodeType() == Node.DOCUMENT_NODE) {
-      targetDocument.replaceChild(importedNode, targetDocument.getDocumentElement());
-    } else {
-      parentNode.replaceChild(importedNode, targetNode);
+    try {
+      updateAndRemoveNsAttributes(updateElement);
+      Node targetNode = targetElement.getElement();
+      Node parentNode = targetNode.getParentNode();
+      Document targetDocument = targetNode.getOwnerDocument();
+      Node importedNode = targetDocument.importNode(updateElement.getElement(), true);
+      if (parentNode.getNodeType() == Node.DOCUMENT_NODE) {
+        targetDocument.replaceChild(importedNode, targetDocument.getDocumentElement());
+      } else {
+        parentNode.replaceChild(importedNode, targetNode);
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to override element: " + updateElement.getXPath(), e);
     }
   }
 }
