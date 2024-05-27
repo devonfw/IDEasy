@@ -664,6 +664,9 @@ public class FileAccessImpl implements FileAccess {
     if (appPath == null) {
       throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
     }
+    if (Files.isDirectory(appPath)) {
+      appPath = appPath.getParent();
+    }
     copy(appPath, targetDir);
     pc.addArgs("detach", "-force", mountPath);
     pc.run();
