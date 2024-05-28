@@ -503,7 +503,6 @@ public class FileAccessImpl implements FileAccess {
 
     if (Files.isDirectory(archiveFile)) {
       Path properInstallDir = archiveFile; // getProperInstallationSubDirOf(archiveFile, archiveFile);
-      //      if (extract) {
       this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
       copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_CONTENT);
       //      } else {
