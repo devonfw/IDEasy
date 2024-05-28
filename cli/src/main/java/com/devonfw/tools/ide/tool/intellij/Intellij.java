@@ -28,6 +28,8 @@ public class Intellij extends IdeToolCommandlet {
 
   private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
 
+  private Path macOsBinaryPath = getToolPath().resolve("IntelliJ IDEA CE.app").resolve("Contents").resolve("MacOS").resolve(IDEA);
+
   /**
    * The constructor.
    *
@@ -55,8 +57,7 @@ public class Intellij extends IdeToolCommandlet {
     } else if (this.context.getSystemInfo().isLinux()) {
       return toolBinPath.resolve(IDEA_BASH_SCRIPT).toString();
     } else {
-      return this.context.getSoftwarePath().resolve("macos").resolve("intellij").resolve("IntelliJ IDEA CE.app").resolve("Contents").resolve("MacOS")
-          .resolve(IDEA).toString();
+      return macOsBinaryPath.toString();
     }
   }
 
@@ -72,9 +73,7 @@ public class Intellij extends IdeToolCommandlet {
 
     super.postInstall();
     if (this.context.getSystemInfo().isMac()) {
-      setMacOsFilePermissions(
-          this.context.getSoftwarePath().resolve("macos").resolve("intellij").resolve("IntelliJ IDEA CE.app").resolve("Contents").resolve("MacOS")
-              .resolve(IDEA));
+      setMacOsFilePermissions(macOsBinaryPath);
     }
   }
 
