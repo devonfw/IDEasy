@@ -60,6 +60,9 @@ public class StringProperty extends Property<String> {
     return valueAsString;
   }
 
+  /**
+   * @return the {@link #getValue() value} as null-safe {@link String} array.
+   */
   public String[] asArray() {
 
     return this.value.toArray(new String[this.value.size()]);
