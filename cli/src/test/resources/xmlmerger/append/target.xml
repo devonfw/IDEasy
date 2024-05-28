@@ -1,6 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <root>
-  <element name="elem1" attr1="value1">
-    Some text
-  </element>
+  <element attr1="value1" name="elem1">Some text</element>
 </root>

@@ -1,5 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <root>
-  <element name="elem1" attr1="oldValue" attr2="value2">
-    Old text
-  </element>
+  <element name="elem1" attr1="oldValue" attr2="value2">Old text</element>
 </root>

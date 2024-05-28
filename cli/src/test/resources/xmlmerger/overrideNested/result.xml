@@ -1,7 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <root>
-  <element name="elem1" attr1="newValue">
-    <child name="child1" attr2="newValue">
-      New text
-    </child>
+  <element attr1="newValue" name="elem1">
+    <child attr2="newValue" name="child1">New text</child>
   </element>
 </root>

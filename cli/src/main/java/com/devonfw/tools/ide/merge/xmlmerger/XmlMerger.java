@@ -106,11 +106,29 @@ public class XmlMerger extends FileMerger {
       transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
       transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
 
+      // Remove whitespace from the target document before merging
+      removeWhitespace(document.getDocumentElement());
+
       DOMSource source = new DOMSource(document);
       StreamResult result = new StreamResult(file.toFile());
       transformer.transform(source, result);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to save XML to file: " + file, e);
+    }
+  }
+
+  private void removeWhitespace(Node node) {
+    NodeList children = node.getChildNodes();
+    for (int i = 0; i < children.getLength(); i++) {
+      Node child = children.item(i);
+      if (child.getNodeType() == Node.TEXT_NODE) {
+        if (child.getTextContent().trim().isEmpty()) {
+          node.removeChild(child);
+          i--;
+        }
+      } else {
+        removeWhitespace(child);
+      }
     }
   }
 

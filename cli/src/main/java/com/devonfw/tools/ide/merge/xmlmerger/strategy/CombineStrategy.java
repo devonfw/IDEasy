@@ -76,7 +76,7 @@ public class CombineStrategy extends AbstractStrategy {
         if (targetChild.getNodeType() == Node.TEXT_NODE || targetChild.getNodeType() == Node.CDATA_SECTION_NODE) {
           // Replace the text node content
           if (!targetChild.getTextContent().isBlank()) {
-            targetChild.setTextContent(updateChild.getTextContent());
+            targetChild.setTextContent(updateChild.getTextContent().trim());
             return;
           }
         }
