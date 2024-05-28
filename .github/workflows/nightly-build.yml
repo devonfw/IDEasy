@@ -9,13 +9,33 @@ jobs:
     runs-on: ubuntu-latest
     name: Verify latest commit
     outputs:
-      RUN_BUILD: ${{ steps.verify_commit.outputs.RUN_BUILD }}
+      RUN_BUILD: ${{ steps.set_output.outputs.RUN_BUILD }}
     steps:
       - uses: actions/checkout@v3
+
       - id: verify_commit
         name: Verify latest commit is less than 24 hours
         if: ${{ (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch') }}
         run: echo '::set-output name=RUN_BUILD::'$(test -n "$(git log --format=%H --since='24 hours ago')" && echo 'true' || echo 'false')
+
+      - name: Get status of the last workflow run
+        id: last_workflow
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: runs } = await github.actions.listWorkflowRuns({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: context.workflow,
+              per_page: 1,
+              status: 'completed'
+            });
+            if (runs.workflow_runs.length > 0) {
+              const lastRun = runs.workflow_runs[0];
+              return { conclusion: lastRun.conclusion };
+            }
+            return { conclusion: 'no_runs' };
 
   build-natives:
     name: Build native images
@@ -38,7 +58,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
           
-      - name: Build native images with nativ maven plugin and extract in tar.gz
+      - name: Build native images with native maven plugin and extract in tar.gz
         shell: bash
         run: |
           mvn -B -ntp -Pnative -DskipTests=true package
@@ -73,16 +93,15 @@ jobs:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -P deploy deploy
 
-  cancel:
-    name: Cancel this workflow 
+  build_status:
+    name: Set Build Status
     runs-on: ubuntu-latest
     needs: verify_commit
     if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'false' }}
-    env:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      OWNER: ${{ github.repository_owner }}
-      REPO: ${{ github.event.repository.name }}
-      RUN_ID: ${{ github.run_id }}
     steps:
-      - run: |
-          curl -X POST -H "Accept: application/vnd.github+json" -H "Authorization: Bearer $GITHUB_TOKEN" "https://api.github.com/repos/$OWNER/$REPO/actions/runs/$RUN_ID/cancel"
+      - name: Fail the job if the last run failed
+        run: |
+          if [ "${{ steps.last_workflow.outputs.conclusion }}" == "failure" ]; then
+            echo "The last build failed, marking this job as failed."
+            exit 1
+          fi
