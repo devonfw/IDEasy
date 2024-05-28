@@ -78,8 +78,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           this.context.debug("Configuration {} already exists - skipping to copy from {}", confPath, child);
         } else {
           if (!basename.equals("settings.xml")) {
-            this.context.info("Copying template {} to {}.", child, confPath);
-            this.context.getFileAccess().copy(child, confPath);
+            this.context.info("Copying template {} to {}.", child, conf);
+            this.context.getFileAccess().copy(child, conf);
           }
         }
       }
