@@ -1,8 +1,8 @@
 package com.devonfw.tools.ide.property;
 
-import java.util.function.Consumer;
-
 import com.devonfw.tools.ide.context.IdeContext;
+
+import java.util.function.Consumer;
 
 /**
  * {@link Property} with {@link #getValueType() value type} {@link Long}.
@@ -31,7 +31,7 @@ public class NumberProperty extends Property<Long> {
    */
   public NumberProperty(String name, boolean required, String alias, Consumer<Long> validator) {
 
-    super(name, required, alias, validator);
+    super(name, required, alias, false, validator);
   }
 
   @Override

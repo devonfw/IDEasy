@@ -1,18 +1,23 @@
 package com.devonfw.tools.ide.commandlet;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.io.FileAccessImpl;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.property.ToolProperty;
+import com.devonfw.tools.ide.tool.dotnet.DotNet;
+import com.devonfw.tools.ide.tool.eclipse.Eclipse;
+import com.devonfw.tools.ide.tool.npm.Npm;
+import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Test;
-
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogLevel;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Integration test of {@link UninstallCommandlet}.
@@ -21,57 +26,77 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link UninstallCommandlet} run.
-   *
    */
   @Test
   public void testUninstallCommandletRun_WithExistingCommandlet() {
 
     // arrange
-    String toolName = "npm";
+    String npm = "npm";
+    String dotnet = "dotnet";
     IdeTestContext context = newContext(PROJECT_BASIC);
-    UninstallCommandlet uninstallCommandlet = context.getCommandletManager().getCommandlet(UninstallCommandlet.class);
-    uninstallCommandlet.tool.setValueAsString(toolName, context);
+    CommandletManager commandletManager = getCommandletManager(context);
+    UninstallCommandlet uninstallCommandlet = commandletManager.getCommandlet(UninstallCommandlet.class);
+    Npm npmCommandlet = commandletManager.getCommandlet(Npm.class);
+    DotNet dotnetCommandlet = commandletManager.getCommandlet(DotNet.class);
+
+    ToolProperty tools = uninstallCommandlet.tools;
+    tools.addValue(npmCommandlet);
+    tools.addValue(dotnetCommandlet);
+
     // act
     uninstallCommandlet.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully uninstalled " + toolName);
-    assertThat(Files.notExists(context.getSoftwarePath().resolve(toolName)));
+    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully uninstalled " + npm);
+    assertLogMessage(context, IdeLogLevel.WARNING, "An installed version of " + dotnet + " does not exist");
+    assertThat(Files.notExists(context.getSoftwarePath().resolve(npm)));
   }
 
   @Test
   public void testUninstallCommandletRun_WithNonExistingCommandlet() {
 
     // arrange
-    String toolName = "eclipse";
+    String eclipse = "eclipse";
     IdeTestContext context = newContext(PROJECT_BASIC);
-    UninstallCommandlet uninstallCommandlet = context.getCommandletManager().getCommandlet(UninstallCommandlet.class);
-    uninstallCommandlet.tool.setValueAsString(toolName, context);
+    CommandletManager commandletManager = getCommandletManager(context);
+    UninstallCommandlet uninstallCommandlet = commandletManager.getCommandlet(UninstallCommandlet.class);
+    Eclipse eclipseCommandlet = commandletManager.getCommandlet(Eclipse.class);
+    uninstallCommandlet.tools.addValue(eclipseCommandlet);
     // act
     uninstallCommandlet.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "An installed version of " + toolName + " does not exist");
-    assertThat(Files.notExists(context.getSoftwarePath().resolve(toolName)));
+    assertLogMessage(context, IdeLogLevel.WARNING, "An installed version of " + eclipse + " does not exist");
+    assertThat(Files.notExists(context.getSoftwarePath().resolve(eclipse)));
   }
 
   @Test
   public void testUninstallCommandletRun_ThrowsException() {
 
     // arrange
-    String toolName = "npm";
+    FileAccessImpl mockFileAccess = mock(FileAccessImpl.class);
+    IdeTestContext mockContext = mock(IdeTestContext.class);
     IdeTestContext context = newContext(PROJECT_BASIC);
+    Path softwarePath = context.getSoftwarePath();
 
-    FileAccess mockFileAccess = mock(FileAccess.class);
-    doThrow(new IllegalStateException()).when(mockFileAccess).delete(any(Path.class));
-    context.setMockFileAccess(mockFileAccess);
+    when(mockContext.getFileAccess()).thenReturn(mockFileAccess);
 
-    UninstallCommandlet uninstallCommandlet = context.getCommandletManager().getCommandlet(UninstallCommandlet.class);
-    uninstallCommandlet.tool.setValueAsString(toolName, context);
+    when(mockContext.getCommandletManager()).thenReturn(new CommandletManagerImpl(mockContext));
+    when(mockContext.getSoftwarePath()).thenReturn(softwarePath);
+
+    doThrow(new IllegalStateException("Couldn't uninstall")).when(mockFileAccess).delete(any());
+    CommandletManager commandletManager = getCommandletManager(mockContext);
+    UninstallCommandlet uninstallCommandlet = commandletManager.getCommandlet(UninstallCommandlet.class);
+    Npm npmCommandlet = commandletManager.getCommandlet(Npm.class);
+    uninstallCommandlet.tools.addValue(npmCommandlet);
+
     // act
-    try {
-      uninstallCommandlet.run();
-    } catch (IllegalStateException e) {
-      // assert
-      assertThat(e).hasMessageContaining("Couldn't uninstall " + toolName);
-    }
+    uninstallCommandlet.run();
+
+    //assert
+    verify(mockContext).error("Couldn't uninstall npm");
+  }
+
+  private CommandletManager getCommandletManager(IdeTestContext context) {
+
+    return context.getCommandletManager();
   }
 }

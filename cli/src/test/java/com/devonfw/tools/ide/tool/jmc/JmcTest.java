@@ -1,18 +1,16 @@
 package com.devonfw.tools.ide.tool.jmc;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
 import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
+import java.io.IOException;
 
 /**
  * Integration test of {@link Jmc}.
@@ -59,7 +57,9 @@ public class JmcTest extends AbstractIdeContextTest {
     SystemInfo systemInfo = SystemInfoMock.of(os);
     context.setSystemInfo(systemInfo);
     Jmc commandlet = new Jmc(context);
-    commandlet.arguments.setValue(List.of("foo", "bar"));
+
+    commandlet.arguments.addValue("foo");
+    commandlet.arguments.addValue("bar");
     // act
     commandlet.run();
 

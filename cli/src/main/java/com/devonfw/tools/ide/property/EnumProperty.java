@@ -1,10 +1,10 @@
 package com.devonfw.tools.ide.property;
 
-import java.util.Locale;
-
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
+
+import java.util.Locale;
 
 /**
  * {@link Property} with {@link #getValueType() value type} {@link Boolean}.
@@ -22,7 +22,7 @@ public class EnumProperty<V extends Enum<V>> extends Property<V> {
    */
   public EnumProperty(String name, boolean required, String alias, Class<V> valueType) {
 
-    super(name, required, alias, null);
+    super(name, required, alias);
     this.valueType = valueType;
   }
 
@@ -46,8 +46,7 @@ public class EnumProperty<V extends Enum<V>> extends Property<V> {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
-      CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     for (V enumConstant : this.valueType.getEnumConstants()) {
       String name = enumConstant.name().toLowerCase(Locale.ROOT);
