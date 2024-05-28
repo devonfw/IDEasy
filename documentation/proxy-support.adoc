@@ -1,0 +1,23 @@
+:toc:
+toc::[]
+
+[[proxy-support.adoc]]
+= Proxy support
+
+IDEasy provides built-in support for automatic HTTP and HTTPS proxy recognition.
+
+[[proxy-support.adoc_Configuring-Proxy-settings]]
+== Configuring Proxy Settings
+
+To enable automatic proxy recognition, users need to set the appropriate environment variables in their system, or check if they are already set.
+These variables should be formatted as follows, lowercase or uppercase:
+
+[source,bash]
+----
+http_proxy=http://<host>:<port>
+# e.g. http_proxy=http://127.0.0.1:8888
+https_proxy=https://<host>:<port>
+# e.g. https_proxy=https://127.0.0.1:8888
+----
+
+IDEasy utilizes these environment variables to detect and configure proxy settings during runtime.

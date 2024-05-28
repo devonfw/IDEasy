@@ -20,6 +20,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -53,9 +56,6 @@ public class FileAccessImpl implements FileAccess {
 
   private final IdeContext context;
 
-  /** The {@link HttpClient} for HTTP requests. */
-  private final HttpClient client;
-
   /**
    * The constructor.
    *
@@ -65,7 +65,18 @@ public class FileAccessImpl implements FileAccess {
 
     super();
     this.context = context;
-    this.client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
+  }
+
+  private HttpClient createHttpClient(String url) {
+
+    HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
+    Proxy proxy = this.context.getProxyContext().getProxy(url);
+    if (proxy != Proxy.NO_PROXY) {
+      this.context.info("Downloading through proxy: " + proxy);
+      InetSocketAddress proxyAddress = (InetSocketAddress) proxy.address();
+      builder.proxy(ProxySelector.of(proxyAddress));
+    }
+    return builder.build();
   }
 
   @Override
@@ -77,7 +88,8 @@ public class FileAccessImpl implements FileAccess {
       if (url.startsWith("http")) {
 
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-        HttpResponse<InputStream> response = this.client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        HttpClient client = createHttpClient(url);
+        HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
 
         if (response.statusCode() == 200) {
           downloadFileWithProgressBar(url, target, response);
