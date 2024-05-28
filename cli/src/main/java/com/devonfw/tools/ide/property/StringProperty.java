@@ -62,7 +62,7 @@ public class StringProperty extends Property<String> {
 
   public String[] asArray() {
 
-    return this.value.toArray(new String[0]);
+    return this.value.toArray(new String[this.value.size()]);
   }
 
 }
