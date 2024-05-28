@@ -6,6 +6,8 @@ import java.nio.file.Path;
  * Mock implementation of {@link GitContext}.
  */
 public class GitContextMock implements GitContext {
+  private String mockedUrlValue;
+
   @Override
   public void pullOrCloneIfNeeded(String repoUrl, String branch, Path targetRepository) {
 
@@ -46,9 +48,14 @@ public class GitContextMock implements GitContext {
 
   }
 
+  public void setGitUrlValue(String urlValue) {
+
+    this.mockedUrlValue = urlValue;
+  }
+
   @Override
   public String retrieveGitUrl(Path repository) {
 
-    return null;
+    return mockedUrlValue;
   }
 }

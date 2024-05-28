@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<settings>
+  <!-- The "localRepository" has to be set to ensure consistent behaviour across command-line and Eclipse.
+    To change it edit conf/devon.properties -->
+  <localRepository>${env.M2_REPO}</localRepository>
+
+
+  <servers>
+    <server>
+      <id>repository</id>
+      <username>$[mavenRepoLogin]</username>
+      <password>$[mavenRepoPassword]</password>
+    </server>
+  </servers>
