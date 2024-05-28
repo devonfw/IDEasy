@@ -23,7 +23,13 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
   private static final Path TEST_RESOURCES = Path.of("src", "test", "resources", "xmlmerger");
 
-  IdeContext context = newContext(PROJECT_BASIC, null, false);
+  public static final String SOURCE_XML = "source.xml";
+
+  public static final String TARGET_XML = "target.xml";
+
+  public static final String RESULT_XML = "result.xml";
+
+  private IdeContext context = newContext(PROJECT_BASIC, null, false);
 
   private XmlMerger merger = new XmlMerger(context);
 
@@ -32,10 +38,10 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
     // arrange
     Path folderPath = TEST_RESOURCES.resolve("combine");
-    Path sourcePath = folderPath.resolve("source.xml");
-    Path targetPath = tempDir.resolve("target.xml");
-    Path resultPath = folderPath.resolve("result.xml");
-    Files.copy(folderPath.resolve("target.xml"), targetPath);
+    Path sourcePath = folderPath.resolve(SOURCE_XML);
+    Path targetPath = tempDir.resolve(TARGET_XML);
+    Path resultPath = folderPath.resolve(RESULT_XML);
+    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
 
     // act
     merger.merge(null, sourcePath, context.getVariables(), targetPath);
@@ -49,10 +55,10 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
     // arrange
     Path folderPath = TEST_RESOURCES.resolve("override");
-    Path sourcePath = folderPath.resolve("source.xml");
-    Path targetPath = tempDir.resolve("target.xml");
-    Path resultPath = folderPath.resolve("result.xml");
-    Files.copy(folderPath.resolve("target.xml"), targetPath);
+    Path sourcePath = folderPath.resolve(SOURCE_XML);
+    Path targetPath = tempDir.resolve(TARGET_XML);
+    Path resultPath = folderPath.resolve(RESULT_XML);
+    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
 
     // act
     merger.merge(null, sourcePath, context.getVariables(), targetPath);
@@ -66,10 +72,10 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
     // arrange
     Path folderPath = TEST_RESOURCES.resolve("keep");
-    Path sourcePath = folderPath.resolve("source.xml");
-    Path targetPath = tempDir.resolve("target.xml");
-    Path resultPath = folderPath.resolve("result.xml");
-    Files.copy(folderPath.resolve("target.xml"), targetPath);
+    Path sourcePath = folderPath.resolve(SOURCE_XML);
+    Path targetPath = tempDir.resolve(TARGET_XML);
+    Path resultPath = folderPath.resolve(RESULT_XML);
+    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
 
     // act
     merger.merge(null, sourcePath, context.getVariables(), targetPath);
@@ -84,10 +90,10 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
     // arrange
     Path folderPath = TEST_RESOURCES.resolve("append");
-    Path sourcePath = folderPath.resolve("source.xml");
-    Path targetPath = tempDir.resolve("target.xml");
-    Path resultPath = folderPath.resolve("result.xml");
-    Files.copy(folderPath.resolve("target.xml"), targetPath);
+    Path sourcePath = folderPath.resolve(SOURCE_XML);
+    Path targetPath = tempDir.resolve(TARGET_XML);
+    Path resultPath = folderPath.resolve(RESULT_XML);
+    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
 
     // act
     merger.merge(null, sourcePath, context.getVariables(), targetPath);
@@ -101,10 +107,10 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
     // arrange
     Path folderPath = TEST_RESOURCES.resolve("id");
-    Path sourcePath = folderPath.resolve("source.xml");
-    Path targetPath = tempDir.resolve("target.xml");
-    Path resultPath = folderPath.resolve("result.xml");
-    Files.copy(folderPath.resolve("target.xml"), targetPath);
+    Path sourcePath = folderPath.resolve(SOURCE_XML);
+    Path targetPath = tempDir.resolve(TARGET_XML);
+    Path resultPath = folderPath.resolve(RESULT_XML);
+    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
 
     // act
     merger.merge(null, sourcePath, context.getVariables(), targetPath);
@@ -118,10 +124,10 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
     // arrange
     Path folderPath = TEST_RESOURCES.resolve("combineNested");
-    Path sourcePath = folderPath.resolve("source.xml");
-    Path targetPath = tempDir.resolve("target.xml");
-    Path resultPath = folderPath.resolve("result.xml");
-    Files.copy(folderPath.resolve("target.xml"), targetPath);
+    Path sourcePath = folderPath.resolve(SOURCE_XML);
+    Path targetPath = tempDir.resolve(TARGET_XML);
+    Path resultPath = folderPath.resolve(RESULT_XML);
+    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
 
     // act
     merger.merge(null, sourcePath, context.getVariables(), targetPath);
@@ -135,10 +141,10 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
     // arrange
     Path folderPath = TEST_RESOURCES.resolve("overrideNested");
-    Path sourcePath = folderPath.resolve("source.xml");
-    Path targetPath = tempDir.resolve("target.xml");
-    Path resultPath = folderPath.resolve("result.xml");
-    Files.copy(folderPath.resolve("target.xml"), targetPath);
+    Path sourcePath = folderPath.resolve(SOURCE_XML);
+    Path targetPath = tempDir.resolve(TARGET_XML);
+    Path resultPath = folderPath.resolve(RESULT_XML);
+    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
 
     // act
     merger.merge(null, sourcePath, context.getVariables(), targetPath);
