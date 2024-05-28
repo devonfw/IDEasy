@@ -98,6 +98,7 @@ public class XmlMerger extends FileMerger {
     }
   }
   public void save(Document document, Path file) {
+    
     ensureParentDirectoryExists(file);
     try {
       Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
@@ -106,7 +107,9 @@ public class XmlMerger extends FileMerger {
       transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
       transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
 
-      // Remove whitespace from the target document before merging
+      // Remove whitespace from the target document before saving, because if target XML Document is already formatted
+      // then indent 2 keeps adding empty lines for nothing, and if we don't use indentation then appending/ overriding
+      // isn't properly formatted.
       removeWhitespace(document.getDocumentElement());
 
       DOMSource source = new DOMSource(document);
@@ -118,6 +121,7 @@ public class XmlMerger extends FileMerger {
   }
 
   private void removeWhitespace(Node node) {
+
     NodeList children = node.getChildNodes();
     for (int i = 0; i < children.getLength(); i++) {
       Node child = children.item(i);
