@@ -41,7 +41,7 @@ public class StringProperty extends Property<String> {
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
-   * @param multivalued
+   * @param multivalued the boolean flag about multiple arguments
    */
   public StringProperty(String name, boolean required, String alias, boolean multivalued, Consumer<String> validator) {
 
