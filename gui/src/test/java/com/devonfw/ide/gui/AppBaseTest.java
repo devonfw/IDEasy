@@ -29,6 +29,9 @@ public class AppBaseTest extends ApplicationTest {
   @BeforeAll
   public static void setupHeadlessMode() {
 
+    //Enable headless testing. Should be moved as a system property "-Dheadless=true" into workflows to only affect CI
+    System.setProperty("headless", "true");
+
     if (Boolean.getBoolean("headless")) {
       System.setProperty("testfx.robot", "glass");
       System.setProperty("glass.platform", "Monocle");
