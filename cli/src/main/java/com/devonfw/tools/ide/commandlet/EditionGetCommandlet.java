@@ -24,7 +24,7 @@ public class EditionGetCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.tool = add(new ToolProperty("", true, "tool", false));
+    this.tool = add(new ToolProperty("", true, "tool"));
   }
 
   @Override

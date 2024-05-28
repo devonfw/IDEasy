@@ -19,7 +19,7 @@ public class BooleanProperty extends Property<Boolean> {
    */
   public BooleanProperty(String name, boolean required, String alias) {
 
-    super(name, required, alias, false, null);
+    super(name, required, alias);
   }
 
   @Override

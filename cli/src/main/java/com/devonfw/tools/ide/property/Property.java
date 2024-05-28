@@ -40,7 +40,7 @@ public abstract class Property<V> {
   private final Consumer<V> validator;
 
   /** @see #isMultiValued() */
-  private final boolean multiValued;
+  private final boolean multivalued;
 
   /** @see #getValue() */
   protected final List<V> value = new ArrayList<>();
@@ -51,16 +51,34 @@ public abstract class Property<V> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
+   */
+  public Property(String name, boolean required, String alias) {
+
+    super();
+    this.name = name;
+    this.required = required;
+    this.alias = alias;
+    this.multivalued = false;
+    this.validator = null;
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param name the {@link #getName() property name}.
+   * @param required the {@link #isRequired() required flag}.
+   * @param alias the {@link #getAlias() property alias}.
+   * @param multivalued the boolean flag about multiple arguments
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public Property(String name, boolean required, String alias, boolean multiValued, Consumer<V> validator) {
+  public Property(String name, boolean required, String alias, boolean multivalued, Consumer<V> validator) {
 
     super();
     this.name = name;
     this.required = required;
     this.alias = alias;
     this.validator = validator;
-    this.multiValued = multiValued;
+    this.multivalued = multivalued;
   }
 
   /**
@@ -136,7 +154,7 @@ public abstract class Property<V> {
    */
   public boolean isMultiValued() {
 
-    return multiValued;
+    return multivalued;
   }
 
   /**
@@ -213,7 +231,7 @@ public abstract class Property<V> {
    */
   public void setValue(V value) {
 
-    if (!this.multiValued) {
+    if (!this.multivalued) {
       this.value.clear();
     }
     this.value.add(value);
@@ -221,7 +239,7 @@ public abstract class Property<V> {
 
   public void addValue(V value) {
 
-    if (!this.multiValued) {
+    if (!this.multivalued) {
       throw new IllegalStateException("not multivalued");
     }
     this.value.add(value);
@@ -349,7 +367,7 @@ public abstract class Property<V> {
     boolean success = assignValueAsString(argValue, context, commandlet);
 
     if (success) {
-      if (multiValued) {
+      if (multivalued) {
 
         while (success && args.hasNext()) {
           CliArgument arg = args.next();

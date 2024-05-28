@@ -31,7 +31,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   public AbstractUpdateCommandlet(IdeContext context) {
 
     super(context);
-    this.settingsRepo = new StringProperty("", false, "settingsRepository", false);
+    this.settingsRepo = new StringProperty("", false, "settingsRepository");
   }
 
   @Override

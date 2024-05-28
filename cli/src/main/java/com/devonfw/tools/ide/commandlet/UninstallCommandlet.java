@@ -24,7 +24,7 @@ public class UninstallCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.tools = add(new ToolProperty("", true, "tool", true));
+    this.tools = add(new ToolProperty("", true, true, "tool"));
   }
 
   @Override

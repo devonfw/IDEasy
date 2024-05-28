@@ -15,11 +15,23 @@ public class StringProperty extends Property<String> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
-   * @param multiValued
    */
-  public StringProperty(String name, boolean required, String alias, boolean multiValued) {
+  public StringProperty(String name, boolean required, String alias) {
 
-    this(name, required, alias, multiValued, null);
+    this(name, required, alias, false, null);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param name the {@link #getName() property name}.
+   * @param required the {@link #isRequired() required flag}.
+   * @param alias the {@link #getAlias() property alias}.
+   * @param multivalued
+   */
+  public StringProperty(String name, boolean required, boolean multivalued, String alias) {
+
+    this(name, required, alias, multivalued, null);
   }
 
   /**
@@ -29,11 +41,11 @@ public class StringProperty extends Property<String> {
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
-   * @param multiValued
+   * @param multivalued
    */
-  public StringProperty(String name, boolean required, String alias, boolean multiValued, Consumer<String> validator) {
+  public StringProperty(String name, boolean required, String alias, boolean multivalued, Consumer<String> validator) {
 
-    super(name, required, alias, multiValued, validator);
+    super(name, required, alias, multivalued, validator);
   }
 
   @Override

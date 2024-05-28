@@ -22,7 +22,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     super(context);
     addKeyword(getName());
-    newProject = add(new StringProperty("", true, "project", false));
+    newProject = add(new StringProperty("", true, "project"));
     add(this.settingsRepo);
   }
 

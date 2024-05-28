@@ -25,7 +25,7 @@ public final class CompleteCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.args = add(new StringProperty("", false, "args", true));
+    this.args = add(new StringProperty("", false, true, "args"));
   }
 
   @Override

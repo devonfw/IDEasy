@@ -22,7 +22,7 @@ public class EnumProperty<V extends Enum<V>> extends Property<V> {
    */
   public EnumProperty(String name, boolean required, String alias, Class<V> valueType) {
 
-    super(name, required, alias, false, null);
+    super(name, required, alias);
     this.valueType = valueType;
   }
 
