@@ -283,12 +283,14 @@ public class FileAccessImpl implements FileAccess {
   public void copy(Path source, Path target, FileCopyMode mode) {
 
     if (mode != FileCopyMode.COPY_TREE_CONTENT) {
-      // if we want to copy "file.txt" to the existing folder "path/to/folder/" in a shell this will copy "file.txt"
-      // into that folder
-      // with Java NIO the raw copy method will fail as we cannot copy the file to the path of the target folder
-      // even worse if FileCopyMode is override the target folder ("path/to/folder/") would be deleted and the result
-      // of our "file.txt" would later appear in "path/to/folder". To prevent such bugs we append the filename to
-      // target
+      // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy 
+      // source into that folder so that we as a result have a copy in "target/source".
+      // With Java NIO the raw copy method will fail as we cannot copy "source" to the path of the "target" folder.
+      // For folders we want the same behavior as the linux "cp -r" command so that the "source" folder is copied
+      // and not only its content what also makes it consistent with the move method that also behaves this way.
+      // Therefore we need to add the filename (foldername) of "source" to the "target" path before.
+      // For the rare cases, where we want to copy the content of a folder (cp -r source/* target) we support
+      // it via the COPY_TREE_CONTENT mode.
       target = target.resolve(source.getFileName());
     }
     boolean fileOnly = mode.isFileOnly();
