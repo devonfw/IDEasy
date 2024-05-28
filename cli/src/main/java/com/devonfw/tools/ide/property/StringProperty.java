@@ -27,7 +27,7 @@ public class StringProperty extends Property<String> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
-   * @param multivalued
+   * @param multivalued the boolean flag about multiple arguments.
    */
   public StringProperty(String name, boolean required, boolean multivalued, String alias) {
 
