@@ -1,14 +1,14 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import java.nio.file.Path;
-import java.util.Set;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.node.Node;
+
+import java.nio.file.Path;
+import java.util.Set;
 
 /**
  * {@link ToolCommandlet} for <a href="https://www.npmjs.com/">npm</a>.
@@ -47,10 +47,10 @@ public class Npm extends LocalToolCommandlet {
       fileAccess.delete(nodeHomePath.resolve(npx));
       fileAccess.delete(nodeHomePath.resolve(npx + cmd));
 
-      fileAccess.copy(npmBinBath.resolve(npm), nodeHomePath.resolve(npm));
-      fileAccess.copy(npmBinBath.resolve(npm + cmd), nodeHomePath.resolve(npm + cmd));
-      fileAccess.copy(npmBinBath.resolve(npx), nodeHomePath.resolve(npx));
-      fileAccess.copy(npmBinBath.resolve(npx + cmd), nodeHomePath.resolve(npx + cmd));
+      fileAccess.copy(npmBinBath.resolve(npm), nodeHomePath);
+      fileAccess.copy(npmBinBath.resolve(npm + cmd), nodeHomePath);
+      fileAccess.copy(npmBinBath.resolve(npx), nodeHomePath);
+      fileAccess.copy(npmBinBath.resolve(npx + cmd), nodeHomePath);
     }
   }
 }
