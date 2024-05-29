@@ -15,7 +15,7 @@ jobs:
       - id: verify_commit
         name: Verify latest commit is less than 24 hours
         if: ${{ (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch') }}
-        run: echo '::set-output name=RUN_BUILD::'$(test -n "$(git log --format=%H --since='1 minute ago')" && echo 'true' || echo 'false')
+        run: echo '::set-output name=RUN_BUILD::'$(test -n "$(git log --format=%H --since='15 minutes ago')" && echo 'true' || echo 'false')
 
   build-natives:
     name: Build native images
