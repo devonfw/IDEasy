@@ -24,18 +24,23 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { data: runs } = await github.actions.listWorkflowRunArtifacts({
+            const { context, github } = require('@actions/github');
+            
+            const runs = await github.actions.listWorkflowRuns({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: context.workflow,
               per_page: 1,
               status: 'completed'
             });
-            if (runs.workflow_runs.length > 0) {
-              const lastRun = runs.workflow_runs[0];
+            
+            if (runs.data.workflow_runs.length > 0) {
+              const lastRun = runs.data.workflow_runs[0];
               return { conclusion: lastRun.conclusion };
+            } else {
+              return { conclusion: 'no_runs' };
             }
-            return { conclusion: 'no_runs' };
+
 
   build-natives:
     name: Build native images
