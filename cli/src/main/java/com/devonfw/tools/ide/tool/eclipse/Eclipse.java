@@ -1,13 +1,5 @@
 package com.devonfw.tools.ide.tool.eclipse;
 
-import java.io.File;
-import java.io.RandomAccessFile;
-import java.nio.channels.FileLock;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
-
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
@@ -20,6 +12,14 @@ import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
+
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.nio.channels.FileLock;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
@@ -40,8 +40,7 @@ public class Eclipse extends IdeToolCommandlet {
   protected void runIde(String... args) {
 
     install(true);
-    runEclipse(ProcessMode.BACKGROUND,
-        CliArgument.prepend(args, "gui", "-showlocation", this.context.getIdeHome().getFileName().toString()));
+    runEclipse(ProcessMode.BACKGROUND, CliArgument.prepend(args, "gui", "-showlocation", this.context.getIdeHome().getFileName().toString()));
   }
 
   @Override
@@ -68,14 +67,13 @@ public class Eclipse extends IdeToolCommandlet {
     pc.executable(toolPath);
     Path configurationPath = getPluginsInstallationPath().resolve("configuration");
     this.context.getFileAccess().mkdirs(configurationPath);
+    pc.addArg("-data").addArg(this.context.getWorkspacePath());
+    pc.addArg("-clean");
+    pc.addArg("-keyring").addArg(this.context.getUserHome().resolve(".eclipse").resolve(".keyring"));
+    pc.addArg("-configuration").addArg(configurationPath);
     if (processMode == ProcessMode.DEFAULT_CAPTURE) {
       pc.addArg("-consoleLog").addArg("-nosplash");
-    } else {
-      pc.addArg("-clean");
-      pc.addArg("-data").addArg(this.context.getWorkspacePath());
-      pc.addArg("-keyring").addArg(this.context.getUserHome().resolve(".eclipse").resolve(".keyring"));
     }
-    pc.addArg("-configuration").addArg(configurationPath);
     // TODO ability to use different Java version
     Path javaPath = getCommandlet(Java.class).getToolBinPath();
     pc.addArg("-vm").addArg(javaPath);
@@ -88,8 +86,8 @@ public class Eclipse extends IdeToolCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    ProcessResult result = runEclipse(ProcessMode.DEFAULT_CAPTURE, "org.eclipse.equinox.p2.director", "-repository",
-        plugin.getUrl(), "-installIU", plugin.getId());
+    ProcessResult result = runEclipse(ProcessMode.DEFAULT_CAPTURE, "-application", "org.eclipse.equinox.p2.director", "-repository", plugin.getUrl(),
+        "-installIU", plugin.getId());
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
@@ -97,8 +95,7 @@ public class Eclipse extends IdeToolCommandlet {
         }
       }
     }
-    this.context.error("Failed to install plugin {} ({}): exit code was {}", plugin.getName(), plugin.getId(),
-        result.getExitCode());
+    this.context.error("Failed to install plugin {} ({}): exit code was {}", plugin.getName(), plugin.getId(), result.getExitCode());
     log(IdeLogLevel.WARNING, result.getOut());
     log(IdeLogLevel.ERROR, result.getErr());
   }
