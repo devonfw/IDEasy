@@ -1,7 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.PathProperty;
+import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
@@ -16,9 +16,9 @@ import java.nio.file.Path;
 public class BuildCommandlet extends Commandlet {
 
   /**
-   * The path to build from.
+   * The arguments to build with.
    */
-  public PathProperty path;
+  public StringProperty arguments;
 
   /**
    * The constructor.
@@ -29,7 +29,7 @@ public class BuildCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.path = add(new PathProperty("", false, "path", true));
+    this.arguments = add(new StringProperty("", false, true, "args"));
   }
 
   @Override
@@ -41,14 +41,8 @@ public class BuildCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    Path buildPath = null;
-    if (this.path.getValue() != null) {
-      buildPath = this.path.getValue();
-    }
-    if (buildPath == null) {
-      buildPath = this.context.getCwd();
-      this.context.info("No path was provided, using current working directory {} as fallback.", buildPath);
-    }
+    Path buildPath = this.context.getCwd();
+
     if (buildPath != null) {
       ToolCommandlet commandlet = null;
       if (Files.exists(buildPath.resolve("pom.xml"))) {
@@ -64,8 +58,7 @@ public class BuildCommandlet extends Commandlet {
       }
 
       if (commandlet != null) {
-        this.context.info("Building project at: {} with: {}", buildPath, commandlet.getName());
-        commandlet.runTool(null, buildPath.toString());
+        commandlet.runTool(null, this.arguments.asArray());
       }
     }
 
