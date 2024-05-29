@@ -1,20 +1,20 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.List;
-
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.StringListProperty;
+import com.devonfw.tools.ide.property.StringProperty;
+
+import java.util.List;
 
 /**
  * {@link Commandlet} for auto-completion.
  */
 public final class CompleteCommandlet extends Commandlet {
 
-  /** {@link StringListProperty} with the current CLI arguments to complete. */
-  public final StringListProperty args;
+  /** {@link StringProperty} with the current CLI arguments to complete. */
+  public final StringProperty args;
 
   /**
    * The constructor.
@@ -25,7 +25,7 @@ public final class CompleteCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.args = add(new StringListProperty("", false, "args"));
+    this.args = add(new StringProperty("", false, true, "args"));
   }
 
   @Override

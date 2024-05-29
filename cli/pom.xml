@@ -90,6 +90,13 @@
       <artifactId>jansi</artifactId>
       <version>${jansi.version}</version>
     </dependency>
+    <dependency>
+      <!-- required for advanced mocking -->
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <version>1.14.15</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
