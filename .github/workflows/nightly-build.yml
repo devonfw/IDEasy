@@ -24,7 +24,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { data: runs } = await github.actions.listWorkflowRuns({
+             github.rest.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               workflow_id: context.workflow,
