@@ -9,7 +9,7 @@
     <version>dev-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
-  <groupId>com.devonfw.ide</groupId>
+  <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>gui</artifactId>
   <version>${revision}</version>
   <name>gui</name>
@@ -23,7 +23,7 @@
 
   <dependencies>
     <dependency>
-      <groupId>com.devonfw.tools.IDEasy</groupId>
+      <groupId>${project.groupId}</groupId>
       <artifactId>ide-cli</artifactId>
       <version>${project.version}</version>
     </dependency>
