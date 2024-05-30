@@ -1,0 +1,16 @@
+:toc:
+toc::[]
+
+= npm
+
+The `npm` commandlet allows to install, configure, and launch https://www.npmjs.com/[npm]. Calling `ide npm «args»` is more or less the same as calling `npm «args»` but with the benefit that the version of npm preferred by your project is used (and will be installed if not yet available).
+
+The arguments (`ide npm «args»`) are explained by the following table:
+
+.Usage of `ide npm`
+[options="header"]
+|=======================
+|*Argument(s)*             |*Meaning*
+|                          |run default build, link:configuration.asciidoc[configurable] via `NPM_BUILD_OPTS`
+|`«args»`                  |run NPM with the given arguments (`«args»`)
+|=======================

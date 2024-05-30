@@ -1,0 +1,16 @@
+:toc:
+toc::[]
+
+= mvn
+
+The `mvn` commandlet allows to install, configure, and launch https://maven.apache.org/[maven]. It is similar to https://github.com/takari/maven-wrapper[maven-wrapper] and https://github.com/dansomething/mdub[mdub]. So calling `ide mvn «args»` is more or less the same as calling `mvn «args»` but with the benefit that the version of maven preferred by your project is used (and will be installed if not yet available).
+
+The arguments (`ide mvn «args»`) are explained by the following table:
+
+.Usage of `ide mvn`
+[options="header"]
+|=======================
+|*Argument(s)*             |*Meaning*
+|                          |run default build, link:configuration.asciidoc[configurable] via `MVN_BUILD_OPTS`
+|`«args»`                  |run maven with the given arguments (`«args»`)
+|=======================
