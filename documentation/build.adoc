@@ -5,7 +5,7 @@ toc::[]
 The `build` commandlet is an abstraction of build systems like link:mvn.asciidoc[maven], link:gradle.asciidoc[gradle], link:npm.asciidoc[yarn], link:npm.asciidoc[npm], etc.
 It will auto-detect your build-system (via existence of files like `pom.xml`, `package.json`, etc.). According to this detection, it will simply delegate to the according commandlet of the specific build system. If that build-system is not yet available it will be downloaded and installed automatically.
 
-So `devon build` allows users to build any project without bothering about the build-system. Further specific build options can be configured per project. This makes `ide build` a universal part of every _definition of done_. Before pushing your changes, please always run the following command to verify the build:
+So `ide build` allows users to build any project without bothering about the build-system. Further specific build options can be configured per project. This makes `ide build` a universal part of every _definition of done_. Before pushing your changes, please always run the following command to verify the build:
 
 `ide build`
 
