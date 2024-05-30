@@ -162,17 +162,22 @@
                     <artifact>
                       <file>${project.build.directory}/${project.artifactId}-linux-x64.tar.gz</file>
                       <type>tar.gz</type>
-                      <classifier>linux</classifier>
+                      <classifier>linux-x64</classifier>
                     </artifact>
                     <artifact>
                       <file>${project.build.directory}/${project.artifactId}-windows-x64.tar.gz</file>
                       <type>tar.gz</type>
-                      <classifier>windows</classifier>
+                      <classifier>windows-x64</classifier>
                     </artifact>
                     <artifact>
                       <file>${project.build.directory}/${project.artifactId}-mac-x64.tar.gz</file>
                       <type>tar.gz</type>
-                      <classifier>mac</classifier>
+                      <classifier>mac-x64</classifier>
+                    </artifact>
+                    <artifact>
+                      <file>${project.build.directory}/${project.artifactId}-mac-arm.tar.gz</file>
+                      <type>tar.gz</type>
+                      <classifier>mac-arm</classifier>
                     </artifact>
                   </artifacts>
                 </configuration>
@@ -219,6 +224,7 @@
                 <arg>--enable-url-protocols=http,https</arg>
                 <arg>-H:IncludeResources="nls/.*"</arg>
                 <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
+                <arg>-march=native</arg>
               </buildArgs>
             </configuration>
           </plugin>
@@ -281,20 +287,32 @@
         </os>
       </activation>
       <properties>
-        <os.detected.classifier>windows</os.detected.classifier>
+        <os.detected.classifier>windows-x64</os.detected.classifier>
         <os.detected.arch>x64</os.detected.arch>
       </properties>
     </profile>
     <profile>
-      <id>MacOS</id>
+      <id>MacOS-x64</id>
       <activation>
         <os>
           <family>Mac</family>
         </os>
       </activation>
       <properties>
-        <os.detected.classifier>mac</os.detected.classifier>
+        <os.detected.classifier>mac-x64</os.detected.classifier>
         <os.detected.arch>x64</os.detected.arch>
+      </properties>
+    </profile>
+    <profile>
+      <id>MacOS-arm</id>
+      <activation>
+        <os>
+          <family>Mac</family>
+        </os>
+      </activation>
+      <properties>
+        <os.detected.classifier>mac-arm</os.detected.classifier>
+        <os.detected.arch>arm</os.detected.arch>
       </properties>
     </profile>
     <profile>
@@ -305,7 +323,7 @@
         </os>
       </activation>
       <properties>
-        <os.detected.classifier>linux</os.detected.classifier>
+        <os.detected.classifier>linux-x64</os.detected.classifier>
         <os.detected.arch>x64</os.detected.arch>
       </properties>
     </profile>
