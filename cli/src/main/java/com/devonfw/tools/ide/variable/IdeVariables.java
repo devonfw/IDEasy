@@ -49,6 +49,18 @@ public interface IdeVariables {
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
 
+  /** {@link VariableDefinition} for default build options of mvn */
+  VariableDefinitionString MVN_BUILD_OPTS = new VariableDefinitionString("MVN_BUILD_OPTS", null, c -> "");
+
+  /** {@link VariableDefinition} for default build options of npm */
+  VariableDefinitionString NPM_BUILD_OPTS = new VariableDefinitionString("NPM_BUILD_OPTS", null, c -> "");
+
+  /** {@link VariableDefinition} for default build options of gradle */
+  VariableDefinitionString GRADLE_BUILD_OPTS = new VariableDefinitionString("GRADLE_BUILD_OPTS", null, c -> "");
+
+  /** {@link VariableDefinition} for default build options of yarn */
+  VariableDefinitionString YARN_BUILD_OPTS = new VariableDefinitionString("YARN_BUILD_OPTS", null, c -> "");
+
   /** {@link VariableDefinition} for options of jasypt */
   VariableDefinitionString JASYPT_OPTS = new VariableDefinitionString("JASYPT_OPTS", null,
       c -> "algorithm=PBEWITHHMACSHA512ANDAES_256 ivGeneratorClassName=org.jasypt.iv.RandomIvGenerator");
@@ -58,7 +70,7 @@ public interface IdeVariables {
 
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, CREATE_START_SCRIPTS,
-      IDE_MIN_VERSION, MVN_VERSION, DOCKER_EDITION, JASYPT_OPTS, MAVEN_ARGS, PROJECT_NAME);
+      IDE_MIN_VERSION, MVN_VERSION, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, GRADLE_BUILD_OPTS, YARN_BUILD_OPTS, JASYPT_OPTS, MAVEN_ARGS, PROJECT_NAME);
 
   /**
    * @param name the name of the requested {@link VariableDefinition}.

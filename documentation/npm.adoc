@@ -14,3 +14,14 @@ The arguments (`ide npm «args»`) are explained by the following table:
 |                          |run default build, link:configuration.asciidoc[configurable] via `NPM_BUILD_OPTS`
 |`«args»`                  |run NPM with the given arguments (`«args»`)
 |=======================
+
+There are link:variables.asciidoc[variables] that can be used for npm.
+These are explained by the following table:
+
+.Variables of IDEasy for npm
+[options="header"]
+|=======================
+|*Variable*|*Meaning*
+|*`NPM_VERSION`*          |The version of the tool npm to install and use.
+|*`NPM_BUILD_OPTS`*       |The default options to use for the npm build process e.g. `run start`.
+|=======================

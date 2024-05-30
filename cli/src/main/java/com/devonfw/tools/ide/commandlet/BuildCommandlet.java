@@ -10,6 +10,10 @@ import com.devonfw.tools.ide.tool.npm.Npm;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import static com.devonfw.tools.ide.variable.IdeVariables.GRADLE_BUILD_OPTS;
+import static com.devonfw.tools.ide.variable.IdeVariables.MVN_BUILD_OPTS;
+import static com.devonfw.tools.ide.variable.IdeVariables.NPM_BUILD_OPTS;
+
 /**
  * Build tool {@link Commandlet} for automatically detecting build configuration files and running the respective tool.
  */
@@ -42,25 +46,41 @@ public class BuildCommandlet extends Commandlet {
   public void run() {
 
     Path buildPath = this.context.getCwd();
+    String[] defaultToolOptions = new String[0];
 
     if (buildPath != null) {
       ToolCommandlet commandlet = null;
       if (Files.exists(buildPath.resolve("pom.xml"))) {
         commandlet = this.context.getCommandletManager().getCommandlet(Mvn.class);
+        defaultToolOptions = getDefaultToolOptions(MVN_BUILD_OPTS.getName());
       } else if (Files.exists(buildPath.resolve("build.gradle"))) {
         commandlet = this.context.getCommandletManager().getCommandlet(Gradle.class);
+        defaultToolOptions = getDefaultToolOptions(GRADLE_BUILD_OPTS.getName());
       } else if (Files.exists(buildPath.resolve("package.json"))) {
         if (Files.exists(buildPath.resolve("yarn.lock"))) {
           // TODO: add yarn here
         } else {
           commandlet = this.context.getCommandletManager().getCommandlet(Npm.class);
+
+          defaultToolOptions = getDefaultToolOptions(NPM_BUILD_OPTS.getName());
         }
       }
 
+      if (this.arguments.asArray().length != 0) {
+        defaultToolOptions = this.arguments.asArray();
+      }
+
       if (commandlet != null) {
-        commandlet.runTool(null, this.arguments.asArray());
+        commandlet.runTool(null, defaultToolOptions);
       }
     }
 
+  }
+
+  private String[] getDefaultToolOptions(String buildOptionName) {
+
+    String[] defaultToolOptions;
+    defaultToolOptions = this.context.getVariables().get(buildOptionName).split(" ");
+    return defaultToolOptions;
   }
 }

@@ -14,3 +14,14 @@ The arguments (`ide mvn «args»`) are explained by the following table:
 |                          |run default build, link:configuration.asciidoc[configurable] via `MVN_BUILD_OPTS`
 |`«args»`                  |run maven with the given arguments (`«args»`)
 |=======================
+
+There are link:variables.asciidoc[variables] that can be used for mvn.
+These are explained by the following table:
+
+.Variables of IDEasy for mvn
+[options="header"]
+|=======================
+|*Variable*|*Meaning*
+|*`MVN_VERSION`*          |The version of the tool mvn to install and use.
+|*`MVN_BUILD_OPTS`*       |The default options to use for the mvn build process e.g. `clean install`.
+|=======================

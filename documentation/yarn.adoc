@@ -13,3 +13,14 @@ The arguments (`ide yarn «args»`) are explained by the following table:
 |*Argument(s)*             |*Meaning*
 |`«args»`                  |run yarn with the given arguments (`«args»`)
 |=======================
+
+There are link:variables.asciidoc[variables] that can be used for yarn.
+These are explained by the following table:
+
+.Variables of IDEasy for yarn
+[options="header"]
+|=======================
+|*Variable*|*Meaning*
+|*`YARN_VERSION`*          |The version of the tool yarn to install and use.
+|*`YARN_BUILD_OPTS`*       |The default options to use for the yarn build process e.g. `run start`.
+|=======================
