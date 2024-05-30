@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.commandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -52,7 +54,9 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
   @Test
   public void testNpmBuildWithProvidedArguments() {
 
+    SystemInfo systemInfo = SystemInfoMock.of("linux");
     IdeTestContext context = newContext(PROJECT_BUILD);
+    context.setSystemInfo(systemInfo);
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
     context.setCwd(context.getWorkspacePath().resolve("npm"), context.getWorkspacePath().toString(), context.getIdeHome());
     buildCommandlet.arguments.addValue("start");
@@ -60,6 +64,6 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     buildCommandlet.run();
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed node in version v18.19.1");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed npm in version 9.9.2");
-    assertLogMessage(context, IdeLogLevel.INFO, "npmcmdbin start test");
+    assertLogMessage(context, IdeLogLevel.INFO, "npm start test");
   }
 }
