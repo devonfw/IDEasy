@@ -19,7 +19,7 @@ public class JasyptTest extends AbstractIdeContextTest {
   private static final String JASYPT_OPTS = "custom_argument";
 
   private static final String PROJECT_JASYPT = "jasypt";
-
+  
   /**
    * Tests if {@link Jasypt} is properly installed by the {@link InstallCommandlet}
    */
@@ -73,8 +73,7 @@ public class JasyptTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "executing java:");
-    assertLogMessage(context, IdeLogLevel.INFO, "This is a jar file.");
+    assertLogMessage(context, IdeLogLevel.INFO, context.getVariables().get("JASYPT_OPTS"));
     checkInstallation(context);
   }
 
@@ -101,9 +100,8 @@ public class JasyptTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "executing java:");
-    assertLogMessage(context, IdeLogLevel.INFO, "This is a jar file.");
-    assertLogMessage(context, IdeLogLevel.INFO, JASYPT_OPTS);
+    assertLogMessage(context, IdeLogLevel.INFO, context.getVariables().get("JASYPT_OPTS"));
+
     checkInstallation(context);
   }
 

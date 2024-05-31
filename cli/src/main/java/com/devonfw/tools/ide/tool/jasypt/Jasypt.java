@@ -20,11 +20,14 @@ import java.util.Set;
  */
 public class Jasypt extends LocalToolCommandlet {
 
-  final EnumProperty<JasyptCommand> command;
+  /** {@link EnumProperty} for the command (encrypt or decrypt) */
+  public final EnumProperty<JasyptCommand> command;
 
-  final PasswordProperty masterPassword;
+  /** {@link PasswordProperty} for the master password */
+  public final PasswordProperty masterPassword;
 
-  final PasswordProperty secret;
+  /** {@link PasswordProperty} for the secret to be encrypted or decrypted */
+  public final PasswordProperty secret;
 
   private static final String CLASS_NAME_ENCRYPTION = "org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI";
 

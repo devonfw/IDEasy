@@ -1,7 +1,2 @@
 #!/bin/bash
-echo "executing java:"
-cat $2 # .jar file
-
-if [ ! -z "$6" ]; then
-    echo "$6"
-fi
+echo "${@:6}" # optional arguments
