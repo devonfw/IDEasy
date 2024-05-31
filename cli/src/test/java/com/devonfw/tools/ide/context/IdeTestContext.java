@@ -76,6 +76,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
     this.inputValues = new LinkedList<>(values);
   }
 
+  @Override
   public String askForInput(String message) {
 
     return inputValues.isEmpty() ? null : inputValues.poll();

@@ -33,9 +33,10 @@ public class Mvn extends PluginBasedCommandlet {
   /** The name of the settings.xml */
   public static final String SETTINGS_FILE = "settings.xml";
 
-  private static final String M2_CONFIG_FOLDER = ".m2";
+  /** The name of the settings-security.xml */
+  public static final String SETTINGS_SECURITY_FILE = "settings-security.xml";
 
-  private static final String SETTINGS_SECURITY_FILE = "settings-security.xml";
+  private static final String M2_CONFIG_FOLDER = ".m2";
 
   private static final String DOCUMENTATION_PAGE_CONF = "https://github.com/devonfw/IDEasy/blob/main/documentation/conf.adoc";
 
