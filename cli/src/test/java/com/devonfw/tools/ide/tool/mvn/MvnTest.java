@@ -53,14 +53,14 @@ public class MvnTest extends AbstractIdeContextTest {
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
   public void testMvnRun(String os) {
-
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
     context.setInputValues(List.of("value1", "value2"));
     SystemInfo systemInfo = SystemInfoMock.of(os);
     context.setSystemInfo(systemInfo);
     Mvn commandlet = new Mvn(context);
-    commandlet.arguments.setValue(List.of("foo", "bar"));
+    commandlet.arguments.addValue("foo");
+    commandlet.arguments.addValue("bar");
 
     // act
     commandlet.run();
