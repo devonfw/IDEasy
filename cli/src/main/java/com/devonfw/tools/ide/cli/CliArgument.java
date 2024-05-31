@@ -5,17 +5,16 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Represents an argument for a command-line-interface (CLI) and a chain to all its {@link #getNext(boolean)
- * successors}.
+ * Represents an argument for a command-line-interface (CLI) and a chain to all its {@link #getNext(boolean) successors}.
  *
- * @since 1.0.0
  * @see #getNext(boolean)
+ * @since 1.0.0
  */
 public class CliArgument {
 
   /**
-   * The {@link #get() argument} to indicate the end of the options. If this string is given as argument, any further
-   * arguments are treated as values. This allows to provide values (e.g. a filename) starting with a hyphen ('-').
+   * The {@link #get() argument} to indicate the end of the options. If this string is given as argument, any further arguments are treated as values. This
+   * allows to provide values (e.g. a filename) starting with a hyphen ('-').
    */
   public static final String END_OPTIONS = "--";
 
@@ -144,8 +143,7 @@ public class CliArgument {
 
   /**
    * @param successors the number of {@link #getNext() successors} expected.
-   * @return {@code true} if at least the given number of {@link #getNext() successors} are available, {@code false}
-   *         otherwise.
+   * @return {@code true} if at least the given number of {@link #getNext() successors} are available, {@code false} otherwise.
    */
   public boolean hasMoreSuccessorsThan(int successors) {
 
@@ -173,8 +171,7 @@ public class CliArgument {
   }
 
   /**
-   * @param splitShortOpts - if {@code true} then combined short options will be split (so instead of "-fbd" you will
-   *        get "-f", "-b", "-d").
+   * @param splitShortOpts - if {@code true} then combined short options will be split (so instead of "-fbd" you will get "-f", "-b", "-d").
    * @return the next {@link CliArgument} or {@code null} if this is the {@link #isEnd() end}.
    */
   public CliArgument getNext(boolean splitShortOpts) {
@@ -194,8 +191,7 @@ public class CliArgument {
   }
 
   /**
-   * @return the {@code «key»} part if the {@link #get() argument} has the has the form {@code «key»=«value»}. Otherwise
-   *         the {@link #get() argument} itself.
+   * @return the {@code «key»} part if the {@link #get() argument} has the has the form {@code «key»=«value»}. Otherwise the {@link #get() argument} itself.
    */
   public String getKey() {
 
@@ -204,8 +200,7 @@ public class CliArgument {
   }
 
   /**
-   * @return the {@code «value»} part if the {@link #get() argument} has the has the form {@code «key»=«value»}.
-   *         Otherwise {@code null}.
+   * @return the {@code «value»} part if the {@link #get() argument} has the has the form {@code «key»=«value»}. Otherwise {@code null}.
    */
   public String getValue() {
 
@@ -228,8 +223,8 @@ public class CliArgument {
   }
 
   /**
-   * @return a {@link String} representing all arguments from this {@link CliArgument} recursively along is
-   *         {@link #getNext(boolean) next} arguments to the {@link #isEnd() end}.
+   * @return a {@link String} representing all arguments from this {@link CliArgument} recursively along is {@link #getNext(boolean) next} arguments to the
+   * {@link #isEnd() end}.
    */
   public String getArgs() {
 

@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.property;
 
-import java.util.Arrays;
-import java.util.Locale;
-import java.util.function.Consumer;
-
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
+
+import java.util.Arrays;
+import java.util.Locale;
+import java.util.function.Consumer;
 
 /**
  * {@link Property} with {@link Locale} as {@link #getValueType() value type}.
@@ -37,7 +37,7 @@ public class LocaleProperty extends Property<Locale> {
    */
   public LocaleProperty(String name, boolean required, String alias, Consumer<Locale> validator) {
 
-    super(name, required, alias, validator);
+    super(name, required, alias, false, validator);
   }
 
   @Override
@@ -53,8 +53,7 @@ public class LocaleProperty extends Property<Locale> {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
-      CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     collector.addAllMatches(arg, getAvailableLocales(), this, commandlet);
   }
