@@ -1,11 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
 import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -14,6 +8,12 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.variable.IdeVariables;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Abstract {@link Commandlet} base-class for both {@link UpdateCommandlet} and {@link CreateCommandlet}.
@@ -78,8 +78,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           this.context.debug("Configuration {} already exists - skipping to copy from {}", confPath, child);
         } else {
           if (!basename.equals("settings.xml")) {
-            this.context.info("Copying template {} to {}.", child, confPath);
-            this.context.getFileAccess().copy(child, confPath);
+            this.context.info("Copying template {} to {}.", child, conf);
+            this.context.getFileAccess().copy(child, conf);
           }
         }
       }
@@ -104,8 +104,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           String message = "Missing your settings at " + settingsPath + " and no SETTINGS_URL is defined.\n"
               + "Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.asciidoc\n"
               + "Please contact the technical lead of your project to get the SETTINGS_URL for your project.\n"
-              + "In case you just want to test IDEasy you may simply hit return to install the default settings.\n"
-              + "Settings URL [" + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
+              + "In case you just want to test IDEasy you may simply hit return to install the default settings.\n" + "Settings URL ["
+              + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
           repository = this.context.askForInput(message, IdeContext.DEFAULT_SETTINGS_REPO_URL);
         } else if ("-".equals(repository)) {
           repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
@@ -127,8 +127,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       Set<ToolCommandlet> toolCommandlets = new HashSet<>();
 
       // installed tools in IDE_HOME/software
-      List<Path> softwares = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(),
-          Files::isDirectory);
+      List<Path> softwares = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
       for (Path software : softwares) {
         String toolName = software.getFileName().toString();
         ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandletOrNull(toolName);
