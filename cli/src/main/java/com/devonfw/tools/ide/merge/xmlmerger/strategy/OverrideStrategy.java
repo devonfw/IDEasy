@@ -14,7 +14,7 @@ public class OverrideStrategy extends AbstractStrategy {
   }
 
   @Override
-  protected void mergeElement(MergeElement updateElement, MergeElement targetElement, Document targetDocument) {
+  protected void mergeElement(MergeElement updateElement, MergeElement targetElement) {
 
     this.context.debug("Overriding element {}", updateElement.getXPath());
     overrideElement(updateElement, targetElement);

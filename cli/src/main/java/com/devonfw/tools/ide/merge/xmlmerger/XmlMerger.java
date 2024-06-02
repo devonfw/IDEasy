@@ -5,6 +5,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.merge.FileMerger;
 import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
+import com.devonfw.tools.ide.merge.xmlmerger.strategy.OverrideStrategy;
 import com.devonfw.tools.ide.merge.xmlmerger.strategy.Strategy;
 import com.devonfw.tools.ide.merge.xmlmerger.strategy.StrategyFactory;
 import org.w3c.dom.Attr;
@@ -28,10 +29,9 @@ import java.nio.file.Path;
 
 public class XmlMerger extends FileMerger {
 
-  private final ElementMatcher elementMatcher;
   private static final DocumentBuilder DOCUMENT_BUILDER;
   private static final TransformerFactory TRANSFORMER_FACTORY;
-  private final StrategyFactory strategyFactory;
+  public static final String MERGE_NS_URI = "https://github.com/devonfw/IDEasy/merge";
 
 
 
@@ -49,8 +49,6 @@ public class XmlMerger extends FileMerger {
   public XmlMerger(IdeContext context) {
 
     super(context);
-    this.elementMatcher = new ElementMatcher();
-    this.strategyFactory = new StrategyFactory(context, elementMatcher);
   }
 
   @Override
@@ -81,12 +79,24 @@ public class XmlMerger extends FileMerger {
   public void merge(Document sourceDocument, Document targetDocument) {
 
     MergeElement updateRootElement = new MergeElement(sourceDocument.getDocumentElement());
-    Strategy strategy = strategyFactory.createStrategy(updateRootElement.getMergingStrategy());
+    StrategyFactory factory = new StrategyFactory(context, new ElementMatcher());
+    Strategy strategy = factory.createStrategy(updateRootElement.getMergingStrategy());
     strategy.merge(updateRootElement, targetDocument);
   }
   @Override
   public void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update) {
 
+    if (!Files.exists(workspace) || !Files.exists(update)) {
+      return;
+    }
+    Document updateDocument = load(update);
+    Document workspaceDocument = load(workspace);
+    Strategy strategy = new OverrideStrategy(context, null);
+    MergeElement rootElement = new MergeElement(workspaceDocument.getDocumentElement());
+    strategy.merge(rootElement, updateDocument);
+    resolve(updateDocument, variables, true, workspace.getFileName());
+    save(updateDocument, update);
+    this.context.debug("Saved changes in {} to {}", workspace.getFileName(), update);
   }
 
   public Document load(Path file) {

@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.merge.xmlmerger.model;
 
-import com.devonfw.tools.ide.merge.xmlmerger.annotation.MergeAnnotation;
+import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
 import com.devonfw.tools.ide.merge.xmlmerger.strategy.MergeStrategy;
 import org.w3c.dom.*;
 
@@ -27,9 +27,13 @@ public class MergeElement {
 
   public MergeStrategy getMergingStrategy() {
 
-    MergeStrategy mergeStrategy = MergeAnnotation.getMergeStrategy(element);
-    if (mergeStrategy != null) {
-      return mergeStrategy;
+    String strategy = this.element.getAttributeNS(XmlMerger.MERGE_NS_URI, "strategy").toLowerCase();
+    if ("combine".equals(strategy)) {
+      return MergeStrategy.COMBINE;
+    } else if ("override".equals(strategy)) {
+      return MergeStrategy.OVERRIDE;
+    } else if ("keep".equals(strategy)) {
+      return MergeStrategy.KEEP;
     }
 
     // Inherit merging strategy from parent
@@ -41,28 +45,19 @@ public class MergeElement {
     return MergeStrategy.KEEP; // Default strategy
   }
 
-  public String getId(Map<QName, String> qNameIdMap) {
+  public String getId() {
 
-    String mergeId = MergeAnnotation.getMergeId(element);
-    QName qname = getQName();
-
-    if (!mergeId.isEmpty()) {
-      qNameIdMap.put(qname, mergeId);
-      return mergeId;
+    String id =  this.element.getAttributeNS(XmlMerger.MERGE_NS_URI, "id");
+    if (!id.isEmpty()) {
+      return id;
     }
-
-    String cachedMergeId = qNameIdMap.get(qname);
-    if (cachedMergeId != null) {
-      return cachedMergeId;
-    }
-
-    // still support id attribute?
-    String idAttr = element.getAttribute("id");
-    if (!idAttr.isEmpty()) {
-      return idAttr;
+    id = element.getAttribute("id");
+    if (!id.isEmpty()) {
+      return "@" + id;
     }
     return null;
   }
+
 
   public QName getQName() {
 

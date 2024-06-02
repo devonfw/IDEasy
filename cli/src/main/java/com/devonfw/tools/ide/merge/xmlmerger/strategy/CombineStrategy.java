@@ -18,7 +18,7 @@ public class CombineStrategy extends AbstractStrategy {
   }
 
   @Override
-  protected void mergeElement(MergeElement updateElement, MergeElement targetElement, Document targetDocument) {
+  protected void mergeElement(MergeElement updateElement, MergeElement targetElement) {
 
     this.context.debug("Combining element {}", updateElement.getXPath());
     combineAttributes(updateElement, targetElement);

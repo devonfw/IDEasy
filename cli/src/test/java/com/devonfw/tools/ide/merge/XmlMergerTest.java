@@ -14,11 +14,11 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
   private static final Path TEST_RESOURCES = Path.of("src", "test", "resources", "xmlmerger");
 
-  public static final String SOURCE_XML = "source.xml";
+  private static final String SOURCE_XML = "source.xml";
 
-  public static final String TARGET_XML = "target.xml";
+  private static final String TARGET_XML = "target.xml";
 
-  public static final String RESULT_XML = "result.xml";
+  private static final String RESULT_XML = "result.xml";
 
   private IdeContext context = newContext(PROJECT_BASIC, null, false);
 

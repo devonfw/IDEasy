@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.merge.xmlmerger.model;
 
-import com.devonfw.tools.ide.merge.xmlmerger.annotation.MergeAnnotation;
+import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
 import org.w3c.dom.Attr;
 
 public class MergeAttribute {
@@ -25,7 +25,7 @@ public class MergeAttribute {
 
   public boolean isMergeNSAttr() {
 
-    return MergeAnnotation.MERGE_NS_URI.equals(attr.getNamespaceURI()) || MergeAnnotation.MERGE_NS_URI.equals(attr.getValue());
+    return XmlMerger.MERGE_NS_URI.equals(attr.getNamespaceURI()) || XmlMerger.MERGE_NS_URI.equals(attr.getValue());
   }
 
   public boolean isMergeNsIdAttr() {

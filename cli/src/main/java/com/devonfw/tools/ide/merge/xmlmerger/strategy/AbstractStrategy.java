@@ -23,13 +23,13 @@ public abstract class AbstractStrategy implements Strategy {
 
     MergeElement targetElement = elementMatcher.matchElement(updateElement, targetDocument);
     if (targetElement != null) {
-      mergeElement(updateElement, targetElement, targetDocument);
+      mergeElement(updateElement, targetElement);
     } else {
       appendElement(updateElement, targetDocument);
     }
   }
 
-  protected abstract void mergeElement(MergeElement updateElement, MergeElement targetElement, Document targetDocument);
+  protected abstract void mergeElement(MergeElement updateElement, MergeElement targetElement);
 
   protected void appendElement(MergeElement updateElement, Document targetDocument) {
 

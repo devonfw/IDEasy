@@ -12,7 +12,7 @@ public class KeepStrategy extends AbstractStrategy {
   }
 
   @Override
-  protected void mergeElement(MergeElement updateElement, MergeElement targetElement, Document targetDocument) {
+  protected void mergeElement(MergeElement updateElement, MergeElement targetElement) {
     // do nothing, keep the existing element
   }
 }
