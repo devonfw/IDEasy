@@ -10,22 +10,34 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+/**
+ * Merge Strategy implementation for combining XML elements.
+ */
 public class CombineStrategy extends AbstractStrategy {
 
+  /**
+   * @param context the IDE context
+   * @param elementMatcher the element matcher used for matching elements
+   */
   public CombineStrategy(IdeContext context, ElementMatcher elementMatcher) {
 
     super(context, elementMatcher);
   }
 
   @Override
-  protected void mergeElement(MergeElement updateElement, MergeElement targetElement) {
+  protected void mergeElement(MergeElement sourceElement, MergeElement targetElement) {
 
-    this.context.debug("Combining element {}", updateElement.getXPath());
-    combineAttributes(updateElement, targetElement);
-    combineChildNodes(updateElement, targetElement, targetElement.getElement().getOwnerDocument());
+    this.context.debug("Combining element {}", sourceElement.getXPath());
+    combineAttributes(sourceElement, targetElement);
+    combineChildNodes(sourceElement, targetElement);
   }
 
-
+  /**
+   * Combines attributes from the update element into the target element.
+   *
+   * @param updateElement the element with the new attributes
+   * @param targetElement the element to receive the new attributes
+   */
   private void combineAttributes(MergeElement updateElement, MergeElement targetElement) {
 
     this.context.debug("Combining attributes for {}", updateElement.getXPath());
@@ -42,7 +54,13 @@ public class CombineStrategy extends AbstractStrategy {
     }
   }
 
-  private void combineChildNodes(MergeElement updateElement, MergeElement targetElement, Document targetDocument) {
+  /**
+   * Combines child nodes from the update element into the target element.
+   *
+   * @param updateElement the element with the new child nodes
+   * @param targetElement the element to receive the new child nodes
+   */
+  private void combineChildNodes(MergeElement updateElement, MergeElement targetElement) {
 
     this.context.debug("Combining child nodes for {}", updateElement.getXPath());
     try {
@@ -50,13 +68,11 @@ public class CombineStrategy extends AbstractStrategy {
       for (int i = 0; i < updateChildNodes.getLength(); i++) {
         Node updateChild = updateChildNodes.item(i);
         if (updateChild.getNodeType() == Node.ELEMENT_NODE) {
-          // Handle element nodes
           MergeElement mergeUpdateChild = new MergeElement((Element) updateChild);
           StrategyFactory strategyFactory = new StrategyFactory(context, elementMatcher);
           Strategy strategy = strategyFactory.createStrategy(mergeUpdateChild.getMergingStrategy());
-          strategy.merge(mergeUpdateChild, targetDocument);
+          strategy.merge(mergeUpdateChild, targetElement.getElement().getOwnerDocument());
         } else if (updateChild.getNodeType() == Node.TEXT_NODE || updateChild.getNodeType() == Node.CDATA_SECTION_NODE) {
-          // Handle text and CDATA nodes
           if (!updateChild.getTextContent().isBlank()) {
             replaceTextNode(targetElement.getElement(), updateChild);
           }
@@ -67,6 +83,12 @@ public class CombineStrategy extends AbstractStrategy {
     }
   }
 
+  /**
+   * Replaces the text node in the target element with the text from the update element, otherwise appends it.
+   *
+   * @param targetElement the element to be updated
+   * @param updateChild the new text node
+   */
   private void replaceTextNode(Element targetElement, Node updateChild) {
 
     try {
@@ -74,19 +96,16 @@ public class CombineStrategy extends AbstractStrategy {
       for (int i = 0; i < targetChildNodes.getLength(); i++) {
         Node targetChild = targetChildNodes.item(i);
         if (targetChild.getNodeType() == Node.TEXT_NODE || targetChild.getNodeType() == Node.CDATA_SECTION_NODE) {
-          // Replace the text node content
           if (!targetChild.getTextContent().isBlank()) {
             targetChild.setTextContent(updateChild.getTextContent().trim());
             return;
           }
         }
       }
-      // If no text node was found, append the new text content
       Node importedNode = targetElement.getOwnerDocument().importNode(updateChild, true);
       targetElement.appendChild(importedNode);
     } catch (DOMException e) {
       throw new IllegalStateException("Failed to replace text node for element: " + targetElement.getTagName(), e);
     }
-
   }
 }

@@ -7,14 +7,20 @@ import org.w3c.dom.*;
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Represents an XML element during the merge process.
  */
 public class MergeElement {
+
+  /**
+   * The XML element represented by this MergeElement.
+   */
   private final Element element;
 
+  /**
+   * @param element the XML element
+   */
   public MergeElement(Element element) {
 
     this.element = element;
@@ -25,6 +31,11 @@ public class MergeElement {
     return element;
   }
 
+  /**
+   * Retrieves the merge strategy associated with this MergeElement.
+   *
+   * @return the merge strategy type
+   */
   public MergeStrategy getMergingStrategy() {
 
     String strategy = this.element.getAttributeNS(XmlMerger.MERGE_NS_URI, "strategy").toLowerCase();
@@ -45,20 +56,21 @@ public class MergeElement {
     return MergeStrategy.KEEP; // Default strategy
   }
 
+  /**
+   * Retrieves the value of the merge:id attribute of this MergeElement.
+   *
+   * @return the ID attribute value
+   */
   public String getId() {
 
-    String id =  this.element.getAttributeNS(XmlMerger.MERGE_NS_URI, "id");
-    if (!id.isEmpty()) {
-      return id;
-    }
-    id = element.getAttribute("id");
-    if (!id.isEmpty()) {
-      return "@" + id;
-    }
-    return null;
+    return this.element.getAttributeNS(XmlMerger.MERGE_NS_URI, "id");
   }
 
-
+  /**
+   * Retrieves the qualified name (URI + local name) of this MergeElement.
+   *
+   * @return the QName
+   */
   public QName getQName() {
 
     String namespaceURI = this.element.getNamespaceURI();
@@ -66,8 +78,11 @@ public class MergeElement {
     return new QName(namespaceURI, localName);
   }
 
-
-
+  /**
+   * Retrieves the parent element of this MergeElement.
+   *
+   * @return the parent element, or {@code null} if there is no parent
+   */
   private Element getParentElement() {
 
     Node parentNode = element.getParentNode();
@@ -77,8 +92,13 @@ public class MergeElement {
     return null;
   }
 
+  /**
+   * Retrieves the attributes of this MergeElement.
+   *
+   * @return a list of {@link MergeAttribute} objects representing the attributes, if there are no attributes, the list is empty.
+   */
   public List<MergeAttribute> getElementAttributes() {
-    
+
     NamedNodeMap attributes = element.getAttributes();
     List<MergeAttribute> attributeList = new ArrayList<>();
     for (int i = 0; i < attributes.getLength(); i++) {
@@ -87,11 +107,19 @@ public class MergeElement {
     return attributeList;
   }
 
+  /**
+   * Checks if this MergeElement is a root element.
+   *
+   * @return {@code true} if this element is a root element, {@code false} otherwise
+   */
   public boolean isRootElement() {
 
     return element.getParentNode().getNodeType() == Node.DOCUMENT_NODE;
   }
 
+  /**
+   * Removes merge namespace attributes from this MergeElement.
+   */
   public void removeMergeNsAttributes() {
 
     List<MergeAttribute> attributes = getElementAttributes();
@@ -106,6 +134,11 @@ public class MergeElement {
     }
   }
 
+  /**
+   * Retrieves the XPath of this MergeElement with no criterion. E.g. /root/.../element
+   *
+   * @return the XPath
+   */
   public String getXPath() {
 
     StringBuilder xpath = new StringBuilder();
@@ -119,6 +152,11 @@ public class MergeElement {
     return xpath.toString();
   }
 
+  /**
+   * Retrieves the child elements of this MergeElement.
+   *
+   * @return a list of {@link MergeElement} objects representing the child elements
+   */
   public List<MergeElement> getChildElements() {
 
     List<MergeElement> childElements = new ArrayList<>();
@@ -130,8 +168,6 @@ public class MergeElement {
         childElements.add(new MergeElement((Element) node));
       }
     }
-
     return childElements;
   }
-
 }

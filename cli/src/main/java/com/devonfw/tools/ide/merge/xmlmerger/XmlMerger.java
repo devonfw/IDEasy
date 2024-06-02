@@ -30,10 +30,10 @@ import java.nio.file.Path;
 public class XmlMerger extends FileMerger {
 
   private static final DocumentBuilder DOCUMENT_BUILDER;
+
   private static final TransformerFactory TRANSFORMER_FACTORY;
+
   public static final String MERGE_NS_URI = "https://github.com/devonfw/IDEasy/merge";
-
-
 
   static {
     try {
@@ -83,6 +83,7 @@ public class XmlMerger extends FileMerger {
     Strategy strategy = factory.createStrategy(updateRootElement.getMergingStrategy());
     strategy.merge(updateRootElement, targetDocument);
   }
+
   @Override
   public void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update) {
 
@@ -107,8 +108,9 @@ public class XmlMerger extends FileMerger {
       throw new IllegalStateException("Failed to load XML from: " + file, e);
     }
   }
+
   public void save(Document document, Path file) {
-    
+
     ensureParentDirectoryExists(file);
     try {
       Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
