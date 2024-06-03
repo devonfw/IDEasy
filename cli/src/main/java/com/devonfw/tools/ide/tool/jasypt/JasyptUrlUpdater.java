@@ -12,8 +12,6 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
 
   public static final DefaultArtifactVersion MIN_VERSION = new DefaultArtifactVersion("1.9.3");
 
-  private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+)\\.(\\d+)\\.(\\d+)");
-
   @Override
   protected String getTool() {
 
