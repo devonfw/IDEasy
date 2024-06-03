@@ -103,9 +103,9 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
       this.context.info("Converting legacy properties to {}", newPropertiesFilePath);
     }
     List<VariableLine> lines = new ArrayList<>();
+    
     if (!Files.exists(newPropertiesFilePath)) {
       try {
-        this.context.getFileAccess().mkdirs(newPropertiesFilePath.getParent());
         Files.createFile(newPropertiesFilePath);
       } catch (IOException e) {
         throw new IllegalStateException("Failed to create properties file with" + newPropertiesFilePath, e);
