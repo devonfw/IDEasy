@@ -40,12 +40,10 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
    *
    * @param parent the parent {@link EnvironmentVariables} to inherit from.
    * @param type the {@link #getType() type}.
-   * @param source the {@link #getSource() source}.
+   * @param propertiesFilePath the {@link #getSource() source}.
    * @param context the {@link IdeContext}.
-   * @param variables the underlying variables.
    */
-  EnvironmentVariablesPropertiesFile(AbstractEnvironmentVariables parent, EnvironmentVariablesType type,
-      Path propertiesFilePath, IdeContext context) {
+  EnvironmentVariablesPropertiesFile(AbstractEnvironmentVariables parent, EnvironmentVariablesType type, Path propertiesFilePath, IdeContext context) {
 
     super(parent, context);
     Objects.requireNonNull(type);
@@ -105,7 +103,15 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
       this.context.info("Converting legacy properties to {}", newPropertiesFilePath);
     }
     List<VariableLine> lines = new ArrayList<>();
-    try (BufferedReader reader = Files.newBufferedReader(this.propertiesFilePath)) {
+    if (!Files.exists(newPropertiesFilePath)) {
+      try {
+        this.context.getFileAccess().mkdirs(newPropertiesFilePath.getParent());
+        Files.createFile(newPropertiesFilePath);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to create properties file with" + newPropertiesFilePath, e);
+      }
+    }
+    try (BufferedReader reader = Files.newBufferedReader(newPropertiesFilePath)) {
       String line;
       do {
         line = reader.readLine();
