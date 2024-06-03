@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "mvn linux $*"
+echo "mvn windows $*"
