@@ -275,7 +275,11 @@ public class FileAccessImpl implements FileAccess {
     try {
       Files.move(source, targetDir);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to move " + source + " to " + targetDir, e);
+      String fileType = Files.isSymbolicLink(source) ? "symlink" : isJunction(source) ? "junction" : Files.isDirectory(source) ? "directory" : "file";
+      if (this.context.getSystemInfo().isWindows() && fileType.equals("directory")) {
+        this.context.warning("On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use.");
+      }
+      throw new IllegalStateException("Failed to move " + fileType + ": " + source + " to " + targetDir, e);
     }
   }
 
