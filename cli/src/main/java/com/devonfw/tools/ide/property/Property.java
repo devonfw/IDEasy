@@ -231,9 +231,7 @@ public abstract class Property<V> {
    */
   public void setValue(V value) {
 
-    if (!this.multivalued) {
-      this.value.clear();
-    }
+    this.value.clear();
     this.value.add(value);
   }
 
