@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.merge.xmlmerger.strategy;
 
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeAttribute;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
@@ -13,22 +12,15 @@ import org.w3c.dom.Element;
 public abstract class AbstractStrategy implements Strategy {
 
   /**
-   * The context
-   */
-  protected final IdeContext context;
-
-  /**
    * The matcher for matching elements in the XML document.
    */
   protected final ElementMatcher elementMatcher;
 
   /**
-   * @param context the IDE context
    * @param elementMatcher the element matcher used for matching elements
    */
-  public AbstractStrategy(IdeContext context, ElementMatcher elementMatcher) {
+  public AbstractStrategy(ElementMatcher elementMatcher) {
 
-    this.context = context;
     this.elementMatcher = elementMatcher;
   }
 
@@ -60,7 +52,6 @@ public abstract class AbstractStrategy implements Strategy {
   protected void appendElement(MergeElement updateElement, Document targetDocument) {
 
     try {
-      this.context.debug("Appending {}", updateElement.getXPath());
       updateAndRemoveNsAttributes(updateElement);
       Element parent = (Element) updateElement.getElement().getParentNode();
       MergeElement matchParent = elementMatcher.matchElement(new MergeElement(parent), targetDocument);

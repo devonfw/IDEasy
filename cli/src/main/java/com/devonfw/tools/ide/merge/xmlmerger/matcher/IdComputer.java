@@ -10,14 +10,27 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+/**
+ * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements in a target document.
+ */
 public class IdComputer {
+
   private final String id;
 
   private static XPathFactory xPathFactory = XPathFactory.newInstance();
 
   public IdComputer(String id) {
+
     this.id = id;
   }
+
+  /**
+   * Evaluates the XPath expression for the given merge element in the target document.
+   *
+   * @param mergeElement the merge element for which to build the XPath expression
+   * @param targetDocument the target document in which to evaluate the XPath expression
+   * @return the matched Element if found, or null if not found
+   */
 
   public Element evaluateExpression(MergeElement mergeElement, Document targetDocument) {
 
@@ -31,7 +44,13 @@ public class IdComputer {
     }
   }
 
-  public String buildXPathExpression(MergeElement mergeElement) {
+  /**
+   * Builds the XPath expression for the given merge element based on the ID value.
+   *
+   * @param mergeElement the merge element for which to build the XPath expression
+   * @return the XPath expression as a String
+   */
+  private String buildXPathExpression(MergeElement mergeElement) {
 
     String xPath = mergeElement.getXPath();
     if (id.startsWith(".")) {
@@ -51,4 +70,5 @@ public class IdComputer {
     }
     return null;
   }
+
 }

@@ -79,8 +79,7 @@ public class XmlMerger extends FileMerger {
   public void merge(Document sourceDocument, Document targetDocument) {
 
     MergeElement updateRootElement = new MergeElement(sourceDocument.getDocumentElement());
-    StrategyFactory factory = new StrategyFactory(context, new ElementMatcher());
-    Strategy strategy = factory.createStrategy(updateRootElement.getMergingStrategy());
+    Strategy strategy = StrategyFactory.createStrategy(updateRootElement.getMergingStrategy(), new ElementMatcher());
     strategy.merge(updateRootElement, targetDocument);
   }
 
@@ -92,7 +91,7 @@ public class XmlMerger extends FileMerger {
     }
     Document updateDocument = load(update);
     Document workspaceDocument = load(workspace);
-    Strategy strategy = new OverrideStrategy(context, null);
+    Strategy strategy = new OverrideStrategy(null);
     MergeElement rootElement = new MergeElement(workspaceDocument.getDocumentElement());
     strategy.merge(rootElement, updateDocument);
     resolve(updateDocument, variables, true, workspace.getFileName());

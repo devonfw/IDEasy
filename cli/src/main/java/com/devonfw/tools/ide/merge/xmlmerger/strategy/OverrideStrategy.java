@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.merge.xmlmerger.strategy;
 
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 import org.w3c.dom.Document;
@@ -12,18 +11,16 @@ import org.w3c.dom.Node;
 public class OverrideStrategy extends AbstractStrategy {
 
   /**
-   * @param context the context
    * @param elementMatcher the element matcher used for matching elements
    */
-  public OverrideStrategy(IdeContext context, ElementMatcher elementMatcher) {
+  public OverrideStrategy(ElementMatcher elementMatcher) {
 
-    super(context, elementMatcher);
+    super(elementMatcher);
   }
 
   @Override
   protected void mergeElement(MergeElement sourceElement, MergeElement targetElement) {
 
-    this.context.debug("Overriding element {}", sourceElement.getXPath());
     overrideElement(sourceElement, targetElement);
   }
 
