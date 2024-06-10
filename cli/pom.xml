@@ -90,6 +90,13 @@
       <artifactId>jansi</artifactId>
       <version>${jansi.version}</version>
     </dependency>
+    <dependency>
+      <!-- required for advanced mocking -->
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <version>1.14.15</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
 
   <build>
@@ -209,7 +216,7 @@
               </agent>
               <imageName>${imageName}</imageName>
               <buildArgs>
-                <arg>--enable-url-protocols=https</arg>
+                <arg>--enable-url-protocols=http,https</arg>
                 <arg>-H:IncludeResources="nls/.*"</arg>
                 <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
               </buildArgs>
