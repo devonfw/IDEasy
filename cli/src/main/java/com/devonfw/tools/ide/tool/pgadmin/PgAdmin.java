@@ -29,16 +29,6 @@ public class PgAdmin extends GlobalToolCommandlet {
   }
 
   @Override
-  public boolean isExtract() {
-
-    return switch (this.context.getSystemInfo().getOs()) {
-      case WINDOWS -> false;
-      case MAC -> false;
-      case LINUX -> true;
-    };
-  }
-
-  @Override
   protected boolean doInstall(boolean silent) {
 
     if (this.context.getSystemInfo().isLinux()) {
