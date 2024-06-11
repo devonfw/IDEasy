@@ -48,10 +48,10 @@ public class PgAdmin extends GlobalToolCommandlet {
     List<PackageManagerCommand> pmCommands = new ArrayList<>();
 
     pmCommands.add(new PackageManagerCommand(PackageManager.APT, Arrays.asList(
-        "curl -fsS https://www.pgadmin.org/static/packages_pgadmin_org.pub |"
+        "curl -fsS https://www.pgadmin.org/static/packages_pgadmin_org.pub | "
             + "sudo gpg --dearmor -o /usr/share/keyrings/packages-pgadmin-org.gpg",
-        "sudo sh -c 'echo \"deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg]"
-            + "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release -cs) pgadmin4 main\""
+        "sudo sh -c 'echo \"deb [signed-by=/usr/share/keyrings/packages-pgadmin-org.gpg] "
+            + "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release -cs) pgadmin4 main\" "
             + "> /etc/apt/sources.list.d/pgadmin4.list && apt update'",
         String.format("sudo apt install pgadmin4=%1$s pgadmin4-server=%1$s pgadmin4-desktop=%1$s pgadmin4-web=%1$s",
             resolvedVersion))));
