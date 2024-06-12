@@ -174,14 +174,14 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
       currentDir = getParentPath(currentDir);
     }
+
     // detection completed, initializing variables
-    setCwd(userDir, workspace, currentDir);
     Path ideRootPath = null;
     if (currentDir == null) {
       info(getMessageIdeHomeNotFound());
     } else {
       debug(getMessageIdeHomeFound());
-      ideRootPath = this.ideHome.getParent();
+      ideRootPath = currentDir.getParent();
     }
 
     if (!isTest()) {
@@ -200,6 +200,8 @@ public abstract class AbstractIdeContext implements IdeContext {
       error("IDE_ROOT is not set or not a valid directory.");
     }
     this.ideRoot = ideRootPath;
+
+    setCwd(userDir, workspace, currentDir);
 
     if (this.ideRoot == null) {
       this.toolRepository = null;
