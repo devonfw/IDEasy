@@ -40,7 +40,8 @@ import com.devonfw.tools.ide.url.model.UrlMetadata;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -598,7 +599,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     boolean online = false;
     try {
       int timeout = 1000;
-      online = InetAddress.getByName("github.com").isReachable(timeout);
+      //open a connection to github.com and try to retrieve data
+      //getContent fails if there is no connection
+      URLConnection connection = new URL("https://www.github.com").openConnection();
+      connection.setConnectTimeout(timeout);
+      connection.getContent();
+      online = true;
+
     } catch (Exception ignored) {
 
     }
