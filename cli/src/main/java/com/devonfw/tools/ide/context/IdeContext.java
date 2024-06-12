@@ -446,6 +446,19 @@ public interface IdeContext extends IdeLogger {
   }
 
   /**
+   * @return the String value for the variable M2_REPO, or null if called outside an IDEasy installation.
+   */
+  default String getMavenRepoEnvVariable() {
+
+    if (getIdeHome() != null) {
+      Path m2Repo = getConfPath().resolve(Mvn.M2_CONFIG_FOLDER).resolve("repository");
+      return m2Repo.toString();
+    }
+    return null;
+
+  }
+
+  /**
    * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters. This method is central to changing
    * the IDE's notion of where it operates, affecting where configurations, workspaces, settings, and other resources are located or loaded from.
    *

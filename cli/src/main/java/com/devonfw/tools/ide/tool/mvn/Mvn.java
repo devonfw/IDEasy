@@ -33,7 +33,8 @@ public class Mvn extends PluginBasedCommandlet {
   /** The name of the settings.xml */
   public static final String SETTINGS_FILE = "settings.xml";
 
-  private static final String M2_CONFIG_FOLDER = ".m2";
+  /** The name of the m2 repository */
+  public static final String M2_CONFIG_FOLDER = ".m2";
 
   private static final String SETTINGS_SECURITY_FILE = "settings-security.xml";
 
