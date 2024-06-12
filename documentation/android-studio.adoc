@@ -1,0 +1,52 @@
+:toc:
+toc::[]
+
+= android-studio
+
+The `android-studio` commandlet allows to install, configure, and launch https://developer.android.com/studio/[Android Studio].
+To launch Android Studio for your current workspace and `IDEasy` installation, simply run:
+`ide android-studio`
+
+There are link:variables.asciidoc[variables] that can be used for Android Studio.
+These are explained by the following table:
+
+.Variables of IDEasy for Android Studio
+[options="header"]
+|=======================
+|*Variable*|*Meaning*
+|*`ANDROID_STUDIO_VERSION`*  |The version of the tool Android Studio to install and use.
+|*`EXTRA_JAVA_VERSION`*      |You can set this to a different (newer) version of Java used to launch your IDE (other than `JAVA_VERSION` that is used to build your project)
+|=======================
+
+== plugins
+
+To be productive with Android Studio you need plugins.
+Of course `IDEasy` can automate this for you:
+In your link:settings.asciidoc[settings] git repository create a folder https://github.com/devonfw/ide-settings/tree/master/android-studio/plugins[android-studio/plugins] (click this link to see more examples and see which plugins come by default).
+Here you can create a properties file for each plugin.
+This is an example https://github.com/devonfw/ide-settings/blob/master/android-studio/plugins/asciidoc.properties[scala.properties]:
+```
+plugin_id=org.asciidoctor.intellij.asciidoc
+plugin_active=false
+```
+
+The variables are defined as following:
+
+* `plugin_id` defines the unique ID of the plugin to install.
+If you want to customize `IDEasy` with new plugins use the search on https://plugins.jetbrains.com/androidstudio to find the plugin of your choice.
+Select the tab `Versions` and click on a version in the list.
+The plugin ID is displayed in the upper right corner.
+Copy & paste the ID from here to make up your own custom config.
+* `plugin_active` is an optional parameter.
+If it is `true` (default) the plugin will be installed automatically during the project link:setup.asciidoc[setup] for all developers in your team.
+Otherwise, developers can still install the plugin manually via `ide android-studio add-plugin «plugin_id»`.
+
+In general, you should try to stick with the configuration pre-defined by your project.
+But some plugins may be considered as personal flavor and are typically not predefined by the project config.
+Such plugins should be shipped with your link:settings.asciidoc[settings] as described above with `plugin_active=false` allowing you to easily install it manually.
+Surely, you can easily add plugins via the UI of Android Studio.
+However, be aware that some plugins may collect sensitive data or could introduce other vulnerabilities.
+So consider the governance of your project and talk to your technical lead before installing additional plugins that are not pre-defined in your link:settings.asciidoc[settings].
+
+As maintainer of the link:settings.asciidoc[settings] for your project you should avoid to ship too many plugins that may waste resources but are not used by every developer.
+By configuring additional plugins with `plugin_active=false` you can give your developers the freedom to install some additional plugins easily.
