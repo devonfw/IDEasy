@@ -249,4 +249,15 @@ public class VersionIdentifierTest extends Assertions {
     assertThat(pattern.matches(VersionIdentifier.of("17.0-SNAPSHOT"))).isTrue();
   }
 
+  @Test
+  public void testCompareJavaVersions() {
+
+    VersionIdentifier v21_35 = VersionIdentifier.of("21_35");
+    VersionIdentifier v21_0_2_13 = VersionIdentifier.of("21.0.2_13");
+    VersionIdentifier v21_0_3_9 = VersionIdentifier.of("21.0.3_9");
+    assertThat(v21_35).isLessThan(v21_0_2_13);
+    assertThat(v21_0_2_13).isLessThan(v21_0_3_9);
+    assertThat(v21_0_3_9).isGreaterThan(v21_35);
+  }
+
 }

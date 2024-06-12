@@ -222,6 +222,12 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     if (!lettersResult.isEqual()) {
       return lettersResult;
     }
+    if (!"_".equals(this.separator) && "_".equals(other.separator)) {
+      return VersionComparisonResult.GREATER;
+    } else if ("_".equals(this.separator) && !"_".equals(other.separator)) {
+      return VersionComparisonResult.LESS;
+    }
+
     if (this.number < other.number) {
       return VersionComparisonResult.LESS;
     } else if (this.number > other.number) {
