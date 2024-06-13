@@ -231,8 +231,18 @@ public abstract class Property<V> {
    */
   public void setValue(V value) {
 
-    this.value.clear();
+    if (!this.multivalued) {
+      this.value.clear();
+    }
     this.value.add(value);
+  }
+
+  /**
+   * Clears the {@link #value value} list.
+   */
+  public void clearValue() {
+
+    this.value.clear();
   }
 
   public void addValue(V value) {
