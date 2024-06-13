@@ -486,6 +486,93 @@ if (condition()) {
 //System.err.println("that");
 ----
 
+== Field Initializion
+Non-static fields should never been initialized outside of the constructor call.
+
+First of all even Java developers with many years of experience will not see anything wrong with such code:
+```java
+public class MyClass {
+  private String name = null; // bad
+}
+```
+
+However, when inheritance comes into play you can easily get tricked by Java internals that average developers are not aware of.
+To understand the problem and why such assignments are bad code-style you need to understand what the Java compiler makes out of such code and when it gets executed.
+So let us look at the following example code (and lets not discuss if this example code makes much sense or not):
+```java
+public class MyClass {
+  private String message;
+
+  public MyClass(String name) {
+    this.message = computeMessage(name);
+  }
+
+  protected String computeMessage(String name) {
+    return "Hi " + name;
+  }
+
+  @Override
+  public String toString() {
+    return this.message;
+  }
+
+  public static class MySubClass extends MyClass {
+    private String name = null;
+    private String firstName = null;
+    public MySubClass(String firstName, String lastName) {
+      super(firstName + " " + lastName);
+      this.firstName = firstName;
+    }
+
+    @Override
+    protected String computeMessage(String name) {
+      this.name = name;
+      return super.computeMessage(name);
+    }
+
+    public String getName() {
+      return this.name;
+    }
+  }
+
+  public static void main(String[] args) {
+    MySubClass subClass = new MySubClass("John", "Doe");
+    System.out.println(subClass.getName());
+    System.out.println(subClass.toString());
+  }
+}
+```
+
+Now a average Java developer would expect this code to print the following output:
+```
+John Doe
+Hi John Doe
+``` 
+One could assume this since during the constructor call the overridden `computeMessage` method is invoked that assignes the `name` variable to `John Doe`.
+
+However, the output of this program is actually this:
+```
+null
+Hi John Doe
+``` 
+So why is this happening?
+The reason is that the Java compiler takes all field assignment statements and puts them in your constructor after the `super` call and before any other following constructor statements.
+So your constructor will actually look like this:
+```java
+    public MySubClass(String firstName, String lastName) {
+      super(firstName + " " + lastName);
+      this.name = null; // automatically inserted here by javac
+      this.firstName = null; // automatically inserted here by javac
+      this.firstName = firstName;
+    }
+```
+
+So if you would have written the code yourself in this way instead of assigning the fields directly when declared, you would more easily understand what is going wrong.
+Since the `name` field is properly assigned within the `super` call the assignment of `name` to the value `null` overrides this resulting in the actual program output.
+However, you can imagine how easily you can be tricked by such behavior and waste hours debugging your code until you find such problem.
+To avoid this, we recommend to never initialize non-static fields outside the constructor.
+If you further want to be more strict, then also avoid calling non-final methods from constructor calls.
+
 == Lambdas and Streams
 With Java8 you have cool new features like lambdas and monads like (`Stream`, `CompletableFuture`, `Optional`, etc.).
 However, these new features can also be misused or led to code that is hard to read or debug. To avoid pain, we give you the following best practices:
