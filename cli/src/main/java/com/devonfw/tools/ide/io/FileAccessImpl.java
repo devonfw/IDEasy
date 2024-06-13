@@ -54,6 +54,12 @@ import java.util.stream.Stream;
  */
 public class FileAccessImpl implements FileAccess {
 
+  private static final String WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/windows-file-lock.adoc";
+
+  private static final String WINDOWS_FILE_LOCK_WARNING =
+      "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: "
+          + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
+
   private final IdeContext context;
 
   /**
@@ -276,10 +282,7 @@ public class FileAccessImpl implements FileAccess {
       Files.move(source, targetDir);
     } catch (IOException e) {
       String fileType = Files.isSymbolicLink(source) ? "symlink" : isJunction(source) ? "junction" : Files.isDirectory(source) ? "directory" : "file";
-      if (this.context.getSystemInfo().isWindows() && fileType.equals("directory")) {
-        this.context.warning("On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use.");
-      }
-      throw new IllegalStateException("Failed to move " + fileType + ": " + source + " to " + targetDir, e);
+      throw new IllegalStateException("Failed to move " + fileType + ": " + source + " to " + targetDir + ". " + WINDOWS_FILE_LOCK_WARNING, e);
     }
   }
 
