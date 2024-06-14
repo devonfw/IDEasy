@@ -1,9 +1,10 @@
 package com.devonfw.tools.ide.environment;
 
-import java.util.Set;
-
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
+
+import java.util.Set;
 
 /**
  * Implementation of {@link EnvironmentVariables} that resolves variables recursively.
@@ -33,9 +34,9 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
   }
 
   @Override
-  public String get(String name, boolean ignoreDefaultValue) {
+  public String get(String name, boolean ignoreDefaultValue, WindowsPathSyntax pathSyntax) {
 
-    String value = getValue(name, ignoreDefaultValue);
+    String value = getValue(name, ignoreDefaultValue, pathSyntax);
     if (value != null) {
       value = resolve(value, name);
     }
