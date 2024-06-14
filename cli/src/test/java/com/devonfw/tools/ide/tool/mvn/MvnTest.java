@@ -4,11 +4,7 @@ import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoMock;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 
 import java.util.List;
 
@@ -36,29 +32,13 @@ public class MvnTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testMvnInstall() {
-
+  public void testMvnRun() {
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
     context.setInputValues(List.of("value1", "value2"));
-    Mvn commandlet = new Mvn(context);
-
-    // act
-    commandlet.install();
-
-    // assert
-    checkInstallation(context);
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testMvnRun(String os) {
-    // arrange
-    IdeTestContext context = newContext(PROJECT_MVN);
-    context.setInputValues(List.of("value1", "value2"));
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
-    Mvn commandlet = new Mvn(context);
+    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
+    install.tool.setValueAsString("mvn", context);
+    Mvn commandlet = (Mvn) install.tool.getValue();
     commandlet.arguments.addValue("foo");
     commandlet.arguments.addValue("bar");
 
@@ -66,7 +46,7 @@ public class MvnTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "mvn " + os + " foo bar");
+    assertLogMessage(context, IdeLogLevel.INFO, "mvn " + "foo bar");
     checkInstallation(context);
   }
 
