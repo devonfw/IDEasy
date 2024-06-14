@@ -448,11 +448,10 @@ public interface IdeContext extends IdeLogger {
   /**
    * @return the String value for the variable M2_REPO, or null if called outside an IDEasy installation.
    */
-  default String getMavenRepoEnvVariable() {
+  default Path getMavenRepoEnvVariable() {
 
     if (getIdeHome() != null) {
-      Path m2Repo = getConfPath().resolve(Mvn.M2_CONFIG_FOLDER).resolve("repository");
-      return m2Repo.toString();
+      return getConfPath().resolve(Mvn.M2_CONFIG_FOLDER).resolve("repository");
     }
     return null;
 
