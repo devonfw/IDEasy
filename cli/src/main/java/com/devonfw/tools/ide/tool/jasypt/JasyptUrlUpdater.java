@@ -33,7 +33,7 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
 
     VersionIdentifier artifactVersion = VersionIdentifier.of(version);
     if (artifactVersion != null) {
-      return artifactVersion.isGreaterOrEqual(VersionIdentifier.of(MIN_VERSION));
+      return artifactVersion.isGreaterOrEqual(MIN_VERSION);
     }
     return false;
   }
