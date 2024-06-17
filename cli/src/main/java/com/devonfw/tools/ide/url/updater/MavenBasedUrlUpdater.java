@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.url.updater;
 
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.devonfw.tools.ide.maven.MavenMetadata;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * The MvnCrawler class is an abstract class that provides functionality for crawling Maven repositories.
@@ -23,8 +23,7 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
   public MavenBasedUrlUpdater() {
 
     super();
-    this.mavenBaseRepoUrl = "https://repo1.maven.org/maven2/" + getMavenGroupIdPath() + "/" + getMavenArtifcatId()
-        + "/";
+    this.mavenBaseRepoUrl = "https://repo1.maven.org/maven2/" + getMavenGroupIdPath() + "/" + getMavenArtifcatId() + "/";
 
   }
 
@@ -74,12 +73,25 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
       XmlMapper mapper = new XmlMapper();
       MavenMetadata metaData = mapper.readValue(response, MavenMetadata.class);
       for (String version : metaData.getVersioning().getVersions()) {
-        addVersion(version, versions);
+        if (isValidVersion(version)) {
+          addVersion(version, versions);
+        }
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to get version from " + url, e);
     }
     return versions;
+  }
+
+  /**
+   * Subclasses should override this method to enforce version validation.
+   *
+   * @param version the version of the artifact.
+   * @return true as default implementation.
+   */
+  protected boolean isValidVersion(String version) {
+
+    return true;
   }
 
 }
