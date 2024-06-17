@@ -39,7 +39,7 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
   /**
    * The constructor.
    *
-   * @param name       the {@link #getName() variable name}.
+   * @param name the {@link #getName() variable name}.
    * @param legacyName the {@link #getLegacyName() legacy name}.
    */
   public AbstractVariableDefinition(String name, String legacyName) {
@@ -50,13 +50,13 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
   /**
    * The constructor.
    *
-   * @param name                the {@link #getName() variable name}.
-   * @param legacyName          the {@link #getLegacyName() legacy name}.
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
-   * @param forceDefaultValue   the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
    */
   public AbstractVariableDefinition(String name, String legacyName, Function<IdeContext, V> defaultValueFactory,
-                                    boolean forceDefaultValue) {
+      boolean forceDefaultValue) {
 
     this(name, legacyName, defaultValueFactory, forceDefaultValue, false);
   }
@@ -64,8 +64,8 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
   /**
    * The constructor.
    *
-   * @param name                the {@link #getName() variable name}.
-   * @param legacyName          the {@link #getLegacyName() legacy name}.
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
    */
   public AbstractVariableDefinition(String name, String legacyName, Function<IdeContext, V> defaultValueFactory) {
@@ -76,14 +76,14 @@ public abstract class AbstractVariableDefinition<V> implements VariableDefinitio
   /**
    * The constructor.
    *
-   * @param name                the {@link #getName() variable name}.
-   * @param legacyName          the {@link #getLegacyName() legacy name}.
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
-   * @param forceDefaultValue   the {@link #isForceDefaultValue() forceDefaultValue} flag.
-   * @param export              the {@link #isExport() export} flag.
+   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   * @param export the {@link #isExport() export} flag.
    */
   public AbstractVariableDefinition(String name, String legacyName, Function<IdeContext, V> defaultValueFactory,
-                                    boolean forceDefaultValue, boolean export) {
+      boolean forceDefaultValue, boolean export) {
 
     super();
     this.name = name;

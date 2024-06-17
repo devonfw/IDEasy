@@ -33,9 +33,9 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
   }
 
   @Override
-  public String get(String name, boolean ignoreDefaultValues) {
+  public String get(String name, boolean ignoreDefaultValue) {
 
-    String value = getValue(name, ignoreDefaultValues);
+    String value = getValue(name, ignoreDefaultValue);
     if (value != null) {
       value = resolve(value, name);
     }
