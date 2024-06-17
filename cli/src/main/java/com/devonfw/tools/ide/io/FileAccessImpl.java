@@ -284,7 +284,7 @@ public class FileAccessImpl implements FileAccess {
       String fileType = Files.isSymbolicLink(source) ? "symlink" : isJunction(source) ? "junction" : Files.isDirectory(source) ? "directory" : "file";
       String message = "Failed to move " + fileType + ": " + source + " to " + targetDir + ".";
       if (this.context.getSystemInfo().isWindows()) {
-        message = message + "\n" + WINDOWS_FILE_LOCK_WARNING
+        message = message + "\n" + WINDOWS_FILE_LOCK_WARNING;
       }
       throw new IllegalStateException(message, e);
     }
