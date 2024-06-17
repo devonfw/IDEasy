@@ -61,7 +61,9 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     initializeProject(newProjectPath);
     this.context.setIdeHome(newProjectPath);
     super.run();
-    if (!this.skipRepositories.isTrue()) {
+    if (this.skipRepositories.isTrue()) {
+      this.context.info("Skipping the cloning of project repositories as specified by the user.");
+    } else {
       updateRepositories();
     }
     this.context.success("Successfully created new project '{}'.", newProjectName);
