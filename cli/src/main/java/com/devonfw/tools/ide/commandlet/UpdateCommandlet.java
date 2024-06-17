@@ -15,7 +15,6 @@ public class UpdateCommandlet extends AbstractUpdateCommandlet {
   public UpdateCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(getName());
   }
 
   @Override
