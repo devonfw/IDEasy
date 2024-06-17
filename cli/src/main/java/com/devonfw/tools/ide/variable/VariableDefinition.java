@@ -1,11 +1,10 @@
 package com.devonfw.tools.ide.variable;
 
-import java.nio.file.Path;
-import java.util.Collection;
-
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.VariableLine;
+
+import java.util.Collection;
 
 /**
  * Interface for a definition of a variable.
@@ -78,8 +77,6 @@ public interface VariableDefinition<V> {
 
     if (value == null) {
       return "";
-    } else if (value instanceof Path) {
-      return value.toString().replace('\\', '/');
     } else if (value instanceof Collection<?> collection) {
       StringBuilder sb = new StringBuilder();
       for (Object element : collection) {
