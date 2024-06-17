@@ -68,7 +68,18 @@ public abstract class Commandlet {
   }
 
   /**
-   * @param nameOrAlias the potential {@link Property#getName() name} or {@link Property#getAlias() alias} of the requested {@link Property}.
+   * Clear the set values on all properties of the {@link Commandlet#propertiesList}
+   */
+  public void clearProperties() {
+
+    for (Property<?> property : this.propertiesList) {
+      property.clearValue();
+    }
+  }
+
+  /**
+   * @param nameOrAlias the potential {@link Property#getName() name} or {@link Property#getAlias() alias} of the
+   *     requested {@link Property}.
    * @return the requested {@link Property property} or {@code null} if not found.
    */
   public Property<?> getOption(String nameOrAlias) {
