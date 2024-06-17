@@ -57,7 +57,7 @@ public interface CompletionCandidateCollector {
       index++;
       count++;
     } else {
-      index = -index;
+      index = -index - 1;
     }
     while ((index >= 0) && (index < sortedCandidates.length)) {
       if (sortedCandidates[index].startsWith(text)) {
