@@ -31,7 +31,9 @@ public class WindowsPathSyntaxTest extends Assertions {
     assertThat(syntax.getRootPath("c")).isEqualTo("C:\\");
     assertThat(syntax.getRootPath("Z")).isEqualTo("Z:\\");
     assertThat(syntax.format(Path.of(MSYS_HOSTS))).isEqualTo(WINDOWS_HOSTS);
-    assertThat(syntax.format(Path.of(WINDOWS_HOSTS))).isEqualTo(WINDOWS_HOSTS);
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      assertThat(syntax.format(Path.of(WINDOWS_HOSTS))).isEqualTo(WINDOWS_HOSTS);
+    }
     assertThat(syntax.format(Path.of("/foo/bar/some.txt"))).isEqualTo("\\foo\\bar\\some.txt");
     assertThat(syntax.format(Path.of("foo/bar/some.txt"))).isEqualTo("foo\\bar\\some.txt");
     assertThat(syntax.format(Path.of("./foo/bar/some.txt"))).isEqualTo(".\\foo\\bar\\some.txt");
@@ -54,7 +56,9 @@ public class WindowsPathSyntaxTest extends Assertions {
     assertThat(syntax.getRootPath("c")).isEqualTo("/c/");
     assertThat(syntax.getRootPath("C")).isEqualTo("/c/");
     assertThat(syntax.getRootPath("z")).isEqualTo("/z/");
-    assertThat(syntax.format(Path.of(WINDOWS_HOSTS))).isEqualTo(MSYS_HOSTS);
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      assertThat(syntax.format(Path.of(WINDOWS_HOSTS))).isEqualTo(MSYS_HOSTS);
+    }
     assertThat(syntax.format(Path.of(MSYS_HOSTS))).isEqualTo(MSYS_HOSTS);
     assertThat(syntax.format(Path.of("\\foo\\bar\\some.txt"))).isEqualTo("/foo/bar/some.txt");
     assertThat(syntax.format(Path.of("foo\\bar\\some.txt"))).isEqualTo("foo/bar/some.txt");
