@@ -26,10 +26,9 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   public CreateCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(getName());
     newProject = add(new StringProperty("", true, "project"));
-    add(this.settingsRepo);
     this.skipRepositories = add(new FlagProperty("--skip-repositories", false, null));
+    add(this.settingsRepo);
   }
 
   @Override
