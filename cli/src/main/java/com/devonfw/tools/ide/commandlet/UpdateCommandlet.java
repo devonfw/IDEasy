@@ -16,7 +16,6 @@ public class UpdateCommandlet extends AbstractUpdateCommandlet {
 
     super(context);
     addKeyword(getName());
-    add(this.skipTools);
   }
 
   @Override

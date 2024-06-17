@@ -36,15 +36,25 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     super(context);
     this.settingsRepo = new StringProperty("", false, "settingsRepository");
-    this.skipTools = new FlagProperty("--skip-tools", false, null);
+    this.skipTools = add(new FlagProperty("--skip-tools", false, null));
   }
 
   @Override
   public void run() {
 
     updateSettings();
-    Path templatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
+    updateConf();
 
+    if (skipTools.isTrue()) {
+      this.context.info("Skipping installation/update of tools as specified by the user.");
+    } else {
+      updateSoftware();
+    }
+  }
+
+  private void updateConf() {
+
+    Path templatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
     if (!Files.exists(templatesFolder)) {
       Path legacyTemplatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_TEMPLATES);
       if (Files.exists(legacyTemplatesFolder)) {
@@ -61,12 +71,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       step.success();
     } finally {
       step.end();
-    }
-
-    if (skipTools.isTrue()) {
-      this.context.info("Skipping installation/update of tools as specified by the user.");
-    } else {
-      updateSoftware();
     }
   }
 
