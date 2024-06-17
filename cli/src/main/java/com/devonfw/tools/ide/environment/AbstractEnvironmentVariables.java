@@ -127,7 +127,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     for (String name : variableNames) {
       boolean export = isExported(name);
       if (!onlyExported || export) {
-        String value = get(name);
+        String value = get(name, false, pathSyntax);
         if (value != null) {
           variables.add(VariableLine.of(export, name, value));
         }
