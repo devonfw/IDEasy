@@ -22,6 +22,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.log.IdeSubLoggerNone;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
+import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -39,7 +40,8 @@ import com.devonfw.tools.ide.url.model.UrlMetadata;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -597,7 +599,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     boolean online = false;
     try {
       int timeout = 1000;
-      online = InetAddress.getByName("github.com").isReachable(timeout);
+      //open a connection to github.com and try to retrieve data
+      //getContent fails if there is no connection
+      URLConnection connection = new URL("https://www.github.com").openConnection();
+      connection.setConnectTimeout(timeout);
+      connection.getContent();
+      online = true;
+
     } catch (Exception ignored) {
 
     }
@@ -643,6 +651,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (defaultExecutionDirectory != null) {
       this.defaultExecutionDirectory = defaultExecutionDirectory;
     }
+  }
+
+  @Override
+  public ProxyContext getProxyContext() {
+
+    return new ProxyContext(this);
   }
 
   @Override
@@ -693,6 +707,18 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     String input = readLine().trim();
     return input.isEmpty() ? defaultValue : input;
+  }
+
+  @Override
+  public String askForInput(String message) {
+
+    String input;
+    do {
+      info(message);
+      input = readLine().trim();
+    } while (input.isEmpty());
+
+    return input;
   }
 
   @SuppressWarnings("unchecked")
