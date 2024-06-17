@@ -41,8 +41,11 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for version of maven (mvn). */
   VariableDefinitionVersion MVN_VERSION = new VariableDefinitionVersion("MVN_VERSION", "MAVEN_VERSION");
 
-  /** {@link VariableDefinition} arguments for maven to set the m2 repo location. */
+  /** {@link VariableDefinition} arguments for maven to locate the settings file. */
   VariableDefinitionString MAVEN_ARGS = new VariableDefinitionString("MAVEN_ARGS", null, c -> c.getMavenArgs(), false, true);
+
+  /** {@link VariableDefinition} arguments for maven to set the m2 repo location. */
+  VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, c -> c.getMavenRepoEnvVariable(), false, true);
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
   VariableDefinitionString DOCKER_EDITION = new VariableDefinitionString("DOCKER_EDITION", null, c -> "rancher");
@@ -58,7 +61,7 @@ public interface IdeVariables {
 
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, CREATE_START_SCRIPTS,
-      IDE_MIN_VERSION, MVN_VERSION, DOCKER_EDITION, JASYPT_OPTS, MAVEN_ARGS, PROJECT_NAME);
+      IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, JASYPT_OPTS, MAVEN_ARGS, PROJECT_NAME);
 
   /**
    * @param name the name of the requested {@link VariableDefinition}.
