@@ -55,13 +55,10 @@ jobs:
         uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: Setup Maven and Java
-        uses: s4u/setup-maven-action@v1.7.0
+      - name: Set up JDK
+        uses: actions/setup-java@v1
         with:
-          checkout-fetch-depth: 0
-          java-version: 17
-          java-distribution: temurin
-          maven-version: 3.9.6
+          java-version: '17'
       - uses: actions/download-artifact@v3
       - name: Make natives available and build project 
         run: |
