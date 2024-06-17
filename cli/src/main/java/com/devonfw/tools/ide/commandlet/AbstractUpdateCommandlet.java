@@ -63,7 +63,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       step.end();
     }
 
-    if (!skipTools.isTrue()) {
+    if (skipTools.isTrue()) {
+      this.context.info("Skipping installation/update of tools as specified by the user.");
+    } else {
       updateSoftware();
     }
   }
