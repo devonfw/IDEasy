@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.environment;
 
-import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
 
@@ -34,9 +33,9 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
   }
 
   @Override
-  public String get(String name, boolean ignoreDefaultValue, WindowsPathSyntax pathSyntax) {
+  public String get(String name, boolean ignoreDefaultValues) {
 
-    String value = getValue(name, ignoreDefaultValue, pathSyntax);
+    String value = getValue(name, ignoreDefaultValues);
     if (value != null) {
       value = resolve(value, name);
     }

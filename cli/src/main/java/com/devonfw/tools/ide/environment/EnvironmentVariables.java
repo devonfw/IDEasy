@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.environment;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.variable.VariableDefinition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -26,7 +25,7 @@ public interface EnvironmentVariables {
    */
   default String get(String name) {
 
-    return get(name, false, null);
+    return get(name, false);
   }
 
   /**
@@ -37,18 +36,6 @@ public interface EnvironmentVariables {
    * @return the value of the variable with the given {@code name}. Will be {@code null} if no such variable is defined.
    */
   default String get(String name, boolean ignoreDefaultValue) {
-    return get(name, ignoreDefaultValue, null);
-  }
-
-  /**
-   * @param name               the name of the environment variable to get.
-   * @param ignoreDefaultValue - {@code true} if the {@link VariableDefinition#getDefaultValue(IdeContext) default
-   *                           value} of a potential {@link VariableDefinition} shall be ignored, {@code false} to return default instead
-   *                           of {@code null}.
-   * @param pathSyntax         the {@link WindowsPathSyntax} or {@code null} for no Windows path conversion.
-   * @return the value of the variable with the given {@code name}. Will be {@code null} if no such variable is defined.
-   */
-  default String get(String name, boolean ignoreDefaultValue, WindowsPathSyntax pathSyntax) {
 
     String value = getFlat(name);
     if (value == null) {
@@ -197,17 +184,7 @@ public interface EnvironmentVariables {
    * @return the {@link Collection} of the {@link VariableLine}s defined by this {@link EnvironmentVariables} including
    * inheritance.
    */
-  default Collection<VariableLine> collectVariables() {
-
-    return collectVariables(null);
-  }
-
-  /**
-   * @param pathSyntax the {@link WindowsPathSyntax} or {@code null} for no Windows path conversion.
-   * @return the {@link Collection} of the {@link VariableLine}s defined by this {@link EnvironmentVariables} including
-   * inheritance.
-   */
-  Collection<VariableLine> collectVariables(WindowsPathSyntax pathSyntax);
+  Collection<VariableLine> collectVariables();
 
   /**
    * @return the {@link Collection} of the {@link VariableLine#isExport() exported} {@link VariableLine}s defined by

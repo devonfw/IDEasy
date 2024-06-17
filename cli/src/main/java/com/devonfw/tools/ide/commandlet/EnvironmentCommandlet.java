@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -56,7 +57,8 @@ public final class EnvironmentCommandlet extends Commandlet {
         pathSyntax = WindowsPathSyntax.WINDOWS;
       }
     }
-    Collection<VariableLine> variables = this.context.getVariables().collectVariables(pathSyntax);
+    ((AbstractIdeContext) this.context).setPathSyntax(pathSyntax);
+    Collection<VariableLine> variables = this.context.getVariables().collectVariables();
     for (VariableLine line : variables) {
       String lineValue = line.getValue();
       lineValue = "\"" + lineValue + "\"";

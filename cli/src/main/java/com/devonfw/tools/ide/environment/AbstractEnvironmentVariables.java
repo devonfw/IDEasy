@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.environment;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
 
@@ -108,18 +107,18 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   @Override
-  public final Collection<VariableLine> collectVariables(WindowsPathSyntax pathSyntax) {
+  public final Collection<VariableLine> collectVariables() {
 
-    return collectVariables(false, pathSyntax);
+    return collectVariables(false);
   }
 
   @Override
   public final Collection<VariableLine> collectExportedVariables() {
 
-    return collectVariables(true, null);
+    return collectVariables(true);
   }
 
-  private final Collection<VariableLine> collectVariables(boolean onlyExported, WindowsPathSyntax pathSyntax) {
+  private final Collection<VariableLine> collectVariables(boolean onlyExported) {
 
     Set<String> variableNames = new HashSet<>();
     collectVariables(variableNames);
@@ -127,7 +126,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     for (String name : variableNames) {
       boolean export = isExported(name);
       if (!onlyExported || export) {
-        String value = get(name, false, pathSyntax);
+        String value = get(name, false);
         if (value != null) {
           variables.add(VariableLine.of(export, name, value));
         }
@@ -207,7 +206,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     StringBuilder sb = new StringBuilder(value.length() + EXTRA_CAPACITY);
     do {
       String variableName = matcher.group(2);
-      String variableValue = resolvedVars.getValue(variableName, false, null);
+      String variableValue = resolvedVars.getValue(variableName, false);
       if (variableValue == null) {
         this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, src, value, rootSrc, rootValue);
         continue;
@@ -250,27 +249,26 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    * @param name               the name of the variable to get.
    * @param ignoreDefaultValue - {@code true} if the {@link VariableDefinition#getDefaultValue(IdeContext) default value} of a potential
    *                           {@link VariableDefinition} shall be ignored, {@code false} to return default instead of {@code null}.
-   * @param pathSyntax         the {@link WindowsPathSyntax} or {@code null} for no Windows path conversion.
    * @return the value of the variable.
    */
-  protected String getValue(String name, boolean ignoreDefaultValue, WindowsPathSyntax pathSyntax) {
+  protected String getValue(String name, boolean ignoreDefaultValue) {
 
     VariableDefinition<?> var = IdeVariables.get(name);
     String value;
     if ((var != null) && var.isForceDefaultValue()) {
-      value = var.getDefaultValueAsString(this.context, pathSyntax);
+      value = var.getDefaultValueAsString(this.context);
     } else {
-      value = this.parent.get(name);
+      value = this.parent.get(name, false);
     }
     if ((value == null) && (var != null)) {
       String key = var.getName();
       if (!name.equals(key)) {
         // try new name (e.g. IDE_TOOLS or IDE_HOME) if no value could be found by given legacy name (e.g.
         // DEVON_IDE_TOOLS or DEVON_IDE_HOME)
-        value = this.parent.get(key);
+        value = this.parent.get(key, false);
       }
       if ((value == null) && !ignoreDefaultValue) {
-        value = var.getDefaultValueAsString(this.context, pathSyntax);
+        value = var.getDefaultValueAsString(this.context);
       }
     }
     if ((value != null) && (value.startsWith("~/"))) {

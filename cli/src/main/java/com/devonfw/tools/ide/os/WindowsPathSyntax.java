@@ -39,7 +39,7 @@ public enum WindowsPathSyntax {
       char c2 = path.charAt(2);
       switch (this) {
         case WINDOWS: // 'C:\'
-          if ((c1 == ':') && (c2 == '\\') && (c0 >= 'A') && (c0 <= 'Z')) {
+          if ((c1 == ':') && ((c2 == '\\') || (c2 == '/')) && (c0 >= 'A') && (c0 <= 'Z')) {
             return Character.toString(c0);
           }
           break;

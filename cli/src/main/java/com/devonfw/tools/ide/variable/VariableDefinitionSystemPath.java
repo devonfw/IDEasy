@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.variable;
 
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.WindowsPathSyntax;
 
 import java.nio.file.Path;
 import java.util.function.Function;
@@ -92,7 +91,7 @@ public class VariableDefinitionSystemPath extends AbstractVariableDefinition<Sys
   }
 
   @Override
-  public String toString(SystemPath value, WindowsPathSyntax pathSyntax) {
-    return value.toString(pathSyntax);
+  public String toString(SystemPath value, IdeContext context) {
+    return value.toString(context.getPathSyntax());
   }
 }

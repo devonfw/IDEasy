@@ -84,7 +84,8 @@ public class VariableDefinitionPath extends AbstractVariableDefinition<Path> {
   }
 
   @Override
-  public String toString(Path value, WindowsPathSyntax pathSyntax) {
+  public String toString(Path value, IdeContext context) {
+    WindowsPathSyntax pathSyntax = context.getPathSyntax();
     if (pathSyntax != null) {
       return pathSyntax.format(value);
     } else {

@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.variable;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.VariableLine;
-import com.devonfw.tools.ide.os.WindowsPathSyntax;
 
 import java.util.Collection;
 
@@ -40,27 +39,15 @@ public interface VariableDefinition<V> {
    * @param context the {@link IdeContext}.
    * @return the default value as {@link String}. May be {@code null}.
    * @see #getDefaultValue(IdeContext)
-   * @see #toString(Object, WindowsPathSyntax)
+   * @see #toString(Object, IdeContext)
    */
   default String getDefaultValueAsString(IdeContext context) {
-
-    return getDefaultValueAsString(context, null);
-  }
-
-  /**
-   * @param context    the {@link IdeContext}.
-   * @param pathSyntax the desired {@link WindowsPathSyntax} or {@code null} if not on Windows.
-   * @return the default value as {@link String}. May be {@code null}.
-   * @see #getDefaultValue(IdeContext)
-   * @see #toString(Object, WindowsPathSyntax)
-   */
-  default String getDefaultValueAsString(IdeContext context, WindowsPathSyntax pathSyntax) {
 
     V value = getDefaultValue(context);
     if (value == null) {
       return null;
     }
-    return toString(value, pathSyntax);
+    return toString(value, context);
   }
 
   /**
@@ -83,11 +70,11 @@ public interface VariableDefinition<V> {
   boolean isExport();
 
   /**
-   * @param value      the typed value.
-   * @param pathSyntax the desired {@link WindowsPathSyntax} or {@code null} if not on Windows.
+   * @param value   the typed value.
+   * @param context the {@link IdeContext}.
    * @return the value converted to {@link String}.
    */
-  default String toString(V value, WindowsPathSyntax pathSyntax) {
+  default String toString(V value, IdeContext context) {
 
     if (value == null) {
       return "";

@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.variable;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
-import com.devonfw.tools.ide.os.WindowsPathSyntax;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -109,7 +108,7 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
   }
 
   @Override
-  public String toString(List<String> value, WindowsPathSyntax pathSyntax) {
+  public String toString(List<String> value, IdeContext context) {
 
     if (value == null) {
       return "";

@@ -25,6 +25,7 @@ import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -98,6 +99,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   private Path userHomeIde;
 
   private SystemPath path;
+
+  private WindowsPathSyntax pathSyntax;
 
   private final SystemInfo systemInfo;
 
@@ -1035,4 +1038,16 @@ public abstract class AbstractIdeContext implements IdeContext {
     throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
   }
 
+  @Override
+  public WindowsPathSyntax getPathSyntax() {
+    return this.pathSyntax;
+  }
+
+  /**
+   * @param pathSyntax new value of {@link #getPathSyntax()}.
+   */
+  public void setPathSyntax(WindowsPathSyntax pathSyntax) {
+
+    this.pathSyntax = pathSyntax;
+  }
 }
