@@ -36,7 +36,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     super(context);
     this.settingsRepo = new StringProperty("", false, "settingsRepository");
-    this.skipTools = new FlagProperty("--skip-tools", false, "skipTools");
+    this.skipTools = new FlagProperty("--skip-tools", false, null);
   }
 
   @Override
