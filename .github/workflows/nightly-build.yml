@@ -41,7 +41,7 @@ jobs:
       - name: Build native images with nativ maven plugin and extract in tar.gz
         shell: bash
         run: |
-          mvn -B -ntp -Pnative -DskipTests=true package
+          mvn -B -ntp -Pnative -DskipTests=true package -pl cli
 
       - uses: actions/upload-artifact@v3
         with:
