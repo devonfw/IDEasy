@@ -459,7 +459,9 @@ public abstract class Property<V> {
       return false;
     }
     if (this.validator != null) {
-      this.validator.accept(getValue());
+      for (V value : this.value) {
+        this.validator.accept(value);
+      }
     }
     return true;
   }
