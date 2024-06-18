@@ -176,7 +176,28 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   }
 
-  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile, boolean newInstallation) {
+  public void uninstall() {
+
+    try {
+      String commandletName = this.getName();
+      Path softwarePath = context.getSoftwarePath().resolve(commandletName);
+      if (Files.exists(softwarePath)) {
+        try {
+          context.getFileAccess().delete(softwarePath);
+          this.context.success("Successfully uninstalled " + commandletName);
+        } catch (Exception e) {
+          this.context.error("Couldn't uninstall " + commandletName);
+        }
+      } else {
+        this.context.warning("An installed version of " + commandletName + " does not exist");
+      }
+    } catch (Exception e) {
+      this.context.error(e.getMessage());
+    }
+  }
+
+  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile,
+      boolean newInstallation) {
 
     Path linkDir = getMacOsHelper().findLinkDir(rootDir, this.tool);
     Path binDir = linkDir;
