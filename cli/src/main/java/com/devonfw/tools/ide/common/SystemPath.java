@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.common;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 import java.io.File;
@@ -29,6 +30,8 @@ import java.util.stream.Stream;
  * therefore cannot be managed manually be the end-user.
  */
 public class SystemPath {
+
+  private static final Pattern REGEX_WINDOWS_PATH = Pattern.compile("([a-zA-Z]:)?(\\\\[a-zA-Z0-9\\s_.-]+)+\\\\?");
 
   private final String envPath;
 
@@ -66,9 +69,9 @@ public class SystemPath {
   /**
    * The constructor.
    *
-   * @param context {@link IdeContext} for the output of information.
-   * @param envPath the value of the PATH variable.
-   * @param ideRoot the {@link IdeContext#getIdeRoot() IDE_ROOT}.
+   * @param context      {@link IdeContext} for the output of information.
+   * @param envPath      the value of the PATH variable.
+   * @param ideRoot      the {@link IdeContext#getIdeRoot() IDE_ROOT}.
    * @param softwarePath the {@link IdeContext#getSoftwarePath() software path}.
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath) {
@@ -79,10 +82,10 @@ public class SystemPath {
   /**
    * The constructor.
    *
-   * @param context {@link IdeContext} for the output of information.
-   * @param envPath the value of the PATH variable.
-   * @param ideRoot the {@link IdeContext#getIdeRoot() IDE_ROOT}.
-   * @param softwarePath the {@link IdeContext#getSoftwarePath() software path}.
+   * @param context       {@link IdeContext} for the output of information.
+   * @param envPath       the value of the PATH variable.
+   * @param ideRoot       the {@link IdeContext#getIdeRoot() IDE_ROOT}.
+   * @param softwarePath  the {@link IdeContext#getSoftwarePath() software path}.
    * @param pathSeparator the path separator char (';' for Windows and ':' otherwise).
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath, char pathSeparator) {
@@ -219,60 +222,43 @@ public class SystemPath {
   @Override
   public String toString() {
 
-    return toString(false);
+    return toString(null);
   }
 
   /**
-   * @param bash - {@code true} to convert the PATH to bash syntax (relevant for git-bash or cygwin on windows),
-   * {@code false} otherwise.
+   * @param pathSyntax the {@link WindowsPathSyntax} to convert to.
    * @return this {@link SystemPath} as {@link String} for the PATH environment variable.
    */
-  public String toString(boolean bash) {
+  public String toString(WindowsPathSyntax pathSyntax) {
 
     char separator;
-    if (bash) {
+    if (pathSyntax == WindowsPathSyntax.MSYS) {
       separator = ':';
     } else {
       separator = this.pathSeparator;
     }
     StringBuilder sb = new StringBuilder(this.envPath.length() + 128);
     for (Path path : this.tool2pathMap.values()) {
-      appendPath(path, sb, separator, bash);
+      appendPath(path, sb, separator, pathSyntax);
     }
     for (Path path : this.paths) {
-      appendPath(path, sb, separator, bash);
+      appendPath(path, sb, separator, pathSyntax);
     }
     return sb.toString();
   }
 
-  private static void appendPath(Path path, StringBuilder sb, char separator, boolean bash) {
+  private static void appendPath(Path path, StringBuilder sb, char separator, WindowsPathSyntax pathSyntax) {
 
     if (sb.length() > 0) {
       sb.append(separator);
     }
-    String pathString = path.toString();
-    if (bash && (pathString.length() > 3) && (pathString.charAt(1) == ':')) {
-      pathString = convertWindowsPathToUnixPath(pathString);
+    String pathString;
+    if (pathSyntax == null) {
+      pathString = path.toString();
+    } else {
+      pathString = pathSyntax.format(path);
     }
     sb.append(pathString);
-  }
-
-  /**
-   * Method to convert a valid Windows path string representation to its corresponding one in Unix format.
-   *
-   * @param pathString The Windows path string to convert.
-   * @return The converted Unix path string.
-   */
-  public static String convertWindowsPathToUnixPath(String pathString) {
-
-    char slash = pathString.charAt(2);
-    if ((slash == '\\') || (slash == '/')) {
-      char drive = Character.toLowerCase(pathString.charAt(0));
-      if ((drive >= 'a') && (drive <= 'z')) {
-        pathString = "/" + drive + pathString.substring(2).replace('\\', '/');
-      }
-    }
-    return pathString;
   }
 
   /**
@@ -283,7 +269,6 @@ public class SystemPath {
    */
   public static boolean isValidWindowsPath(String pathString) {
 
-    String windowsFilePathRegEx = "([a-zA-Z]:)?(\\\\[a-zA-Z0-9\\s_.-]+)+\\\\?";
-    return Pattern.matches(windowsFilePathRegEx, pathString);
+    return REGEX_WINDOWS_PATH.matcher(pathString).matches();
   }
 }

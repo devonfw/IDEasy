@@ -25,7 +25,7 @@ public class VariableDefinitionSystemPath extends AbstractVariableDefinition<Sys
   /**
    * The constructor.
    *
-   * @param name the {@link #getName() variable name}.
+   * @param name       the {@link #getName() variable name}.
    * @param legacyName the {@link #getLegacyName() legacy name}.
    */
   public VariableDefinitionSystemPath(String name, String legacyName) {
@@ -36,13 +36,13 @@ public class VariableDefinitionSystemPath extends AbstractVariableDefinition<Sys
   /**
    * The constructor.
    *
-   * @param name the {@link #getName() variable name}.
-   * @param legacyName the {@link #getLegacyName() legacy name}.
+   * @param name                the {@link #getName() variable name}.
+   * @param legacyName          the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the
-   * {@link #getDefaultValue(IdeContext) default value}.
+   *                            {@link #getDefaultValue(IdeContext) default value}.
    */
   public VariableDefinitionSystemPath(String name, String legacyName,
-      Function<IdeContext, SystemPath> defaultValueFactory) {
+                                      Function<IdeContext, SystemPath> defaultValueFactory) {
 
     super(name, legacyName, defaultValueFactory);
   }
@@ -50,14 +50,14 @@ public class VariableDefinitionSystemPath extends AbstractVariableDefinition<Sys
   /**
    * The constructor.
    *
-   * @param name the {@link #getName() variable name}.
-   * @param legacyName the {@link #getLegacyName() legacy name}.
+   * @param name                the {@link #getName() variable name}.
+   * @param legacyName          the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the
-   * {@link #getDefaultValue(IdeContext) default value}.
-   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   *                            {@link #getDefaultValue(IdeContext) default value}.
+   * @param forceDefaultValue   the {@link #isForceDefaultValue() forceDefaultValue} flag.
    */
   public VariableDefinitionSystemPath(String name, String legacyName,
-      Function<IdeContext, SystemPath> defaultValueFactory, boolean forceDefaultValue) {
+                                      Function<IdeContext, SystemPath> defaultValueFactory, boolean forceDefaultValue) {
 
     super(name, legacyName, defaultValueFactory, forceDefaultValue);
   }
@@ -65,15 +65,15 @@ public class VariableDefinitionSystemPath extends AbstractVariableDefinition<Sys
   /**
    * The constructor.
    *
-   * @param name the {@link #getName() variable name}.
-   * @param legacyName the {@link #getLegacyName() legacy name}.
+   * @param name                the {@link #getName() variable name}.
+   * @param legacyName          the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the
-   * {@link #getDefaultValue(IdeContext) default value}.
-   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
-   * @param export the {@link #isExport() export} flag.
+   *                            {@link #getDefaultValue(IdeContext) default value}.
+   * @param forceDefaultValue   the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   * @param export              the {@link #isExport() export} flag.
    */
   public VariableDefinitionSystemPath(String name, String legacyName,
-      Function<IdeContext, SystemPath> defaultValueFactory, boolean forceDefaultValue, boolean export) {
+                                      Function<IdeContext, SystemPath> defaultValueFactory, boolean forceDefaultValue, boolean export) {
 
     super(name, legacyName, defaultValueFactory, forceDefaultValue, export);
   }
@@ -88,5 +88,10 @@ public class VariableDefinitionSystemPath extends AbstractVariableDefinition<Sys
   public SystemPath fromString(String value, IdeContext context) {
 
     return new SystemPath(context, value);
+  }
+
+  @Override
+  public String toString(SystemPath value, IdeContext context) {
+    return value.toString(context.getPathSyntax());
   }
 }
