@@ -179,17 +179,16 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public void uninstall() {
 
     try {
-      String commandletName = this.getName();
-      Path softwarePath = this.getToolPath();
+      Path softwarePath = getToolPath();
       if (Files.exists(softwarePath)) {
         try {
           context.getFileAccess().delete(softwarePath);
-          this.context.success("Successfully uninstalled " + commandletName);
+          this.context.success("Successfully uninstalled " + this.tool);
         } catch (Exception e) {
-          this.context.error("Couldn't uninstall " + commandletName);
+          this.context.error("Couldn't uninstall " + this.tool);
         }
       } else {
-        this.context.warning("An installed version of " + commandletName + " does not exist");
+        this.context.warning("An installed version of " + this.tool + " does not exist");
       }
     } catch (Exception e) {
       this.context.error(e.getMessage());
