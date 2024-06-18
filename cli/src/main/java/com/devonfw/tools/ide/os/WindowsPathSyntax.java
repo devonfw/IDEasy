@@ -39,7 +39,7 @@ public enum WindowsPathSyntax {
       char c2 = path.charAt(2);
       switch (this) {
         case WINDOWS: // 'C:\'
-          if ((c1 == ':') && ((c2 == '\\') || (c2 == '/')) && (c0 >= 'A') && (c0 <= 'Z')) {
+          if ((c1 == ':') && isSlash(c2) && (c0 >= 'A') && (c0 <= 'Z')) {
             return Character.toString(c0);
           }
           break;
@@ -53,6 +53,14 @@ public enum WindowsPathSyntax {
       }
     }
     return null;
+  }
+
+  private static boolean isSlash(char c2) {
+    // on Windows both slash (/) and backslash (\) are acceptable as folder separator in a Path
+    // While strict Windows syntax is to use backslash we are tolerant here so our Windows users can also configure
+    // a path in ide.properties using slashes since backslash is the escape character in Java properties files and then
+    // users have to use double backslash.
+    return (c2 == '\\') || (c2 == '/');
   }
 
   private static boolean isLowerLatinLetter(char c) {
