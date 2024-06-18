@@ -180,7 +180,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
     try {
       String commandletName = this.getName();
-      Path softwarePath = context.getSoftwarePath().resolve(commandletName);
+      Path softwarePath = this.getToolPath();
       if (Files.exists(softwarePath)) {
         try {
           context.getFileAccess().delete(softwarePath);
