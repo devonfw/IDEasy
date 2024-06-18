@@ -1,11 +1,11 @@
 package com.devonfw.tools.ide.nls;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
-
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.Property;
+
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
  * Wrapper for {@link ResourceBundle} to avoid {@link java.util.MissingResourceException}.
@@ -22,7 +22,7 @@ public class NlsBundle {
    * The constructor.
    *
    * @param context the {@link IdeContext}.
-   * @param name the simple name of {@link ResourceBundle} (e.g. "Cli").
+   * @param name    the simple name of {@link ResourceBundle} (e.g. "Cli").
    */
   public NlsBundle(IdeContext context, String name) {
 
@@ -33,7 +33,7 @@ public class NlsBundle {
    * The constructor.
    *
    * @param context the {@link IdeContext}.
-   * @param locale the explicit {@link Locale} to use.
+   * @param locale  the explicit {@link Locale} to use.
    */
   public NlsBundle(IdeContext context, Locale locale) {
 
@@ -44,8 +44,8 @@ public class NlsBundle {
    * The constructor.
    *
    * @param context the {@link IdeContext}.
-   * @param name the simple name of {@link ResourceBundle} (e.g. "Cli").
-   * @param locale the explicit {@link Locale} to use.
+   * @param name    the simple name of {@link ResourceBundle} (e.g. "Cli").
+   * @param locale  the explicit {@link Locale} to use.
    */
   public NlsBundle(IdeContext context, String name, Locale locale) {
 
@@ -81,8 +81,7 @@ public class NlsBundle {
   }
 
   /**
-   * @param commandlet the {@link com.devonfw.tools.ide.commandlet.Commandlet#getName() name} of the
-   *        {@link com.devonfw.tools.ide.commandlet.Commandlet}.
+   * @param commandlet the {@link com.devonfw.tools.ide.commandlet.Commandlet} to get the help summary for.
    * @return the localized message (translated to the users language).
    */
   public String get(Commandlet commandlet) {
@@ -91,8 +90,17 @@ public class NlsBundle {
   }
 
   /**
+   * @param commandlet the {@link com.devonfw.tools.ide.commandlet.Commandlet} to get the help detail for.
+   * @return the localized message (translated to the users language).
+   */
+  public String getDetail(Commandlet commandlet) {
+
+    return get("cmd." + commandlet.getName() + ".detail");
+  }
+
+  /**
    * @param commandlet the {@link Commandlet} {@link Commandlet#getProperties() owning} the given {@link Property}.
-   * @param property the {@link Property} to the the description of.
+   * @param property   the {@link Property} to the the description of.
    * @return the localized message describing the property.
    */
   public String get(Commandlet commandlet, Property<?> property) {

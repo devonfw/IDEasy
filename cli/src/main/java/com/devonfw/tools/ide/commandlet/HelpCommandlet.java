@@ -82,6 +82,10 @@ public final class HelpCommandlet extends Commandlet {
       collectOptions(options, cmd, bundle);
     }
     options.print();
+    if (cmd == null) {
+      this.context.info("");
+      this.context.info(bundle.getDetail(this.context.getCommandletManager().getCommandlet(HelpCommandlet.class)));
+    }
   }
 
   private void printCommandletHelp(NlsBundle bundle, Commandlet cmd) {
@@ -115,6 +119,7 @@ public final class HelpCommandlet extends Commandlet {
     }
     this.context.info(usage.toString());
     this.context.info(bundle.get(cmd));
+    this.context.info(bundle.getDetail(cmd));
     this.context.info("");
     this.context.info(bundle.get("values"));
     values.print();
