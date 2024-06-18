@@ -9,18 +9,24 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 /**
- * {@link ToolCommandlet} for <a href="http://www.jasypt.org/">Jasypt</a>, The java library which allows to add basic
- * encryption capabilities with minimum effort.
+ * {@link ToolCommandlet} for <a href="http://www.jasypt.org/">Jasypt</a>, The java library which allows to add basic encryption capabilities with minimum
+ * effort.
  */
 public class Jasypt extends LocalToolCommandlet {
 
+  /** {@link EnumProperty} for the command (encrypt or decrypt) */
   public final EnumProperty<JasyptCommand> command;
 
+  /** {@link PasswordProperty} for the master password */
   public final PasswordProperty masterPassword;
 
+  /** {@link PasswordProperty} for the secret to be encrypted or decrypted */
   public final PasswordProperty secret;
 
   private static final String CLASS_NAME_ENCRYPTION = "org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI";
@@ -84,14 +90,18 @@ public class Jasypt extends LocalToolCommandlet {
 
   private void runJasypt(String className) {
 
+    List<String> arguments = new ArrayList<>(
+        Arrays.asList("-cp", resolveJasyptJarPath().toString(), className, "password=" + this.masterPassword.getValue(), "input=" + this.secret.getValue()));
+
+    String jasyptOpts = this.context.getVariables().get("JASYPT_OPTS");
+    if (jasyptOpts != null && !jasyptOpts.trim().isEmpty()) {
+      String[] jasyptOptions = jasyptOpts.split("\\s+");
+
+      arguments.addAll(Arrays.asList(jasyptOptions));
+    }
+
     Java java = getCommandlet(Java.class);
-
-    String[] jasyptOptions = this.context.getVariables().get("JASYPT_OPTS").split(" ");
-    String algorithm = jasyptOptions[0];
-    String generatorClassName = jasyptOptions[1];
-
-    java.runTool(null, "-cp", resolveJasyptJarPath().toString(), className, algorithm, generatorClassName,
-        "password=" + this.masterPassword.getValue(), "input=" + this.secret.getValue());
+    java.runTool(null, arguments.toArray(new String[0]));
   }
 
   private Path resolveJasyptJarPath() {
