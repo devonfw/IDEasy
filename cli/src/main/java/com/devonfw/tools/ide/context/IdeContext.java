@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
@@ -438,7 +439,14 @@ public interface IdeContext extends IdeLogger {
     if (getIdeHome() != null) {
       Path mvnSettingsFile = getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
       if (Files.exists(mvnSettingsFile)) {
-        return "-s " + mvnSettingsFile;
+        String settingsPath;
+        WindowsPathSyntax pathSyntax = null; // getPathSyntax();
+        if (pathSyntax == null) {
+          settingsPath = mvnSettingsFile.toString();
+        } else {
+          settingsPath = pathSyntax.format(mvnSettingsFile);
+        }
+        return "-s " + settingsPath;
       }
     }
     return null;
@@ -448,14 +456,12 @@ public interface IdeContext extends IdeLogger {
   /**
    * @return the String value for the variable M2_REPO, or null if called outside an IDEasy installation.
    */
-  default String getMavenRepoEnvVariable() {
+  default Path getMavenRepoEnvVariable() {
 
     if (getIdeHome() != null) {
-      Path m2Repo = getConfPath().resolve(Mvn.M2_CONFIG_FOLDER).resolve("repository");
-      return m2Repo.toString();
+      return getConfPath().resolve(Mvn.M2_CONFIG_FOLDER).resolve("repository");
     }
     return null;
-
   }
 
   /**
@@ -520,5 +526,10 @@ public interface IdeContext extends IdeLogger {
    * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
    */
   String findBash();
+
+  /**
+   * @return the {@link WindowsPathSyntax} used for {@link Path} conversion or {@code null} for no such conversion (typically if not on Windows).
+   */
+  WindowsPathSyntax getPathSyntax();
 
 }
