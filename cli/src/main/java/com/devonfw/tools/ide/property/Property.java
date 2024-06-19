@@ -231,10 +231,15 @@ public abstract class Property<V> {
    */
   public void setValue(V value) {
 
-    if (!this.multivalued) {
-      this.value.clear();
-    }
     this.value.add(value);
+  }
+
+  /**
+   * Clears the {@link #value value} list.
+   */
+  public void clearValue() {
+
+    this.value.clear();
   }
 
   public void addValue(V value) {
@@ -454,7 +459,9 @@ public abstract class Property<V> {
       return false;
     }
     if (this.validator != null) {
-      this.validator.accept(getValue());
+      for (V value : this.value) {
+        this.validator.accept(value);
+      }
     }
     return true;
   }

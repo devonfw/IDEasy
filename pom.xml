@@ -19,6 +19,7 @@
   <properties>
     <github.repository>IDEasy</github.repository>
     <ide_version>${revision}</ide_version>
+    <java.version>17</java.version>
   </properties>
 
   <dependencies>
@@ -51,6 +52,7 @@
   <modules>
     <module>documentation</module>
     <module>cli</module>
+    <module>gui</module>
   </modules>
 
   <build>
