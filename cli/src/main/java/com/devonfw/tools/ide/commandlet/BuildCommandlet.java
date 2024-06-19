@@ -64,6 +64,8 @@ public class BuildCommandlet extends Commandlet {
 
           defaultToolOptions = getDefaultToolOptions(NPM_BUILD_OPTS.getName());
         }
+      } else {
+        throw new CliException("Could not find build descriptor - no pom.xml, build.gradle, or package.json found!");
       }
 
       if (this.arguments.asArray().length != 0) {
