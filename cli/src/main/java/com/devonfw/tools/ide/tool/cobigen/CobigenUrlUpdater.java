@@ -13,6 +13,12 @@ public class CobigenUrlUpdater extends MavenBasedUrlUpdater {
   }
 
   @Override
+  protected String getExtension() {
+
+    return ".tar.gz";
+  }
+
+  @Override
   protected String getMavenGroupIdPath() {
 
     return "com/devonfw/cobigen";
