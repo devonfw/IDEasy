@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
