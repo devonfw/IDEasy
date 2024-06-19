@@ -3,12 +3,16 @@ package com.devonfw.tools.ide.merge;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
+import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 class XmlMergerTest extends AbstractIdeContextTest {
 
@@ -25,122 +29,26 @@ class XmlMergerTest extends AbstractIdeContextTest {
   private XmlMerger merger = new XmlMerger(context);
 
   @Test
-  void testMergeStrategyCombine(@TempDir Path tempDir) throws Exception {
+  void testAllCases(@TempDir Path tempDir) throws Exception {
 
-    // arrange
-    Path folderPath = TEST_RESOURCES.resolve("combine");
-    Path sourcePath = folderPath.resolve(SOURCE_XML);
-    Path targetPath = tempDir.resolve(TARGET_XML);
-    Path resultPath = folderPath.resolve(RESULT_XML);
-    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
-
-    // act
-    merger.merge(null, sourcePath, context.getVariables(), targetPath);
-
-    // assert
-    assertThat(targetPath).hasContent(Files.readString(resultPath));
-  }
-
-  @Test
-  void testMergeStrategyOverride(@TempDir Path tempDir) throws Exception {
-
-    // arrange
-    Path folderPath = TEST_RESOURCES.resolve("override");
-    Path sourcePath = folderPath.resolve(SOURCE_XML);
-    Path targetPath = tempDir.resolve(TARGET_XML);
-    Path resultPath = folderPath.resolve(RESULT_XML);
-    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
-
-    // act
-    merger.merge(null, sourcePath, context.getVariables(), targetPath);
-
-    // assert
-    assertThat(targetPath).hasContent(Files.readString(resultPath));
-  }
-
-  @Test
-  void testMergeStrategyKeep(@TempDir Path tempDir) throws Exception {
-
-    // arrange
-    Path folderPath = TEST_RESOURCES.resolve("keep");
-    Path sourcePath = folderPath.resolve(SOURCE_XML);
-    Path targetPath = tempDir.resolve(TARGET_XML);
-    Path resultPath = folderPath.resolve(RESULT_XML);
-    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
-
-    // act
-    merger.merge(null, sourcePath, context.getVariables(), targetPath);
-
-    // assert
-    assertThat(targetPath).hasContent(Files.readString(resultPath));
-  }
-
-  @Test
-  void testMergeStrategyAppend(@TempDir Path tempDir) throws Exception {
-
-
-    // arrange
-    Path folderPath = TEST_RESOURCES.resolve("append");
-    Path sourcePath = folderPath.resolve(SOURCE_XML);
-    Path targetPath = tempDir.resolve(TARGET_XML);
-    Path resultPath = folderPath.resolve(RESULT_XML);
-    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
-
-    // act
-    merger.merge(null, sourcePath, context.getVariables(), targetPath);
-
-    // assert
-    assertThat(targetPath).hasContent(Files.readString(resultPath));
-  }
-
-  @Test
-  void testMergeStrategyId(@TempDir Path tempDir) throws Exception {
-
-    // arrange
-    Path folderPath = TEST_RESOURCES.resolve("id");
-    Path sourcePath = folderPath.resolve(SOURCE_XML);
-    Path targetPath = tempDir.resolve(TARGET_XML);
-    Path resultPath = folderPath.resolve(RESULT_XML);
-    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
-
-    // act
-    merger.merge(null, sourcePath, context.getVariables(), targetPath);
-
-    // assert
-    assertThat(targetPath).hasContent(Files.readString(resultPath));
-  }
-
-  @Test
-  void testMergeStrategyCombineNested(@TempDir Path tempDir) throws Exception {
-
-    // arrange
-    Path folderPath = TEST_RESOURCES.resolve("combineNested");
-    Path sourcePath = folderPath.resolve(SOURCE_XML);
-    Path targetPath = tempDir.resolve(TARGET_XML);
-    Path resultPath = folderPath.resolve(RESULT_XML);
-    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
-
-    // act
-    merger.merge(null, sourcePath, context.getVariables(), targetPath);
-
-    // assert
-    assertThat(targetPath).hasContent(Files.readString(resultPath));
-  }
-
-  @Test
-  void testMergeStrategyOverrideNested(@TempDir Path tempDir) throws Exception {
-
-    // arrange
-    Path folderPath = TEST_RESOURCES.resolve("overrideNested");
-    Path sourcePath = folderPath.resolve(SOURCE_XML);
-    Path targetPath = tempDir.resolve(TARGET_XML);
-    Path resultPath = folderPath.resolve(RESULT_XML);
-    Files.copy(folderPath.resolve(TARGET_XML), targetPath);
-
-    // act
-    merger.merge(null, sourcePath, context.getVariables(), targetPath);
-
-    // assert
-    assertThat(targetPath).hasContent(Files.readString(resultPath));
+    try(Stream<Path> folders = Files.list(TEST_RESOURCES)) {
+      // arrange
+      SoftAssertions softly = new SoftAssertions();
+      folders.forEach(folder -> {
+        Path sourcePath = folder.resolve(SOURCE_XML);
+        Path targetPath = tempDir.resolve(TARGET_XML);
+        Path resultPath = folder.resolve(RESULT_XML);
+        try {
+          Files.copy(folder.resolve(TARGET_XML), targetPath, REPLACE_EXISTING);
+          // act
+          merger.merge(null, sourcePath, context.getVariables(), targetPath);
+          // assert
+          softly.assertThat(targetPath).hasContent(Files.readString(resultPath));
+        } catch (IOException e) {
+          throw new IllegalStateException(e);
+        }
+      });
+      softly.assertAll();
+    }
   }
 }
