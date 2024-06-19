@@ -5,8 +5,8 @@
   <servers>
     <server>
       <id>repository</id>
-      <username>$[field1]</username>
-      <password>$[field2]</password>
+      <username>$[login]</username>
+      <password>$[password]</password>
     </server>
   </servers>
 
