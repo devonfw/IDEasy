@@ -200,7 +200,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
     if (ideRootPath == null || !Files.isDirectory(ideRootPath)) {
-      error("IDE_ROOT is not set or not a valid directory.");
+      error("You are not inside an IDEasy installation: " + System.getProperty("user.dir"));
     }
     this.ideRoot = ideRootPath;
 
@@ -874,10 +874,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to
-   *     {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run() run}.
-   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   *     {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
+   * {@link Commandlet#run() run}.
+   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
+   * {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -1042,6 +1042,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @Override
   public WindowsPathSyntax getPathSyntax() {
+
     return this.pathSyntax;
   }
 
