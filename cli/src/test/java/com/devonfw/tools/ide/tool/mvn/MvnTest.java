@@ -23,8 +23,13 @@ public class MvnTest extends AbstractIdeContextTest {
 
   private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\[(.*?)\\]");
 
+  /**
+   * Tests the installation of {@link Mvn}
+   *
+   * @throws IOException if an I/O error occurs during the installation process
+   */
   @Test
-  public void testMvnInstallCommandlet() throws IOException {
+  public void testMvnInstall() throws IOException {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
@@ -39,6 +44,11 @@ public class MvnTest extends AbstractIdeContextTest {
     checkInstallation(context);
   }
 
+  /**
+   * Tests the execution of {@link Mvn}
+   *
+   * @throws IOException if an I/O error occurs during the installation process
+   */
   @Test
   public void testMvnRun() throws IOException {
     // arrange
