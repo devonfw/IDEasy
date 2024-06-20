@@ -1,3 +1,2 @@
 #!/bin/bash
-echo "executing java:"
-cat $2 # .jar file
+echo "${@:6}" # optional arguments
