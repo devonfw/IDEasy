@@ -180,9 +180,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     // detection completed, initializing variables
     setCwd(userDir, workspace, currentDir);
     Path ideRootPath = null;
-    if (currentDir == null) {
-      info(getMessageIdeHomeNotFound());
-    } else {
+    if (currentDir != null) {
       debug(getMessageIdeHomeFound());
       ideRootPath = this.ideHome.getParent();
     }
