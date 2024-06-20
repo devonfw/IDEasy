@@ -93,7 +93,8 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     Properties indent = PropertiesMerger.load(indentFile);
     assertThat(indent).containsOnly(INDENTATION);
     assertThat(configFolder.resolve("layout.xml")).hasContent("""
-        <?xml version="1.0" encoding="UTF-8" standalone="no"?><layout>
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        <layout>
           <left>navigator</left>
           <right>debugger</right>
           <top>editor</top>
