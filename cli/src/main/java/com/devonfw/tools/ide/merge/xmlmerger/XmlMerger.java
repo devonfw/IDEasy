@@ -55,6 +55,7 @@ public class XmlMerger extends FileMerger {
   public void merge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
 
     Document document = null;
+    Path template = setup;
     boolean updateFileExists = Files.exists(update);
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
@@ -71,8 +72,9 @@ public class XmlMerger extends FileMerger {
         Document updateDocument = load(update);
         merge(updateDocument, document);
       }
+      template = update;
     }
-    resolve(document, resolver, false, workspace.getFileName());
+    resolve(document, resolver, false, template);
     save(document, workspace);
   }
 
@@ -169,7 +171,7 @@ public class XmlMerger extends FileMerger {
         if (inverse) {
           resolvedValue = variables.inverseResolve(value, src);
         } else {
-          resolvedValue = variables.resolve(value, src);
+          resolvedValue = variables.resolve(value, src, this.legacySupport);
         }
         text.setNodeValue(resolvedValue);
       }
@@ -185,7 +187,7 @@ public class XmlMerger extends FileMerger {
       if (inverse) {
         resolvedValue = variables.inverseResolve(value, src);
       } else {
-        resolvedValue = variables.resolve(value, src);
+        resolvedValue = variables.resolve(value, src, this.legacySupport);
       }
       attribute.setValue(resolvedValue);
     }
