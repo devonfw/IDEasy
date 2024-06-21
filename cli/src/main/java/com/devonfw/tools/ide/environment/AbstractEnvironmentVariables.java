@@ -35,10 +35,14 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
 
   private static final String VARIABLE_SUFFIX = "}";
 
-  /** @see #getParent() */
+  /**
+   * @see #getParent()
+   */
   protected final AbstractEnvironmentVariables parent;
 
-  /** The {@link IdeContext} instance. */
+  /**
+   * The {@link IdeContext} instance.
+   */
   protected final IdeContext context;
 
   private String source;
@@ -46,7 +50,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   /**
    * The constructor.
    *
-   * @param parent the parent {@link EnvironmentVariables} to inherit from.
+   * @param parent  the parent {@link EnvironmentVariables} to inherit from.
    * @param context the {@link IdeContext}.
    */
   public AbstractEnvironmentVariables(AbstractEnvironmentVariables parent, IdeContext context) {
@@ -122,7 +126,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     for (String name : variableNames) {
       boolean export = isExported(name);
       if (!onlyExported || export) {
-        String value = get(name);
+        String value = get(name, false);
         if (value != null) {
           variables.add(VariableLine.of(export, name, value));
         }
@@ -143,7 +147,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
 
   /**
    * @param propertiesFilePath the {@link #getPropertiesFilePath() propertiesFilePath} of the child {@link EnvironmentVariables}.
-   * @param type the {@link #getType() type}.
+   * @param type               the {@link #getType() type}.
    * @return the new {@link EnvironmentVariables}.
    */
   public AbstractEnvironmentVariables extend(Path propertiesFilePath, EnvironmentVariablesType type) {
@@ -168,21 +172,21 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   /**
    * This method is called recursively. This allows you to resolve variables that are defined by other variables.
    *
-   * @param value the {@link String} that potentially contains variables in the syntax "${«variable«}". Those will be resolved by this method and replaced with
-   * their {@link #get(String) value}.
-   * @param src the source where the {@link String} to resolve originates from. Should have a reasonable {@link Object#toString() string representation} that
-   * will be used in error or log messages if a variable could not be resolved.
-   * @param recursion the current recursion level. This is used to interrupt endless recursion.
-   * @param rootSrc the root source where the {@link String} to resolve originates from.
-   * @param rootValue the root value to resolve.
+   * @param value        the {@link String} that potentially contains variables in the syntax "${«variable«}". Those will be resolved by this method and replaced with
+   *                     their {@link #get(String) value}.
+   * @param src          the source where the {@link String} to resolve originates from. Should have a reasonable {@link Object#toString() string representation} that
+   *                     will be used in error or log messages if a variable could not be resolved.
+   * @param recursion    the current recursion level. This is used to interrupt endless recursion.
+   * @param rootSrc      the root source where the {@link String} to resolve originates from.
+   * @param rootValue    the root value to resolve.
    * @param resolvedVars this is a reference to an object of {@link EnvironmentVariablesResolved} being the lowest level in the
-   * {@link EnvironmentVariablesType hierarchy} of variables. In case of a self-referencing variable {@code x} the resolving has to continue one level higher in
-   * the {@link EnvironmentVariablesType hierarchy} to avoid endless recursion. The {@link EnvironmentVariablesResolved} is then used if another variable
-   * {@code y} must be resolved, since resolving this variable has to again start at the lowest level. For example: For levels {@code l1, l2} with
-   * {@code l1 < l2} and {@code x=${x} foo} and {@code y=bar} defined at level {@code l1} and {@code x=test ${y}} defined at level {@code l2}, {@code x} is
-   * first resolved at level {@code l1} and then up the {@link EnvironmentVariablesType hierarchy} at {@code l2} to avoid endless recursion. However, {@code y}
-   * must be resolved starting from the lowest level in the {@link EnvironmentVariablesType hierarchy} and therefore {@link EnvironmentVariablesResolved} is
-   * used.
+   *                     {@link EnvironmentVariablesType hierarchy} of variables. In case of a self-referencing variable {@code x} the resolving has to continue one level higher in
+   *                     the {@link EnvironmentVariablesType hierarchy} to avoid endless recursion. The {@link EnvironmentVariablesResolved} is then used if another variable
+   *                     {@code y} must be resolved, since resolving this variable has to again start at the lowest level. For example: For levels {@code l1, l2} with
+   *                     {@code l1 < l2} and {@code x=${x} foo} and {@code y=bar} defined at level {@code l1} and {@code x=test ${y}} defined at level {@code l2}, {@code x} is
+   *                     first resolved at level {@code l1} and then up the {@link EnvironmentVariablesType hierarchy} at {@code l2} to avoid endless recursion. However, {@code y}
+   *                     must be resolved starting from the lowest level in the {@link EnvironmentVariablesType hierarchy} and therefore {@link EnvironmentVariablesResolved} is
+   *                     used.
    * @return the given {@link String} with the variables resolved.
    */
   private String resolve(String value, Object src, int recursion, Object rootSrc, String rootValue, AbstractEnvironmentVariables resolvedVars) {
@@ -228,7 +232,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
         // resolving a self referencing variable one level up the hierarchy of EnvironmentVariablesType, i.e. at "next",
         // to avoid endless recursion
         String replacement = ((AbstractEnvironmentVariables) next).resolve(next.getFlat(variableName), variableName, recursion, rootSrc, rootValue,
-            resolvedVars);
+                resolvedVars);
         matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
 
       }
@@ -242,9 +246,9 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   /**
    * Like {@link #get(String)} but with higher-level features including to resolve {@link IdeVariables} with their default values.
    *
-   * @param name the name of the variable to get.
+   * @param name               the name of the variable to get.
    * @param ignoreDefaultValue - {@code true} if the {@link VariableDefinition#getDefaultValue(IdeContext) default value} of a potential
-   * {@link VariableDefinition} shall be ignored, {@code false} to return default instead of {@code null}.
+   *                           {@link VariableDefinition} shall be ignored, {@code false} to return default instead of {@code null}.
    * @return the value of the variable.
    */
   protected String getValue(String name, boolean ignoreDefaultValue) {
@@ -254,14 +258,14 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     if ((var != null) && var.isForceDefaultValue()) {
       value = var.getDefaultValueAsString(this.context);
     } else {
-      value = this.parent.get(name);
+      value = this.parent.get(name, false);
     }
     if ((value == null) && (var != null)) {
       String key = var.getName();
       if (!name.equals(key)) {
         // try new name (e.g. IDE_TOOLS or IDE_HOME) if no value could be found by given legacy name (e.g.
         // DEVON_IDE_TOOLS or DEVON_IDE_HOME)
-        value = this.parent.get(key);
+        value = this.parent.get(key, false);
       }
       if ((value == null) && !ignoreDefaultValue) {
         value = var.getDefaultValueAsString(this.context);
