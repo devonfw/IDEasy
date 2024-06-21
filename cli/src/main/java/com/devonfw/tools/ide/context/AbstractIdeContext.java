@@ -177,12 +177,12 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
       currentDir = getParentPath(currentDir);
     }
+
     // detection completed, initializing variables
-    setCwd(userDir, workspace, currentDir);
     Path ideRootPath = null;
     if (currentDir != null) {
       debug(getMessageIdeHomeFound());
-      ideRootPath = this.ideHome.getParent();
+      ideRootPath = currentDir.getParent();
     }
 
     if (!isTest()) {
@@ -201,6 +201,8 @@ public abstract class AbstractIdeContext implements IdeContext {
       error("You are not inside an IDEasy installation: " + System.getProperty("user.dir"));
     }
     this.ideRoot = ideRootPath;
+
+    setCwd(userDir, workspace, currentDir);
 
     if (this.ideRoot == null) {
       this.toolRepository = null;
