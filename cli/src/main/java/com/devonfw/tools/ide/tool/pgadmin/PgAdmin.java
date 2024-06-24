@@ -25,7 +25,7 @@ public class PgAdmin extends GlobalToolCommandlet {
   public PgAdmin(IdeContext context) {
 
     //TODO: add relevant Tag.
-    super(context, "pgadmin", Set.of(Tag.MISC));
+    super(context, "pgadmin", Set.of(Tag.DB));
   }
 
   @Override
