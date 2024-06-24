@@ -284,6 +284,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * Uninstalls the {@link #getName() tool}.
+   */
+  public abstract void uninstall();
+
+  /**
    * List the available editions of this tool.
    */
   public void listEditions() {
