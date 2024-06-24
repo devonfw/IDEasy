@@ -32,13 +32,13 @@ public class PgAdmin extends GlobalToolCommandlet {
   protected boolean doInstall(boolean silent) {
 
     if (this.context.getSystemInfo().isLinux()) {
-      return installWithPackageManager(silent, getPackageManagerCommands());
+      return runWithPackageManager(silent, getPackageManagerCommandsInstall());
     } else {
       return super.doInstall(silent);
     }
   }
 
-  private List<PackageManagerCommand> getPackageManagerCommands() {
+  private List<PackageManagerCommand> getPackageManagerCommandsInstall() {
 
     String edition = getEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
