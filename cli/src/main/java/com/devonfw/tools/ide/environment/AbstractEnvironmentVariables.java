@@ -1,8 +1,10 @@
 package com.devonfw.tools.ide.environment;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
+import com.devonfw.tools.ide.variable.VariableSyntax;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -11,7 +13,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Abstract base implementation of {@link EnvironmentVariables}.
@@ -24,16 +25,9 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    */
   private static final int EXTRA_CAPACITY = 8;
 
-  // Variable surrounded with "${" and "}" such as "${JAVA_HOME}" 1......2........
-  private static final Pattern VARIABLE_SYNTAX = Pattern.compile("(\\$\\{([^}]+)})");
-
   private static final String SELF_REFERENCING_NOT_FOUND = "";
 
   private static final int MAX_RECURSION = 9;
-
-  private static final String VARIABLE_PREFIX = "${";
-
-  private static final String VARIABLE_SUFFIX = "}";
 
   /**
    * @see #getParent()
@@ -164,9 +158,14 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   @Override
-  public String resolve(String string, Object src) {
+  public String resolve(String string, Object source) {
+    return resolveRecursive(string, source, 0, this, new ResolveContext(source, string, false, VariableSyntax.CURLY));
+  }
 
-    return resolve(string, src, 0, src, string, this);
+  @Override
+  public String resolve(String string, Object source, boolean legacySupport) {
+
+    return resolveRecursive(string, source, 0, this, new ResolveContext(source, string, legacySupport, null));
   }
 
   /**
@@ -174,11 +173,9 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    *
    * @param value        the {@link String} that potentially contains variables in the syntax "${«variable«}". Those will be resolved by this method and replaced with
    *                     their {@link #get(String) value}.
-   * @param src          the source where the {@link String} to resolve originates from. Should have a reasonable {@link Object#toString() string representation} that
+   * @param source       the source where the {@link String} to resolve originates from. Should have a reasonable {@link Object#toString() string representation} that
    *                     will be used in error or log messages if a variable could not be resolved.
    * @param recursion    the current recursion level. This is used to interrupt endless recursion.
-   * @param rootSrc      the root source where the {@link String} to resolve originates from.
-   * @param rootValue    the root value to resolve.
    * @param resolvedVars this is a reference to an object of {@link EnvironmentVariablesResolved} being the lowest level in the
    *                     {@link EnvironmentVariablesType hierarchy} of variables. In case of a self-referencing variable {@code x} the resolving has to continue one level higher in
    *                     the {@link EnvironmentVariablesType hierarchy} to avoid endless recursion. The {@link EnvironmentVariablesResolved} is then used if another variable
@@ -187,34 +184,58 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    *                     first resolved at level {@code l1} and then up the {@link EnvironmentVariablesType hierarchy} at {@code l2} to avoid endless recursion. However, {@code y}
    *                     must be resolved starting from the lowest level in the {@link EnvironmentVariablesType hierarchy} and therefore {@link EnvironmentVariablesResolved} is
    *                     used.
+   * @param context      the {@link ResolveContext}.
    * @return the given {@link String} with the variables resolved.
    */
-  private String resolve(String value, Object src, int recursion, Object rootSrc, String rootValue, AbstractEnvironmentVariables resolvedVars) {
+  private String resolveRecursive(String value, Object source, int recursion, AbstractEnvironmentVariables resolvedVars, ResolveContext context) {
 
     if (value == null) {
       return null;
     }
     if (recursion > MAX_RECURSION) {
-      throw new IllegalStateException("Reached maximum recursion resolving " + value + " for root variable " + rootSrc + " with value '" + rootValue + "'.");
+      throw new IllegalStateException("Reached maximum recursion resolving " + value + " for root variable " + context.rootSrc + " with value '" + context.rootValue + "'.");
     }
     recursion++;
 
-    Matcher matcher = VARIABLE_SYNTAX.matcher(value);
+    String resolved;
+    if (context.syntax == null) {
+      resolved = resolveWithSyntax(value, source, recursion, resolvedVars, context, VariableSyntax.SQUARE);
+      if (context.legacySupport) {
+        resolved = resolveWithSyntax(value, source, recursion, resolvedVars, context, VariableSyntax.CURLY);
+      }
+    } else {
+      resolved = resolveWithSyntax(value, source, recursion, resolvedVars, context, context.syntax);
+    }
+    return resolved;
+  }
+
+  private String resolveWithSyntax(final String value, final Object src, final int recursion, final AbstractEnvironmentVariables resolvedVars, final ResolveContext context, final VariableSyntax syntax) {
+
+    Matcher matcher = syntax.getPattern().matcher(value);
     if (!matcher.find()) {
       return value;
     }
     StringBuilder sb = new StringBuilder(value.length() + EXTRA_CAPACITY);
     do {
-      String variableName = matcher.group(2);
+      String variableName = syntax.getVariable(matcher);
       String variableValue = resolvedVars.getValue(variableName, false);
       if (variableValue == null) {
-        this.context.warning("Undefined variable {} in '{}={}' for root '{}={}'", variableName, src, value, rootSrc, rootValue);
+        IdeLogLevel logLevel = IdeLogLevel.WARNING;
+        if (context.legacySupport && (syntax == VariableSyntax.CURLY)) {
+          logLevel = IdeLogLevel.INFO;
+        }
+        String var = matcher.group();
+        if (recursion > 1) {
+          this.context.level(logLevel).log("Undefined variable {} in '{}' at '{}={}'", var, context.rootSrc, src, value);
+        } else {
+          this.context.level(logLevel).log("Undefined variable {} in '{}'", var, src);
+        }
         continue;
       }
       EnvironmentVariables lowestFound = findVariable(variableName);
       if ((lowestFound == null) || !lowestFound.getFlat(variableName).equals(value)) {
         // looking for "variableName" starting from resolved upwards the hierarchy
-        String replacement = resolvedVars.resolve(variableValue, variableName, recursion, rootSrc, rootValue, resolvedVars);
+        String replacement = resolvedVars.resolveRecursive(variableValue, variableName, recursion, resolvedVars, context);
         matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
       } else { // is self referencing
         // finding next occurrence of "variableName" up the hierarchy of EnvironmentVariablesType
@@ -231,8 +252,8 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
         }
         // resolving a self referencing variable one level up the hierarchy of EnvironmentVariablesType, i.e. at "next",
         // to avoid endless recursion
-        String replacement = ((AbstractEnvironmentVariables) next).resolve(next.getFlat(variableName), variableName, recursion, rootSrc, rootValue,
-                resolvedVars);
+        String replacement = ((AbstractEnvironmentVariables) next).resolveRecursive(next.getFlat(variableName), variableName, recursion, resolvedVars, context
+        );
         matcher.appendReplacement(sb, Matcher.quoteReplacement(replacement));
 
       }
@@ -278,7 +299,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   @Override
-  public String inverseResolve(String string, Object src) {
+  public String inverseResolve(String string, Object src, VariableSyntax syntax) {
 
     String result = string;
     // TODO add more variables to IdeVariables like JAVA_HOME
@@ -290,7 +311,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
           value = variable.getDefaultValueAsString(this.context);
         }
         if (value != null) {
-          result = result.replace(value, VARIABLE_PREFIX + name + VARIABLE_SUFFIX);
+          result = result.replace(value, syntax.create(name));
         }
       }
     }
@@ -304,6 +325,18 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   public String toString() {
 
     return getSource();
+  }
+
+  /**
+   * Simple record for the immutable arguments of recursive resolve methods.
+   *
+   * @param rootSrc       the root source where the {@link String} to resolve originates from.
+   * @param rootValue     the root value to resolve.
+   * @param legacySupport flag for legacy support (see {@link #resolve(String, Object, boolean)}). Only considered if {@link #syntax()} is {@code null}.
+   * @param syntax        the explicit {@link VariableSyntax} to use.
+   */
+  private static record ResolveContext(Object rootSrc, String rootValue, boolean legacySupport, VariableSyntax syntax) {
+
   }
 
 }

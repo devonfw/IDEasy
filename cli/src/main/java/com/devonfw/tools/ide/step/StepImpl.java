@@ -38,10 +38,10 @@ public final class StepImpl implements Step {
    * Creates and starts a new {@link StepImpl}.
    *
    * @param context the {@link IdeContext}.
-   * @param parent the {@link #getParent() parent step}.
-   * @param name the {@link #getName() step name}.
-   * @param silent the {@link #isSilent() silent flag}.
-   * @param params the parameters. Should have reasonable {@link Object#toString() string representations}.
+   * @param parent  the {@link #getParent() parent step}.
+   * @param name    the {@link #getName() step name}.
+   * @param silent  the {@link #isSilent() silent flag}.
+   * @param params  the parameters. Should have reasonable {@link Object#toString() string representations}.
    */
   public StepImpl(AbstractIdeContext context, StepImpl parent, String name, boolean silent, Object... params) {
 
@@ -124,7 +124,7 @@ public final class StepImpl implements Step {
   }
 
   @Override
-  public void end() {
+  public void close() {
 
     end(null, null, false, null, null);
   }

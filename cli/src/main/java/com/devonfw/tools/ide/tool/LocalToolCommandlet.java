@@ -24,8 +24,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * The constructor.
    *
    * @param context the {@link IdeContext}.
-   * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
+   * @param tool    the {@link #getName() tool name}.
+   * @param tags    the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
   public LocalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -91,7 +91,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       step.error(e, true);
       throw e;
     } finally {
-      step.end();
+      step.close();
     }
 
   }
@@ -125,8 +125,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet} only in the central software
    * repository without touching the IDE installation.
    *
-   * @param version the {@link VersionIdentifier} requested to be installed. May also be a {@link VersionIdentifier#isPattern() version pattern}.
-   * @param edition the specific edition to install.
+   * @param version        the {@link VersionIdentifier} requested to be installed. May also be a {@link VersionIdentifier#isPattern() version pattern}.
+   * @param edition        the specific edition to install.
    * @param toolRepository the {@link ToolRepository} to use.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
    */
@@ -134,7 +134,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version);
     Path toolPath = this.context.getSoftwareRepositoryPath().resolve(toolRepository.getId()).resolve(this.tool).resolve(edition)
-        .resolve(resolvedVersion.toString());
+            .resolve(resolvedVersion.toString());
     Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
     FileAccess fileAccess = this.context.getFileAccess();
     if (Files.isDirectory(toolPath)) {
@@ -196,7 +196,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile,
-      boolean newInstallation) {
+                                                  boolean newInstallation) {
 
     Path linkDir = getMacOsHelper().findLinkDir(rootDir, this.tool);
     Path binDir = linkDir;

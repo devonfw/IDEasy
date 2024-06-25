@@ -34,6 +34,7 @@ public class PropertiesMerger extends FileMerger {
 
     SortedProperties properties = new SortedProperties();
     boolean updateFileExists = Files.exists(update);
+    Path template = setup;
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
         Log.trace("Nothing to do as update file does not exist: {}", update);
@@ -45,8 +46,9 @@ public class PropertiesMerger extends FileMerger {
     }
     if (updateFileExists) {
       load(properties, update);
+      template = update;
     }
-    resolve(properties, resolver, workspace.getFileName());
+    resolve(properties, resolver, template.toString());
     save(properties, workspace);
     Log.trace("Saved merged properties to: {}", workspace);
   }
@@ -98,7 +100,7 @@ public class PropertiesMerger extends FileMerger {
     Set<Object> keys = properties.keySet();
     for (Object key : keys) {
       String value = properties.getProperty(key.toString());
-      properties.setProperty(key.toString(), variables.resolve(value, src));
+      properties.setProperty(key.toString(), variables.resolve(value, src, this.legacySupport));
     }
   }
 
@@ -140,7 +142,7 @@ public class PropertiesMerger extends FileMerger {
       if ((updateValue != null) || addNewProperties) {
         String updateValueResolved = null;
         if (updateValue != null) {
-          updateValueResolved = variables.resolve(updateValue.toString(), src);
+          updateValueResolved = variables.resolve(updateValue.toString(), src, this.legacySupport);
         }
         if (!workspaceValue.equals(updateValueResolved)) {
           String workspaceValueInverseResolved = variables.inverseResolve(workspaceValue.toString(), src);

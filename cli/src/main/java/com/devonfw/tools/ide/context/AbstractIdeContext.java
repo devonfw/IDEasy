@@ -869,7 +869,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       step.error(t, true);
       throw t;
     } finally {
-      step.end();
+      step.close();
       assert (this.currentStep == null);
       step.logSummary(supressStepSuccess);
     }

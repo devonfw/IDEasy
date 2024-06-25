@@ -1,13 +1,7 @@
 package com.devonfw.tools.ide.merge;
 
-import java.io.OutputStream;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 import javax.json.Json;
 import javax.json.JsonArray;
@@ -21,9 +15,14 @@ import javax.json.JsonValue;
 import javax.json.JsonWriter;
 import javax.json.JsonWriterFactory;
 import javax.json.stream.JsonGenerator;
-
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import java.io.OutputStream;
+import java.io.Reader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Implementation of {@link FileMerger} for JSON.
@@ -44,6 +43,7 @@ public class JsonMerger extends FileMerger {
   public void merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
 
     JsonStructure json = null;
+    Path template = setup;
     boolean updateFileExists = Files.exists(update);
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
@@ -60,9 +60,10 @@ public class JsonMerger extends FileMerger {
       } else {
         mergeJson = load(update);
       }
+      template = update;
     }
     Status status = new Status();
-    JsonStructure result = (JsonStructure) mergeAndResolve(json, mergeJson, variables, status, workspace.getFileName());
+    JsonStructure result = (JsonStructure) mergeAndResolve(json, mergeJson, variables, status, template.toString());
     if (status.updated) {
       save(result, workspace);
       this.context.debug("Saved created/updated file {}", workspace);
@@ -111,7 +112,7 @@ public class JsonMerger extends FileMerger {
     JsonStructure workspaceDocument = load(workspace);
     Status status = new Status(addNewProperties);
     JsonStructure result = (JsonStructure) mergeAndResolve(workspaceDocument, updateDocument, variables, status,
-        workspace.getFileName());
+            workspace.getFileName());
     if (status.updated) {
       save(result, updateFile);
       this.context.debug("Saved changes from {} to {}", workspace.getFileName(), updateFile);
@@ -121,7 +122,7 @@ public class JsonMerger extends FileMerger {
   }
 
   private JsonValue mergeAndResolve(JsonValue json, JsonValue mergeJson, EnvironmentVariables variables, Status status,
-      Object src) {
+                                    Object src) {
 
     if (json == null) {
       if (mergeJson == null) {
@@ -147,7 +148,7 @@ public class JsonMerger extends FileMerger {
   }
 
   private JsonObject mergeAndResolveObject(JsonObject json, JsonObject mergeJson, EnvironmentVariables variables,
-      Status status, Object src) {
+                                           Status status, Object src) {
 
     // json = workspace/setup
     // mergeJson = update
@@ -179,7 +180,7 @@ public class JsonMerger extends FileMerger {
   }
 
   private JsonArray mergeAndResolveArray(JsonArray json, JsonArray mergeJson, EnvironmentVariables variables,
-      Status status, Object src) {
+                                         Status status, Object src) {
 
     JsonArrayBuilder builder = Json.createArrayBuilder();
     // KISS: Merging JSON arrays could be very complex. We simply let mergeJson override json...
@@ -195,7 +196,7 @@ public class JsonMerger extends FileMerger {
   }
 
   private JsonString mergeAndResolveString(JsonString json, JsonString mergeJson, EnvironmentVariables variables,
-      Status status, Object src) {
+                                           Status status, Object src) {
 
     JsonString jsonString = json;
     if (mergeJson != null) {
@@ -206,7 +207,7 @@ public class JsonMerger extends FileMerger {
     if (status.inverse) {
       resolvedString = variables.inverseResolve(string, src);
     } else {
-      resolvedString = variables.resolve(string, src);
+      resolvedString = variables.resolve(string, src, this.legacySupport);
     }
     if (!resolvedString.equals(string)) {
       status.updated = true;
@@ -215,7 +216,7 @@ public class JsonMerger extends FileMerger {
   }
 
   private JsonValue mergeAndResolveNativeType(JsonValue json, JsonValue mergeJson, EnvironmentVariables variables,
-      Status status) {
+                                              Status status) {
 
     if (mergeJson == null) {
       return json;
@@ -226,7 +227,9 @@ public class JsonMerger extends FileMerger {
 
   private static class Status {
 
-    /** {@code true} for inverse merge, {@code false} otherwise (for regular forward merge). */
+    /**
+     * {@code true} for inverse merge, {@code false} otherwise (for regular forward merge).
+     */
     private final boolean inverse;
 
     private final boolean addNewProperties;
@@ -245,7 +248,7 @@ public class JsonMerger extends FileMerger {
      * The constructor.
      *
      * @param addNewProperties - {@code true} to add new properties from workspace on reverse merge, {@code false}
-     *        otherwise.
+     *                         otherwise.
      */
     public Status(boolean addNewProperties) {
 
