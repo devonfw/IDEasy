@@ -214,6 +214,9 @@ public final class Tag {
   /** {@link #Tag} for WSL. */
   public static final Tag WSL = create("wsl", VIRTUALIZATION);
 
+  /** {@link Tag} for everything related to databases. */
+  public static final Tag DB = create("database", ROOT);
+
   /** {@link #Tag} for network. */
   public static final Tag NETWORK = create("network", ROOT, false, "remote");
 
