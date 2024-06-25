@@ -7,10 +7,12 @@ toc::[]
 This allows to merge and manage complex configurations.
 
 == How to use
+
 The easiest way is that you do not care.
 When you launch the IDE of your choice (e.g. via `ide eclipse`, `ide intellij`, `ide vscode`), this will happen automatically.
 
 == How it works
+
 For every supported IDE we distinguish the following file structures:
 
 1. _workspace_
@@ -34,12 +36,16 @@ For each located file `«relative-path»/«file»` it will create or update 1. a
 * If `«relative-path»/«file»` is present in 1. (workspace) it will be loaded and used as basis.
 * Otherwise if `«relative-path»/«file»` is present in 2. (setup) it will be loaded and used as basis.
 * If `«relative-path»/«file»` is present in 3. (update) it will be loaded and merged with the current basis.
-* Variables in the from `${«variable-name»}` get resolved if `«variable-name»` is defined.
+* Variables in the from `$[«variable-name»]` get resolved if `«variable-name»` is defined.
+Please note that in devonfw-ide the syntax was `${«variable-name»}` and legacy support for this can be enabled/disabled.
+However, this clashes with the variable syntax already used by IDE tools like Eclipse, IntelliJ, etc.
+Therefore this was changed in IDEasy and the new syntax should be used to avoid problems.
 * If this caused any change the result is written to `«relative-path»/«file»` in 1. (workspace).
 
 In other words this means:
 
-* When your workspace configuration is initially created, 1. is empty. Hence, settings from 2. are used and merged with 3.
+* When your workspace configuration is initially created, 1. is empty.
+Hence, settings from 2. are used and merged with 3.
 * Settings in 2. are therefore used as initial defaults and suggestions but can be changed by the end-user (developer).
 Hence, use 2. for things such as themes, UI tweaks, etc.
 Once the workspace is configured 2. typically is not relevant anymore.
@@ -53,7 +59,8 @@ Hence, use 3. for things such as code-formatters, compiler options, paths to too
 The settings for your ide are located in `settings/«ide»/workspace` where you find the `setup` (2.) and `update` (3.) sub-folders.
 E.g. for Eclipse the most relevant settings can be found in `settings/eclipse/workspace/update/.metadata/.plugins/org.eclipse.core.runtime/.settings`.
 Of course you could manually edit these settings with a text editor.
-However, this requires a lot of knowledge. As we want to provide a great user-experience with `IDEasy` you can also do the following:
+However, this requires a lot of knowledge.
+As we want to provide a great user-experience with `IDEasy` you can also do the following:
 
 * Launch the IDE to configure (e.g. `ide intellij`).
 * In case of a non-trivial tweak you may first create a backup copy of the IDE configuration in `workspaces/main` (for IntelliJ in `.intelij` and `.idea` subfolders and for eclipse in `.metadata`).
@@ -65,8 +72,5 @@ However, this requires a lot of knowledge. As we want to provide a great user-ex
 * In case you could not find the expected changes, you may have tweaked a property that is not yet managed.
 Therefore, you can try again with `ws-reverse-add` instead of `ws-reverse` (e.g. `ide eclipse ws-reverse-add`) but be aware to revert undesired changes.
 Be sure not to add undesired settings that should not be managed.
-* In case your changes are in an entirely new configuration file that is currently not managed,
-you can simply diff the current workspace folder with the previously created backup copy using a recursive diff tool
-(such as winmerge or maybe just `diff -R`).
-Once you figured out the relevant change from that diff,
-you can manually apply it to the according `«ide»/workspace/update` folder in your `ide-settings` git repository.
+* In case your changes are in an entirely new configuration file that is currently not managed, you can simply diff the current workspace folder with the previously created backup copy using a recursive diff tool (such as winmerge or maybe just `diff -R`).
+Once you figured out the relevant change from that diff, you can manually apply it to the according `«ide»/workspace/update` folder in your `ide-settings` git repository.
