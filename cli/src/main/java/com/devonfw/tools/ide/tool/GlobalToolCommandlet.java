@@ -149,15 +149,14 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   @Override
   public VersionIdentifier getInstalledVersion() {
-
+    //TODO: handle "get-version <globaltool>"
     this.context.error("Couldn't get installed version of " + this.getName());
-
     return null;
   }
 
   @Override
   public String getInstalledEdition() {
-
+    //TODO: handle "get-edition <globaltool>"
     this.context.error("Couldn't get installed edition of " + this.getName());
     return null;
   }
