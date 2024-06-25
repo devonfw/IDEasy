@@ -147,7 +147,7 @@ public final class StepImpl implements Step {
     if (newSuccess == null) {
       newSuccess = Boolean.FALSE;
     }
-    if (this.success != Boolean.FALSE) { // never allow a failed step to change to success
+    if (!Boolean.FALSE.equals(this.success)) { // never allow a failed step to change to success
       this.duration = delay;
       this.success = newSuccess;
     }
@@ -192,7 +192,7 @@ public final class StepImpl implements Step {
     if (this.context.trace().isEnabled()) {
       this.context.trace(toString());
     }
-    if (this.context.isQuietMode()) {
+    if (this.context.isQuietMode() || (this.children.isEmpty() && Boolean.TRUE.equals(this.success))) {
       return;
     }
     StepSummary summary = new StepSummary();

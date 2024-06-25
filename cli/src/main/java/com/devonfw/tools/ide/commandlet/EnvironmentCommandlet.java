@@ -41,12 +41,6 @@ public final class EnvironmentCommandlet extends Commandlet {
   }
 
   @Override
-  public boolean isSuppressStepSuccess() {
-
-    return true;
-  }
-
-  @Override
   public void run() {
 
     WindowsPathSyntax pathSyntax = null;
