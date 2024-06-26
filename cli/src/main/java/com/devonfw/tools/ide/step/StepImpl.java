@@ -38,10 +38,10 @@ public final class StepImpl implements Step {
    * Creates and starts a new {@link StepImpl}.
    *
    * @param context the {@link IdeContext}.
-   * @param parent the {@link #getParent() parent step}.
-   * @param name the {@link #getName() step name}.
-   * @param silent the {@link #isSilent() silent flag}.
-   * @param params the parameters. Should have reasonable {@link Object#toString() string representations}.
+   * @param parent  the {@link #getParent() parent step}.
+   * @param name    the {@link #getName() step name}.
+   * @param silent  the {@link #isSilent() silent flag}.
+   * @param params  the parameters. Should have reasonable {@link Object#toString() string representations}.
    */
   public StepImpl(AbstractIdeContext context, StepImpl parent, String name, boolean silent, Object... params) {
 
@@ -124,7 +124,7 @@ public final class StepImpl implements Step {
   }
 
   @Override
-  public void end() {
+  public void close() {
 
     end(null, null, false, null, null);
   }
@@ -147,7 +147,7 @@ public final class StepImpl implements Step {
     if (newSuccess == null) {
       newSuccess = Boolean.FALSE;
     }
-    if (this.success != Boolean.FALSE) { // never allow a failed step to change to success
+    if (!Boolean.FALSE.equals(this.success)) { // never allow a failed step to change to success
       this.duration = delay;
       this.success = newSuccess;
     }
@@ -192,7 +192,7 @@ public final class StepImpl implements Step {
     if (this.context.trace().isEnabled()) {
       this.context.trace(toString());
     }
-    if (this.context.isQuietMode()) {
+    if (this.context.isQuietMode() || (this.children.isEmpty() && Boolean.TRUE.equals(this.success))) {
       return;
     }
     StepSummary summary = new StepSummary();

@@ -1,16 +1,13 @@
-package com.devonfw.tools.ide.merge;
+package com.devonfw.tools.ide.merge.xmlmerger;
 
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.merge.FileMerger;
+import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
+import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
+import com.devonfw.tools.ide.merge.xmlmerger.strategy.OverrideStrategy;
+import com.devonfw.tools.ide.merge.xmlmerger.strategy.Strategy;
+import com.devonfw.tools.ide.merge.xmlmerger.strategy.StrategyFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -19,17 +16,24 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-/**
- * Implementation of {@link FileMerger} for XML files.
- */
 public class XmlMerger extends FileMerger {
 
   private static final DocumentBuilder DOCUMENT_BUILDER;
 
   private static final TransformerFactory TRANSFORMER_FACTORY;
+
+  public static final String MERGE_NS_URI = "https://github.com/devonfw/IDEasy/merge";
 
   static {
     try {
@@ -42,11 +46,6 @@ public class XmlMerger extends FileMerger {
     }
   }
 
-  /**
-   * The constructor.
-   *
-   * @param context the {@link #context}.
-   */
   public XmlMerger(IdeContext context) {
 
     super(context);
@@ -56,6 +55,7 @@ public class XmlMerger extends FileMerger {
   public void merge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
 
     Document document = null;
+    Path template = setup;
     boolean updateFileExists = Files.exists(update);
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
@@ -70,55 +70,19 @@ public class XmlMerger extends FileMerger {
         document = load(update);
       } else {
         Document updateDocument = load(update);
-        merge(updateDocument, document, true, true);
+        merge(updateDocument, document);
       }
+      template = update;
     }
-    resolve(document, resolver, false, workspace.getFileName());
+    resolve(document, resolver, false, template);
     save(document, workspace);
   }
 
-  private void merge(Document sourceDocument, Document targetDocument, boolean override, boolean add) {
+  public void merge(Document sourceDocument, Document targetDocument) {
 
-    assert (override || add);
-    merge(sourceDocument.getDocumentElement(), targetDocument.getDocumentElement(), override, add);
-  }
-
-  private void merge(Element sourceElement, Element targetElement, boolean override, boolean add) {
-
-    merge(sourceElement.getAttributes(), targetElement, override, add);
-    NodeList sourceChildNodes = sourceElement.getChildNodes();
-    int length = sourceChildNodes.getLength();
-    for (int i = 0; i < length; i++) {
-      Node child = sourceChildNodes.item(i);
-      if (child.getNodeType() == Node.ELEMENT_NODE) {
-
-      } else if (child.getNodeType() == Node.TEXT_NODE) {
-
-      } else if (child.getNodeType() == Node.CDATA_SECTION_NODE) {
-
-      }
-    }
-  }
-
-  private void merge(NamedNodeMap sourceAttributes, Element targetElement, boolean override, boolean add) {
-
-    int length = sourceAttributes.getLength();
-    for (int i = 0; i < length; i++) {
-      Attr sourceAttribute = (Attr) sourceAttributes.item(i);
-      String namespaceURI = sourceAttribute.getNamespaceURI();
-      // String localName = sourceAttribute.getLocalName();
-      String name = sourceAttribute.getName();
-      Attr targetAttribute = targetElement.getAttributeNodeNS(namespaceURI, name);
-      if (targetAttribute == null) {
-        if (add) {
-          // ridiculous but JDK does not provide namespace support by default...
-          targetElement.setAttributeNS(namespaceURI, name, sourceAttribute.getValue());
-          // targetElement.setAttribute(name, sourceAttribute.getValue());
-        }
-      } else if (override) {
-        targetAttribute.setValue(sourceAttribute.getValue());
-      }
-    }
+    MergeElement updateRootElement = new MergeElement(sourceDocument.getDocumentElement());
+    Strategy strategy = StrategyFactory.createStrategy(updateRootElement.getMergingStrategy(), new ElementMatcher());
+    strategy.merge(updateRootElement, targetDocument);
   }
 
   @Override
@@ -129,17 +93,15 @@ public class XmlMerger extends FileMerger {
     }
     Document updateDocument = load(update);
     Document workspaceDocument = load(workspace);
-    merge(workspaceDocument, updateDocument, true, addNewProperties);
+    Strategy strategy = new OverrideStrategy(null);
+    MergeElement rootElement = new MergeElement(workspaceDocument.getDocumentElement());
+    strategy.merge(rootElement, updateDocument);
     resolve(updateDocument, variables, true, workspace.getFileName());
     save(updateDocument, update);
     this.context.debug("Saved changes in {} to {}", workspace.getFileName(), update);
   }
 
-  /**
-   * @param file the {@link Path} to load.
-   * @return the loaded XML {@link Document}.
-   */
-  public static Document load(Path file) {
+  public Document load(Path file) {
 
     try (InputStream in = Files.newInputStream(file)) {
       return DOCUMENT_BUILDER.parse(in);
@@ -148,22 +110,43 @@ public class XmlMerger extends FileMerger {
     }
   }
 
-  /**
-   * @param document the XML {@link Document} to save.
-   * @param file the {@link Path} to save to.
-   */
-  public static void save(Document document, Path file) {
+  public void save(Document document, Path file) {
 
     ensureParentDirectoryExists(file);
     try {
       Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
+      transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+      transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+      transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
+      transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
+
+      // Remove whitespace from the target document before saving, because if target XML Document is already formatted
+      // then indent 2 keeps adding empty lines for nothing, and if we don't use indentation then appending/ overriding
+      // isn't properly formatted.
+      removeWhitespace(document.getDocumentElement());
+
       DOMSource source = new DOMSource(document);
       StreamResult result = new StreamResult(file.toFile());
       transformer.transform(source, result);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to save XML to file: " + file, e);
     }
+  }
 
+  private void removeWhitespace(Node node) {
+
+    NodeList children = node.getChildNodes();
+    for (int i = 0; i < children.getLength(); i++) {
+      Node child = children.item(i);
+      if (child.getNodeType() == Node.TEXT_NODE) {
+        if (child.getTextContent().trim().isEmpty()) {
+          node.removeChild(child);
+          i--;
+        }
+      } else {
+        removeWhitespace(child);
+      }
+    }
   }
 
   private void resolve(Document document, EnvironmentVariables resolver, boolean inverse, Object src) {
@@ -188,7 +171,7 @@ public class XmlMerger extends FileMerger {
         if (inverse) {
           resolvedValue = variables.inverseResolve(value, src);
         } else {
-          resolvedValue = variables.resolve(value, src);
+          resolvedValue = variables.resolve(value, src, this.legacySupport);
         }
         text.setNodeValue(resolvedValue);
       }
@@ -204,7 +187,7 @@ public class XmlMerger extends FileMerger {
       if (inverse) {
         resolvedValue = variables.inverseResolve(value, src);
       } else {
-        resolvedValue = variables.resolve(value, src);
+        resolvedValue = variables.resolve(value, src, this.legacySupport);
       }
       attribute.setValue(resolvedValue);
     }

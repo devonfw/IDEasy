@@ -1,11 +1,5 @@
 package com.devonfw.tools.ide.tool;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -14,6 +8,12 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 /**
  * {@link ToolCommandlet} that is installed globally.
@@ -25,8 +25,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    *
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   * method.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
   public GlobalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -34,26 +33,28 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} via a package manager.
+   * Performs the installation or uninstallation of the {@link #getName() tool} via a package manager.
    *
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @param commandStrings commandStrings The package manager command strings to execute.
-   * @return {@code true} if installation succeeds with any of the package manager commands, {@code false} otherwise.
+   * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands,
+   *     {@code false} otherwise.
    */
-  protected boolean installWithPackageManager(boolean silent, String... commandStrings) {
+  protected boolean runWithPackageManager(boolean silent, String... commandStrings) {
 
     List<PackageManagerCommand> pmCommands = Arrays.stream(commandStrings).map(PackageManagerCommand::of).toList();
-    return installWithPackageManager(silent, pmCommands);
+    return runWithPackageManager(silent, pmCommands);
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} via a package manager.
-   * 
+   * Performs the installation or uninstallation of the {@link #getName() tool} via a package manager.
+   *
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @param pmCommands A list of {@link PackageManagerCommand} to be used for installation.
-   * @return {@code true} if installation succeeds with any of the package manager commands, {@code false} otherwise.
+   * @param pmCommands A list of {@link PackageManagerCommand} to be used for installation or uninstallation.
+   * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands,
+   *     {@code false} otherwise.
    */
-  protected boolean installWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
+  protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
 
     for (PackageManagerCommand pmCommand : pmCommands) {
       PackageManager packageManager = pmCommand.packageManager();
@@ -64,7 +65,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       }
 
       if (executePackageManagerCommand(pmCommand, silent)) {
-        return true; // Successfully installed
+        return true; // Success
       }
     }
     return false; // None of the package manager commands were successful
@@ -143,5 +144,11 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
     postInstall();
     return true;
+  }
+
+  @Override
+  public void uninstall() {
+    //TODO: handle "uninstall <globaltool>"
+    this.context.error("Couldn't uninstall " + this.getName());
   }
 }

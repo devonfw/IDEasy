@@ -20,7 +20,7 @@ public class StepTest extends AbstractIdeContextTest {
     try {
       step.success("The Test-Step succeeded as expected");
     } finally {
-      step.end();
+      step.close();
     }
     // assert
     assertThat(step.getSuccess()).isTrue();
@@ -41,7 +41,7 @@ public class StepTest extends AbstractIdeContextTest {
     try {
       step.success();
     } finally {
-      step.end();
+      step.close();
     }
     // assert
     assertThat(step.getSuccess()).isTrue();
@@ -66,7 +66,7 @@ public class StepTest extends AbstractIdeContextTest {
     try {
       step.error("The Test-Step failed as expected");
     } finally {
-      step.end();
+      step.close();
     }
     assertThat(step.getSuccess()).isFalse();
     assertThat(step.getDuration()).isPositive();
@@ -90,7 +90,7 @@ public class StepTest extends AbstractIdeContextTest {
     } catch (IllegalStateException e) {
       step.error(e);
     } finally {
-      step.end();
+      step.close();
     }
     assertThat(step.getSuccess()).isFalse();
     assertThat(step.getDuration()).isPositive();
@@ -98,7 +98,7 @@ public class StepTest extends AbstractIdeContextTest {
     assertLogMessage(context, IdeLogLevel.TRACE, "Starting step Test-Step...");
     assertLogMessage(context, IdeLogLevel.STEP, "Start: Test-Step");
     assertLogMessage(context, IdeLogLevel.WARNING,
-        "Step 'Test-Step' already ended with true and now ended again with false.");
+            "Step 'Test-Step' already ended with true and now ended again with false.");
     assertLogMessage(context, IdeLogLevel.ERROR, "unexpected situation!");
     assertLogMessage(context, IdeLogLevel.DEBUG, "Step 'Test-Step' ended with failure.");
   }
@@ -115,7 +115,7 @@ public class StepTest extends AbstractIdeContextTest {
       // WOW this is really inconsistent and hopefully never happens elsewhere
       step.success("The Test-Step succeeded as expected");
     } finally {
-      step.end();
+      step.close();
     }
     assertThat(step.getSuccess()).isFalse();
     assertThat(step.getDuration()).isPositive();
@@ -125,7 +125,7 @@ public class StepTest extends AbstractIdeContextTest {
     assertLogMessage(context, IdeLogLevel.ERROR, "The Test-Step failed as expected");
     assertLogMessage(context, IdeLogLevel.DEBUG, "Step 'Test-Step' ended with failure.");
     assertLogMessage(context, IdeLogLevel.WARNING,
-        "Step 'Test-Step' already ended with false and now ended again with true.");
+            "Step 'Test-Step' already ended with false and now ended again with true.");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "The Test-Step succeeded as expected");
     assertLogMessage(context, IdeLogLevel.DEBUG, "Step 'Test-Step' ended successfully.");
   }
