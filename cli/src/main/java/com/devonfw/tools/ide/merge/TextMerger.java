@@ -39,7 +39,7 @@ public class TextMerger extends FileMerger {
       String line;
       String resolvedValue;
       while ((line = reader.readLine()) != null) {
-        resolvedValue = variables.resolve(line, workspace.getFileName());
+        resolvedValue = variables.resolve(line, template.toString(), this.legacySupport);
         inputBuffer.append(resolvedValue);
         inputBuffer.append('\n');
       }

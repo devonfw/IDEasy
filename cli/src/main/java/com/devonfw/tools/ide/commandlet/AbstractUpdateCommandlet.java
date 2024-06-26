@@ -71,7 +71,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       setupConf(templatesFolder, this.context.getIdeHome());
       step.success();
     } finally {
-      step.end();
+      step.close();
     }
   }
 
@@ -130,7 +130,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       step.success("Successfully updated settings repository.");
     } finally {
       if (step != null) {
-        step.end();
+        step.close();
       }
     }
   }
@@ -171,7 +171,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       }
       step.success();
     } finally {
-      step.end();
+      step.close();
     }
   }
 
