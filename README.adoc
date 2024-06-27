@@ -15,29 +15,31 @@ image:https://coveralls.io/repos/github/devonfw/IDEasy/badge.svg?branch=main["Co
 
 toc::[]
 
+== Pitch
+With IDEasy you can create a very small git repo with the configuration of the dev environment of your software project.
+Developers can then setup your project using IDEasy with a single CLI command on Windows, Mac, or Linux and get all the tools needed for your project in the configured version and tailored to the projects demands.
+
+No more diff-wars, no more dev setup manuals, no more "its not working on my machine"!
+
+Among many link:documentation/alternatives.adoc[alternatives] we believe IDEasy is the best solution for project centric software development needs esp. with its link:documentation/sandbox.adoc[sandbox concept].
+
+Not yet convinced? See link:documentation/features.adoc[features].
+
 == Setup
 
 === Prerequisites
 All you need before installing IDEasy is https://git-scm.com/download/[git].
 
-** Windows
-*** On Windows you need to  *download and install* https://git-scm.com/download/win[git for windows].
-** Linux
-*** On Linux you only need to install https://git-scm.com/download/linux[git for linux].
-** MacOS
-*** On MacOS you only need to download and install https://git-scm.com/download/mac[git for mac].
-
 === Install
-
-** Download the latest version of `IDEasy` from https://github.com/devonfw/IDEasy/releases[here] and execute it.
-+
+Download the latest version of `IDEasy` from https://github.com/devonfw/IDEasy/releases[here] and install it.
 (You can find all Releases in https://repo.maven.apache.org/maven2/com/devonfw/tools/IDEasy/ide-cli/[Maven Central])
-** Run the `setup` in this folder (On Windows you can double click on `setup.bat`)
-+
-A command prompt will open and the setup will start. The setup will ask for a settings URL.
-In case you do not have a settings URL for your project, you can just press enter to use the default settings.
-** After the setup is finished, you can close the command prompt and open a new one.
-** *You are done! You can now use the `ide` command in your terminal to use the `IDEasy`.*
+
+=== Create projects
+Once installed, you can setup a new project with the following command:
+```
+ide create «project-name» [«settings-git-url»]
+```
+If you do not have a `«settings-git-url»`, you can omit it to setup a standard Java project as demo.
 
 ==== Video Tutorial
 ifdef::env-github[]
@@ -57,13 +59,13 @@ See also our latest video https://vimeo.com/808368450/88d4af9d18[devon ide updat
 * link:documentation/features.adoc[Features]
 * link:documentation/setup.adoc[Download & Setup]
 * link:documentation/usage.adoc[Usage]
-* link:documentation/IDEasy-contribution-getting-started.adoc[Contribution]
 * link:documentation/configuration.adoc[Configuration]
 * link:documentation/structure.adoc[Structure]
 * link:documentation/cli.adoc[Command Line Interface]
 * link:documentation/variables.adoc[Variables]
 * link:documentation/settings.adoc[Settings]
 * link:documentation/advanced-tooling.adoc[Advanced-tooling]
+* link:documentation/IDEasy-contribution-getting-started.adoc[Contribution]
 * link:documentation/[Documentation]
 
 == Contribution Guidelines
