@@ -17,7 +17,7 @@ public class IdComputer {
 
   private final String id;
 
-  private static XPathFactory xPathFactory = XPathFactory.newInstance();
+  private static final XPathFactory xPathFactory = XPathFactory.newInstance();
 
   public IdComputer(String id) {
 

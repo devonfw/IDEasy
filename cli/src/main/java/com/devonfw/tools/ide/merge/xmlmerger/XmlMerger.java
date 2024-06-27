@@ -66,15 +66,15 @@ public class XmlMerger extends FileMerger {
       document = load(setup);
     }
     if (updateFileExists) {
+      template = update;
       if (document == null) {
         document = load(update);
       } else {
         Document updateDocument = load(update);
+        resolve(document, resolver, false, template);
         merge(updateDocument, document);
       }
-      template = update;
     }
-    resolve(document, resolver, false, template);
     save(document, workspace);
   }
 
@@ -93,10 +93,10 @@ public class XmlMerger extends FileMerger {
     }
     Document updateDocument = load(update);
     Document workspaceDocument = load(workspace);
+    resolve(updateDocument, variables, true, workspace.getFileName());
     Strategy strategy = new OverrideStrategy(null);
     MergeElement rootElement = new MergeElement(workspaceDocument.getDocumentElement());
     strategy.merge(rootElement, updateDocument);
-    resolve(updateDocument, variables, true, workspace.getFileName());
     save(updateDocument, update);
     this.context.debug("Saved changes in {} to {}", workspace.getFileName(), update);
   }
@@ -120,6 +120,7 @@ public class XmlMerger extends FileMerger {
       transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
       transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
 
+      // Workaround:
       // Remove whitespace from the target document before saving, because if target XML Document is already formatted
       // then indent 2 keeps adding empty lines for nothing, and if we don't use indentation then appending/ overriding
       // isn't properly formatted.
