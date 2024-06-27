@@ -197,9 +197,10 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
     }
-    if (ideRootPath == null || !Files.isDirectory(ideRootPath)) {
-      error("You are not inside an IDEasy installation: " + System.getProperty("user.dir"));
+    if (ideRootPath == null || !Files.isDirectory(ideRootPath) || currentDir != null) {
+      error(getMessageIdeHomeNotFound());
     }
+    
     this.ideRoot = ideRootPath;
 
     setCwd(userDir, workspace, currentDir);
@@ -278,7 +279,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private String getMessageIdeHomeNotFound() {
 
-    return "You are not inside an IDE installation: " + this.cwd;
+    return "You are not inside an IDE installation: " + System.getProperty("user.dir");
   }
 
   /**
