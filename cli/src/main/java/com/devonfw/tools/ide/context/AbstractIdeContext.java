@@ -200,7 +200,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (ideRootPath == null || !Files.isDirectory(ideRootPath) || currentDir != null) {
       error(getMessageIdeHomeNotFound());
     }
-    
+
     this.ideRoot = ideRootPath;
 
     setCwd(userDir, workspace, currentDir);
