@@ -19,7 +19,7 @@ toc::[]
 With IDEasy you can create a very small git repo with the configuration of the dev environment of your software project.
 Developers can then setup your project using IDEasy with a single CLI command on Windows, Mac, or Linux and get all the tools needed for your project in the configured version and tailored to the projects demands.
 
-No more diff-wars, no more dev setup manuals, no more "its not working on my machine"!
+No more manual steps to install and configure, no diff-wars, no more dev setup manuals, no more "its not working on my machine"!
 
 Among many link:documentation/alternatives.adoc[alternatives] we believe IDEasy is the best solution for project centric software development needs esp. with its link:documentation/sandbox.adoc[sandbox concept].
 
