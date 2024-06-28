@@ -179,24 +179,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
 
     // detection completed, initializing variables
-    Path ideRootPath = null;
-    if (currentDir != null) {
-      ideRootPath = currentDir.getParent();
-    }
-
-    if (!isTest()) {
-      String root = System.getenv("IDE_ROOT");
-      if (root != null) {
-        Path rootPath = Path.of(root);
-        if (ideRootPath == null) {
-          ideRootPath = rootPath;
-        } else if (!ideRootPath.equals(rootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath, this.ideHome.getFileName(),
-                  ideRootPath);
-        }
-      }
-    }
-    this.ideRoot = ideRootPath;
+    this.ideRoot = findIdeRoot(currentDir);
 
     setCwd(userDir, workspace, currentDir);
 
@@ -225,6 +208,30 @@ public abstract class AbstractIdeContext implements IdeContext {
     } else {
       this.defaultToolRepository = toolRepository;
     }
+  }
+
+  private Path findIdeRoot(Path ideHomePath) {
+    final Path ideRoot;
+    Path ideRootPath = null;
+    if (ideHomePath != null) {
+      ideRootPath = ideHomePath.getParent();
+    }
+
+    if (!isTest()) {
+      String root = System.getenv("IDE_ROOT");
+      if (root != null) {
+        Path rootPath = Path.of(root);
+        if ((ideRootPath == null)) {
+          if (Files.isDirectory(rootPath)) {
+            ideRootPath = rootPath;
+          }
+        } else if (!ideRootPath.equals(rootPath)) {
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath, this.ideHome.getFileName(),
+                  ideRootPath);
+        }
+      }
+    }
+    return ideRootPath;
   }
 
   @Override
@@ -275,6 +282,15 @@ public abstract class AbstractIdeContext implements IdeContext {
   private String getMessageIdeHomeNotFound() {
 
     return "You are not inside an IDE installation: " + this.cwd;
+  }
+
+  private static String getMessageIdeRootNotFound() {
+    String root = System.getenv("IDE_ROOT");
+    if (root == null) {
+      return "The environment variable IDE_ROOT is undefined. Please reinstall IDEasy or manually repair IDE_ROOT variable.";
+    } else {
+      return "The environment variable IDE_ROOT is pointing to an invalid path " + root + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
+    }
   }
 
   /**
@@ -832,10 +848,11 @@ public abstract class AbstractIdeContext implements IdeContext {
     assert (this.currentStep == null);
     boolean supressStepSuccess = false;
     StepImpl step = newStep(true, "ide", (Object[]) current.asArray());
+    Commandlet firstCandidate = null;
     try {
       if (!current.isEnd()) {
         String keyword = current.get();
-        Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
+        firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
         boolean matches;
         if (firstCandidate != null) {
           matches = applyAndRun(arguments.copy(), firstCandidate);
@@ -857,7 +874,12 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
         step.error("Invalid arguments: {}", current.getArgs());
       }
-      this.commandletManager.getCommandlet(HelpCommandlet.class).run();
+
+      HelpCommandlet help = this.commandletManager.getCommandlet(HelpCommandlet.class);
+      if (firstCandidate != null) {
+        help.commandlet.setValue(firstCandidate);
+      }
+      help.run();
       return 1;
     } catch (Throwable t) {
       step.error(t, true);
@@ -886,12 +908,11 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (matches) {
       debug("Running commandlet {}", cmd);
       if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
-        throw new CliException(getMessageIdeHomeNotFound());
+        throw new CliException(getMessageIdeHomeNotFound(), ProcessResult.NO_IDE_HOME);
+      } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
+        throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
       }
       if (!cmd.isProcessableOutput()) {
-        if (this.ideRoot == null) {
-          error("IDE_ROOT is not set or not a valid directory.");
-        }
         if (cmd.isIdeHomeRequired()) {
           debug(getMessageIdeHomeFound());
         }
@@ -902,6 +923,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     return matches;
   }
+
 
   /**
    * @param arguments             the {@link CliArguments#ofCompletion(String...) completion arguments}.

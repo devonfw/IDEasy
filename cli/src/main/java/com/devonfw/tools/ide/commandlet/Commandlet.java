@@ -179,6 +179,17 @@ public abstract class Commandlet {
    */
   public boolean isIdeHomeRequired() {
 
+    if (!isIdeRootRequired()) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * @return {@code true} if {@link IdeContext#getIdeRoot() IDE_ROOT} is required for this commandlet, {@code false} otherwise.
+   */
+  public boolean isIdeRootRequired() {
+
     return true;
   }
 

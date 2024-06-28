@@ -27,8 +27,8 @@ public class VersionCommandlet extends Commandlet {
   }
 
   @Override
-  public boolean isIdeHomeRequired() {
-    
+  public boolean isIdeRootRequired() {
+
     return false;
   }
 
