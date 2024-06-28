@@ -11,19 +11,16 @@ jobs:
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
-
     steps:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-
       - uses: graalvm/setup-graalvm@v1
         with:
           java-version: '21.0.2'
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
-
       - name: Build native images with nativ maven plugin and extract in tar.gz
         shell: bash
         run: |
@@ -32,7 +29,6 @@ jobs:
           current_version="${current_version/ */}"
           cd cli
           mvn -B -ntp -Pnative -DskipTests=true package
-          
       - uses: actions/upload-artifact@v3
         with:
           name: natives
@@ -42,7 +38,6 @@ jobs:
     name: Release on Sonatype OSS
     runs-on: ubuntu-latest
     needs: [build-natives]
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -57,7 +52,6 @@ jobs:
           cache: 'maven'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: GPG_PASSPHRASE # env variable for GPG private key passphrase
-      
       - uses: actions/download-artifact@v3
       - name: Publish to Apache Maven Central
         run: |
@@ -82,7 +76,6 @@ jobs:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-
       - name: set next version & create gitHub release
         run: |
           maven_config="$(cat .mvn/maven.config)"
@@ -100,7 +93,9 @@ jobs:
           git push --tags
           noDotVersion="${current_version//.}"
           gh release create "release/${current_version}" ./cli/target/*.tar.gz --title "${current_version}" --notes "# Download
-          https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}.tar.gz
+          * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-windows.tar.gz
+          * Mac: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac.tar.gz
+          * Linux: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-linux.tar.gz
           # Changes
           https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.asciidoc#${noDotVersion}"
         env:
