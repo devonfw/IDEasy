@@ -79,7 +79,7 @@ public abstract class Commandlet {
 
   /**
    * @param nameOrAlias the potential {@link Property#getName() name} or {@link Property#getAlias() alias} of the
-   *     requested {@link Property}.
+   *                    requested {@link Property}.
    * @return the requested {@link Property property} or {@code null} if not found.
    */
   public Property<?> getOption(String nameOrAlias) {
@@ -111,7 +111,7 @@ public abstract class Commandlet {
   }
 
   /**
-   * @param <P> type of the {@link Property}.
+   * @param <P>      type of the {@link Property}.
    * @param property the {@link Property} to register.
    * @return the given {@link Property}.
    */
@@ -164,7 +164,7 @@ public abstract class Commandlet {
   }
 
   /**
-   * @param <C> type of the {@link Commandlet}.
+   * @param <C>            type of the {@link Commandlet}.
    * @param commandletType the {@link Class} reflecting the requested {@link Commandlet}.
    * @return the requested {@link Commandlet}.
    * @see CommandletManager#getCommandlet(Class)
@@ -186,6 +186,17 @@ public abstract class Commandlet {
    * @return {@code true} to suppress the {@link com.devonfw.tools.ide.step.StepImpl#logSummary(boolean) step summary success message}.
    */
   public boolean isSuppressStepSuccess() {
+
+    return false;
+  }
+
+  /**
+   * @return {@code true} if the output of this commandlet is (potentially) processed automatically from outside, {@code false} otherwise.
+   * For example {@link CompleteCommandlet} logs the suggestions for auto-completion to a bash script. Also the {@link EnvironmentCommandlet}
+   * logs the environment variables for the {@code ide} wrapper script. In such scenarios these logs shall not be spammed
+   * with warnings like "IDE_ROOT is not set" that would break the processing of the output.
+   */
+  public boolean isProcessableOutput() {
 
     return false;
   }

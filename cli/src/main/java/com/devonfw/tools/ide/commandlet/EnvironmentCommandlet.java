@@ -41,6 +41,12 @@ public final class EnvironmentCommandlet extends Commandlet {
   }
 
   @Override
+  public boolean isProcessableOutput() {
+    
+    return true;
+  }
+
+  @Override
   public void run() {
 
     WindowsPathSyntax pathSyntax = null;

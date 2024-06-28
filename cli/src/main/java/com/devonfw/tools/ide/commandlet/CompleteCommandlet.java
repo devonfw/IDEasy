@@ -41,6 +41,12 @@ public final class CompleteCommandlet extends Commandlet {
   }
 
   @Override
+  public boolean isProcessableOutput() {
+
+    return true;
+  }
+
+  @Override
   public void run() {
 
     CliArguments arguments = CliArguments.ofCompletion(this.args.asArray());
