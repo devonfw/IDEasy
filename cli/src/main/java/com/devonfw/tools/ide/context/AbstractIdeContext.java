@@ -137,11 +137,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   /**
    * The constructor.
    *
-   * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
-   * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
-   * @param userDir the optional {@link Path} to current working directory.
+   * @param minLogLevel    the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
+   * @param factory        the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
+   * @param userDir        the optional {@link Path} to current working directory.
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will be
-   * used.
+   *                       used.
    */
   public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository) {
 
@@ -180,10 +180,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     // detection completed, initializing variables
     Path ideRootPath = null;
-    if (currentDir == null) {
-      info(getMessageIdeHomeNotFound());
-    } else {
-      debug(getMessageIdeHomeFound());
+    if (currentDir != null) {
       ideRootPath = currentDir.getParent();
     }
 
@@ -195,12 +192,9 @@ public abstract class AbstractIdeContext implements IdeContext {
           ideRootPath = rootPath;
         } else if (!ideRootPath.equals(rootPath)) {
           warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath, this.ideHome.getFileName(),
-              ideRootPath);
+                  ideRootPath);
         }
       }
-    }
-    if (ideRootPath == null || !Files.isDirectory(ideRootPath)) {
-      error("IDE_ROOT is not set or not a valid directory.");
     }
     this.ideRoot = ideRootPath;
 
@@ -877,9 +871,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @param cmd the potential {@link Commandlet} to
-   *     {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run() run}.
+   *            {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   *     {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -894,6 +888,14 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
         throw new CliException(getMessageIdeHomeNotFound());
       }
+      if (!cmd.isProcessableOutput()) {
+        if (this.ideRoot == null) {
+          error("IDE_ROOT is not set or not a valid directory.");
+        }
+        if (cmd.isIdeHomeRequired()) {
+          debug(getMessageIdeHomeFound());
+        }
+      }
       cmd.run();
     } else {
       trace("Commandlet did not match");
@@ -902,7 +904,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param arguments the {@link CliArguments#ofCompletion(String...) completion arguments}.
+   * @param arguments             the {@link CliArguments#ofCompletion(String...) completion arguments}.
    * @param includeContextOptions to include the options of {@link ContextCommandlet}.
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
@@ -925,14 +927,14 @@ public abstract class AbstractIdeContext implements IdeContext {
       Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
       boolean matches = false;
       if (firstCandidate != null) {
-        matches = apply(arguments.copy(), firstCandidate, collector);
+        matches = completeCommandlet(arguments, firstCandidate, collector);
       } else if (current.isCombinedShortOption()) {
         collector.add(keyword, null, null, null);
       }
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
           if (cmd != firstCandidate) {
-            apply(arguments.copy(), cmd, collector);
+            completeCommandlet(arguments, cmd, collector);
           }
         }
       }
@@ -940,10 +942,18 @@ public abstract class AbstractIdeContext implements IdeContext {
     return collector.getSortedCandidates();
   }
 
+  private boolean completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+    if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
+      return false;
+    } else {
+      return apply(arguments.copy(), cmd, collector);
+    }
+  }
+
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
-   * {@link CliArguments#copy() copy} as needed.
-   * @param cmd the potential {@link Commandlet} to match.
+   *                  {@link CliArguments#copy() copy} as needed.
+   * @param cmd       the potential {@link Commandlet} to match.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
    * and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
@@ -1000,8 +1010,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
 
     // If not found in the default location, try the registry query
-    String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
-    String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
+    String[] bashVariants = {"GitForWindows", "Cygwin\\setup"};
+    String[] registryKeys = {"HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER"};
     String regQueryResult;
     for (String bashVariant : bashVariants) {
       for (String registryKey : registryKeys) {
