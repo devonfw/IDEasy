@@ -57,11 +57,14 @@ jobs:
         run: |
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
+          current_version=2024.06.001-alpha
           current_version="${current_version/ */}"
-          maven_config="$(cat .mvn/maven.config)"
-          current_version="${maven_config/#*-Drevision=}"
-          current_version="${current_version/ */}"
-          next_version="${current_version/-SNAPSHOT/}"
+          current_segment="${current_version/*./}"
+          last_digits="${current_segment/[^0-9]*/}"
+          suffix="${current_segment/${last_digit}/}"
+          (( next_segment=${last_digits}+1 ))
+          while [ ${#next_segment} -ne 3 ]; do next_segment="0${next_segment}"; done
+          next_version="${current_version%.*}.${next_segment}${suffix}-SNAPSHOT"
           sed -i "s/${current_version}/${next_version}/" .mvn/maven.config
           git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
           git config --global user.name ${{ secrets.BUILD_USER }}
