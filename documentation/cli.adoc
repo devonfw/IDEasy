@@ -10,15 +10,15 @@ Without any argument the `ide` command will determine your `IDE_HOME` and setup 
 
 [source,bash]
 --------
-[/]$ ide
+[~]$ ide
 You are not inside an IDEasy installation: /
-[/]$ cd /projects/my-project/workspaces/test/my-git-repo
+[~]$ cd projects/my-project/workspaces/test/my-git-repo
 [my-git-repo]$ ide
 IDEasy environment variables have been set for /projects/my-project in workspace main
 [my-git-repo]$ echo $IDE_HOME
-/projects/ide
+~/projects/my-project
 [my-git-repo]$ echo $JAVA_HOME
-/projects/my-project/software/java
+~/projects/my-project/software/java
 --------
 
 == Commandlets
