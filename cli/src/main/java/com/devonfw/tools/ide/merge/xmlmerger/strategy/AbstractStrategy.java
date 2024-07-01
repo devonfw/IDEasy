@@ -25,42 +25,23 @@ public abstract class AbstractStrategy implements Strategy {
   }
 
   @Override
-  public void merge(MergeElement updateElement, Document targetDocument) {
-
-    MergeElement targetElement = elementMatcher.matchElement(updateElement, targetDocument);
-    if (targetElement != null) {
-      mergeElement(updateElement, targetElement);
-    } else {
-      appendElement(updateElement, targetDocument);
-    }
-  }
+  public abstract void merge(MergeElement sourceElement, MergeElement targetElement);
 
   /**
-   * Merges the update element with the target element.
+   * Appends the source element as a child of the target element.
    *
-   * @param sourceElement the source element containing merge annotations
-   * @param targetElement the target element to be merged into
+   * @param sourceElement the element to be appended.
+   * @param targetElement the target element where the source element will be appended.
    */
-  protected abstract void mergeElement(MergeElement sourceElement, MergeElement targetElement);
-
-  /**
-   * Appends the update element to the target document.
-   *
-   * @param updateElement the element to be appended
-   * @param targetDocument the target document
-   */
-  protected void appendElement(MergeElement updateElement, Document targetDocument) {
+  protected void appendElement(MergeElement sourceElement, MergeElement targetElement) {
 
     try {
-      updateAndRemoveNsAttributes(updateElement);
-      Element parent = (Element) updateElement.getElement().getParentNode();
-      MergeElement matchParent = elementMatcher.matchElement(new MergeElement(parent), targetDocument);
-      if (matchParent != null) {
-        Element importedNode = (Element) targetDocument.importNode(updateElement.getElement(), true);
-        matchParent.getElement().appendChild(importedNode);
-      }
+      updateAndRemoveNsAttributes(sourceElement);
+      Document targetDocument = targetElement.getElement().getOwnerDocument();
+      Element importedNode = (Element) targetDocument.importNode(sourceElement.getElement(), true);
+      targetElement.getElement().appendChild(importedNode);
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to append element: " + updateElement.getXPath(), e);
+      throw new IllegalStateException("Failed to append element: " + sourceElement.getXPath(), e);
     }
   }
 

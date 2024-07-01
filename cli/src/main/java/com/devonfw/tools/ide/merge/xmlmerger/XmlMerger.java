@@ -80,9 +80,30 @@ public class XmlMerger extends FileMerger {
 
   public void merge(Document sourceDocument, Document targetDocument) {
 
-    MergeElement updateRootElement = new MergeElement(sourceDocument.getDocumentElement());
-    Strategy strategy = StrategyFactory.createStrategy(updateRootElement.getMergingStrategy(), new ElementMatcher());
-    strategy.merge(updateRootElement, targetDocument);
+    MergeElement sourceRoot = new MergeElement(sourceDocument.getDocumentElement());
+    MergeElement targetRoot = new MergeElement(targetDocument.getDocumentElement());
+
+    if (matchRootElements(sourceRoot, targetRoot)) {
+      Strategy strategy = StrategyFactory.createStrategy(sourceRoot.getMergingStrategy(), new ElementMatcher());
+      strategy.merge(sourceRoot, targetRoot);
+    }
+  }
+
+  private boolean matchRootElements(MergeElement sourceRoot, MergeElement targetRoot) {
+
+    Element sourceElement = sourceRoot.getElement();
+    Element targetElement = targetRoot.getElement();
+    if (!sourceElement.getTagName().equals(targetElement.getTagName())) {
+      throw new IllegalStateException("Names of root elements don't match. Found " + sourceElement.getTagName() + " and "
+          + targetElement.getTagName());
+    }
+    if (sourceElement.getNamespaceURI() != null || targetElement.getNamespaceURI() != null) {
+      if (!sourceElement.getNamespaceURI().equals(targetElement.getNamespaceURI())) {
+        throw new IllegalStateException("URI of root elements don't match. Found " + sourceElement.getNamespaceURI() + " and "
+            + targetElement.getNamespaceURI());
+      }
+    }
+    return true;
   }
 
   @Override
@@ -95,8 +116,9 @@ public class XmlMerger extends FileMerger {
     Document workspaceDocument = load(workspace);
     resolve(updateDocument, variables, true, workspace.getFileName());
     Strategy strategy = new OverrideStrategy(null);
-    MergeElement rootElement = new MergeElement(workspaceDocument.getDocumentElement());
-    strategy.merge(rootElement, updateDocument);
+    MergeElement sourceRoot = new MergeElement(workspaceDocument.getDocumentElement());
+    MergeElement targetRoot = new MergeElement(updateDocument.getDocumentElement());
+    strategy.merge(sourceRoot, targetRoot);
     save(updateDocument, update);
     this.context.debug("Saved changes in {} to {}", workspace.getFileName(), update);
   }

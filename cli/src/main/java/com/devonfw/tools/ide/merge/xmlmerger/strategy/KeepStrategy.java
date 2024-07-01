@@ -17,7 +17,7 @@ public class KeepStrategy extends AbstractStrategy {
   }
 
   @Override
-  protected void mergeElement(MergeElement sourceElement, MergeElement targetElement) {
+  public void merge(MergeElement sourceElement, MergeElement targetElement) {
 
     // Do nothing, keep the existing element
   }

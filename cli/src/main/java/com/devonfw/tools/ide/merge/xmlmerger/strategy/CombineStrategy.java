@@ -22,7 +22,7 @@ public class CombineStrategy extends AbstractStrategy {
   }
 
   @Override
-  protected void mergeElement(MergeElement sourceElement, MergeElement targetElement) {
+  public void merge(MergeElement sourceElement, MergeElement targetElement) {
 
     combineAttributes(sourceElement, targetElement);
     combineChildNodes(sourceElement, targetElement);
@@ -62,9 +62,14 @@ public class CombineStrategy extends AbstractStrategy {
       for (int i = 0; i < updateChildNodes.getLength(); i++) {
         Node updateChild = updateChildNodes.item(i);
         if (updateChild.getNodeType() == Node.ELEMENT_NODE) {
-          MergeElement mergeUpdateChild = new MergeElement((Element) updateChild);
-          Strategy strategy = StrategyFactory.createStrategy(mergeUpdateChild.getMergingStrategy(), elementMatcher);
-          strategy.merge(mergeUpdateChild, targetElement.getElement().getOwnerDocument());
+          MergeElement sourceChildElement = new MergeElement((Element) updateChild);
+          MergeElement matchedTargetChild = elementMatcher.matchElement(sourceChildElement, targetElement);
+          if (matchedTargetChild != null) {
+            Strategy childStrategy = StrategyFactory.createStrategy(sourceChildElement.getMergingStrategy(), elementMatcher);
+            childStrategy.merge(sourceChildElement, matchedTargetChild);
+          } else {
+            appendElement(sourceChildElement, targetElement);
+          }
         } else if (updateChild.getNodeType() == Node.TEXT_NODE || updateChild.getNodeType() == Node.CDATA_SECTION_NODE) {
           if (!updateChild.getTextContent().isBlank()) {
             replaceTextNode(targetElement.getElement(), updateChild);

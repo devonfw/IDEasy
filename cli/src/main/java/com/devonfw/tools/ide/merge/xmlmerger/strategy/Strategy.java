@@ -9,10 +9,10 @@ import org.w3c.dom.Document;
 public interface Strategy {
 
   /**
-   * Merges the given update element into the target document.
+   * Merges the given source element with the target element.
    *
-   * @param updateElement the element to be merged
-   * @param targetDocument the target document where the element will be merged
+   * @param sourceElement the element to be merged
+   * @param targetElement the element to be merged with
    */
-  void merge(MergeElement updateElement, Document targetDocument);
+  void merge(MergeElement sourceElement, MergeElement targetElement);
 }

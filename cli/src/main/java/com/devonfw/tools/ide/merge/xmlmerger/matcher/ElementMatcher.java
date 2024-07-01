@@ -32,44 +32,32 @@ public class ElementMatcher {
   }
 
   /**
-   * Matches an update element in the target document.
+   * Looks for an element matching the source element inside the target element.
    *
-   * @param updateElement the update element to be matched
-   * @param targetDocument the target document in which to match the element
+   * @param sourceElement the update element to be matched
+   * @param targetElement the target element in which to match the element
    * @return the matched MergeElement if found, or {@code null} if not found
    */
-  public MergeElement matchElement(MergeElement updateElement, Document targetDocument) {
+  public MergeElement matchElement(MergeElement sourceElement, MergeElement targetElement) {
 
-    if (updateElement.isRootElement()) {
-      Element sourceRoot = updateElement.getElement();
-      Element targetRoot = targetDocument.getDocumentElement();
-      if (sourceRoot.getNamespaceURI() != null || targetRoot.getNamespaceURI() != null) {
-        if (!sourceRoot.getNamespaceURI().equals(targetRoot.getNamespaceURI())) {
-          throw new IllegalStateException("URI of elements don't match. Found " + sourceRoot.getNamespaceURI() + "and " + targetRoot.getNamespaceURI());
-        }
-      }
-      return new MergeElement(targetRoot);
-    }
-
-    String id = updateElement.getId();
+    String id = sourceElement.getId();
     if (id.isEmpty()) {
-      IdComputer idComputer = qNameIdMap.get(updateElement.getQName());
+      IdComputer idComputer = qNameIdMap.get(sourceElement.getQName());
       if (idComputer == null) {
-        throw new IllegalStateException("no Id value was defined for " + updateElement.getXPath());
+        throw new IllegalStateException("no Id value was defined for " + sourceElement.getXPath());
       }
-      Element matchedNode = idComputer.evaluateExpression(updateElement, targetDocument);
+      Element matchedNode = idComputer.evaluateExpression(sourceElement, targetElement);
       if (matchedNode != null) {
         return new MergeElement(matchedNode);
       }
     } else {
-      updateId(updateElement.getQName(), id);
-      IdComputer idComputer = qNameIdMap.get(updateElement.getQName());
-      Element matchedNode = idComputer.evaluateExpression(updateElement, targetDocument);
+      updateId(sourceElement.getQName(), id);
+      IdComputer idComputer = qNameIdMap.get(sourceElement.getQName());
+      Element matchedNode = idComputer.evaluateExpression(sourceElement, targetElement);
       if (matchedNode != null) {
         return new MergeElement(matchedNode);
       }
     }
-
     return null;
   }
 }

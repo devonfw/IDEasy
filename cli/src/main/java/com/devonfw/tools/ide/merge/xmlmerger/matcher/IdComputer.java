@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.merge.xmlmerger.matcher;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -32,15 +33,24 @@ public class IdComputer {
    * @return the matched Element if found, or null if not found
    */
 
-  public Element evaluateExpression(MergeElement mergeElement, Document targetDocument) {
+  public Element evaluateExpression(MergeElement sourceElement, MergeElement targetElement) {
 
     try {
       XPath xpath = xPathFactory.newXPath();
-      String xpathExpr = buildXPathExpression(mergeElement);
+      String xpathExpr = buildXPathExpression(sourceElement);
       XPathExpression xpathExpression = xpath.compile(xpathExpr);
-      return (Element) xpathExpression.evaluate(targetDocument, XPathConstants.NODE);
+      NodeList nodeList = (NodeList) xpathExpression.evaluate(targetElement.getElement(), XPathConstants.NODESET);
+      int length = nodeList.getLength();
+      if (length == 1) {
+        return (Element) nodeList.item(0);
+      } else if (length > 1) {
+        throw new IllegalStateException("Couldn't match " + sourceElement.getXPath() + ". Found multiple matches.");
+      } else { // == 0
+        return null;
+      }
+
     } catch (XPathExpressionException e) {
-      throw new IllegalStateException("Failed to match " + mergeElement.getXPath(), e);
+      throw new IllegalStateException("Failed to match " + sourceElement.getXPath(), e);
     }
   }
 
@@ -52,21 +62,20 @@ public class IdComputer {
    */
   private String buildXPathExpression(MergeElement mergeElement) {
 
-    String xPath = mergeElement.getXPath();
+    String tagName = mergeElement.getElement().getTagName();
     if (id.startsWith(".")) {
-      return xPath + "/" + id;
+      return tagName + "/" + id;
     } else if (id.startsWith("/")) {
       return id;
     } else if (id.startsWith("@")) {
       String attributeName = id.substring(1);
       String attributeValue = mergeElement.getElement().getAttribute(attributeName);
-      return xPath + String.format("[@%s='%s']", attributeName, attributeValue);
+      return tagName + String.format("[@%s='%s']", attributeName, attributeValue);
     } else if (id.equals("name()")) {
-      String tagName = mergeElement.getElement().getTagName();
-      return xPath + String.format("[name()='%s']", tagName);
+      return tagName + String.format("[name()='%s']", tagName);
     } else if (id.equals("text()")) {
       String textContent = mergeElement.getElement().getTextContent();
-      return xPath + String.format("[text()='%s']", textContent);
+      return tagName + String.format("[text()='%s']", textContent);
     }
     return null;
   }

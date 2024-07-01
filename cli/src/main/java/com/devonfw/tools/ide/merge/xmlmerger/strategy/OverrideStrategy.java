@@ -19,32 +19,9 @@ public class OverrideStrategy extends AbstractStrategy {
   }
 
   @Override
-  protected void mergeElement(MergeElement sourceElement, MergeElement targetElement) {
+  public void merge(MergeElement sourceElement, MergeElement targetElement) {
 
-    overrideElement(sourceElement, targetElement);
-  }
-
-  /**
-   * Overrides the target element with the source element.
-   *
-   * @param sourceElement the source element to be merged
-   * @param targetElement the target element to be overridden
-   */
-  private void overrideElement(MergeElement sourceElement, MergeElement targetElement) {
-
-    try {
-      updateAndRemoveNsAttributes(sourceElement);
-      Node targetNode = targetElement.getElement();
-      Node parentNode = targetNode.getParentNode();
-      Document targetDocument = targetNode.getOwnerDocument();
-      Node importedNode = targetDocument.importNode(sourceElement.getElement(), true);
-      if (parentNode.getNodeType() == Node.DOCUMENT_NODE) {
-        targetDocument.replaceChild(importedNode, targetDocument.getDocumentElement());
-      } else {
-        parentNode.replaceChild(importedNode, targetNode);
-      }
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to override element: " + sourceElement.getXPath(), e);
-    }
+    Node importedNode = targetElement.getElement().getOwnerDocument().importNode(sourceElement.getElement(), true);
+    targetElement.getElement().getParentNode().replaceChild(importedNode, targetElement.getElement());
   }
 }
