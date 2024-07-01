@@ -346,10 +346,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   public void printToolHelp(String helpcommand) {
 
-    if (helpcommand == null) {
-      return;
-    }
-    if (getInstalledVersion() != null) {
+    if (helpcommand != null && getInstalledVersion() != null) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING)
           .executable(Path.of(getBinaryName())).addArgs(helpcommand);
       pc.run(ProcessMode.DEFAULT);
