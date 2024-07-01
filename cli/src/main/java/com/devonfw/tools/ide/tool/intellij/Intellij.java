@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.tool.intellij;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccessImpl;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
@@ -13,8 +13,6 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
 /**
@@ -75,23 +73,20 @@ public class Intellij extends IdeToolCommandlet {
     }
   }
 
-  private static void setMacOsFilePermissions(Path binaryFile) {
+  private void setMacOsFilePermissions(Path binaryFile) {
 
     if (Files.exists(binaryFile)) {
-      String permissionStr = FileAccessImpl.generatePermissionString(493);
-      Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
+      FileAccess fileAccess = this.context.getFileAccess();
       try {
-        Files.setPosixFilePermissions(binaryFile, permissions);
+        fileAccess.makeExecutable(binaryFile);
       } catch (IOException e) {
         throw new RuntimeException(e);
-      } finally {
-        return;
       }
     }
   }
 
   @Override
   public void installPlugin(PluginDescriptor plugin) {
-
+    // TODO: needs to be implemented see: https://github.com/devonfw/IDEasy/issues/433
   }
 }
