@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import java.util.regex.Pattern;
-
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
+
+import java.util.regex.Pattern;
 
 /**
  * {@link WebsiteUrlUpdater} for npm (node package manager).
@@ -31,7 +31,7 @@ public class NpmUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected Pattern getVersionPattern() {
 
-    return Pattern.compile("npm-(\\d\\.\\d{1,2}\\.\\d+)");
+    return Pattern.compile("npm-(\\d{1,2}\\.\\d{1,2}\\.\\d+)");
   }
 
   @Override
