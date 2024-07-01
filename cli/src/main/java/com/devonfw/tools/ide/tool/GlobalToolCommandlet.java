@@ -25,7 +25,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    *
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via
+   *     {@link Set#of(Object) Set.of} method.
    */
   public GlobalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -144,6 +145,20 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     }
     postInstall();
     return true;
+  }
+
+  @Override
+  public VersionIdentifier getInstalledVersion() {
+    //TODO: handle "get-version <globaltool>"
+    this.context.error("Couldn't get installed version of " + this.getName());
+    return null;
+  }
+
+  @Override
+  public String getInstalledEdition() {
+    //TODO: handle "get-edition <globaltool>"
+    this.context.error("Couldn't get installed edition of " + this.getName());
+    return null;
   }
 
   @Override
