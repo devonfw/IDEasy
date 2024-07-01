@@ -54,6 +54,12 @@ import java.util.stream.Stream;
  */
 public class FileAccessImpl implements FileAccess {
 
+  private static final String WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/windows-file-lock.adoc";
+
+  private static final String WINDOWS_FILE_LOCK_WARNING =
+      "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
+          + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
+
   private final IdeContext context;
 
   /**
@@ -275,7 +281,12 @@ public class FileAccessImpl implements FileAccess {
     try {
       Files.move(source, targetDir);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to move " + source + " to " + targetDir, e);
+      String fileType = Files.isSymbolicLink(source) ? "symlink" : isJunction(source) ? "junction" : Files.isDirectory(source) ? "directory" : "file";
+      String message = "Failed to move " + fileType + ": " + source + " to " + targetDir + ".";
+      if (this.context.getSystemInfo().isWindows()) {
+        message = message + "\n" + WINDOWS_FILE_LOCK_WARNING;
+      }
+      throw new IllegalStateException(message, e);
     }
   }
 
@@ -283,34 +294,40 @@ public class FileAccessImpl implements FileAccess {
   public void copy(Path source, Path target, FileCopyMode mode) {
 
     if (mode != FileCopyMode.COPY_TREE_CONTENT) {
-      // if we want to copy "file.txt" to the existing folder "path/to/folder/" in a shell this will copy "file.txt"
-      // into that folder
-      // with Java NIO the raw copy method will fail as we cannot copy the file to the path of the target folder
-      // even worse if FileCopyMode is override the target folder ("path/to/folder/") would be deleted and the result
-      // of our "file.txt" would later appear in "path/to/folder". To prevent such bugs we append the filename to
-      // target
+      // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy 
+      // source into that folder so that we as a result have a copy in "target/source".
+      // With Java NIO the raw copy method will fail as we cannot copy "source" to the path of the "target" folder.
+      // For folders we want the same behavior as the linux "cp -r" command so that the "source" folder is copied
+      // and not only its content what also makes it consistent with the move method that also behaves this way.
+      // Therefore we need to add the filename (foldername) of "source" to the "target" path before.
+      // For the rare cases, where we want to copy the content of a folder (cp -r source/* target) we support
+      // it via the COPY_TREE_CONTENT mode.
       target = target.resolve(source.getFileName());
     }
     boolean fileOnly = mode.isFileOnly();
     if (fileOnly) {
       this.context.debug("Copying file {} to {}", source, target);
-    } else {
-      this.context.debug("Copying {} recursively to {}", source, target);
-    }
-    if (fileOnly && Files.isDirectory(source)) {
-      throw new IllegalStateException("Expected file but found a directory to copy at " + source);
-    }
-    if (mode.isFailIfExists()) {
-      if (Files.exists(target)) {
-        throw new IllegalStateException("Failed to copy " + source + " to already existing target " + target);
+      fileOnly = mode.isFileOnly();
+      if (fileOnly) {
+        this.context.debug("Copying file {} to {}", source, target);
+      } else {
+        this.context.debug("Copying {} recursively to {}", source, target);
       }
-    } else if (mode == FileCopyMode.COPY_TREE_OVERRIDE_TREE) {
-      delete(target);
-    }
-    try {
-      copyRecursive(source, target, mode);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to copy " + source + " to " + target, e);
+      if (fileOnly && Files.isDirectory(source)) {
+        throw new IllegalStateException("Expected file but found a directory to copy at " + source);
+      }
+      if (mode.isFailIfExists()) {
+        if (Files.exists(target)) {
+          throw new IllegalStateException("Failed to copy " + source + " to already existing target " + target);
+        }
+      } else if (mode == FileCopyMode.COPY_TREE_OVERRIDE_TREE) {
+        delete(target);
+      }
+      try {
+        copyRecursive(source, target, mode);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to copy " + source + " to " + target, e);
+      }
     }
   }
 
@@ -501,12 +518,8 @@ public class FileAccessImpl implements FileAccess {
 
     if (Files.isDirectory(archiveFile)) {
       Path properInstallDir = archiveFile; // getProperInstallationSubDirOf(archiveFile, archiveFile);
-      //      if (extract) {
       this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
       copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_CONTENT);
-      //      } else {
-      //        move(properInstallDir, targetDir);
-      //      }
       postExtractHook(postExtractHook, properInstallDir);
       return;
     } else if (!extract) {
@@ -664,7 +677,7 @@ public class FileAccessImpl implements FileAccess {
     if (appPath == null) {
       throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
     }
-    
+
     copy(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
     pc.addArgs("detach", "-force", mountPath);
     pc.run();

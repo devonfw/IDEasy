@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE"/>
+  </component>
+  <component name="FormatOnSaveOptions">
+    <option name="myRunOnSave" value="true"/>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$"/>
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHome" value="newMavenHomePath"/>
+        <option name="threads" value="7"/>
+        <option name="useMavenConfig" value="true"/>
+        <option name="userSettingsFile" value="newUserSettingsFilePath"/>
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="MavenRunner">
+    <option name="skipTests" value="false"/>
+    <option name="vmOptions" value="newValue"/>
+  </component>
+  <component name="OptimizeOnSaveOptions">
+    <option name="myRunOnSave" value="true"/>
+  </component>
+  <component name="RunManager">
+    <configuration default="true" factoryName="JUnit" type="JUnit">
+      <shortenClasspath name="ARGS_FILE"/>
+      <option name="METHOD_NAME" value=""/>
+      <option name="TEST_OBJECT" value="class"/>
+      <method v="2">
+        <option enabled="true" name="Make"/>
+      </method>
+    </configuration>
+  </component>
+  <component CustomDictionaries="0" DefaultDictionary="application-level" Folders="0" RuntimeDictionaries="0" UseSingleDictionary="true" name="SpellCheckerSettings" transferred="true"/>
+</project>

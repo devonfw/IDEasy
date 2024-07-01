@@ -13,7 +13,7 @@ Technically we "install" (extract) all tools into a local repository (in `$IDE_R
 This has the following benefits:
 
 * Switching a tool version forth and back is lightning fast since only a symbolic link needs to be updated.
-* We avoid severe issues with link:how-to-unlock-files.adoc[Windows file-locking].
+* We avoid severe issues with link:windows-file-lock.adoc[Windows file-locking].
 * Multiple IDEasy projects can share the same physical tool versions to save disc-space.
 However, we keep previous tool version on updates what can also waste disc-space.
 Therefore, you can run `ide cleanup` to find and release old tool versions and free disc-space.
@@ -23,6 +23,7 @@ Therefore, you can run `ide cleanup` to find and release old tool versions and f
 In some cases, a project might need a (proprietary) tools that are not directly supported by `IDEasy`.
 As a solution for this need, `IDEasy` let's you configure custom tools via `settings/ide-custom-tools.json`.
 The following example illustrates how to configure custom tools:
+
 ```json
 {
   "url": "https://some-file-server.company.com/projects/my-project",
