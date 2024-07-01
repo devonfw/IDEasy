@@ -71,4 +71,10 @@ public class Aws extends LocalToolCommandlet {
     }
   }
 
+  @Override
+  public void printToolHelp(String helpcommand) {
+
+    this.context.info("To get detailed help about the usage of the AWS CLI, use \"aws help\"");
+  }
+
 }
