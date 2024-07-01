@@ -17,9 +17,9 @@ class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
   @Test
   public void testAddAllMatches() {
 
-    String[] sortedCandidates = { "1", "2.0", "2.1", "3", "20" };
+    String[] sortedCandidates = { "1", "2.0", "2.1", "3", "20", "30", "200" };
     String input = "2";
-    String[] expectedCandidates = { "2.0", "2.1", "20" };
+    String[] expectedCandidates = { "2.0", "2.1", "20", "200" };
 
     VersionProperty versionProperty = new VersionProperty("", false, "version");
     IdeContext context = IdeTestContextMock.get();
@@ -27,7 +27,7 @@ class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
 
     int matches = collector.addAllMatches(input, sortedCandidates, versionProperty, new VersionCommandlet(context));
 
-    assertThat(matches).isEqualTo(3);
+    assertThat(matches).isEqualTo(expectedCandidates.length);
     assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates);
 
   }
