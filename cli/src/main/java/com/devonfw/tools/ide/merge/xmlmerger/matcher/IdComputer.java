@@ -26,10 +26,10 @@ public class IdComputer {
   }
 
   /**
-   * Evaluates the XPath expression for the given merge element in the target document.
+   * Evaluates the XPath expression for the given merge element in the target element.
    *
-   * @param mergeElement the merge element for which to build the XPath expression
-   * @param targetDocument the target document in which to evaluate the XPath expression
+   * @param sourceElement the merge element for which to build the XPath expression
+   * @param targetElement the target element in which to evaluate the XPath expression
    * @return the matched Element if found, or null if not found
    */
 
@@ -41,12 +41,10 @@ public class IdComputer {
       XPathExpression xpathExpression = xpath.compile(xpathExpr);
       NodeList nodeList = (NodeList) xpathExpression.evaluate(targetElement.getElement(), XPathConstants.NODESET);
       int length = nodeList.getLength();
-      if (length == 1) {
+      if (length > 1) {
+        throw new IllegalStateException("Couldn't match " + sourceElement.getXPath() + ". Found " + length + "matches.");
+      } else {
         return (Element) nodeList.item(0);
-      } else if (length > 1) {
-        throw new IllegalStateException("Couldn't match " + sourceElement.getXPath() + ". Found multiple matches.");
-      } else { // == 0
-        return null;
       }
 
     } catch (XPathExpressionException e) {

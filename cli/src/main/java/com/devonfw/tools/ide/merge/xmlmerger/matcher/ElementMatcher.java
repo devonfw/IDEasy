@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.merge.xmlmerger.matcher;
 
+import com.devonfw.tools.ide.merge.xmlmerger.model.MergeAttribute;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
+import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
@@ -41,23 +43,31 @@ public class ElementMatcher {
   public MergeElement matchElement(MergeElement sourceElement, MergeElement targetElement) {
 
     String id = sourceElement.getId();
-    if (id.isEmpty()) {
-      IdComputer idComputer = qNameIdMap.get(sourceElement.getQName());
-      if (idComputer == null) {
-        throw new IllegalStateException("no Id value was defined for " + sourceElement.getXPath());
+    QName qName = sourceElement.getQName();
+
+    IdComputer idComputer = qNameIdMap.get(qName);
+    if (idComputer == null) {
+      if (id.isEmpty()) {
+        // handle case where element has no attribute
+        if (sourceElement.getElementAttributes().isEmpty()) {
+          // use name as id
+          id = sourceElement.getElement().getLocalName();
+        } else {
+          // look for id or name attributes
+          String idAttr = sourceElement.getElement().getAttribute("id");
+          if (idAttr.isEmpty()) {
+            idAttr = sourceElement.getElement().getAttribute("name");
+            if (idAttr.isEmpty()) {
+              throw new IllegalStateException("No merge:id value defined for element " + sourceElement.getXPath());
+            }
+          }
+        }
       }
-      Element matchedNode = idComputer.evaluateExpression(sourceElement, targetElement);
-      if (matchedNode != null) {
-        return new MergeElement(matchedNode);
-      }
-    } else {
-      updateId(sourceElement.getQName(), id);
-      IdComputer idComputer = qNameIdMap.get(sourceElement.getQName());
-      Element matchedNode = idComputer.evaluateExpression(sourceElement, targetElement);
-      if (matchedNode != null) {
-        return new MergeElement(matchedNode);
-      }
+      updateId(qName, id);
+      idComputer = qNameIdMap.get(qName);
     }
-    return null;
+
+    Element matchedNode = idComputer.evaluateExpression(sourceElement, targetElement);
+    return matchedNode != null ? new MergeElement(matchedNode) : null;
   }
 }

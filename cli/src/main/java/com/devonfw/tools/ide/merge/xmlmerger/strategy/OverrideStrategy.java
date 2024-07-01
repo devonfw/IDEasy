@@ -21,6 +21,7 @@ public class OverrideStrategy extends AbstractStrategy {
   @Override
   public void merge(MergeElement sourceElement, MergeElement targetElement) {
 
+    updateAndRemoveNsAttributes(sourceElement);
     Node importedNode = targetElement.getElement().getOwnerDocument().importNode(sourceElement.getElement(), true);
     targetElement.getElement().getParentNode().replaceChild(importedNode, targetElement.getElement());
   }

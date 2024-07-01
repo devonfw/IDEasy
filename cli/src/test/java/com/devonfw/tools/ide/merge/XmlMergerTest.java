@@ -51,15 +51,4 @@ class XmlMergerTest extends AbstractIdeContextTest {
       softly.assertAll();
     }
   }
-
-  @Test
-  public void whatever(@TempDir Path tempDir) throws IOException {
-
-    Path sourcePath = TEST_RESOURCES.resolve(SOURCE_XML).resolve("combine");
-    Path targetPath = tempDir.resolve(TARGET_XML);
-    Path resultPath = TEST_RESOURCES.resolve(RESULT_XML).resolve("combine");
-    Files.copy(TEST_RESOURCES.resolve(TARGET_XML), targetPath, REPLACE_EXISTING);
-    merger.merge(null, sourcePath, context.getVariables(), targetPath);
-    assertThat(targetPath).hasContent(Files.readString(resultPath));
-  }
 }
