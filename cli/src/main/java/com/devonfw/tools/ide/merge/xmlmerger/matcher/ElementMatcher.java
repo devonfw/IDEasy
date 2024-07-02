@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.merge.xmlmerger.matcher;
 
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeAttribute;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 import org.w3c.dom.Attr;
@@ -11,26 +12,35 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The ElementMatcher class is responsible for matching XML elements in a target document based on the provided update elements.
+ * The ElementMatcher class is responsible for matching XML elements in a target document based on the provided update
+ * elements.
  */
 public class ElementMatcher {
 
+  private final IdeContext context;
+
   private final Map<QName, IdComputer> qNameIdMap;
 
-  public ElementMatcher() {
+  public ElementMatcher(IdeContext context) {
 
+    this.context = context;
     qNameIdMap = new HashMap<>();
   }
 
   /**
    * Updates the ID strategy for a given QName (qualified name) of an XML element.
    *
-   * @param qname the QName of the XML element
-   * @param id the ID value to be used for matching the element
+   * @param qname the qualified name (ns + local name) of the XML element
+   * @param id the ID value (value of merge:id) to be used for matching the element
    */
   public void updateId(QName qname, String id) {
 
-    qNameIdMap.put(qname, new IdComputer(id));
+    IdComputer idComputer = new IdComputer(id);
+    IdComputer duplicate = qNameIdMap.put(qname, idComputer);
+    if (duplicate != null) {
+      this.context.debug("ID replaced for element '{}': old ID '{}' -> new ID '{}'", qname, duplicate.getId(),
+          idComputer.getId());
+    }
   }
 
   /**
@@ -66,8 +76,10 @@ public class ElementMatcher {
       updateId(qName, id);
       idComputer = qNameIdMap.get(qName);
     }
-
     Element matchedNode = idComputer.evaluateExpression(sourceElement, targetElement);
-    return matchedNode != null ? new MergeElement(matchedNode) : null;
+    if (matchedNode != null) {
+      return new MergeElement(matchedNode, targetElement.getDocumentPath());
+    }
+    return null;
   }
 }

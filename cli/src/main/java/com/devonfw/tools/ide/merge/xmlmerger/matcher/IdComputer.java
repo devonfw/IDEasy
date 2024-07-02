@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.merge.xmlmerger.matcher;
 
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -12,7 +13,8 @@ import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
 /**
- * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements in a target document.
+ * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements
+ * in a target document.
  */
 public class IdComputer {
 
@@ -23,6 +25,11 @@ public class IdComputer {
   public IdComputer(String id) {
 
     this.id = id;
+  }
+
+  public String getId() {
+
+    return this.id;
   }
 
   /**
@@ -42,7 +49,9 @@ public class IdComputer {
       NodeList nodeList = (NodeList) xpathExpression.evaluate(targetElement.getElement(), XPathConstants.NODESET);
       int length = nodeList.getLength();
       if (length > 1) {
-        throw new IllegalStateException("Couldn't match " + sourceElement.getXPath() + ". Found " + length + "matches.");
+        throw new IllegalStateException(
+            length + " matches found when trying to match element " + sourceElement.getXPath() + " in target document "
+                + targetElement.getDocumentPath());
       } else {
         return (Element) nodeList.item(0);
       }
@@ -61,11 +70,8 @@ public class IdComputer {
   private String buildXPathExpression(MergeElement mergeElement) {
 
     String tagName = mergeElement.getElement().getTagName();
-    if (id.startsWith(".")) {
-      return tagName + "/" + id;
-    } else if (id.startsWith("/")) {
-      return id;
-    } else if (id.startsWith("@")) {
+
+    if (id.startsWith("@")) {
       String attributeName = id.substring(1);
       String attributeValue = mergeElement.getElement().getAttribute(attributeName);
       return tagName + String.format("[@%s='%s']", attributeName, attributeValue);
@@ -75,7 +81,7 @@ public class IdComputer {
       String textContent = mergeElement.getElement().getTextContent();
       return tagName + String.format("[text()='%s']", textContent);
     }
-    return null;
+    return id;
   }
 
 }

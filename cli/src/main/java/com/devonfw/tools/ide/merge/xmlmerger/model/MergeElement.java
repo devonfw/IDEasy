@@ -5,6 +5,7 @@ import com.devonfw.tools.ide.merge.xmlmerger.strategy.MergeStrategy;
 import org.w3c.dom.*;
 
 import javax.xml.namespace.QName;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,16 +20,24 @@ public class MergeElement {
   private final Element element;
 
   /**
-   * @param element the XML element
+   * The path of the document where this element resides.
    */
-  public MergeElement(Element element) {
+  private final Path documentPath;
+
+  public MergeElement(Element element, Path documentPath) {
 
     this.element = element;
+    this.documentPath = documentPath;
   }
 
   public Element getElement() {
 
     return element;
+  }
+
+  public Path getDocumentPath() {
+
+    return documentPath;
   }
 
   /**
@@ -50,7 +59,7 @@ public class MergeElement {
     // Inherit merging strategy from parent
     Element parent = getParentElement();
     if (parent != null) {
-      return new MergeElement(parent).getMergingStrategy();
+      return new MergeElement(parent, this.documentPath).getMergingStrategy();
     }
 
     return MergeStrategy.KEEP; // Default strategy
@@ -95,7 +104,8 @@ public class MergeElement {
   /**
    * Retrieves the attributes of this MergeElement.
    *
-   * @return a list of {@link MergeAttribute} objects representing the attributes, if there are no attributes, the list is empty.
+   * @return a list of {@link MergeAttribute} objects representing the attributes, if there are no attributes, the list
+   * is empty.
    */
   public List<MergeAttribute> getElementAttributes() {
 
@@ -165,7 +175,7 @@ public class MergeElement {
     for (int i = 0; i < nodeList.getLength(); i++) {
       Node node = nodeList.item(i);
       if (node.getNodeType() == Node.ELEMENT_NODE) {
-        childElements.add(new MergeElement((Element) node));
+        childElements.add(new MergeElement((Element) node, this.documentPath));
       }
     }
     return childElements;

@@ -55,7 +55,7 @@ public class XmlMerger extends FileMerger {
   public void merge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
 
     Document document = null;
-    Path template = setup;
+    Path target = workspace;
     boolean updateFileExists = Files.exists(update);
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
@@ -64,27 +64,29 @@ public class XmlMerger extends FileMerger {
       document = load(workspace);
     } else if (Files.exists(setup)) {
       document = load(setup);
+      target = setup;
     }
     if (updateFileExists) {
-      template = update;
+      Path template = update;
       if (document == null) {
         document = load(update);
       } else {
         Document updateDocument = load(update);
         resolve(document, resolver, false, template);
-        merge(updateDocument, document);
+        merge(updateDocument, document, template, target);
       }
     }
     save(document, workspace);
   }
 
-  public void merge(Document sourceDocument, Document targetDocument) {
+  public void merge(Document sourceDocument, Document targetDocument, Path source, Path target) {
 
-    MergeElement sourceRoot = new MergeElement(sourceDocument.getDocumentElement());
-    MergeElement targetRoot = new MergeElement(targetDocument.getDocumentElement());
+    MergeElement sourceRoot = new MergeElement(sourceDocument.getDocumentElement(), source);
+    MergeElement targetRoot = new MergeElement(targetDocument.getDocumentElement(), target);
 
     if (matchRootElements(sourceRoot, targetRoot)) {
-      Strategy strategy = StrategyFactory.createStrategy(sourceRoot.getMergingStrategy(), new ElementMatcher());
+      Strategy strategy = StrategyFactory.createStrategy(sourceRoot.getMergingStrategy(),
+          new ElementMatcher(this.context));
       strategy.merge(sourceRoot, targetRoot);
     }
   }
@@ -94,14 +96,17 @@ public class XmlMerger extends FileMerger {
     Element sourceElement = sourceRoot.getElement();
     Element targetElement = targetRoot.getElement();
     if (!sourceElement.getTagName().equals(targetElement.getTagName())) {
-      throw new IllegalStateException("Names of root elements don't match. Found " + sourceElement.getTagName() + " and "
-          + targetElement.getTagName());
+      throw new IllegalStateException(String.format("Names of root elements of {} and {} don't match. Found {} and {}",
+          sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(), sourceElement.getTagName(),
+          targetElement.getTagName()));
     }
     if (sourceElement.getNamespaceURI() != null || targetElement.getNamespaceURI() != null) {
       if (!sourceElement.getNamespaceURI().equals(targetElement.getNamespaceURI())) {
-        throw new IllegalStateException("URI of root elements don't match. Found " + sourceElement.getNamespaceURI() + " and "
-            + targetElement.getNamespaceURI());
+        throw new IllegalStateException(String.format("URI of root elements of {} and {} don't match. Found {} and {}",
+            sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(), sourceElement.getNamespaceURI(),
+            targetElement.getNamespaceURI()));
       }
+
     }
     return true;
   }
@@ -116,8 +121,8 @@ public class XmlMerger extends FileMerger {
     Document workspaceDocument = load(workspace);
     resolve(updateDocument, variables, true, workspace.getFileName());
     Strategy strategy = new OverrideStrategy(null);
-    MergeElement sourceRoot = new MergeElement(workspaceDocument.getDocumentElement());
-    MergeElement targetRoot = new MergeElement(updateDocument.getDocumentElement());
+    MergeElement sourceRoot = new MergeElement(workspaceDocument.getDocumentElement(), workspace);
+    MergeElement targetRoot = new MergeElement(updateDocument.getDocumentElement(), update);
     strategy.merge(sourceRoot, targetRoot);
     save(updateDocument, update);
     this.context.debug("Saved changes in {} to {}", workspace.getFileName(), update);

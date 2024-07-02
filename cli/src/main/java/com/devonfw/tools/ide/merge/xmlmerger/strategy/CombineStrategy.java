@@ -45,7 +45,8 @@ public class CombineStrategy extends AbstractStrategy {
         }
       }
     } catch (DOMException e) {
-      throw new IllegalStateException("Failed to combine attributes for element: " + updateElement.getXPath(), e);
+      throw new IllegalStateException("Failed to combine attributes for element " + updateElement.getXPath() + " in "
+          + updateElement.getDocumentPath(), e);
     }
   }
 
@@ -62,22 +63,25 @@ public class CombineStrategy extends AbstractStrategy {
       for (int i = 0; i < updateChildNodes.getLength(); i++) {
         Node updateChild = updateChildNodes.item(i);
         if (updateChild.getNodeType() == Node.ELEMENT_NODE) {
-          MergeElement sourceChildElement = new MergeElement((Element) updateChild);
+          MergeElement sourceChildElement = new MergeElement((Element) updateChild, updateElement.getDocumentPath());
           MergeElement matchedTargetChild = elementMatcher.matchElement(sourceChildElement, targetElement);
           if (matchedTargetChild != null) {
-            Strategy childStrategy = StrategyFactory.createStrategy(sourceChildElement.getMergingStrategy(), elementMatcher);
+            Strategy childStrategy = StrategyFactory.createStrategy(sourceChildElement.getMergingStrategy(),
+                elementMatcher);
             childStrategy.merge(sourceChildElement, matchedTargetChild);
           } else {
             appendElement(sourceChildElement, targetElement);
           }
-        } else if (updateChild.getNodeType() == Node.TEXT_NODE || updateChild.getNodeType() == Node.CDATA_SECTION_NODE) {
+        } else if (updateChild.getNodeType() == Node.TEXT_NODE
+            || updateChild.getNodeType() == Node.CDATA_SECTION_NODE) {
           if (!updateChild.getTextContent().isBlank()) {
-            replaceTextNode(targetElement.getElement(), updateChild);
+            replaceTextNode(targetElement, updateChild);
           }
         }
       }
     } catch (DOMException e) {
-      throw new IllegalStateException("Failed to combine child nodes for element: " + updateElement.getXPath(), e);
+      throw new IllegalStateException("Failed to combine child nodes for element " + updateElement.getXPath() + " in "
+          + updateElement.getDocumentPath(), e);
     }
   }
 
@@ -87,10 +91,11 @@ public class CombineStrategy extends AbstractStrategy {
    * @param targetElement the element to be updated
    * @param updateChild the new text node
    */
-  private void replaceTextNode(Element targetElement, Node updateChild) {
+  private void replaceTextNode(MergeElement targetElement, Node updateChild) {
 
+    Element element = targetElement.getElement();
     try {
-      NodeList targetChildNodes = targetElement.getChildNodes();
+      NodeList targetChildNodes = element.getChildNodes();
       for (int i = 0; i < targetChildNodes.getLength(); i++) {
         Node targetChild = targetChildNodes.item(i);
         if (targetChild.getNodeType() == Node.TEXT_NODE || targetChild.getNodeType() == Node.CDATA_SECTION_NODE) {
@@ -100,10 +105,11 @@ public class CombineStrategy extends AbstractStrategy {
           }
         }
       }
-      Node importedNode = targetElement.getOwnerDocument().importNode(updateChild, true);
-      targetElement.appendChild(importedNode);
+      Node importedNode = element.getOwnerDocument().importNode(updateChild, true);
+      element.appendChild(importedNode);
     } catch (DOMException e) {
-      throw new IllegalStateException("Failed to replace text node for element: " + targetElement.getTagName(), e);
+      throw new IllegalStateException("Failed to replace text node for element " + targetElement.getXPath() + " in "
+          + targetElement.getDocumentPath(), e);
     }
   }
 }

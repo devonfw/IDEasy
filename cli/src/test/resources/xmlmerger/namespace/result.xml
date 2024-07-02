@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root xmlns:ns="http://example.com/ns">
+  <ns:element attr1="newValue" name="elem1">
+    <ns:child attr2="newValue" name="child1">New text</ns:child>
+  </ns:element>
+  <ns:element attr1="newValue" name="elem2">New text</ns:element>
+  <ns:element attr1="value" name="elem3">
+    <ns:child attr2="value" name="child1">text</ns:child>
+  </ns:element>
+</root>
