@@ -59,29 +59,29 @@ Here are some examples with `IDEasy`:
 
 [source,bash]
 --------
-[/]$ ide
-You are not inside an IDEasy project: /
-[/]$ cd /projects/devonfw
+[~]$ ide
+You are not inside an IDEasy project: /home
+[~]$ cd projects/devonfw
 [devonfw]$ mvn
 command not found: mvn
 [devonfw]$ ide
-Environment variables have been set for /projects/devonfw in workspace main
+Environment variables have been set for ~/projects/devonfw in workspace main
 [devonfw]$ mvn -v
 Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T20:41:47+02:00)
-Maven home: /projects/devonfw/software/mvn
-Java version: 1.8.0_191, vendor: Oracle Corporation, runtime: /projects/devonfw/software/java
+Maven home: ~/projects/devonfw/software/mvn
+Java version: 1.8.0_191, vendor: Oracle Corporation, runtime: ~/projects/devonfw/software/java
 Default locale: en_DE, platform encoding: UTF-8
 OS name: "mac os x", version: "10.14.3", arch: "x86_64", family: "mac"
-[devonfw]$ cd /projects/ide-test/workspaces/test/my-project
+[devonfw]$ cd ../ide-test/workspaces/test/my-project
 [my-project]$ ide
-Environment variables have been set for /projects/ide-test in workspace test
+Environment variables have been set for ~/projects/ide-test in workspace test
 [my-project]$ mvn -v
 Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T20:41:47+02:00)
-Maven home: /projects/ide-test/software/mvn
-Java version: 11.0.2, vendor: Oracle Corporation, runtime: /projects/ide-test/software/jdk/Contents/Home
+Maven home: ~/projects/ide-test/software/mvn
+Java version: 11.0.2, vendor: Oracle Corporation, runtime: ~/projects/ide-test/software/java
 Default locale: en_DE, platform encoding: UTF-8
 OS name: "mac os x", version: "10.14.3", arch: "x86_64", family: "mac"
-[ide-test]$ ide eclipse
+[my-project]$ ide eclipse
 launching Eclipse for workspace test...
 [my-project]$ ide build
 [INFO] Scanning for projects...
