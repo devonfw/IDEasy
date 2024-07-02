@@ -16,4 +16,10 @@ public class DotNet extends LocalToolCommandlet {
 
     super(context, "dotnet", Set.of(Tag.DOTNET, Tag.CS));
   }
+
+  @Override
+  public String getHelpCommand() {
+
+    return "help";
+  }
 }

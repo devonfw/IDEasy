@@ -110,4 +110,11 @@ public class Jasypt extends LocalToolCommandlet {
     String installedVersion = getInstalledVersion().toString();
     return toolPath.resolve("jasypt-" + installedVersion + ".jar");
   }
+
+  @Override
+  public void printToolHelp(String helpcommand) {
+
+    this.context.info(
+        "To get detailed help about the usage of the jasypt CLI tools, see http://www.jasypt.org/cli.html#");
+  }
 }

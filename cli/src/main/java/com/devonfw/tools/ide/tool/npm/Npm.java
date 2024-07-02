@@ -53,4 +53,10 @@ public class Npm extends LocalToolCommandlet {
       fileAccess.copy(npmBinBath.resolve(npx + cmd), nodeHomePath);
     }
   }
+
+  @Override
+  public String getHelpCommand() {
+
+    return "help";
+  }
 }
