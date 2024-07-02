@@ -24,7 +24,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * The constructor.
    *
    * @param context the {@link IdeContext}.
-   * @param tool    the {@link #getName() tool name}.
+   * @param tool the {@link #getName() tool name}.
    * @param tags    the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
   public LocalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
@@ -126,7 +126,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * repository without touching the IDE installation.
    *
    * @param version        the {@link VersionIdentifier} requested to be installed. May also be a {@link VersionIdentifier#isPattern() version pattern}.
-   * @param edition        the specific edition to install.
+   * @param edition the specific edition to install.
    * @param toolRepository the {@link ToolRepository} to use.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
    */
