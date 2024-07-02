@@ -1,14 +1,21 @@
 package com.devonfw.tools.ide.tool.npm;
 
+import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.regex.Pattern;
+import java.util.Collection;
 
 /**
  * {@link WebsiteUrlUpdater} for npm (node package manager).
  */
-public class NpmUrlUpdater extends WebsiteUrlUpdater {
+public class NpmUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
+  private static final ObjectMapper MAPPER = JsonMapping.create();
+
+  private static final String JSON_URL = "https://registry.npmjs.org/npm/";
+
   @Override
   protected String getTool() {
 
@@ -18,26 +25,27 @@ public class NpmUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    doAddVersion(urlVersion, "https://registry.npmjs.org/npm/-/npm-${version}.tgz");
-
   }
 
   @Override
-  protected String getVersionUrl() {
+  protected String doGetVersionUrl() {
 
-    return "https://registry.npmjs.org/npm/";
+    return JSON_URL;
   }
 
   @Override
-  protected Pattern getVersionPattern() {
+  protected Class<NpmJsonObject> getJsonObjectType() {
 
-    return Pattern.compile("npm-(\\d{1,2}\\.\\d{1,2}\\.\\d+)");
+    return NpmJsonObject.class;
   }
 
   @Override
-  protected String getVersionPrefixToRemove() {
+  protected void collectVersionsFromJson(NpmJsonObject jsonItem, Collection<String> versions) {
 
-    return "npm-";
+    for (NpmJsonVersion item : jsonItem.getVersions().getVersions().values()) {
+      String version = item.getVersion();
+      addVersion(version, versions);
+    }
   }
 
 }
