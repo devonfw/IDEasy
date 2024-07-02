@@ -307,27 +307,23 @@ public class FileAccessImpl implements FileAccess {
     boolean fileOnly = mode.isFileOnly();
     if (fileOnly) {
       this.context.debug("Copying file {} to {}", source, target);
-      fileOnly = mode.isFileOnly();
-      if (fileOnly) {
-        this.context.debug("Copying file {} to {}", source, target);
-      } else {
-        this.context.debug("Copying {} recursively to {}", source, target);
+    } else {
+      this.context.debug("Copying {} recursively to {}", source, target);
+    }
+    if (fileOnly && Files.isDirectory(source)) {
+      throw new IllegalStateException("Expected file but found a directory to copy at " + source);
+    }
+    if (mode.isFailIfExists()) {
+      if (Files.exists(target)) {
+        throw new IllegalStateException("Failed to copy " + source + " to already existing target " + target);
       }
-      if (fileOnly && Files.isDirectory(source)) {
-        throw new IllegalStateException("Expected file but found a directory to copy at " + source);
-      }
-      if (mode.isFailIfExists()) {
-        if (Files.exists(target)) {
-          throw new IllegalStateException("Failed to copy " + source + " to already existing target " + target);
-        }
-      } else if (mode == FileCopyMode.COPY_TREE_OVERRIDE_TREE) {
-        delete(target);
-      }
-      try {
-        copyRecursive(source, target, mode);
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to copy " + source + " to " + target, e);
-      }
+    } else if (mode == FileCopyMode.COPY_TREE_OVERRIDE_TREE) {
+      delete(target);
+    }
+    try {
+      copyRecursive(source, target, mode);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to copy " + source + " to " + target, e);
     }
   }
 
