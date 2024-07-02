@@ -20,6 +20,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -51,10 +54,13 @@ import java.util.stream.Stream;
  */
 public class FileAccessImpl implements FileAccess {
 
-  private final IdeContext context;
+  private static final String WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/windows-file-lock.adoc";
 
-  /** The {@link HttpClient} for HTTP requests. */
-  private final HttpClient client;
+  private static final String WINDOWS_FILE_LOCK_WARNING =
+      "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
+          + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
+
+  private final IdeContext context;
 
   /**
    * The constructor.
@@ -65,7 +71,18 @@ public class FileAccessImpl implements FileAccess {
 
     super();
     this.context = context;
-    this.client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
+  }
+
+  private HttpClient createHttpClient(String url) {
+
+    HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
+    Proxy proxy = this.context.getProxyContext().getProxy(url);
+    if (proxy != Proxy.NO_PROXY) {
+      this.context.info("Downloading through proxy: " + proxy);
+      InetSocketAddress proxyAddress = (InetSocketAddress) proxy.address();
+      builder.proxy(ProxySelector.of(proxyAddress));
+    }
+    return builder.build();
   }
 
   @Override
@@ -77,7 +94,8 @@ public class FileAccessImpl implements FileAccess {
       if (url.startsWith("http")) {
 
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-        HttpResponse<InputStream> response = this.client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+        HttpClient client = createHttpClient(url);
+        HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
 
         if (response.statusCode() == 200) {
           downloadFileWithProgressBar(url, target, response);
@@ -263,25 +281,32 @@ public class FileAccessImpl implements FileAccess {
     try {
       Files.move(source, targetDir);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to move " + source + " to " + targetDir, e);
+      String fileType = Files.isSymbolicLink(source) ? "symlink" : isJunction(source) ? "junction" : Files.isDirectory(source) ? "directory" : "file";
+      String message = "Failed to move " + fileType + ": " + source + " to " + targetDir + ".";
+      if (this.context.getSystemInfo().isWindows()) {
+        message = message + "\n" + WINDOWS_FILE_LOCK_WARNING;
+      }
+      throw new IllegalStateException(message, e);
     }
   }
 
   @Override
   public void copy(Path source, Path target, FileCopyMode mode) {
 
+    if (mode != FileCopyMode.COPY_TREE_CONTENT) {
+      // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy 
+      // source into that folder so that we as a result have a copy in "target/source".
+      // With Java NIO the raw copy method will fail as we cannot copy "source" to the path of the "target" folder.
+      // For folders we want the same behavior as the linux "cp -r" command so that the "source" folder is copied
+      // and not only its content what also makes it consistent with the move method that also behaves this way.
+      // Therefore we need to add the filename (foldername) of "source" to the "target" path before.
+      // For the rare cases, where we want to copy the content of a folder (cp -r source/* target) we support
+      // it via the COPY_TREE_CONTENT mode.
+      target = target.resolve(source.getFileName());
+    }
     boolean fileOnly = mode.isFileOnly();
     if (fileOnly) {
       this.context.debug("Copying file {} to {}", source, target);
-      if (Files.isDirectory(target)) {
-        // if we want to copy "file.txt" to the existing folder "path/to/folder/" in a shell this will copy "file.txt"
-        // into that folder
-        // with Java NIO the raw copy method will fail as we cannot copy the file to the path of the target folder
-        // even worse if FileCopyMode is override the target folder ("path/to/folder/") would be deleted and the result
-        // of our "file.txt" would later appear in "path/to/folder". To prevent such bugs we append the filename to
-        // target
-        target = target.resolve(source.getFileName());
-      }
     } else {
       this.context.debug("Copying {} recursively to {}", source, target);
     }
@@ -489,12 +514,8 @@ public class FileAccessImpl implements FileAccess {
 
     if (Files.isDirectory(archiveFile)) {
       Path properInstallDir = archiveFile; // getProperInstallationSubDirOf(archiveFile, archiveFile);
-      if (extract) {
-        this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
-        copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-      } else {
-        move(properInstallDir, targetDir);
-      }
+      this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
+      copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_CONTENT);
       postExtractHook(postExtractHook, properInstallDir);
       return;
     } else if (!extract) {

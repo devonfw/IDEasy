@@ -11,14 +11,18 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
+import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 
@@ -174,6 +178,14 @@ public interface IdeContext extends IdeLogger {
    * @return The string input from the user, or the default value if no input is provided.
    */
   String askForInput(String message, String defaultValue);
+
+  /**
+   * Asks the user for a single string input.
+   *
+   * @param message The information message to display.
+   * @return The string input from the user, or the default value if no input is provided.
+   */
+  String askForInput(String message);
 
   /**
    * @param question the question to ask.
@@ -408,6 +420,13 @@ public interface IdeContext extends IdeLogger {
   DirectoryMerger getWorkspaceMerger();
 
   /**
+   * @return the {@link Path} to the working directory from where the command is executed.
+   */
+  Path getDefaultExecutionDirectory();
+
+  ProxyContext getProxyContext();
+
+  /**
    * @return the {@link GitContext} used to run several git commands.
    */
   GitContext getGitContext();
@@ -417,12 +436,36 @@ public interface IdeContext extends IdeLogger {
    */
   default String getMavenArgs() {
 
-    Path ideHome = getIdeHome();
-    if (ideHome != null) {
-      return "-s " + ideHome.resolve("conf/.m2/settings.xml");
-    } else {
+    if (getIdeHome() == null) {
       return null;
     }
+    Path confFolder = getConfPath();
+    Path mvnSettingsFile = confFolder.resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
+    if (!Files.exists(mvnSettingsFile)) {
+      mvnSettingsFile = confFolder.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve(Mvn.SETTINGS_FILE);
+      if (!Files.exists(mvnSettingsFile)) {
+        return null;
+      }
+    }
+    String settingsPath;
+    WindowsPathSyntax pathSyntax = getPathSyntax();
+    if (pathSyntax == null) {
+      settingsPath = mvnSettingsFile.toString();
+    } else {
+      settingsPath = pathSyntax.format(mvnSettingsFile);
+    }
+    return "-s " + settingsPath;
+  }
+
+  /**
+   * @return the String value for the variable M2_REPO, or null if called outside an IDEasy installation.
+   */
+  default Path getMavenRepoEnvVariable() {
+
+    if (getIdeHome() != null) {
+      return getConfPath().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve("repository");
+    }
+    return null;
   }
 
   /**
@@ -487,5 +530,10 @@ public interface IdeContext extends IdeLogger {
    * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
    */
   String findBash();
+
+  /**
+   * @return the {@link WindowsPathSyntax} used for {@link Path} conversion or {@code null} for no such conversion (typically if not on Windows).
+   */
+  WindowsPathSyntax getPathSyntax();
 
 }
