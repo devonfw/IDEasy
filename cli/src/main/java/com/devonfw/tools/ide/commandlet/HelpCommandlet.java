@@ -126,6 +126,7 @@ public final class HelpCommandlet extends Commandlet {
     values.print();
 
     if (cmd instanceof ToolCommandlet) {
+      this.context.info("");
       ((ToolCommandlet) cmd).printToolHelp(((ToolCommandlet) cmd).getHelpCommand());
     }
   }
