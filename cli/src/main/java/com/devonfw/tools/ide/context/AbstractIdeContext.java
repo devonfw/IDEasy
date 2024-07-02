@@ -137,11 +137,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   /**
    * The constructor.
    *
-   * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
-   * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
-   * @param userDir the optional {@link Path} to current working directory.
+   * @param minLogLevel    the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
+   * @param factory        the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
+   * @param userDir        the optional {@link Path} to current working directory.
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will be
-   * used.
+   *                       used.
    */
   public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository) {
 
@@ -179,30 +179,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
 
     // detection completed, initializing variables
-    Path ideRootPath = null;
-    if (currentDir == null) {
-      info(getMessageIdeHomeNotFound());
-    } else {
-      debug(getMessageIdeHomeFound());
-      ideRootPath = currentDir.getParent();
-    }
-
-    if (!isTest()) {
-      String root = System.getenv("IDE_ROOT");
-      if (root != null) {
-        Path rootPath = Path.of(root);
-        if (ideRootPath == null) {
-          ideRootPath = rootPath;
-        } else if (!ideRootPath.equals(rootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath, this.ideHome.getFileName(),
-              ideRootPath);
-        }
-      }
-    }
-    if (ideRootPath == null || !Files.isDirectory(ideRootPath)) {
-      error("IDE_ROOT is not set or not a valid directory.");
-    }
-    this.ideRoot = ideRootPath;
+    this.ideRoot = findIdeRoot(currentDir);
 
     setCwd(userDir, workspace, currentDir);
 
@@ -231,6 +208,30 @@ public abstract class AbstractIdeContext implements IdeContext {
     } else {
       this.defaultToolRepository = toolRepository;
     }
+  }
+
+  private Path findIdeRoot(Path ideHomePath) {
+    final Path ideRoot;
+    Path ideRootPath = null;
+    if (ideHomePath != null) {
+      ideRootPath = ideHomePath.getParent();
+    }
+
+    if (!isTest()) {
+      String root = System.getenv("IDE_ROOT");
+      if (root != null) {
+        Path rootPath = Path.of(root);
+        if ((ideRootPath == null)) {
+          if (Files.isDirectory(rootPath)) {
+            ideRootPath = rootPath;
+          }
+        } else if (!ideRootPath.equals(rootPath)) {
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath, this.ideHome.getFileName(),
+                  ideRootPath);
+        }
+      }
+    }
+    return ideRootPath;
   }
 
   @Override
@@ -281,6 +282,15 @@ public abstract class AbstractIdeContext implements IdeContext {
   private String getMessageIdeHomeNotFound() {
 
     return "You are not inside an IDE installation: " + this.cwd;
+  }
+
+  private static String getMessageIdeRootNotFound() {
+    String root = System.getenv("IDE_ROOT");
+    if (root == null) {
+      return "The environment variable IDE_ROOT is undefined. Please reinstall IDEasy or manually repair IDE_ROOT variable.";
+    } else {
+      return "The environment variable IDE_ROOT is pointing to an invalid path " + root + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
+    }
   }
 
   /**
@@ -838,10 +848,11 @@ public abstract class AbstractIdeContext implements IdeContext {
     assert (this.currentStep == null);
     boolean supressStepSuccess = false;
     StepImpl step = newStep(true, "ide", (Object[]) current.asArray());
+    Commandlet firstCandidate = null;
     try {
       if (!current.isEnd()) {
         String keyword = current.get();
-        Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
+        firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
         boolean matches;
         if (firstCandidate != null) {
           matches = applyAndRun(arguments.copy(), firstCandidate);
@@ -863,7 +874,12 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
         step.error("Invalid arguments: {}", current.getArgs());
       }
-      this.commandletManager.getCommandlet(HelpCommandlet.class).run();
+
+      HelpCommandlet help = this.commandletManager.getCommandlet(HelpCommandlet.class);
+      if (firstCandidate != null) {
+        help.commandlet.setValue(firstCandidate);
+      }
+      help.run();
       return 1;
     } catch (Throwable t) {
       step.error(t, true);
@@ -877,9 +893,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @param cmd the potential {@link Commandlet} to
-   *     {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run() run}.
+   *            {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   *     {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -892,7 +908,14 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (matches) {
       debug("Running commandlet {}", cmd);
       if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
-        throw new CliException(getMessageIdeHomeNotFound());
+        throw new CliException(getMessageIdeHomeNotFound(), ProcessResult.NO_IDE_HOME);
+      } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
+        throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
+      }
+      if (!cmd.isProcessableOutput()) {
+        if (cmd.isIdeHomeRequired()) {
+          debug(getMessageIdeHomeFound());
+        }
       }
       cmd.run();
     } else {
@@ -901,8 +924,9 @@ public abstract class AbstractIdeContext implements IdeContext {
     return matches;
   }
 
+
   /**
-   * @param arguments the {@link CliArguments#ofCompletion(String...) completion arguments}.
+   * @param arguments             the {@link CliArguments#ofCompletion(String...) completion arguments}.
    * @param includeContextOptions to include the options of {@link ContextCommandlet}.
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
@@ -925,14 +949,14 @@ public abstract class AbstractIdeContext implements IdeContext {
       Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
       boolean matches = false;
       if (firstCandidate != null) {
-        matches = apply(arguments.copy(), firstCandidate, collector);
+        matches = completeCommandlet(arguments, firstCandidate, collector);
       } else if (current.isCombinedShortOption()) {
         collector.add(keyword, null, null, null);
       }
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
           if (cmd != firstCandidate) {
-            apply(arguments.copy(), cmd, collector);
+            completeCommandlet(arguments, cmd, collector);
           }
         }
       }
@@ -940,10 +964,18 @@ public abstract class AbstractIdeContext implements IdeContext {
     return collector.getSortedCandidates();
   }
 
+  private boolean completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+    if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
+      return false;
+    } else {
+      return apply(arguments.copy(), cmd, collector);
+    }
+  }
+
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
-   * {@link CliArguments#copy() copy} as needed.
-   * @param cmd the potential {@link Commandlet} to match.
+   *                  {@link CliArguments#copy() copy} as needed.
+   * @param cmd       the potential {@link Commandlet} to match.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
    * and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
@@ -1000,8 +1032,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
 
     // If not found in the default location, try the registry query
-    String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
-    String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
+    String[] bashVariants = {"GitForWindows", "Cygwin\\setup"};
+    String[] registryKeys = {"HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER"};
     String regQueryResult;
     for (String bashVariant : bashVariants) {
       for (String registryKey : registryKeys) {

@@ -35,9 +35,15 @@ public final class CompleteCommandlet extends Commandlet {
   }
 
   @Override
-  public boolean isIdeHomeRequired() {
+  public boolean isIdeRootRequired() {
 
     return false;
+  }
+
+  @Override
+  public boolean isProcessableOutput() {
+
+    return true;
   }
 
   @Override

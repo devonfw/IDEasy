@@ -34,13 +34,19 @@ public class VersionGetCommandlet extends Commandlet {
   }
 
   @Override
+  public boolean isProcessableOutput() {
+
+    return true;
+  }
+
+  @Override
   public void run() {
 
     ToolCommandlet commandlet = this.tool.getValue();
     VersionIdentifier installedVersion = commandlet.getInstalledVersion();
     if (installedVersion == null) {
       this.context.info("The configured version for tool {} is {}", commandlet.getName(),
-          commandlet.getConfiguredVersion());
+              commandlet.getConfiguredVersion());
       this.context.info("To install that version call the following command:");
       this.context.info("ide install {}", commandlet.getName());
       return;

@@ -12,6 +12,12 @@ public interface ProcessResult {
   /** Return code for success. */
   int SUCCESS = 0;
 
+  /** Return code if IDE_HOME is required but not found. */
+  int NO_IDE_HOME = 2;
+
+  /** Return code if IDE_ROOT is required but not found. */
+  int NO_IDE_ROOT = 3;
+
   /** Return code if tool was requested that is not installed. */
   int TOOL_NOT_INSTALLED = 4;
 

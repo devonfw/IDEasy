@@ -192,7 +192,7 @@ public final class StepImpl implements Step {
     if (this.context.trace().isEnabled()) {
       this.context.trace(toString());
     }
-    if (this.context.isQuietMode() || (this.children.isEmpty() && Boolean.TRUE.equals(this.success))) {
+    if (this.context.isQuietMode() || (this.children.isEmpty())) {
       return;
     }
     StepSummary summary = new StepSummary();
