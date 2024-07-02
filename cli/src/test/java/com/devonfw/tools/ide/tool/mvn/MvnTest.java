@@ -21,7 +21,8 @@ public class MvnTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_MVN = "mvn";
 
-  private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\[(.*?)\\]");
+  //private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\[(.*?)\\]");
+  private static final Pattern VARIABLE_PATTERN = Pattern.compile("<([^>]+)>(.*?)</\\1>");
 
   /**
    * Tests the installation of {@link Mvn}
@@ -77,7 +78,7 @@ public class MvnTest extends AbstractIdeContextTest {
 
     Path settingsFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
     assertThat(settingsFile).exists();
-    assertFileContent(settingsFile, List.of("testLogin", "testPassword"));
+    assertFileContent(settingsFile, List.of("${env.M2_REPO}", "repository", "testLogin", "testPassword"));
 
     Path settingsSecurityFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_SECURITY_FILE);
     assertThat(settingsSecurityFile).exists();
@@ -88,8 +89,8 @@ public class MvnTest extends AbstractIdeContextTest {
 
     String content = new String(Files.readAllBytes(filePath));
     Matcher matcher = VARIABLE_PATTERN.matcher(content);
-    List<String> values = matcher.results().map(matchResult -> matchResult.group(1)).collect(Collectors.toList());
+    List<String> values = matcher.results().map(matchResult -> matchResult.group(2)).collect(Collectors.toList());
 
-    assertThat(values).containsExactlyElementsOf(expectedValues);
+    assertThat(values).containsExactlyInAnyOrderElementsOf(expectedValues);
   }
 }
