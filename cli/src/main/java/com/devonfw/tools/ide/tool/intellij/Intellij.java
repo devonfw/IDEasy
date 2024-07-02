@@ -53,7 +53,7 @@ public class Intellij extends IdeToolCommandlet {
     } else if (this.context.getSystemInfo().isLinux()) {
       return toolBinPath.resolve(IDEA_BASH_SCRIPT).toString();
     } else {
-      return getToolPath().resolve("IntelliJ IDEA CE.app").resolve("Contents").resolve("MacOS").resolve(IDEA).toString();
+      return getToolPath().resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents").resolve("MacOS").resolve(IDEA).toString();
     }
   }
 
@@ -69,8 +69,17 @@ public class Intellij extends IdeToolCommandlet {
 
     super.postInstall();
     if (this.context.getSystemInfo().isMac()) {
-      setMacOsFilePermissions(getToolPath().resolve("IntelliJ IDEA CE.app").resolve("Contents").resolve("MacOS").resolve(IDEA));
+      setMacOsFilePermissions(getToolPath().resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents").resolve("MacOS").resolve(IDEA));
     }
+  }
+
+  private String generateMacEditionString() {
+
+    String edition = "";
+    if (getEdition().equals("intellij")) {
+      edition = " CE";
+    }
+    return edition;
   }
 
   private void setMacOsFilePermissions(Path binaryFile) {
