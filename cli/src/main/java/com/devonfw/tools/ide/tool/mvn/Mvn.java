@@ -216,7 +216,13 @@ public class Mvn extends PluginBasedCommandlet {
       this.context.success("Successfully added {} to {}", plugin.getName(), mavenPlugin.toString());
     } else {
       this.context.warning("Plugin {} has wrong properties\n" //
-              + "Please check the plugin properties file in {}", mavenPlugin.getFileName(), mavenPlugin.toAbsolutePath());
+          + "Please check the plugin properties file in {}", mavenPlugin.getFileName(), mavenPlugin.toAbsolutePath());
     }
+  }
+
+  @Override
+  public String getHelpCommand() {
+
+    return "-h";
   }
 }
