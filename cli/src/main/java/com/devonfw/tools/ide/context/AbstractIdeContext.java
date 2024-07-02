@@ -180,9 +180,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     // detection completed, initializing variables
     Path ideRootPath = null;
-    if (currentDir == null) {
-      info(getMessageIdeHomeNotFound());
-    } else {
+    if (currentDir != null) {
       debug(getMessageIdeHomeFound());
       ideRootPath = currentDir.getParent();
     }
@@ -199,9 +197,10 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
     }
-    if (ideRootPath == null || !Files.isDirectory(ideRootPath)) {
-      error("IDE_ROOT is not set or not a valid directory.");
+    if (ideRootPath == null || !Files.isDirectory(ideRootPath) || currentDir != null) {
+      error(getMessageIdeHomeNotFound());
     }
+
     this.ideRoot = ideRootPath;
 
     setCwd(userDir, workspace, currentDir);
@@ -280,7 +279,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private String getMessageIdeHomeNotFound() {
 
-    return "You are not inside an IDE installation: " + this.cwd;
+    return "You are not inside an IDE installation: " + System.getProperty("user.dir");
   }
 
   /**
@@ -876,10 +875,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to
-   *     {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run() run}.
-   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   *     {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
+   * {@link Commandlet#run() run}.
+   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
+   * {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -1044,6 +1043,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @Override
   public WindowsPathSyntax getPathSyntax() {
+
     return this.pathSyntax;
   }
 
