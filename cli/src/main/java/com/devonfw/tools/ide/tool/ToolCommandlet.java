@@ -344,6 +344,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
   }
 
+  /**
+   * Runs the tool's help command to provide the user with usage information.
+   *
+   * @param helpcommand the tool's help command (usually help, --help, or -h)
+   */
   public void printToolHelp(String helpcommand) {
 
     if (helpcommand != null && getInstalledVersion() != null) {
@@ -353,6 +358,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
   }
 
+  /**
+   * @return the tool's specific help command. Usually help, --help or -h. Return null if not applicable.
+   */
   public String getHelpCommand() {
 
     return null;
