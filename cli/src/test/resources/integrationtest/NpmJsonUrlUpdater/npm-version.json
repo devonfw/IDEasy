@@ -1,0 +1,221 @@
+{
+  "_id": "npm",
+  "_rev": "2839-795b2439bf60c79d34855863f11492ad",
+  "name": "npm",
+  "description": "a package manager for JavaScript",
+  "dist-tags": {
+    "next-9": "9.9.3",
+    "next-10": "10.8.1",
+    "latest": "10.8.1"
+  },
+  "versions": {
+    "1.1.25": {
+      "name": "npm",
+      "version": "1.1.25",
+      "keywords": [
+        "package manager",
+        "modules",
+        "install",
+        "package.json"
+      ],
+      "author": {
+        "url": "http://blog.izs.me",
+        "name": "Isaac Z. Schlueter",
+        "email": "i@izs.me"
+      },
+      "_id": "npm@1.1.25",
+      "maintainers": [
+        {
+          "name": "isaacs",
+          "email": "i@izs.me"
+        }
+      ],
+      "contributors": [
+        {
+          "url": "http://blog.izs.me/",
+          "name": "Isaac Z. Schlueter",
+          "email": "i@izs.me"
+        }
+      ],
+      "homepage": "http://npmjs.org/",
+      "bugs": {
+        "url": "http://github.com/isaacs/npm/issues",
+        "email": "npm-@googlegroups.com"
+      },
+      "bin": {
+        "npm": "./bin/npm-cli.js"
+      },
+      "man": [
+        "man/man5/npm-folders.5",
+        "man/man5/npm-global.5"
+      ],
+      "dist": {
+        "shasum": "0ee49f1aa33e813bbfe1da87a3858aff524708b0",
+        "tarball": "https://registry.npmjs.org/npm/-/npm-1.1.25.tgz",
+        "integrity": "sha512-a0VDtKXckL+qFQOLBDbrWdDxHmhYzPFaPi5tGAnw0Jp5abNA83RgHkPtIoSMCJQsMC6Jt4pYvpVq++jtMixkew==",
+        "signatures": [
+          {
+            "sig": "MEYCIQCOjnEFMyCx1ZjFRWEu3yXCUf5nIlmgARR7JVce/MYzqwIhANIT25mRpwJOlaFeoIGvBbNdzQ7QUqU2yTZkZ4Q9xJzl",
+            "keyid": "SHA256:jl3bwswu80PjjokCgh0o2w5c2U4LhQAE57gj9cz1kzA"
+          }
+        ]
+      },
+      "main": "./lib/npm.js",
+      "config": {
+        "publishtest": false
+      },
+      "engines": {
+        "npm": "1",
+        "node": "0.6 || 0.7 || 0.8"
+      },
+      "scripts": {
+        "test": "node ./test/run.js",
+        "dumpconf": "env | grep npm | sort | uniq",
+        "prepublish": "npm prune ; make -j4 doc"
+      },
+      "_npmUser": {
+        "name": "isaacs",
+        "email": "i@izs.me"
+      },
+      "licenses": [
+        {
+          "url": "http://github.com/isaacs/npm/raw/master/LICENSE",
+          "type": "MIT +no-false-attribs"
+        }
+      ],
+      "repository": {
+        "url": "git://github.com/isaacs/npm.git",
+        "type": "git"
+      },
+      "_npmVersion": "1.1.25",
+      "description": "A package manager for node",
+      "directories": {
+        "bin": "./bin",
+        "doc": "./doc",
+        "lib": "./lib",
+        "man": "./man"
+      },
+      "_nodeVersion": "v0.8.25",
+      "dependencies": {
+        "ini": "1"
+      },
+      "preferGlobal": true,
+      "publishConfig": {
+        "proprietary-attribs": false
+      },
+      "_defaultsLoaded": true,
+      "devDependencies": {
+        "ronn": "https://github.com/isaacs/ronnjs/tarball/master"
+      },
+      "_engineSupported": true,
+      "bundleDependencies": [
+        "slide"
+      ],
+      "optionalDependencies": {
+      }
+    },
+    "1.2.32": {
+      "name": "npm",
+      "version": "1.2.32",
+      "keywords": [
+        "package manager",
+        "modules",
+        "install",
+        "package.json"
+      ],
+      "author": {
+        "url": "http://blog.izs.me",
+        "name": "Isaac Z. Schlueter",
+        "email": "i@izs.me"
+      },
+      "_id": "npm@1.2.32",
+      "maintainers": [
+        {
+          "name": "isaacs",
+          "email": "i@izs.me"
+        }
+      ],
+      "contributors": [
+        {
+          "url": "http://blog.izs.me/",
+          "name": "Isaac Z. Schlueter",
+          "email": "i@izs.me"
+        }
+      ],
+      "homepage": "https://npmjs.org/doc/",
+      "bugs": {
+        "url": "http://github.com/isaacs/npm/issues",
+        "email": "npm-@googlegroups.com"
+      },
+      "bin": {
+        "npm": "./bin/npm-cli.js"
+      },
+      "man": [
+        "/Users/isaacs/.npm/npm/1.2.32/package/man/man1/README.1"
+      ],
+      "dist": {
+        "shasum": "55f0d962b40a6b3f7b310824385388d92a8bbaad",
+        "tarball": "https://registry.npmjs.org/npm/-/npm-1.2.32.tgz",
+        "integrity": "sha512-L8qms+rHbTUEBHTPaiAV9xVP9jvEygGVzq/7Zeo6bbzRRtWke6LmG7mfX0pzbkWO14xJ9juXoBndCcNYGXss1w==",
+        "signatures": [
+          {
+            "sig": "MEYCIQCot8h0MDZvioQTw2fjgTSiNDHsiVb2ncd6mYJiO6VGuQIhAO9JtmejyS1lyf/27yOGdC88hhIA6hPJp/JpRC1n/yZC",
+            "keyid": "SHA256:jl3bwswu80PjjokCgh0o2w5c2U4LhQAE57gj9cz1kzA"
+          }
+        ]
+      },
+      "main": "./lib/npm.js",
+      "_from": ".",
+      "config": {
+        "publishtest": false
+      },
+      "engines": {
+        "npm": "1",
+        "node": "\u003E=0.6"
+      },
+      "scripts": {
+        "tap": "tap test/tap/*.js",
+        "echo": "node bin/npm-cli.js",
+        "test": "node ./test/run.js && tap test/tap/*.js",
+        "dumpconf": "env | grep npm | sort | uniq",
+        "prepublish": "node bin/npm-cli.js prune ; rm -rf test/*/*/node_modules ; make -j4 doc"
+      },
+      "_npmUser": {
+        "name": "isaacs",
+        "email": "i@izs.me"
+      },
+      "licenses": [
+        {
+          "url": "https://github.com/isaacs/npm/raw/master/LICENSE",
+          "type": "MIT +no-false-attribs"
+        }
+      ],
+      "repository": {
+        "url": "https://github.com/isaacs/npm",
+        "type": "git"
+      },
+      "_npmVersion": "1.2.32",
+      "description": "A package manager for node",
+      "directories": {
+        "bin": "./bin",
+        "doc": "./doc",
+        "lib": "./lib",
+        "man": "./man"
+      },
+      "dependencies": {
+        "ini": "~1.1.0"
+      },
+      "preferGlobal": true,
+      "publishConfig": {
+        "proprietary-attribs": false
+      },
+      "devDependencies": {
+        "tap": "~0.4.0",
+        "ronn": "~0.3.6"
+      },
+      "bundleDependencies": [
+        "semver"
+      ]
+    }
+  }
+}
