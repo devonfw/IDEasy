@@ -26,7 +26,7 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     buildCommandlet.run();
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed mvn in version 3.9.6");
-    assertLogMessage(context, IdeLogLevel.INFO, "mvn clean install");
+    assertLogMessage(context, IdeLogLevel.INFO, "mvn clean compile");
   }
 
   /**
