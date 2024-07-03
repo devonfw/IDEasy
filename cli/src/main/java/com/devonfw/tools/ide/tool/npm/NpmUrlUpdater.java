@@ -1,10 +1,8 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Collection;
 
@@ -12,8 +10,6 @@ import java.util.Collection;
  * {@link WebsiteUrlUpdater} for npm (node package manager).
  */
 public class NpmUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
-  private static final ObjectMapper MAPPER = JsonMapping.create();
-
   private static final String JSON_URL = "https://registry.npmjs.org/npm/";
 
   @Override
@@ -25,6 +21,8 @@ public class NpmUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
+    String baseUrl = JSON_URL;
+    doAddVersion(urlVersion, baseUrl + "-/npm-${version}.tgz");
   }
 
   @Override
