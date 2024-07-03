@@ -20,10 +20,12 @@ import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.jmc.Jmc;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
+import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.oc.Oc;
+import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
@@ -102,6 +104,8 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Docker(context));
     add(new Sonar(context));
     add(new GraalVm(context));
+    add(new PgAdmin(context));
+    add(new LazyDocker(context));
   }
 
   private void add(Commandlet commandlet) {

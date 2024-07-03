@@ -1,10 +1,5 @@
 package com.devonfw.tools.ide.tool.docker;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
@@ -13,6 +8,11 @@ import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 
 /**
  * {@link GlobalToolCommandlet} for <a href="https://www.docker.com/">docker</a> either as
@@ -44,13 +44,13 @@ public class Docker extends GlobalToolCommandlet {
   protected boolean doInstall(boolean silent) {
 
     if (this.context.getSystemInfo().isLinux()) {
-      return installWithPackageManager(silent, getPackageManagerCommands());
+      return runWithPackageManager(silent, getPackageManagerCommandsInstall());
     } else {
       return super.doInstall(silent);
     }
   }
 
-  private List<PackageManagerCommand> getPackageManagerCommands() {
+  private List<PackageManagerCommand> getPackageManagerCommandsInstall() {
 
     String edition = getEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
@@ -66,9 +66,30 @@ public class Docker extends GlobalToolCommandlet {
             + " sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
         "echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg]"
             + " https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' |"
-            + " sudo dd status=none of=/etc/apt/sources.list.d/isv-rancher-stable.list",
-        "sudo apt update",
+            + " sudo dd status=none of=/etc/apt/sources.list.d/isv-rancher-stable.list", "sudo apt update",
         String.format("sudo apt install -y --allow-downgrades rancher-desktop=%s*", resolvedVersion))));
+
+    return pmCommands;
+  }
+
+  @Override
+  public void uninstall() {
+
+    if (this.context.getSystemInfo().isLinux()) {
+      runWithPackageManager(false, getPackageManagerCommandsUninstall());
+    } else {
+      super.uninstall();
+    }
+
+  }
+
+  private List<PackageManagerCommand> getPackageManagerCommandsUninstall() {
+
+    List<PackageManagerCommand> pmCommands = new ArrayList<>();
+    pmCommands.add(
+        new PackageManagerCommand(PackageManager.ZYPPER, Arrays.asList("sudo zypper remove rancher-desktop")));
+    pmCommands.add(
+        new PackageManagerCommand(PackageManager.APT, Arrays.asList("sudo apt -y autoremove rancher-desktop")));
 
     return pmCommands;
   }

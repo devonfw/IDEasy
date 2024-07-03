@@ -436,21 +436,25 @@ public interface IdeContext extends IdeLogger {
    */
   default String getMavenArgs() {
 
-    if (getIdeHome() != null) {
-      Path mvnSettingsFile = getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
-      if (Files.exists(mvnSettingsFile)) {
-        String settingsPath;
-        WindowsPathSyntax pathSyntax = null; // getPathSyntax();
-        if (pathSyntax == null) {
-          settingsPath = mvnSettingsFile.toString();
-        } else {
-          settingsPath = pathSyntax.format(mvnSettingsFile);
-        }
-        return "-s " + settingsPath;
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Path confFolder = getConfPath();
+    Path mvnSettingsFile = confFolder.resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
+    if (!Files.exists(mvnSettingsFile)) {
+      mvnSettingsFile = confFolder.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve(Mvn.SETTINGS_FILE);
+      if (!Files.exists(mvnSettingsFile)) {
+        return null;
       }
     }
-    return null;
-
+    String settingsPath;
+    WindowsPathSyntax pathSyntax = getPathSyntax();
+    if (pathSyntax == null) {
+      settingsPath = mvnSettingsFile.toString();
+    } else {
+      settingsPath = pathSyntax.format(mvnSettingsFile);
+    }
+    return "-s " + settingsPath;
   }
 
   /**
@@ -459,7 +463,7 @@ public interface IdeContext extends IdeLogger {
   default Path getMavenRepoEnvVariable() {
 
     if (getIdeHome() != null) {
-      return getConfPath().resolve(Mvn.M2_CONFIG_FOLDER).resolve("repository");
+      return getConfPath().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve("repository");
     }
     return null;
   }
