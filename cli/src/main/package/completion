@@ -1,14 +1,11 @@
 #!/usr/bin/env bash
 _ide_completion()
 {
-  local result
   if [ -z "${COMP_WORDS[COMP_CWORD]}" ]; then
-    result=$(ideasy complete ${COMP_WORDS[@]:1} "")
+    COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1} "") )
   else
-    result=$(ideasy complete ${COMP_WORDS[@]:1})
+    COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1}) )
   fi
-  result="${result//$'\n'/ }"
-  COMPREPLY=( $result )
 }
 
 complete -F _ide_completion ide
