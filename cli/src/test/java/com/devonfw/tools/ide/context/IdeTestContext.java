@@ -6,11 +6,15 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.ToolRepository;
 
 import java.nio.file.Path;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Implementation of {@link IdeContext} for testing.
  */
 public class IdeTestContext extends AbstractIdeTestContext {
+
+  private LinkedList<String> inputValues;
 
   /**
    * The constructor.
@@ -60,6 +64,22 @@ public class IdeTestContext extends AbstractIdeTestContext {
   public static IdeTestContext of() {
 
     return new IdeTestContext(Path.of("/"));
+  }
+
+  /**
+   * Set a mocked value to be returned by the {@link IdeContext#askForInput(String)} method
+   *
+   * @param values a {@link LinkedList} with the mocked input value
+   */
+  public void setInputValues(List<String> values) {
+
+    this.inputValues = new LinkedList<>(values);
+  }
+
+  @Override
+  public String askForInput(String message) {
+
+    return inputValues.isEmpty() ? null : inputValues.poll();
   }
 
 }
