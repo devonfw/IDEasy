@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.npm;
+package com.devonfw.tools.ide.npm;
 
 import com.devonfw.tools.ide.common.JsonObject;
 

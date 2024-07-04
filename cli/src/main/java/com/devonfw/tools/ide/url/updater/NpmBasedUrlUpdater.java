@@ -1,6 +1,7 @@
-package com.devonfw.tools.ide.tool.npm;
+package com.devonfw.tools.ide.url.updater;
 
-import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import com.devonfw.tools.ide.npm.NpmJsonObject;
+import com.devonfw.tools.ide.npm.NpmJsonVersion;
 
 import java.util.Collection;
 

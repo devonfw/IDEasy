@@ -1,10 +1,10 @@
 package com.devonfw.tools.ide.tool.npm;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
+import com.devonfw.tools.ide.url.updater.NpmBasedUrlUpdater;
 
 /**
- * {@link WebsiteUrlUpdater} for npm (node package manager).
+ * {@link NpmBasedUrlUpdater} for npm (node package manager).
  */
 public class NpmUrlUpdater extends NpmBasedUrlUpdater {
   private static final String JSON_URL = "https://registry.npmjs.org/npm/";
