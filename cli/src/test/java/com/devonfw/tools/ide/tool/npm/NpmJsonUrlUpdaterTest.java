@@ -44,7 +44,7 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
     stubFor(get(urlMatching("/npm/")).willReturn(
         aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
 
-    stubFor(any(urlMatching("/npm/-/npm*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+    stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock();
@@ -76,8 +76,6 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
     stubFor(get(urlMatching("/npm/")).willReturn(
         aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
 
-    stubFor(any(urlMatching("/npm/-/npm-*")).willReturn(aResponse().withStatus(404)));
-
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock();
 
@@ -91,4 +89,32 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
 
   }
 
+  /**
+   * Test if the {@link JsonUrlUpdater} for {@link NpmUrlUpdater} can handle downloads with missing checksums (generate
+   * checksum from download file if no checksum was provided)
+   *
+   * @param tempDir Path to a temporary directory
+   * @throws IOException test fails
+   */
+  @Test
+  public void testNpmJsonUrlUpdaterGeneratesChecksum(@TempDir Path tempDir) throws IOException {
+
+    // given
+    stubFor(get(urlMatching("/npm/")).willReturn(
+        aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
+
+    stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+
+    UrlRepository urlRepository = UrlRepository.load(tempDir);
+    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock();
+
+    // when
+    updater.update(urlRepository);
+
+    Path NpmVersionsPath = tempDir.resolve("npm").resolve("npm").resolve("1.1.25");
+
+    // then
+    assertThat(NpmVersionsPath.resolve("urls.sha256")).exists().hasContent(EXPECTED_ABODY_CHECKSUM);
+
+  }
 }

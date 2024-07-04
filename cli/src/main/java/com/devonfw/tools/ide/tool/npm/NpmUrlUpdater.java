@@ -21,8 +21,7 @@ public class NpmUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = JSON_URL;
-    doAddVersion(urlVersion, baseUrl + "-/npm-${version}.tgz");
+    doAddVersion(urlVersion, doGetVersionUrl() + "-/npm-${version}.tgz");
   }
 
   @Override
