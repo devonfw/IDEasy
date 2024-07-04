@@ -76,6 +76,8 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
     stubFor(get(urlMatching("/npm/")).willReturn(
         aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
 
+    stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+    
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock();
 
