@@ -26,31 +26,41 @@ public abstract class Property<V> {
 
   private static final String INVALID_ARGUMENT = "Invalid CLI argument '{}' for property '{}' of commandlet '{}'";
 
-  private static final String INVALID_ARGUMENT_WITH_CAUSE = INVALID_ARGUMENT + ":{}";
+  private static final String INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE = INVALID_ARGUMENT + ": {}";
 
-  /** @see #getName() */
+  /**
+   * @see #getName()
+   */
   protected final String name;
 
-  /** @see #getAlias() */
+  /**
+   * @see #getAlias()
+   */
   protected final String alias;
 
-  /** @see #isRequired() */
+  /**
+   * @see #isRequired()
+   */
   protected final boolean required;
 
   private final Consumer<V> validator;
 
-  /** @see #isMultiValued() */
+  /**
+   * @see #isMultiValued()
+   */
   private final boolean multivalued;
 
-  /** @see #getValue() */
+  /**
+   * @see #getValue()
+   */
   protected final List<V> value = new ArrayList<>();
 
   /**
    * The constructor.
    *
-   * @param name the {@link #getName() property name}.
+   * @param name     the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
-   * @param alias the {@link #getAlias() property alias}.
+   * @param alias    the {@link #getAlias() property alias}.
    */
   public Property(String name, boolean required, String alias) {
 
@@ -65,11 +75,11 @@ public abstract class Property<V> {
   /**
    * The constructor.
    *
-   * @param name the {@link #getName() property name}.
-   * @param required the {@link #isRequired() required flag}.
-   * @param alias the {@link #getAlias() property alias}.
+   * @param name        the {@link #getName() property name}.
+   * @param required    the {@link #isRequired() required flag}.
+   * @param alias       the {@link #getAlias() property alias}.
    * @param multivalued the boolean flag about multiple arguments
-   * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   * @param validator   the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
   public Property(String name, boolean required, String alias, boolean multivalued, Consumer<V> validator) {
 
@@ -252,7 +262,7 @@ public abstract class Property<V> {
 
   /**
    * @param value the new {@link #getValue() value} to set.
-   * @param i the position to set.
+   * @param i     the position to set.
    */
   public void setValue(V value, int i) {
 
@@ -261,7 +271,7 @@ public abstract class Property<V> {
 
   /**
    * @param valueAsString the new {@link #getValue() value} as {@link String}.
-   * @param context the {@link IdeContext}
+   * @param context       the {@link IdeContext}
    * @see #getValueAsString()
    */
   public void setValueAsString(String valueAsString, IdeContext context) {
@@ -277,8 +287,8 @@ public abstract class Property<V> {
    * Like {@link #setValueAsString(String, IdeContext)} but with exception handling.
    *
    * @param valueAsString the new {@link #getValue() value} as {@link String}.
-   * @param context the {@link IdeContext}
-   * @param commandlet the {@link Commandlet} owning this property.
+   * @param context       the {@link IdeContext}
+   * @param commandlet    the {@link Commandlet} owning this property.
    * @return {@code true} if the value has been assigned successfully, {@code false} otherwise (an error occurred).
    */
   public final boolean assignValueAsString(String valueAsString, IdeContext context, Commandlet commandlet) {
@@ -287,11 +297,11 @@ public abstract class Property<V> {
       setValueAsString(valueAsString, context);
       return true;
     } catch (Exception e) {
-      String message = INVALID_ARGUMENT_WITH_CAUSE;
       if (e instanceof IllegalArgumentException) {
-        message = INVALID_ARGUMENT;
+        context.warning(INVALID_ARGUMENT, valueAsString, getNameOrAlias(), commandlet.getName());
+      } else {
+        context.warning(INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE, valueAsString, getNameOrAlias(), commandlet.getName(), e.getMessage());
       }
-      context.warning(message, valueAsString, getNameOrAlias(), commandlet.getName(), e.getMessage());
       return false;
     }
   }
@@ -306,16 +316,16 @@ public abstract class Property<V> {
 
   /**
    * @param valueAsString the value to parse given as {@link String}.
-   * @param context the {@link IdeContext}.
+   * @param context       the {@link IdeContext}.
    * @return the parsed value.
    */
   public abstract V parse(String valueAsString, IdeContext context);
 
   /**
-   * @param args the {@link CliArguments} already {@link CliArguments#current() pointing} the {@link CliArgument} to apply.
-   * @param context the {@link IdeContext}.
+   * @param args       the {@link CliArguments} already {@link CliArguments#current() pointing} the {@link CliArgument} to apply.
+   * @param context    the {@link IdeContext}.
    * @param commandlet the {@link Commandlet} owning this property.
-   * @param collector the {@link CompletionCandidateCollector}.
+   * @param collector  the {@link CompletionCandidateCollector}.
    * @return {@code true} if it matches, {@code false} otherwise.
    */
   public boolean apply(CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
@@ -358,16 +368,16 @@ public abstract class Property<V> {
   }
 
   /**
-   * @param argValue the value to set as {@link String}.
-   * @param lookahead - {@code true} if the given {@code argValue} is taken as lookahead from the next value, {@code false} otherwise.
-   * @param args the {@link CliArguments}.
-   * @param context the {@link IdeContext}.
+   * @param argValue   the value to set as {@link String}.
+   * @param lookahead  - {@code true} if the given {@code argValue} is taken as lookahead from the next value, {@code false} otherwise.
+   * @param args       the {@link CliArguments}.
+   * @param context    the {@link IdeContext}.
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
-   * @param collector the {@link CompletionCandidateCollector}.
+   * @param collector  the {@link CompletionCandidateCollector}.
    * @return {@code true} if it matches, {@code false} otherwise.
    */
   protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context, Commandlet commandlet,
-      CompletionCandidateCollector collector) {
+                               CompletionCandidateCollector collector) {
 
     boolean success = assignValueAsString(argValue, context, commandlet);
 
@@ -387,11 +397,11 @@ public abstract class Property<V> {
   /**
    * Performs auto-completion for the {@code arg}.
    *
-   * @param argument the {@link CliArgument CLI argument}.
-   * @param args the {@link CliArguments}.
-   * @param context the {@link IdeContext}.
+   * @param argument   the {@link CliArgument CLI argument}.
+   * @param args       the {@link CliArguments}.
+   * @param context    the {@link IdeContext}.
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
-   * @param collector the {@link CompletionCandidateCollector}.
+   * @param collector  the {@link CompletionCandidateCollector}.
    */
   protected void complete(CliArgument argument, CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
@@ -429,10 +439,10 @@ public abstract class Property<V> {
   /**
    * Performs auto-completion for the {@code arg} as {@link #getValue() property value}.
    *
-   * @param arg the {@link CliArgument#get() CLI argument}.
-   * @param context the {@link IdeContext}.
+   * @param arg        the {@link CliArgument#get() CLI argument}.
+   * @param context    the {@link IdeContext}.
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
-   * @param collector the {@link CompletionCandidateCollector}.
+   * @param collector  the {@link CompletionCandidateCollector}.
    */
   protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
@@ -451,7 +461,7 @@ public abstract class Property<V> {
    * @return {@code true} if this {@link Property} is valid, {@code false} if it is {@link #isRequired() required} but no {@link #getValue() value} has been
    * set.
    * @throws RuntimeException if the {@link #getValue() value} is violating given constraints. This is checked by the optional {@link Consumer} function given
-   * at construction time.
+   *                          at construction time.
    */
   public boolean validate() {
 

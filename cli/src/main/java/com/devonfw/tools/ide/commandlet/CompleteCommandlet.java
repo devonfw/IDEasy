@@ -13,7 +13,9 @@ import java.util.List;
  */
 public final class CompleteCommandlet extends Commandlet {
 
-  /** {@link StringProperty} with the current CLI arguments to complete. */
+  /**
+   * {@link StringProperty} with the current CLI arguments to complete.
+   */
   public final StringProperty args;
 
   /**
@@ -35,9 +37,15 @@ public final class CompleteCommandlet extends Commandlet {
   }
 
   @Override
-  public boolean isIdeHomeRequired() {
+  public boolean isIdeRootRequired() {
 
     return false;
+  }
+
+  @Override
+  public boolean isProcessableOutput() {
+
+    return true;
   }
 
   @Override
@@ -45,8 +53,13 @@ public final class CompleteCommandlet extends Commandlet {
 
     CliArguments arguments = CliArguments.ofCompletion(this.args.asArray());
     List<CompletionCandidate> candidates = ((AbstractIdeContext) this.context).complete(arguments, true);
+    StringBuilder sb = new StringBuilder();
     for (CompletionCandidate candidate : candidates) {
-      System.out.println(candidate.text()); // enforce output via System.out even if logging is disabled
+      if (!sb.isEmpty()) {
+        sb.append(' ');
+      }
+      sb.append(candidate.text());
     }
+    System.out.println(sb.toString());  // enforce output via System.out even if logging is disabled
   }
 }
