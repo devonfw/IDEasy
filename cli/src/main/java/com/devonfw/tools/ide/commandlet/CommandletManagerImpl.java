@@ -20,13 +20,16 @@ import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.jmc.Jmc;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
+import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.oc.Oc;
+import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
+import com.devonfw.tools.ide.tool.tomcat.Tomcat;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 
 import java.util.Collection;
@@ -90,6 +93,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Quarkus(context));
     add(new Kotlinc(context));
     add(new KotlincNative(context));
+    add(new Tomcat(context));
     add(new Vscode(context));
     add(new Azure(context));
     add(new Aws(context));
@@ -101,6 +105,8 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Docker(context));
     add(new Sonar(context));
     add(new GraalVm(context));
+    add(new PgAdmin(context));
+    add(new LazyDocker(context));
   }
 
   private void add(Commandlet commandlet) {

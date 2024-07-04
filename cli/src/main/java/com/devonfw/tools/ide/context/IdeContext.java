@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
@@ -435,14 +436,36 @@ public interface IdeContext extends IdeLogger {
    */
   default String getMavenArgs() {
 
-    if (getIdeHome() != null) {
-      Path mvnSettingsFile = getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
-      if (Files.exists(mvnSettingsFile)) {
-        return "-s " + mvnSettingsFile;
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Path confFolder = getConfPath();
+    Path mvnSettingsFile = confFolder.resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
+    if (!Files.exists(mvnSettingsFile)) {
+      mvnSettingsFile = confFolder.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve(Mvn.SETTINGS_FILE);
+      if (!Files.exists(mvnSettingsFile)) {
+        return null;
       }
     }
-    return null;
+    String settingsPath;
+    WindowsPathSyntax pathSyntax = getPathSyntax();
+    if (pathSyntax == null) {
+      settingsPath = mvnSettingsFile.toString();
+    } else {
+      settingsPath = pathSyntax.format(mvnSettingsFile);
+    }
+    return "-s " + settingsPath;
+  }
 
+  /**
+   * @return the String value for the variable M2_REPO, or null if called outside an IDEasy installation.
+   */
+  default Path getMavenRepoEnvVariable() {
+
+    if (getIdeHome() != null) {
+      return getConfPath().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve("repository");
+    }
+    return null;
   }
 
   /**
@@ -507,5 +530,10 @@ public interface IdeContext extends IdeLogger {
    * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
    */
   String findBash();
+
+  /**
+   * @return the {@link WindowsPathSyntax} used for {@link Path} conversion or {@code null} for no such conversion (typically if not on Windows).
+   */
+  WindowsPathSyntax getPathSyntax();
 
 }
