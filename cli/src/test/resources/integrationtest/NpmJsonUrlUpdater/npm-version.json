@@ -51,7 +51,7 @@
       ],
       "dist": {
         "shasum": "0ee49f1aa33e813bbfe1da87a3858aff524708b0",
-        "tarball": "https://registry.npmjs.org/npm/-/npm-1.1.25.tgz",
+        "tarball": "http://localhost:8080/npm/-/npm-1.1.25.tgz",
         "integrity": "sha512-a0VDtKXckL+qFQOLBDbrWdDxHmhYzPFaPi5tGAnw0Jp5abNA83RgHkPtIoSMCJQsMC6Jt4pYvpVq++jtMixkew==",
         "signatures": [
           {
@@ -155,7 +155,7 @@
       ],
       "dist": {
         "shasum": "55f0d962b40a6b3f7b310824385388d92a8bbaad",
-        "tarball": "https://registry.npmjs.org/npm/-/npm-1.2.32.tgz",
+        "tarball": "http://localhost:8080/npm/-/npm-1.2.32.tgz",
         "integrity": "sha512-L8qms+rHbTUEBHTPaiAV9xVP9jvEygGVzq/7Zeo6bbzRRtWke6LmG7mfX0pzbkWO14xJ9juXoBndCcNYGXss1w==",
         "signatures": [
           {

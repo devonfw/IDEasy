@@ -41,7 +41,7 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
   public void testNpmJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir) throws IOException {
 
     // given
-    stubFor(get(urlMatching("/npm/")).willReturn(
+    stubFor(get(urlMatching("/npm")).willReturn(
         aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
 
     stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
@@ -73,11 +73,11 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
       throws IOException {
 
     // given
-    stubFor(get(urlMatching("/npm/")).willReturn(
+    stubFor(get(urlMatching("/npm")).willReturn(
         aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
 
     stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
-    
+
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock();
 
@@ -102,7 +102,7 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
   public void testNpmJsonUrlUpdaterGeneratesChecksum(@TempDir Path tempDir) throws IOException {
 
     // given
-    stubFor(get(urlMatching("/npm/")).willReturn(
+    stubFor(get(urlMatching("/npm")).willReturn(
         aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
 
     stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));

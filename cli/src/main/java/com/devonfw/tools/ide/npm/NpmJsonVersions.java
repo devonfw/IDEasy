@@ -24,7 +24,7 @@ public class NpmJsonVersions implements JsonObject {
   /**
    * @return the {@link Map} of {@link NpmJsonVersion}s.
    */
-  public Map<String, NpmJsonVersion> getVersions() {
+  public Map<String, NpmJsonVersion> getVersionMap() {
 
     return this.versions;
   }
