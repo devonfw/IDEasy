@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * {@link JsonObject} for Npm.
+ * {@link JsonObject} for {@link NpmJsonVersion}.
  */
 public class NpmJsonVersions implements JsonObject {
   private Map<String, NpmJsonVersion> versions;
