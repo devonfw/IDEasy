@@ -26,7 +26,7 @@ public abstract class Property<V> {
 
   private static final String INVALID_ARGUMENT = "Invalid CLI argument '{}' for property '{}' of commandlet '{}'";
 
-  private static final String INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE = INVALID_ARGUMENT + ":{}";
+  private static final String INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE = INVALID_ARGUMENT + ": {}";
 
   /**
    * @see #getName()
