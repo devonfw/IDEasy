@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.NpmBasedUrlUpdater;
 
 /**
@@ -12,12 +11,6 @@ public class NpmUrlUpdater extends NpmBasedUrlUpdater {
   protected String getTool() {
 
     return "npm";
-  }
-
-  @Override
-  protected void addVersion(UrlVersion urlVersion) {
-
-    throw new IllegalStateException();
   }
 
 }

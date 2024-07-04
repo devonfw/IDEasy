@@ -39,10 +39,7 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
   @Override
   protected void collectVersionsFromJson(NpmJsonObject jsonItem, Collection<String> versions) {
 
-    for (NpmJsonVersion item : jsonItem.getVersions().getVersionMap().values()) {
-      String version = item.getVersion();
-      addVersion(version, versions);
-    }
+    throw new IllegalStateException();
   }
 
   @Override
@@ -80,6 +77,12 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
     } catch (Exception e) {
       throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
     }
+  }
+
+  @Override
+  protected void addVersion(UrlVersion urlVersion) {
+
+    throw new IllegalStateException();
   }
 
   protected String getBaseUrl() {
