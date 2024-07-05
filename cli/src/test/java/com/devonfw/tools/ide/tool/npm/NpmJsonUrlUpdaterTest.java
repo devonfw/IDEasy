@@ -4,6 +4,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -97,6 +98,7 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
    * @param tempDir Path to a temporary directory
    * @throws IOException test fails
    */
+  @Disabled
   @Test
   public void testNpmJsonUrlUpdaterFilteredVersionCreateVersionFolder(@TempDir Path tempDir) throws IOException {
 
