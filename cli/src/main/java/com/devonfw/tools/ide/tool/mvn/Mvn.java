@@ -170,7 +170,7 @@ public class Mvn extends PluginBasedCommandlet {
 
         if (gitSettingsUrl == null) {
           this.context.warning("Failed to determine git remote URL for settings folder.");
-        } else if (!gitSettingsUrl.equals(gitContext.DEFAULT_SETTINGS_GIT_URL)) {
+        } else if (!gitSettingsUrl.equals(GitContext.DEFAULT_SETTINGS_GIT_URL)) {
           Set<String> variables = findVariables(content);
           for (String variable : variables) {
             String secret = getEncryptedPassword(variable);
@@ -214,7 +214,7 @@ public class Mvn extends PluginBasedCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    Path mavenPlugin = this.getToolPath().resolve("lib/ext/" + plugin.getName() + ".jar");
+    Path mavenPlugin = getToolPath().resolve("lib/ext/" + plugin.getName() + ".jar");
     this.context.getFileAccess().download(plugin.getUrl(), mavenPlugin);
     if (Files.exists(mavenPlugin)) {
       this.context.success("Successfully added {} to {}", plugin.getName(), mavenPlugin.toString());
