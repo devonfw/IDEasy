@@ -6,6 +6,7 @@ import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -344,4 +345,26 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
   }
 
+  /**
+   * Runs the tool's help command to provide the user with usage information.
+   */
+  @Override
+  public void printHelp(NlsBundle bundle) {
+
+    super.printHelp(bundle);
+    String toolHelpArgs = getToolHelpArguments();
+    if (toolHelpArgs != null && getInstalledVersion() != null) {
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING)
+          .executable(Path.of(getBinaryName())).addArgs(toolHelpArgs);
+      pc.run(ProcessMode.DEFAULT);
+    }
+  }
+
+  /**
+   * @return the tool's specific help command. Usually help, --help or -h. Return null if not applicable.
+   */
+  public String getToolHelpArguments() {
+
+    return null;
+  }
 }
