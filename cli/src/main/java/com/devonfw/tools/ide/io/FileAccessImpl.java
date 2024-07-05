@@ -736,6 +736,9 @@ public class FileAccessImpl implements FileAccess {
   public Path findFirst(Path dir, Predicate<Path> filter, boolean recursive) {
 
     try {
+      if (!Files.isDirectory(dir)) {
+        return null;
+      }
       return findFirstRecursive(dir, filter, recursive);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to search for file in " + dir, e);
