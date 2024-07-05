@@ -49,11 +49,11 @@ public class Intellij extends IdeToolCommandlet {
 
     Path toolBinPath = getToolBinPath();
     if (this.context.getSystemInfo().isWindows()) {
-      return toolBinPath.resolve(IDEA64_EXE).toString();
+      return IDEA64_EXE;
     } else if (this.context.getSystemInfo().isLinux()) {
-      return toolBinPath.resolve(IDEA_BASH_SCRIPT).toString();
+      return IDEA_BASH_SCRIPT;
     } else {
-      return getToolPath().resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents").resolve("MacOS").resolve(IDEA).toString();
+      return IDEA;
     }
   }
 

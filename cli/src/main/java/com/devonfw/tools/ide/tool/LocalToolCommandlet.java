@@ -284,7 +284,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile,
                                                   boolean newInstallation) {
 
-    Path linkDir = getMacOsHelper().findLinkDir(rootDir, this.tool);
+    Path linkDir = getMacOsHelper().findLinkDir(rootDir, getBinaryName());
     Path binDir = linkDir;
     Path binFolder = binDir.resolve(IdeContext.FOLDER_BIN);
     if (Files.isDirectory(binFolder)) {
