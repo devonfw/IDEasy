@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [windows-latest, macos-latest, macos-13, ubuntu-latest]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -95,9 +95,10 @@ jobs:
           git push --tags
           noDotVersion="${current_version//.}"
           gh release create "release/${current_version}" ./cli/target/*.tar.gz --title "${current_version}" --notes "# Download
-          * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-windows.tar.gz
-          * Mac: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac.tar.gz
-          * Linux: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-linux.tar.gz
+          * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-windows-x64.tar.gz
+          * Mac(arm): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac-arm.tar.gz
+          * Mac(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac-x64.tar.gz
+          * Linux: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-linux-x64.tar.gz
           # Changes
           https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.asciidoc#${noDotVersion}"
         env:
