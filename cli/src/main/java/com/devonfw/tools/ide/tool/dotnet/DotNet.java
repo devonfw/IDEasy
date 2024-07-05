@@ -18,7 +18,7 @@ public class DotNet extends LocalToolCommandlet {
   }
 
   @Override
-  public String getHelpCommand() {
+  public String getToolHelpArguments() {
 
     return "help";
   }

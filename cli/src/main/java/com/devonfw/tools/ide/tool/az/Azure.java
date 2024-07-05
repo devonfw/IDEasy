@@ -39,7 +39,7 @@ public class Azure extends LocalToolCommandlet {
   }
 
   @Override
-  public String getHelpCommand() {
+  public String getToolHelpArguments() {
 
     return "-h";
   }

@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -213,6 +214,18 @@ public abstract class Commandlet {
       }
     }
     return true;
+  }
+
+  /**
+   * Provide additional usage help of this {@link Commandlet} to the user.
+   */
+  public void printHelp(NlsBundle bundle) {
+
+    printHelp();
+  }
+
+  public void printHelp() {
+
   }
 
   @Override

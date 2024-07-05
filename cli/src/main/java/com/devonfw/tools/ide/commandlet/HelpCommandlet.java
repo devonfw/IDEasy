@@ -7,7 +7,6 @@ import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.CommandletProperty;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 import java.util.ArrayList;
@@ -124,11 +123,7 @@ public final class HelpCommandlet extends Commandlet {
     this.context.info("");
     this.context.info(bundle.get("values"));
     values.print();
-
-    if (cmd instanceof ToolCommandlet) {
-      this.context.info("");
-      ((ToolCommandlet) cmd).printToolHelp(((ToolCommandlet) cmd).getHelpCommand());
-    }
+    cmd.printHelp(bundle);
   }
 
   private void printCommandlets(NlsBundle bundle) {

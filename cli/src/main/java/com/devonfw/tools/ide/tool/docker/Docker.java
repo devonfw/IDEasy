@@ -105,7 +105,7 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
-  public String getHelpCommand() {
+  public String getToolHelpArguments() {
 
     return "help";
   }

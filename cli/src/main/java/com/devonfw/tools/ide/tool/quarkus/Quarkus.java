@@ -22,7 +22,7 @@ public class Quarkus extends LocalToolCommandlet {
   }
 
   @Override
-  public String getHelpCommand() {
+  public String getToolHelpArguments() {
 
     return "--help";
   }

@@ -23,7 +23,7 @@ public class Node extends LocalToolCommandlet {
   }
 
   @Override
-  public void printToolHelp(String helpcommand) {
+  public void printHelp() {
 
     this.context.info("For a list of supported options and arguments, use \"node --help\"");
   }

@@ -23,7 +23,7 @@ public class Gh extends LocalToolCommandlet {
   }
 
   @Override
-  public String getHelpCommand() {
+  public String getToolHelpArguments() {
 
     return "help";
   }

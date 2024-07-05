@@ -23,7 +23,7 @@ public class Oc extends LocalToolCommandlet {
   }
 
   @Override
-  public String getHelpCommand() {
+  public String getToolHelpArguments() {
 
     return "help";
   }

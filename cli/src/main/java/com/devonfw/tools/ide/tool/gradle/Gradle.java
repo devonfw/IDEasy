@@ -31,7 +31,7 @@ public class Gradle extends LocalToolCommandlet {
   }
 
   @Override
-  public String getHelpCommand() {
+  public String getToolHelpArguments() {
 
     return "--help";
   }
