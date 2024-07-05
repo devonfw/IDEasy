@@ -37,12 +37,13 @@ public class Mvn extends PluginBasedCommandlet {
    */
   public static final String MVN_CONFIG_LEGACY_FOLDER = ".m2";
 
+  /** The name of the settings-security.xml */
+  public static final String SETTINGS_SECURITY_FILE = "settings-security.xml";
+
   /**
    * The name of the settings.xml
    */
   public static final String SETTINGS_FILE = "settings.xml";
-
-  private static final String SETTINGS_SECURITY_FILE = "settings-security.xml";
 
   private static final String DOCUMENTATION_PAGE_CONF = "https://github.com/devonfw/IDEasy/blob/main/documentation/conf.adoc";
 
@@ -52,7 +53,7 @@ public class Mvn extends PluginBasedCommandlet {
   private static final String ERROR_SETTINGS_SECURITY_FILE_MESSAGE =
       "Failed to create settings security file at: {}. For further details see:\n" + DOCUMENTATION_PAGE_CONF;
 
-  public static final VariableSyntax VARIABLE_SYNTAX = VariableSyntax.SQUARE;
+  private static final VariableSyntax VARIABLE_SYNTAX = VariableSyntax.SQUARE;
 
   /**
    * The constructor.
@@ -98,8 +99,8 @@ public class Mvn extends PluginBasedCommandlet {
           templatesConfMvnFolder = templatesConfMvnLegacyFolder;
           legacy = true;
         } else {
-          this.context.warning("No maven templates found. Neither in {} nor in {} - configuration broken",
-              templatesConfMvnFolder, templatesConfMvnLegacyFolder);
+          this.context.warning("No maven templates found. Neither in {} nor in {} - configuration broken", templatesConfMvnFolder,
+              templatesConfMvnLegacyFolder);
           hasMvnTemplates = false;
         }
       }
@@ -136,11 +137,11 @@ public class Mvn extends PluginBasedCommandlet {
 
       ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
 
-      String encryptedMasterPassword = result.getOut().toString();
+      String encryptedMasterPassword = result.getOut().get(0);
 
       String settingsSecurityXml =
-          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<settingsSecurity>\n" + "  <master>"
-              + encryptedMasterPassword + "</master>\n" + "</settingsSecurity>";
+          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<settingsSecurity>\n" + "  <master>" + encryptedMasterPassword + "</master>\n"
+              + "</settingsSecurity>";
       try {
         Files.writeString(settingsSecurityFile, settingsSecurityXml);
         step.success();
@@ -172,7 +173,7 @@ public class Mvn extends PluginBasedCommandlet {
         } else if (!gitSettingsUrl.equals(gitContext.DEFAULT_SETTINGS_GIT_URL)) {
           Set<String> variables = findVariables(content);
           for (String variable : variables) {
-            String secret = getEncryptedPassword(variable, settingsSecurityFile);
+            String secret = getEncryptedPassword(variable);
             content = content.replace(VARIABLE_SYNTAX.create(variable), secret);
           }
         }
@@ -185,7 +186,7 @@ public class Mvn extends PluginBasedCommandlet {
     }
   }
 
-  private String getEncryptedPassword(String variable, Path settingsSecurityFile) {
+  private String getEncryptedPassword(String variable) {
 
     String input = this.context.askForInput("Please enter secret value for variable " + variable + ":");
 
@@ -193,7 +194,7 @@ public class Mvn extends PluginBasedCommandlet {
     pc.addArgs("--encrypt-password", input);
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
 
-    String encryptedPassword = result.getOut().toString();
+    String encryptedPassword = result.getOut().get(0);
     this.context.info("Encrypted as " + encryptedPassword);
 
     return encryptedPassword;
