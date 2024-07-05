@@ -214,7 +214,7 @@
       ],
       "dist": {
         "shasum": "750381429e602908a1b10f5935619694dd60cdf1",
-        "tarball": "https://registry.npmjs.org/npm/-/npm-2.0.0-beta.0.tgz",
+        "tarball": "http://localhost:8080/npm/-/npm-2.0.0-beta.0.tgz",
         "integrity": "sha512-KmbbeE7UER/1aI4W8caiQcbcIRWaKkq6wK/9vctwA/VaBLrIY2PxQyZwadBoVlGSIJgqDOWhKOrTzWdBT3ZLPQ==",
         "signatures": [
           {

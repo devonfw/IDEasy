@@ -625,10 +625,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     String vLower = version.toLowerCase(Locale.ROOT);
     if (vLower.contains("alpha") || vLower.contains("beta") || vLower.contains("dev") || vLower.contains("snapshot")
         || vLower.contains("preview") || vLower.contains("test") || vLower.contains("tech-preview") //
-        || vLower.contains("-pre") || vLower.startsWith("ce-")
+        || vLower.contains("-pre") || vLower.startsWith("ce-") || vLower.contains("-next") || vLower.contains("-rc")
         // vscode nonsense
-        || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/")
-        || vLower.contains("-insiders")) {
+        || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/") || vLower.contains(
+        "-insiders")) {
       return null;
     }
     return version;

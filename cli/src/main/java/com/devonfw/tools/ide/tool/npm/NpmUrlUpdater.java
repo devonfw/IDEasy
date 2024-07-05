@@ -12,5 +12,4 @@ public class NpmUrlUpdater extends NpmBasedUrlUpdater {
 
     return "npm";
   }
-
 }

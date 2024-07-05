@@ -55,6 +55,11 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
 
       for (NpmJsonVersion item : jsonObj.getVersions().getVersionMap().values()) {
         String version = item.getVersion();
+        //TODO: this is not the right place to filter versions
+        // Also missing the logging of AbstractUrlUpdater's addVersion on which versions were filtered
+        if (mapVersion(version) == null) {
+          continue;
+        }
 
         if (isTimeoutExpired()) {
           break;
