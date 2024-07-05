@@ -221,11 +221,6 @@ public abstract class Commandlet {
    */
   public void printHelp(NlsBundle bundle) {
 
-    printHelp();
-  }
-
-  public void printHelp() {
-
   }
 
   @Override

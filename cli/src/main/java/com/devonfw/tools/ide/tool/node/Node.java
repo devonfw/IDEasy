@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.node;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
@@ -23,7 +24,7 @@ public class Node extends LocalToolCommandlet {
   }
 
   @Override
-  public void printHelp() {
+  public void printHelp(NlsBundle bundle) {
 
     this.context.info("For a list of supported options and arguments, use \"node --help\"");
   }

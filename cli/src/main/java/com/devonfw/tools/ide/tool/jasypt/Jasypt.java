@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.jasypt;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.property.PasswordProperty;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
@@ -113,7 +114,7 @@ public class Jasypt extends LocalToolCommandlet {
   }
 
   @Override
-  public void printHelp() {
+  public void printHelp(NlsBundle bundle) {
 
     this.context.info(
         "To get detailed help about the usage of the jasypt CLI tools, see http://www.jasypt.org/cli.html#");

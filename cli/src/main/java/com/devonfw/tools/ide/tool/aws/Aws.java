@@ -5,6 +5,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 
@@ -72,7 +73,7 @@ public class Aws extends LocalToolCommandlet {
   }
 
   @Override
-  public void printHelp() {
+  public void printHelp(NlsBundle bundle) {
 
     this.context.info("To get detailed help about the usage of the AWS CLI, use \"aws help\"");
   }
