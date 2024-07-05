@@ -49,33 +49,35 @@ public class BuildCommandlet extends Commandlet {
     Path buildPath = this.context.getCwd();
     String[] defaultToolOptions = new String[0];
 
-    if (buildPath != null) {
-      ToolCommandlet commandlet = null;
-      if (Files.exists(buildPath.resolve("pom.xml"))) {
-        commandlet = this.context.getCommandletManager().getCommandlet(Mvn.class);
-        defaultToolOptions = getDefaultToolOptions(MVN_BUILD_OPTS.getName());
-      } else if (Files.exists(buildPath.resolve("build.gradle"))) {
-        commandlet = this.context.getCommandletManager().getCommandlet(Gradle.class);
-        defaultToolOptions = getDefaultToolOptions(GRADLE_BUILD_OPTS.getName());
-      } else if (Files.exists(buildPath.resolve("package.json"))) {
-        if (Files.exists(buildPath.resolve("yarn.lock"))) {
-          // TODO: add yarn here
-        } else {
-          commandlet = this.context.getCommandletManager().getCommandlet(Npm.class);
+    if (buildPath == null) {
+      throw new CliException("Missing current working directory!");
+    }
 
-          defaultToolOptions = getDefaultToolOptions(NPM_BUILD_OPTS.getName());
-        }
+    ToolCommandlet commandlet = null;
+    if (Files.exists(buildPath.resolve("pom.xml"))) {
+      commandlet = this.context.getCommandletManager().getCommandlet(Mvn.class);
+      defaultToolOptions = getDefaultToolOptions(MVN_BUILD_OPTS.getName());
+    } else if (Files.exists(buildPath.resolve("build.gradle"))) {
+      commandlet = this.context.getCommandletManager().getCommandlet(Gradle.class);
+      defaultToolOptions = getDefaultToolOptions(GRADLE_BUILD_OPTS.getName());
+    } else if (Files.exists(buildPath.resolve("package.json"))) {
+      if (Files.exists(buildPath.resolve("yarn.lock"))) {
+        // TODO: add yarn here
       } else {
-        throw new CliException("Could not find build descriptor - no pom.xml, build.gradle, or package.json found!");
-      }
+        commandlet = this.context.getCommandletManager().getCommandlet(Npm.class);
 
-      if (this.arguments.asArray().length != 0) {
-        defaultToolOptions = this.arguments.asArray();
+        defaultToolOptions = getDefaultToolOptions(NPM_BUILD_OPTS.getName());
       }
+    } else {
+      throw new CliException("Could not find build descriptor - no pom.xml, build.gradle, or package.json found!");
+    }
 
-      if (commandlet != null) {
-        commandlet.runTool(null, defaultToolOptions);
-      }
+    if (this.arguments.asArray().length != 0) {
+      defaultToolOptions = this.arguments.asArray();
+    }
+
+    if (commandlet != null) {
+      commandlet.runTool(null, defaultToolOptions);
     }
 
   }
