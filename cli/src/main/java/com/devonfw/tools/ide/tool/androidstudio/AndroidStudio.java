@@ -3,8 +3,7 @@ package com.devonfw.tools.ide.tool.androidstudio;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccessImpl;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
@@ -13,8 +12,6 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
 /**
@@ -41,12 +38,13 @@ public class AndroidStudio extends IdeToolCommandlet {
   @Override
   protected String getBinaryName() {
 
+    Path toolBinPath = getToolBinPath();
     if (this.context.getSystemInfo().isWindows()) {
-      return getToolBinPath().resolve(STUDIO64_EXE).toString();
+      return STUDIO64_EXE;
     } else if (this.context.getSystemInfo().isLinux()) {
-      return getToolBinPath().resolve(STUDIO_BASH).toString();
+      return STUDIO_BASH;
     } else {
-      return getToolPath().resolve("Android Studio Preview.app").resolve("Contents").resolve("MacOS").resolve(STUDIO).toString();
+      return STUDIO;
     }
   }
 
@@ -75,20 +73,16 @@ public class AndroidStudio extends IdeToolCommandlet {
     }
   }
 
-  private static void setMacOsFilePermissions(Path binaryFile) {
+  private void setMacOsFilePermissions(Path binaryFile) {
 
-    if (SystemInfoImpl.INSTANCE.isMac()) {
-      if (Files.exists(binaryFile)) {
-        String permissionStr = FileAccessImpl.generatePermissionString(493);
-        Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
-        try {
-          Files.setPosixFilePermissions(binaryFile, permissions);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
+    if (Files.exists(binaryFile)) {
+      FileAccess fileAccess = this.context.getFileAccess();
+      try {
+        fileAccess.makeExecutable(binaryFile);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     }
-
   }
 
   @Override
