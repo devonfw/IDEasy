@@ -73,16 +73,17 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier installedVersion = getInstalledVersion();
     Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
     try {
-      // install configured version of our tool in the software repository if not already installed
-      ToolInstallation installation = installInRepo(configuredVersion);
-      // check if we already have this version installed (linked) locally in IDE_HOME/software
-      VersionIdentifier resolvedVersion = installation.resolvedVersion();
-      if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
+      ToolRepository repository = this.context.getDefaultToolRepository();
+      String edition = getEdition();
+      VersionIdentifier resolvedVersion = repository.resolveVersion(this.tool, edition , configuredVersion);
+      if (resolvedVersion.equals(installedVersion)) {
         IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
         this.context.level(level).log("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
         step.success();
         return false;
       }
+      // install configured version of our tool in the software repository if not already installed
+      ToolInstallation installation = installInRepo(resolvedVersion, edition, repository);
       // we need to link the version or update the link.
       Path toolPath = getToolPath();
       FileAccess fileAccess = this.context.getFileAccess();
@@ -145,6 +146,19 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public ToolInstallation installInRepo(VersionIdentifier version, String edition, ToolRepository toolRepository) {
 
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version);
+    Path toolPath = this.context.getSoftwareRepositoryPath().resolve(toolRepository.getId()).resolve(this.tool).resolve(edition)
+        .resolve(resolvedVersion.toString());
+    Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (Files.isDirectory(toolPath)) {
+      if (Files.exists(toolVersionFile)) {
+        this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), toolPath);
+        return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
+      } else {
+        this.context.warning("Archiving corrupted installation at {}", toolPath);
+        fileAccess.backup(toolPath);
+      }
+    }
 
     if (Files.exists(this.dependency.getDependencyJsonPath(getEdition()))) {
       installDependencies(resolvedVersion);
@@ -152,23 +166,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.trace("No Dependencies file found");
     }
 
-    Path toolPath = this.context.getSoftwareRepositoryPath().resolve(toolRepository.getId()).resolve(this.tool).resolve(edition)
-            .resolve(resolvedVersion.toString());
-    Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
-    FileAccess fileAccess = this.context.getFileAccess();
-    if (Files.isDirectory(toolPath)) {
-      if (Files.exists(toolVersionFile)) {
-        if (this.context.isForceMode()) {
-          fileAccess.delete(toolPath);
-        } else {
-          this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), toolPath);
-          return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
-        }
-      } else {
-        this.context.warning("Deleting corrupted installation at {}", toolPath);
-        fileAccess.delete(toolPath);
-      }
-    }
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
     fileAccess.mkdirs(toolPath.getParent());
     boolean extract = isExtract();
@@ -262,13 +259,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   }
 
+  @Override
   public void uninstall() {
 
     try {
       Path softwarePath = getToolPath();
       if (Files.exists(softwarePath)) {
         try {
-          context.getFileAccess().delete(softwarePath);
+          this.context.getFileAccess().delete(softwarePath);
           this.context.success("Successfully uninstalled " + this.tool);
         } catch (Exception e) {
           this.context.error("Couldn't uninstall " + this.tool);
@@ -290,11 +288,37 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (Files.isDirectory(binFolder)) {
       binDir = binFolder;
     }
-    if (linkDir != rootDir) {
+    if (newInstallation && (linkDir != rootDir)) {
       assert (!linkDir.equals(rootDir));
       this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
+      if (this.context.getSystemInfo().isMac()) {
+        Path macApp = findMacApp(linkDir);
+        if (macApp != null) {
+          ProcessContext pc = this.context.newProcess();
+          pc.executable("sudo").addArgs("xattr", "-d", "com.apple.quarantine", macApp);
+          pc.run();
+        }
+      }
     }
     return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion, newInstallation);
+  }
+
+  private Path findMacApp(Path path) {
+
+    while (path != null) {
+      Path fileName = path.getFileName();
+      if (fileName == null) {
+        return null;
+      }
+      String filename = fileName.toString();
+      if (filename.endsWith(".app")) {
+        return path;
+      } else if (filename.equals(IdeContext.FOLDER_CONTENTS)) {
+        return path.getParent();
+      }
+      path = path.getParent();
+    }
+    return null;
   }
 
   private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile) {
@@ -406,7 +430,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   protected HashMap<String, String> listOfDependencyEnvVariableNames() {
 
-    return dependenciesEnvVariableNames;
+    return this.dependenciesEnvVariableNames;
   }
 
   private String getDependencyEnvironmentName(String dependencyName) {
