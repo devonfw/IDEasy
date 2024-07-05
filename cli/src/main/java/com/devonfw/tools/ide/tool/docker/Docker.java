@@ -104,4 +104,10 @@ public class Docker extends GlobalToolCommandlet {
       return super.getBinaryName();
     }
   }
+
+  @Override
+  public String getToolHelpArguments() {
+
+    return "help";
+  }
 }

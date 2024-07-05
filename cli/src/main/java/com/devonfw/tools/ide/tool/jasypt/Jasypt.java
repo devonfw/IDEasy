@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.jasypt;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.property.PasswordProperty;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
@@ -15,8 +16,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * {@link ToolCommandlet} for <a href="http://www.jasypt.org/">Jasypt</a>, The java library which allows to add basic encryption capabilities with minimum
- * effort.
+ * {@link ToolCommandlet} for <a href="http://www.jasypt.org/">Jasypt</a>, The java library which allows to add basic
+ * encryption capabilities with minimum effort.
  */
 public class Jasypt extends LocalToolCommandlet {
 
@@ -91,7 +92,8 @@ public class Jasypt extends LocalToolCommandlet {
   private void runJasypt(String className) {
 
     List<String> arguments = new ArrayList<>(
-        Arrays.asList("-cp", resolveJasyptJarPath().toString(), className, "password=" + this.masterPassword.getValue(), "input=" + this.secret.getValue()));
+        Arrays.asList("-cp", resolveJasyptJarPath().toString(), className, "password=" + this.masterPassword.getValue(),
+            "input=" + this.secret.getValue()));
 
     String jasyptOpts = this.context.getVariables().get("JASYPT_OPTS");
     if (jasyptOpts != null && !jasyptOpts.trim().isEmpty()) {
@@ -109,5 +111,12 @@ public class Jasypt extends LocalToolCommandlet {
     Path toolPath = this.getToolPath();
     String installedVersion = getInstalledVersion().toString();
     return toolPath.resolve("jasypt-" + installedVersion + ".jar");
+  }
+
+  @Override
+  public void printHelp(NlsBundle bundle) {
+
+    this.context.info(
+        "To get detailed help about the usage of the jasypt CLI tools, see http://www.jasypt.org/cli.html#");
   }
 }

@@ -1,9 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
@@ -12,6 +8,10 @@ import com.devonfw.tools.ide.property.CommandletProperty;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.version.IdeVersion;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * {@link Commandlet} to print the environment variables.
@@ -123,6 +123,7 @@ public final class HelpCommandlet extends Commandlet {
     this.context.info("");
     this.context.info(bundle.get("values"));
     values.print();
+    cmd.printHelp(bundle);
   }
 
   private void printCommandlets(NlsBundle bundle) {

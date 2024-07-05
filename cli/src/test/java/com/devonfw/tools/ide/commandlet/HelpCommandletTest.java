@@ -73,6 +73,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     assertLogoMessage(context);
     assertLogMessage(context, IdeLogLevel.INFO, "Usage: ide [option]* mvn [<args>*]");
     assertLogMessage(context, IdeLogLevel.INFO, "Tool commandlet for Maven (Build-Tool).");
+    assertLogMessage(context, IdeLogLevel.INFO, "usage: mvn [options] [<goal(s)>] [<phase(s)>]");
     assertOptionLogMessages(context);
   }
 
