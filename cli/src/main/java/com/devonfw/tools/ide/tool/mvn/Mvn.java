@@ -47,7 +47,8 @@ public class Mvn extends PluginBasedCommandlet {
 
   private static final String DOCUMENTATION_PAGE_CONF = "https://github.com/devonfw/IDEasy/blob/main/documentation/conf.adoc";
 
-  private static final String ERROR_SETTINGS_FILE_MESSAGE = "Failed to create settings file at: {}. For further details see:\n" + DOCUMENTATION_PAGE_CONF;
+  private static final String ERROR_SETTINGS_FILE_MESSAGE =
+      "Failed to create settings file at: {}. For further details see:\n" + DOCUMENTATION_PAGE_CONF;
 
   private static final String ERROR_SETTINGS_SECURITY_FILE_MESSAGE =
       "Failed to create settings security file at: {}. For further details see:\n" + DOCUMENTATION_PAGE_CONF;
@@ -84,7 +85,8 @@ public class Mvn extends PluginBasedCommandlet {
       if (Files.isDirectory(templatesFolderLegacy)) {
         templatesFolder = templatesFolderLegacy;
       } else {
-        this.context.warning("No maven templates found. Neither in {} nor in {} - configuration broken", templatesFolder, templatesFolderLegacy);
+        this.context.warning("No maven templates found. Neither in {} nor in {} - configuration broken",
+            templatesFolder, templatesFolderLegacy);
         hasMvnTemplates = false;
       }
     }
@@ -220,5 +222,11 @@ public class Mvn extends PluginBasedCommandlet {
       this.context.warning("Plugin {} has wrong properties\n" //
           + "Please check the plugin properties file in {}", mavenPlugin.getFileName(), mavenPlugin.toAbsolutePath());
     }
+  }
+
+  @Override
+  public String getToolHelpArguments() {
+
+    return "-h";
   }
 }
