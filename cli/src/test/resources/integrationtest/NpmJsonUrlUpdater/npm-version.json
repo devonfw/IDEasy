@@ -3,11 +3,7 @@
   "_rev": "2839-795b2439bf60c79d34855863f11492ad",
   "name": "npm",
   "description": "a package manager for JavaScript",
-  "dist-tags": {
-    "next-9": "9.9.3",
-    "next-10": "10.8.1",
-    "latest": "10.8.1"
-  },
+  "dist-tags": {},
   "versions": {
     "1.1.25": {
       "name": "npm",
@@ -24,19 +20,8 @@
         "email": "i@izs.me"
       },
       "_id": "npm@1.1.25",
-      "maintainers": [
-        {
-          "name": "isaacs",
-          "email": "i@izs.me"
-        }
-      ],
-      "contributors": [
-        {
-          "url": "http://blog.izs.me/",
-          "name": "Isaac Z. Schlueter",
-          "email": "i@izs.me"
-        }
-      ],
+      "maintainers": [],
+      "contributors": [],
       "homepage": "http://npmjs.org/",
       "bugs": {
         "url": "http://github.com/isaacs/npm/issues",
@@ -108,11 +93,8 @@
         "ronn": "https://github.com/isaacs/ronnjs/tarball/master"
       },
       "_engineSupported": true,
-      "bundleDependencies": [
-        "slide"
-      ],
-      "optionalDependencies": {
-      }
+      "bundleDependencies": [],
+      "optionalDependencies": {}
     },
     "1.2.32": {
       "name": "npm",
@@ -129,19 +111,8 @@
         "email": "i@izs.me"
       },
       "_id": "npm@1.2.32",
-      "maintainers": [
-        {
-          "name": "isaacs",
-          "email": "i@izs.me"
-        }
-      ],
-      "contributors": [
-        {
-          "url": "http://blog.izs.me/",
-          "name": "Isaac Z. Schlueter",
-          "email": "i@izs.me"
-        }
-      ],
+      "maintainers": [],
+      "contributors": [],
       "homepage": "https://npmjs.org/doc/",
       "bugs": {
         "url": "http://github.com/isaacs/npm/issues",
@@ -209,13 +180,92 @@
       "publishConfig": {
         "proprietary-attribs": false
       },
-      "devDependencies": {
-        "tap": "~0.4.0",
-        "ronn": "~0.3.6"
+      "devDependencies": {},
+      "bundleDependencies": []
+    },
+    "2.0.0-beta.0": {
+      "name": "npm",
+      "version": "2.0.0-beta.0",
+      "keywords": [
+        "package manager",
+        "modules",
+        "install",
+        "package.json"
+      ],
+      "author": {
+        "url": "http://blog.izs.me",
+        "name": "Isaac Z. Schlueter",
+        "email": "i@izs.me"
       },
-      "bundleDependencies": [
-        "semver"
-      ]
+      "license": "Artistic-2.0",
+      "_id": "npm@2.0.0-beta.0",
+      "maintainers": [],
+      "contributors": [],
+      "homepage": "https://npmjs.org/doc/",
+      "bugs": {
+        "url": "http://github.com/npm/npm/issues",
+        "email": "npm-@googlegroups.com"
+      },
+      "bin": {
+        "npm": "./bin/npm-cli.js"
+      },
+      "man": [
+        "/Users/ogd/Documents/projects/npm/npm/man/man1/npm-README.1"
+      ],
+      "dist": {
+        "shasum": "750381429e602908a1b10f5935619694dd60cdf1",
+        "tarball": "https://registry.npmjs.org/npm/-/npm-2.0.0-beta.0.tgz",
+        "integrity": "sha512-KmbbeE7UER/1aI4W8caiQcbcIRWaKkq6wK/9vctwA/VaBLrIY2PxQyZwadBoVlGSIJgqDOWhKOrTzWdBT3ZLPQ==",
+        "signatures": [
+          {
+            "sig": "MEYCIQD1XBq7R/w2bliF9KlwUD66VkzGahY84MuSpWpQJZEXvQIhAOe5aqoo7tJkZn5wZEPl66WjkP9uxgNNN5C9IS/TTRcx",
+            "keyid": "SHA256:jl3bwswu80PjjokCgh0o2w5c2U4LhQAE57gj9cz1kzA"
+          }
+        ]
+      },
+      "main": "./lib/npm.js",
+      "_from": ".",
+      "config": {
+        "publishtest": false
+      },
+      "_shasum": "750381429e602908a1b10f5935619694dd60cdf1",
+      "engines": {
+        "node": "\u003E=0.8"
+      },
+      "gitHead": "5cacaa2202a8f53bf95db9097aaa9ae9dc93a903",
+      "scripts": {
+        "tap": "tap --timeout 120 test/tap/*.js",
+        "test": "tap --timeout 120 test/tap/*.js",
+        "dumpconf": "env | grep npm | sort | uniq",
+        "test-all": "node ./test/run.js && tap test/tap/*.js",
+        "prepublish": "node bin/npm-cli.js prune --prefix=. --no-global && rm -rf test/*/*/node_modules && make -j8 doc",
+        "test-legacy": "node ./test/run.js"
+      },
+      "_npmUser": {
+        "name": "othiym23",
+        "email": "ogd@aoaioxxysz.net"
+      },
+      "repository": {
+        "url": "https://github.com/npm/npm",
+        "type": "git"
+      },
+      "_npmVersion": "2.0.0-beta.0",
+      "description": "A package manager for node",
+      "directories": {
+        "bin": "./bin",
+        "doc": "./doc",
+        "lib": "./lib",
+        "man": "./man"
+      },
+      "dependencies": {
+        "ini": "~1.2.0"
+      },
+      "preferGlobal": true,
+      "publishConfig": {
+        "tag": "v1.5rc"
+      },
+      "devDependencies": {},
+      "bundleDependencies": []
     }
   }
 }

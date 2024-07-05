@@ -62,8 +62,8 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
   }
 
   /**
-   * Test if the {@link JsonUrlUpdater} for {@link NpmUrlUpdater} can handle downloads with missing checksums (generate
-   * checksum from download file if no checksum was provided)
+   * Test if the {@link JsonUrlUpdater} for {@link NpmUrlUpdater} for a non-existent version does successfully not
+   * create a download folder.
    *
    * @param tempDir Path to a temporary directory
    * @throws IOException test fails
@@ -85,6 +85,34 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
     updater.update(urlRepository);
 
     Path npmVersionsPath = tempDir.resolve("npm").resolve("npm").resolve("99.99.99");
+
+    // then
+    assertThat(npmVersionsPath).doesNotExist();
+
+  }
+
+  /**
+   * Test if the {@link JsonUrlUpdater} for {@link NpmUrlUpdater} can handle filtering of versions.
+   *
+   * @param tempDir Path to a temporary directory
+   * @throws IOException test fails
+   */
+  @Test
+  public void testNpmJsonUrlUpdaterFilteredVersionCreateVersionFolder(@TempDir Path tempDir) throws IOException {
+
+    // given
+    stubFor(get(urlMatching("/npm")).willReturn(
+        aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
+
+    stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+
+    UrlRepository urlRepository = UrlRepository.load(tempDir);
+    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock();
+
+    // when
+    updater.update(urlRepository);
+
+    Path npmVersionsPath = tempDir.resolve("npm").resolve("npm").resolve("2.0.0-beta.0");
 
     // then
     assertThat(npmVersionsPath).doesNotExist();
