@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool;
 
 import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
@@ -291,7 +292,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (newInstallation && (linkDir != rootDir)) {
       assert (!linkDir.equals(rootDir));
       this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
-      if (this.context.getSystemInfo().isMac()) {
+      if (this.context.getSystemInfo().isMac() && !((AbstractIdeContext) this.context).isTest()) {
         Path macApp = findMacApp(linkDir);
         if (macApp != null) {
           ProcessContext pc = this.context.newProcess();
