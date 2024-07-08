@@ -21,11 +21,11 @@ public class VersionSetCommandlet extends Commandlet {
   /** The version to set. */
   public final VersionProperty version;
 
-  private final FlagProperty conf;
+  public final FlagProperty conf;
 
-  private final FlagProperty home;
+  public final FlagProperty home;
 
-  private final FlagProperty workspace;
+  public final FlagProperty workspace;
 
   /**
    * The constructor.

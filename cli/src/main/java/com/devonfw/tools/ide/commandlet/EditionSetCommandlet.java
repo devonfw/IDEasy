@@ -18,11 +18,11 @@ public class EditionSetCommandlet extends Commandlet {
   /** The edition to set. */
   public final EditionProperty edition;
 
-  private final FlagProperty conf;
+  public final FlagProperty conf;
 
-  private final FlagProperty home;
+  public final FlagProperty home;
 
-  private final FlagProperty workspace;
+  public final FlagProperty workspace;
 
   /**
    * The constructor.
