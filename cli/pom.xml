@@ -28,6 +28,11 @@
       <artifactId>commons-compress</artifactId>
       <version>1.23.0</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.ws.commons</groupId>
+      <artifactId>ws-commons-util</artifactId>
+      <version>1.0.1</version>
+    </dependency>
     <!-- JSON and XML support -->
     <dependency>
       <groupId>javax.json</groupId>

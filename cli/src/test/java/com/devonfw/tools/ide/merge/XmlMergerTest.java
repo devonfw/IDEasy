@@ -29,7 +29,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
   private XmlMerger merger = new XmlMerger(context);
 
   @Test
-  void testAllCases(@TempDir Path tempDir) throws Exception {
+  void testMerger(@TempDir Path tempDir) throws Exception {
 
     try(Stream<Path> folders = Files.list(TEST_RESOURCES)) {
       // arrange
@@ -50,15 +50,5 @@ class XmlMergerTest extends AbstractIdeContextTest {
       });
       softly.assertAll();
     }
-  }
-
-  @Test
-  void test(@TempDir Path tempDir) throws Exception {
-
-    Path folder = TEST_RESOURCES.resolve("namespace");
-    Path sourcePath = folder.resolve(SOURCE_XML);
-    Path targetPath = folder.resolve(TARGET_XML);
-    Path resultPath = folder.resolve(RESULT_XML);
-    merger.merge(null, sourcePath, context.getVariables(), targetPath);
   }
 }

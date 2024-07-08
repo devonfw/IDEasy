@@ -81,6 +81,7 @@ public class XmlMerger extends FileMerger {
 
   public void merge(Document sourceDocument, Document targetDocument, Path source, Path target) {
 
+    this.context.debug("Merging {} with {} ...", source.getFileName().toString(), target.getFileName().toString());
     MergeElement sourceRoot = new MergeElement(sourceDocument.getDocumentElement(), source);
     MergeElement targetRoot = new MergeElement(targetDocument.getDocumentElement(), target);
 
@@ -146,6 +147,7 @@ public class XmlMerger extends FileMerger {
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
       transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
       transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
 
       // Workaround:
       // Remove whitespace from the target document before saving, because if target XML Document is already formatted
@@ -220,5 +222,4 @@ public class XmlMerger extends FileMerger {
       attribute.setValue(resolvedValue);
     }
   }
-
 }

@@ -12,8 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The ElementMatcher class is responsible for matching XML elements in a target document based on the provided update
- * elements.
+ * The ElementMatcher class is responsible for matching XML elements in a target document based on the provided update elements.
  */
 public class ElementMatcher {
 
@@ -38,8 +37,7 @@ public class ElementMatcher {
     IdComputer idComputer = new IdComputer(id);
     IdComputer duplicate = qNameIdMap.put(qname, idComputer);
     if (duplicate != null) {
-      this.context.debug("ID replaced for element '{}': old ID '{}' -> new ID '{}'", qname, duplicate.getId(),
-          idComputer.getId());
+      this.context.debug("ID replaced for element '{}': old ID '{}' -> new ID '{}'", qname, duplicate.getId(), idComputer.getId());
     }
   }
 
@@ -68,7 +66,8 @@ public class ElementMatcher {
           if (idAttr.isEmpty()) {
             idAttr = sourceElement.getElement().getAttribute("name");
             if (idAttr.isEmpty()) {
-              throw new IllegalStateException("No merge:id value defined for element " + sourceElement.getXPath());
+              throw new IllegalStateException(
+                  "No merge:id value defined for element " + sourceElement.getXPath() + " in document " + sourceElement.getDocumentPath());
             }
           }
         }

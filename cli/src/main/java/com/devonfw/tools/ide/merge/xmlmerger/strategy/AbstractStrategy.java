@@ -46,19 +46,21 @@ public abstract class AbstractStrategy implements Strategy {
   }
 
   /**
-   * Updates the {@link ElementMatcher} and removes namespace attributes from the merge element.
+   * Updates the {@link ElementMatcher} and removes namespace attributes from the merge element. Is used when overriding or appending an element to make sure
+   * that no information regarding merge:id of a child element gets lost.
    *
    * @param mergeElement the merge element whose id is to be updated and merge namespace attributes removed.
    */
   protected void updateAndRemoveNsAttributes(MergeElement mergeElement) {
 
     for (MergeAttribute attribute : mergeElement.getElementAttributes()) {
-      if (attribute.isMergeNsIdAttr()) {
-        elementMatcher.updateId(mergeElement.getQName(), attribute.getValue());
+      if (attribute.isMergeNSAttr()) {
+        if (attribute.isMergeNsIdAttr()) {
+          elementMatcher.updateId(mergeElement.getQName(), attribute.getValue());
+        }
+        mergeElement.getElement().removeAttributeNode(attribute.getAttr());
       }
     }
-    mergeElement.removeMergeNsAttributes();
-
     for (MergeElement childElement : mergeElement.getChildElements()) {
       updateAndRemoveNsAttributes(childElement);
     }

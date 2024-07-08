@@ -2,15 +2,18 @@ package com.devonfw.tools.ide.merge.xmlmerger.matcher;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
+import org.apache.ws.commons.util.NamespaceContextImpl;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.util.Iterator;
 
 /**
  * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements
@@ -44,6 +47,11 @@ public class IdComputer {
 
     try {
       XPath xpath = xPathFactory.newXPath();
+      if (sourceElement.getElement().getPrefix() != null) { // for elements defined within a namespace
+        NamespaceContextImpl nsContext = new NamespaceContextImpl();
+        nsContext.startPrefixMapping(sourceElement.getElement().getPrefix(), sourceElement.getElement().getNamespaceURI());
+        xpath.setNamespaceContext(nsContext);
+      }
       String xpathExpr = buildXPathExpression(sourceElement);
       XPathExpression xpathExpression = xpath.compile(xpathExpr);
       NodeList nodeList = (NodeList) xpathExpression.evaluate(targetElement.getElement(), XPathConstants.NODESET);
@@ -69,19 +77,34 @@ public class IdComputer {
    */
   private String buildXPathExpression(MergeElement mergeElement) {
 
-    String tagName = mergeElement.getElement().getTagName();
+    Element element = mergeElement.getElement();
+    String namespaceURI = element.getNamespaceURI();
+    String localName = element.getLocalName();
+    String prefix = element.getPrefix();
+
+    StringBuilder xpathBuilder = new StringBuilder();
+    if (prefix != null && !prefix.isEmpty()) {
+      xpathBuilder.append(prefix).append(":");
+    }
+    xpathBuilder.append(localName);
 
     if (id.startsWith("@")) {
       String attributeName = id.substring(1);
-      String attributeValue = mergeElement.getElement().getAttribute(attributeName);
-      return tagName + String.format("[@%s='%s']", attributeName, attributeValue);
+      String attributeValue = element.getAttribute(attributeName);
+      xpathBuilder.append(String.format("[@%s='%s']", attributeName, attributeValue));
     } else if (id.equals("name()")) {
-      return tagName + String.format("[name()='%s']", tagName);
+      xpathBuilder.append(String.format("[local-name()='%s']", localName));
+      if (namespaceURI != null && !namespaceURI.isEmpty()) {
+        xpathBuilder.append(String.format(" and namespace-uri()='%s'", namespaceURI));
+      }
     } else if (id.equals("text()")) {
-      String textContent = mergeElement.getElement().getTextContent();
-      return tagName + String.format("[text()='%s']", textContent);
+      String textContent = element.getTextContent();
+      xpathBuilder.append(String.format("[text()='%s']", textContent));
+    } else { // custom xpath like ../element[@attr='value']
+      return id;
     }
-    return id;
+
+    return xpathBuilder.toString();
   }
 
 }

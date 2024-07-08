@@ -8,6 +8,8 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import javax.xml.XMLConstants;
+
 /**
  * Merge Strategy implementation for combining XML elements.
  */
@@ -37,16 +39,31 @@ public class CombineStrategy extends AbstractStrategy {
   private void combineAttributes(MergeElement updateElement, MergeElement targetElement) {
 
     try {
+      Element targetElementNode = targetElement.getElement();
       for (MergeAttribute updateAttr : updateElement.getElementAttributes()) {
         if (!updateAttr.isMergeNSAttr()) {
           String namespaceURI = updateAttr.getAttr().getNamespaceURI();
-          String attrName = updateAttr.getAttr().getLocalName();
-          targetElement.getElement().setAttributeNS(namespaceURI, attrName, updateAttr.getValue());
+          String attrName = updateAttr.getAttr().getName();
+          String attrValue = updateAttr.getValue();
+
+          if (namespaceURI != null && !namespaceURI.isEmpty()) { // copied from Stackoverflow, a simple setAttributeNS doesn't work for all cases
+            String prefix = updateAttr.getAttr().getPrefix();
+            if (prefix != null && !prefix.isEmpty()) {
+              if (targetElementNode.getAttributeNodeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, prefix) == null) {
+                targetElementNode.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:" + prefix, namespaceURI);
+              }
+              targetElementNode.setAttributeNS(namespaceURI, attrName, attrValue);
+            } else {
+              // For default namespace
+              targetElementNode.setAttributeNS(namespaceURI, attrName, attrValue);
+            }
+          } else {
+            targetElementNode.setAttribute(attrName, attrValue);
+          }
         }
       }
     } catch (DOMException e) {
-      throw new IllegalStateException("Failed to combine attributes for element " + updateElement.getXPath() + " in "
-          + updateElement.getDocumentPath(), e);
+      throw new IllegalStateException("Failed to combine attributes for element " + updateElement.getXPath() + " in " + updateElement.getDocumentPath(), e);
     }
   }
 
@@ -66,22 +83,19 @@ public class CombineStrategy extends AbstractStrategy {
           MergeElement sourceChildElement = new MergeElement((Element) updateChild, updateElement.getDocumentPath());
           MergeElement matchedTargetChild = elementMatcher.matchElement(sourceChildElement, targetElement);
           if (matchedTargetChild != null) {
-            Strategy childStrategy = StrategyFactory.createStrategy(sourceChildElement.getMergingStrategy(),
-                elementMatcher);
+            Strategy childStrategy = StrategyFactory.createStrategy(sourceChildElement.getMergingStrategy(), elementMatcher);
             childStrategy.merge(sourceChildElement, matchedTargetChild);
           } else {
             appendElement(sourceChildElement, targetElement);
           }
-        } else if (updateChild.getNodeType() == Node.TEXT_NODE
-            || updateChild.getNodeType() == Node.CDATA_SECTION_NODE) {
+        } else if (updateChild.getNodeType() == Node.TEXT_NODE || updateChild.getNodeType() == Node.CDATA_SECTION_NODE) {
           if (!updateChild.getTextContent().isBlank()) {
             replaceTextNode(targetElement, updateChild);
           }
         }
       }
     } catch (DOMException e) {
-      throw new IllegalStateException("Failed to combine child nodes for element " + updateElement.getXPath() + " in "
-          + updateElement.getDocumentPath(), e);
+      throw new IllegalStateException("Failed to combine child nodes for element " + updateElement.getXPath() + " in " + updateElement.getDocumentPath(), e);
     }
   }
 
@@ -108,8 +122,7 @@ public class CombineStrategy extends AbstractStrategy {
       Node importedNode = element.getOwnerDocument().importNode(updateChild, true);
       element.appendChild(importedNode);
     } catch (DOMException e) {
-      throw new IllegalStateException("Failed to replace text node for element " + targetElement.getXPath() + " in "
-          + targetElement.getDocumentPath(), e);
+      throw new IllegalStateException("Failed to replace text node for element " + targetElement.getXPath() + " in " + targetElement.getDocumentPath(), e);
     }
   }
 }
