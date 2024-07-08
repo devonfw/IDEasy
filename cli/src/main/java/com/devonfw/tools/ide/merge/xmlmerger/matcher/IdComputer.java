@@ -16,8 +16,7 @@ import javax.xml.xpath.XPathFactory;
 import java.util.Iterator;
 
 /**
- * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements
- * in a target document.
+ * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements in a target document.
  */
 public class IdComputer {
 
@@ -58,8 +57,7 @@ public class IdComputer {
       int length = nodeList.getLength();
       if (length > 1) {
         throw new IllegalStateException(
-            length + " matches found when trying to match element " + sourceElement.getXPath() + " in target document "
-                + targetElement.getDocumentPath());
+            length + " matches found when trying to match element " + sourceElement.getXPath() + " in target document " + targetElement.getDocumentPath());
       } else {
         return (Element) nodeList.item(0);
       }

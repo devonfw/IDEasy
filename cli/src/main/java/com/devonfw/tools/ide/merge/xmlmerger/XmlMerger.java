@@ -5,9 +5,6 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.merge.FileMerger;
 import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
-import com.devonfw.tools.ide.merge.xmlmerger.strategy.OverrideStrategy;
-import com.devonfw.tools.ide.merge.xmlmerger.strategy.Strategy;
-import com.devonfw.tools.ide.merge.xmlmerger.strategy.StrategyFactory;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -86,9 +83,8 @@ public class XmlMerger extends FileMerger {
     MergeElement targetRoot = new MergeElement(targetDocument.getDocumentElement(), target);
 
     if (matchRootElements(sourceRoot, targetRoot)) {
-      Strategy strategy = StrategyFactory.createStrategy(sourceRoot.getMergingStrategy(),
-          new ElementMatcher(this.context));
-      strategy.merge(sourceRoot, targetRoot);
+      MergeStrategy strategy = MergeStrategy.of(sourceRoot.getMergingStrategy());
+      strategy.merge(sourceRoot, targetRoot, new ElementMatcher(this.context));
     }
   }
 
@@ -97,15 +93,15 @@ public class XmlMerger extends FileMerger {
     Element sourceElement = sourceRoot.getElement();
     Element targetElement = targetRoot.getElement();
     if (!sourceElement.getTagName().equals(targetElement.getTagName())) {
-      throw new IllegalStateException(String.format("Names of root elements of {} and {} don't match. Found {} and {}",
-          sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(), sourceElement.getTagName(),
-          targetElement.getTagName()));
+      throw new IllegalStateException(
+          String.format("Names of root elements of {} and {} don't match. Found {} and {}", sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(),
+              sourceElement.getTagName(), targetElement.getTagName()));
     }
     if (sourceElement.getNamespaceURI() != null || targetElement.getNamespaceURI() != null) {
       if (!sourceElement.getNamespaceURI().equals(targetElement.getNamespaceURI())) {
-        throw new IllegalStateException(String.format("URI of root elements of {} and {} don't match. Found {} and {}",
-            sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(), sourceElement.getNamespaceURI(),
-            targetElement.getNamespaceURI()));
+        throw new IllegalStateException(
+            String.format("URI of root elements of {} and {} don't match. Found {} and {}", sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(),
+                sourceElement.getNamespaceURI(), targetElement.getNamespaceURI()));
       }
 
     }
@@ -121,10 +117,10 @@ public class XmlMerger extends FileMerger {
     Document updateDocument = load(update);
     Document workspaceDocument = load(workspace);
     resolve(updateDocument, variables, true, workspace.getFileName());
-    Strategy strategy = new OverrideStrategy(null);
+    MergeStrategy strategy = MergeStrategy.OVERRIDE;
     MergeElement sourceRoot = new MergeElement(workspaceDocument.getDocumentElement(), workspace);
     MergeElement targetRoot = new MergeElement(updateDocument.getDocumentElement(), update);
-    strategy.merge(sourceRoot, targetRoot);
+    strategy.merge(sourceRoot, targetRoot, null);
     save(updateDocument, update);
     this.context.debug("Saved changes in {} to {}", workspace.getFileName(), update);
   }

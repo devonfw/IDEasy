@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.merge.xmlmerger.model;
 
 import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
-import com.devonfw.tools.ide.merge.xmlmerger.strategy.MergeStrategy;
 import org.w3c.dom.*;
 
 import javax.xml.namespace.QName;
@@ -43,17 +42,13 @@ public class MergeElement {
   /**
    * Retrieves the merge strategy associated with this MergeElement.
    *
-   * @return the merge strategy type
+   * @return the merge strategy
    */
-  public MergeStrategy getMergingStrategy() {
+  public String getMergingStrategy() {
 
     String strategy = this.element.getAttributeNS(XmlMerger.MERGE_NS_URI, "strategy").toLowerCase();
-    if ("combine".equals(strategy)) {
-      return MergeStrategy.COMBINE;
-    } else if ("override".equals(strategy)) {
-      return MergeStrategy.OVERRIDE;
-    } else if ("keep".equals(strategy)) {
-      return MergeStrategy.KEEP;
+    if (!strategy.isEmpty()) {
+      return strategy;
     }
 
     // Inherit merging strategy from parent
@@ -61,8 +56,7 @@ public class MergeElement {
     if (parent != null) {
       return new MergeElement(parent, this.documentPath).getMergingStrategy();
     }
-
-    return MergeStrategy.KEEP; // Default strategy
+    return "keep"; // Default strategy
   }
 
   /**
@@ -104,8 +98,7 @@ public class MergeElement {
   /**
    * Retrieves the attributes of this MergeElement.
    *
-   * @return a list of {@link MergeAttribute} objects representing the attributes, if there are no attributes, the list
-   * is empty.
+   * @return a list of {@link MergeAttribute} objects representing the attributes, if there are no attributes, the list is empty.
    */
   public List<MergeAttribute> getElementAttributes() {
 
