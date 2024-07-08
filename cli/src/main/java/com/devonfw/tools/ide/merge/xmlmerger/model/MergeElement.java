@@ -128,23 +128,6 @@ public class MergeElement {
   }
 
   /**
-   * Removes merge namespace attributes from this MergeElement.
-   */
-  public void removeMergeNsAttributes() {
-
-    List<MergeAttribute> attributes = getElementAttributes();
-    try {
-      for (MergeAttribute attribute : attributes) {
-        if (attribute.isMergeNSAttr()) {
-          element.removeAttributeNode(attribute.getAttr());
-        }
-      }
-    } catch (DOMException e) {
-      throw new IllegalStateException("Failed to remove merge namespace attributes for element:" + getXPath(), e);
-    }
-  }
-
-  /**
    * Retrieves the XPath of this MergeElement with no criterion. E.g. /root/.../element
    *
    * @return the XPath
