@@ -1,8 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import org.junit.jupiter.api.Test;
@@ -19,17 +17,15 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletRunThrowsCliException() {
 
     // arrange
-    IdeContext context = newContext(PROJECT_BASIC, null, false);
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     versionGet.tool.setValueAsString("java", context);
     // act
-    try {
-      versionGet.run();
-      failBecauseExceptionWasNotThrown(CliException.class);
-    } catch (CliException e) {
-      // assert
-      assertThat(e).hasMessageContaining("Tool java is not installed!");
-    }
+    versionGet.run();
+    // assert
+    assertLogMessage(context, IdeLogLevel.INFO, "The configured version for tool java is 17*");
+    assertLogMessage(context, IdeLogLevel.INFO, "To install that version call the following command:");
+    assertLogMessage(context, IdeLogLevel.INFO, "ide install java");
   }
 
   /**

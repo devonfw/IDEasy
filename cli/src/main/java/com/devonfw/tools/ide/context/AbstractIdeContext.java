@@ -22,8 +22,10 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.log.IdeSubLoggerNone;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
+import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -39,7 +41,8 @@ import com.devonfw.tools.ide.url.model.UrlMetadata;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -96,6 +99,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   private Path userHomeIde;
 
   private SystemPath path;
+
+  private WindowsPathSyntax pathSyntax;
 
   private final SystemInfo systemInfo;
 
@@ -172,14 +177,14 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
       currentDir = getParentPath(currentDir);
     }
+
     // detection completed, initializing variables
-    setCwd(userDir, workspace, currentDir);
     Path ideRootPath = null;
     if (currentDir == null) {
       info(getMessageIdeHomeNotFound());
     } else {
       debug(getMessageIdeHomeFound());
-      ideRootPath = this.ideHome.getParent();
+      ideRootPath = currentDir.getParent();
     }
 
     if (!isTest()) {
@@ -198,6 +203,8 @@ public abstract class AbstractIdeContext implements IdeContext {
       error("IDE_ROOT is not set or not a valid directory.");
     }
     this.ideRoot = ideRootPath;
+
+    setCwd(userDir, workspace, currentDir);
 
     if (this.ideRoot == null) {
       this.toolRepository = null;
@@ -597,7 +604,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     boolean online = false;
     try {
       int timeout = 1000;
-      online = InetAddress.getByName("github.com").isReachable(timeout);
+      //open a connection to github.com and try to retrieve data
+      //getContent fails if there is no connection
+      URLConnection connection = new URL("https://www.github.com").openConnection();
+      connection.setConnectTimeout(timeout);
+      connection.getContent();
+      online = true;
+
     } catch (Exception ignored) {
 
     }
@@ -643,6 +656,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (defaultExecutionDirectory != null) {
       this.defaultExecutionDirectory = defaultExecutionDirectory;
     }
+  }
+
+  @Override
+  public ProxyContext getProxyContext() {
+
+    return new ProxyContext(this);
   }
 
   @Override
@@ -850,19 +869,21 @@ public abstract class AbstractIdeContext implements IdeContext {
       step.error(t, true);
       throw t;
     } finally {
-      step.end();
+      step.close();
       assert (this.currentStep == null);
       step.logSummary(supressStepSuccess);
     }
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
-   * {@link Commandlet#run() run}.
-   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
-   * {@link Commandlet} did not match and we have to try a different candidate).
+   * @param cmd the potential {@link Commandlet} to
+   *     {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run() run}.
+   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
+   *     {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
+
+    cmd.clearProperties();
 
     boolean matches = apply(arguments, cmd, null);
     if (matches) {
@@ -1021,4 +1042,16 @@ public abstract class AbstractIdeContext implements IdeContext {
     throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
   }
 
+  @Override
+  public WindowsPathSyntax getPathSyntax() {
+    return this.pathSyntax;
+  }
+
+  /**
+   * @param pathSyntax new value of {@link #getPathSyntax()}.
+   */
+  public void setPathSyntax(WindowsPathSyntax pathSyntax) {
+
+    this.pathSyntax = pathSyntax;
+  }
 }

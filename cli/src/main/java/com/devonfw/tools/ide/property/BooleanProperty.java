@@ -19,7 +19,7 @@ public class BooleanProperty extends Property<Boolean> {
    */
   public BooleanProperty(String name, boolean required, String alias) {
 
-    super(name, required, alias, null);
+    super(name, required, alias);
   }
 
   @Override
@@ -82,8 +82,8 @@ public class BooleanProperty extends Property<Boolean> {
   }
 
   @Override
-  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context,
-      Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
 
     if (lookahead) {
       Boolean b = parse(argValue);

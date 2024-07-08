@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+<VBox alignment="CENTER" spacing="20.0" xmlns:fx="http://javafx.com/fxml">
+  <padding>
+    <Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+  </padding>
+
+  <Label text="welcome to IDEasy" fx:id="hellomessage"/>
+  <!--Button text="Hello!" onAction="#onHelloButtonClick"/-->
+</VBox>
