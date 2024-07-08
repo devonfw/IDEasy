@@ -64,7 +64,7 @@ public class VersionGetCommandlet extends Commandlet {
     } else { // get both configured and installed version
 
       VersionIdentifier installedVersion = commandlet.getInstalledVersion();
-      if (installedVersion.compareVersion(configuredVersion).isEqual()) {
+      if (configuredVersion.compareVersion(installedVersion).isEqual()) {
         this.context.info(installedVersion.toString());
       } else {
         if (installedVersion == null) {
@@ -82,7 +82,7 @@ public class VersionGetCommandlet extends Commandlet {
   private void toolInstallInfo(String toolName, VersionIdentifier configuredVersion) {
 
     this.context.info("The configured version for tool {} is {}", toolName, configuredVersion);
-    this.context.info("To install the configured version call the following command:");
+    this.context.info("To install that version call the following command:");
     this.context.info("ide install {}", toolName);
 
   }
