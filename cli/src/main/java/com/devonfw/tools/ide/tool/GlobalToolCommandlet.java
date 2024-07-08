@@ -116,7 +116,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       this.context.level(level).log("{} is already installed at {}", this.tool, binaryPath);
       return false;
     }
-    String edition = getEdition();
+    String edition = getConfiguredEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion);

@@ -76,7 +76,7 @@ public class Intellij extends IdeToolCommandlet {
   private String generateMacEditionString() {
 
     String edition = "";
-    if (getEdition().equals("intellij")) {
+    if (getConfiguredEdition().equals("intellij")) {
       edition = " CE";
     }
     return edition;
