@@ -52,6 +52,7 @@ public class XmlMerger extends FileMerger {
   public void merge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
 
     Document document = null;
+    Path template = setup;
     Path target = workspace;
     boolean updateFileExists = Files.exists(update);
     if (Files.exists(workspace)) {
@@ -64,15 +65,15 @@ public class XmlMerger extends FileMerger {
       target = setup;
     }
     if (updateFileExists) {
-      Path template = update;
+      template = update;
       if (document == null) {
         document = load(update);
       } else {
         Document updateDocument = load(update);
-        resolve(document, resolver, false, template);
         merge(updateDocument, document, template, target);
       }
     }
+    resolve(document, resolver, false, template);
     save(document, workspace);
   }
 
