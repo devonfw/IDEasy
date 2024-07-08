@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.property.VersionProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -19,6 +21,12 @@ public class VersionSetCommandlet extends Commandlet {
   /** The version to set. */
   public final VersionProperty version;
 
+  private final FlagProperty conf;
+
+  private final FlagProperty home;
+
+  private final FlagProperty workspace;
+
   /**
    * The constructor.
    *
@@ -30,6 +38,9 @@ public class VersionSetCommandlet extends Commandlet {
     addKeyword(getName());
     this.tool = add(new ToolProperty("", true, "tool"));
     this.version = add(new VersionProperty("", true, "version"));
+    this.conf = add(new FlagProperty("--conf", false, null));
+    this.home = add(new FlagProperty("--home", false, null));
+    this.workspace = add(new FlagProperty("--workspace", false, null));
   }
 
   @Override
@@ -43,7 +54,15 @@ public class VersionSetCommandlet extends Commandlet {
 
     ToolCommandlet commandlet = this.tool.getValue();
     VersionIdentifier versionIdentifier = this.version.getValue();
-    commandlet.setVersion(versionIdentifier, true);
+    if (this.conf.isTrue()) {
+      commandlet.setVersion(versionIdentifier, true, EnvironmentVariablesType.CONF);
+    } else if (this.home.isTrue()) {
+      commandlet.setVersion(versionIdentifier, true, EnvironmentVariablesType.CONF);
+    } else if (this.workspace.isTrue()) {
+      commandlet.setVersion(versionIdentifier, true, EnvironmentVariablesType.WORKSPACE);
+    } else {
+      commandlet.setVersion(versionIdentifier, true);
+    }
   }
 
   @Override

@@ -277,11 +277,24 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void setVersion(VersionIdentifier version, boolean hint) {
 
+    setVersion(version, hint, EnvironmentVariablesType.SETTINGS);
+  }
+
+  /**
+   * Sets the tool version in the environment variable configuration file.
+   *
+   * @param version the version to set. May also be a {@link VersionIdentifier#isPattern() version pattern}.
+   * @param hint - {@code true} to print the installation hint, {@code false} otherwise.
+   * @param destination - the destination for the property to be set
+   */
+  public void setVersion(VersionIdentifier version, boolean hint, EnvironmentVariablesType destination) {
+
     String edition = getEdition();
-    this.context.getUrls().getVersionFolder(tool, edition, version); // CliException is thrown if the version is not existing
+    this.context.getUrls()
+        .getVersionFolder(tool, edition, version); // CliException is thrown if the version is not existing
 
     EnvironmentVariables variables = this.context.getVariables();
-    EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
+    EnvironmentVariables settingsVariables = variables.getByType(destination);
     String name = EnvironmentVariables.getToolVersionVariable(this.tool);
     VersionIdentifier resolvedVersion = this.context.getUrls().getVersion(this.tool, edition, version);
     if (version.isPattern()) {
@@ -319,6 +332,18 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void setEdition(String edition, boolean hint) {
 
+    setEdition(edition, hint, EnvironmentVariablesType.SETTINGS);
+  }
+
+  /**
+   * Sets the tool edition in the environment variable configuration file.
+   *
+   * @param edition the edition to set
+   * @param hint - {@code true} to print the installation hint, {@code false} otherwise.
+   * @param destination - the destination for the property to be set
+   */
+  public void setEdition(String edition, boolean hint, EnvironmentVariablesType destination) {
+
     if ((edition == null) || edition.isBlank()) {
       throw new IllegalStateException("Edition has to be specified!");
     }
@@ -328,7 +353,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     }
     EnvironmentVariables variables = this.context.getVariables();
-    EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
+    EnvironmentVariables settingsVariables = variables.getByType(destination);
     String name = EnvironmentVariables.getToolEditionVariable(this.tool);
     settingsVariables.set(name, edition, false);
     settingsVariables.save();
