@@ -1,19 +1,15 @@
 package com.devonfw.tools.ide.merge.xmlmerger.matcher;
 
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 import org.apache.ws.commons.util.NamespaceContextImpl;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.util.Iterator;
 
 /**
  * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements in a target document.

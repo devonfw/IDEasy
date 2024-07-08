@@ -1,10 +1,7 @@
 package com.devonfw.tools.ide.merge.xmlmerger.matcher;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeAttribute;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
-import org.w3c.dom.Attr;
-import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import javax.xml.namespace.QName;
