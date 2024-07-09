@@ -894,6 +894,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
         throw new CliException(getMessageIdeHomeNotFound());
       }
+      getGitContext().fetchIfNeeded("origin","main", getSettingsPath());
       cmd.run();
     } else {
       trace("Commandlet did not match");

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -161,4 +162,111 @@ public class GitContextTest extends AbstractIdeContextTest {
     assertThat(tempDir.resolve("new-folder")).doesNotExist();
   }
 
+  /**
+   * Test for fetchIfNeeded when the system is offline.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  public void testFetchIfNeededOffline(@TempDir Path tempDir) {
+    // arrange
+    String repoUrl = "https://github.com/test";
+    String remoteName = "origin";
+    List<String> errors = new ArrayList<>();
+    List<String> outs = new ArrayList<>();
+    IdeContext context = newGitContext(tempDir, errors, outs, 0, false);
+    GitContext gitContext = new GitContextImpl(context);
+
+    // act
+    gitContext.fetchIfNeeded(repoUrl, remoteName, tempDir);
+
+    // assert
+    // Since the context is offline, no actions should be performed
+    assertThat(errors.isEmpty()).isTrue();
+    assertThat(outs.isEmpty()).isTrue();
+  }
+
+  /**
+   * Test for fetchIfNeeded when the FETCH_HEAD file is newer than the threshold.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  public void testFetchIfNeededRecentFetchHead(@TempDir Path tempDir) throws IOException {
+    // arrange
+    String repoUrl = "https://github.com/test";
+    String remoteName = "origin";
+    List<String> errors = new ArrayList<>();
+    List<String> outs = new ArrayList<>();
+    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
+    GitContext gitContext = new GitContextImpl(context);
+
+    Path gitDir = tempDir.resolve(".git");
+    Files.createDirectories(gitDir);
+    Path fetchHead = gitDir.resolve("FETCH_HEAD");
+    Files.createFile(fetchHead);
+    Files.setLastModifiedTime(fetchHead, FileTime.fromMillis(System.currentTimeMillis()));
+
+    // act
+    gitContext.fetchIfNeeded(repoUrl, remoteName, tempDir);
+
+    // assert
+    // Since FETCH_HEAD is recent, no fetch should occur
+    assertThat(errors.isEmpty()).isTrue();
+    assertThat(outs.isEmpty()).isTrue();
+  }
+
+  /**
+   * Test for fetchIfNeeded when the FETCH_HEAD file is older than the threshold and updates are available.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  public void testFetchIfNeededOldFetchHeadWithUpdates(@TempDir Path tempDir) throws IOException {
+    // arrange
+    String repoUrl = "https://github.com/test";
+    String remoteName = "origin";
+    List<String> errors = new ArrayList<>();
+    List<String> outs = new ArrayList<>();
+    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
+    GitContext gitContext = new GitContextImpl(context);
+
+    Path gitDir = tempDir.resolve(".git");
+    Files.createDirectories(gitDir);
+    Path fetchHead = gitDir.resolve("FETCH_HEAD");
+    Files.createFile(fetchHead);
+    Files.setLastModifiedTime(fetchHead, FileTime.fromMillis(System.currentTimeMillis() - 86400000)); // 1 day old
+
+    // Mocking repository update availability
+    outs.add("new updates available");
+
+    // act
+    gitContext.fetchIfNeeded(repoUrl, remoteName, tempDir);
+
+    // assert
+    // Since FETCH_HEAD is old and updates are available, fetch should occur
+    assertThat(outs.isEmpty()).isFalse();
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when local and remote commits are the same.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  public void testIsRepositoryUpdateAvailableNoUpdates(@TempDir Path tempDir) {
+    // arrange
+    List<String> errors = new ArrayList<>();
+    List<String> outs = new ArrayList<>();
+    outs.add("local_commit_hash");
+    outs.add("local_commit_hash"); // same as remote to simulate no updates
+    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
+    GitContext gitContext = new GitContextImpl(context);
+
+    // act
+    boolean result = gitContext.isRepositoryUpdateAvailable(tempDir, "origin", "test_branch");
+
+    // assert
+    assertThat(result).isFalse(); // No updates should be available
+  }
 }

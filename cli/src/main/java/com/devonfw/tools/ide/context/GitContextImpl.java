@@ -24,11 +24,13 @@ import java.util.Objects;
 public class GitContextImpl implements GitContext {
   private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMinutes(30);
 
+  private static final Duration GIT_FETCH_CACHE_DELAY_MILLIS = Duration.ofMinutes(5);
+
   private final IdeContext context;
 
   private final ProcessContext processContext;
 
-  private static final ProcessMode PROCESS_MODE = ProcessMode.DEFAULT;
+  private static final ProcessMode PROCESS_MODE = ProcessMode.DEFAULT_CAPTURE;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -68,6 +70,84 @@ public class GitContextImpl implements GitContext {
     // If the .git directory does not exist or in case of an error, perform git operation directly
     pullOrClone(repoUrl, branch, targetRepository);
   }
+
+  @Override
+  public void fetchIfNeeded(String remoteName, String branch, Path targetRepository) {
+    if (!context.isOnline())
+      return;
+
+    Path gitDirectory = targetRepository.resolve(".git");
+    // Check if the .git directory exists
+    if (!this.context.isForceMode() && Files.isDirectory(gitDirectory)) {
+      Path fetchHeadPath = gitDirectory.resolve("FETCH_HEAD");
+      long currentTime = System.currentTimeMillis();
+      // Get the modification time of the FETCH_HEAD file
+      try {
+        long fileModifiedTime = Files.getLastModifiedTime(fetchHeadPath).toMillis();
+        // Check if the file modification time is older than the delta threshold
+        if ((currentTime - fileModifiedTime > GIT_FETCH_CACHE_DELAY_MILLIS.toMillis())) {
+          if (isRepositoryUpdateAvailable(targetRepository, remoteName, branch)) {
+            this.context.info("Updates are available for the settings repository. Please pull the latest changes.");
+          }
+          try {
+            Files.setLastModifiedTime(fetchHeadPath, FileTime.fromMillis(currentTime));
+          } catch (IOException e) {
+            this.context.warning().log(e, "Could not update modification-time of {}", fetchHeadPath);
+          }
+        }
+      } catch (IOException e) {
+        this.context.error(e);
+      }
+    }
+  }
+
+  @Override
+  public boolean isRepositoryUpdateAvailable(Path targetRepository, String remoteName, String branch) {
+    if ((remoteName == null) || remoteName.isEmpty()) {
+      remoteName = DEFAULT_REMOTE;
+    }
+
+    this.processContext.directory(targetRepository);
+    ProcessResult result;
+
+    // get local commit code
+    result = this.processContext.addArg("rev-parse").addArg("HEAD").run(PROCESS_MODE);
+    if (!result.isSuccessful()) {
+      this.context.warning("Failed to get the local commit hash.");
+      return false;
+    }
+
+    String local_commit_code = result.getOut().stream().findFirst().orElse("").trim();
+
+    // get remote commit code
+    result = this.processContext.addArg("rev-parse").addArg("@{u}").run(PROCESS_MODE);
+    if (!result.isSuccessful()) {
+      this.context.warning("Failed to get the remote commit hash.");
+      return false;
+    }
+    String remote_commit_code = result.getOut().stream().findFirst().orElse("").trim();
+
+    // compare commit codes
+    if (local_commit_code.equals(remote_commit_code)) {
+      // do a git fetch and look if there are really no changes
+      result = this.processContext.addArg("fetch").addArg(remoteName).addArg(branch).run(PROCESS_MODE);
+
+      if (!result.isSuccessful()) {
+        this.context.warning("Git failed to fetch updates from remote '{}'.", remoteName);
+        return false;
+      }
+
+      // compare commit codes
+      result = this.processContext.addArg("rev-parse").addArg("@{u}").run(PROCESS_MODE);
+
+      String remoteCommitCodeAfterFetching = result.getOut().stream().findFirst().orElse("").trim();
+
+      return !local_commit_code.equals(remoteCommitCodeAfterFetching);
+    } else {
+      return true;
+    }
+  }
+
 
   @Override
   public void pullOrCloneAndResetIfNeeded(String repoUrl, Path targetRepository, String branch, String remoteName) {

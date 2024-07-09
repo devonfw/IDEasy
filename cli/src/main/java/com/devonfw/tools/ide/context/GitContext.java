@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.context;
 
 import com.devonfw.tools.ide.cli.CliOfflineException;
+import java.io.IOException;
 
 import java.nio.file.Path;
 
@@ -17,7 +18,6 @@ public interface GitContext {
 
   /**
    * Checks if the Git repository in the specified target folder needs an update by inspecting the modification time of a magic file.
-   *
    * @param repoUrl the git remote URL to clone from.
    * @param branch the explicit name of the branch to checkout e.g. "main" or {@code null} to use the default branch.
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
@@ -25,6 +25,34 @@ public interface GitContext {
    * @throws CliOfflineException if offline and cloning is needed.
    */
   void pullOrCloneIfNeeded(String repoUrl, String branch, Path targetRepository);
+
+  /**
+   * Checks if a git fetch is needed and performs it if required.
+   * This method checks the last modified time of the `FETCH_HEAD` file in the `.git`
+   * directory to determine if a fetch is needed based on a predefined threshold.
+   * If updates are available in the remote repository, it logs an information message
+   * prompting the user to pull the latest changes.
+   *
+   * @param remoteName the name of the remote repository, e.g., "origin".
+   * @param branch the name of the branch to check for updates.
+   * @param targetRepository the {@link Path} to the target folder where the git repository
+   *                         is located. It contains the `.git` subfolder.
+   * @throws IOException if there is an error accessing the git files
+   */
+  void fetchIfNeeded(String remoteName, String branch, Path targetRepository);
+
+  /**
+   * Checks if there are updates available for the Git repository in the specified target folder by comparing the local
+   * commit hash with the remote commit hash.
+   *
+   * @param targetRepository the {@link Path} to the target folder where the git repository is located.
+   *        This should be the folder containing the ".git" subfolder.
+   * @param remoteName the name of the remote repository, e.g., "origin". If {@code null} or empty, the default remote
+   *        name "origin" will be used.
+   * @param branch the name of the branch to check for updates.
+   * @return {@code true} if updates are available, {@code false} otherwise.
+   */
+  boolean isRepositoryUpdateAvailable(Path targetRepository, String remoteName, String branch);
 
   /**
    * Attempts a git pull and reset if required.
