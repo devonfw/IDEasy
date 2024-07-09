@@ -1,0 +1,47 @@
+:toc:
+toc::[]
+
+= XML Merger Documentation
+
+The XML Merger in `IDEasy` is a tool designed to merge XML documents using different strategies. It allows control over how elements are combined, overridden, or kept intact during the merge process. This merger is mainly used to merge incoming IDE configuration files changes from ide-settings into the workspace.
+
+== Merging Strategies
+The merger supports three main strategies, which can be specified for each element using the merge:strategy attribute:
+
+* `COMBINE`: This strategy combines the source and target elements. It overrides text nodes and attributes, and recursively applies the process to child elements. If a source element exists in the target document, they are combined; otherwise, the source element is appended.
+* `OVERRIDE`: This strategy replaces the target element with the source element, without considering child elements. If the element exists in the target, it is overridden; otherwise, it is appended.
+* `KEEP`: This strategy keeps the existing target element intact if the source element exists in the target document. If the source element doesn't exist in the target, it is appended.
+
+It is not necessary to provide a `merge:strategy` for each element, strategies are inherited to child elements, so unless you want that the children of an element to behave differently during the merge process you can provide one strategy (for instance in the root element) and all the children of that element will use that strategy.
+
+== Element Identification
+
+Elements are identified and matched using the `merge:id` attribute. This attribute is used to determine which elements in the source and target documents correspond to each other. The merge:id can be set to one of the following:
+
+* An attribute name prefixed with @ (e.g., `@id`, `@name`)
+* The string `name()` to match by element name
+* The string `text()` to match by text content
+* A full XPath expression (e.g., `../element[@attr=’value’]` or `/root/element[@attr=’value’]`)
+
+For each first occurrence of an element the provided value of `merge:id` is saved and then later used for elements with the same name (qualified name), so it is enough to provide a `merge:id` for each element only once, unless you want it to change later in the document.
+
+if no `merge:id` was provided, the merger uses by default the id attribute or the name attribute (in this order) if present for identification.
+
+If an element has no attributes, the merger by default uses its name as an id and therefore there is no need to provide a `merge:id`.
+
+In Eclipse and IntelliJ, elements are usually identified by either the attribute id or name, which means we could just omit merge:id in these cases.
+
+== Namespace declaration
+
+In order to use this tool, it is necessary to declare the merge namespace in the root element like this:
+
+[source,xml]
+----
+<root xmlns:merge="https://github.com/devonfw/IDEasy/merge">
+// some elements
+</root>
+----
+
+== Namespace declaration
+
+You can find examples on how to use this tool link:https://github.com/devonfw/IDEasy/tree/main/cli/src/test/resources/xmlmerger[here].
