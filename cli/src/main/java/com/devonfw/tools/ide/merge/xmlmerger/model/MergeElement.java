@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.merge.xmlmerger.model;
 
+import com.devonfw.tools.ide.merge.xmlmerger.MergeStrategy;
 import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
@@ -67,7 +68,7 @@ public class MergeElement {
     if (parent != null) {
       return new MergeElement(parent, this.documentPath).getMergingStrategy();
     }
-    return null; // should the default be keep?
+    return MergeStrategy.KEEP.name(); // should the default be keep?
   }
 
   /**
