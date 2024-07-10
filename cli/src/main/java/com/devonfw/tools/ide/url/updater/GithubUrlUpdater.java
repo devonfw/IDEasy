@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.url.updater;
 
 import com.devonfw.tools.ide.github.GithubTag;
 import com.devonfw.tools.ide.github.GithubTags;
-import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 
 import java.util.Collection;
 
@@ -23,22 +22,6 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, Github
     return GithubTags.class;
   }
 
-  @Override
-  protected void collectVersionsFromJson(GithubTags jsonItem, Collection<String> versions) {
-
-    for (GithubTag item : jsonItem) {
-      String version = item.getRef().replace("refs/tags/", "");
-      version = mapVersion(version);
-      addVersion(version, versions);
-    }
-  }
-
-  @Override
-  protected void collectVersionsWithDownloadsFromJson(GithubTags jsonItem, UrlEdition edition) {
-
-    throw new IllegalStateException();
-  }
-
   /**
    * @return the github organization- or user-name (e.g. "devonfw").
    */
@@ -54,19 +37,13 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, Github
 
   @Override
   protected Collection<GithubTag> getVersionItems(GithubTags jsonObject) {
-    //TODO
-    throw new IllegalStateException();
-  }
 
-  @Override
-  protected String getDownloadUrl(GithubTag jsonVersionItem) {
-    //TODO
-    throw new IllegalStateException();
+    return jsonObject;
   }
 
   @Override
   protected String getVersion(GithubTag jsonVersionItem) {
-    //TODO
-    throw new IllegalStateException();
+
+    return jsonVersionItem.getRef().replace("refs/tags/", "");
   }
 }
