@@ -85,6 +85,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
 
     for (JVI item : getVersionItems(jsonObj)) {
       String version = getVersion(item);
+      version = mapVersion(version);
       if (!addVersion(version, versions))
         continue;
 

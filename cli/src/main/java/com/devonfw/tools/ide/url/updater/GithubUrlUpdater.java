@@ -28,6 +28,7 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, Github
 
     for (GithubTag item : jsonItem) {
       String version = item.getRef().replace("refs/tags/", "");
+      version = mapVersion(version);
       addVersion(version, versions);
     }
   }

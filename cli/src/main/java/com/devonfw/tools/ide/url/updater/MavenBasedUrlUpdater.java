@@ -74,6 +74,7 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
       MavenMetadata metaData = mapper.readValue(response, MavenMetadata.class);
       for (String version : metaData.getVersioning().getVersions()) {
         if (isValidVersion(version)) {
+          version = mapVersion(version);
           addVersion(version, versions);
         }
       }

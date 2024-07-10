@@ -187,7 +187,6 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, Intel
     throw new IllegalStateException();
   }
 
-  @Override
   protected String getDownloadUrl(IntellijJsonRelease jsonVersionItem) {
 
     //TODO

@@ -64,6 +64,13 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
 
   }
 
+  @Override
+  protected String mapVersion(String version) {
+
+    version = version.replace("release-checksums#v", "").replace("\"", "");
+    return super.mapVersion(version);
+  }
+
   /**
    * Gets a hashSum from the release-checksum page for the provided version
    *
@@ -94,8 +101,8 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
     var matcher = getVersionPattern().matcher(htmlBody);
     while (matcher.find()) {
       String version = matcher.group();
-      String newVersion = version.replace("release-checksums#v", "").replace("\"", "");
-      addVersion(newVersion, versions);
+      version = mapVersion(version);
+      addVersion(version, versions);
     }
     return versions;
   }
