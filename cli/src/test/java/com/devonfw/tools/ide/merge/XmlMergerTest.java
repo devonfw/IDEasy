@@ -28,10 +28,14 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
   private XmlMerger merger = new XmlMerger(context);
 
+  /**
+   * Tests the XML merger functionality across multiple test cases. This test method iterates through all subdirectories in the test resources folder, each
+   * representing a different test case.
+   */
   @Test
   void testMerger(@TempDir Path tempDir) throws Exception {
 
-    try(Stream<Path> folders = Files.list(TEST_RESOURCES)) {
+    try (Stream<Path> folders = Files.list(TEST_RESOURCES)) {
       // arrange
       SoftAssertions softly = new SoftAssertions();
       folders.forEach(folder -> {

@@ -27,6 +27,10 @@ public class MergeElement {
    */
   private final Path documentPath;
 
+  /**
+   * @param element the {@link Element} to be represented.
+   * @param documentPath the {@link Path} to the document this element belongs to.
+   */
   public MergeElement(Element element, Path documentPath) {
 
     this.element = element;
@@ -38,6 +42,9 @@ public class MergeElement {
     return element;
   }
 
+  /**
+   * @return the path to the document this element belongs to.
+   */
   public Path getDocumentPath() {
 
     return documentPath;
@@ -60,7 +67,7 @@ public class MergeElement {
     if (parent != null) {
       return new MergeElement(parent, this.documentPath).getMergingStrategy();
     }
-    return "keep"; // Default strategy
+    return null; // should the default be keep?
   }
 
   /**

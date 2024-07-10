@@ -1,21 +1,27 @@
 package com.devonfw.tools.ide.merge.xmlmerger.matcher;
 
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
-import org.apache.ws.commons.util.NamespaceContextImpl;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import javax.xml.XMLConstants;
+import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.util.Collections;
+import java.util.Iterator;
 
 /**
  * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements in a target document.
  */
 public class IdComputer {
 
+  /**
+   * the value of merge:id that is used to evaluate the xpath expression.
+   */
   private final String id;
 
   private static final XPathFactory xPathFactory = XPathFactory.newInstance();
@@ -25,6 +31,9 @@ public class IdComputer {
     this.id = id;
   }
 
+  /**
+   * @return the value of id.
+   */
   public String getId() {
 
     return this.id;
@@ -39,14 +48,30 @@ public class IdComputer {
    */
 
   public Element evaluateExpression(MergeElement sourceElement, MergeElement targetElement) {
-
     try {
       XPath xpath = xPathFactory.newXPath();
-      if (sourceElement.getElement().getPrefix() != null) { // for elements defined within a namespace
-        NamespaceContextImpl nsContext = new NamespaceContextImpl();
-        nsContext.startPrefixMapping(sourceElement.getElement().getPrefix(), sourceElement.getElement().getNamespaceURI());
-        xpath.setNamespaceContext(nsContext);
+      final String elementPrefix = sourceElement.getElement().getPrefix();
+      final String elementNamespaceURI = sourceElement.getElement().getNamespaceURI();
+
+      if (elementPrefix != null && !elementPrefix.isEmpty()) {
+        xpath.setNamespaceContext(new NamespaceContext() { // simple impl of NameSpaceContext that should suffice for our usecases
+          @Override
+          public String getNamespaceURI(String prefix) {
+            return prefix.equals(elementPrefix) ? elementNamespaceURI : XMLConstants.NULL_NS_URI;
+          }
+
+          @Override
+          public String getPrefix(String namespaceURI) {
+            return namespaceURI.equals(elementNamespaceURI) ? elementPrefix : null;
+          }
+
+          @Override
+          public Iterator<String> getPrefixes(String namespaceURI) {
+            return Collections.singletonList(getPrefix(namespaceURI)).iterator();
+          }
+        });
       }
+
       String xpathExpr = buildXPathExpression(sourceElement);
       XPathExpression xpathExpression = xpath.compile(xpathExpr);
       NodeList nodeList = (NodeList) xpathExpression.evaluate(targetElement.getElement(), XPathConstants.NODESET);
@@ -57,7 +82,6 @@ public class IdComputer {
       } else {
         return (Element) nodeList.item(0);
       }
-
     } catch (XPathExpressionException e) {
       throw new IllegalStateException("Failed to match " + sourceElement.getXPath(), e);
     }

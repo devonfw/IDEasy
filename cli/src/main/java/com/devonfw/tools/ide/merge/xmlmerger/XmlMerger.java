@@ -23,6 +23,7 @@ import javax.xml.transform.stream.StreamResult;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 public class XmlMerger extends FileMerger {
 
@@ -73,39 +74,64 @@ public class XmlMerger extends FileMerger {
         merge(updateDocument, document, template, target);
       }
     }
-    resolve(document, resolver, false, template);
-    save(document, workspace);
+    if (document != null) {
+      resolve(document, resolver, false, template);
+      save(document, workspace);
+    }
   }
 
+  /** Merges the source document with the target document.
+   *
+   * @param sourceDocument The {@link Document} representing the source xml file.
+   * @param targetDocument The {@link Document} representing the target xml file.
+   * @param source {@link Path} to the source document.
+   * @param target {@link Path} to the target document.
+   */
   public void merge(Document sourceDocument, Document targetDocument, Path source, Path target) {
 
     this.context.debug("Merging {} with {} ...", source.getFileName().toString(), target.getFileName().toString());
     MergeElement sourceRoot = new MergeElement(sourceDocument.getDocumentElement(), source);
     MergeElement targetRoot = new MergeElement(targetDocument.getDocumentElement(), target);
 
-    if (matchRootElements(sourceRoot, targetRoot)) {
+    if (areRootsCompatible(sourceRoot, targetRoot)) {
       MergeStrategy strategy = MergeStrategy.of(sourceRoot.getMergingStrategy());
       strategy.merge(sourceRoot, targetRoot, new ElementMatcher(this.context));
+    } else {
+      this.context.warning("Root elements do not match. Skipping merge operation.");
     }
   }
 
-  private boolean matchRootElements(MergeElement sourceRoot, MergeElement targetRoot) {
+  /**
+   * Checks the compatibility (tagname and namespaceURI) of the given root elements to be merged.
+   * @param sourceRoot the {@link MergeElement} representing the root element of the source document.
+   * @param targetRoot the {@link MergeElement} representing the root element of the target document.
+   * @return {@code true} when the roots are compatible, otherwise {@code false}.
+   */
+  private boolean areRootsCompatible(MergeElement sourceRoot, MergeElement targetRoot) {
 
     Element sourceElement = sourceRoot.getElement();
     Element targetElement = targetRoot.getElement();
-    if (!sourceElement.getTagName().equals(targetElement.getTagName())) {
-      throw new IllegalStateException(
-          String.format("Names of root elements of {} and {} don't match. Found {} and {}", sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(),
-              sourceElement.getTagName(), targetElement.getTagName()));
-    }
-    if (sourceElement.getNamespaceURI() != null || targetElement.getNamespaceURI() != null) {
-      if (!sourceElement.getNamespaceURI().equals(targetElement.getNamespaceURI())) {
-        throw new IllegalStateException(
-            String.format("URI of root elements of {} and {} don't match. Found {} and {}", sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(),
-                sourceElement.getNamespaceURI(), targetElement.getNamespaceURI()));
-      }
 
+    // Check if tag names match
+    if (!sourceElement.getTagName().equals(targetElement.getTagName())) {
+      this.context.warning("Names of root elements of {} and {} don't match. Found {} and {}",
+          sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(),
+          sourceElement.getTagName(), targetElement.getTagName());
+      return false;
     }
+
+    // Check if namespace URIs match (if they exist)
+    String sourceNs = sourceElement.getNamespaceURI();
+    String targetNs = targetElement.getNamespaceURI();
+    if (sourceNs != null || targetNs != null) {
+      if (!Objects.equals(sourceNs, targetNs)) {
+        this.context.warning("URI of root elements of {} and {} don't match. Found {} and {}",
+            sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(),
+            sourceNs, targetNs);
+        return false;
+      }
+    }
+
     return true;
   }
 

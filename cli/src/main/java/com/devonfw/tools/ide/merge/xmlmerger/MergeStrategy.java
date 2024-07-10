@@ -88,7 +88,7 @@ public enum MergeStrategy {
   protected void updateAndRemoveNsAttributes(MergeElement mergeElement, ElementMatcher elementMatcher) {
 
     for (MergeAttribute attribute : mergeElement.getElementAttributes()) {
-      if (attribute.isMergeNSAttr()) {
+      if (attribute.isMergeNsAttr()) {
         if (attribute.isMergeNsIdAttr()) {
           elementMatcher.updateId(mergeElement.getQName(), attribute.getValue());
         }
@@ -111,20 +111,20 @@ public enum MergeStrategy {
     try {
       Element targetElementNode = targetElement.getElement();
       for (MergeAttribute updateAttr : updateElement.getElementAttributes()) {
-        if (!updateAttr.isMergeNSAttr()) {
-          String namespaceURI = updateAttr.getAttr().getNamespaceURI();
+        if (!updateAttr.isMergeNsAttr()) {
+          String namespaceUri = updateAttr.getAttr().getNamespaceURI();
           String attrName = updateAttr.getAttr().getName();
           String attrValue = updateAttr.getValue();
 
-          if (namespaceURI != null && !namespaceURI.isEmpty()) {
+          if (namespaceUri != null && !namespaceUri.isEmpty()) {
             String prefix = updateAttr.getAttr().getPrefix();
             if (prefix != null && !prefix.isEmpty()) {
               if (targetElementNode.getAttributeNodeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, prefix) == null) {
-                targetElementNode.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:" + prefix, namespaceURI);
+                targetElementNode.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns:" + prefix, namespaceUri);
               }
-              targetElementNode.setAttributeNS(namespaceURI, attrName, attrValue);
+              targetElementNode.setAttributeNS(namespaceUri, attrName, attrValue);
             } else {
-              targetElementNode.setAttributeNS(namespaceURI, attrName, attrValue);
+              targetElementNode.setAttributeNS(namespaceUri, attrName, attrValue);
             }
           } else {
             targetElementNode.setAttribute(attrName, attrValue);
