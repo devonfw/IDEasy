@@ -646,12 +646,21 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param version the version to add (e.g. "1.0").
    * @param versions the {@link Collection} with the versions to collect.
    */
-  protected final void addVersion(String version, Collection<String> versions) {
+  protected final void addVersion(String version, String downloadLink, Collection<String> versions) {
+
+    addVersion(version, versions);
+  }
+
+  /**
+   * @param version the version to add (e.g. "1.0").
+   * @param versions the {@link Collection} with the versions to collect.
+   */
+  protected final boolean addVersion(String version, Collection<String> versions) {
 
     String mappedVersion = mapVersion(version);
     if ((mappedVersion == null) || mappedVersion.isBlank()) {
       logger.debug("Filtered version {}", version);
-      return;
+      return false;
     } else if (!mappedVersion.equals(version)) {
       logger.debug("Mapped version {} to {}", version, mappedVersion);
     }
@@ -659,6 +668,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     if (!added) {
       logger.warn("Duplicate version {}", version);
     }
+    return added;
   }
 
   /**

@@ -11,6 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * {@link JsonUrlUpdater} for packages from the Npm registry.
@@ -43,13 +45,12 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
   @Override
   protected void collectVersionsWithUrlsFromJson(NpmJsonObject jsonObj, UrlEdition edition) {
 
+    Set<String> versions = new HashSet<>();
+
     for (NpmJsonVersion item : jsonObj.getVersions().getVersionMap().values()) {
       String version = item.getVersion();
-      //TODO: this is not the right place to filter versions
-      // Also missing the logging of AbstractUrlUpdater's addVersion on which versions were filtered
-      if (mapVersion(version) == null) {
+      if (!addVersion(version, versions))
         continue;
-      }
 
       if (isTimeoutExpired()) {
         break;
