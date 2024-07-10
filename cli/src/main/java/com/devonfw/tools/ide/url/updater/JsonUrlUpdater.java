@@ -50,16 +50,8 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   @Override
   protected Set<String> getVersions() {
 
-    String url = doGetVersionUrl();
-    Set<String> versions = new HashSet<>();
-    try {
-      String response = doGetResponseBodyAsString(url);
-      J jsonObject = MAPPER.readValue(response, getJsonObjectType());
-      collectVersionsFromJson(jsonObject, versions);
-    } catch (Exception e) {
-      throw new IllegalStateException("Error while getting versions from JSON API " + url, e);
-    }
-    return versions;
+    throw new IllegalStateException();
+
   }
 
   /**
@@ -77,7 +69,10 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
    * @param versions the versions where to {@link #addVersion(String, Collection) add the version to}.
    */
   @Deprecated
-  protected abstract void collectVersionsFromJson(J jsonObject, Collection<String> versions);
+  protected void collectVersionsFromJson(J jsonObject, Collection<String> versions) {
+
+    throw new UnsupportedOperationException();
+  }
 
   protected void collectVersionsWithDownloadsFromJson(J jsonObj, UrlEdition edition) {
 
@@ -97,7 +92,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
       if (urlVersion == null || isMissingOs(urlVersion)) {
         try {
           urlVersion = edition.getOrCreateChild(version);
-          doAddVersion(urlVersion, getDownloadUrl(item));
+          addVersion(urlVersion, item);
           urlVersion.save();
         } catch (Exception e) {
           logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), version, e);
@@ -110,10 +105,33 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   //mapping from whole JSON to the individual version entries
   protected abstract Collection<JVI> getVersionItems(J jsonObject);
 
-  //getting the download url from one item
-  protected abstract String getDownloadUrl(JVI jsonVersionItem);
-
+  /*
+    //getting the download url from one item
+    protected abstract String getDownloadUrl(JVI jsonVersionItem);
+  */
   //getting the version from one item
   protected abstract String getVersion(JVI jsonVersionItem);
+
+  /**
+   * Updates the version of a given URL version. Replaces {@link AbstractUrlUpdater#addVersion(UrlVersion)}, when
+   * download links are available from within the json
+   *
+   * @param urlVersion the {@link UrlVersion} to be updated
+   * @param jsonVersionItem
+   */
+  protected void addVersion(UrlVersion urlVersion, JVI jsonVersionItem) {
+
+    addVersion(urlVersion);
+  }
+
+  /**
+   * Updates the version of a given URL version.
+   *
+   * @param urlVersion the {@link UrlVersion} to be updated
+   */
+  protected void addVersion(UrlVersion urlVersion) {
+
+    throw new UnsupportedOperationException();
+  }
 
 }

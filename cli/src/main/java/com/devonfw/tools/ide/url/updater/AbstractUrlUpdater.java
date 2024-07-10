@@ -646,15 +646,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param version the version to add (e.g. "1.0").
    * @param versions the {@link Collection} with the versions to collect.
    */
-  protected final void addVersion(String version, String downloadLink, Collection<String> versions) {
-
-    addVersion(version, versions);
-  }
-
-  /**
-   * @param version the version to add (e.g. "1.0").
-   * @param versions the {@link Collection} with the versions to collect.
-   */
   protected final boolean addVersion(String version, Collection<String> versions) {
 
     if ((version == null) || version.isBlank()) {
