@@ -16,7 +16,7 @@ import java.util.List;
 /**
  * {@link JsonUrlUpdater} for Android Studio.
  */
-public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject> {
+public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, AndroidJsonItem> {
 
   /** The base URL for the version json file */
   private final static String VERSION_BASE_URL = "https://jb.gg";
@@ -115,6 +115,30 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject> {
   @Override
   protected void collectVersionsFromJson(AndroidJsonObject jsonItem, Collection<String> versions) {
 
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected void collectVersionsWithDownloadsFromJson(AndroidJsonObject jsonItem, UrlEdition edition) {
+    //TODO
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected Collection<AndroidJsonItem> getVersionItems(AndroidJsonObject jsonObject) {
+    //TODO
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected String getDownloadUrl(AndroidJsonItem jsonVersionItem) {
+    //TODO
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected String getVersion(AndroidJsonItem jsonVersionItem) {
+    //TODO
     throw new IllegalStateException();
   }
 

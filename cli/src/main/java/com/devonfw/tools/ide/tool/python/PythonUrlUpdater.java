@@ -1,10 +1,5 @@
 package com.devonfw.tools.ide.tool.python;
 
-import java.util.Collection;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
@@ -12,11 +7,15 @@ import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
 
 /**
  * The {@Link JsonUrlUpdater} for Python
  */
-public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject> {
+public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRelease> {
 
   /**
    * The base Url of the Python versions Json
@@ -106,6 +105,33 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject> {
     } catch (Exception e) {
       throw new IllegalStateException("Error while getting versions from JSON API " + url, e);
     }
+  }
+
+  @Override
+  protected void collectVersionsWithDownloadsFromJson(PythonJsonObject jsonItem, UrlEdition edition) {
+
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected Collection<PythonRelease> getVersionItems(PythonJsonObject jsonObject) {
+
+    //TODO
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected String getDownloadUrl(PythonRelease jsonVersionItem) {
+
+    //TODO
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected String getVersion(PythonRelease jsonVersionItem) {
+
+    //TODO
+    throw new IllegalStateException();
   }
 
 }

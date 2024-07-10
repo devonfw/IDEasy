@@ -1,14 +1,22 @@
 package com.devonfw.tools.ide.tool.java;
 
-import java.util.Collection;
-
+import com.devonfw.tools.ide.tool.npm.NpmUrlUpdater;
+import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * {@link JsonUrlUpdater} for Java.
  */
-public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject> {
+public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersion> {
+
+  private static final Logger logger = LoggerFactory.getLogger(NpmUrlUpdater.class);
 
   @Override
   protected String getTool() {
@@ -90,5 +98,58 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject> {
       addVersion(version, versions);
     }
 
+  }
+
+  @Override
+  protected void collectVersionsWithDownloadsFromJson(JavaJsonObject jsonObj, UrlEdition edition) {
+
+    Set<String> versions = new HashSet<>();
+
+    for (JavaJsonVersion item : jsonObj.getVersions()) {
+
+      String version = item.getOpenjdkVersion();
+      version = version.replace("+", "_");
+      // replace 1.8.0_ to 8u
+      if (version.startsWith("1.8.0_")) {
+        version = "8u" + version.substring(6);
+        version = version.replace("-b", "b");
+      }
+
+      if (!addVersion(version, versions))
+        continue;
+
+      if (isTimeoutExpired()) {
+        break;
+      }
+
+      UrlVersion urlVersion = edition.getChild(version);
+      if (urlVersion == null || isMissingOs(urlVersion)) {
+        try {
+          urlVersion = edition.getOrCreateChild(version);
+          addVersion(urlVersion);
+          urlVersion.save();
+        } catch (Exception e) {
+          logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), version, e);
+        }
+      }
+    }
+  }
+
+  @Override
+  protected Collection<JavaJsonVersion> getVersionItems(JavaJsonObject jsonObject) {
+    //TODO
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected String getDownloadUrl(JavaJsonVersion jsonVersionItem) {
+    //TODO
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected String getVersion(JavaJsonVersion jsonVersionItem) {
+    //TODO
+    throw new IllegalStateException();
   }
 }

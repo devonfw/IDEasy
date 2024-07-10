@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.npm;
 
+import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -8,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @see NpmJsonObject#getVersions()
  */
-public class NpmJsonVersion {
+public class NpmJsonVersion implements JsonVersionItem {
 
   @JsonProperty("version")
   private String version;

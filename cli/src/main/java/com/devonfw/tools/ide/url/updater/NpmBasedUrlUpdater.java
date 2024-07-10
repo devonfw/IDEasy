@@ -1,28 +1,16 @@
 package com.devonfw.tools.ide.url.updater;
 
-import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.npm.NpmJsonObject;
 import com.devonfw.tools.ide.npm.NpmJsonVersion;
-import com.devonfw.tools.ide.tool.npm.NpmUrlUpdater;
-import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * {@link JsonUrlUpdater} for packages from the Npm registry.
  */
-public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
+public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject, NpmJsonVersion> {
   private static final String REGISTRY_URL = "https://registry.npmjs.org/";
-
-  private static final ObjectMapper MAPPER = JsonMapping.create();
-
-  private static final Logger logger = LoggerFactory.getLogger(NpmUrlUpdater.class);
 
   @Override
   protected String doGetVersionUrl() {
@@ -36,6 +24,7 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
     return NpmJsonObject.class;
   }
 
+  //TODO most likely this method is to be removed
   @Override
   protected void collectVersionsFromJson(NpmJsonObject jsonItem, Collection<String> versions) {
 
@@ -43,31 +32,21 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
   }
 
   @Override
-  protected void collectVersionsWithUrlsFromJson(NpmJsonObject jsonObj, UrlEdition edition) {
+  protected Collection<NpmJsonVersion> getVersionItems(NpmJsonObject jsonObj) {
 
-    Set<String> versions = new HashSet<>();
+    return jsonObj.getVersions().getVersionMap().values();
+  }
 
-    for (NpmJsonVersion item : jsonObj.getVersions().getVersionMap().values()) {
-      String version = item.getVersion();
-      if (!addVersion(version, versions))
-        continue;
+  @Override
+  protected String getVersion(NpmJsonVersion jsonObj) {
 
-      if (isTimeoutExpired()) {
-        break;
-      }
+    return jsonObj.getVersion();
+  }
 
-      UrlVersion urlVersion = edition.getChild(version);
-      if (urlVersion == null || isMissingOs(urlVersion)) {
-        try {
-          urlVersion = edition.getOrCreateChild(version);
-          doAddVersion(urlVersion, item.getDist().getTarball());
-          urlVersion.save();
-        } catch (Exception e) {
-          logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), version, e);
-        }
+  @Override
+  protected String getDownloadUrl(NpmJsonVersion jsonObj) {
 
-      }
-    }
+    return jsonObj.getDist().getTarball();
   }
 
   @Override
@@ -81,6 +60,7 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
     return REGISTRY_URL;
   }
 
+  //TODO make abstract
   protected String getPackageName() {
 
     return getTool();

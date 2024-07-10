@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.java;
 
+import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -8,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @see JavaJsonObject#getVersions()
  */
-public class JavaJsonVersion {
+public class JavaJsonVersion implements JsonVersionItem {
   @JsonProperty("openjdk_version")
   private String openjdkVersion;
 

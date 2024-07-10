@@ -9,7 +9,7 @@ import java.util.Map;
 /**
  * {@link JsonObject} for {@link NpmJsonVersion}.
  */
-public class NpmJsonVersions implements JsonObject {
+public class NpmJsonVersions {
   private Map<String, NpmJsonVersion> versions;
 
   @JsonAnySetter

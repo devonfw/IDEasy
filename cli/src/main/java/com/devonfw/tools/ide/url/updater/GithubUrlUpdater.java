@@ -1,14 +1,15 @@
 package com.devonfw.tools.ide.url.updater;
 
-import java.util.Collection;
-
 import com.devonfw.tools.ide.github.GithubTag;
 import com.devonfw.tools.ide.github.GithubTags;
+import com.devonfw.tools.ide.url.model.folder.UrlEdition;
+
+import java.util.Collection;
 
 /**
  * {@link JsonUrlUpdater} for github projects.
  */
-public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags> {
+public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, GithubTag> {
   @Override
   protected String doGetVersionUrl() {
 
@@ -31,6 +32,12 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags> {
     }
   }
 
+  @Override
+  protected void collectVersionsWithDownloadsFromJson(GithubTags jsonItem, UrlEdition edition) {
+
+    throw new IllegalStateException();
+  }
+
   /**
    * @return the github organization- or user-name (e.g. "devonfw").
    */
@@ -44,4 +51,21 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags> {
     return getTool();
   }
 
+  @Override
+  protected Collection<GithubTag> getVersionItems(GithubTags jsonObject) {
+    //TODO
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected String getDownloadUrl(GithubTag jsonVersionItem) {
+    //TODO
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected String getVersion(GithubTag jsonVersionItem) {
+    //TODO
+    throw new IllegalStateException();
+  }
 }

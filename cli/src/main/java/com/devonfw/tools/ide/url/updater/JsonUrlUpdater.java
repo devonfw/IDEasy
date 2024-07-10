@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.url.updater;
 
 import com.devonfw.tools.ide.common.JsonObject;
+import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
@@ -20,7 +21,7 @@ import java.util.Set;
  *
  * @param <J> type of the {@link JsonObject}.
  */
-public abstract class JsonUrlUpdater<J extends JsonObject> extends AbstractUrlUpdater {
+public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersionItem> extends AbstractUrlUpdater {
 
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
@@ -40,7 +41,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject> extends AbstractUrlUp
     try {
       String response = doGetResponseBodyAsString(doGetVersionUrl());
       J jsonObj = MAPPER.readValue(response, getJsonObjectType());
-      collectVersionsWithUrlsFromJson(jsonObj, edition);
+      collectVersionsWithDownloadsFromJson(jsonObj, edition);
     } catch (Exception e) {
       throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
     }
@@ -72,10 +73,46 @@ public abstract class JsonUrlUpdater<J extends JsonObject> extends AbstractUrlUp
   protected abstract Class<J> getJsonObjectType();
 
   /**
-   * @param jsonItem the Java object parsed from the JSON holding the information of a version.
+   * @param jsonObject the Java object parsed from the JSON holding the information of the versions.
    * @param versions the versions where to {@link #addVersion(String, Collection) add the version to}.
    */
-  protected abstract void collectVersionsFromJson(J jsonItem, Collection<String> versions);
+  @Deprecated
+  protected abstract void collectVersionsFromJson(J jsonObject, Collection<String> versions);
 
-  protected abstract void collectVersionsWithUrlsFromJson(J jsonItem, UrlEdition edition);
+  protected void collectVersionsWithDownloadsFromJson(J jsonObj, UrlEdition edition) {
+
+    Set<String> versions = new HashSet<>();
+
+    for (JVI item : getVersionItems(jsonObj)) {
+      String version = getVersion(item);
+      if (!addVersion(version, versions))
+        continue;
+
+      if (isTimeoutExpired()) {
+        break;
+      }
+
+      UrlVersion urlVersion = edition.getChild(version);
+      if (urlVersion == null || isMissingOs(urlVersion)) {
+        try {
+          urlVersion = edition.getOrCreateChild(version);
+          doAddVersion(urlVersion, getDownloadUrl(item));
+          urlVersion.save();
+        } catch (Exception e) {
+          logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), version, e);
+        }
+
+      }
+    }
+  }
+
+  //mapping from whole JSON to the individual version entries
+  protected abstract Collection<JVI> getVersionItems(J jsonObject);
+
+  //getting the download url from one item
+  protected abstract String getDownloadUrl(JVI jsonVersionItem);
+
+  //getting the version from one item
+  protected abstract String getVersion(JVI jsonVersionItem);
+
 }

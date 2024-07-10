@@ -60,5 +60,4 @@ public class AwsUrlUpdater extends GithubUrlUpdater {
     doAddVersion(urlVersion, baseUrl + "awscli-exe-linux-x86_64-${version}.zip", OperatingSystem.LINUX);
     doAddVersion(urlVersion, baseUrl + "AWSCLIV2-${version}.pkg", OperatingSystem.MAC);
   }
-
 }

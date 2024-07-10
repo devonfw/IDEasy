@@ -1,12 +1,5 @@
 package com.devonfw.tools.ide.tool.intellij;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
@@ -16,11 +9,17 @@ import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 /**
  * {@link IntellijUrlUpdater} base class for IntelliJ.
  */
-public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
+public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, IntellijJsonRelease> {
 
   private static final String VERSION_BASE_URL = "https://data.services.jetbrains.com";
 
@@ -172,6 +171,33 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
   @Override
   protected void collectVersionsFromJson(IntellijJsonObject jsonItem, Collection<String> versions) {
 
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected void collectVersionsWithDownloadsFromJson(IntellijJsonObject jsonItem, UrlEdition edition) {
+
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected Collection<IntellijJsonRelease> getVersionItems(IntellijJsonObject jsonObject) {
+
+    //TODO
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected String getDownloadUrl(IntellijJsonRelease jsonVersionItem) {
+
+    //TODO
+    throw new IllegalStateException();
+  }
+
+  @Override
+  protected String getVersion(IntellijJsonRelease jsonVersionItem) {
+
+    //TODO
     throw new IllegalStateException();
   }
 }
