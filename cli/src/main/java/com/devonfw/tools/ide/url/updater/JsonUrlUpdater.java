@@ -1,14 +1,18 @@
 package com.devonfw.tools.ide.url.updater;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-
 import com.devonfw.tools.ide.common.JsonObject;
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
+import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * {@link AbstractUrlUpdater} that retrieves the {@link UrlVersion versions} of a {@link UrlEdition tool edition} from a
@@ -19,6 +23,28 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 public abstract class JsonUrlUpdater<J extends JsonObject> extends AbstractUrlUpdater {
 
   private static final ObjectMapper MAPPER = JsonMapping.create();
+
+  private static final Logger logger = LoggerFactory.getLogger(JsonUrlUpdater.class);
+
+  /**
+   * Updates the tool's versions in the URL repository.
+   *
+   * @param urlRepository the {@link UrlRepository} to update
+   */
+  @Override
+  public void update(UrlRepository urlRepository) {
+
+    UrlTool tool = urlRepository.getOrCreateChild(getTool());
+    UrlEdition edition = tool.getOrCreateChild(getEdition());
+    updateExistingVersions(edition);
+    try {
+      String response = doGetResponseBodyAsString(doGetVersionUrl());
+      J jsonObj = MAPPER.readValue(response, getJsonObjectType());
+      collectVersionsWithUrlsFromJson(jsonObj, edition);
+    } catch (Exception e) {
+      throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
+    }
+  }
 
   @Override
   protected Set<String> getVersions() {
@@ -50,4 +76,6 @@ public abstract class JsonUrlUpdater<J extends JsonObject> extends AbstractUrlUp
    * @param versions the versions where to {@link #addVersion(String, Collection) add the version to}.
    */
   protected abstract void collectVersionsFromJson(J jsonItem, Collection<String> versions);
+
+  protected abstract void collectVersionsWithUrlsFromJson(J jsonItem, UrlEdition edition);
 }

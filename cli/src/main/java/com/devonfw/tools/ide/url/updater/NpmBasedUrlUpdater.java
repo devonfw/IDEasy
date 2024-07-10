@@ -5,8 +5,6 @@ import com.devonfw.tools.ide.npm.NpmJsonObject;
 import com.devonfw.tools.ide.npm.NpmJsonVersion;
 import com.devonfw.tools.ide.tool.npm.NpmUrlUpdater;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
-import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -43,44 +41,31 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject> {
   }
 
   @Override
-  public void update(UrlRepository urlRepository) {
+  protected void collectVersionsWithUrlsFromJson(NpmJsonObject jsonObj, UrlEdition edition) {
 
-    UrlTool tool = urlRepository.getOrCreateChild(getTool());
-    UrlEdition edition = tool.getOrCreateChild(getEdition());
-    updateExistingVersions(edition);
-    String toolWithEdition = getToolWithEdition();
-    try {
-      String response = doGetResponseBodyAsString(doGetVersionUrl());
-      NpmJsonObject jsonObj = MAPPER.readValue(response, getJsonObjectType());
-
-      for (NpmJsonVersion item : jsonObj.getVersions().getVersionMap().values()) {
-        String version = item.getVersion();
-        //TODO: this is not the right place to filter versions
-        // Also missing the logging of AbstractUrlUpdater's addVersion on which versions were filtered
-        if (mapVersion(version) == null) {
-          continue;
-        }
-
-        if (isTimeoutExpired()) {
-          break;
-        }
-
-        UrlVersion urlVersion = edition.getChild(version);
-        if (urlVersion == null || isMissingOs(urlVersion)) {
-          try {
-            urlVersion = edition.getOrCreateChild(version);
-
-            doAddVersion(urlVersion, item.getDist().getTarball());
-
-            urlVersion.save();
-          } catch (Exception e) {
-            logger.error("For tool {} we failed to add version {}.", toolWithEdition, version, e);
-          }
-
-        }
+    for (NpmJsonVersion item : jsonObj.getVersions().getVersionMap().values()) {
+      String version = item.getVersion();
+      //TODO: this is not the right place to filter versions
+      // Also missing the logging of AbstractUrlUpdater's addVersion on which versions were filtered
+      if (mapVersion(version) == null) {
+        continue;
       }
-    } catch (Exception e) {
-      throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
+
+      if (isTimeoutExpired()) {
+        break;
+      }
+
+      UrlVersion urlVersion = edition.getChild(version);
+      if (urlVersion == null || isMissingOs(urlVersion)) {
+        try {
+          urlVersion = edition.getOrCreateChild(version);
+          doAddVersion(urlVersion, item.getDist().getTarball());
+          urlVersion.save();
+        } catch (Exception e) {
+          logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), version, e);
+        }
+
+      }
     }
   }
 
