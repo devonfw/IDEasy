@@ -8,6 +8,8 @@ import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
@@ -58,10 +60,8 @@ public class Intellij extends IdeToolCommandlet {
     try {
       buildVersion = Files.readString(buildFile);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to read Intellij build Version: " + buildFile, e);
+      throw new IllegalStateException("Failed to read IntelliJ build version: " + buildFile, e);
     }
-
-    String fileName = String.format("intellij-plugin-%s-%s.zip", buildVersion, pluginId);
 
     if (buildVersion != null && pluginId != null) {
       Path installationPath = this.getPluginsInstallationPath();
@@ -72,55 +72,74 @@ public class Intellij extends IdeToolCommandlet {
           throw new IllegalStateException("Failed to create directory " + installationPath, e);
         }
       }
+
       if (downloadUrl == null || downloadUrl.isEmpty()) {
         downloadUrl = String.format("https://plugins.jetbrains.com/pluginManager?action=download&id=%s&build=%s", pluginId, buildVersion);
-
       }
+
       FileAccess fileAccess = this.context.getFileAccess();
-
       Path tmpDir = fileAccess.createTempDir(pluginId);
-      fileAccess.download(downloadUrl, tmpDir.resolve(fileName));
-      Path targetDir = this.getPluginsInstallationPath().resolve(pluginId);
-      fileAccess.extract(tmpDir.resolve(fileName), targetDir);
 
-      if (tmpDir != null) {
-        fileAccess.delete(tmpDir);
+      try {
+        String extension = getFileExtensionFromUrl(downloadUrl);
+
+        if (extension.isEmpty()) {
+          throw new IllegalStateException("Unknown file type for URL: " + downloadUrl);
+        }
+
+        String fileName = String.format("intellij-plugin-%s-%s%s", buildVersion, pluginId, extension);
+        Path downloadedFile = tmpDir.resolve(fileName);
+        fileAccess.download(downloadUrl, downloadedFile);
+
+        Path targetDir = this.getPluginsInstallationPath().resolve(pluginId);
+
+        //        if (".zip".equals(extension)) {
+        //          fileAccess.extract(downloadedFile, targetDir);
+        //        } else if (".jar".equals(extension)) {
+        //          extractJar(downloadedFile, targetDir);
+        //        }
+        fileAccess.extract(downloadedFile, targetDir);
+
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to download the plugin file: " + downloadUrl, e);
+      } finally {
+        if (tmpDir != null) {
+          fileAccess.delete(tmpDir);
+        }
       }
+    }
+  }
 
+  private String getFileExtensionFromUrl(String urlString) throws IOException {
+
+    URL url = new URL(urlString);
+    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+    connection.setRequestMethod("HEAD");
+    connection.connect();
+
+    int responseCode = connection.getResponseCode();
+    if (responseCode != HttpURLConnection.HTTP_OK) {
+      throw new IOException("Failed to fetch file headers: HTTP " + responseCode);
     }
 
-    //    Path targetFile = this.getToolPath().resolve("plugins").resolve("mocked.zip");
-    //    Path targetDirectory = this.getToolPath().resolve("plugins").resolve("mocked");
-    //    this.context.getFileAccess().download(plugin.getUrl(), targetFile);
-    //    this.context.getFileAccess().extract(targetFile, targetDirectory);
-    //
-    //    // TODO Auto-generated method stub
-    //    this.context.info("Installplugin" + plugin.getUrl());
+    String contentType = connection.getContentType();
+    return getFileExtensionFromContentType(contentType);
+  }
 
-    // download and install the global tool
-    //    FileAccess fileAccess = this.context.getFileAccess();
-    //    Path target = this.getToolPath().resolve("plugins").resolve("mocked.zip");
-    //    Path executable = target;
-    //    Path tmpDir = null;
-    //    boolean extract = isExtract();
-    //    if (extract) {
-    //      tmpDir = fileAccess.createTempDir(getName());
-    //      Path downloadBinaryPath = tmpDir.resolve(target.getFileName());
-    //      fileAccess.extract(target, downloadBinaryPath);
-    //      executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
-    //    }
-    //    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(executable);
-    //    int exitCode = pc.run();
-    //    if (tmpDir != null) {
-    //      fileAccess.delete(tmpDir);
-    //    }
-    //    if (exitCode == 0) {
-    //      this.context.success("Successfully installed {} in version {}", this.tool);
-    //    } else {
-    //      this.context.warning("{} in version {} was not successfully installed", this.tool);
-    //      //return false;
-    //    }
+  private String getFileExtensionFromContentType(String contentType) {
 
+    if (contentType == null) {
+      return "";
+    }
+    switch (contentType) {
+      case "application/zip":
+        return ".zip";
+      case "application/java-archive":
+        return ".jar";
+      // Add more content types if needed
+      default:
+        return "";
+    }
   }
 
 }
