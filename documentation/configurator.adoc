@@ -50,7 +50,7 @@ Hence, settings from 2. are used and merged with 3.
 Hence, use 2. for things such as themes, UI tweaks, etc.
 Once the workspace is configured 2. typically is not relevant anymore.
 * Settings in 3. are applied on every update.
-By default this happens every time you start your IDE, these settings are managed by the `settings` and in control `configurator`.
+By default this happens every time you start your IDE, these settings are managed by the `settings` and in control of the `configurator`.
 If the user modifies such settings and reopens his IDE his changes are reverted.
 Hence, use 3. for things such as code-formatters, compiler options, paths to tools shipped with `IDEasy`, etc. that should be consistent and homogeneous for every team-member.
 
