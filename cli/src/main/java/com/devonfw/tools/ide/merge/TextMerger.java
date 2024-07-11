@@ -47,6 +47,7 @@ public class TextMerger extends FileMerger {
       throw new IllegalStateException("Could not read text file: " + workspace, e);
     }
     try {
+      ensureParentDirectoryExists(workspace);
       Files.write(workspace, inputBuffer.toString().getBytes());
     } catch (IOException e) {
       throw new IllegalStateException("Could not write to text file: " + workspace, e);
