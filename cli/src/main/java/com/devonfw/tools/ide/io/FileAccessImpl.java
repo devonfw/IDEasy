@@ -705,7 +705,8 @@ public class FileAccessImpl implements FileAccess {
     if (appPath == null) {
       throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
     }
-    copy(appPath, targetDir);
+
+    copy(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
     pc.addArgs("detach", "-force", mountPath);
     pc.run();
   }
@@ -767,6 +768,9 @@ public class FileAccessImpl implements FileAccess {
   public Path findFirst(Path dir, Predicate<Path> filter, boolean recursive) {
 
     try {
+      if (!Files.isDirectory(dir)) {
+        return null;
+      }
       return findFirstRecursive(dir, filter, recursive);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to search for file in " + dir, e);
