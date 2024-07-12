@@ -52,7 +52,7 @@ public class Docker extends GlobalToolCommandlet {
 
   private List<PackageManagerCommand> getPackageManagerCommandsInstall() {
 
-    String edition = getEdition();
+    String edition = getConfiguredEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion).toString();
