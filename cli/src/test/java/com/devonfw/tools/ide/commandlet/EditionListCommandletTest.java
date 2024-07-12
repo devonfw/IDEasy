@@ -1,9 +1,10 @@
 package com.devonfw.tools.ide.commandlet;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
 
 /** Integration test of {@link EditionListCommandlet}. */
 public class EditionListCommandletTest extends AbstractIdeContextTest {

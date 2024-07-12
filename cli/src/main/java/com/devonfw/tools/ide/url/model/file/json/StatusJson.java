@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
  * @see UrlStatusFile
  */
 public class StatusJson {
+
   private boolean manual;
 
   private Map<Integer, UrlStatus> urls;
@@ -25,8 +26,8 @@ public class StatusJson {
   }
 
   /**
-   * @return {@code true} if this file has been created manually and the containing version folder shall be ignored by
-   *         the automatic update process, {@code false} otherwise.
+   * @return {@code true} if this file has been created manually and the containing version folder shall be ignored by the automatic update process,
+   * {@code false} otherwise.
    */
   public boolean isManual() {
 
@@ -42,8 +43,7 @@ public class StatusJson {
   }
 
   /**
-   * @return the {@link Map} with the {@link UrlStatus} objects. The {@link Map#keySet() keys} are the
-   *         {@link String#hashCode() hash-codes} of the URLs.
+   * @return the {@link Map} with the {@link UrlStatus} objects. The {@link Map#keySet() keys} are the {@link String#hashCode() hash-codes} of the URLs.
    */
   public Map<Integer, UrlStatus> getUrls() {
 

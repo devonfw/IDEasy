@@ -71,8 +71,7 @@ public class UrlSecurityFile extends AbstractUrlFile<UrlEdition> {
 
   /**
    * @param version the {@link VersionIdentifier} to check.
-   * @return {@code true} if the given {@link VersionIdentifier} is contained in this {@link UrlSecurityFile},
-   *         {@code false} otherwise.
+   * @return {@code true} if the given {@link VersionIdentifier} is contained in this {@link UrlSecurityFile}, {@code false} otherwise.
    */
   public boolean contains(VersionIdentifier version) {
 

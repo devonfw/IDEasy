@@ -6,8 +6,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type}
- * {@link VersionIdentifier}.
+ * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type} {@link VersionIdentifier}.
  */
 public class VariableDefinitionVersion extends AbstractVariableDefinition<VersionIdentifier> {
 

@@ -79,8 +79,7 @@ public class VersionRangeTest extends Assertions {
   }
 
   /**
-   * Test of {@link VersionRange#contains(VersionIdentifier)} and testing if a {@link VersionIdentifier version} is
-   * contained in the {@link VersionRange}.
+   * Test of {@link VersionRange#contains(VersionIdentifier)} and testing if a {@link VersionIdentifier version} is contained in the {@link VersionRange}.
    */
   @Test
   public void testContains() {
@@ -96,8 +95,7 @@ public class VersionRangeTest extends Assertions {
   }
 
   /**
-   * Test of {@link VersionRange#contains(VersionIdentifier)} and testing if a {@link VersionIdentifier version} is not
-   * contained in the {@link VersionRange}.
+   * Test of {@link VersionRange#contains(VersionIdentifier)} and testing if a {@link VersionIdentifier version} is not contained in the {@link VersionRange}.
    */
   @Test
   public void testNotContains() {

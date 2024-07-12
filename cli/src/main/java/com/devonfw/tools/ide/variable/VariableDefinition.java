@@ -1,10 +1,10 @@
 package com.devonfw.tools.ide.variable;
 
+import java.util.Collection;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.VariableLine;
-
-import java.util.Collection;
 
 /**
  * Interface for a definition of a variable.
@@ -19,8 +19,7 @@ public interface VariableDefinition<V> {
   String getName();
 
   /**
-   * @return the optional legacy name that is still supported for downward compatibility. May be {@code null} if
-   * undefined (no legacy support).
+   * @return the optional legacy name that is still supported for downward compatibility. May be {@code null} if undefined (no legacy support).
    */
   String getLegacyName();
 
@@ -52,13 +51,13 @@ public interface VariableDefinition<V> {
 
   /**
    * @return {@code true} if the {@link #getDefaultValue(IdeContext) default value} shall be used without any
-   * {@link EnvironmentVariables#get(String) variable lookup} (to prevent odd overriding of build in variables
-   * like IDE_HOME), {@code false} otherwise (overriding of default value is allowed and intended).
+   * {@link EnvironmentVariables#get(String) variable lookup} (to prevent odd overriding of build in variables like IDE_HOME), {@code false} otherwise
+   * (overriding of default value is allowed and intended).
    */
   boolean isForceDefaultValue();
 
   /**
-   * @param value   the value as {@link String}. May NOT be {@code null}.
+   * @param value the value as {@link String}. May NOT be {@code null}.
    * @param context the {@link IdeContext}.
    * @return the value converted to the {@link #getValueType() value type}.
    */
@@ -70,7 +69,7 @@ public interface VariableDefinition<V> {
   boolean isExport();
 
   /**
-   * @param value   the typed value.
+   * @param value the typed value.
    * @param context the {@link IdeContext}.
    * @return the value converted to {@link String}.
    */

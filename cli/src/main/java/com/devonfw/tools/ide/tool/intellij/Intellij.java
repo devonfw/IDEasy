@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Set;
+
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -9,11 +14,6 @@ import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
@@ -76,7 +76,7 @@ public class Intellij extends IdeToolCommandlet {
   private String generateMacEditionString() {
 
     String edition = "";
-    if (getEdition().equals("intellij")) {
+    if (getConfiguredEdition().equals("intellij")) {
       edition = " CE";
     }
     return edition;
