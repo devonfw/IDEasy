@@ -223,7 +223,6 @@
                 <arg>--enable-url-protocols=http,https</arg>
                 <arg>-H:IncludeResources="nls/.*"</arg>
                 <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
-                <arg>-march=native</arg>
               </buildArgs>
             </configuration>
           </plugin>
