@@ -28,31 +28,21 @@ public abstract class Property<V> {
 
   private static final String INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE = INVALID_ARGUMENT + ": {}";
 
-  /**
-   * @see #getName()
-   */
+  /** @see #getName() */
   protected final String name;
 
-  /**
-   * @see #getAlias()
-   */
+  /** @see #getAlias() */
   protected final String alias;
 
-  /**
-   * @see #isRequired()
-   */
+  /** @see #isRequired() */
   protected final boolean required;
 
   private final Consumer<V> validator;
 
-  /**
-   * @see #isMultiValued()
-   */
+  /** @see #isMultiValued() */
   private final boolean multivalued;
 
-  /**
-   * @see #getValue()
-   */
+  /** @see #getValue() */
   protected final List<V> value = new ArrayList<>();
 
   /**
