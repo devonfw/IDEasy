@@ -1,12 +1,15 @@
 package com.devonfw.tools.ide.property;
 
-import com.devonfw.tools.ide.context.IdeContext;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
+import com.devonfw.tools.ide.context.IdeContext;
+
+/**
+ * Extends {@link FileProperty} for repository properties config file with auto-completion.
+ */
 public class RepositoryProperty extends FileProperty {
 
   /**
@@ -34,6 +37,7 @@ public class RepositoryProperty extends FileProperty {
     super(name, required, alias, true, validator);
   }
 
+  @Override
   public Path parse(String valueAsString, IdeContext context) {
 
     if (valueAsString == null) {

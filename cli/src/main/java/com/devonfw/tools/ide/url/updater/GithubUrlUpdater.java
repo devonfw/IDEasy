@@ -9,6 +9,7 @@ import com.devonfw.tools.ide.github.GithubTags;
  * {@link JsonUrlUpdater} for github projects.
  */
 public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags> {
+
   @Override
   protected String doGetVersionUrl() {
 

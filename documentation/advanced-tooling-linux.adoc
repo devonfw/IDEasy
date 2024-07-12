@@ -3,4 +3,5 @@ toc::[]
 
 = Linux Tooling
 
-There is nothing in this section so far. If you are a Linux user, please share your experience and provide your valuable hints.
+There is nothing in this section so far.
+If you are a Linux user, please share your experience and provide your valuable hints.
