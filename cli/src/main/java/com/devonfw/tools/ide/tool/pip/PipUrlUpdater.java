@@ -9,6 +9,7 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
  * {@link WebsiteUrlUpdater} for pip (python installer of pacakges).
  */
 public class PipUrlUpdater extends WebsiteUrlUpdater {
+
   @Override
   protected String getTool() {
 

@@ -13,14 +13,14 @@ public record GitUrl(String url, String branch) {
 
   /**
    * Parses a git URL and omits the branch name if not provided.
-   * 
+   *
    * @return parsed URL.
    */
   public URL parseUrl() {
 
-    String parsedUrl = url;
-    if (branch != null && !branch.isEmpty()) {
-      parsedUrl += "#" + branch;
+    String parsedUrl = this.url;
+    if (this.branch != null && !this.branch.isEmpty()) {
+      parsedUrl += "#" + this.branch;
     }
     URL validUrl;
     try {
