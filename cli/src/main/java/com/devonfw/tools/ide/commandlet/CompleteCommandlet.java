@@ -13,9 +13,7 @@ import java.util.List;
  */
 public final class CompleteCommandlet extends Commandlet {
 
-  /**
-   * {@link StringProperty} with the current CLI arguments to complete.
-   */
+  /** {@link StringProperty} with the current CLI arguments to complete. */
   public final StringProperty args;
 
   /**
