@@ -41,7 +41,7 @@ public class Intellij extends IdeToolCommandlet {
 
     install(true);
     args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
-    super.runTool(processMode, toolVersion, args);
+    super.runTool(ProcessMode.BACKGROUND, toolVersion, args);
   }
 
   @Override
