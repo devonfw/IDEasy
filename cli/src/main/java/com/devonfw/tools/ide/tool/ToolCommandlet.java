@@ -124,24 +124,26 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @return the {@link EnvironmentVariables#getToolEdition(String) tool edition}.
    */
-  public String getEdition() {
+  public String getConfiguredEdition() {
 
     return this.context.getVariables().getToolEdition(getName());
   }
 
   /**
-   * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as tool.
+   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted
+   *     if same as tool.
    * @see #getToolWithEdition(String, String)
    */
   protected final String getToolWithEdition() {
 
-    return getToolWithEdition(getName(), getEdition());
+    return getToolWithEdition(getName(), getConfiguredEdition());
   }
 
   /**
    * @param tool the tool name.
    * @param edition the edition.
-   * @return the {@link #getName() tool} with its {@link #getEdition() edition}. The edition will be omitted if same as tool.
+   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted
+   *     if same as tool.
    */
   protected final static String getToolWithEdition(String tool, String edition) {
 
@@ -246,7 +248,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void listVersions() {
 
-    List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(getName(), getEdition());
+    List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(getName(), getConfiguredEdition());
     for (VersionIdentifier vi : versions) {
       this.context.info(vi.toString());
     }
@@ -277,8 +279,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void setVersion(VersionIdentifier version, boolean hint) {
 
-    String edition = getEdition();
-    this.context.getUrls().getVersionFolder(tool, edition, version); // CliException is thrown if the version is not existing
+    String edition = getConfiguredEdition();
+    this.context.getUrls()
+        .getVersionFolder(tool, edition, version); // CliException is thrown if the version is not existing
 
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
