@@ -1,9 +1,9 @@
 name: Nightly Build
 on:
-   workflow_dispatch:
-   schedule:
-   - cron: '0 2 * * *'
-    
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
+
 jobs:
   verify_commit:
     runs-on: ubuntu-latest
@@ -24,7 +24,7 @@ jobs:
     if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
     strategy:
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest, macos-13]
+        os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
 
     steps:
       - uses: actions/checkout@v3
@@ -48,7 +48,7 @@ jobs:
 
   build:
     name: Build Project and Deploy
-    needs: [build-natives, verify_commit]
+    needs: [ build-natives, verify_commit ]
     if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -61,7 +61,7 @@ jobs:
         with:
           java-version: '17'
       - uses: actions/download-artifact@v3
-      - name: Make natives available and build project 
+      - name: Make natives available and build project
         run: |
           mvn -B -ntp -Dstyle.color=always install
           mv ./natives/* ./cli/target/

@@ -11,8 +11,8 @@ public class CustomToolCommandlet extends LocalToolCommandlet {
 
   public CustomToolCommandlet(IdeContext context, CustomTool customTool) {
 
-   super(context, customTool.getTool(), null);
-   this.customTool = customTool;
+    super(context, customTool.getTool(), null);
+    this.customTool = customTool;
   }
 
   @Override
@@ -21,7 +21,7 @@ public class CustomToolCommandlet extends LocalToolCommandlet {
     return installInRepo(version, this.customTool.getEdition());
   }
 
- @Override
+  @Override
   public ToolInstallation installInRepo(VersionIdentifier version, String edition) {
 
     return installInRepo(version, edition, this.context.getCustomToolRepository());

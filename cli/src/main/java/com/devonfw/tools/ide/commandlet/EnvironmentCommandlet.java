@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.util.Collection;
+
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.property.FlagProperty;
-
-import java.util.Collection;
 
 /**
  * {@link Commandlet} to print the environment variables.
@@ -42,7 +42,7 @@ public final class EnvironmentCommandlet extends Commandlet {
 
   @Override
   public boolean isProcessableOutput() {
-    
+
     return true;
   }
 

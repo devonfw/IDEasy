@@ -1,9 +1,7 @@
 package com.devonfw.tools.ide.merge.xmlmerger.matcher;
 
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
-import org.w3c.dom.Element;
-import org.w3c.dom.NodeList;
-
+import java.util.Collections;
+import java.util.Iterator;
 import javax.xml.XMLConstants;
 import javax.xml.namespace.NamespaceContext;
 import javax.xml.xpath.XPath;
@@ -11,8 +9,11 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.util.Collections;
-import java.util.Iterator;
+
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
+
+import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 
 /**
  * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements in a target document.
@@ -106,20 +107,20 @@ public class IdComputer {
     }
     xpathBuilder.append(localName);
 
-    if (id.startsWith("@")) {
-      String attributeName = id.substring(1);
+    if (this.id.startsWith("@")) {
+      String attributeName = this.id.substring(1);
       String attributeValue = element.getAttribute(attributeName);
       xpathBuilder.append(String.format("[@%s='%s']", attributeName, attributeValue));
-    } else if (id.equals("name()")) {
+    } else if (this.id.equals("name()")) {
       xpathBuilder.append(String.format("[local-name()='%s']", localName));
       if (namespaceURI != null && !namespaceURI.isEmpty()) {
         xpathBuilder.append(String.format(" and namespace-uri()='%s'", namespaceURI));
       }
-    } else if (id.equals("text()")) {
+    } else if (this.id.equals("text()")) {
       String textContent = element.getTextContent();
       xpathBuilder.append(String.format("[text()='%s']", textContent));
     } else { // custom xpath like ../element[@attr='value']
-      return id;
+      return this.id;
     }
 
     return xpathBuilder.toString();

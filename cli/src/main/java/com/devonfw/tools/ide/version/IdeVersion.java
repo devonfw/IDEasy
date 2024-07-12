@@ -1,16 +1,6 @@
 package com.devonfw.tools.ide.version;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.JarURLConnection;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Locale;
-import java.util.jar.Attributes;
 import java.util.jar.Attributes.Name;
-import java.util.jar.JarFile;
 import java.util.jar.Manifest;
 
 /**

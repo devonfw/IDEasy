@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
@@ -13,11 +18,6 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
 
 /**
  * {@link Commandlet} for a tool integrated into the IDE.
@@ -130,8 +130,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted
-   *     if same as tool.
+   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted if same as tool.
    * @see #getToolWithEdition(String, String)
    */
   protected final String getToolWithEdition() {
@@ -142,8 +141,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @param tool the tool name.
    * @param edition the edition.
-   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted
-   *     if same as tool.
+   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted if same as tool.
    */
   protected final static String getToolWithEdition(String tool, String edition) {
 
@@ -281,7 +279,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     String edition = getConfiguredEdition();
     this.context.getUrls()
-        .getVersionFolder(tool, edition, version); // CliException is thrown if the version is not existing
+        .getVersionFolder(this.tool, edition, version); // CliException is thrown if the version is not existing
 
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);

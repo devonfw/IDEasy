@@ -1,18 +1,19 @@
 package com.devonfw.tools.ide.merge;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
-import org.assertj.core.api.SoftAssertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
+import org.assertj.core.api.SoftAssertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
 
 class XmlMergerTest extends AbstractIdeContextTest {
 
@@ -26,7 +27,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
   private IdeContext context = newContext(PROJECT_BASIC, null, false);
 
-  private XmlMerger merger = new XmlMerger(context);
+  private XmlMerger merger = new XmlMerger(this.context);
 
   /**
    * Tests the XML merger functionality across multiple test cases. This test method iterates through all subdirectories in the test resources folder, each
@@ -45,7 +46,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
         try {
           Files.copy(folder.resolve(TARGET_XML), targetPath, REPLACE_EXISTING);
           // act
-          merger.merge(null, sourcePath, context.getVariables(), targetPath);
+          this.merger.merge(null, sourcePath, this.context.getVariables(), targetPath);
           // assert
           softly.assertThat(targetPath).hasContent(Files.readString(resultPath));
         } catch (IOException e) {
