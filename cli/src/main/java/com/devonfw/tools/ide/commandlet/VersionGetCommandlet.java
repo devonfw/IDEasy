@@ -43,6 +43,12 @@ public class VersionGetCommandlet extends Commandlet {
   }
 
   @Override
+  public boolean isProcessableOutput() {
+
+    return true;
+  }
+
+  @Override
   public void run() {
 
     ToolCommandlet commandlet = this.tool.getValue();
