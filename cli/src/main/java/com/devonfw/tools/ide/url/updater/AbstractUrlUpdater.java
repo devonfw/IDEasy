@@ -36,8 +36,8 @@ import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
 
 /**
- * Abstract base implementation of {@link UrlUpdater}. Contains methods for retrieving response bodies from URLs,
- * updating tool versions, and checking if download URLs work.
+ * Abstract base implementation of {@link UrlUpdater}. Contains methods for retrieving response bodies from URLs, updating tool versions, and checking if
+ * download URLs work.
  */
 public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout implements UrlUpdater {
 
@@ -84,8 +84,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @return the combination of {@link #getTool() tool} and {@link #getEdition() edition} but simplified if both are
-   *         equal.
+   * @return the combination of {@link #getTool() tool} and {@link #getEdition() edition} but simplified if both are equal.
    */
   protected final String getToolWithEdition() {
 
@@ -262,9 +261,9 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     if (isSuccess(response)) {
       String contentType = response.headers().firstValue("content-type").orElse("undefined");
       boolean isValidContentType = isValidContentType(contentType);
-      if (!isValidContentType){
+      if (!isValidContentType) {
         logger.error("For tool {} and version {} the download has an invalid content type {} for URL {}", tool, version,
-        contentType, url);
+            contentType, url);
         return false;
       }
       return true;
@@ -274,7 +273,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * Checks if the content type was not of type text (this method is required because {@link com.devonfw.tools.ide.tool.pip.PipUrlUpdater} returns text and needs to be overridden)
+   * Checks if the content type was not of type text (this method is required because {@link com.devonfw.tools.ide.tool.pip.PipUrlUpdater} returns text and
+   * needs to be overridden)
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
@@ -389,15 +389,13 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * Creates or refreshes the status JSON file for a given UrlVersion instance based on the URLRequestResult of checking
-   * if a download URL works.
+   * Creates or refreshes the status JSON file for a given UrlVersion instance based on the URLRequestResult of checking if a download URL works.
    *
    * @param success - {@code true} on successful HTTP response, {@code false} otherwise.
    * @param statusCode the HTTP status code of the response.
    * @param urlVersion the {@link UrlVersion} instance to create or refresh the status JSON file for.
    * @param url the checked download URL.
-   * @param update - {@code true} in case the URL was updated (verification), {@code false} otherwise (version/URL
-   *        initially added).
+   * @param update - {@code true} in case the URL was updated (verification), {@code false} otherwise (version/URL initially added).
    */
   @SuppressWarnings("null") // Eclipse is too stupid to check this
   private void doUpdateStatusJson(boolean success, int statusCode, UrlVersion urlVersion, String url, boolean update) {

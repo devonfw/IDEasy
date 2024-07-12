@@ -11,32 +11,28 @@ public enum EnvironmentVariablesType {
   SYSTEM,
 
   /**
-   * Type of {@link EnvironmentVariables} from the {@link com.devonfw.tools.ide.context.IdeContext#getUserHome() users
-   * HOME directory}.
+   * Type of {@link EnvironmentVariables} from the {@link com.devonfw.tools.ide.context.IdeContext#getUserHome() users HOME directory}.
    */
   USER,
 
   /**
-   * Type of {@link EnvironmentVariables} from the {@link com.devonfw.tools.ide.context.IdeContext#getSettingsPath()
-   * settings directory}.
+   * Type of {@link EnvironmentVariables} from the {@link com.devonfw.tools.ide.context.IdeContext#getSettingsPath() settings directory}.
    */
   SETTINGS,
 
   /**
-   * Type of {@link EnvironmentVariables} from the {@link com.devonfw.tools.ide.context.IdeContext#getWorkspacePath()
-   * workspace directory}.
+   * Type of {@link EnvironmentVariables} from the {@link com.devonfw.tools.ide.context.IdeContext#getWorkspacePath() workspace directory}.
    */
   WORKSPACE,
 
   /**
-   * Type of {@link EnvironmentVariables} from the {@link com.devonfw.tools.ide.context.IdeContext#getConfPath() conf
-   * directory}. Allows the user to override or customize project specific variables.
+   * Type of {@link EnvironmentVariables} from the {@link com.devonfw.tools.ide.context.IdeContext#getConfPath() conf directory}. Allows the user to override or
+   * customize project specific variables.
    */
   CONF,
 
   /**
-   * Type of {@link EnvironmentVariables} that contains the logic to resolve variables from values with "${«variable»}"
-   * syntax.
+   * Type of {@link EnvironmentVariables} that contains the logic to resolve variables from values with "${«variable»}" syntax.
    *
    * @see EnvironmentVariablesResolved
    */

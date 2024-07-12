@@ -1,17 +1,18 @@
 package com.devonfw.tools.ide.merge.xmlmerger.model;
 
-import com.devonfw.tools.ide.merge.xmlmerger.MergeStrategy;
-import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.namespace.QName;
+
 import org.w3c.dom.Attr;
 import org.w3c.dom.Element;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.namespace.QName;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
+import com.devonfw.tools.ide.merge.xmlmerger.MergeStrategy;
+import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
 
 /**
  * Represents an XML element during the merge process.
@@ -40,7 +41,7 @@ public class MergeElement {
 
   public Element getElement() {
 
-    return element;
+    return this.element;
   }
 
   /**
@@ -48,7 +49,7 @@ public class MergeElement {
    */
   public Path getDocumentPath() {
 
-    return documentPath;
+    return this.documentPath;
   }
 
   /**
@@ -100,7 +101,7 @@ public class MergeElement {
    */
   private Element getParentElement() {
 
-    Node parentNode = element.getParentNode();
+    Node parentNode = this.element.getParentNode();
     if (parentNode != null && parentNode.getNodeType() == Node.ELEMENT_NODE) {
       return (Element) parentNode;
     }
@@ -114,7 +115,7 @@ public class MergeElement {
    */
   public List<MergeAttribute> getElementAttributes() {
 
-    NamedNodeMap attributes = element.getAttributes();
+    NamedNodeMap attributes = this.element.getAttributes();
     List<MergeAttribute> attributeList = new ArrayList<>();
     for (int i = 0; i < attributes.getLength(); i++) {
       attributeList.add(new MergeAttribute((Attr) attributes.item(i)));
@@ -129,7 +130,7 @@ public class MergeElement {
    */
   public boolean isRootElement() {
 
-    return element.getParentNode().getNodeType() == Node.DOCUMENT_NODE;
+    return this.element.getParentNode().getNodeType() == Node.DOCUMENT_NODE;
   }
 
   /**
@@ -140,7 +141,7 @@ public class MergeElement {
   public String getXPath() {
 
     StringBuilder xpath = new StringBuilder();
-    Node current = element;
+    Node current = this.element;
     while (current != null && current.getNodeType() == Node.ELEMENT_NODE) {
       Element currentElement = (Element) current;
       String tagName = currentElement.getTagName();
@@ -158,7 +159,7 @@ public class MergeElement {
   public List<MergeElement> getChildElements() {
 
     List<MergeElement> childElements = new ArrayList<>();
-    NodeList nodeList = element.getChildNodes();
+    NodeList nodeList = this.element.getChildNodes();
 
     for (int i = 0; i < nodeList.getLength(); i++) {
       Node node = nodeList.item(i);

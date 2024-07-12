@@ -14,8 +14,7 @@ import com.devonfw.tools.ide.url.model.AbstractUrlArtifact;
 import com.devonfw.tools.ide.url.model.UrlArtifactWithParent;
 
 /**
- * Class from which UrlRepository inherits, as its objects don't have a parent, but possibly child objects of the class
- * UrlTool.
+ * Class from which UrlRepository inherits, as its objects don't have a parent, but possibly child objects of the class UrlTool.
  *
  * @param <C> Type of the child object.
  */
@@ -72,8 +71,8 @@ public abstract class AbstractUrlFolder<C extends UrlArtifactWithParent<?>> exte
   /**
    * @param name the plain filename (excluding any path).
    * @param folder - {@code true} in case of a folder, {@code false} otherwise (plain data file).
-   * @return {@code true} if the existing file from the file-system should be {@link #getOrCreateChild(String) created
-   *         as child}, {@code false} otherwise (ignore the file).
+   * @return {@code true} if the existing file from the file-system should be {@link #getOrCreateChild(String) created as child}, {@code false} otherwise
+   * (ignore the file).
    */
   protected boolean isAllowedChild(String name, boolean folder) {
 

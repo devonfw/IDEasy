@@ -3,8 +3,8 @@ package com.devonfw.tools.ide.log;
 import java.io.IOException;
 
 /**
- * Default implementation of {@link IdeSubLogger} that can write to an {@link Appendable} such as {@link System#out} or
- * in case of testing a {@link java.io.StringWriter}.
+ * Default implementation of {@link IdeSubLogger} that can write to an {@link Appendable} such as {@link System#out} or in case of testing a
+ * {@link java.io.StringWriter}.
  */
 public class IdeSubLoggerOut extends AbstractIdeSubLogger {
 

@@ -7,6 +7,7 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
  * {@link GithubUrlUpdater} for Microsoft .NET core.
  */
 public class DotNetUrlUpdater extends GithubUrlUpdater {
+
   @Override
   protected String getTool() {
 
@@ -50,8 +51,7 @@ public class DotNetUrlUpdater extends GithubUrlUpdater {
   protected String mapVersion(String version) {
     if (version.matches("v\\d+\\.\\d+\\.\\d+")) {
       return super.mapVersion(version);
-    }
-    else {
+    } else {
       return null;
     }
   }

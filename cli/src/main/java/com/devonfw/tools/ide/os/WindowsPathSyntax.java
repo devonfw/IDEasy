@@ -5,8 +5,8 @@ import java.util.Locale;
 import java.util.Objects;
 
 /**
- * Syntax of an absolute {@link Path} on Windows. The standard syntax is obviously {@link #WINDOWS}, however there is also
- * {@link #MSYS} for shells based on MSYS like the famous git-bash that uses a linux compatible path syntax.
+ * Syntax of an absolute {@link Path} on Windows. The standard syntax is obviously {@link #WINDOWS}, however there is also {@link #MSYS} for shells based on
+ * MSYS like the famous git-bash that uses a linux compatible path syntax.
  */
 public enum WindowsPathSyntax {
 
@@ -28,8 +28,7 @@ public enum WindowsPathSyntax {
 
   /**
    * @param path the potential path. May be any {@link String}.
-   * @return the the drive letter (e.g. "C" or "D") or {@code null} if the given {@link String} is not a path in this
-   * {@link WindowsPathSyntax}.
+   * @return the the drive letter (e.g. "C" or "D") or {@code null} if the given {@link String} is not a path in this {@link WindowsPathSyntax}.
    */
   public String getDrive(String path) {
 
@@ -137,7 +136,7 @@ public enum WindowsPathSyntax {
   }
 
   /**
-   * @param path  the path where to replace the drive letter.
+   * @param path the path where to replace the drive letter.
    * @param drive the new {@link #getDrive(String) drive letter}.
    * @return the new path pointing to the given {@code drive} in this {@link WindowsPathSyntax}.
    */
@@ -190,7 +189,7 @@ public enum WindowsPathSyntax {
    * Normalizes a {@link String} that may be an absolute Windows {@link Path}.
    *
    * @param value the {@link String} to normalize.
-   * @param bash  - {@code true} to convert paths to {@link #MSYS} (git-bash), {@code false} for {@link #WINDOWS}.
+   * @param bash - {@code true} to convert paths to {@link #MSYS} (git-bash), {@code false} for {@link #WINDOWS}.
    * @return the given {@code value} that was normalized if it has been an absolute Windows {@link Path}.
    */
   public static String normalize(String value, boolean bash) {

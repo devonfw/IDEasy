@@ -1,14 +1,15 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.nio.file.Path;
+
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
-import java.nio.file.Path;
 
 /**
  * Integration test of {@link Intellij}.
@@ -30,18 +31,18 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
-    Intellij commandlet = new Intellij(context);
+    this.context.setSystemInfo(systemInfo);
+    Intellij commandlet = new Intellij(this.context);
 
     // act
     commandlet.install();
 
     // assert
-    checkInstallation(context);
+    checkInstallation(this.context);
 
     //if tool already installed
     commandlet.install();
-    assertLogMessage(context, IdeLogLevel.DEBUG, "Version 2023.3.3 of tool intellij is already installed");
+    assertLogMessage(this.context, IdeLogLevel.DEBUG, "Version 2023.3.3 of tool intellij is already installed");
   }
 
   /**
@@ -54,24 +55,24 @@ public class IntellijTest extends AbstractIdeContextTest {
   public void testIntellijRun(String os) {
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
-    context.setSystemInfo(systemInfo);
-    Intellij commandlet = new Intellij(context);
+    this.context.setSystemInfo(systemInfo);
+    Intellij commandlet = new Intellij(this.context);
 
     // act
     commandlet.run();
 
     // assert
-    SystemInfo currentSystemInfo = context.getSystemInfo();
+    SystemInfo currentSystemInfo = this.context.getSystemInfo();
     Path workspacePath = this.context.getWorkspacePath();
-    
+
     if (currentSystemInfo.isMac()) {
-      assertLogMessage(context, IdeLogLevel.INFO, "intellij mac " + workspacePath);
+      assertLogMessage(this.context, IdeLogLevel.INFO, "intellij mac " + workspacePath);
     } else if (currentSystemInfo.isLinux()) {
-      assertLogMessage(context, IdeLogLevel.INFO, "intellij linux " + workspacePath);
+      assertLogMessage(this.context, IdeLogLevel.INFO, "intellij linux " + workspacePath);
     } else if (currentSystemInfo.isWindows()) {
-      assertLogMessage(context, IdeLogLevel.INFO, "intellij windows " + workspacePath);
+      assertLogMessage(this.context, IdeLogLevel.INFO, "intellij windows " + workspacePath);
     }
-    checkInstallation(context);
+    checkInstallation(this.context);
   }
 
   private void checkInstallation(IdeTestContext context) {

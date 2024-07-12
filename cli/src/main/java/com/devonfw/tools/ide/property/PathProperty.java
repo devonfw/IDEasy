@@ -1,14 +1,14 @@
 package com.devonfw.tools.ide.property;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
-import com.devonfw.tools.ide.context.IdeContext;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
+
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * {@link Property} with {@link Path} as {@link #getValueType() value type}.

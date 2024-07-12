@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.os;
 
+import java.nio.file.Path;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
 
 /**
  * Test of {@link WindowsPathSyntax}.
@@ -76,11 +76,11 @@ public class WindowsPathSyntaxTest extends Assertions {
     assertThat(WindowsPathSyntax.normalize("*", bash)).isEqualTo("*");
     assertThat(WindowsPathSyntax.normalize("$:\\\\{garbage}§", bash)).isEqualTo("$:\\\\{garbage}§");
     assertThat(WindowsPathSyntax.normalize("/c/Windows/system32/drivers/etc/hosts", bash))
-            .isEqualTo("C:\\Windows\\system32\\drivers\\etc\\hosts");
+        .isEqualTo("C:\\Windows\\system32\\drivers\\etc\\hosts");
     assertThat(WindowsPathSyntax.normalize("C:\\Windows\\system32\\drivers\\etc\\hosts", bash))
-            .isEqualTo("C:\\Windows\\system32\\drivers\\etc\\hosts");
+        .isEqualTo("C:\\Windows\\system32\\drivers\\etc\\hosts");
     assertThat(WindowsPathSyntax.normalize("C:\\Users\\login/.ide/scripts/ide", bash))
-            .isEqualTo("C:\\Users\\login\\.ide\\scripts\\ide");
+        .isEqualTo("C:\\Users\\login\\.ide\\scripts\\ide");
     assertThat(WindowsPathSyntax.normalize("\\login/.ide/scripts/ide", bash)).isEqualTo("\\login/.ide/scripts/ide");
   }
 
@@ -95,9 +95,9 @@ public class WindowsPathSyntaxTest extends Assertions {
     assertThat(WindowsPathSyntax.normalize("*", bash)).isEqualTo("*");
     assertThat(WindowsPathSyntax.normalize("$:\\\\{garbage}§", bash)).isEqualTo("$:\\\\{garbage}§");
     assertThat(WindowsPathSyntax.normalize("C:\\Windows\\system32\\drivers\\etc\\hosts", bash))
-            .isEqualTo("/c/Windows/system32/drivers/etc/hosts");
+        .isEqualTo("/c/Windows/system32/drivers/etc/hosts");
     assertThat(WindowsPathSyntax.normalize("/c/Windows/system32/drivers/etc/hosts", bash))
-            .isEqualTo("/c/Windows/system32/drivers/etc/hosts");
+        .isEqualTo("/c/Windows/system32/drivers/etc/hosts");
   }
 
   /**

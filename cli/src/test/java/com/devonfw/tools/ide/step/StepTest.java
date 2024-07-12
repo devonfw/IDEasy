@@ -1,9 +1,10 @@
 package com.devonfw.tools.ide.step;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
 
 /**
  * Test of {@link Step}.
@@ -98,7 +99,7 @@ public class StepTest extends AbstractIdeContextTest {
     assertLogMessage(context, IdeLogLevel.TRACE, "Starting step Test-Step...");
     assertLogMessage(context, IdeLogLevel.STEP, "Start: Test-Step");
     assertLogMessage(context, IdeLogLevel.WARNING,
-            "Step 'Test-Step' already ended with true and now ended again with false.");
+        "Step 'Test-Step' already ended with true and now ended again with false.");
     assertLogMessage(context, IdeLogLevel.ERROR, "unexpected situation!");
     assertLogMessage(context, IdeLogLevel.DEBUG, "Step 'Test-Step' ended with failure.");
   }
@@ -125,7 +126,7 @@ public class StepTest extends AbstractIdeContextTest {
     assertLogMessage(context, IdeLogLevel.ERROR, "The Test-Step failed as expected");
     assertLogMessage(context, IdeLogLevel.DEBUG, "Step 'Test-Step' ended with failure.");
     assertLogMessage(context, IdeLogLevel.WARNING,
-            "Step 'Test-Step' already ended with false and now ended again with true.");
+        "Step 'Test-Step' already ended with false and now ended again with true.");
     assertLogMessage(context, IdeLogLevel.SUCCESS, "The Test-Step succeeded as expected");
     assertLogMessage(context, IdeLogLevel.DEBUG, "Step 'Test-Step' ended successfully.");
   }

@@ -7,6 +7,7 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
  * {@link GithubUrlUpdater} for the docker edition Rancher-Desktop.
  */
 public class DockerRancherDesktopUrlUpdater extends GithubUrlUpdater {
+
   @Override
   protected String getTool() {
 

@@ -9,6 +9,7 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
  * {@link WebsiteUrlUpdater} for mvn (maven).
  */
 public class MvnUrlUpdater extends WebsiteUrlUpdater {
+
   @Override
   protected String getTool() {
 

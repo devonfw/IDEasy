@@ -1,5 +1,9 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Locale;
+
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -21,10 +25,6 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Locale;
 
 /**
  * Interface for interaction with the user allowing to input and output information.

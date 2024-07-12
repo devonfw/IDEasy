@@ -36,8 +36,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    *
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null}
-   * {@link DefaultToolRepository} will be used.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will be
+   * used.
    * @param answers the automatic answers simulating a user in test.
    */
   public AbstractIdeTestContext(Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
@@ -122,8 +122,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   @Override
   public Path getUserHome() {
 
-    if (dummyUserHome != null) {
-      return dummyUserHome;
+    if (this.dummyUserHome != null) {
+      return this.dummyUserHome;
     }
 
     return super.getUserHome();

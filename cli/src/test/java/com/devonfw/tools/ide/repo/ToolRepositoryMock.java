@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.repo;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.stream.Stream;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Implementation of {@link ToolRepository} for testing.

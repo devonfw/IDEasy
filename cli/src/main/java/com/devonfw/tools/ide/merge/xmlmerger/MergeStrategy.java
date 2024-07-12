@@ -1,16 +1,17 @@
 package com.devonfw.tools.ide.merge.xmlmerger;
 
-import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeAttribute;
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
+import java.util.Locale;
+import javax.xml.XMLConstants;
+
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import javax.xml.XMLConstants;
-import java.util.Locale;
+import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
+import com.devonfw.tools.ide.merge.xmlmerger.model.MergeAttribute;
+import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 
 /**
  * Enum of merge strategies for XML elements.

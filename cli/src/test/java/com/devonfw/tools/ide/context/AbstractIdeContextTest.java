@@ -1,5 +1,13 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
+import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Condition;
+import org.assertj.core.api.ListAssert;
+
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
@@ -7,13 +15,6 @@ import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
-import org.assertj.core.api.Assertions;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ListAssert;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
 
 /**
  * Abstract base class for tests that need mocked instances of {@link IdeContext}.

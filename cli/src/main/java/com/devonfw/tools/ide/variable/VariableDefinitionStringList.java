@@ -1,16 +1,15 @@
 package com.devonfw.tools.ide.variable;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.VariableLine;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.VariableLine;
+
 /**
- * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type}
- * {@link String}.
+ * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type} {@link String}.
  */
 public class VariableDefinitionStringList extends AbstractVariableDefinition<List<String>> {
 
@@ -27,7 +26,7 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
   /**
    * The constructor.
    *
-   * @param name       the {@link #getName() variable name}.
+   * @param name the {@link #getName() variable name}.
    * @param legacyName the {@link #getLegacyName() legacy name}.
    */
   public VariableDefinitionStringList(String name, String legacyName) {
@@ -38,12 +37,12 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
   /**
    * The constructor.
    *
-   * @param name                the {@link #getName() variable name}.
-   * @param legacyName          the {@link #getLegacyName() legacy name}.
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
    */
   public VariableDefinitionStringList(String name, String legacyName,
-                                      Function<IdeContext, List<String>> defaultValueFactory) {
+      Function<IdeContext, List<String>> defaultValueFactory) {
 
     super(name, legacyName, defaultValueFactory);
   }
@@ -51,18 +50,18 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
   /**
    * The constructor.
    *
-   * @param name                the {@link #getName() variable name}.
-   * @param legacyName          the {@link #getLegacyName() legacy name}.
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
-   * @param forceDefaultValue   the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
    */
   public VariableDefinitionStringList(String name, String legacyName,
-                                      Function<IdeContext, List<String>> defaultValueFactory, boolean forceDefaultValue) {
+      Function<IdeContext, List<String>> defaultValueFactory, boolean forceDefaultValue) {
 
     super(name, legacyName, defaultValueFactory, forceDefaultValue);
   }
 
-  @SuppressWarnings({"unchecked", "rawtypes"})
+  @SuppressWarnings( { "unchecked", "rawtypes" })
   @Override
   public Class<List<String>> getValueType() {
 

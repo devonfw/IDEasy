@@ -7,17 +7,15 @@ import java.util.regex.Pattern;
 /**
  * An abstract class representing a website crawler that extends the AbstractCrawler class.
  * <p>
- * This class provides functionality for crawling a website and extracting the available version numbers by matching a
- * pattern in the website HTML body.
+ * This class provides functionality for crawling a website and extracting the available version numbers by matching a pattern in the website HTML body.
  * <p>
- * Concrete subclasses of this class must implement the getVersionPattern and getVersionUrl methods to specify the
- * version pattern and URL of the website to crawl, respectively.
+ * Concrete subclasses of this class must implement the getVersionPattern and getVersionUrl methods to specify the version pattern and URL of the website to
+ * crawl, respectively.
  */
 public abstract class WebsiteUrlUpdater extends AbstractUrlUpdater {
 
   /**
-   * Retrieves the available versions by performing a GET request on the version URL and extracting the version numbers
-   * from the HTML body of the response.
+   * Retrieves the available versions by performing a GET request on the version URL and extracting the version numbers from the HTML body of the response.
    *
    * @return a set of available version numbers
    */
@@ -28,8 +26,7 @@ public abstract class WebsiteUrlUpdater extends AbstractUrlUpdater {
   }
 
   /**
-   * Extracts the version numbers from the given HTML body by matching them against the pattern returned by the
-   * getVersionPattern method.
+   * Extracts the version numbers from the given HTML body by matching them against the pattern returned by the getVersionPattern method.
    *
    * @param htmlBody the HTML body to extract version numbers from
    * @return a set of version numbers extracted from the HTML body

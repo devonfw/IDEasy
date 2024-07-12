@@ -1,9 +1,10 @@
 package com.devonfw.tools.ide.tool.tomcat;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
 
 public class TomcatTest extends AbstractIdeContextTest {
 

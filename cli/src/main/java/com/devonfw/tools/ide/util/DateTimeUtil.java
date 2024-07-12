@@ -54,9 +54,8 @@ public final class DateTimeUtil {
    * @param start the start {@link Instant}.
    * @param end the end {@link Instant}.
    * @param duration the {@link Duration} to compare to.
-   * @return {@code 0} if the {@link Duration} from {@code start} to {@code end} is equal to the given {@link Duration},
-   *         negative value if less, positive value is greater and {@code null} if one of the given values was
-   *         {@code null}.
+   * @return {@code 0} if the {@link Duration} from {@code start} to {@code end} is equal to the given {@link Duration}, negative value if less, positive value
+   * is greater and {@code null} if one of the given values was {@code null}.
    */
   public static Integer compareDuration(Instant start, Instant end, Duration duration) {
 

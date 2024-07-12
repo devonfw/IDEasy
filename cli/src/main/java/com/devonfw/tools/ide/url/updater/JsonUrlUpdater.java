@@ -11,8 +11,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * {@link AbstractUrlUpdater} that retrieves the {@link UrlVersion versions} of a {@link UrlEdition tool edition} from a
- * HTTP response with JSON body.
+ * {@link AbstractUrlUpdater} that retrieves the {@link UrlVersion versions} of a {@link UrlEdition tool edition} from a HTTP response with JSON body.
  *
  * @param <J> type of the {@link JsonObject}.
  */

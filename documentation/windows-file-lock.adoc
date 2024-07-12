@@ -2,11 +2,9 @@
 
 == Introduction
 
-Sometimes, when you try to perform an action on a file on your Windows computer,
-you may encounter an error message that says the file is in use and cannot be accessed.
+Sometimes, when you try to perform an action on a file on your Windows computer, you may encounter an error message that says the file is in use and cannot be accessed.
 This is usually because the file is locked by a process that is currently running on your system.
-In this guide, we will show you how to find the processes that are blocking specific files,
-as well as provide information on Windows file locks and resulting problems and solutions.
+In this guide, we will show you how to find the processes that are blocking specific files, as well as provide information on Windows file locks and resulting problems and solutions.
 
 == Understanding Windows File Locks
 
@@ -15,8 +13,7 @@ When a file is locked, any attempt to modify or delete the file will fail.
 This can result in errors or unexpected behavior when you try to perform actions on the file.
 
 There are two types of file locks in Windows: shared locks and exclusive locks.
-Shared locks allow multiple processes to access a file at the same time,
-but prevent any one process from modifying or deleting the file while it is in use.
+Shared locks allow multiple processes to access a file at the same time, but prevent any one process from modifying or deleting the file while it is in use.
 Exclusive locks, on the other hand, prevent all other processes from accessing the file while it is in use.
 
 == Finding Processes that Block Specific Files
@@ -30,7 +27,8 @@ Here are the steps to do so:
 
 3. In the Associated Handles section, type the name of the file that is being blocked in the Search Handles field, then press Enter.
 
-4. The processes that are blocking the file will be listed in the lower pane of the Resource Monitor. Note the name of the process that is blocking the file.
+4. The processes that are blocking the file will be listed in the lower pane of the Resource Monitor.
+Note the name of the process that is blocking the file.
 +
 image::images/ResourceManager.png[UnlockFileResourceMonitor]
 +

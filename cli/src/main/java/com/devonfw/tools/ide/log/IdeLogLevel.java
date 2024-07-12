@@ -33,8 +33,7 @@ public enum IdeLogLevel {
   WARNING("\033[93m"),
 
   /**
-   * {@link IdeLogLevel} for an error (something failed and we cannot proceed or the user has to continue with extreme
-   * care).
+   * {@link IdeLogLevel} for an error (something failed and we cannot proceed or the user has to continue with extreme care).
    */
   ERROR("\033[91m");
 

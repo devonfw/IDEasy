@@ -1,10 +1,17 @@
 package com.devonfw.tools.ide.merge.xmlmerger;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.merge.FileMerger;
-import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Objects;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -13,17 +20,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Objects;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.merge.FileMerger;
+import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
+import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 
 public class XmlMerger extends FileMerger {
 
@@ -80,7 +81,8 @@ public class XmlMerger extends FileMerger {
     }
   }
 
-  /** Merges the source document with the target document.
+  /**
+   * Merges the source document with the target document.
    *
    * @param sourceDocument The {@link Document} representing the source xml file.
    * @param targetDocument The {@link Document} representing the target xml file.
@@ -103,6 +105,7 @@ public class XmlMerger extends FileMerger {
 
   /**
    * Checks the compatibility (tagname and namespaceURI) of the given root elements to be merged.
+   *
    * @param sourceRoot the {@link MergeElement} representing the root element of the source document.
    * @param targetRoot the {@link MergeElement} representing the root element of the target document.
    * @return {@code true} when the roots are compatible, otherwise {@code false}.

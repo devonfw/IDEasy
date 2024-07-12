@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.property;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.IntStream;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -7,11 +12,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionSegment;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.IntStream;
 
 /**
  * {@link Property} for {@link VersionIdentifier} as {@link #getValueType() value type}.

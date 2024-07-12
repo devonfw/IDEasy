@@ -8,9 +8,9 @@ import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.IdeTestContextMock;
-import org.junit.jupiter.api.io.TempDir;
 
 /**
  * Test of {@link EnvironmentVariablesPropertiesFile}.

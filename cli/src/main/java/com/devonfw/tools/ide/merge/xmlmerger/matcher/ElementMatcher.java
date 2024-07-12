@@ -1,12 +1,13 @@
 package com.devonfw.tools.ide.merge.xmlmerger.matcher;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
-import org.w3c.dom.Element;
-
-import javax.xml.namespace.QName;
 import java.util.HashMap;
 import java.util.Map;
+import javax.xml.namespace.QName;
+
+import org.w3c.dom.Element;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 
 /**
  * The ElementMatcher class is responsible for matching XML elements in a target document based on the provided update elements.
@@ -20,7 +21,7 @@ public class ElementMatcher {
   public ElementMatcher(IdeContext context) {
 
     this.context = context;
-    qNameIdMap = new HashMap<>();
+    this.qNameIdMap = new HashMap<>();
   }
 
   /**
@@ -32,7 +33,7 @@ public class ElementMatcher {
   public void updateId(QName qname, String id) {
 
     IdComputer idComputer = new IdComputer(id);
-    IdComputer duplicate = qNameIdMap.put(qname, idComputer);
+    IdComputer duplicate = this.qNameIdMap.put(qname, idComputer);
     if (duplicate != null) {
       this.context.debug("ID replaced for element '{}': old ID '{}' -> new ID '{}'", qname, duplicate.getId(), idComputer.getId());
     }
@@ -50,7 +51,7 @@ public class ElementMatcher {
     String id = sourceElement.getId();
     QName qName = sourceElement.getQName();
 
-    IdComputer idComputer = qNameIdMap.get(qName);
+    IdComputer idComputer = this.qNameIdMap.get(qName);
     if (idComputer == null) {
       if (id.isEmpty()) {
         // handle case where element has no attribute
@@ -70,7 +71,7 @@ public class ElementMatcher {
         }
       }
       updateId(qName, id);
-      idComputer = qNameIdMap.get(qName);
+      idComputer = this.qNameIdMap.get(qName);
     }
     Element matchedNode = idComputer.evaluateExpression(sourceElement, targetElement);
     if (matchedNode != null) {

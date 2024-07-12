@@ -5,8 +5,7 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 /**
- * JSON data object for an item of Intellij. We map only properties that we are interested in and let jackson ignore all
- * others.
+ * JSON data object for an item of Intellij. We map only properties that we are interested in and let jackson ignore all others.
  */
 public class IntellijJsonDownloadsItem {
 
@@ -20,8 +19,8 @@ public class IntellijJsonDownloadsItem {
   private Map<String, Object> os_values;
 
   /**
-   * @return the {@link Map} with the properties as key value pairs. Unlike it may be suggested from the name
-   *         "os_values" the key is not the operating-system but e.g. {@link #KEY_LINK} or {@link #KEY_CHECKSUM_LINK}.
+   * @return the {@link Map} with the properties as key value pairs. Unlike it may be suggested from the name "os_values" the key is not the operating-system
+   * but e.g. {@link #KEY_LINK} or {@link #KEY_CHECKSUM_LINK}.
    */
   public Map<String, Object> getOs_values() {
 

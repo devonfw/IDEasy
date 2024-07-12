@@ -130,9 +130,8 @@ public final class ShellCommandlet extends Commandlet {
   /**
    * @param argument the current {@link CliArgument} (position) to match.
    * @param commandlet the potential {@link Commandlet} to match.
-   * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have
-   *         been applied (set in the {@link Commandlet} and {@link Commandlet#validate() validated}), {@code false}
-   *         otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
+   * and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean apply(CliArgument argument, Commandlet commandlet) {
 

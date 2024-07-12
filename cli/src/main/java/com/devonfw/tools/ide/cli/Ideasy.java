@@ -39,8 +39,7 @@ public final class Ideasy {
   }
 
   /**
-   * Non-static variant of {@link #main(String...) main method} without invoking {@link System#exit(int)} so it can be
-   * tested.
+   * Non-static variant of {@link #main(String...) main method} without invoking {@link System#exit(int)} so it can be tested.
    *
    * @param args the command-line arguments.
    * @return the exit code.
@@ -66,11 +65,11 @@ public final class Ideasy {
         title = error.getClass().getSimpleName() + ": " + title;
       }
       String message = "An unexpected error occurred!\n" //
-              + "We are sorry for the inconvenience.\n" //
-              + "Please check the error below, resolve it and try again.\n" //
-              + "If the error is not on your end (network connectivity, lack of permissions, etc.) please file a bug:\n" //
-              + "https://github.com/devonfw/ide/issues/new?assignees=&labels=bug&projects=&template=bug.md&title="
-              + URLEncoder.encode(title, StandardCharsets.UTF_8);
+          + "We are sorry for the inconvenience.\n" //
+          + "Please check the error below, resolve it and try again.\n" //
+          + "If the error is not on your end (network connectivity, lack of permissions, etc.) please file a bug:\n" //
+          + "https://github.com/devonfw/ide/issues/new?assignees=&labels=bug&projects=&template=bug.md&title="
+          + URLEncoder.encode(title, StandardCharsets.UTF_8);
       context().error(error, message);
     }
     return exitStatus;

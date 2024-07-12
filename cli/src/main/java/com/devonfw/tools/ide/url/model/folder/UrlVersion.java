@@ -15,8 +15,8 @@ import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * An {@link UrlFolder} representing the actual version of an {@link UrlEdition}. Examples for the {@link #getName()
- * name} of such version could be "1.6.2" or "17.0.5_8".
+ * An {@link UrlFolder} representing the actual version of an {@link UrlEdition}. Examples for the {@link #getName() name} of such version could be "1.6.2" or
+ * "17.0.5_8".
  */
 public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<?>> {
 
@@ -53,8 +53,7 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
   /**
    * @param os the optional {@link OperatingSystem}.
    * @param arch the optional {@link SystemArchitecture}.
-   * @return the {@link UrlDownloadFile} {@link #getName() named} "«os»_«arch».urls". Will be created if it does not
-   *         exist.
+   * @return the {@link UrlDownloadFile} {@link #getName() named} "«os»_«arch».urls". Will be created if it does not exist.
    */
   public UrlDownloadFile getOrCreateUrls(OperatingSystem os, SystemArchitecture arch) {
 
@@ -89,8 +88,7 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
   }
 
   /**
-   * Finds the existing {@link UrlDownloadFile} child matching the given {@link OperatingSystem} and
-   * {@link SystemArchitecture} of the current machine.
+   * Finds the existing {@link UrlDownloadFile} child matching the given {@link OperatingSystem} and {@link SystemArchitecture} of the current machine.
    *
    * @param os the current {@link OperatingSystem}.
    * @param arch the current {@link SystemArchitecture}.

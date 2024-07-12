@@ -1,8 +1,8 @@
 package com.devonfw.tools.ide.context;
 
-import com.devonfw.tools.ide.cli.CliOfflineException;
-
 import java.nio.file.Path;
+
+import com.devonfw.tools.ide.cli.CliOfflineException;
 
 /**
  * Interface for git commands with input and output of information for the user.

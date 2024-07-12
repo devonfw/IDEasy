@@ -1,10 +1,10 @@
 package com.devonfw.tools.ide.variable;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.WindowsPathSyntax;
-
 import java.nio.file.Path;
 import java.util.function.Function;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 
 /**
  * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type} {@link Path}.
@@ -24,7 +24,7 @@ public class VariableDefinitionPath extends AbstractVariableDefinition<Path> {
   /**
    * The constructor.
    *
-   * @param name       the {@link #getName() variable name}.
+   * @param name the {@link #getName() variable name}.
    * @param legacyName the {@link #getLegacyName() legacy name}.
    */
   public VariableDefinitionPath(String name, String legacyName) {
@@ -35,8 +35,8 @@ public class VariableDefinitionPath extends AbstractVariableDefinition<Path> {
   /**
    * The constructor.
    *
-   * @param name                the {@link #getName() variable name}.
-   * @param legacyName          the {@link #getLegacyName() legacy name}.
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
    */
   public VariableDefinitionPath(String name, String legacyName, Function<IdeContext, Path> defaultValueFactory) {
@@ -47,10 +47,10 @@ public class VariableDefinitionPath extends AbstractVariableDefinition<Path> {
   /**
    * The constructor.
    *
-   * @param name                the {@link #getName() variable name}.
-   * @param legacyName          the {@link #getLegacyName() legacy name}.
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
-   * @param forceDefaultValue   the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
    */
   public VariableDefinitionPath(String name, String legacyName, Function<IdeContext, Path> defaultValueFactory, boolean forceDefaultValue) {
 
@@ -60,11 +60,11 @@ public class VariableDefinitionPath extends AbstractVariableDefinition<Path> {
   /**
    * The constructor.
    *
-   * @param name                the {@link #getName() variable name}.
-   * @param legacyName          the {@link #getLegacyName() legacy name}.
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
-   * @param forceDefaultValue   the {@link #isForceDefaultValue() forceDefaultValue} flag.
-   * @param export              the {@link #isExport() export} flag.
+   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   * @param export the {@link #isExport() export} flag.
    */
   public VariableDefinitionPath(String name, String legacyName, Function<IdeContext, Path> defaultValueFactory, boolean forceDefaultValue, boolean export) {
 

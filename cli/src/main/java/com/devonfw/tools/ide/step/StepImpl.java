@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.step;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.log.IdeSubLogger;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.devonfw.tools.ide.context.AbstractIdeContext;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeSubLogger;
 
 /**
  * Regular implementation of {@link Step}.
@@ -38,10 +38,10 @@ public final class StepImpl implements Step {
    * Creates and starts a new {@link StepImpl}.
    *
    * @param context the {@link IdeContext}.
-   * @param parent  the {@link #getParent() parent step}.
-   * @param name    the {@link #getName() step name}.
-   * @param silent  the {@link #isSilent() silent flag}.
-   * @param params  the parameters. Should have reasonable {@link Object#toString() string representations}.
+   * @param parent the {@link #getParent() parent step}.
+   * @param name the {@link #getName() step name}.
+   * @param silent the {@link #isSilent() silent flag}.
+   * @param params the parameters. Should have reasonable {@link Object#toString() string representations}.
    */
   public StepImpl(AbstractIdeContext context, StepImpl parent, String name, boolean silent, Object... params) {
 

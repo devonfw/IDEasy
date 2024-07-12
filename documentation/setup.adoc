@@ -4,41 +4,56 @@ toc::[]
 = Setup
 
 == Prerequisites
+
 We try to make it as simple as possible for you.
 However, there are some minimal prerequisites:
 
-* You need to have a tool to extract `*.tar.gz` files (`tar` and `gzip`). On Windows before Version 10 (1803) use https://www.7-zip.org/[7-zip]. On all other platforms this comes out of the box.
+* You need to have a tool to extract `*.tar.gz` files (`tar` and `gzip`).
+On Windows before Version 10 (1803) use https://www.7-zip.org/[7-zip].
+On all other platforms this comes out of the box.
 * You need to have https://git-scm.com[git].
 ** On Windows you only need to download and install https://git-scm.com/download/win[git for windows].
 ** On Linux you might need to install the git in case it is not present (e.g. `sudo apt-get install git` or `sudo yum install git-core`)
 ** On MacOS you only need to download and install https://git-scm.com/download/mac[git for mac].
 
 == Download
+
 The latest release of `IDEasy` can be downloaded from https://github.com/devonfw/IDEasy/releases[here].
 
 == Install
-Create a central folder `projects` folder (on Windows use `C:\projects` or `D:\projects`, on Linux or Mac use `/projects` or if you do not have such permissions you create it in your home directory as `~/projects`). Inside this folder, create a sub-folder for your new project such as `my-project` and extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to this new folder. Run the command `setup` in this folder (on windows double clicking on `setup.bat`).
-That's all. To get started read the link:usage.adoc[usage].
+
+Create a central folder `projects` folder (on Windows use `C:\projects` or `D:\projects`, on Linux or Mac use `/projects` or if you do not have such permissions you create it in your home directory as `~/projects`).
+Inside this folder, create a sub-folder for your new project such as `my-project` and extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to this new folder.
+Run the command `setup` in this folder (on windows double clicking on `setup.bat`).
+That's all.
+To get started read the link:usage.adoc[usage].
 
 == Uninstall
+
 To "uninstall" your `IDEasy` you only need to call the following command:
+
 ```
 ide uninstall
 ```
+
 Then you can delete the `projects` folder if there is no project data left that you need.
 
-`IDEasy` is designed to be *non-invasive* to your operating system and computer. Therefore it is not "installed" on your system in a classical way. Instead you just create a folder and extract the xref:download[downloaded] archive to it. All the other softwares remain locally in your IDEasy folder. However, there are the following excuses (what is reverted by `ide uninstall`):
+`IDEasy` is designed to be *non-invasive* to your operating system and computer.
+Therefore it is not "installed" on your system in a classical way.
+Instead you just create a folder and extract the xref:download[downloaded] archive to it.
+All the other softwares remain locally in your IDEasy folder.
+However, there are the following excuses (what is reverted by `ide uninstall`):
 
 * The `ide` command is copied to your home directory (`~/.ide/scripts/ide`)
 * The `ide` alias is added to your shell config (`~/.bashrc` and `~/.zshrc`, search for `alias ide="source ~/.ide/scripts/ide"`).
 * On Windows the `ide.bat` command is copied to your home directory (`%USERPROFILE%\.ide\scripts\ide.bat`)
 * On Windows this `%USERPROFILE%\.ide\scripts` directory is added to the `PATH` of your user.
-* `IDEasy` will download all third party software to your `~/Downloads/ide` folder to reduce redundant storage. You have to delete this folder manually as we do not want to be responsible for data-loss in case users manually put files here.
+* `IDEasy` will download all third party software to your `~/Downloads/ide` folder to reduce redundant storage.
+You have to delete this folder manually as we do not want to be responsible for data-loss in case users manually put files here.
 
 == Testing SNAPSHOT releases
 
-Whenever a story in `IDEasy` is completed by merging a https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests[PR],
-our https://github.com/features/actions[github actions] will build a new SNAPSHOT release and on success deploy it to nexus on OSSRH.
+Whenever a story in `IDEasy` is completed by merging a https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests[PR], our https://github.com/features/actions[github actions] will build a new SNAPSHOT release and on success deploy it to nexus on OSSRH.
 You can therefore find the latest IDEasy SNAPSHOT releases https://s01.oss.sonatype.org/content/repositories/snapshots/com/devonfw/tools/IDEasy/ide-cli/[here].
 Simply choose the latest SNAPSHOT version folder and then inside the `*.tar.gz` file for the latest version.
 Once downloaded, you can proceed as with official releases (see xref:install[install]).

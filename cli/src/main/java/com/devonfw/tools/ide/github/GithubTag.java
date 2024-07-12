@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * JSON data object for a github tag ref.
  */
 public class GithubTag {
+
   private String ref;
 
   /**
@@ -17,7 +18,6 @@ public class GithubTag {
   }
 
   /**
-   *
    * The constructor.
    *
    * @param ref the {@link #getRef() ref}.

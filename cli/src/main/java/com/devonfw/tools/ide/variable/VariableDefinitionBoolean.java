@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.variable;
 
-import com.devonfw.tools.ide.context.IdeContext;
-
 import java.util.Locale;
 import java.util.function.Function;
+
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type} {@link Boolean}.
@@ -23,7 +23,7 @@ public class VariableDefinitionBoolean extends AbstractVariableDefinition<Boolea
   /**
    * The constructor.
    *
-   * @param name       the {@link #getName() variable name}.
+   * @param name the {@link #getName() variable name}.
    * @param legacyName the {@link #getLegacyName() legacy name}.
    */
   public VariableDefinitionBoolean(String name, String legacyName) {
@@ -34,8 +34,8 @@ public class VariableDefinitionBoolean extends AbstractVariableDefinition<Boolea
   /**
    * The constructor.
    *
-   * @param name                the {@link #getName() variable name}.
-   * @param legacyName          the {@link #getLegacyName() legacy name}.
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
    */
   public VariableDefinitionBoolean(String name, String legacyName, Function<IdeContext, Boolean> defaultValueFactory) {
@@ -46,10 +46,10 @@ public class VariableDefinitionBoolean extends AbstractVariableDefinition<Boolea
   /**
    * The constructor.
    *
-   * @param name                the {@link #getName() variable name}.
-   * @param legacyName          the {@link #getLegacyName() legacy name}.
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
-   * @param forceDefaultValue   the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
    */
   public VariableDefinitionBoolean(String name, String legacyName, Function<IdeContext, Boolean> defaultValueFactory, boolean forceDefaultValue) {
 
@@ -59,13 +59,14 @@ public class VariableDefinitionBoolean extends AbstractVariableDefinition<Boolea
   /**
    * The constructor.
    *
-   * @param name                the {@link #getName() variable name}.
-   * @param legacyName          the {@link #getLegacyName() legacy name}.
+   * @param name the {@link #getName() variable name}.
+   * @param legacyName the {@link #getLegacyName() legacy name}.
    * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
-   * @param forceDefaultValue   the {@link #isForceDefaultValue() forceDefaultValue} flag.
-   * @param export              the {@link #isExport() export} flag.
+   * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
+   * @param export the {@link #isExport() export} flag.
    */
-  public VariableDefinitionBoolean(String name, String legacyName, Function<IdeContext, Boolean> defaultValueFactory, boolean forceDefaultValue, boolean export) {
+  public VariableDefinitionBoolean(String name, String legacyName, Function<IdeContext, Boolean> defaultValueFactory, boolean forceDefaultValue,
+      boolean export) {
 
     super(name, legacyName, defaultValueFactory, forceDefaultValue, export);
   }

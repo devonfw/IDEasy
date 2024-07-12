@@ -65,8 +65,7 @@ public enum OperatingSystem {
 
   /**
    * @param suffix the file extension.
-   * @return {@code true} if the given {@code suffix} is an executable file extension of this {@link OperatingSystem},
-   * {@code false} otherwise.
+   * @return {@code true} if the given {@code suffix} is an executable file extension of this {@link OperatingSystem}, {@code false} otherwise.
    */
   public boolean isExecutable(String suffix) {
 

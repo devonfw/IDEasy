@@ -29,8 +29,7 @@ public interface ProcessResult {
   int ABORT = 22;
 
   /**
-   * Return code if {@link com.devonfw.tools.ide.context.IdeContext#isOffline() offline} but network is required for
-   * requested operation.
+   * Return code if {@link com.devonfw.tools.ide.context.IdeContext#isOffline() offline} but network is required for requested operation.
    *
    * @see com.devonfw.tools.ide.cli.CliOfflineException
    */
@@ -42,8 +41,7 @@ public interface ProcessResult {
   int getExitCode();
 
   /**
-   * @return {@code true} if the {@link #getExitCode() exit code} indicates {@link #SUCCESS}, {@code false} otherwise
-   *         (an error occurred).
+   * @return {@code true} if the {@link #getExitCode() exit code} indicates {@link #SUCCESS}, {@code false} otherwise (an error occurred).
    */
   default boolean isSuccessful() {
 
@@ -51,14 +49,12 @@ public interface ProcessResult {
   }
 
   /**
-   * @return the {@link List} with the lines captured on standard out. Will be {@code null} if not captured but
-   *         redirected.
+   * @return the {@link List} with the lines captured on standard out. Will be {@code null} if not captured but redirected.
    */
   List<String> getOut();
 
   /**
-   * @return the {@link List} with the lines captured on standard error. Will be {@code null} if not captured but
-   *         redirected.
+   * @return the {@link List} with the lines captured on standard error. Will be {@code null} if not captured but redirected.
    */
   List<String> getErr();
 

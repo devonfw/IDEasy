@@ -1,9 +1,9 @@
 {
-  "manual" : true,
-  "urls" : {
-    "399490723" : {
-      "success" : {
-        "timestamp" : "2023-06-06T03:21:13.620611Z"
+  "manual": true,
+  "urls": {
+    "399490723": {
+      "success": {
+        "timestamp": "2023-06-06T03:21:13.620611Z"
       }
     }
   }

@@ -1,25 +1,27 @@
 package com.devonfw.tools.ide.tool;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
+
 /**
  * A wrapper class for holding two maps of plugin descriptors: one keyed by plugin ID and the other keyed by plugin name.
  */
 public class PluginMaps {
+
   private final Map<String, PluginDescriptor> mapById;
   private final Map<String, PluginDescriptor> mapByName;
 
-  
+
   private final IdeContext context;
 
   /**
    * The constructor.
+   *
    * @param context the {@link IdeContext}.
    */
   public PluginMaps(IdeContext context) {
@@ -47,14 +49,14 @@ public class PluginMaps {
    * @return the immutable {@link Collection} of {@link PluginDescriptor}s configured for this IDE tool.
    */
   public Collection<PluginDescriptor> getPlugins() {
-    
+
     Map<String, PluginDescriptor> map = this.mapById;
     if (map.isEmpty()) {
       map = this.mapByName; // potentially plugins for this tool have no ID
     }
     return Collections.unmodifiableCollection(map.values());
   }
-  
+
   /**
    * Registers a {@link PluginDescriptor} to this map.
    */
@@ -65,7 +67,7 @@ public class PluginMaps {
       put(id, descriptor, this.mapById);
     }
   }
-  
+
   public void put(String key, PluginDescriptor descriptor, Map<String, PluginDescriptor> map) {
     PluginDescriptor duplicate = map.put(key, descriptor);
     if (duplicate != null) {

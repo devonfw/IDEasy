@@ -1,10 +1,10 @@
 package com.devonfw.tools.ide.property;
 
+import java.util.Locale;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
-
-import java.util.Locale;
 
 /**
  * {@link Property} with {@link #getValueType() value type} {@link Boolean}.

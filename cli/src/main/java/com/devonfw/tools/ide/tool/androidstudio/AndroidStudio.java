@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.tool.androidstudio;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Set;
+
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -8,11 +13,6 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://developer.android.com/studio">AndroidStudio</a>.

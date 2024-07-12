@@ -1,9 +1,10 @@
 package com.devonfw.tools.ide.repo;
 
-import com.devonfw.tools.ide.os.SystemInfoMock;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+
+import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link CustomTool}.

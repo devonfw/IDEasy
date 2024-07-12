@@ -57,8 +57,8 @@ public enum VariableSyntax {
 
   /**
    * @param variableName the variable name.
-   * @return the variable syntax for the given {@code variableName}. E.g. for {@link #CURLY} and the given {@link String}
-   * "JAVA_HOME" this method would return "${JAVA_HOME}".
+   * @return the variable syntax for the given {@code variableName}. E.g. for {@link #CURLY} and the given {@link String} "JAVA_HOME" this method would return
+   * "${JAVA_HOME}".
    */
   public abstract String create(String variableName);
 

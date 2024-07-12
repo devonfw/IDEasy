@@ -5,15 +5,13 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 
 /**
- * Program to check if eclipse workspace is locked. A successful exit (code {@code 0}) indicates that the workspace is
- * free. Otherwise the exit code {@code 1} is used to indicate that the workspace is locked. In case of an error (e.g.
- * invalid CLI arguments) the exit code {@code -1} is used.
+ * Program to check if eclipse workspace is locked. A successful exit (code {@code 0}) indicates that the workspace is free. Otherwise the exit code {@code 1}
+ * is used to indicate that the workspace is locked. In case of an error (e.g. invalid CLI arguments) the exit code {@code -1} is used.
  */
 public class EclipseWorkspaceLockChecker {
 
   /**
-   * @param args the command-line arguments. There is currently only one argument defined which is the path to the lock
-   *        file.
+   * @param args the command-line arguments. There is currently only one argument defined which is the path to the lock file.
    */
   public static void main(String[] args) {
 

@@ -1,10 +1,11 @@
 package com.devonfw.tools.ide.os;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Path;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Test of {@link MacOsHelper}.

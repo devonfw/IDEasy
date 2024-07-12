@@ -23,8 +23,7 @@ import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 
 /**
- * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or
- * {@link Intellij}.
+ * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or {@link Intellij}.
  */
 public abstract class IdeToolCommandlet extends LocalToolCommandlet {
 
@@ -37,8 +36,7 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
    *
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   *        method.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
   public IdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -115,8 +113,7 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * @param key the filename of the properties file configuring the requested plugin (typically excluding the
-   *        ".properties" extension).
+   * @param key the filename of the properties file configuring the requested plugin (typically excluding the ".properties" extension).
    * @return the {@link PluginDescriptor} for the given {@code key}.
    */
   public PluginDescriptor getPlugin(String key) {
@@ -160,8 +157,7 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * @param plugin the in{@link PluginDescriptor#isActive() active} {@link PluginDescriptor} that is skipped for regular
-   *        plugin installation.
+   * @param plugin the in{@link PluginDescriptor#isActive() active} {@link PluginDescriptor} that is skipped for regular plugin installation.
    */
   protected void handleInstall4InactivePlugin(PluginDescriptor plugin) {
 

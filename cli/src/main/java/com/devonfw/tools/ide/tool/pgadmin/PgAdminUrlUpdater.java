@@ -1,11 +1,11 @@
 package com.devonfw.tools.ide.tool.pgadmin;
 
+import java.util.regex.Pattern;
+
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.util.regex.Pattern;
 
 /**
  * {@link WebsiteUrlUpdater} for pgadmin.

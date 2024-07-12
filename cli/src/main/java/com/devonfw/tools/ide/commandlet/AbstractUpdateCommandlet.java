@@ -1,5 +1,11 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.FlagProperty;
@@ -9,12 +15,6 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.variable.IdeVariables;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Abstract {@link Commandlet} base-class for both {@link UpdateCommandlet} and {@link CreateCommandlet}.
@@ -46,7 +46,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     updateSettings();
     updateConf();
 
-    if (skipTools.isTrue()) {
+    if (this.skipTools.isTrue()) {
       this.context.info("Skipping installation/update of tools as specified by the user.");
     } else {
       updateSoftware();

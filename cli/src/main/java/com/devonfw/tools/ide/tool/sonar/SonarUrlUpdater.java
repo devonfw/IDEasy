@@ -7,6 +7,7 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
  * {@link GithubUrlUpdater} for sonar (sonarqube).
  */
 public class SonarUrlUpdater extends GithubUrlUpdater {
+
   @Override
   protected String getTool() {
 

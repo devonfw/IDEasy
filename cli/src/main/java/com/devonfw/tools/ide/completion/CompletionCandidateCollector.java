@@ -1,11 +1,11 @@
 package com.devonfw.tools.ide.completion;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.property.Property;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.property.Property;
 
 /**
  * Collects the {@link CompletionCandidate}s for auto-completion.

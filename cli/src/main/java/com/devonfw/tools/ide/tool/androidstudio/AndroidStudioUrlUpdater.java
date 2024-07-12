@@ -1,5 +1,11 @@
 package com.devonfw.tools.ide.tool.androidstudio;
 
+import java.util.Collection;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
@@ -7,11 +13,6 @@ import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
-import java.util.List;
 
 /**
  * {@link JsonUrlUpdater} for Android Studio.

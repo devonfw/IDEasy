@@ -101,6 +101,7 @@ public abstract class AutocompletionReaderTestSupport extends AbstractIdeContext
   }
 
   protected class TestBuffer {
+
     private final ByteArrayOutputStream out = new ByteArrayOutputStream();
 
     public TestBuffer(String str) {
@@ -162,6 +163,7 @@ public abstract class AutocompletionReaderTestSupport extends AbstractIdeContext
   }
 
   public static class TestLineReader extends LineReaderImpl {
+
     boolean list = false;
 
     boolean menu = false;

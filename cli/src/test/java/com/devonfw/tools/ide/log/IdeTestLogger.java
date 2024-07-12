@@ -4,8 +4,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Implementation of {@link IdeSubLogger} for testing that collects all messages and allows to check if an expected
- * message was logged.
+ * Implementation of {@link IdeSubLogger} for testing that collects all messages and allows to check if an expected message was logged.
  */
 public class IdeTestLogger extends IdeSlf4jLogger {
 

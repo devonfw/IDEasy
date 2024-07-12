@@ -40,7 +40,7 @@ Interesting components: +
 - e.g. Lazydocker gives a pretty and compact graphical component +
 - e.g. MicroK8s as a lightweight, fast version of Kubernetes +
 |*Contra*|
--does not have all features Docker Desktop has, like image security scans 
+-does not have all features Docker Desktop has, like image security scans
 |
 - Has most usual Docker-commands, but not all of them +
 - For ongoing Docker-projects might not be worth it, because of some differences to Docker -> Porblems during software migration +

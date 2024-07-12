@@ -24,9 +24,7 @@ public enum VersionComparisonResult {
   GREATER_UNSAFE;
 
   /**
-   * @return {@code true} if the versions are not strictly comparable (e.g. "apple" and "banana", also for "1.0" and
-   *         "1-0"), {@code false} otherwise.
-   *
+   * @return {@code true} if the versions are not strictly comparable (e.g. "apple" and "banana", also for "1.0" and "1-0"), {@code false} otherwise.
    * @see #LESS_UNSAFE
    * @see #GREATER_UNSAFE
    */
@@ -60,8 +58,7 @@ public enum VersionComparisonResult {
   }
 
   /**
-   * @return an integer value equivalent with the {@link VersionComparisonResult} and compliant with
-   *         {@link VersionObject#compareTo(Object)}.
+   * @return an integer value equivalent with the {@link VersionComparisonResult} and compliant with {@link VersionObject#compareTo(Object)}.
    */
   public int asValue() {
 

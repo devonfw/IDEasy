@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.variable;
 
+import java.util.regex.Matcher;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import java.util.regex.Matcher;
 
 /**
  * Test of {@link VariableSyntax}.

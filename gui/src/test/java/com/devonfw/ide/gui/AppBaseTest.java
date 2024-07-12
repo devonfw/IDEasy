@@ -1,14 +1,14 @@
 package com.devonfw.ide.gui;
 
+import static org.testfx.api.FxAssert.verifyThat;
+
+import java.io.IOException;
 import javafx.stage.Stage;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.testfx.framework.junit5.ApplicationTest;
 import org.testfx.matcher.base.NodeMatchers;
-
-import java.io.IOException;
-
-import static org.testfx.api.FxAssert.verifyThat;
 
 /**
  * Base Test

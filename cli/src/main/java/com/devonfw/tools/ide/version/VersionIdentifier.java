@@ -3,8 +3,8 @@ package com.devonfw.tools.ide.version;
 import java.util.Objects;
 
 /**
- * Data-type to represent a {@link VersionIdentifier} in a structured way and allowing
- * {@link #compareVersion(VersionIdentifier) comparison} of {@link VersionIdentifier}s.
+ * Data-type to represent a {@link VersionIdentifier} in a structured way and allowing {@link #compareVersion(VersionIdentifier) comparison} of
+ * {@link VersionIdentifier}s.
  */
 public final class VersionIdentifier implements VersionObject<VersionIdentifier> {
 
@@ -48,8 +48,8 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   }
 
   /**
-   * @return the first {@link VersionSegment} of this {@link VersionIdentifier}. To get other segments use
-   *         {@link VersionSegment#getNextOrEmpty()} or {@link VersionSegment#getNextOrNull()}.
+   * @return the first {@link VersionSegment} of this {@link VersionIdentifier}. To get other segments use {@link VersionSegment#getNextOrEmpty()} or
+   * {@link VersionSegment#getNextOrNull()}.
    */
   public VersionSegment getStart() {
 
@@ -81,9 +81,8 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   /**
    * Determines if this {@link VersionIdentifier} is a pattern (e.g. "17*" or "17.*").
    *
-   * @return {@code true} if this {@link VersionIdentifier} is a pattern and not a normal version or in other words if
-   *         it {@link #getStart() has} a {@link VersionSegment segment} that {@link VersionSegment#isPattern() is a
-   *         pattern}, {@code false} otherwise.
+   * @return {@code true} if this {@link VersionIdentifier} is a pattern and not a normal version or in other words if it {@link #getStart() has} a
+   * {@link VersionSegment segment} that {@link VersionSegment#isPattern() is a pattern}, {@code false} otherwise.
    */
   public boolean isPattern() {
 
@@ -98,10 +97,9 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   }
 
   /**
-   * @return the {@link VersionLetters#isDevelopmentPhase() development phase} of this {@link VersionIdentifier}. Will
-   *         be {@link VersionLetters#EMPTY} if no development phase is specified in any {@link VersionSegment} and will
-   *         be {@link VersionLetters#UNDEFINED} if more than one {@link VersionLetters#isDevelopmentPhase() development
-   *         phase} is specified (e.g. "1.0-alpha1.rc2").
+   * @return the {@link VersionLetters#isDevelopmentPhase() development phase} of this {@link VersionIdentifier}. Will be {@link VersionLetters#EMPTY} if no
+   * development phase is specified in any {@link VersionSegment} and will be {@link VersionLetters#UNDEFINED} if more than one
+   * {@link VersionLetters#isDevelopmentPhase() development phase} is specified (e.g. "1.0-alpha1.rc2").
    */
   public VersionLetters getDevelopmentPhase() {
 
@@ -141,9 +139,8 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
 
   /**
    * @param other the {@link VersionIdentifier} to be matched.
-   * @return {@code true} if this {@link VersionIdentifier} is equal to the given {@link VersionIdentifier} or this
-   *         {@link VersionIdentifier} is a pattern version (e.g. "17*" or "17.*") and the given
-   *         {@link VersionIdentifier} matches to that pattern.
+   * @return {@code true} if this {@link VersionIdentifier} is equal to the given {@link VersionIdentifier} or this {@link VersionIdentifier} is a pattern
+   * version (e.g. "17*" or "17.*") and the given {@link VersionIdentifier} matches to that pattern.
    */
   public boolean matches(VersionIdentifier other) {
 

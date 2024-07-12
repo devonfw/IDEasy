@@ -6,6 +6,7 @@ import com.devonfw.tools.ide.version.VersionRange;
  * Model to represent the Object of the dependencies inside the Json file.
  */
 public final class DependencyInfo {
+
   private String tool;
 
   private String versionRange;
@@ -15,7 +16,7 @@ public final class DependencyInfo {
    */
   public String getTool() {
 
-    return tool;
+    return this.tool;
   }
 
   /**
@@ -23,7 +24,7 @@ public final class DependencyInfo {
    */
   public VersionRange getVersionRange() {
 
-    return VersionRange.of(versionRange);
+    return VersionRange.of(this.versionRange);
   }
 
 }

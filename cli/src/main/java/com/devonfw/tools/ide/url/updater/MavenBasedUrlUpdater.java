@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.url.updater;
 
-import com.devonfw.tools.ide.maven.MavenMetadata;
-import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.devonfw.tools.ide.maven.MavenMetadata;
+import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 
 /**
  * The MvnCrawler class is an abstract class that provides functionality for crawling Maven repositories.

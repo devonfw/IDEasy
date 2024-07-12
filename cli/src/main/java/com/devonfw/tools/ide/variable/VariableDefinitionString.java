@@ -5,8 +5,7 @@ import java.util.function.Function;
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
- * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type}
- * {@link String}.
+ * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type} {@link String}.
  */
 public class VariableDefinitionString extends AbstractVariableDefinition<String> {
 

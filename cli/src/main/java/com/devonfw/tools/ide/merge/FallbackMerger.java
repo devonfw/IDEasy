@@ -1,10 +1,10 @@
 package com.devonfw.tools.ide.merge;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 /**
  * Implementation of {@link FileMerger} to use as fallback. It can not actually merge but will simply overwrite the files.

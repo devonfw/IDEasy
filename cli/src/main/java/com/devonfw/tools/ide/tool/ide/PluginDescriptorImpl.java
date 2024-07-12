@@ -79,8 +79,8 @@ public class PluginDescriptorImpl implements PluginDescriptor {
   /**
    * @param propertiesFile the {@link Path} to the plugin {@link Properties} file.
    * @param logger the {@link IdeLogger}.
-   * @param needUrl - {@code true} if {@link PluginDescriptor#getUrl() URL} needs to be present and a warning shall be
-   *        logged if missing, {@code false} otherwise.
+   * @param needUrl - {@code true} if {@link PluginDescriptor#getUrl() URL} needs to be present and a warning shall be logged if missing, {@code false}
+   * otherwise.
    * @return the loaded {@link PluginDescriptor}.
    */
   public static PluginDescriptor of(Path propertiesFile, IdeLogger logger, boolean needUrl) {

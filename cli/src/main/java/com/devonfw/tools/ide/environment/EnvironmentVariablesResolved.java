@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.environment;
 
+import java.util.Set;
+
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
-
-import java.util.Set;
 
 /**
  * Implementation of {@link EnvironmentVariables} that resolves variables recursively.

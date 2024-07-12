@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.property;
 
-import com.devonfw.tools.ide.commandlet.Commandlet;
-import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
-import com.devonfw.tools.ide.context.IdeContext;
-
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.function.Consumer;
+
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * {@link Property} with {@link Locale} as {@link #getValueType() value type}.

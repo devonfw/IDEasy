@@ -3,6 +3,10 @@
   "tslint.autoFixOnSave": true,
   "object": {
     "bar": "${IDE_HOME}/bar",
-    "array": ["a", "b", "${IDE_HOME}"]
+    "array": [
+      "a",
+      "b",
+      "${IDE_HOME}"
+    ]
   }
 }

@@ -10,7 +10,6 @@ enum IdeLogExceptionDetails {
 
   /** Log the entire stacktrace. */
   STACKTRACE(512) {
-
     @Override
     void format(Throwable error, StringWriter sw) {
 
@@ -22,7 +21,6 @@ enum IdeLogExceptionDetails {
 
   /** Log only the exception type and message. */
   TO_STRING(32) {
-
     @Override
     void format(Throwable error, StringWriter sw) {
 
@@ -32,7 +30,6 @@ enum IdeLogExceptionDetails {
 
   /** Log only the message. */
   MESSAGE(16) {
-
     @Override
     void format(Throwable error, StringWriter sw) {
 

@@ -1,6 +1,6 @@
 package com.devonfw.ide.gui;
 
-import com.devonfw.tools.ide.version.IdeVersion;
+import java.io.IOException;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -9,7 +9,7 @@ import javafx.scene.Scene;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 
-import java.io.IOException;
+import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
  * GUI Application for IDEasy
