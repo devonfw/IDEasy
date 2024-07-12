@@ -38,7 +38,7 @@ public class MergeAttribute {
    *
    * @return {@code true} if the attribute is a merge namespace attribute, otherwise {@code false}
    */
-  public boolean isMergeNSAttr() {
+  public boolean isMergeNsAttr() {
 
     return XmlMerger.MERGE_NS_URI.equals(attr.getNamespaceURI()) || XmlMerger.MERGE_NS_URI.equals(attr.getValue());
   }
@@ -50,6 +50,6 @@ public class MergeAttribute {
    */
   public boolean isMergeNsIdAttr() {
 
-    return isMergeNSAttr() && attr.getLocalName().equals("id");
+    return isMergeNsAttr() && attr.getLocalName().equals("id");
   }
 }
