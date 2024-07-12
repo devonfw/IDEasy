@@ -159,22 +159,22 @@
                 <configuration>
                   <artifacts>
                     <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-linux-x64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-linux-x86_64.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>linux-x64</classifier>
                     </artifact>
                     <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-windows-x64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-windows-x86_64.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>windows-x64</classifier>
                     </artifact>
                     <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-mac-x64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-osx-x86_64.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>mac-x64</classifier>
                     </artifact>
                     <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-mac-arm.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-osx-aarch_64.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>mac-arm</classifier>
                     </artifact>
