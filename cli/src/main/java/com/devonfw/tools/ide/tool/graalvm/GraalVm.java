@@ -40,7 +40,7 @@ public class GraalVm extends LocalToolCommandlet {
   @Override
   protected String getBinaryName() {
 
-    return getToolPath().resolve(IdeContext.FOLDER_BIN).resolve("java").toString();
+    return "java";
   }
 
   @Override

@@ -82,31 +82,7 @@ public class Tomcat extends LocalToolCommandlet {
   @Override
   protected String getBinaryName() {
 
-    TomcatCommand command = this.command.getValue();
-
-    Path toolBinPath = getToolBinPath();
-
-    String tomcatHome = null;
-
-    if (this.context.getSystemInfo().isWindows()) {
-      if (command.equals(TomcatCommand.START)) {
-        tomcatHome = "startup.bat";
-      } else if (command.equals(TomcatCommand.STOP)) {
-        tomcatHome = "shutdown.bat";
-      } else {
-        this.context.error("Unknown tomcat command");
-      }
-    } else {
-      if (command.equals(TomcatCommand.START)) {
-        tomcatHome = "startup.sh";
-      } else if (command.equals(TomcatCommand.STOP)) {
-        tomcatHome = "shutdown.sh";
-      } else {
-        this.context.error("Unknown tomcat command");
-      }
-    }
-
-    return toolBinPath.resolve(tomcatHome).toString();
+    return "catalina.sh";
   }
 
   @Override

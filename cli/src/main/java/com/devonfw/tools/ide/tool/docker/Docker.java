@@ -52,7 +52,7 @@ public class Docker extends GlobalToolCommandlet {
 
   private List<PackageManagerCommand> getPackageManagerCommandsInstall() {
 
-    String edition = getEdition();
+    String edition = getConfiguredEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion).toString();
@@ -98,9 +98,16 @@ public class Docker extends GlobalToolCommandlet {
   protected String getBinaryName() {
 
     if (this.context.getSystemInfo().isLinux()) {
+      // TODO this is wrong. The install method may need to run this on linux but the binary name is always docker (read the JavaDoc)
       return "rancher-desktop";
     } else {
       return super.getBinaryName();
     }
+  }
+
+  @Override
+  public String getToolHelpArguments() {
+
+    return "help";
   }
 }
