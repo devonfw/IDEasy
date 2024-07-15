@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
@@ -97,14 +98,14 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, Intel
     return IntellijJsonObject.class;
   }
 
-  @Override
-  protected void collectVersionsFromJson(IntellijJsonObject jsonItem, Collection<String> versions) {
-
-    throw new IllegalStateException();
-  }
-
   /**
    * Get link and link for the checksum for each OS, which are separate nodes in the json
+   *
+   * @param url {@link UrlVersion} to be updated
+   * @param release the {@link JsonVersionItem} holding the download references for the version
+   * @param jsonOS the OS as specified in the json
+   * @param os the {@link OperatingSystem} matching the jsonOS
+   * @param systemArchitecture {@link SystemArchitecture} of the version to be updated
    */
   private void addVersionEachOs(UrlVersion url, IntellijJsonRelease release, String jsonOS, OperatingSystem os,
       SystemArchitecture systemArchitecture) {

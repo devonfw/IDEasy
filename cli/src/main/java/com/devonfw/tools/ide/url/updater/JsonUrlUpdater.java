@@ -65,15 +65,9 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   protected abstract Class<J> getJsonObjectType();
 
   /**
-   * @param jsonObject the Java object parsed from the JSON holding the information of the versions.
-   * @param versions the versions where to {@link #addVersion(String, Collection) add the version to}.
+   * @param jsonObj the Java object parsed from the JSON holding the information of the versions.
+   * @param edition the edition where to {@link #addVersion(UrlVersion, JsonVersionItem)} add the version to.
    */
-  @Deprecated
-  protected void collectVersionsFromJson(J jsonObject, Collection<String> versions) {
-
-    throw new UnsupportedOperationException();
-  }
-
   protected void collectVersionsWithDownloadsFromJson(J jsonObj, UrlEdition edition) {
 
     Set<String> versions = new HashSet<>();
@@ -102,14 +96,21 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
     }
   }
 
-  //mapping from whole JSON to the individual version entries
+  /**
+   * Splits the json object that contains information about all available versions into a collection of individual
+   * version items.
+   *
+   * @param jsonObject the Java object parsed from the JSON holding the information of the versions
+   * @return Collection of individual version items
+   */
   protected abstract Collection<JVI> getVersionItems(J jsonObject);
 
-  /*
-    //getting the download url from one item
-    protected abstract String getDownloadUrl(JVI jsonVersionItem);
-  */
-  //getting the version from one item
+  /**
+   * Get the tool version of one {@link JVI}
+   *
+   * @param jsonVersionItem the json item containing information of one version of the tool
+   * @return the version of the item
+   */
   protected abstract String getVersion(JVI jsonVersionItem);
 
   /**

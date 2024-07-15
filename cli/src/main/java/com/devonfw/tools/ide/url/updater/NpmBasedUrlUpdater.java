@@ -24,13 +24,6 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject, N
     return NpmJsonObject.class;
   }
 
-  //TODO most likely this method is to be removed
-  @Override
-  protected void collectVersionsFromJson(NpmJsonObject jsonItem, Collection<String> versions) {
-
-    throw new IllegalStateException();
-  }
-
   @Override
   protected Collection<NpmJsonVersion> getVersionItems(NpmJsonObject jsonObj) {
 
