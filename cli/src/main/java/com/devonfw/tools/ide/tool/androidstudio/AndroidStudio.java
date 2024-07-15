@@ -1,14 +1,12 @@
 package com.devonfw.tools.ide.tool.androidstudio;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Set;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
@@ -38,7 +36,6 @@ public class AndroidStudio extends IdeToolCommandlet {
   @Override
   protected String getBinaryName() {
 
-    Path toolBinPath = getToolBinPath();
     if (this.context.getSystemInfo().isWindows()) {
       return STUDIO64_EXE;
     } else if (this.context.getSystemInfo().isLinux()) {
@@ -68,25 +65,13 @@ public class AndroidStudio extends IdeToolCommandlet {
   protected void postInstall() {
 
     super.postInstall();
-    if (this.context.getSystemInfo().isMac()) {
-      setMacOsFilePermissions(getToolPath().resolve("Android Studio Preview.app").resolve("Contents").resolve("MacOS").resolve(STUDIO));
-    }
-  }
-
-  private void setMacOsFilePermissions(Path binaryFile) {
-
-    if (Files.exists(binaryFile)) {
-      FileAccess fileAccess = this.context.getFileAccess();
-      try {
-        fileAccess.makeExecutable(binaryFile);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
+    EnvironmentVariables envVars = this.context.getVariables().getByType(EnvironmentVariablesType.CONF);
+    envVars.set("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString(), true);
+    envVars.save();
   }
 
   @Override
   public void installPlugin(PluginDescriptor plugin) {
-
+    // TODO: needs to be implemented see: https://github.com/devonfw/IDEasy/issues/433
   }
 }
