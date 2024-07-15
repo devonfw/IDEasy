@@ -1,17 +1,16 @@
 package com.devonfw.tools.ide.io;
 
-import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Locale;
 
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+
 /**
- * {@link Enum} with the available compression modes of a TAR archive file. A GNU Tape ARchive is the standard archive
- * format on Linux systems. It is similar to ZIP but it allows to represent advanced metadata such as file permissions
- * (e.g. executable flags). Further, it has no compression and is therefore typically combined with generic file
- * compressions like {@link #GZ GNU zip} (not to be confused with Windows ZIP) or {@link #BZIP2}.
+ * {@link Enum} with the available compression modes of a TAR archive file. A GNU Tape ARchive is the standard archive format on Linux systems. It is similar to
+ * ZIP but it allows to represent advanced metadata such as file permissions (e.g. executable flags). Further, it has no compression and is therefore typically
+ * combined with generic file compressions like {@link #GZ GNU zip} (not to be confused with Windows ZIP) or {@link #BZIP2}.
  */
 public enum TarCompression {
 
@@ -58,8 +57,7 @@ public enum TarCompression {
   }
 
   /**
-   * @return the (default) file extension of this compression (excluding the dot). E.g. "gz" for a "tar.gz" or "tgz"
-   * file.
+   * @return the (default) file extension of this compression (excluding the dot). E.g. "gz" for a "tar.gz" or "tgz" file.
    */
   public String getExtension() {
 
@@ -67,8 +65,7 @@ public enum TarCompression {
   }
 
   /**
-   * @return the compact file extension of this compression combined with the tar archive information. E.g. "tgz" or
-   * "tbz2".
+   * @return the compact file extension of this compression combined with the tar archive information. E.g. "tgz" or "tbz2".
    */
   public String getCombinedExtension() {
 

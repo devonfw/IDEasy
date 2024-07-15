@@ -14,6 +14,7 @@ This gives you the freedom to control and manage the tools with their versions a
 Therefore simply follow the link:usage.adoc#admin[admin usage guide].
 
 == Structure
+
 The settings folder (see `link:variables.adoc[SETTINGS_PATH]`) has to follow this file structure:
 
 .File structure of settings
@@ -51,6 +52,7 @@ The `template` folder contains templates that will be applied to `$IDE_HOME` and
 Further, for the IDEs such as https://www.eclipse.org/[Eclipse], https://code.visualstudio.com/[VSCode], or https://www.jetbrains.com/idea/[IntelliJ] the according folders contain the templates to manage the workspace via our link:configurator.adoc[configurator].
 
 == Configuration Philosophy
+
 Different tools and configuration files require a different handling:
 
 * Where suitable, we directly use these configurations from your `settings` (e.g. for `eclipse/lifecycle-mapping-metadata.xml`, or `eclipse/project.dictionary`).
@@ -60,11 +62,11 @@ In this way the `settings` repository can provide reasonable defaults but allows
 * For tools with complex configuration structures like Eclipse, IntelliJ, or VScode we provide a smart mechanism via our link:configurator.adoc[configurator].
 
 == Customize Settings
+
 You can easily customize these settings for the requirements of your project.
 We suggest that one team member is responsible to ensure that everything stays consistent and works.
 However, every team member can contribute changes as pull-/merge-requests.
 
 You may also create new sub-folders in `settings` and put individual items according to your needs.
-E.g. you could add scripts for https://addons.mozilla.org/de/firefox/addon/greasemonkey[greasemonkey] or https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo[tampermonkey],
-as well as scripts for your database or whatever may be useful and worth to share in your team.
+E.g. you could add scripts for https://addons.mozilla.org/de/firefox/addon/greasemonkey[greasemonkey] or https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo[tampermonkey], as well as scripts for your database or whatever may be useful and worth to share in your team.
 However, to share and maintain knowledge we recommend to use a wiki.

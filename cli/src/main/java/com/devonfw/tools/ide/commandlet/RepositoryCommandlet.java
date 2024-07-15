@@ -1,14 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.RepositoryProperty;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
-import static com.devonfw.tools.ide.commandlet.RepositoryConfig.loadProperties;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.property.RepositoryProperty;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
  * {@link Commandlet} to setup one or multiple GIT repositories for development.
@@ -40,7 +38,7 @@ public class RepositoryCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    Path repositoryFile = repository.getValue();
+    Path repositoryFile = this.repository.getValue();
 
     if (repositoryFile != null) {
       // Handle the case when a specific repository is provided
@@ -71,7 +69,7 @@ public class RepositoryCommandlet extends Commandlet {
   private void doImportRepository(Path repositoryFile, boolean forceMode) {
 
     this.context.info("Importing repository from {} ...", repositoryFile.getFileName().toString());
-    RepositoryConfig repositoryConfig = loadProperties(repositoryFile);
+    RepositoryConfig repositoryConfig = RepositoryConfig.loadProperties(repositoryFile);
 
     if (!repositoryConfig.active()) {
       this.context.info("Repository is not active by default.");

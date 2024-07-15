@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.util.List;
+
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.StringProperty;
-
-import java.util.List;
 
 /**
  * {@link Commandlet} for auto-completion.

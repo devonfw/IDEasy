@@ -7,8 +7,7 @@ import com.devonfw.tools.ide.url.model.UrlArtifact;
 import com.devonfw.tools.ide.url.model.UrlArtifactWithParent;
 
 /**
- * Interface for an {@link UrlArtifact} representing a folder containing other {@link UrlArtifact artifacts} as
- * children.
+ * Interface for an {@link UrlArtifact} representing a folder containing other {@link UrlArtifact artifacts} as children.
  *
  * @param <C> type of the {@link #getChildren() children}.
  */
@@ -21,15 +20,13 @@ public interface UrlFolder<C extends UrlArtifactWithParent<?>> extends UrlArtifa
 
   /**
    * @param name the {@link #getName() name} of the requested child.
-   * @return the child {@link AbstractUrlArtifact artifact} with the given {@link #getName() name} or {@code null} if
-   *         not found.
+   * @return the child {@link AbstractUrlArtifact artifact} with the given {@link #getName() name} or {@code null} if not found.
    */
   C getChild(String name);
 
   /**
    * @param name the {@link #getName() name} of the requested child.
-   * @return the child {@link AbstractUrlArtifact artifact} with the given {@link #getName() name}. Will be created if
-   *         it does not already exist.
+   * @return the child {@link AbstractUrlArtifact artifact} with the given {@link #getName() name}. Will be created if it does not already exist.
    */
   C getOrCreateChild(String name);
 

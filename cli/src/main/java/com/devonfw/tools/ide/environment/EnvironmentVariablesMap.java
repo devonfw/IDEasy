@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.environment;
 
+import java.util.Map;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
-
-import java.util.Map;
 
 /**
  * Implementation of {@link EnvironmentVariables}.
@@ -13,7 +13,7 @@ abstract class EnvironmentVariablesMap extends AbstractEnvironmentVariables {
   /**
    * The constructor.
    *
-   * @param parent  the parent {@link EnvironmentVariables} to inherit from.
+   * @param parent the parent {@link EnvironmentVariables} to inherit from.
    * @param context the {@link IdeContext}.
    */
   EnvironmentVariablesMap(AbstractEnvironmentVariables parent, IdeContext context) {
@@ -22,8 +22,7 @@ abstract class EnvironmentVariablesMap extends AbstractEnvironmentVariables {
   }
 
   /**
-   * @return the {@link Map} with the underlying variables. Internal method do not call from outside and never
-   *         manipulate this {@link Map} externally.
+   * @return the {@link Map} with the underlying variables. Internal method do not call from outside and never manipulate this {@link Map} externally.
    */
   protected abstract Map<String, String> getVariables();
 

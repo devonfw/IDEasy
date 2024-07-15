@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.completion;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.VersionCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -7,7 +9,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.property.VersionProperty;
-import org.junit.jupiter.api.Test;
 
 class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
 

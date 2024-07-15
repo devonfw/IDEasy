@@ -1,13 +1,5 @@
 package com.devonfw.tools.ide.tool;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.json.mapping.JsonMapping;
-import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.version.VersionRange;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,6 +9,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.json.mapping.JsonMapping;
+import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionRange;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Class to represent the functionality of installing the dependencies when a tool is being installed.
@@ -51,7 +51,7 @@ public class Dependency {
    */
   public Path getDependencyJsonPath(String toolEdition) {
 
-    Path toolPath = this.context.getUrlsPath().resolve(tool).resolve(toolEdition);
+    Path toolPath = this.context.getUrlsPath().resolve(this.tool).resolve(toolEdition);
     return toolPath.resolve(DEPENDENCY_FILENAME);
   }
 

@@ -1,14 +1,15 @@
 package com.devonfw.tools.ide.tool;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
-import org.junit.jupiter.api.Test;
-
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test of {@link PluginBasedCommandlet}.

@@ -1,11 +1,11 @@
 package com.devonfw.tools.ide.property;
 
+import java.util.function.Consumer;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-
-import java.util.function.Consumer;
 
 /**
  * {@link Property} with {@link #getValueType() value type} {@link ToolCommandlet}.
