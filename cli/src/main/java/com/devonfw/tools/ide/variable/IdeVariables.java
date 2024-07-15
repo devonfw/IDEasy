@@ -83,7 +83,7 @@ public interface IdeVariables {
   /**
    * {@link VariableDefinition} for IDEA_PROPERTIES (used to overwrite idea.properties location).
    */
-  VariableDefinitionPath IDEA_PROPERTIES = new VariableDefinitionPath("IDEA_PROPERTIES", null, c -> c.getWorkspacePath().resolve("idea.properties"), true);
+  VariableDefinitionPath IDEA_PROPERTIES = new VariableDefinitionPath("IDEA_PROPERTIES", null, c -> c.getWorkspacePath().resolve("idea.properties"), true, true);
 
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, CREATE_START_SCRIPTS,
