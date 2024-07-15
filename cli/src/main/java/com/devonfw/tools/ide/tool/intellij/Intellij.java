@@ -8,6 +8,8 @@ import java.util.Set;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
@@ -68,6 +70,9 @@ public class Intellij extends IdeToolCommandlet {
   protected void postInstall() {
 
     super.postInstall();
+    EnvironmentVariables envVars = this.context.getVariables().getByType(EnvironmentVariablesType.CONF);
+    envVars.set("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString(), true);
+    envVars.save();
     if (this.context.getSystemInfo().isMac()) {
       setMacOsFilePermissions(getToolPath().resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents").resolve("MacOS").resolve(IDEA));
     }
