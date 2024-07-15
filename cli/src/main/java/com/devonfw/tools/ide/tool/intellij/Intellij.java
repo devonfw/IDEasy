@@ -68,6 +68,9 @@ public class Intellij extends IdeToolCommandlet {
   protected void postInstall() {
 
     super.postInstall();
+    EnvironmentVariables envVars = this.context.getVariables().getByType(EnvironmentVariablesType.CONF);
+    envVars.set("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties"), true);
+    envVars.save();
     if (this.context.getSystemInfo().isMac()) {
       setMacOsFilePermissions(getToolPath().resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents").resolve("MacOS").resolve(IDEA));
     }
