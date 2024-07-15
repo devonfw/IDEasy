@@ -1,17 +1,18 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.KeywordProperty;
-import com.devonfw.tools.ide.property.Property;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.nls.NlsBundle;
+import com.devonfw.tools.ide.property.KeywordProperty;
+import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * A {@link Commandlet} is a sub-command of the IDE CLI.
@@ -78,8 +79,7 @@ public abstract class Commandlet {
   }
 
   /**
-   * @param nameOrAlias the potential {@link Property#getName() name} or {@link Property#getAlias() alias} of the
-   *     requested {@link Property}.
+   * @param nameOrAlias the potential {@link Property#getName() name} or {@link Property#getAlias() alias} of the requested {@link Property}.
    * @return the requested {@link Property property} or {@code null} if not found.
    */
   public Property<?> getOption(String nameOrAlias) {
@@ -179,6 +179,17 @@ public abstract class Commandlet {
    */
   public boolean isIdeHomeRequired() {
 
+    if (!isIdeRootRequired()) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * @return {@code true} if {@link IdeContext#getIdeRoot() IDE_ROOT} is required for this commandlet, {@code false} otherwise.
+   */
+  public boolean isIdeRootRequired() {
+
     return true;
   }
 
@@ -186,6 +197,17 @@ public abstract class Commandlet {
    * @return {@code true} to suppress the {@link com.devonfw.tools.ide.step.StepImpl#logSummary(boolean) step summary success message}.
    */
   public boolean isSuppressStepSuccess() {
+
+    return false;
+  }
+
+  /**
+   * @return {@code true} if the output of this commandlet is (potentially) processed automatically from outside, {@code false} otherwise. For example
+   * {@link CompleteCommandlet} logs the suggestions for auto-completion to a bash script. Also the {@link EnvironmentCommandlet} logs the environment variables
+   * for the {@code ide} wrapper script. In such scenarios these logs shall not be spammed with warnings like "IDE_ROOT is not set" that would break the
+   * processing of the output.
+   */
+  public boolean isProcessableOutput() {
 
     return false;
   }
@@ -213,6 +235,13 @@ public abstract class Commandlet {
       }
     }
     return true;
+  }
+
+  /**
+   * Provide additional usage help of this {@link Commandlet} to the user.
+   */
+  public void printHelp(NlsBundle bundle) {
+
   }
 
   @Override

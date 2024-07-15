@@ -10,7 +10,6 @@ public class GithubTag implements JsonVersionItem {
 
   private String ref;
 
-
   /**
    * The constructor.
    */

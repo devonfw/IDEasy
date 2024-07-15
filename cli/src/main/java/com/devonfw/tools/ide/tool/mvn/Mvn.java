@@ -1,5 +1,14 @@
 package com.devonfw.tools.ide.tool.mvn;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.security.SecureRandom;
+import java.util.Base64;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.regex.Matcher;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -12,15 +21,6 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.variable.VariableSyntax;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.security.SecureRandom;
-import java.util.Base64;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.regex.Matcher;
 
 /**
  * {@link ToolCommandlet} for <a href="https://maven.apache.org/">maven</a>.
@@ -47,7 +47,8 @@ public class Mvn extends PluginBasedCommandlet {
 
   private static final String DOCUMENTATION_PAGE_CONF = "https://github.com/devonfw/IDEasy/blob/main/documentation/conf.adoc";
 
-  private static final String ERROR_SETTINGS_FILE_MESSAGE = "Failed to create settings file at: {}. For further details see:\n" + DOCUMENTATION_PAGE_CONF;
+  private static final String ERROR_SETTINGS_FILE_MESSAGE =
+      "Failed to create settings file at: {}. For further details see:\n" + DOCUMENTATION_PAGE_CONF;
 
   private static final String ERROR_SETTINGS_SECURITY_FILE_MESSAGE =
       "Failed to create settings security file at: {}. For further details see:\n" + DOCUMENTATION_PAGE_CONF;
@@ -84,7 +85,8 @@ public class Mvn extends PluginBasedCommandlet {
       if (Files.isDirectory(templatesFolderLegacy)) {
         templatesFolder = templatesFolderLegacy;
       } else {
-        this.context.warning("No maven templates found. Neither in {} nor in {} - configuration broken", templatesFolder, templatesFolderLegacy);
+        this.context.warning("No maven templates found. Neither in {} nor in {} - configuration broken",
+            templatesFolder, templatesFolderLegacy);
         hasMvnTemplates = false;
       }
     }
@@ -168,7 +170,7 @@ public class Mvn extends PluginBasedCommandlet {
 
         if (gitSettingsUrl == null) {
           this.context.warning("Failed to determine git remote URL for settings folder.");
-        } else if (!gitSettingsUrl.equals(gitContext.DEFAULT_SETTINGS_GIT_URL)) {
+        } else if (!gitSettingsUrl.equals(GitContext.DEFAULT_SETTINGS_GIT_URL)) {
           Set<String> variables = findVariables(content);
           for (String variable : variables) {
             String secret = getEncryptedPassword(variable);
@@ -220,5 +222,11 @@ public class Mvn extends PluginBasedCommandlet {
       this.context.warning("Plugin {} has wrong properties\n" //
           + "Please check the plugin properties file in {}", mavenPlugin.getFileName(), mavenPlugin.toAbsolutePath());
     }
+  }
+
+  @Override
+  public String getToolHelpArguments() {
+
+    return "-h";
   }
 }

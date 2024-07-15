@@ -98,13 +98,14 @@ public interface Step extends AutoCloseable {
    * Should be called to end this {@link Step} {@link #getSuccess() successfully}. May be called only once.
    *
    * @param message the explicit message to log as success.
-   * @param args    the optional arguments to fill as placeholder into the {@code message}.
+   * @param args the optional arguments to fill as placeholder into the {@code message}.
    */
   void success(String message, Object... args);
 
   /**
    * Ensures this {@link Step} is properly ended. Has to be called from a finally block.
    */
+  @Override
   void close();
 
   /**
@@ -122,7 +123,7 @@ public interface Step extends AutoCloseable {
    * only once.
    *
    * @param message the explicit message to log as error.
-   * @param args    the optional arguments to fill as placeholder into the {@code message}.
+   * @param args the optional arguments to fill as placeholder into the {@code message}.
    */
   default void error(String message, Object... args) {
 
@@ -144,7 +145,7 @@ public interface Step extends AutoCloseable {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error    the catched {@link Throwable}.
+   * @param error the catched {@link Throwable}.
    * @param suppress to suppress the error logging (if error will be rethrown and duplicated error messages shall be avoided).
    */
   default void error(Throwable error, boolean suppress) {
@@ -157,7 +158,7 @@ public interface Step extends AutoCloseable {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error   the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
+   * @param error the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
    * @param message the explicit message to log as error.
    */
   default void error(Throwable error, String message) {
@@ -169,9 +170,9 @@ public interface Step extends AutoCloseable {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error   the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
+   * @param error the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
    * @param message the explicit message to log as error.
-   * @param args    the optional arguments to fill as placeholder into the {@code message}.
+   * @param args the optional arguments to fill as placeholder into the {@code message}.
    */
   default void error(Throwable error, String message, Object... args) {
 
@@ -182,10 +183,10 @@ public interface Step extends AutoCloseable {
    * Should be called to end this {@link Step} as {@link #isFailure() failure} with an explicit error message and/or {@link Throwable exception}. May be called
    * only once.
    *
-   * @param error    the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
+   * @param error the catched {@link Throwable}. May be {@code null} if only a {@code message} is provided.
    * @param suppress to suppress the error logging (if error will be rethrown and duplicated error messages shall be avoided).
-   * @param message  the explicit message to log as error.
-   * @param args     the optional arguments to fill as placeholder into the {@code message}.
+   * @param message the explicit message to log as error.
+   * @param args the optional arguments to fill as placeholder into the {@code message}.
    */
   void error(Throwable error, boolean suppress, String message, Object... args);
 
@@ -196,7 +197,7 @@ public interface Step extends AutoCloseable {
 
   /**
    * @param i the index of the requested parameter. Should be in the range from {@code 0} to
-   *          <code>{@link #getParameterCount()}-1</code>.
+   * <code>{@link #getParameterCount()}-1</code>.
    * @return the parameter at the given index {@code i} or {@code null} if no such parameter exists.
    */
   Object getParameter(int i);
@@ -226,7 +227,7 @@ public interface Step extends AutoCloseable {
 
   /**
    * @param stepCode the {@link Callable} to {@link Callable#call() execute} for this {@link Step}.
-   * @param <R>      type of the return value.
+   * @param <R> type of the return value.
    * @return the value returned from {@link Callable#call()}.
    */
   default <R> R call(Callable<R> stepCode) {

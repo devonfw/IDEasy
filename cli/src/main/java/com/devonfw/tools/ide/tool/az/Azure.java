@@ -37,4 +37,10 @@ public class Azure extends LocalToolCommandlet {
     typeVariables.save();
     this.context.getFileAccess().symlink(Path.of("wbin"), getToolPath().resolve("bin"));
   }
+
+  @Override
+  public String getToolHelpArguments() {
+
+    return "-h";
+  }
 }

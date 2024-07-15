@@ -1,8 +1,8 @@
 package com.devonfw.tools.ide.property;
 
-import com.devonfw.tools.ide.context.IdeContext;
-
 import java.util.function.Consumer;
+
+import com.devonfw.tools.ide.context.IdeContext;
 
 public class EditionProperty extends Property<String> {
 

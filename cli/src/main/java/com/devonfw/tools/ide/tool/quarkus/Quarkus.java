@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
  * {@link ToolCommandlet} for <a href="https://quarkus.io/">Quarkus</a>.
  */
 public class Quarkus extends LocalToolCommandlet {
+
   /**
    * The constructor
    *
@@ -21,4 +22,9 @@ public class Quarkus extends LocalToolCommandlet {
     super(context, "quarkus", Set.of(Tag.JAVA, Tag.FRAMEWORK));
   }
 
+  @Override
+  public String getToolHelpArguments() {
+
+    return "--help";
+  }
 }

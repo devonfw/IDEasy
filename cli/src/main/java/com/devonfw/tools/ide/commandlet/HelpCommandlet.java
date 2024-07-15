@@ -48,7 +48,7 @@ public final class HelpCommandlet extends Commandlet {
   }
 
   @Override
-  public boolean isIdeHomeRequired() {
+  public boolean isIdeRootRequired() {
 
     return false;
   }
@@ -123,6 +123,7 @@ public final class HelpCommandlet extends Commandlet {
     this.context.info("");
     this.context.info(bundle.get("values"));
     values.print();
+    cmd.printHelp(bundle);
   }
 
   private void printCommandlets(NlsBundle bundle) {
