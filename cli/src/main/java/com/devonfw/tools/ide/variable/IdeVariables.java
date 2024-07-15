@@ -80,15 +80,10 @@ public interface IdeVariables {
   VariableDefinitionBoolean IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED = new VariableDefinitionBoolean("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED", null,
       c -> Boolean.TRUE);
 
-  /**
-   * {@link VariableDefinition} for IDEA_PROPERTIES (used to overwrite idea.properties location).
-   */
-  VariableDefinitionPath IDEA_PROPERTIES = new VariableDefinitionPath("IDEA_PROPERTIES", null, c -> c.getWorkspacePath().resolve("idea.properties"), true);
-
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, CREATE_START_SCRIPTS,
       IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, GRADLE_BUILD_OPTS, YARN_BUILD_OPTS, JASYPT_OPTS, MAVEN_ARGS,
-      PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, IDEA_PROPERTIES);
+      PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED);
 
   /**
    * @param name the name of the requested {@link VariableDefinition}.
