@@ -1,5 +1,12 @@
 package com.devonfw.tools.ide.url.updater;
 
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.common.JsonObject;
 import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
@@ -8,23 +15,15 @@ import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
- * {@link AbstractUrlUpdater} that retrieves the {@link UrlVersion versions} of a {@link UrlEdition tool edition} from a
- * HTTP response with JSON body.
+ * {@link AbstractUrlUpdater} that retrieves the {@link UrlVersion versions} of a {@link UrlEdition tool edition} from a HTTP response with JSON body.
  *
  * @param <J> type of the {@link JsonObject}.
  */
 public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersionItem> extends AbstractUrlUpdater {
 
   private static final ObjectMapper MAPPER = JsonMapping.create();
-
   private static final Logger logger = LoggerFactory.getLogger(JsonUrlUpdater.class);
 
   /**
@@ -75,8 +74,9 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
     for (JVI item : getVersionItems(jsonObj)) {
       String version = getVersion(item);
       version = mapVersion(version);
-      if (!addVersion(version, versions))
+      if (!addVersion(version, versions)) {
         continue;
+      }
 
       if (isTimeoutExpired()) {
         break;
@@ -97,8 +97,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   }
 
   /**
-   * Splits the json object that contains information about all available versions into a collection of individual
-   * version items.
+   * Splits the json object that contains information about all available versions into a collection of individual version items.
    *
    * @param jsonObject the Java object parsed from the JSON holding the information of the versions
    * @return Collection of individual version items
@@ -114,8 +113,8 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   protected abstract String getVersion(JVI jsonVersionItem);
 
   /**
-   * Updates the version of a given URL version. Replaces {@link AbstractUrlUpdater#addVersion(UrlVersion)}, when
-   * download links are available from within the json
+   * Updates the version of a given URL version. Replaces {@link AbstractUrlUpdater#addVersion(UrlVersion)}, when download links are available from within the
+   * json
    *
    * @param urlVersion the {@link UrlVersion} to be updated
    * @param jsonVersionItem

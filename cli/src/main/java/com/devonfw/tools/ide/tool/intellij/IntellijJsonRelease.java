@@ -1,13 +1,12 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.util.Map;
+
 import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Map;
-
 /**
- * JSON data object for an item of Intellij. We map only properties that we are interested in and let jackson ignore all
- * others.
+ * JSON data object for an item of Intellij. We map only properties that we are interested in and let jackson ignore all others.
  */
 public class IntellijJsonRelease implements JsonVersionItem {
 
@@ -36,8 +35,7 @@ public class IntellijJsonRelease implements JsonVersionItem {
   }
 
   /**
-   * @return a {@link Map} for an OS specific key (see KEY_* constants like {@link #KEY_WINDOWS}) to an
-   *     {@link IntellijJsonDownloadsItem}.
+   * @return a {@link Map} for an OS specific key (see KEY_* constants like {@link #KEY_WINDOWS}) to an {@link IntellijJsonDownloadsItem}.
    */
   public Map<String, IntellijJsonDownloadsItem> getDownloads() {
 

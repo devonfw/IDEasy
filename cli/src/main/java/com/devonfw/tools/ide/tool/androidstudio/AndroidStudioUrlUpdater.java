@@ -1,11 +1,12 @@
 package com.devonfw.tools.ide.tool.androidstudio;
 
-import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import java.util.Collection;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
+import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 
 /**
  * {@link JsonUrlUpdater} for Android Studio.

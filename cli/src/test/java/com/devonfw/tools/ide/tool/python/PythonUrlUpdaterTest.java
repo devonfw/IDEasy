@@ -1,20 +1,21 @@
 package com.devonfw.tools.ide.tool.python;
 
-import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * {@link WireMockTest} using {@link PythonUrlUpdaterMock}.

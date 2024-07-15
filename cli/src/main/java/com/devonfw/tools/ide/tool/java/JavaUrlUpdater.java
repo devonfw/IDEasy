@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.tool.java;
 
+import java.util.Collection;
+
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
-
-import java.util.Collection;
 
 /**
  * {@link JsonUrlUpdater} for Java.

@@ -1,13 +1,14 @@
 package com.devonfw.tools.ide.npm;
 
-import com.devonfw.tools.ide.common.JsonObject;
-
 import java.util.List;
+
+import com.devonfw.tools.ide.common.JsonObject;
 
 /**
  * {@link JsonObject} for Npm.
  */
 public class NpmJsonObject implements JsonObject {
+
   private NpmJsonVersions versions;
 
   /**

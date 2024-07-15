@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.util.Collection;
+
 import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.os.OperatingSystem;
@@ -11,21 +13,15 @@ import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.Collection;
-
 /**
  * {@link IntellijUrlUpdater} base class for IntelliJ.
  */
 public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, IntellijJsonRelease> {
 
   private static final String VERSION_BASE_URL = "https://data.services.jetbrains.com";
-
   private static final String JSON_URL = "products?code=IIU%2CIIC&release.type=release";
-
   private static final String ULTIMATE_EDITION = "ultimate";
-
   private static final String COMMUNITY_EDITION = "intellij";
-
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
   @Override

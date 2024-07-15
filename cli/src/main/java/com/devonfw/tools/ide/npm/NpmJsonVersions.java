@@ -1,15 +1,16 @@
 package com.devonfw.tools.ide.npm;
 
-import com.devonfw.tools.ide.common.JsonObject;
-import com.fasterxml.jackson.annotation.JsonAnySetter;
-
 import java.util.HashMap;
 import java.util.Map;
+
+import com.devonfw.tools.ide.common.JsonObject;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 /**
  * {@link JsonObject} for {@link NpmJsonVersion}.
  */
 public class NpmJsonVersions {
+
   private Map<String, NpmJsonVersion> versions;
 
   @JsonAnySetter

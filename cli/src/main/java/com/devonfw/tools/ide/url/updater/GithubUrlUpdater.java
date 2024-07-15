@@ -1,14 +1,15 @@
 package com.devonfw.tools.ide.url.updater;
 
+import java.util.Collection;
+
 import com.devonfw.tools.ide.github.GithubTag;
 import com.devonfw.tools.ide.github.GithubTags;
-
-import java.util.Collection;
 
 /**
  * {@link JsonUrlUpdater} for github projects.
  */
 public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, GithubTag> {
+
   @Override
   protected String doGetVersionUrl() {
 

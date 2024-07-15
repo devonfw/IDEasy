@@ -4,12 +4,12 @@ import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * JSON data object for a version of of Java. We map only properties that we are interested in and let jackson ignore
- * all others.
+ * JSON data object for a version of of Java. We map only properties that we are interested in and let jackson ignore all others.
  *
  * @see JavaJsonObject#getVersions()
  */
 public class JavaJsonVersion implements JsonVersionItem {
+
   @JsonProperty("openjdk_version")
   private String openjdkVersion;
 

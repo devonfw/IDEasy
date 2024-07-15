@@ -1,22 +1,23 @@
 package com.devonfw.tools.ide.tool.java;
 
-import com.devonfw.tools.ide.tool.npm.NpmUrlUpdater;
-import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.devonfw.tools.ide.tool.npm.NpmUrlUpdater;
+import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test class for integrations of the {@link NpmUrlUpdater}
@@ -38,6 +39,7 @@ public class JavaUrlUpdaterTest extends Assertions {
    * @param tempDir Path to a temporary directory
    * @throws IOException test fails
    */
+
   @Test
   public void testJavaUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir) throws IOException {
 

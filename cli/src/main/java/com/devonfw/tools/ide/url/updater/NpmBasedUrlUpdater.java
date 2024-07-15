@@ -1,15 +1,16 @@
 package com.devonfw.tools.ide.url.updater;
 
+import java.util.Collection;
+
 import com.devonfw.tools.ide.npm.NpmJsonObject;
 import com.devonfw.tools.ide.npm.NpmJsonVersion;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-
-import java.util.Collection;
 
 /**
  * {@link JsonUrlUpdater} for packages from the Npm registry.
  */
 public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject, NpmJsonVersion> {
+
   private static final String REGISTRY_URL = "https://registry.npmjs.org/";
 
   @Override

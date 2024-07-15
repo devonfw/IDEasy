@@ -1,21 +1,22 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
-import com.github.tomakehurst.wiremock.junit5.WireMockTest;
-import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test class for integrations of the {@link NpmUrlUpdater}
@@ -37,6 +38,7 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
    * @param tempDir Path to a temporary directory
    * @throws IOException test fails
    */
+
   @Test
   public void testNpmJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir) throws IOException {
 
@@ -62,8 +64,7 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
   }
 
   /**
-   * Test if the {@link JsonUrlUpdater} for {@link NpmUrlUpdater} for a non-existent version does successfully not
-   * create a download folder.
+   * Test if the {@link JsonUrlUpdater} for {@link NpmUrlUpdater} for a non-existent version does successfully not create a download folder.
    *
    * @param tempDir Path to a temporary directory
    * @throws IOException test fails
@@ -120,8 +121,8 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
   }
 
   /**
-   * Test if the {@link JsonUrlUpdater} for {@link NpmUrlUpdater} can handle downloads with missing checksums (generate
-   * checksum from download file if no checksum was provided)
+   * Test if the {@link JsonUrlUpdater} for {@link NpmUrlUpdater} can handle downloads with missing checksums (generate checksum from download file if no
+   * checksum was provided)
    *
    * @param tempDir Path to a temporary directory
    * @throws IOException test fails
