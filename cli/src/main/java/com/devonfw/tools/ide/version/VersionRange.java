@@ -6,9 +6,8 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
 /**
- * Container for a range of versions. The lower and upper bounds can be exclusive or inclusive. If a bound is null, it
- * means that this direction is unbounded. The boolean defining whether this bound is inclusive or exclusive is ignored
- * in this case.
+ * Container for a range of versions. The lower and upper bounds can be exclusive or inclusive. If a bound is null, it means that this direction is unbounded.
+ * The boolean defining whether this bound is inclusive or exclusive is ignored in this case.
  */
 public final class VersionRange implements Comparable<VersionRange> {
 
@@ -36,8 +35,7 @@ public final class VersionRange implements Comparable<VersionRange> {
    *
    * @param min the {@link #getMin() minimum}.
    * @param max the {@link #getMax() maximum}.
-   * @param boundaryType the {@link BoundaryType} defining whether the boundaries of the range are inclusive or
-   *        exclusive.
+   * @param boundaryType the {@link BoundaryType} defining whether the boundaries of the range are inclusive or exclusive.
    */
   public VersionRange(VersionIdentifier min, VersionIdentifier max, BoundaryType boundaryType) {
 
@@ -82,8 +80,7 @@ public final class VersionRange implements Comparable<VersionRange> {
 
   /**
    * @param version the {@link VersionIdentifier} to check.
-   * @return {@code true} if the given {@link VersionIdentifier} is contained in this {@link VersionRange},
-   *         {@code false} otherwise.
+   * @return {@code true} if the given {@link VersionIdentifier} is contained in this {@link VersionRange}, {@code false} otherwise.
    */
   public boolean contains(VersionIdentifier version) {
 

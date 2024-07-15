@@ -1,13 +1,14 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Path;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
-import java.util.List;
 
 /** Integration test of {@link EditionGetCommandlet}. */
 
@@ -46,7 +47,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     context.getFileAccess().symlink(pathToInstallationOfDummyTool, pathToLinkedSoftware);
   }
 
-  /** Test of {@link VersionGetCommandlet} run, when Installed Version is null. */
+  /** Test of {@link VersionGetCommandlet} run with --configured flag */
   @Test
   public void testVersionGetCommandletRunPrintConfiguredEdition() {
 
@@ -54,9 +55,26 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString("java", context);
+    editionGet.configured.setValue(true);
     // act
     editionGet.run();
     // assert
+    assertLogMessage(context, IdeLogLevel.INFO, "java");
+  }
+
+  /** Test of {@link VersionGetCommandlet} run, with --installed flag, when Installed Version is null. */
+  @Test
+  public void testVersionGetCommandletRunPrintInstalledEdition() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
+    editionGet.tool.setValueAsString("java", context);
+    editionGet.installed.setValue(true);
+    // act
+    editionGet.run();
+    // assert
+    assertLogMessage(context, IdeLogLevel.INFO, "No installation of tool java was found.");
     assertLogMessage(context, IdeLogLevel.INFO, "The configured edition for tool java is java");
     assertLogMessage(context, IdeLogLevel.INFO, "To install that edition call the following command:");
     assertLogMessage(context, IdeLogLevel.INFO, "ide install java");

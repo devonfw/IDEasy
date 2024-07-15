@@ -1,8 +1,9 @@
 package com.devonfw.tools.ide.tool.graalvm;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import org.junit.jupiter.api.Test;
 
 /**
  * Integration test of {@link GraalVm}.

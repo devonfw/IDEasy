@@ -14,7 +14,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonObject;

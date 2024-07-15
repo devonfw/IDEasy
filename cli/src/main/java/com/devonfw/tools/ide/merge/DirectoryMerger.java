@@ -1,11 +1,5 @@
 package com.devonfw.tools.ide.merge;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
-import com.devonfw.tools.ide.util.FilenameUtil;
-import org.jline.utils.Log;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,6 +8,13 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
+import org.jline.utils.Log;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
+import com.devonfw.tools.ide.util.FilenameUtil;
 
 /**
  * Implementation of {@link WorkspaceMerger} that does the whole thing:

@@ -7,8 +7,8 @@ import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 /**
  * Interface for a file of an {@link UrlVersion}.
  *
- * @see UrlDownloadFile
  * @param <P> type of the {@link #getParent() parent} {@link UrlFolder folder}.
+ * @see UrlDownloadFile
  */
 public interface UrlFile<P extends UrlFolder<?>> extends UrlArtifactWithParent<P> {
 

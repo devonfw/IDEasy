@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.network;
 
-import com.devonfw.tools.ide.context.IdeContext;
-
 import java.net.InetSocketAddress;
 import java.net.Proxy;
+
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Class for handling system proxy settings. This class is responsible for detecting and managing the proxy configurations for HTTP and HTTPS protocols based on
@@ -46,7 +46,7 @@ public class ProxyContext {
     if (proxyUrl == null) {
       proxyUrl = System.getenv(proxyEnvVariable.toUpperCase());
     }
-    return (proxyUrl != null && !proxyUrl.isEmpty()) ? new ProxyConfig(proxyUrl, context) : null;
+    return (proxyUrl != null && !proxyUrl.isEmpty()) ? new ProxyConfig(proxyUrl, this.context) : null;
   }
 
   /**
@@ -84,9 +84,9 @@ public class ProxyContext {
   public ProxyConfig getProxyConfig(String url) {
 
     if (url.startsWith("http://")) {
-      return httpProxyConfig;
+      return this.httpProxyConfig;
     } else if (url.startsWith("https://")) {
-      return httpsProxyConfig;
+      return this.httpsProxyConfig;
     } else {
       this.context.warning("Download URL wrongly formatted: " + url);
       return null;

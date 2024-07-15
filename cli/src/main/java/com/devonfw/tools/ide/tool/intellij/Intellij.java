@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Set;
+
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -43,7 +48,7 @@ public class Intellij extends IdeToolCommandlet {
 
     install(true);
     args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
-    super.runTool(processMode, toolVersion, args);
+    super.runTool(ProcessMode.BACKGROUND, toolVersion, args);
   }
 
   @Override
@@ -78,7 +83,7 @@ public class Intellij extends IdeToolCommandlet {
   private String generateMacEditionString() {
 
     String edition = "";
-    if (getEdition().equals("intellij")) {
+    if (getConfiguredEdition().equals("intellij")) {
       edition = " CE";
     }
     return edition;

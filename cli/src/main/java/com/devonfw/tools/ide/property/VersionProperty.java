@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.property;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.IntStream;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -7,11 +12,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionSegment;
-
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Consumer;
-import java.util.stream.IntStream;
 
 /**
  * {@link Property} for {@link VersionIdentifier} as {@link #getValueType() value type}.
@@ -79,14 +79,16 @@ public class VersionProperty extends Property<VersionIdentifier> {
           return;
         }
       }
-      List<VersionIdentifier> versions = context.getUrls().getSortedVersions(tool.getName(), tool.getEdition());
+      List<VersionIdentifier> versions = context.getUrls()
+          .getSortedVersions(tool.getName(), tool.getConfiguredEdition());
       int size = versions.size();
-      String[] sortedCandidates = IntStream.rangeClosed(1, size).mapToObj(i -> versions.get(size - i).toString()).toArray(String[]::new);
+      String[] sortedCandidates = IntStream.rangeClosed(1, size).mapToObj(i -> versions.get(size - i).toString())
+          .toArray(String[]::new);
       collector.addAllMatches(text, sortedCandidates, this, commandlet);
       List<CompletionCandidate> candidates = collector.getCandidates();
       Collections.reverse(candidates);
-      CompletionCandidate latest = collector.createCandidate(text + VersionSegment.PATTERN_MATCH_ANY_STABLE_VERSION, "Latest stable matching version", this,
-          commandlet);
+      CompletionCandidate latest = collector.createCandidate(text + VersionSegment.PATTERN_MATCH_ANY_STABLE_VERSION,
+          "Latest stable matching version", this, commandlet);
       if (candidates.isEmpty()) {
         candidates.add(latest);
       } else {
