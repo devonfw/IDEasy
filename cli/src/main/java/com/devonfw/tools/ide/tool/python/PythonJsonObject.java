@@ -1,8 +1,8 @@
 package com.devonfw.tools.ide.tool.python;
 
-import java.util.List;
-
 import com.devonfw.tools.ide.common.JsonObject;
+
+import java.util.List;
 
 /**
  * Java object to represent the JSON of Python release information. This is the root {@link JsonObject}.
@@ -10,6 +10,11 @@ import com.devonfw.tools.ide.common.JsonObject;
 public class PythonJsonObject implements JsonObject {
 
   private List<PythonRelease> releases;
+
+  public void setReleases(List<PythonRelease> releases) {
+
+    this.releases = releases;
+  }
 
   /**
    * @return the {@link List} of {@link PythonRelease}s.
