@@ -646,15 +646,16 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   protected final boolean addVersion(String version, Collection<String> versions) {
 
-    if ((version == null) || version.isBlank()) {
+    String mappedVersion = mapVersion(version);
+    if ((mappedVersion == null) || mappedVersion.isBlank()) {
       logger.debug("Filtered version {}", version);
       return false;
-    } else if (!version.equals(version)) {
-      logger.debug("Mapped version {} to {}", version, version);
+    } else if (!version.equals(mappedVersion)) {
+      logger.debug("Mapped version {} to {}", version, mappedVersion);
     }
-    boolean added = versions.add(version);
+    boolean added = versions.add(mappedVersion);
     if (!added) {
-      logger.warn("Duplicate version {}", version);
+      logger.warn("Duplicate version {}", mappedVersion);
     }
     return added;
   }

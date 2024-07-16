@@ -37,7 +37,6 @@ public abstract class WebsiteUrlUpdater extends AbstractUrlUpdater {
     var matcher = getVersionPattern().matcher(htmlBody);
     while (matcher.find()) {
       String version = matcher.group();
-      version = mapVersion(version);
       addVersion(version, versions);
     }
     return versions;

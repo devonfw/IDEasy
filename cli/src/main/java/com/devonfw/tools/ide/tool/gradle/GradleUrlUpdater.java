@@ -101,7 +101,6 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
     var matcher = getVersionPattern().matcher(htmlBody);
     while (matcher.find()) {
       String version = matcher.group();
-      version = mapVersion(version);
       addVersion(version, versions);
     }
     return versions;
