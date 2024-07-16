@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 
 /**
  * Integration test of {@link VersionSetCommandlet}.
@@ -64,7 +65,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
     VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
     versionSet.tool.setValueAsString("mvn", context);
     versionSet.version.setValueAsString("3.2.1", context);
-    versionSet.conf.setValue(true);
+    versionSet.cfg.setValue(EnvironmentVariablesType.CONF);
     // act
     versionSet.run();
     // assert
