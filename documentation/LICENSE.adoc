@@ -11,9 +11,12 @@ The documentation of this product is licensed under the terms of the http://crea
 
 All of the source code to this product is available under licenses which are both free and open source.
 
-More specifically, most of the source code is available under the Apache License 2.0. The remainder of the software which is not under the Apache License is available under one of a variety of other free and open source licenses. Those that require reproduction of the license text in the distribution are given below. (Note: your copy of this product may not contain code covered by one or more of the licenses listed here, depending on the exact product and version you choose.)
+More specifically, most of the source code is available under the Apache License 2.0. The remainder of the software which is not under the Apache License is available under one of a variety of other free and open source licenses.
+Those that require reproduction of the license text in the distribution are given below.
+(Note: your copy of this product may not contain code covered by one or more of the licenses listed here, depending on the exact product and version you choose.)
 
-The following table shows the components that may be used. The column `inclusion` indicates the way the component is included:
+The following table shows the components that may be used.
+The column `inclusion` indicates the way the component is included:
 
 * `directly included` means the component is directly contained in the download package of `IDEasy` we provide
 * `default setup` means the component is not initially included but will be downloaded during the link:setup.asciidoc[`setup`] by default
@@ -463,6 +466,7 @@ Exhibit A – Form of Secondary Licenses Notice
 
     You may add additional accurate notices of copyright ownership.
 ```
+
 == MIT License
 
 ```
@@ -476,6 +480,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ```
 
 == Artistic License - Version 2.0
+
 ```
 Copyright (c) 2000-2006, The Perl Foundation.
 
@@ -552,6 +557,7 @@ General Provisions
 ```
 
 == Creative Commons License - Attribution-NoDerivatives 4.0 International
+
 ```
 By exercising the Licensed Rights (defined below), You accept and agree to be bound by the terms and conditions of this Creative Commons Attribution-NoDerivatives 4.0 International Public License ("Public License"). To the extent this Public License may be interpreted as a contract, You are granted the Licensed Rights in consideration of Your acceptance of these terms and conditions, and the Licensor grants You such rights in consideration of benefits the Licensor receives from making the Licensed Material available under these terms and conditions.
 
@@ -648,6 +654,7 @@ Section 8 – Interpretation.
 ```
 
 == GNU LESSER GENERAL PUBLIC LICENSE - Version 2.1
+
 ```
  Version 2.1, February 1999
 
@@ -825,6 +832,7 @@ Ty Coon, President of Vice
 ```
 
 == GNU LESSER GENERAL PUBLIC LICENSE - Version 3
+
 ```
 Version 3, 29 June 2007
 
@@ -1026,6 +1034,7 @@ Ty Coon, President of Vice
 ```
 
 == "CLASSPATH" EXCEPTION TO THE GPL
+
 ```
 Certain source files distributed by Oracle America and/or its affiliates
 are subject to the following clarification and special exception to the GPLv2,
@@ -1081,6 +1090,7 @@ statement from your version.
 ```
 
 == DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE - Version 2
+
 ```
             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
                     Version 2, December 2004
@@ -1098,6 +1108,7 @@ statement from your version.
 ```
 
 == License of Node.js
+
 ```
 Node.js is licensed for use as follows:
 
@@ -2901,6 +2912,7 @@ The externally maintained libraries used by Node.js are:
 ```
 
 == MICROSOFT SOFTWARE LICENSE TERMS
+
 ```
 MICROSOFT VISUAL STUDIO CODE
 
@@ -2943,7 +2955,9 @@ IF YOU COMPLY WITH THESE LICENSE TERMS, YOU HAVE THE RIGHTS BELOW.
 
     It also applies even if Microsoft knew or should have known about the possibility of the damages. The above limitation or exclusion may not apply to you because your state or country may not allow the exclusion or limitation of incidental, consequential or other damages.
 ```
+
 == Mozilla Public License 2.0
+
 ```
 Mozilla Public License, version 2.0
 
@@ -3299,7 +3313,9 @@ Exhibit B - “Incompatible With Secondary Licenses” Notice
       With Secondary Licenses”, as defined by
       the Mozilla Public License, v. 2.0.
 ```
+
 == The Universal Permissive License, Version 1.0
+
 ```
 Copyright (c) 2018, 2022, Oracle and/or its affiliates. All rights reserved.
 

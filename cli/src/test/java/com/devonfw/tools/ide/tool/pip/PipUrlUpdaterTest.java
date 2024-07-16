@@ -24,8 +24,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
-   * Tests if the {@link com.devonfw.tools.ide.tool.pip.PipUrlUpdater} will successfully resolve a server with a
-   * Content-Type:text header response.
+   * Tests if the {@link com.devonfw.tools.ide.tool.pip.PipUrlUpdater} will successfully resolve a server with a Content-Type:text header response.
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *

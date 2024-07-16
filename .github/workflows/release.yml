@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [ windows-latest, macos-latest, macos-13, ubuntu-latest ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -33,11 +33,11 @@ jobs:
         with:
           name: natives
           path: cli/target/*.tar.gz
-          
+
   release:
     name: Release on Sonatype OSS
     runs-on: ubuntu-latest
-    needs: [build-natives]
+    needs: [ build-natives ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -58,12 +58,7 @@ jobs:
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}"
-          current_segment="${current_version/*./}"
-          last_digits="${current_segment/[^0-9]*/}"
-          suffix="${current_segment/${last_digit}/}"
-          (( next_segment=${last_digits}+1 ))
-          while [ ${#next_segment} -ne 3 ]; do next_segment="0${next_segment}"; done
-          next_version="${current_version%.*}.${next_segment}${suffix}-SNAPSHOT"
+          next_version="${current_version/-SNAPSHOT/}"
           sed -i "s/${current_version}/${next_version}/" .mvn/maven.config
           git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
           git config --global user.name ${{ secrets.BUILD_USER }}
@@ -84,9 +79,11 @@ jobs:
           current_version="${maven_config/#*-Drevision=}"
           current_version="${current_version/ */}"
           current_segment="${current_version/*./}"
-          (( next_segment=${current_segment}+1 ))
-          while [ ${#next_segment} -ne 3 ]; do next_segment="0${next_segment}"; done
-          next_version="${current_version%.*}.${next_segment}-SNAPSHOT"
+          last_digits="${current_segment/[^0-9]*/}"
+          suffix="${current_segment/${last_digits}/}"
+          (( next_segment=${last_digits}+1 ))
+          while [ ${#next_segment} -lt 3 ]; do next_segment="0${next_segment}"; done
+          next_version="${current_version%.*}.${next_segment}${suffix}-SNAPSHOT"
           sed -i "s/${current_version}/${next_version}/" .mvn/maven.config
           git add -f .mvn/maven.config
           git commit -m "set next version to ${next_version}"
@@ -95,9 +92,10 @@ jobs:
           git push --tags
           noDotVersion="${current_version//.}"
           gh release create "release/${current_version}" ./cli/target/*.tar.gz --title "${current_version}" --notes "# Download
-          * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-windows.tar.gz
-          * Mac: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac.tar.gz
-          * Linux: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-linux.tar.gz
+          * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-windows-x86_64.tar.gz
+          * Mac(arm): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-osx-aarch_64.tar.gz
+          * Mac(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-osx-x86_64.tar.gz
+          * Linux: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-linux-x86_64.tar.gz
           # Changes
           https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.asciidoc#${noDotVersion}"
         env:

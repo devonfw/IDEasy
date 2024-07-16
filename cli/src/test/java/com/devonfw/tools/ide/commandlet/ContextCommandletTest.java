@@ -13,7 +13,7 @@ public class ContextCommandletTest extends AbstractIdeContextTest {
    * Test of {@link ContextCommandlet} has name context.
    */
   @Test
-  public void testNameIsContext(){
+  public void testNameIsContext() {
     //arrange
     ContextCommandlet cxt = new ContextCommandlet();
     //act & assert

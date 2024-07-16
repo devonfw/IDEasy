@@ -3,8 +3,8 @@ package com.devonfw.tools.ide.environment;
 import com.devonfw.tools.ide.log.IdeLogger;
 
 /**
- * Container that represents a line from a properties (ide.properties) file. We do not use {@link java.util.Properties}
- * as we need support for exported variables, lists/arrays, and saving changes without loosing comments, etc.
+ * Container that represents a line from a properties (ide.properties) file. We do not use {@link java.util.Properties} as we need support for exported
+ * variables, lists/arrays, and saving changes without loosing comments, etc.
  */
 public abstract class VariableLine {
 
@@ -17,8 +17,7 @@ public abstract class VariableLine {
   }
 
   /**
-   * @return the name of the variable. Will be {@code null} if not a regular variable line (e.g. a comment or empty
-   *         line).
+   * @return the name of the variable. Will be {@code null} if not a regular variable line (e.g. a comment or empty line).
    */
   public String getName() {
 
@@ -26,8 +25,7 @@ public abstract class VariableLine {
   }
 
   /**
-   * @return the value of the variable. Will be {@code null} if not a regular variable line (e.g. a comment or empty
-   *         line).
+   * @return the value of the variable. Will be {@code null} if not a regular variable line (e.g. a comment or empty line).
    */
   public String getValue() {
 

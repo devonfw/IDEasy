@@ -33,8 +33,7 @@ public class LocalePropertyTest extends Assertions {
 
   /**
    * Test of
-   * {@link LocaleProperty#completeValue(String, IdeContext, com.devonfw.tools.ide.commandlet.Commandlet, CompletionCandidateCollector)
-   * auto-completion}.
+   * {@link LocaleProperty#completeValue(String, IdeContext, com.devonfw.tools.ide.commandlet.Commandlet, CompletionCandidateCollector) auto-completion}.
    */
   @Test
   public void testCompletion() {

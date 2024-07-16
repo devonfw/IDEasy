@@ -1,8 +1,9 @@
 package com.devonfw.tools.ide.environment;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import org.junit.jupiter.api.Test;
 
 /**
  * Test of {@link EnvironmentVariables}.
