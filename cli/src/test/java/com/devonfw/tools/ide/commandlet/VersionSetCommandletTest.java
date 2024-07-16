@@ -73,12 +73,9 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
         #********************************************************************************
         # This file contains project specific environment variables defined by the user
         #********************************************************************************
-
         M2_REPO=~/.m2/repository
         MVN_VERSION=3.2.1
-                                           
         SOME=some-${UNDEFINED}
-                
         TEST_ARGS1=${TEST_ARGS1} conf1
         TEST_ARGS2=${TEST_ARGS2} conf2
         TEST_ARGS5=${TEST_ARGS5} conf5
