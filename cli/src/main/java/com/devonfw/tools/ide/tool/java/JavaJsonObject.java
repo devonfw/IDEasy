@@ -9,6 +9,7 @@ import com.devonfw.tools.ide.common.JsonObject;
  * {@link JsonObject} for Java versions from adoptium REST API.
  */
 public class JavaJsonObject implements JsonObject {
+
   private final List<JavaJsonVersion> versions = new ArrayList<>();
 
   /**

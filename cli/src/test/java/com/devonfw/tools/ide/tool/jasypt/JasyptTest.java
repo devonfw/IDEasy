@@ -1,11 +1,13 @@
 package com.devonfw.tools.ide.tool.jasypt;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -19,7 +21,7 @@ public class JasyptTest extends AbstractIdeContextTest {
   private static final String JASYPT_OPTS = "custom_argument";
 
   private static final String PROJECT_JASYPT = "jasypt";
-  
+
   /**
    * Tests if {@link Jasypt} is properly installed by the {@link InstallCommandlet}
    */
@@ -87,7 +89,7 @@ public class JasyptTest extends AbstractIdeContextTest {
   public void testJasyptRunWithCustomVariable() {
 
     // arrange
-    environment.set("JASYPT_OPTS", JASYPT_OPTS);
+    this.environment.set("JASYPT_OPTS", JASYPT_OPTS);
 
     IdeTestContext context = newContext(PROJECT_JASYPT);
     Jasypt commandlet = new Jasypt(context);

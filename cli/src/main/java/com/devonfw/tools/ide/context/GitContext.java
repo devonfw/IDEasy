@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Path;
+
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import java.io.IOException;
-
-import java.nio.file.Path;
 
 /**
  * Interface for git commands with input and output of information for the user.
@@ -18,6 +18,7 @@ public interface GitContext {
 
   /**
    * Checks if the Git repository in the specified target folder needs an update by inspecting the modification time of a magic file.
+   *
    * @param repoUrl the git remote URL to clone from.
    * @param branch the explicit name of the branch to checkout e.g. "main" or {@code null} to use the default branch.
    * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git

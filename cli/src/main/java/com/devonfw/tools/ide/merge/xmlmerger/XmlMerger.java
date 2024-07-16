@@ -1,13 +1,17 @@
 package com.devonfw.tools.ide.merge.xmlmerger;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.merge.FileMerger;
-import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
-import com.devonfw.tools.ide.merge.xmlmerger.strategy.OverrideStrategy;
-import com.devonfw.tools.ide.merge.xmlmerger.strategy.Strategy;
-import com.devonfw.tools.ide.merge.xmlmerger.strategy.StrategyFactory;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Objects;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+
 import org.w3c.dom.Attr;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -16,16 +20,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.w3c.dom.Text;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.merge.FileMerger;
+import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
+import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 
 public class XmlMerger extends FileMerger {
 
@@ -56,6 +55,7 @@ public class XmlMerger extends FileMerger {
 
     Document document = null;
     Path template = setup;
+    Path target = workspace;
     boolean updateFileExists = Files.exists(update);
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
@@ -64,25 +64,78 @@ public class XmlMerger extends FileMerger {
       document = load(workspace);
     } else if (Files.exists(setup)) {
       document = load(setup);
+      target = setup;
     }
     if (updateFileExists) {
+      template = update;
       if (document == null) {
         document = load(update);
       } else {
         Document updateDocument = load(update);
-        merge(updateDocument, document);
+        merge(updateDocument, document, template, target);
       }
-      template = update;
     }
-    resolve(document, resolver, false, template);
-    save(document, workspace);
+    if (document != null) {
+      resolve(document, resolver, false, template);
+      save(document, workspace);
+    }
   }
 
-  public void merge(Document sourceDocument, Document targetDocument) {
+  /**
+   * Merges the source document with the target document.
+   *
+   * @param sourceDocument The {@link Document} representing the source xml file.
+   * @param targetDocument The {@link Document} representing the target xml file.
+   * @param source {@link Path} to the source document.
+   * @param target {@link Path} to the target document.
+   */
+  public void merge(Document sourceDocument, Document targetDocument, Path source, Path target) {
 
-    MergeElement updateRootElement = new MergeElement(sourceDocument.getDocumentElement());
-    Strategy strategy = StrategyFactory.createStrategy(updateRootElement.getMergingStrategy(), new ElementMatcher());
-    strategy.merge(updateRootElement, targetDocument);
+    this.context.debug("Merging {} with {} ...", source.getFileName().toString(), target.getFileName().toString());
+    MergeElement sourceRoot = new MergeElement(sourceDocument.getDocumentElement(), source);
+    MergeElement targetRoot = new MergeElement(targetDocument.getDocumentElement(), target);
+
+    if (areRootsCompatible(sourceRoot, targetRoot)) {
+      MergeStrategy strategy = MergeStrategy.of(sourceRoot.getMergingStrategy());
+      strategy.merge(sourceRoot, targetRoot, new ElementMatcher(this.context));
+    } else {
+      this.context.warning("Root elements do not match. Skipping merge operation.");
+    }
+  }
+
+  /**
+   * Checks the compatibility (tagname and namespaceURI) of the given root elements to be merged.
+   *
+   * @param sourceRoot the {@link MergeElement} representing the root element of the source document.
+   * @param targetRoot the {@link MergeElement} representing the root element of the target document.
+   * @return {@code true} when the roots are compatible, otherwise {@code false}.
+   */
+  private boolean areRootsCompatible(MergeElement sourceRoot, MergeElement targetRoot) {
+
+    Element sourceElement = sourceRoot.getElement();
+    Element targetElement = targetRoot.getElement();
+
+    // Check if tag names match
+    if (!sourceElement.getTagName().equals(targetElement.getTagName())) {
+      this.context.warning("Names of root elements of {} and {} don't match. Found {} and {}",
+          sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(),
+          sourceElement.getTagName(), targetElement.getTagName());
+      return false;
+    }
+
+    // Check if namespace URIs match (if they exist)
+    String sourceNs = sourceElement.getNamespaceURI();
+    String targetNs = targetElement.getNamespaceURI();
+    if (sourceNs != null || targetNs != null) {
+      if (!Objects.equals(sourceNs, targetNs)) {
+        this.context.warning("URI of root elements of {} and {} don't match. Found {} and {}",
+            sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(),
+            sourceNs, targetNs);
+        return false;
+      }
+    }
+
+    return true;
   }
 
   @Override
@@ -93,10 +146,11 @@ public class XmlMerger extends FileMerger {
     }
     Document updateDocument = load(update);
     Document workspaceDocument = load(workspace);
-    Strategy strategy = new OverrideStrategy(null);
-    MergeElement rootElement = new MergeElement(workspaceDocument.getDocumentElement());
-    strategy.merge(rootElement, updateDocument);
     resolve(updateDocument, variables, true, workspace.getFileName());
+    MergeStrategy strategy = MergeStrategy.OVERRIDE;
+    MergeElement sourceRoot = new MergeElement(workspaceDocument.getDocumentElement(), workspace);
+    MergeElement targetRoot = new MergeElement(updateDocument.getDocumentElement(), update);
+    strategy.merge(sourceRoot, targetRoot, null);
     save(updateDocument, update);
     this.context.debug("Saved changes in {} to {}", workspace.getFileName(), update);
   }
@@ -119,7 +173,9 @@ public class XmlMerger extends FileMerger {
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
       transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
       transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
+      transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
 
+      // Workaround:
       // Remove whitespace from the target document before saving, because if target XML Document is already formatted
       // then indent 2 keeps adding empty lines for nothing, and if we don't use indentation then appending/ overriding
       // isn't properly formatted.
@@ -192,5 +248,4 @@ public class XmlMerger extends FileMerger {
       attribute.setValue(resolvedValue);
     }
   }
-
 }

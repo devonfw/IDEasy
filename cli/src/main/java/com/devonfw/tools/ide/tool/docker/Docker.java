@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.tool.docker;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
@@ -9,17 +14,13 @@ import com.devonfw.tools.ide.tool.PackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 /**
  * {@link GlobalToolCommandlet} for <a href="https://www.docker.com/">docker</a> either as
  * <a href="https://rancherdesktop.io/">Rancher Desktop</a> or as
  * <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a>.
  */
 public class Docker extends GlobalToolCommandlet {
+
   /**
    * The constructor.
    *
@@ -52,7 +53,7 @@ public class Docker extends GlobalToolCommandlet {
 
   private List<PackageManagerCommand> getPackageManagerCommandsInstall() {
 
-    String edition = getEdition();
+    String edition = getConfiguredEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion).toString();

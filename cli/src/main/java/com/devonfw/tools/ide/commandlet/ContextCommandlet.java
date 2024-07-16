@@ -8,8 +8,7 @@ import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.LocaleProperty;
 
 /**
- * An internal pseudo-commandlet to create the {@link IdeContext}. It shall not be registered in
- * {@link CommandletManager}.
+ * An internal pseudo-commandlet to create the {@link IdeContext}. It shall not be registered in {@link CommandletManager}.
  */
 public class ContextCommandlet extends Commandlet {
 

@@ -27,6 +27,18 @@ public class VersionCommandlet extends Commandlet {
   }
 
   @Override
+  public boolean isIdeRootRequired() {
+
+    return false;
+  }
+
+  @Override
+  public boolean isProcessableOutput() {
+
+    return true;
+  }
+
+  @Override
   public void run() {
 
     this.context.info(IdeVersion.get());
