@@ -28,6 +28,20 @@ public interface GitContext {
 
   /**
    * Checks if a git fetch is needed and performs it if required.
+   *
+   * This method checks the last modified time of the `FETCH_HEAD` file in the `.git`
+   * directory to determine if a fetch is needed based on a predefined threshold.
+   * If updates are available in the remote repository, it logs an information message
+   * prompting the user to pull the latest changes.
+   *
+   * @param targetRepository the {@link Path} to the target folder where the git repository
+   *                         is located. It contains the `.git` subfolder.
+   */
+  void fetchIfNeeded(Path targetRepository);
+
+  /**
+   * Checks if a git fetch is needed and performs it if required.
+   *
    * This method checks the last modified time of the `FETCH_HEAD` file in the `.git`
    * directory to determine if a fetch is needed based on a predefined threshold.
    * If updates are available in the remote repository, it logs an information message
@@ -37,7 +51,6 @@ public interface GitContext {
    * @param branch the name of the branch to check for updates.
    * @param targetRepository the {@link Path} to the target folder where the git repository
    *                         is located. It contains the `.git` subfolder.
-   * @throws IOException if there is an error accessing the git files
    */
   void fetchIfNeeded(String remoteName, String branch, Path targetRepository);
 

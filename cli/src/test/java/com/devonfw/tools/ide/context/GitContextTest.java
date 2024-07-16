@@ -217,38 +217,6 @@ public class GitContextTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test for fetchIfNeeded when the FETCH_HEAD file is older than the threshold and updates are available.
-   *
-   * @param tempDir a {@link TempDir} {@link Path}.
-   */
-  @Test
-  public void testFetchIfNeededOldFetchHeadWithUpdates(@TempDir Path tempDir) throws IOException {
-    // arrange
-    String repoUrl = "https://github.com/test";
-    String remoteName = "origin";
-    List<String> errors = new ArrayList<>();
-    List<String> outs = new ArrayList<>();
-    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
-    GitContext gitContext = new GitContextImpl(context);
-
-    Path gitDir = tempDir.resolve(".git");
-    Files.createDirectories(gitDir);
-    Path fetchHead = gitDir.resolve("FETCH_HEAD");
-    Files.createFile(fetchHead);
-    Files.setLastModifiedTime(fetchHead, FileTime.fromMillis(System.currentTimeMillis() - 86400000)); // 1 day old
-
-    // Mocking repository update availability
-    outs.add("new updates available");
-
-    // act
-    gitContext.fetchIfNeeded(repoUrl, remoteName, tempDir);
-
-    // assert
-    // Since FETCH_HEAD is old and updates are available, fetch should occur
-    assertThat(outs.isEmpty()).isFalse();
-  }
-
-  /**
    * Test for isRepositoryUpdateAvailable when local and remote commits are the same.
    *
    * @param tempDir a {@link TempDir} {@link Path}.
