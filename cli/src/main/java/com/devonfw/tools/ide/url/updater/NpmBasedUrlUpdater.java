@@ -48,9 +48,5 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject, N
     return REGISTRY_URL;
   }
 
-  //TODO make abstract
-  protected String getPackageName() {
-
-    return getTool();
-  }
+  protected abstract String getPackageName();
 }

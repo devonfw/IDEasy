@@ -12,4 +12,10 @@ public class NpmUrlUpdater extends NpmBasedUrlUpdater {
 
     return "npm";
   }
+
+  @Override
+  protected String getPackageName() {
+
+    return getTool();
+  }
 }
