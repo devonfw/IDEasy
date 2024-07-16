@@ -291,7 +291,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     String edition = getConfiguredEdition();
     this.context.getUrls()
-        .getVersionFolder(tool, edition, version); // CliException is thrown if the version is not existing
+        .getVersionFolder(this.tool, edition, version); // CliException is thrown if the version is not existing
 
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(destination);
