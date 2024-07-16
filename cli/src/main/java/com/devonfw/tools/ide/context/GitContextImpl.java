@@ -108,7 +108,7 @@ public class GitContextImpl implements GitContext {
         // Check if the file modification time is older than the delta threshold
         if ((currentTime - fileModifiedTime > GIT_FETCH_CACHE_DELAY.toMillis())) {
           if (isRepositoryUpdateAvailable(targetRepository, remoteName, branch)) {
-            this.context.info("Updates are available for the settings repository. Please pull the latest changes.");
+            this.context.info("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
           }
           try {
             Files.setLastModifiedTime(fetchHeadPath, FileTime.fromMillis(currentTime));
