@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.tool.intellij;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
@@ -14,13 +16,6 @@ import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
@@ -67,8 +62,21 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public boolean install(boolean silent) {
 
+    pluginTest();
+
     getCommandlet(Java.class).install();
     return super.install(silent);
+  }
+
+  private void pluginTest() {
+
+    for (PluginDescriptor plugin : super.getPluginsMap().values()) {
+      if (plugin.isActive()) {
+        installPlugin(plugin);
+      } else {
+        handleInstall4InactivePlugin(plugin);
+      }
+    }
   }
 
   @Override
@@ -112,61 +120,73 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    Path buildFile = this.getToolPath().resolve("build.txt");
-    String buildVersion = null;
     String pluginId = plugin.getId();
     String downloadUrl = plugin.getUrl();
 
+    Path tmpDir = null;
     try {
-      buildVersion = Files.readString(buildFile);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to read IntelliJ build version: " + buildFile, e);
-    }
+      String buildVersion = readBuildVersion();
 
-    if (buildVersion != null && pluginId != null) {
-      Path installationPath = this.getPluginsInstallationPath();
-      if (!Files.exists(installationPath)) {
-        try {
-          Files.createDirectories(installationPath);
-        } catch (IOException e) {
-          throw new IllegalStateException("Failed to create directory " + installationPath, e);
-        }
-      }
+      Path installationPath = getPluginsInstallationPath();
+      ensureInstallationPathExists(installationPath);
 
       if (downloadUrl == null || downloadUrl.isEmpty()) {
         downloadUrl = String.format("https://plugins.jetbrains.com/pluginManager?action=download&id=%s&build=%s", pluginId, buildVersion);
       }
 
-      FileAccess fileAccess = this.context.getFileAccess();
-      Path tmpDir = fileAccess.createTempDir(pluginId);
+      FileAccess fileAccess = context.getFileAccess();
+      tmpDir = fileAccess.createTempDir(pluginId);
 
-      try {
-        String extension = getFileExtensionFromUrl(downloadUrl);
+      Path downloadedFile = downloadPlugin(fileAccess, downloadUrl, tmpDir, buildVersion, pluginId);
+      installDownloadedPlugin(fileAccess, downloadedFile, pluginId);
 
-        if (extension.isEmpty()) {
-          throw new IllegalStateException("Unknown file type for URL: " + downloadUrl);
-        }
 
-        String fileName = String.format("intellij-plugin-%s-%s%s", buildVersion, pluginId, extension);
-        Path downloadedFile = tmpDir.resolve(fileName);
-        fileAccess.download(downloadUrl, downloadedFile);
-
-        Path targetDir = this.getPluginsInstallationPath().resolve(pluginId);
-
-        //        if (".zip".equals(extension)) {
-        //          fileAccess.extract(downloadedFile, targetDir);
-        //        } else if (".jar".equals(extension)) {
-        //          extractJar(downloadedFile, targetDir);
-        //        }
-        fileAccess.extract(downloadedFile, targetDir);
-
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to download the plugin file: " + downloadUrl, e);
-      } finally {
-        if (tmpDir != null) {
-          fileAccess.delete(tmpDir);
-        }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to process plugin installation", e);
+    } finally {
+      if (tmpDir != null) {
+        context.getFileAccess().delete(tmpDir);
       }
+    }
+  }
+
+  private String readBuildVersion() throws IOException {
+
+    Path buildFile = getToolPath().resolve("build.txt");
+    try {
+      return Files.readString(buildFile);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read IntelliJ build version: " + buildFile, e);
+    }
+  }
+
+  private void ensureInstallationPathExists(Path installationPath) throws IOException {
+    if (!Files.exists(installationPath)) {
+      try {
+        Files.createDirectories(installationPath);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to create directory " + installationPath, e);
+      }
+    }
+  }
+
+  private Path downloadPlugin(FileAccess fileAccess, String downloadUrl, Path tmpDir, String buildVersion, String pluginId) throws IOException {
+    String extension = getFileExtensionFromUrl(downloadUrl);
+    if (extension.isEmpty()) {
+      throw new IllegalStateException("Unknown file type for URL: " + downloadUrl);
+    }
+    String fileName = String.format("intellij-plugin-%s-%s%s", buildVersion, pluginId, extension);
+    Path downloadedFile = tmpDir.resolve(fileName);
+    fileAccess.download(downloadUrl, downloadedFile);
+    return downloadedFile;
+  }
+
+  private void installDownloadedPlugin(FileAccess fileAccess, Path downloadedFile, String pluginId) throws IOException {
+    Path targetDir = getPluginsInstallationPath().resolve(pluginId);
+    if (Files.exists(targetDir)) {
+      context.info("File already exists");
+    } else {
+      fileAccess.extract(downloadedFile, targetDir);
     }
   }
 
@@ -191,15 +211,11 @@ public class Intellij extends IdeToolCommandlet {
     if (contentType == null) {
       return "";
     }
-    switch (contentType) {
-      case "application/zip":
-        return ".zip";
-      case "application/java-archive":
-        return ".jar";
-      // Add more content types if needed
-      default:
-        return "";
-    }
+    return switch (contentType) {
+      case "application/zip" -> ".zip";
+      case "application/java-archive" -> ".jar";
+      default -> "";
+    };
   }
 
 }

@@ -54,7 +54,7 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
     throw new IllegalStateException("Tags of IdeTool hat to be connected with tag IDE: " + tags);
   }
 
-  private Map<String, PluginDescriptor> getPluginsMap() {
+  protected Map<String, PluginDescriptor> getPluginsMap() {
 
     if (this.pluginsMap == null) {
       Map<String, PluginDescriptor> map = new HashMap<>();
