@@ -38,7 +38,6 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
    * @param tempDir Path to a temporary directory
    * @throws IOException test fails
    */
-
   @Test
   public void testNpmJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir) throws IOException {
 

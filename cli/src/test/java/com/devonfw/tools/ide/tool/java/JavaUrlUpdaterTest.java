@@ -39,7 +39,6 @@ public class JavaUrlUpdaterTest extends Assertions {
    * @param tempDir Path to a temporary directory
    * @throws IOException test fails
    */
-
   @Test
   public void testJavaUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir) throws IOException {
 

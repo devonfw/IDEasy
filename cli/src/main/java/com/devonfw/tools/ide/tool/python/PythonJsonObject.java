@@ -11,6 +11,9 @@ public class PythonJsonObject implements JsonObject {
 
   private List<PythonRelease> releases;
 
+  /**
+   * @param releases new list of {@link PythonRelease}s
+   */
   public void setReleases(List<PythonRelease> releases) {
 
     this.releases = releases;

@@ -16,11 +16,17 @@ public class NpmJsonVersion implements JsonVersionItem {
   @JsonProperty("dist")
   private NpmJsonDist dist;
 
+  /**
+   * @return the version of this {@link JsonVersionItem}
+   */
   public String getVersion() {
 
     return version;
   }
 
+  /**
+   * @return the dist part of this {@link JsonVersionItem}, which contains the download, see {@link NpmJsonDist#getTarball()}
+   */
   public NpmJsonDist getDist() {
 
     return dist;

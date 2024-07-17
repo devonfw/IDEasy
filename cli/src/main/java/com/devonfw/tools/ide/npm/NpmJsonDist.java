@@ -12,6 +12,9 @@ public class NpmJsonDist {
   @JsonProperty("tarball")
   private String tarball;
 
+  /**
+   * @return the download link of this version of the npm package
+   */
   public String getTarball() {
 
     return tarball;
