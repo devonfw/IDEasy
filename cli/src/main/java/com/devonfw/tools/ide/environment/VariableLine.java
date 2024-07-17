@@ -41,6 +41,14 @@ public abstract class VariableLine {
   }
 
   /**
+   * @return the source of the variable.
+   */
+  public String getSource() {
+
+    return null;
+  }
+
+  /**
    * @param newName the new variable {@link #getName() name}.
    * @return the new {@link VariableLine} with the modified {@link #getName() name}.
    */
@@ -77,12 +85,14 @@ public abstract class VariableLine {
 
     private final String line;
 
+    private final Object source;
+
     Variable(boolean export, String name, String value) {
 
-      this(export, name, value, null);
+      this(export, name, value, null, null);
     }
 
-    private Variable(boolean export, String name, String value, String line) {
+    private Variable(boolean export, String name, String value, String line, Object source) {
 
       super();
       this.export = export;
@@ -100,6 +110,7 @@ public abstract class VariableLine {
       } else {
         this.line = line;
       }
+      this.source = source;
     }
 
     @Override
@@ -118,6 +129,11 @@ public abstract class VariableLine {
     public String getValue() {
 
       return this.value;
+    }
+
+    @Override
+    public String getSource() {
+      return source.toString();
     }
 
     @Override
@@ -269,7 +285,7 @@ public abstract class VariableLine {
         } else if (value.startsWith("\"") && value.endsWith("\"")) {
           value = value.substring(1, value.length() - 1);
         }
-        return new Variable(export, name, value, line);
+        return new Variable(export, name, value, line, source);
       }
       end++;
     }
@@ -286,6 +302,11 @@ public abstract class VariableLine {
   public static VariableLine of(boolean export, String name, String value) {
 
     return new Variable(export, name, value);
+  }
+
+  public static VariableLine of(boolean export, String name, String value, Object source) {
+
+    return new Variable(export, name, value, null, source);
   }
 
 }

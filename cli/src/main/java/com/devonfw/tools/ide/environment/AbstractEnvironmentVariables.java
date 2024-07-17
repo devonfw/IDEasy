@@ -3,8 +3,9 @@ package com.devonfw.tools.ide.environment;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -114,15 +115,15 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
 
   private final Collection<VariableLine> collectVariables(boolean onlyExported) {
 
-    Set<String> variableNames = new HashSet<>();
+    Map<String, String> variableNames = new HashMap<>();
     collectVariables(variableNames);
     List<VariableLine> variables = new ArrayList<>(variableNames.size());
-    for (String name : variableNames) {
+    for (String name : variableNames.keySet()) {
       boolean export = isExported(name);
       if (!onlyExported || export) {
         String value = get(name, false);
         if (value != null) {
-          variables.add(VariableLine.of(export, name, value));
+          variables.add(VariableLine.of(export, name, value, variableNames.get(name)));
         }
       }
     }
@@ -132,7 +133,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   /**
    * @param variables the {@link Set} where to add the names of the variables defined here.
    */
-  protected void collectVariables(Set<String> variables) {
+  protected void collectVariables(Map<String, String> variables) {
 
     if (this.parent != null) {
       this.parent.collectVariables(variables);
