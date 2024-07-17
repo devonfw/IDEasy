@@ -1,7 +1,8 @@
 package com.devonfw.tools.ide.merge.xmlmerger.model;
 
-import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
 import org.w3c.dom.Attr;
+
+import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
 
 /**
  * Represents an attribute of a {@link MergeElement} during the merging process.
@@ -20,17 +21,17 @@ public class MergeAttribute {
 
   public Attr getAttr() {
 
-    return attr;
+    return this.attr;
   }
 
   public String getName() {
 
-    return attr.getName();
+    return this.attr.getName();
   }
 
   public String getValue() {
 
-    return attr.getValue();
+    return this.attr.getValue();
   }
 
   /**
@@ -38,9 +39,9 @@ public class MergeAttribute {
    *
    * @return {@code true} if the attribute is a merge namespace attribute, otherwise {@code false}
    */
-  public boolean isMergeNSAttr() {
+  public boolean isMergeNsAttr() {
 
-    return XmlMerger.MERGE_NS_URI.equals(attr.getNamespaceURI()) || XmlMerger.MERGE_NS_URI.equals(attr.getValue());
+    return XmlMerger.MERGE_NS_URI.equals(this.attr.getNamespaceURI()) || XmlMerger.MERGE_NS_URI.equals(this.attr.getValue());
   }
 
   /**
@@ -50,6 +51,6 @@ public class MergeAttribute {
    */
   public boolean isMergeNsIdAttr() {
 
-    return isMergeNSAttr() && attr.getLocalName().equals("id");
+    return isMergeNsAttr() && this.attr.getLocalName().equals("id");
   }
 }

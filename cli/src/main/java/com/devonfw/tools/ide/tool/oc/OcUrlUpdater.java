@@ -9,6 +9,7 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
  * {@link WebsiteUrlUpdater} for oc (openshift CLI).
  */
 public class OcUrlUpdater extends WebsiteUrlUpdater {
+
   @Override
   protected String getTool() {
 

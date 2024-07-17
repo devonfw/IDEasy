@@ -20,7 +20,8 @@ So after installing (see below) the integration(s) provided here, you can easily
 mvn -v
 ```
 
-To get this feature for macOS `Terminal.app` open Finder and run the workflow `system/mac/terminal/Open_devonfw-Terminal_here.workflow` (in `${IDE_HOME}`). For iTerm2.app (that can be installed from `App Store`) do the same with `system/mac/iterm/Open_devonfw-iTerm_here.workflow`.
+To get this feature for macOS `Terminal.app` open Finder and run the workflow `system/mac/terminal/Open_devonfw-Terminal_here.workflow` (in `${IDE_HOME}`).
+For iTerm2.app (that can be installed from `App Store`) do the same with `system/mac/iterm/Open_devonfw-iTerm_here.workflow`.
 
 == Keyboard
 
@@ -34,7 +35,8 @@ If you would like to understand what is going on, you want to customize the keyb
 
 Keyboard layouts allow a find-grained mapping of each key on your keyboard to its resulting input character or behaviour.
 They are macOS native features and do not need to have software running as a background service to make the keyboard mapping work (see Karabiner section below as an alternative).
-They are provided as so called `bundle` (white lego brick icon). Like a macOS app this is a folder containing a `Contents` folder with a specific sub-folder structure.
+They are provided as so called `bundle` (white lego brick icon).
+Like a macOS app this is a folder containing a `Contents` folder with a specific sub-folder structure.
 In the `Resources` subfolder `*.keylayout` files are placed and define the exact mapping for the keyboard.
 As an example we provide a `Keyboard Layouts` folder containing a `bundle` for a German keyboard mapping.
 
@@ -62,10 +64,12 @@ The latter contains many keyboard layouts that you can use as a starting point.
 
 Still, various keyboard shortcuts might not work as expected for you.
 Therefore, we provide you with an advanced configuration in the folder `system/mac/keyboard/KeyBindings` that you can copy to your `~/Library` folder:
+
 ```
 cd system/mac/keyboard/
 cp -r KeyBindings ~/Library
 ```
+
 To make the changes work you need to log out and log in again or you can reboot.
 After that, your `Home` (`Pos1`) and `End` buttons should work as expected including with selection via `Shift` and/or `Command`.
 Also, you can use `Command` together with the left or right arrow key to move between words and combined it with `Shift` for selection.
@@ -109,10 +113,12 @@ This can also be bound to conditions based on the frontmost application or the k
 These complex modifications are configured as `*.json` files.
 We have included a set with useful rules for external keyboards, programmer shortcuts, etc.
 If you have Karabiner installed, you only need to copy the contents of the `karabiner` folder located in this directory to your `~/.config` folder:
+
 ```
 cd system/mac/keyboard/
 cp karabiner/assets/complex_modifications/*.json ~/.config/karabiner/assets/complex_modifications/
 ```
+
 Now, if you open the `Complex Modifications` in the Karabiner app, you can click on the `+ Add rule` button and will see these mappings in the pop up.
 Select the rules you want to add (e.g. add all) and you are done.
 Unlike other solutions, you can quickly tweak your keyboard without the need to log out and restart apps, which gives faster trial and error turnarounds.

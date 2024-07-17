@@ -1,5 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
+import static com.devonfw.tools.ide.variable.IdeVariables.GRADLE_BUILD_OPTS;
+import static com.devonfw.tools.ide.variable.IdeVariables.MVN_BUILD_OPTS;
+import static com.devonfw.tools.ide.variable.IdeVariables.NPM_BUILD_OPTS;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -7,13 +14,6 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.npm.Npm;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import static com.devonfw.tools.ide.variable.IdeVariables.GRADLE_BUILD_OPTS;
-import static com.devonfw.tools.ide.variable.IdeVariables.MVN_BUILD_OPTS;
-import static com.devonfw.tools.ide.variable.IdeVariables.NPM_BUILD_OPTS;
 
 /**
  * Build tool {@link Commandlet} for automatically detecting build configuration files and running the respective tool.

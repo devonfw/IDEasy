@@ -126,8 +126,8 @@ public final class CustomTool implements UrlDownloadFileMetadata {
   }
 
   /**
-   * @return the repository base URL. This may be a typical URL (e.g. "https://host/path") but may also be a path in
-   *         your file-system (e.g. to a mounted remote network drive).
+   * @return the repository base URL. This may be a typical URL (e.g. "https://host/path") but may also be a path in your file-system (e.g. to a mounted remote
+   * network drive).
    */
   public String getRepositoryUrl() {
 

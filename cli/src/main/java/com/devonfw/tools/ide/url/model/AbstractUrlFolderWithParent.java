@@ -3,8 +3,8 @@ package com.devonfw.tools.ide.url.model;
 import com.devonfw.tools.ide.url.model.folder.AbstractUrlFolder;
 
 /**
- * Class from which UrlTool, UrlEdition and UrlVersion inherit, as their objects have both parent and eventually child
- * objects. It mainly gives methods to read a parent object or to create or read child objects.
+ * Class from which UrlTool, UrlEdition and UrlVersion inherit, as their objects have both parent and eventually child objects. It mainly gives methods to read
+ * a parent object or to create or read child objects.
  *
  * @param <P> Type of the parent object
  * @param <C> Type of the child objects

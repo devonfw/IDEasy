@@ -127,8 +127,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   @Override
   public Path getUserHome() {
 
-    if (dummyUserHome != null) {
-      return dummyUserHome;
+    if (this.dummyUserHome != null) {
+      return this.dummyUserHome;
     }
 
     return super.getUserHome();

@@ -14,8 +14,7 @@ public final class FilenameUtil {
 
   /**
    * @param path the file or path name to get the extension from.
-   * @return the file extension excluding the dot from the given {@code path} or {@code null} if no extension is
-   * present.
+   * @return the file extension excluding the dot from the given {@code path} or {@code null} if no extension is present.
    */
   public static String getExtension(String path) {
 
