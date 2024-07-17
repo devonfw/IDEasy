@@ -1,5 +1,12 @@
 package com.devonfw.tools.ide.context;
 
+import static com.devonfw.tools.ide.io.FileAccessImpl.DEFAULT_CONTENT_LENGTH;
+
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
@@ -8,13 +15,6 @@ import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
-
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
-
-import static com.devonfw.tools.ide.io.FileAccessImpl.DEFAULT_CONTENT_LENGTH;
 
 /**
  * Implementation of {@link IdeContext} for testing.
