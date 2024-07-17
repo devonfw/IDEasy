@@ -304,6 +304,13 @@ public abstract class VariableLine {
     return new Variable(export, name, value);
   }
 
+  /**
+   * @param export the {@link #isExport() export flag}.
+   * @param name the {@link #getName() name}.
+   * @param value the {@link #getValue() value}.
+   * @param source the {@link #getSource() source} of the variable.
+   * @return the {@link VariableLine} for the given values.
+   */
   public static VariableLine of(boolean export, String name, String value, Object source) {
 
     return new Variable(export, name, value, null, source);

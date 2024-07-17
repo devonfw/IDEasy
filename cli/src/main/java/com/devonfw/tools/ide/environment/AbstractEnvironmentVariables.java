@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.regex.Matcher;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -131,7 +130,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   /**
-   * @param variables the {@link Set} where to add the names of the variables defined here.
+   * @param variables the {@link Map} where to add the names of the variables defined here as keys, and their corresponding source as value.
    */
   protected void collectVariables(Map<String, String> variables) {
 
