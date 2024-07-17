@@ -69,6 +69,7 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
     // commandlet - android-studio
     assertThat(context.getSoftwarePath().resolve("android-studio/.ide.software.version")).exists().hasContent("2024.1.1.1");
+    assertThat(context.getVariables().get("STUDIO_PROPERTIES")).isEqualTo(context.getWorkspacePath().resolve("studio.properties").toString());
     assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed android-studio in version 2024.1.1.1");
   }
 
