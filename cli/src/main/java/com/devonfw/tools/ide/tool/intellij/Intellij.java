@@ -27,6 +27,7 @@ public class Intellij extends IdeToolCommandlet {
   private static final String IDEA64_EXE = IDEA + "64.exe";
 
   private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
+  private static final String BUILD_FILE = "build.txt";
 
   /**
    * The constructor.
@@ -62,7 +63,7 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public boolean install(boolean silent) {
 
-    pluginTest();
+    //pluginTest();
 
     getCommandlet(Java.class).install();
     return super.install(silent);
@@ -109,14 +110,6 @@ public class Intellij extends IdeToolCommandlet {
     }
   }
 
-  //      for (PluginDescriptor plugin : super.getPluginsMap().values()) {
-  //    if (plugin.isActive()) {
-  //      installPlugin(plugin);
-  //    } else {
-  //      handleInstall4InactivePlugin(plugin);
-  //    }
-  //  }
-
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
@@ -152,7 +145,10 @@ public class Intellij extends IdeToolCommandlet {
 
   private String readBuildVersion() throws IOException {
 
-    Path buildFile = getToolPath().resolve("build.txt");
+    Path buildFile = getToolPath().resolve(BUILD_FILE);
+    if (this.context.getSystemInfo().isMac()) {
+      buildFile = getToolPath().resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents").resolve("Resources").resolve(BUILD_FILE);
+    }
     try {
       return Files.readString(buildFile);
     } catch (IOException e) {
