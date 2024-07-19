@@ -125,6 +125,11 @@ public class ProcessContextImpl implements ProcessContext {
     }
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(this.executable.toString(), args);
+    if (interpreter == null) {
+      //throw new IllegalStateException("Missing interpreter to run process!");
+      this.context.warning("Missing interpreter to run process!");
+      return new ProcessResultImpl(ProcessResult.ABORT, new ArrayList<>(), new ArrayList<>());
+    }
     args.addAll(this.arguments);
     if (this.context.debug().isEnabled()) {
       String message = createCommandMessage(interpreter, " ...");
@@ -271,7 +276,14 @@ public class ProcessContextImpl implements ProcessContext {
     }
     if (isBashScript) {
       interpreter = "bash";
-      args.add(this.context.findBash());
+      String bash = this.context.findBash();
+      if (bash == null) {
+        this.context.warning(
+            "No installation of bash was found.");
+        return null;
+      } else {
+        args.add(bash);
+      }
     }
     if ("msi".equalsIgnoreCase(fileExtension)) {
       args.add(0, "/i");

@@ -31,6 +31,11 @@ public class LazyDocker extends LocalToolCommandlet {
   public boolean install(boolean silent) {
 
     String bashPath = this.context.findBash();
+    if (bashPath == null) {
+      this.context.warning("No bash installation was found. Aborting installation of lazydocker.");
+      return false;
+    }
+
     String command = "docker version --format '{{.Client.APIVersion}}'";
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable(bashPath)
         .addArgs("-c", command);

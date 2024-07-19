@@ -1064,7 +1064,8 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
     // no bash found
-    throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
+    //throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
+    return null;
   }
 
   @Override
