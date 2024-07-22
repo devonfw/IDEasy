@@ -12,6 +12,7 @@ public class GraalVmOracleUrlUpdater extends GraalVmUrlUpdater {
 
     return "graalvm";
   }
+
   @Override
   protected String getVersionPrefixToRemove() {
 

@@ -1,11 +1,13 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Path;
+import java.util.List;
+
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
 
 /** Integration test of {@link EditionSetCommandlet}. */
 public class EditionSetCommandletTest extends AbstractIdeContextTest {
@@ -32,16 +34,12 @@ public class EditionSetCommandletTest extends AbstractIdeContextTest {
         #********************************************************************************
         # This file contains project specific environment variables
         #********************************************************************************
-
         JAVA_VERSION=17*
         MVN_VERSION=3.9.*
         ECLIPSE_VERSION=2023-03
         INTELLIJ_EDITION=ultimate
-
         IDE_TOOLS=mvn,eclipse
-
         BAR=bar-${SOME}
-
         TEST_ARGS1=${TEST_ARGS1} settings1
         TEST_ARGS4=${TEST_ARGS4} settings4
         TEST_ARGS5=${TEST_ARGS5} settings5

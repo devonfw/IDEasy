@@ -63,8 +63,8 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
   }
 
   /**
-   * Test if the {@link JsonUrlUpdater} for {@link IntellijUrlUpdater} can handle downloads with missing checksums
-   * (generate checksum from download file if no checksum was provided)
+   * Test if the {@link JsonUrlUpdater} for {@link IntellijUrlUpdater} can handle downloads with missing checksums (generate checksum from download file if no
+   * checksum was provided)
    *
    * @param tempDir Path to a temporary directory
    * @throws IOException test fails
@@ -93,8 +93,8 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
   }
 
   /**
-   * Test if the {@link JsonUrlUpdater} for {@link IntellijUrlUpdater} can handle downloads with missing checksums
-   * (generate checksum from download file if no checksum was provided)
+   * Test if the {@link JsonUrlUpdater} for {@link IntellijUrlUpdater} can handle downloads with missing checksums (generate checksum from download file if no
+   * checksum was provided)
    *
    * @param tempDir Path to a temporary directory
    * @throws IOException test fails

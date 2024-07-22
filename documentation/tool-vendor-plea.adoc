@@ -11,10 +11,13 @@ This will not only make our lives easier but also help any other similar tool li
 The following sections and sub-sections contain the best-practices that would be lovely to be followed by all great tools.
 
 == Releases
+
 Even though it should be common sense how to do configuration- and release-management we learned that a lot of tools, including famous tools used world-wide, do violate such common sense.
 
 === Binary Releases
-First of all a reasonable tool should offer binary releases for all major platforms. A minimum requirement for major platforms should be:
+
+First of all a reasonable tool should offer binary releases for all major platforms.
+A minimum requirement for major platforms should be:
 
 * Windows on x86 architecture
 * MacOS on ARM architecture
@@ -29,9 +32,11 @@ Just to give an example https://www.python.org/[Python] is a tool that does not 
 However, worth to mention is that they are continously improving and already added https://www.python.org/downloads/macos/[binaries for MacOS] what is a great progress.
 
 === Stable and consistent download URLs
+
 If a version of a tool has been released, the download link of that tool for a particular OS and architecture should be stable and consistent.
 
-With _stable_ we mean that at any point of time in the future you will get the same binary file downloaded for this URL. You will not get a different binary at any time nor a 404 or 500 (except maybe in case of a short temporary technical problem).
+With _stable_ we mean that at any point of time in the future you will get the same binary file downloaded for this URL.
+You will not get a different binary at any time nor a 404 or 500 (except maybe in case of a short temporary technical problem).
 
 With _consistent_ we mean that the URL has a logical structure and could also be build from a pattern with the following variables filled in:
 
@@ -50,12 +55,15 @@ Please understand that we compute SHA-256 hashes of your binaries centrally and 
 Therefore the same URL for a dedicated combination of the above parameters must always result in the same binary.
 * Tools using totally different conventions for the download URL depending on operating system or other parameters.
 * Tools that had a CVE and the vendors thought it would be smart to replace an already published binary release with a modified one with the CVE being fixed.
-Thanks that you are fixing CVEs! That is great!
+Thanks that you are fixing CVEs!
+That is great!
 But please follow best-practices and common sense and publish them as a new release with a new unique and increased version.
 * Tools that have been published and then after some time the download disappeared leading to errors like 404
 
 === Comparable versions
-We really do not want to dicatate anything regarding your versioning scheme. There are many contradicting philosophies like https://semver.org/[semantic versioning] or date/timestamp based versioning, etc.
+
+We really do not want to dicatate anything regarding your versioning scheme.
+There are many contradicting philosophies like https://semver.org/[semantic versioning] or date/timestamp based versioning, etc.
 However, as common sense we expect the following best-practices for a reasonable tool:
 
 * *Comparable version numbers* - given two different versions it must always be possible to say which one is lower and which one is higher.
@@ -79,15 +87,18 @@ We would even love to see more semantic in your versions so end-users can distin
 However, we do not directly suffer or get blocked so only those minimal requirements discussed above are what we need.
 
 == Keep installations pristine
+
 Your tool may be installed in a location with restricted permissions.
 Do not write to the installation location of your tool when using the tool!
 In general most great tools like https://www.java.com/[java], https://dotnet.microsoft.com/[dotnet], etc. are following the principle of a pristine tool installation.
 
 === Rationale
+
 For arbitary reasons we introduced the concept of a shared link:software.adoc#repository[software repository] what is a powerful feature giving many advantages and on Windows seems to be the only reasonable way to allow upgrading/downgrading tools without hitting the famous https://techcommunity.microsoft.com/t5/windows-blog-archive/the-case-of-the-mysterious-locked-file/ba-p/723349[Windows file locking error].
 Another important aspect is to consider the link:sandbox.adoc[sandbox] principle of IDEasy.
 
 === Plugins
+
 A challenge are tools that support plugins as these are typically "installed" inside the installation itself.
 However, if project `A` installs plugin `P1` for tool `T` then project `B` should not automatically get plugin `P1` if it also uses tool `T` (in the same version).
 
@@ -97,7 +108,8 @@ We solved this for the IDEs we support by a dedicated plugins folder inside the 
 Beside some edge-cases (see https://github.com/devonfw/IDEasy/issues/224[#224]) this is also solved and working for the products we support.
 
 === Dependencies
-If your tool is a foundation like a runtime or SDK that other tools are build on top and require as a dependency then please allow that such tools can be installed separated from your tool. 
+
+If your tool is a foundation like a runtime or SDK that other tools are build on top and require as a dependency then please allow that such tools can be installed separated from your tool.
 
 Tools that are widely used but do not support this principle are:
 
@@ -108,6 +120,7 @@ These tools have their package manager as an individual tool with its own releas
 Even worse, other tools from their ecosystem installed via the package manager are also installed inside the runtime installation itself violating the principle of a pristine software installation.
 
 ==== Example
+
 Let us assume that project `P1` and `P2` both want to use the latest version of `node` and therefore share the same installation on your computer.
 Now if `P1` and `P2` have different requirements for the version of `npm` we have a conflict that cannot be resolved.
 If `P1` installs `npm` version `V1` or `P2` installs `npm` version `v2` one will override the other version causing undesired side-effects.
@@ -115,6 +128,7 @@ You get exactly the same problem when you replace `node` with `python` and `npm`
 It gets even worse if you install additional tools and libraries (e.g. `npm install -g @angular/cli` or `pip install urllib3`).
 
 == CLI
+
 Tools typically can take parameters and options.
 Please consider best practices from POSIX, GNU, IEE, and Open Group (e.g. see https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html[here]) from the start.
 Most CLIs violate such rules for no good reason.
@@ -122,6 +136,7 @@ As an example distinguish between short options (`-h`, `-v`, `-q`, `-f`) that ty
 Also a good convention is the end options argument (`--`) that e.g. allows you to delete an accidentally created file named `-f` in bash (via `rm -- -f`).
 
 === Version
+
 Every tool should have the CLI option to print its version via `-v` or `--version`.
 Please note that Java used to have `-version` instead of `--version` but later added support also for the latter (thanks guys!).
 Further, invoking this feature should *printing the version number and nothing else*.
@@ -129,11 +144,14 @@ Please consider that often you need to make a choice on a version in a shell scr
 If you want to do this add an extra option (e.g. `--verbose --version`) for this but *never* print it when `-v` was given as only argument.
 
 So this is great:
+
 ```
 $ npm -v
 9.6.0
 ```
+
 While this is not perfect:
+
 ```
 $ mvn -v
 Apache Maven 3.9.6 (bc0240f3c744dd6b6ec2920b3cd08dcc295161ae)
@@ -144,13 +162,16 @@ OS name: "windows 10", version: "10.0", arch: "amd64", family: "windows"
 $ docker -v
 Docker version 25.0.4-rd, build c4cd0a9
 ```
+
 The worst is https://en.wikipedia.org/wiki/Windows_Subsystem_for_Linux[wsl] that does not offer any option to get the version or reliably figure out if WSL1 or WSL2 is installed.
 
 === Help
+
 Awesome tools also have a build in help printed if `-h` or `--help` or `help` is given as argument.
 We do not have any requirements on this but end-users will love this if they do not have to do a web-search to figure out the CLI options and then may find the wrong information not applicable for the actual tool version they have installed.
 
 == Conclusion
+
 Aspects like "Keep installations pristine" are fundamental design decisions that cannot be changed easily after.
 Therefore, we do not expect `pyhton` or `node` to change in this regard to make us happy.
 However, we hope that probably new tools will consider best-practices when they are created and therefore with this page we want to spread the word.

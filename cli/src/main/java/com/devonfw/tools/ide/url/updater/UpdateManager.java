@@ -1,5 +1,13 @@
 package com.devonfw.tools.ide.url.updater;
 
+import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudioUrlUpdater;
 import com.devonfw.tools.ide.tool.aws.AwsUrlUpdater;
 import com.devonfw.tools.ide.tool.az.AzureUrlUpdater;
@@ -39,19 +47,11 @@ import com.devonfw.tools.ide.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.tool.vscode.VsCodeUrlUpdater;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.file.Path;
-import java.time.Instant;
-import java.util.Arrays;
-import java.util.List;
 
 /**
- * The {@code UpdateManager} class manages the update process for various tools by using a list of
- * {@link AbstractUrlUpdater}s to update the {@link UrlRepository}. The list of {@link AbstractUrlUpdater}s contains
- * crawlers for different tools and services, To use the UpdateManager, simply create an instance with the path to the
- * repository as a parameter and call the {@link #updateAll()} method.
+ * The {@code UpdateManager} class manages the update process for various tools by using a list of {@link AbstractUrlUpdater}s to update the
+ * {@link UrlRepository}. The list of {@link AbstractUrlUpdater}s contains crawlers for different tools and services, To use the UpdateManager, simply create an
+ * instance with the path to the repository as a parameter and call the {@link #updateAll()} method.
  */
 public class UpdateManager extends AbstractProcessorWithTimeout {
 

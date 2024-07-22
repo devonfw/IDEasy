@@ -50,7 +50,7 @@ Hence, settings from 2. are used and merged with 3.
 Hence, use 2. for things such as themes, UI tweaks, etc.
 Once the workspace is configured 2. typically is not relevant anymore.
 * Settings in 3. are applied on every update.
-By default this happens every time you start your IDE, these settings are managed by the `settings` and in control `configurator`.
+By default this happens every time you start your IDE, these settings are managed by the `settings` and in control of the `configurator`.
 If the user modifies such settings and reopens his IDE his changes are reverted.
 Hence, use 3. for things such as code-formatters, compiler options, paths to tools shipped with `IDEasy`, etc. that should be consistent and homogeneous for every team-member.
 
@@ -74,3 +74,63 @@ Therefore, you can try again with `ws-reverse-add` instead of `ws-reverse` (e.g.
 Be sure not to add undesired settings that should not be managed.
 * In case your changes are in an entirely new configuration file that is currently not managed, you can simply diff the current workspace folder with the previously created backup copy using a recursive diff tool (such as winmerge or maybe just `diff -R`).
 Once you figured out the relevant change from that diff, you can manually apply it to the according `«ide»/workspace/update` folder in your `ide-settings` git repository.
+
+== XML Merger
+
+The XML Merger in `IDEasy` is a tool designed to merge XML documents using different strategies.
+It allows control over how elements are combined, overridden, or kept intact during the merge process.
+This merger is mainly used to merge incoming IDE configuration files changes from ide-settings into the workspace.
+
+=== Merging Strategies
+
+The merger supports three main strategies, which can be specified for each element using the `merge:strategy` attribute:
+
+* `COMBINE`: This strategy combines the source and target elements.
+It overrides text nodes and attributes, and recursively applies the process to child elements.
+If a source element exists in the target document, they are combined; otherwise, the source element is appended.
+* `OVERRIDE`: This strategy replaces the target element with the source element, without considering child elements.
+If the element exists in the target, it is overridden; otherwise, it is appended.
+* `KEEP`: This strategy keeps the existing target element intact if the source element exists in the target document.
+If the source element doesn't exist in the target, it is appended.
+
+It is not necessary to provide a `merge:strategy` for each element, strategies are inherited to child elements.
+So you only need to configure a `merge:strategy` for an element if it shall be different from its parent.
+The default if nothing is configured for the root element is `COMBINE`.
+
+=== Element Identification
+
+Elements are identified and matched using the `merge:id` attribute.
+This attribute is used to determine which elements in the source and target documents correspond to each other.
+The `merge:id` can be set to one of the following:
+
+* An attribute name prefixed with @ (e.g., `@id`, `@name`)
+* The string `name()` to match by element name
+* The string `text()` to match by text content
+* A full XPath expression (e.g., `../element[@attr=’value’]` or `/root/element[@attr=’value’]`)
+
+For each first occurrence of an element the provided value of `merge:id` is saved and then later used for elements with the same name (qualified tag name), so it is enough to provide a `merge:id` for each element only once, unless you want it to change later in the document.
+
+If no `merge:id` was provided, the merger uses the following strategy as default:
+
+* If no attributes are present at all, use the qualified tag name
+* If an `id` attribute is present use it (`@id`)
+* Otherwise if a `name` attribute is present use it (`@name`)
+* Otherwise you will get an error and need to adjust your template.
+
+In Eclipse and IntelliJ, elements are usually identified by either the `id` or `name` attribute, which means we could just omit `merge:id` in these cases.
+
+=== Namespace declaration
+
+In order to use this tool, it is necessary to declare the merge namespace in the root element like this:
+
+[source,xml]
+----
+<root xmlns:merge="https://github.com/devonfw/IDEasy/merge">
+// some elements
+</root>
+----
+
+=== Namespace declaration
+
+A good example of a XML template with merge configuration can be found https://github.com/devonfw/IDEasy/blob/main/cli/src/test/resources/xmlmerger/intellijWorkspace/source.xml[here].
+More examples are link:https://github.com/devonfw/IDEasy/tree/main/cli/src/test/resources/xmlmerger[here].

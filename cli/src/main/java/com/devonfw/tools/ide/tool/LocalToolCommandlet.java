@@ -1,5 +1,13 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Set;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -13,14 +21,6 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Set;
 
 /**
  * {@link ToolCommandlet} that is installed locally into the IDE.
@@ -119,7 +119,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    */
   public ToolInstallation installInRepo(VersionIdentifier version) {
 
-    return installInRepo(version, getEdition());
+    return installInRepo(version, getConfiguredEdition());
   }
 
   /**
@@ -147,6 +147,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public ToolInstallation installInRepo(VersionIdentifier version, String edition, ToolRepository toolRepository) {
 
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version);
+
+    if (Files.exists(this.dependency.getDependencyJsonPath(getConfiguredEdition()))) {
+      installDependencies(resolvedVersion);
+    } else {
+      this.context.trace("No Dependencies file found");
+    }
+
     Path toolPath = this.context.getSoftwareRepositoryPath().resolve(toolRepository.getId()).resolve(this.tool).resolve(edition)
         .resolve(resolvedVersion.toString());
     Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
@@ -234,8 +241,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent
-   *     directory of the real path corresponding to the passed {@link Path path} must be the name of the edition.
+   * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent directory of the real path corresponding to
+   * the passed {@link Path path} must be the name of the edition.
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   public String getInstalledEdition(Path toolPath) {
@@ -247,7 +254,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     try {
       String edition = toolPath.toRealPath().getParent().getFileName().toString();
       if (!this.context.getUrls().getSortedEditions(getName()).contains(edition)) {
-        edition = getEdition();
+        edition = getConfiguredEdition();
       }
       return edition;
     } catch (IOException e) {
@@ -339,7 +346,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
 
-    if (Files.exists(this.dependency.getDependencyJsonPath(getEdition()))) {
+    if (Files.exists(this.dependency.getDependencyJsonPath(getConfiguredEdition()))) {
       setDependencyRepository(getInstalledVersion());
     } else {
       this.context.trace("No Dependencies file found");
@@ -358,7 +365,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   private void installDependencies(VersionIdentifier version) {
 
-    List<DependencyInfo> dependencies = this.dependency.readJson(version, getEdition());
+    List<DependencyInfo> dependencies = this.dependency.readJson(version, getConfiguredEdition());
 
     for (DependencyInfo dependencyInfo : dependencies) {
 
@@ -369,7 +376,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
 
       ToolCommandlet dependencyTool = this.context.getCommandletManager().getToolCommandlet(dependencyName);
-      Path dependencyRepository = getDependencySoftwareRepository(dependencyName, dependencyTool.getEdition());
+      Path dependencyRepository = getDependencySoftwareRepository(dependencyName,
+          dependencyTool.getConfiguredEdition());
 
       if (!Files.exists(dependencyRepository)) {
         installDependencyInRepo(dependencyName, dependencyTool, dependencyVersionToInstall);
@@ -394,7 +402,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   protected void setDependencyRepository(VersionIdentifier version) {
 
-    List<DependencyInfo> dependencies = this.dependency.readJson(version, getEdition());
+    List<DependencyInfo> dependencies = this.dependency.readJson(version, getConfiguredEdition());
 
     for (DependencyInfo dependencyInfo : dependencies) {
       String dependencyName = dependencyInfo.getTool();
@@ -404,8 +412,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
 
       ToolCommandlet dependencyTool = this.context.getCommandletManager().getToolCommandlet(dependencyName);
-      Path dependencyRepository = getDependencySoftwareRepository(dependencyName, dependencyTool.getEdition());
-      Path versionExistingInRepository = this.dependency.versionExistsInRepository(dependencyRepository, dependencyInfo.getVersionRange());
+      Path dependencyRepository = getDependencySoftwareRepository(dependencyName,
+          dependencyTool.getConfiguredEdition());
+      Path versionExistingInRepository = this.dependency.versionExistsInRepository(dependencyRepository,
+          dependencyInfo.getVersionRange());
       Path dependencyPath;
 
       if (versionExistingInRepository.equals(Path.of(""))) {

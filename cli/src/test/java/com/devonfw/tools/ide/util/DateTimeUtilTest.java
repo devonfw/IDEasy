@@ -49,11 +49,11 @@ public class DateTimeUtilTest extends Assertions {
     // 1 nano second longer
     assertThat(
         DateTimeUtil.compareDuration(INSTANT_1999_12_31, Instant.parse("2000-01-02T23:59:59.987654322Z"), TWO_DAYS))
-            .isEqualTo(1);
+        .isEqualTo(1);
     // 1 nano second shorter
     assertThat(
         DateTimeUtil.compareDuration(INSTANT_1999_12_31, Instant.parse("2000-01-02T23:59:59.987654320Z"), TWO_DAYS))
-            .isEqualTo(-1);
+        .isEqualTo(-1);
   }
 
 }

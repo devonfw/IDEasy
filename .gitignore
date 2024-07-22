@@ -7,6 +7,7 @@
 .*
 !.gitignore
 !.gitkeep
+!.editorconfig
 !.ide.software.version
 !.devon.software.version
 !.ide

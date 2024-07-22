@@ -23,8 +23,7 @@ public interface PluginDescriptor extends Tags {
   String getUrl();
 
   /**
-   * @return {@code true} if the plugin is active and shall be installed automatically when the IDE is setup,
-   *         {@code false} otherwise.
+   * @return {@code true} if the plugin is active and shall be installed automatically when the IDE is setup, {@code false} otherwise.
    */
   boolean isActive();
 

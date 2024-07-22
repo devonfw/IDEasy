@@ -1,11 +1,11 @@
 package com.devonfw.tools.ide.merge;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.variable.IdeVariables;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * {@link WorkspaceMerger} responsible for a single type of file.

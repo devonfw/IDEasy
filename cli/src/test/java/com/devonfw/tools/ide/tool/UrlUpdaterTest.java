@@ -30,8 +30,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   private final static String testdataRoot = "src/test/resources/integrationtest/UrlUpdaterTest";
 
   /**
-   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} can automatically add a missing OS (in this case
-   * the linux_x64)
+   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} can automatically add a missing OS (in this case the linux_x64)
    *
    * @param tempDir Temporary directory
    * @throws IOException test fails
@@ -92,9 +91,9 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Tests if the timestamps of the status.json get updated properly. Creates an initial status.json with a success
-   * timestamp. Updates the status.json with an error timestamp and compares it with the success timestamp. Updates the
-   * status.json with a final success timestamp and compares it with the error timestamp.
+   * Tests if the timestamps of the status.json get updated properly. Creates an initial status.json with a success timestamp. Updates the status.json with an
+   * error timestamp and compares it with the success timestamp. Updates the status.json with a final success timestamp and compares it with the error
+   * timestamp.
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
@@ -167,8 +166,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} will fail resolving a server with a
-   * Content-Type:text header response.
+   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} will fail resolving a server with a Content-Type:text header response.
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
