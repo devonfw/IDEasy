@@ -17,7 +17,6 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.StringProperty;
-import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -279,8 +278,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public void setVersion(VersionIdentifier version, boolean hint) {
 
     String edition = getConfiguredEdition();
-    this.context.getUrls()
-        .getVersionFolder(this.tool, edition, version); // CliException is thrown if the version is not existing
 
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
@@ -294,7 +291,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     this.context.info("{}={} has been set in {}", versionVariableName, version, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(versionVariableName);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", versionVariableName,
+      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
+          versionVariableName,
           declaringVariables.getSource());
     }
     if (hint) {

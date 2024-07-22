@@ -38,7 +38,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
-   * @param tags    the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
   public LocalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -75,8 +75,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
     try {
       ToolRepository repository = this.context.getDefaultToolRepository();
-      String edition = getEdition();
-      VersionIdentifier resolvedVersion = repository.resolveVersion(this.tool, edition , configuredVersion);
+      String edition = getConfiguredEdition();
+      VersionIdentifier resolvedVersion = repository.resolveVersion(this.tool, edition, configuredVersion);
       if (resolvedVersion.equals(installedVersion)) {
         IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
         this.context.level(level).log("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
@@ -139,7 +139,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet} only in the central software
    * repository without touching the IDE installation.
    *
-   * @param version        the {@link VersionIdentifier} requested to be installed. May also be a {@link VersionIdentifier#isPattern() version pattern}.
+   * @param version the {@link VersionIdentifier} requested to be installed. May also be a {@link VersionIdentifier#isPattern() version pattern}.
    * @param edition the specific edition to install.
    * @param toolRepository the {@link ToolRepository} to use.
    * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
@@ -168,7 +168,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
     }
 
-    if (Files.exists(this.dependency.getDependencyJsonPath(getEdition()))) {
+    if (Files.exists(this.dependency.getDependencyJsonPath(getConfiguredEdition()))) {
       installDependencies(resolvedVersion);
     } else {
       this.context.trace("No Dependencies file found");
@@ -288,7 +288,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile,
-                                                  boolean newInstallation) {
+      boolean newInstallation) {
 
     Path linkDir = getMacOsHelper().findLinkDir(rootDir, getBinaryName());
     Path binDir = linkDir;
