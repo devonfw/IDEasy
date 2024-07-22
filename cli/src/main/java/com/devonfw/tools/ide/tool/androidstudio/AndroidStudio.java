@@ -56,12 +56,6 @@ public class AndroidStudio extends IdeToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
-
-    return super.install(silent);
-  }
-
-  @Override
   protected void postInstall() {
 
     super.postInstall();
