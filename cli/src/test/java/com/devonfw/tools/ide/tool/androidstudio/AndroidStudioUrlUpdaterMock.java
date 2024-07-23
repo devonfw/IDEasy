@@ -1,18 +1,23 @@
 package com.devonfw.tools.ide.tool.androidstudio;
 
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
  * {@link JsonUrlUpdater} test mock for Android Studio.
  */
 public class AndroidStudioUrlUpdaterMock extends AndroidStudioUrlUpdater {
 
-  /** The base URL used for WireMock */
-  private final static String TEST_BASE_URL = "http://localhost:8080";
+  WireMockRuntimeInfo wmRuntimeInfo;
+
+  public AndroidStudioUrlUpdaterMock(WireMockRuntimeInfo wmRuntimeInfo) {
+    super();
+    this.wmRuntimeInfo = wmRuntimeInfo;
+  }
 
   @Override
   protected String getVersionBaseUrl() {
 
-    return TEST_BASE_URL;
+    return wmRuntimeInfo.getHttpBaseUrl();
   }
 }

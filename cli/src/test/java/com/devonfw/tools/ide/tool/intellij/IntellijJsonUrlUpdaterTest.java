@@ -61,6 +61,7 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
    * Test of {@link JsonUrlUpdater} for the creation of {@link IntellijUrlUpdater} download URLs and checksums.
    *
    * @param tempPath Path to a temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException test fails
    */
   @Test
@@ -92,6 +93,7 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
    * checksum was provided)
    *
    * @param tempPath Path to a temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException test fails
    */
   @Test
@@ -122,6 +124,7 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
    * checksum was provided)
    *
    * @param tempPath Path to a temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException test fails
    */
   @Test
