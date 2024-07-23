@@ -53,12 +53,12 @@ public class PythonUrlUpdaterTest extends Assertions {
   /**
    * Test Python JsonUrlUpdater
    *
-   * @param tempPath Path to a temporary directory
+   * @param tempDir Path to a temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException test fails
    */
   @Test
-  public void testPythonURl(@TempDir Path tempPath, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void testPythonURl(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // given
     stubFor(get(urlMatching("/actions/python-versions/main/.*")).willReturn(aResponse().withStatus(200)
@@ -67,10 +67,10 @@ public class PythonUrlUpdaterTest extends Assertions {
     stubFor(any(urlMatching("/actions/python-versions/releases/download.*"))
         .willReturn(aResponse().withStatus(200).withBody("aBody")));
 
-    UrlRepository urlRepository = UrlRepository.load(tempPath);
+    UrlRepository urlRepository = UrlRepository.load(tempDir);
     PythonUrlUpdaterMock pythonUpdaterMock = new PythonUrlUpdaterMock(wmRuntimeInfo);
     pythonUpdaterMock.update(urlRepository);
-    Path pythonPath = tempPath.resolve("python").resolve("python").resolve("3.12.0-beta.2");
+    Path pythonPath = tempDir.resolve("python").resolve("python").resolve("3.12.0-beta.2");
 
     assertThat(pythonPath.resolve("status.json")).exists();
     assertThat(pythonPath.resolve("linux_x64.urls")).exists();

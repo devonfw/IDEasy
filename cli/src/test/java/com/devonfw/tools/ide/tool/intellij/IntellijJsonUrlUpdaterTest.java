@@ -60,12 +60,12 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
   /**
    * Test of {@link JsonUrlUpdater} for the creation of {@link IntellijUrlUpdater} download URLs and checksums.
    *
-   * @param tempPath Path to a temporary directory
+   * @param tempDir Path to a temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException test fails
    */
   @Test
-  public void testIntellijJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempPath, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void testIntellijJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // given
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200)
@@ -73,13 +73,13 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
 
     stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
-    UrlRepository urlRepository = UrlRepository.load(tempPath);
+    UrlRepository urlRepository = UrlRepository.load(tempDir);
     IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
 
     // when
     updater.update(urlRepository);
 
-    Path intellijVersionsPath = tempPath.resolve("intellij").resolve("intellij").resolve("2023.1.1");
+    Path intellijVersionsPath = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.1");
 
     // then
     assertThat(intellijVersionsPath.resolve("status.json")).exists();
@@ -92,12 +92,12 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
    * Test if the {@link JsonUrlUpdater} for {@link IntellijUrlUpdater} can handle downloads with missing checksums (generate checksum from download file if no
    * checksum was provided)
    *
-   * @param tempPath Path to a temporary directory
+   * @param tempDir Path to a temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException test fails
    */
   @Test
-  public void testIntellijJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempPath, WireMockRuntimeInfo wmRuntimeInfo)
+  public void testIntellijJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo)
       throws IOException {
 
     // given
@@ -106,13 +106,13 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
 
     stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(404)));
 
-    UrlRepository urlRepository = UrlRepository.load(tempPath);
+    UrlRepository urlRepository = UrlRepository.load(tempDir);
     IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
 
     // when
     updater.update(urlRepository);
 
-    Path intellijVersionsPath = tempPath.resolve("intellij").resolve("intellij").resolve("2023.1.3");
+    Path intellijVersionsPath = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.3");
 
     // then
     assertThat(intellijVersionsPath).doesNotExist();
@@ -123,12 +123,12 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
    * Test if the {@link JsonUrlUpdater} for {@link IntellijUrlUpdater} can handle downloads with missing checksums (generate checksum from download file if no
    * checksum was provided)
    *
-   * @param tempPath Path to a temporary directory
+   * @param tempDir Path to a temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException test fails
    */
   @Test
-  public void testIntellijJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempPath, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void testIntellijJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // given
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200)
@@ -136,13 +136,13 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
 
     stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
-    UrlRepository urlRepository = UrlRepository.load(tempPath);
+    UrlRepository urlRepository = UrlRepository.load(tempDir);
     IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
 
     // when
     updater.update(urlRepository);
 
-    Path intellijVersionsPath = tempPath.resolve("intellij").resolve("intellij").resolve("2023.1.2");
+    Path intellijVersionsPath = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.2");
 
     // then
     assertThat(intellijVersionsPath.resolve("linux_x64.urls.sha256")).exists().hasContent(EXPECTED_ABODY_CHECKSUM);
