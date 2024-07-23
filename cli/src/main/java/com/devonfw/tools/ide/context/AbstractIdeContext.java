@@ -178,6 +178,11 @@ public abstract class AbstractIdeContext implements IdeContext {
       currentDir = getParentPath(currentDir);
     }
 
+    // fallback to main
+    if (workspace.isEmpty()) {
+      workspace = WORKSPACE_MAIN;
+    }
+
     // detection completed, initializing variables
     this.ideRoot = findIdeRoot(currentDir);
 
