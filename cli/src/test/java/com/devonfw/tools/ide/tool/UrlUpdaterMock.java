@@ -19,6 +19,11 @@ public class UrlUpdaterMock extends AbstractUrlUpdater {
 
   WireMockRuntimeInfo wmRuntimeInfo;
 
+  /**
+   * The constructor
+   *
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} holding the http url and port of the wiremock server.
+   */
   public UrlUpdaterMock(WireMockRuntimeInfo wmRuntimeInfo) {
     super();
     this.wmRuntimeInfo = wmRuntimeInfo;

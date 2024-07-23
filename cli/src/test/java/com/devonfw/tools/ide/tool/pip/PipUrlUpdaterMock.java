@@ -16,6 +16,11 @@ public class PipUrlUpdaterMock extends PipUrlUpdater {
 
   WireMockRuntimeInfo wmRuntimeInfo;
 
+  /**
+   * The constructor
+   *
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} holding the http url and port of the wiremock server.
+   */
   public PipUrlUpdaterMock(WireMockRuntimeInfo wmRuntimeInfo) {
     super();
     this.wmRuntimeInfo = wmRuntimeInfo;

@@ -15,6 +15,11 @@ public class UrlUpdaterMockSingle extends UrlUpdaterMock {
 
   private static final Set<String> versions = new HashSet<>(List.of("1.0"));
 
+  /**
+   * The constructor
+   *
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} holding the http url and port of the wiremock server.
+   */
   public UrlUpdaterMockSingle(WireMockRuntimeInfo wmRuntimeInfo) {
 
     super(wmRuntimeInfo);

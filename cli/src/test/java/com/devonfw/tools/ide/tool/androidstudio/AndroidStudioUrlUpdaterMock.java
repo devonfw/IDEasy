@@ -10,6 +10,11 @@ public class AndroidStudioUrlUpdaterMock extends AndroidStudioUrlUpdater {
 
   WireMockRuntimeInfo wmRuntimeInfo;
 
+  /**
+   * The constructor
+   *
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} holding the http url and port of the wiremock server.
+   */
   public AndroidStudioUrlUpdaterMock(WireMockRuntimeInfo wmRuntimeInfo) {
     super();
     this.wmRuntimeInfo = wmRuntimeInfo;
