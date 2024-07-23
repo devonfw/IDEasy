@@ -38,7 +38,7 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
   static Path tempVersionFilePath;
 
   /**
-   * Creates an intellij-version and intellij-version-withoutchecksum json file based on the given test resource in a temporary directory according to the http
+   * Creates an intellij-version and intellij-version-without-checksum json file based on the given test resource in a temporary directory according to the http
    * url and port of the {@link WireMockRuntimeInfo}.
    *
    * @param wmRuntimeInfo wireMock server on a random port
@@ -52,9 +52,9 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
     content = content.replaceAll("\\$\\{testbaseurl\\}", wmRuntimeInfo.getHttpBaseUrl());
     Files.write(tempVersionFilePath.resolve("intellij-version.json"), content.getBytes(StandardCharsets.UTF_8));
 
-    content = new String(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("intellij-version-withoutchecksum.json")), StandardCharsets.UTF_8);
+    content = new String(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("intellij-version-without-checksum.json")), StandardCharsets.UTF_8);
     content = content.replaceAll("\\$\\{testbaseurl\\}", wmRuntimeInfo.getHttpBaseUrl());
-    Files.write(tempVersionFilePath.resolve("intellij-version-withoutchecksum.json"), content.getBytes(StandardCharsets.UTF_8));
+    Files.write(tempVersionFilePath.resolve("intellij-version-without-checksum.json"), content.getBytes(StandardCharsets.UTF_8));
   }
 
   /**
@@ -132,7 +132,7 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
 
     // given
     stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(tempVersionFilePath.resolve("intellij-version-withoutchecksum.json")))));
+        .withBody(Files.readAllBytes(tempVersionFilePath.resolve("intellij-version-without-checksum.json")))));
 
     stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
