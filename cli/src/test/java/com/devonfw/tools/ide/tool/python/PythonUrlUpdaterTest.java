@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -25,25 +26,43 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 @WireMockTest
 public class PythonUrlUpdaterTest extends Assertions {
 
-  private final static String testdataRoot = "src/test/resources/integrationtest/PythonJsonUrlUpdater";
+  /** Test resource location */
+  private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/PythonJsonUrlUpdater";
+
+  /** Temporary directory for the version json file */
+  @TempDir
+  static Path tempVersionFilePath;
+
+  /**
+   * Creates a python-version json file based on the given test resource in a temporary directory according to the http url and port of the
+   * {@link WireMockRuntimeInfo}.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
+   * @throws IOException
+   */
+  @BeforeAll
+  public static void setupTestVersionFile(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+    //preparing test data with dynamic port
+    assertThat(Files.isDirectory(tempVersionFilePath)).isTrue();
+    String content = new String(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("python-version.json")), StandardCharsets.UTF_8);
+    content = content.replaceAll("\\$\\{testbaseurl\\}", wmRuntimeInfo.getHttpBaseUrl());
+    Files.write(tempVersionFilePath.resolve("python-version.json"), content.getBytes(StandardCharsets.UTF_8));
+  }
+
 
   /**
    * Test Python JsonUrlUpdater
    *
    * @param tempPath Path to a temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException test fails
    */
   @Test
   public void testPythonURl(@TempDir Path tempPath, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
-    //create test version file
-    String content = new String(Files.readAllBytes(Path.of(testdataRoot).resolve("python-version.json")), StandardCharsets.UTF_8);
-    content = content.replaceAll("\\$\\{testbaseurl\\}", wmRuntimeInfo.getHttpBaseUrl());
-    Files.write(tempPath.resolve("python-version.json"), content.getBytes(StandardCharsets.UTF_8));
-
     // given
     stubFor(get(urlMatching("/actions/python-versions/main/.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(tempPath.resolve("python-version.json")))));
+        .withBody(Files.readAllBytes(tempVersionFilePath.resolve("python-version.json")))));
 
     stubFor(any(urlMatching("/actions/python-versions/releases/download.*"))
         .willReturn(aResponse().withStatus(200).withBody("aBody")));
