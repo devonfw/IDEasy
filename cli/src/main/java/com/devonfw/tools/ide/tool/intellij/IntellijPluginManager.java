@@ -57,7 +57,7 @@ public class IntellijPluginManager {
       tmpDir = fileAccess.createTempDir(pluginId);
 
       Path downloadedFile = downloadPlugin(fileAccess, downloadUrl, tmpDir, buildVersion, pluginId);
-      installDownloadedPlugin(fileAccess, downloadedFile, pluginId);
+      extractDownloadedPlugin(fileAccess, downloadedFile, pluginId);
 
       step.success();
 
@@ -106,7 +106,7 @@ public class IntellijPluginManager {
     return downloadedFile;
   }
 
-  private void installDownloadedPlugin(FileAccess fileAccess, Path downloadedFile, String pluginId) throws IOException {
+  private void extractDownloadedPlugin(FileAccess fileAccess, Path downloadedFile, String pluginId) throws IOException {
     Path targetDir = commandlet.getPluginsInstallationPath().resolve(pluginId);
     if (Files.exists(targetDir)) {
       context.info("File already exists");
@@ -136,5 +136,5 @@ public class IntellijPluginManager {
       default -> "";
     };
   }
-  
+
 }
