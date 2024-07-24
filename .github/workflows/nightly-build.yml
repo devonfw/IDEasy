@@ -70,7 +70,7 @@ jobs:
         shell: bash
         run: |
           cd cli
-          mvn -B -ntp -P${{ matrix.os }} package
+          mvn -B -ntp -P${{ matrix.os }} -DskipTests=true package
       - uses: actions/upload-artifact@v4
         with:
           name: natives-${{ matrix.os }}
@@ -111,7 +111,7 @@ jobs:
       - uses: actions/download-artifact@v4
       - name: Make natives available and build project
         run: |
-          mvn -B -ntp -Dstyle.color=always install -DskipTests=true
+          mvn -B -ntp -Dstyle.color=always install
           mv ./natives/* ./cli/target/
 #      - name: Deploy to OSSRH nexus
 #        env:
