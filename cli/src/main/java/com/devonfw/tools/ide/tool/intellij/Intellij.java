@@ -94,7 +94,7 @@ public class Intellij extends IdeToolCommandlet {
     }
   }
 
-  String generateMacEditionString() {
+  private String generateMacEditionString() {
 
     String edition = "";
     if (getConfiguredEdition().equals("intellij")) {
