@@ -34,9 +34,9 @@ jobs:
       - name: Make documentation available
         run: |
           mvn -B -Pbuild-documentation -Dstyle.color=always -DskipTests=true package
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
-          name: natives
+          name: docs
           path: cli/target/package/*.pdf
 
 
@@ -61,17 +61,17 @@ jobs:
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
       - name: Download documentation
         run: |
           mkdir -p ./cli/target/package
-          mv ./natives/*.pdf ./cli/target/package
+          mv ./docs/*.pdf ./cli/target/package
       - name: Build native images with native maven plugin and archive in tar.gz
         shell: bash
         run: |
           cd cli
           mvn -B -ntp -P${{ matrix.os }} -P!include-docs -DskipTests=true package
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: natives
           path: cli/target/*.tar.gz
@@ -90,7 +90,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '17'
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@v4
       - name: Make natives available and build project
         run: |
           #          mvn -B -ntp -Dstyle.color=always install
