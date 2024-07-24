@@ -48,8 +48,8 @@ jobs:
     #    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
     strategy:
       matrix:
-        os: [ windows-latest, ubuntu-latest ]
-        #os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
+        #        os: [ windows-latest, ubuntu-latest ]
+        os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
 
     steps:
       - uses: actions/checkout@v3
@@ -70,10 +70,10 @@ jobs:
         shell: bash
         run: |
           cd cli
-          mvn -B -ntp -P${{ matrix.os }} -P!include-docs -DskipTests=true package
+          mvn -B -ntp -P${{ matrix.os }} package
       - uses: actions/upload-artifact@v4
         with:
-          name: natives
+          name: natives-${{ matrix.os }}
           path: cli/target/*.tar.gz
 
   deploy:
@@ -91,10 +91,28 @@ jobs:
         with:
           java-version: '17'
       - uses: actions/download-artifact@v4
+      - name: Download windows native image archive
+        run: |
+          mkdir -p ./cli/target/package
+          mv ./natives-windows-latest/*.tgz ./cli/target/
+      - uses: actions/download-artifact@v4
+      - name: Download linux native image archive
+        run: |
+          mkdir -p ./cli/target/package
+          mv ./natives-ubuntu-latest/*.tgz ./cli/target/
+      - name: Download mac x86_64 native image archive
+        run: |
+          mkdir -p ./cli/target/package
+          mv ./natives-macos-13/*.tgz ./cli/target/
+      - name: Download mac aarch_64 native image archive
+        run: |
+          mkdir -p ./cli/target/package
+          mv ./natives-macos-latest/*.tgz ./cli/target/
+      - uses: actions/download-artifact@v4
       - name: Make natives available and build project
         run: |
-          #          mvn -B -ntp -Dstyle.color=always install
-               mv ./natives/* ./cli/target/
+          mvn -B -ntp -Dstyle.color=always install -DskipTests=true
+          mv ./natives/* ./cli/target/
 #      - name: Deploy to OSSRH nexus
 #        env:
 #          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
