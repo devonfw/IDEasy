@@ -64,7 +64,7 @@ jobs:
       - uses: actions/download-artifact@v3
       - name: Download documentation
         run: |
-          mkdir ./cli/target/package
+          mkdir -p ./cli/target/package
           mv ./natives/*.pdf ./cli/target/package
       - name: Build native images with native maven plugin and archive in tar.gz
         shell: bash
