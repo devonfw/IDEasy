@@ -15,8 +15,8 @@
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ideasy</mainClass>
     <imageName>ideasy</imageName>
-    <releaseName>${project.artifactId}-${os.detected.name}-${os.detected.arch}</releaseName>
-    <native.maven.plugin.version>0.9.28</native.maven.plugin.version>
+    <native.maven.plugin.version>0.10.2</native.maven.plugin.version>
+    <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
     <jline.version>3.24.1</jline.version>
     <jansi.version>2.4.0</jansi.version>
   </properties>
@@ -140,54 +140,10 @@
     </plugins>
   </build>
 
+
   <profiles>
     <profile>
-      <id>deploy</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>3.4.0</version>
-            <executions>
-              <execution>
-                <id>attach-artifacts</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>attach-artifact</goal>
-                </goals>
-                <configuration>
-                  <artifacts>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-linux-x86_64.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>linux-x64</classifier>
-                    </artifact>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-windows-x86_64.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>windows-x64</classifier>
-                    </artifact>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-osx-x86_64.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>mac-x64</classifier>
-                    </artifact>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-osx-aarch_64.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>mac-arm</classifier>
-                    </artifact>
-                  </artifacts>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-    <profile>
-      <id>native</id>
+      <id>windows-latest</id>
       <build>
         <plugins>
           <plugin>
@@ -230,6 +186,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-assembly-plugin</artifactId>
+            <version>${assembly.maven.plugin.version}</version>
             <executions>
               <execution>
                 <id>create-distribution</id>
@@ -238,25 +195,206 @@
                   <goal>single</goal>
                 </goals>
                 <configuration>
-                  <finalName>${releaseName}</finalName>
-                  <appendAssemblyId>false</appendAssemblyId>
+                  <appendAssemblyId>true</appendAssemblyId>
                   <descriptors>
-                    <descriptor>/src/main/assembly/release.xml</descriptor>
+                    <descriptor>/src/main/assembly/release-windows-x86_64.xml</descriptor>
                   </descriptors>
                 </configuration>
               </execution>
             </executions>
           </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>ubuntu-latest</id>
+      <build>
+        <plugins>
           <plugin>
-            <groupId>kr.motd.maven</groupId>
-            <artifactId>os-maven-plugin</artifactId>
-            <version>1.7.1</version>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <version>${native.maven.plugin.version}</version>
+            <extensions>true</extensions>
             <executions>
               <execution>
-                <phase>initialize</phase>
+                <id>build-native</id>
                 <goals>
-                  <goal>detect</goal>
+                  <goal>compile-no-fork</goal>
                 </goals>
+                <phase>package</phase>
+              </execution>
+              <execution>
+                <id>test-native</id>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <phase>test</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <metadataRepository>
+                <enabled>true</enabled>
+              </metadataRepository>
+              <agent>
+                <enabled>true</enabled>
+              </agent>
+              <imageName>${imageName}</imageName>
+              <buildArgs>
+                <arg>--enable-url-protocols=http,https</arg>
+                <arg>-H:IncludeResources="nls/.*"</arg>
+                <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
+              </buildArgs>
+            </configuration>
+          </plugin>
+          <!-- Assembly Plugin -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>${assembly.maven.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>create-distribution</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <appendAssemblyId>true</appendAssemblyId>
+                  <descriptors>
+                    <descriptor>/src/main/assembly/release-linux-x86_64.xml</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>macos-13</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <version>${native.maven.plugin.version}</version>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <goals>
+                  <goal>compile-no-fork</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+              <execution>
+                <id>test-native</id>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <phase>test</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <metadataRepository>
+                <enabled>true</enabled>
+              </metadataRepository>
+              <agent>
+                <enabled>true</enabled>
+              </agent>
+              <imageName>${imageName}</imageName>
+              <buildArgs>
+                <arg>--enable-url-protocols=http,https</arg>
+                <arg>-H:IncludeResources="nls/.*"</arg>
+                <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
+              </buildArgs>
+            </configuration>
+          </plugin>
+          <!-- Assembly Plugin -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>${assembly.maven.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>create-distribution</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <appendAssemblyId>true</appendAssemblyId>
+                  <descriptors>
+                    <descriptor>/src/main/assembly/release-osx-x86_64.xml</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
+      <id>macos-latest</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.graalvm.buildtools</groupId>
+            <artifactId>native-maven-plugin</artifactId>
+            <version>${native.maven.plugin.version}</version>
+            <extensions>true</extensions>
+            <executions>
+              <execution>
+                <id>build-native</id>
+                <goals>
+                  <goal>compile-no-fork</goal>
+                </goals>
+                <phase>package</phase>
+              </execution>
+              <execution>
+                <id>test-native</id>
+                <goals>
+                  <goal>test</goal>
+                </goals>
+                <phase>test</phase>
+              </execution>
+            </executions>
+            <configuration>
+              <metadataRepository>
+                <enabled>true</enabled>
+              </metadataRepository>
+              <agent>
+                <enabled>true</enabled>
+              </agent>
+              <imageName>${imageName}</imageName>
+              <buildArgs>
+                <arg>--enable-url-protocols=http,https</arg>
+                <arg>-H:IncludeResources="nls/.*"</arg>
+                <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
+              </buildArgs>
+            </configuration>
+          </plugin>
+          <!-- Assembly Plugin -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>${assembly.maven.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>create-distribution</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <appendAssemblyId>true</appendAssemblyId>
+                  <descriptors>
+                    <descriptor>/src/main/assembly/release-osx-aarch_64.xml</descriptor>
+                  </descriptors>
+                </configuration>
               </execution>
             </executions>
           </plugin>
@@ -266,7 +404,7 @@
 
     <!-- New profile for including documentation -->
     <profile>
-      <id>include-docs</id>
+      <id>release</id>
       <activation>
         <activeByDefault>true</activeByDefault>
       </activation>
