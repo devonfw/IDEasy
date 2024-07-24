@@ -91,28 +91,13 @@ jobs:
         with:
           java-version: '17'
       - uses: actions/download-artifact@v4
-      - name: Download windows native image archive
-        run: |
-          mkdir -p ./cli/target/package
-          mv ./natives-windows-latest/*.tgz ./cli/target/
-      - uses: actions/download-artifact@v4
-      - name: Download linux native image archive
-        run: |
-          mkdir -p ./cli/target/package
-          mv ./natives-ubuntu-latest/*.tgz ./cli/target/
-      - name: Download mac x86_64 native image archive
-        run: |
-          mkdir -p ./cli/target/package
-          mv ./natives-macos-13/*.tgz ./cli/target/
-      - name: Download mac aarch_64 native image archive
-        run: |
-          mkdir -p ./cli/target/package
-          mv ./natives-macos-latest/*.tgz ./cli/target/
-      - uses: actions/download-artifact@v4
-      - name: Make natives available and build project
+      - name: Download natives and build project
         run: |
           mvn -B -ntp -Dstyle.color=always install
-          mv ./natives/* ./cli/target/
+          mv ./natives-windows-latest/* ./cli/target/
+          mv ./natives-ubuntu-latest/* ./cli/target/
+          mv ./natives-macos-13/* ./cli/target/
+          mv ./natives-macos-latest/* ./cli/target/
 #      - name: Deploy to OSSRH nexus
 #        env:
 #          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
