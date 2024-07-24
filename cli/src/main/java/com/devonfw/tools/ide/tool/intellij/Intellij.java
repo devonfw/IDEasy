@@ -25,7 +25,6 @@ public class Intellij extends IdeToolCommandlet {
   private static final String IDEA64_EXE = IDEA + "64.exe";
 
   private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
-  private static final String BUILD_FILE = "build.txt";
 
   private final IntellijPluginManager pluginManager;
 
@@ -113,6 +112,7 @@ public class Intellij extends IdeToolCommandlet {
 
   @Override
   public void installPlugin(PluginDescriptor plugin) {
+
     pluginManager.installPlugin(plugin);
   }
 

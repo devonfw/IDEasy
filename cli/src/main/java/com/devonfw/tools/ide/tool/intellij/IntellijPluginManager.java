@@ -8,24 +8,41 @@ import java.nio.file.Path;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 
+/**
+ * Manager class to install plugins for the {@link Intellij commandlet}.
+ */
 public class IntellijPluginManager {
 
   private static final String BUILD_FILE = "build.txt";
   private final IdeContext context;
   private final Intellij commandlet;
 
+  /**
+   * The constructor
+   *
+   * @param context the {@link IdeContext}.
+   * @param commandlet the {@link Intellij commandlet}.
+   */
   public IntellijPluginManager(IdeContext context, Intellij commandlet) {
     this.context = context;
     this.commandlet = commandlet;
   }
 
+  /**
+   * Installs a plugin.
+   *
+   * @param plugin the {@link PluginDescriptor}#.
+   */
   public void installPlugin(PluginDescriptor plugin) {
     String pluginId = plugin.getId();
     String downloadUrl = plugin.getUrl();
 
     Path tmpDir = null;
+
+    Step step = this.context.newStep("Install plugin: " + pluginId);
     try {
       String buildVersion = readBuildVersion();
 
@@ -42,20 +59,24 @@ public class IntellijPluginManager {
       Path downloadedFile = downloadPlugin(fileAccess, downloadUrl, tmpDir, buildVersion, pluginId);
       installDownloadedPlugin(fileAccess, downloadedFile, pluginId);
 
+      step.success();
+
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to process plugin installation", e);
+      step.error(e);
+      throw new IllegalStateException("Failed to process installation of plugin: " + pluginId, e);
     } finally {
       if (tmpDir != null) {
         context.getFileAccess().delete(tmpDir);
       }
+      step.close();
     }
   }
 
   private String readBuildVersion() throws IOException {
     Path buildFile = commandlet.getToolPath().resolve(BUILD_FILE);
     if (context.getSystemInfo().isMac()) {
-      buildFile = commandlet.getToolPath().resolve("IntelliJ IDEA" + commandlet.generateMacEditionString() + ".app").resolve("Contents").resolve("Resources")
-          .resolve(BUILD_FILE);
+      buildFile = context.getSoftwareRepositoryPath().resolve("default").resolve("intellij/intellij").resolve(commandlet.getInstalledVersion().toString())
+          .resolve("IntelliJ IDEA" + commandlet.generateMacEditionString() + ".app").resolve("Contents/Resources").resolve(BUILD_FILE);
     }
     try {
       return Files.readString(buildFile);
@@ -106,10 +127,6 @@ public class IntellijPluginManager {
     }
 
     String contentType = connection.getContentType();
-    return getFileExtensionFromContentType(contentType);
-  }
-
-  private String getFileExtensionFromContentType(String contentType) {
     if (contentType == null) {
       return "";
     }
@@ -119,4 +136,5 @@ public class IntellijPluginManager {
       default -> "";
     };
   }
+  
 }
