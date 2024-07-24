@@ -17,14 +17,39 @@ jobs:
   #        if: ${{ (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch') }}
   #        run: echo '::set-output name=RUN_BUILD::'$(test -n "$(git log --format=%H --since='24 hours ago')" && echo 'true' || echo 'false')
 
+  build-documentation:
+    name: Build documentation and upload to natives
+    #    needs: [ verify_commit ]
+    #        if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '17'
+      - name: Make documentation available
+        run: |
+          mvn -B -Pbuild-documentation -Dstyle.color=always package
+      - uses: actions/upload-artifact@v3
+        with:
+          name: natives
+          path: cli/target/packages/*.pdf
+
+
   build-natives:
-    name: Build native images
+    name: Build native images with downloaded documentation
+    needs: [ build-documentation ]
     runs-on: ${{ matrix.os }}
     #    needs: verify_commit
     #    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
     strategy:
       matrix:
-        os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
+        os: [ windows-latest, ubuntu-latest ]
+        #os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
 
     steps:
       - uses: actions/checkout@v3
@@ -36,6 +61,10 @@ jobs:
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
+      - uses: actions/download-artifact@v3
+      - name: Download documentation
+        run: |
+          mv ./natives/*.pdf ./cli/target/package
       - name: Build native images with native maven plugin and archive in tar.gz
         shell: bash
         run: |
@@ -46,7 +75,7 @@ jobs:
           name: natives
           path: cli/target/*.tar.gz
 
-  build:
+  deploy:
     name: Build Project and Deploy
     needs: [ build-natives ]
     #    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
@@ -63,8 +92,8 @@ jobs:
       - uses: actions/download-artifact@v3
       - name: Make natives available and build project
         run: |
-          mvn -B -ntp -Dstyle.color=always install
-          mv ./natives/* ./cli/target/
+          #          mvn -B -ntp -Dstyle.color=always install
+               mv ./natives/* ./cli/target/
 #      - name: Deploy to OSSRH nexus
 #        env:
 #          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}

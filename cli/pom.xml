@@ -404,10 +404,7 @@
 
     <!-- New profile for including documentation -->
     <profile>
-      <id>release</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
+      <id>build-documentation</id>
       <build>
         <plugins>
           <plugin>
