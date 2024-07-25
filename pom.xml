@@ -26,7 +26,7 @@
     <dependency>
       <groupId>org.junit.jupiter</groupId>
       <artifactId>junit-jupiter</artifactId>
-      <version>5.9.0</version>
+      <version>5.9.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -83,6 +83,27 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.pitest</groupId>
+        <artifactId>pitest-maven</artifactId>
+        <version>1.16.1</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.pitest</groupId>
+            <artifactId>pitest-junit5-plugin</artifactId>
+            <version>1.2.1</version>
+          </dependency>
+        </dependencies>
+        <configuration>
+          <!--verbose>true</verbose-->
+          <targetClasses>
+            <param>com.devonfw.tools.ide*</param>
+          </targetClasses>
+          <targetTests>
+            <param>com.devonfw.tools.ide*</param>
+          </targetTests>
+        </configuration>
       </plugin>
     </plugins>
   </build>
