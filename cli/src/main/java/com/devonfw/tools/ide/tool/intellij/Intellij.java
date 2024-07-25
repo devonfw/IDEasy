@@ -65,21 +65,8 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public boolean install(boolean silent) {
 
-    //pluginTest();
-
     getCommandlet(Java.class).install();
     return super.install(silent);
-  }
-
-  private void pluginTest() {
-
-    for (PluginDescriptor plugin : super.getPluginsMap().values()) {
-      if (plugin.isActive()) {
-        installPlugin(plugin);
-      } else {
-        handleInstall4InactivePlugin(plugin);
-      }
-    }
   }
 
   @Override
