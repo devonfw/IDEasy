@@ -95,15 +95,6 @@
             <version>1.2.1</version>
           </dependency>
         </dependencies>
-        <configuration>
-          <!--verbose>true</verbose-->
-          <targetClasses>
-            <param>com.devonfw.tools.ide*</param>
-          </targetClasses>
-          <targetTests>
-            <param>com.devonfw.tools.ide*</param>
-          </targetTests>
-        </configuration>
       </plugin>
     </plugins>
   </build>
