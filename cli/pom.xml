@@ -458,7 +458,7 @@
                 <configuration>
                   <artifacts>
                     <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-windows_x86_64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-${revision}-windows_x86_64.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>windows-x64</classifier>
                     </artifact>
