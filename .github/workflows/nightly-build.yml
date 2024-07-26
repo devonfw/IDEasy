@@ -17,7 +17,6 @@ jobs:
         if: ${{ (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch') }}
         run: echo '::set-output name=RUN_BUILD::'$(test -n "$(git log --format=%H --since='24 hours ago')" && echo 'true' || echo 'false')
 
-  # Builds documentation pdf file and uploads artifact to docs
   build-documentation:
     name: Build documentation
     needs: [ verify_commit ]
@@ -41,7 +40,6 @@ jobs:
           name: docs
           path: cli/target/package/*.pdf
 
-  # Downloads documentation, builds all native images, archives native images and documentation and uploads artifacts to f.e. natives-windows-latest
   build-natives:
     name: Build native images
     needs: [ verify_commit, build-documentation ]
@@ -79,7 +77,6 @@ jobs:
           name: natives-${{ matrix.os }}
           path: cli/target/*.tar.gz
 
-  # Downloads all native image artifacts and builds the project for deployment to OSS Nexus
   deploy:
     name: Build Project and Deploy
     needs: [ verify_commit, build-documentation, build-natives ]
