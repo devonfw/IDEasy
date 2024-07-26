@@ -35,6 +35,7 @@ jobs:
       - name: Make documentation available
         run: |
           mvn -B -Pbuild-documentation -Dstyle.color=always -DskipTests=true package
+      - name: Upload documentation
       - uses: actions/upload-artifact@v4
         with:
           name: docs
@@ -60,16 +61,19 @@ jobs:
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
-      - uses: actions/download-artifact@v4
       - name: Download documentation
+      - uses: actions/download-artifact@v4
+        with:
+          name: docs
         run: |
           mkdir -p ./cli/target/package
           mv ./docs/*.pdf ./cli/target/package
-      - name: Build native images with native maven plugin and archive in tar.gz
+      - name: Build native image
         shell: bash
         run: |
           cd cli
           mvn -B -ntp -P${{ matrix.os }} '-P!build-documentation' -DskipTests=true package
+      - name: Upload natives
       - uses: actions/upload-artifact@v4
         with:
           name: natives-${{ matrix.os }}
@@ -90,10 +94,10 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '17'
+      - name: Download natives and build project
       - uses: actions/download-artifact@v4
         with:
           pattern: natives-*
-      - name: Download natives and build project
         run: |
           mvn -B -ntp -Dstyle.color=always install
           mv ./natives-windows-latest/* ./cli/target/
