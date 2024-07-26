@@ -95,8 +95,9 @@ jobs:
         with:
           pattern: natives-*
           path: ./cli/target/
+          merge-multiple: true
       - run: |
-          mvn -B -ntp -Dstyle.color=always install
+          mvn -B -ntp -Dstyle.color=always '-P!build-documentation' install
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
