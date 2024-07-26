@@ -216,13 +216,13 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     if (!lettersResult.isEqual()) {
       return lettersResult;
     }
-    if ((!"_".equals(this.separator) && "_".equals(other.separator))) {
+    if (!"_".equals(this.separator) && "_".equals(other.separator)) {
       if ("".equals(this.separator)) {
         return VersionComparisonResult.LESS;
       } else {
         return VersionComparisonResult.GREATER;
       }
-    } else if (("_".equals(this.separator) && !"_".equals(other.separator))) {
+    } else if ("_".equals(this.separator) && !"_".equals(other.separator)) {
       if ("".equals(other.separator)) {
         return VersionComparisonResult.GREATER;
       } else {
