@@ -142,7 +142,7 @@
 
 
   <profiles>
-
+    <!-- Builds the windows x86_64 native image and archives it with the documentation from the github artifact -->
     <profile>
       <id>windows-latest</id>
       <build>
@@ -207,7 +207,7 @@
         </plugins>
       </build>
     </profile>
-
+    <!-- Builds the linux x86_64 native image and archives it with the documentation from the github artifact -->
     <profile>
       <id>ubuntu-latest</id>
       <build>
@@ -272,7 +272,7 @@
         </plugins>
       </build>
     </profile>
-
+    <!-- Builds the osx x86_64 native image and archives it with the documentation from the github artifact -->
     <profile>
       <id>macos-13</id>
       <build>
@@ -337,7 +337,7 @@
         </plugins>
       </build>
     </profile>
-
+    <!-- Builds the osx aarch_64 native image and archives it with the documentation from the github artifact -->
     <profile>
       <id>macos-latest</id>
       <build>
@@ -403,7 +403,7 @@
       </build>
     </profile>
 
-    <!-- New profile for including documentation -->
+    <!-- Builds the documentation pdf file and stores it in target/package -->
     <profile>
       <id>build-documentation</id>
       <build>
@@ -440,6 +440,7 @@
       </build>
     </profile>
 
+    <!-- Attaches artifacts stored in cli/target/*.tgz to the maven build, moves them to documentation/target/nexus-staging/.../*.tgz and deploys them with the name defined in the classifier -->
     <profile>
       <id>deploy</id>
       <build>
