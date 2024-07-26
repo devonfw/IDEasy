@@ -216,11 +216,18 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     if (!lettersResult.isEqual()) {
       return lettersResult;
     }
-    //a version with a separator is greater than a version without, a version with a "." separator is greater than a version with a "_" separator
-    if ((!"".equals(this.separator) && "".equals(other.separator)) || (".".equals(this.separator) && "_".equals(other.separator))) {
-      return VersionComparisonResult.GREATER;
-    } else if (("".equals(this.separator) && !"".equals(other.separator)) || ("_".equals(this.separator) && ".".equals(other.separator))) {
-      return VersionComparisonResult.LESS;
+    if ((!"_".equals(this.separator) && "_".equals(other.separator))) {
+      if ("".equals(this.separator)) {
+        return VersionComparisonResult.LESS;
+      } else {
+        return VersionComparisonResult.GREATER;
+      }
+    } else if (("_".equals(this.separator) && !"_".equals(other.separator))) {
+      if ("".equals(other.separator)) {
+        return VersionComparisonResult.GREATER;
+      } else {
+        return VersionComparisonResult.LESS;
+      }
     }
 
     if (this.number < other.number) {
