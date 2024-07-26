@@ -440,36 +440,36 @@
       </build>
     </profile>
 
-    <!--    <profile>-->
-    <!--      <id>deploy</id>-->
-    <!--      <build>-->
-    <!--        <plugins>-->
-    <!--          <plugin>-->
-    <!--            <groupId>org.codehaus.mojo</groupId>-->
-    <!--            <artifactId>build-helper-maven-plugin</artifactId>-->
-    <!--            <version>3.4.0</version>-->
-    <!--            <executions>-->
-    <!--              <execution>-->
-    <!--                <id>attach-artifacts</id>-->
-    <!--                <phase>package</phase>-->
-    <!--                <goals>-->
-    <!--                  <goal>attach-artifact</goal>-->
-    <!--                </goals>-->
-    <!--                <configuration>-->
-    <!--                  <artifacts>-->
-    <!--                    <artifact>-->
-    <!--                      <file>${project.build.directory}/${project.artifactId}-windows_x86_64.tar.gz</file>-->
-    <!--                      <type>tar.gz</type>-->
-    <!--                      <classifier>windows-x64</classifier>-->
-    <!--                    </artifact>-->
-    <!--                  </artifacts>-->
-    <!--                </configuration>-->
-    <!--              </execution>-->
-    <!--            </executions>-->
-    <!--          </plugin>-->
-    <!--        </plugins>-->
-    <!--      </build>-->
-    <!--    </profile>-->
+    <profile>
+      <id>deploy</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.4.0</version>
+            <executions>
+              <execution>
+                <id>attach-artifacts</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.build.directory}/${project.artifactId}-windows_x86_64.tar.gz</file>
+                      <type>tar.gz</type>
+                      <classifier>windows-x64</classifier>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
   </profiles>
 
 </project>
