@@ -63,9 +63,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: docs
-        run: |
-          mkdir -p ./cli/target/package
-          mv ./docs/*.pdf ./cli/target/package
+          path: ./cli/target/package
       - name: Build native image
         shell: bash
         run: |
@@ -95,12 +93,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: natives-*
-        run: |
+          path: ./cli/target/
+      - run: |
           mvn -B -ntp -Dstyle.color=always install
-          mv ./natives-windows-latest/* ./cli/target/
-          mv ./natives-ubuntu-latest/* ./cli/target/
-          mv ./natives-macos-13/* ./cli/target/
-          mv ./natives-macos-latest/* ./cli/target/
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
