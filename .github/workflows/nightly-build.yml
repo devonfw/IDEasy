@@ -17,6 +17,7 @@ jobs:
         if: ${{ (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch') }}
         run: echo '::set-output name=RUN_BUILD::'$(test -n "$(git log --format=%H --since='24 hours ago')" && echo 'true' || echo 'false')
 
+  # Builds documentation pdf file in cli/target/package and uploads artifact to docs
   build-documentation:
     name: Build documentation
     needs: [ verify_commit ]
@@ -40,6 +41,7 @@ jobs:
           name: docs
           path: cli/target/package/*.pdf
 
+  # Downloads documentation docs artifact, builds all native images, archives native image for each os with documentation pdf file and uploads artifacts to f.e. natives-windows-latest
   build-natives:
     name: Build native images
     needs: [ verify_commit, build-documentation ]
@@ -69,12 +71,13 @@ jobs:
         run: |
           cd cli
           mvn -B -ntp -P${{ matrix.os }} '-P!build-documentation' -DskipTests=true package
-      - name: Upload natives
+      - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
           name: natives-${{ matrix.os }}
           path: cli/target/*.tar.gz
 
+  # Downloads all native image artifacts to cli/target and builds the project for deployment to OSSRH Nexus
   deploy:
     name: Build Project and Deploy
     needs: [ verify_commit, build-documentation, build-natives ]
@@ -96,12 +99,12 @@ jobs:
           path: ./cli/target/
           merge-multiple: true
       - run: |
-          mvn -B -ntp -Dstyle.color=always '-P!build-documentation' install
+          mvn -B -ntp -Dstyle.color=always install
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp '-P!build-documentation' -Pdeploy deploy
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -Pdeploy deploy
 
   check_status:
     runs-on: ubuntu-latest
