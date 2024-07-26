@@ -63,7 +63,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: docs
-      - run: |
+        run: |
           mkdir -p ./cli/target/package
           mv ./docs/*.pdf ./cli/target/package
       - name: Build native image
@@ -95,7 +95,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: natives-*
-      - run: |
+        run: |
           mvn -B -ntp -Dstyle.color=always install
           mv ./natives-windows-latest/* ./cli/target/
           mv ./natives-ubuntu-latest/* ./cli/target/
