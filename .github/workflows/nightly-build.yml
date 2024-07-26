@@ -91,9 +91,11 @@ jobs:
         with:
           java-version: '17'
       - uses: actions/download-artifact@v4
+        with:
+          pattern: natives-*
       - name: Download natives and build project
         run: |
-          mvn -B -ntp -Dstyle.color=always install
+          mvn -B -ntp -Dstyle.color=always -P!build-documentation install
           mv ./natives-windows-latest/* ./cli/target/
           mv ./natives-ubuntu-latest/* ./cli/target/
           mv ./natives-macos-13/* ./cli/target/
@@ -102,7 +104,7 @@ jobs:
 #        env:
 #          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
 #          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-#        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -P deploy deploy
+#        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -Pdeploy deploy
 
 #  check_status:
 #    runs-on: ubuntu-latest
