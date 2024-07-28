@@ -87,6 +87,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         // we need to link the version or update the link.
         Path toolPath = getToolPath();
         FileAccess fileAccess = this.context.getFileAccess();
+        if (Files.exists(toolPath)) {
+          fileAccess.backup(toolPath);
+        }
+        fileAccess.mkdirs(toolPath.getParent());
         fileAccess.symlink(installation.linkDir(), toolPath);
       }
       this.context.getPath().setPath(this.tool, installation.binDir());
@@ -172,7 +176,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         if (this.context.isForceMode()) {
           fileAccess.delete(toolPath);
         } else {
-          if (resolvedVersion.equals(getInstalledVersion())) {
+          if (resolvedVersion.equals(getInstalledVersion()) || !isIgnoreSoftwareRepo()) {
             this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), toolPath);
             return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
           }
