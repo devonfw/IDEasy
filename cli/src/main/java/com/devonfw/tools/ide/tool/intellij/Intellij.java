@@ -14,7 +14,6 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
-import com.devonfw.tools.ide.tool.ide.PluginInstaller;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -28,8 +27,6 @@ public class Intellij extends IdeToolCommandlet {
   private static final String IDEA64_EXE = IDEA + "64.exe";
 
   private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
-
-  private static final String BUILD_FILE = "build.txt";
 
   /**
    * The constructor.
@@ -105,32 +102,14 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    String downloadUrl = plugin.getUrl();
-    String pluginId = plugin.getId();
-
-    String buildVersion = readBuildVersion();
-
-    if (downloadUrl == null || downloadUrl.isEmpty()) {
-      downloadUrl = String.format("https://plugins.jetbrains.com/pluginManager?action=download&id=%s&build=%s", pluginId, buildVersion);
-    }
-
-    PluginInstaller pluginInstaller = this.getPluginManager();
+    IntellijPluginInstaller pluginInstaller = this.getPluginInstaller();
+    String downloadUrl = pluginInstaller.getDownloadUrl(plugin);
     pluginInstaller.installPlugin(plugin, downloadUrl);
-
-    //pluginManager.installPlugin(plugin);
   }
 
-  private String readBuildVersion() {
-    Path buildFile = getToolPath().resolve(BUILD_FILE);
-    if (context.getSystemInfo().isMac()) {
-      buildFile = context.getSoftwareRepositoryPath().resolve("default").resolve("intellij/intellij").resolve(getInstalledVersion().toString())
-          .resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents/Resources").resolve(BUILD_FILE);
-    }
-    try {
-      return Files.readString(buildFile);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to read IntelliJ build version: " + buildFile, e);
-    }
+  @Override
+  public IntellijPluginInstaller getPluginInstaller() {
+    return new IntellijPluginInstaller(context, this);
   }
 
 }

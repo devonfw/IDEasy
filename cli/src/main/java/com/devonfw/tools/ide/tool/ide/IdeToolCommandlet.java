@@ -112,7 +112,7 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
     return this.context.getPluginsPath().resolve(this.tool);
   }
 
-  public PluginInstaller getPluginManager() {
+  public PluginInstaller getPluginInstaller() {
     return new PluginInstaller(context, this);
   }
 

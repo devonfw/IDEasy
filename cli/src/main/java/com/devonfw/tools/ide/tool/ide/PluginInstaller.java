@@ -15,8 +15,8 @@ import com.devonfw.tools.ide.step.Step;
  */
 public class PluginInstaller {
 
-  private final IdeContext context;
-  private final IdeToolCommandlet commandlet;
+  protected final IdeContext context;
+  protected final IdeToolCommandlet commandlet;
 
   /**
    * The constructor
