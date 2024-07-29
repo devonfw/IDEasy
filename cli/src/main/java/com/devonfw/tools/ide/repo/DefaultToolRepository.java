@@ -33,7 +33,7 @@ public class DefaultToolRepository extends AbstractToolRepository {
   public VersionIdentifier resolveVersion(String tool, String edition, VersionIdentifier version) {
 
     UrlMetadata metadata = this.context.getUrls();
-    UrlVersion urlVersion = metadata.getVersionFolder(tool, edition, version);
+    UrlVersion urlVersion = metadata.getResolvedVersion(tool, edition, version);
     return urlVersion.getVersionIdentifier();
   }
 
@@ -41,7 +41,7 @@ public class DefaultToolRepository extends AbstractToolRepository {
   protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version) {
 
     UrlMetadata metadata = this.context.getUrls();
-    UrlVersion urlVersion = metadata.getVersionFolder(tool, edition, version);
+    UrlVersion urlVersion = metadata.getResolvedVersion(tool, edition, version);
     SystemInfo sys = this.context.getSystemInfo();
     UrlDownloadFile urls = urlVersion.getMatchingUrls(sys.getOs(), sys.getArchitecture());
     return urls;

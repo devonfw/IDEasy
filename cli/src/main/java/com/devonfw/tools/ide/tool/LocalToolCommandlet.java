@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
@@ -73,16 +74,17 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier installedVersion = getInstalledVersion();
     Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
     try {
-      // install configured version of our tool in the software repository if not already installed
-      ToolInstallation installation = installInRepo(configuredVersion);
-      // check if we already have this version installed (linked) locally in IDE_HOME/software
-      VersionIdentifier resolvedVersion = installation.resolvedVersion();
-      if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
+      ToolRepository repository = this.context.getDefaultToolRepository();
+      String edition = getConfiguredEdition();
+      VersionIdentifier resolvedVersion = repository.resolveVersion(this.tool, edition, configuredVersion);
+      if (resolvedVersion.equals(installedVersion)) {
         IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
         this.context.level(level).log("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
         step.success();
         return false;
       }
+      // install configured version of our tool in the software repository if not already installed
+      ToolInstallation installation = installInRepo(resolvedVersion, edition, repository);
       // we need to link the version or update the link.
       Path toolPath = getToolPath();
       FileAccess fileAccess = this.context.getFileAccess();
@@ -158,17 +160,20 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     if (Files.isDirectory(toolPath)) {
       if (Files.exists(toolVersionFile)) {
-        if (this.context.isForceMode()) {
-          fileAccess.delete(toolPath);
-        } else {
-          this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), toolPath);
-          return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
-        }
+        this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), toolPath);
+        return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
       } else {
-        this.context.warning("Deleting corrupted installation at {}", toolPath);
-        fileAccess.delete(toolPath);
+        this.context.warning("Archiving corrupted installation at {}", toolPath);
+        fileAccess.backup(toolPath);
       }
     }
+
+    if (Files.exists(this.dependency.getDependencyJsonPath(getConfiguredEdition()))) {
+      installDependencies(resolvedVersion);
+    } else {
+      this.context.trace("No Dependencies file found");
+    }
+
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
     fileAccess.mkdirs(toolPath.getParent());
     boolean extract = isExtract();
@@ -291,11 +296,37 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (Files.isDirectory(binFolder)) {
       binDir = binFolder;
     }
-    if (linkDir != rootDir) {
+    if (newInstallation && (linkDir != rootDir)) {
       assert (!linkDir.equals(rootDir));
       this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
+      if (this.context.getSystemInfo().isMac() && !((AbstractIdeContext) this.context).isTest()) {
+        Path macApp = findMacApp(linkDir);
+        if (macApp != null) {
+          ProcessContext pc = this.context.newProcess();
+          pc.executable("sudo").addArgs("xattr", "-d", "com.apple.quarantine", macApp);
+          pc.run();
+        }
+      }
     }
     return new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion, newInstallation);
+  }
+
+  private Path findMacApp(Path path) {
+
+    while (path != null) {
+      Path fileName = path.getFileName();
+      if (fileName == null) {
+        return null;
+      }
+      String filename = fileName.toString();
+      if (filename.endsWith(".app")) {
+        return path;
+      } else if (filename.equals(IdeContext.FOLDER_CONTENTS)) {
+        return path.getParent();
+      }
+      path = path.getParent();
+    }
+    return null;
   }
 
   private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile) {

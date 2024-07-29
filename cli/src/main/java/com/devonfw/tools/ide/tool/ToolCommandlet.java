@@ -278,22 +278,21 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public void setVersion(VersionIdentifier version, boolean hint) {
 
     String edition = getConfiguredEdition();
-    this.context.getUrls()
-        .getVersionFolder(this.tool, edition, version); // CliException is thrown if the version is not existing
 
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
-    String name = EnvironmentVariables.getToolVersionVariable(this.tool);
-    VersionIdentifier resolvedVersion = this.context.getUrls().getVersion(this.tool, edition, version);
+    String versionVariableName = EnvironmentVariables.getToolVersionVariable(this.tool);
+    VersionIdentifier resolvedVersion = this.context.getUrls().getResolvedVersion(this.tool, edition, version).getVersionIdentifier();
     if (version.isPattern()) {
       this.context.debug("Resolved version {} to {} for tool {}/{}", version, resolvedVersion, this.tool, edition);
     }
-    settingsVariables.set(name, resolvedVersion.toString(), false);
+    settingsVariables.set(versionVariableName, version.toString(), false);
     settingsVariables.save();
-    this.context.info("{}={} has been set in {}", name, version, settingsVariables.getSource());
-    EnvironmentVariables declaringVariables = variables.findVariable(name);
+    this.context.info("{}={} has been set in {}", versionVariableName, version, settingsVariables.getSource());
+    EnvironmentVariables declaringVariables = variables.findVariable(versionVariableName);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
-      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,
+      this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.",
+          versionVariableName,
           declaringVariables.getSource());
     }
     if (hint) {

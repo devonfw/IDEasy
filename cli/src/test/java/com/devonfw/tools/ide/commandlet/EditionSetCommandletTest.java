@@ -6,7 +6,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
@@ -18,17 +17,18 @@ public class EditionSetCommandletTest extends AbstractIdeContextTest {
   public void testEditionSetCommandletRun() {
 
     // arrange
-    IdeContext context = newContext(PROJECT_BASIC);
+    IdeTestContext context = newContext(PROJECT_BASIC);
     EditionSetCommandlet editionSet = context.getCommandletManager().getCommandlet(EditionSetCommandlet.class);
-    editionSet.tool.setValueAsString("mvn", context);
-    editionSet.edition.setValueAsString("setEdition", context);
+    editionSet.tool.setValueAsString("docker", context);
+    editionSet.edition.setValueAsString("rancher", context);
+    assertThat(context.getVariables().getToolEdition("docker")).isEqualTo("docker");
 
     // act
     editionSet.run();
 
     // assert
-    List<String> logs = ((IdeTestContext) context).level(IdeLogLevel.WARNING).getMessages();
-    assertThat(logs).containsExactly("Edition setEdition seems to be invalid");
+    assertThat(context.getVariables().getToolEdition("docker")).isEqualTo("rancher");
+    assertLogMessage(context, IdeLogLevel.INFO, "DOCKER_EDITION=rancher has been set in SETTINGS@", true);
     Path settingsIdeProperties = context.getSettingsPath().resolve("ide.properties");
     assertThat(settingsIdeProperties).hasContent("""
         #********************************************************************************
@@ -49,6 +49,6 @@ public class EditionSetCommandletTest extends AbstractIdeContextTest {
         TEST_ARGS9=settings9
         TEST_ARGSb=${TEST_ARGS10} settingsb ${TEST_ARGSa} ${TEST_ARGSb}
         TEST_ARGSc=${TEST_ARGSc} settingsc
-        MVN_EDITION=setEdition""");
+        DOCKER_EDITION=rancher""");
   }
 }

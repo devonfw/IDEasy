@@ -46,8 +46,14 @@ public class UrlMetadata {
    */
   public UrlEdition getEdition(String tool, String edition) {
 
-    UrlTool urlTool = this.repository.getOrCreateChild(tool);
-    UrlEdition urlEdition = urlTool.getOrCreateChild(edition);
+    UrlTool urlTool = this.repository.getChild(tool);
+    if (urlTool == null) {
+      throw new CliException("Could not find tool '" + tool + "' in ide-urls metadata!");
+    }
+    UrlEdition urlEdition = urlTool.getChild(edition);
+    if (urlEdition == null) {
+      throw new CliException("Could not find edition '" + edition + "' for tool '" + tool + "' in ide-urls metadata!");
+    }
     return urlEdition;
   }
 
@@ -101,14 +107,25 @@ public class UrlMetadata {
    * latest version.
    * @return the latest matching {@link VersionIdentifier} for the given {@code tool} and {@code edition}.
    */
-  public VersionIdentifier getVersion(String tool, String edition, VersionIdentifier version) {
+  public UrlVersion getResolvedVersion(String tool, String edition, VersionIdentifier version) {
 
     if (version == null) {
       version = VersionIdentifier.LATEST;
     }
-    if (!version.isPattern()) {
-      return version;
+    UrlEdition urlEdition = getEdition(tool, edition);
+    VersionIdentifier resolvedVersion = version;
+    if (version.isPattern()) {
+      resolvedVersion = resolveVersion(tool, edition, version);
     }
+    UrlVersion urlVersion = urlEdition.getChild(resolvedVersion.toString());
+    if (urlVersion == null) {
+      throw new CliException("Version " + version + " for tool " + tool + " does not exist in edition " + edition + ".");
+    }
+    return urlVersion;
+  }
+
+  private VersionIdentifier resolveVersion(String tool, String edition, VersionIdentifier version) {
+
     List<VersionIdentifier> versions = getSortedVersions(tool, edition);
     for (VersionIdentifier vi : versions) {
       if (version.matches(vi)) {
@@ -116,26 +133,10 @@ public class UrlMetadata {
         return vi;
       }
     }
+    // TODO properly consider edition (needs list-versions commandlet enhancement to also support edition)
     throw new CliException(
         "Could not find any version matching '" + version + "' for tool '" + tool + "' - potentially there are " + versions.size() + " version(s) available in "
-            + getEdition(tool, edition).getPath() + " but none matched!");
-  }
-
-  /**
-   * @param tool the name of the {@link UrlTool}.
-   * @param edition the name of the {@link UrlEdition}.
-   * @param version the {@link VersionIdentifier} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for the
-   * latest version.
-   * @return the latest matching {@link UrlVersion} for the given {@code tool} and {@code edition}.
-   */
-  public UrlVersion getVersionFolder(String tool, String edition, VersionIdentifier version) {
-
-    VersionIdentifier resolvedVersion = getVersion(tool, edition, version);
-    UrlVersion urlVersion = getEdition(tool, edition).getChild(resolvedVersion.toString());
-    if (urlVersion == null) {
-      throw new CliException("Version " + version + " for tool " + tool + " does not exist in edition " + edition + ".");
-    }
-    return urlVersion;
+            + getEdition(tool, edition).getPath() + " but none matched! You can get the list of available versions with the following command:\nide list-versions " + tool);
   }
 
 }
