@@ -21,7 +21,8 @@ jobs:
           java-version: '17'
       - name: Make documentation available
         run: |
-          mvn -B -Pbuild-documentation -Dstyle.color=always -DskipTests=true package
+          cd documentation
+          mvn -B -ntp -Dstyle.color=always -Pbuild-documentation -DskipTests=true package
       - name: Upload documentation
         uses: actions/upload-artifact@v4
         with:
