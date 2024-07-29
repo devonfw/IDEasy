@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
+import com.devonfw.tools.ide.tool.ide.PluginInstaller;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -28,7 +29,7 @@ public class Intellij extends IdeToolCommandlet {
 
   private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
 
-  private final IntellijPluginManager pluginManager;
+  private static final String BUILD_FILE = "build.txt";
 
   /**
    * The constructor.
@@ -38,7 +39,6 @@ public class Intellij extends IdeToolCommandlet {
   public Intellij(IdeContext context) {
 
     super(context, "intellij", Set.of(Tag.INTELLIJ));
-    this.pluginManager = new IntellijPluginManager(context, this);
   }
 
   @Override
@@ -81,7 +81,7 @@ public class Intellij extends IdeToolCommandlet {
     }
   }
 
-  String generateMacEditionString() {
+  private String generateMacEditionString() {
 
     String edition = "";
     if (getConfiguredEdition().equals("intellij")) {
@@ -105,7 +105,32 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    pluginManager.installPlugin(plugin);
+    String downloadUrl = plugin.getUrl();
+    String pluginId = plugin.getId();
+
+    String buildVersion = readBuildVersion();
+
+    if (downloadUrl == null || downloadUrl.isEmpty()) {
+      downloadUrl = String.format("https://plugins.jetbrains.com/pluginManager?action=download&id=%s&build=%s", pluginId, buildVersion);
+    }
+
+    PluginInstaller pluginInstaller = this.getPluginManager();
+    pluginInstaller.installPlugin(plugin, downloadUrl);
+
+    //pluginManager.installPlugin(plugin);
+  }
+
+  private String readBuildVersion() {
+    Path buildFile = getToolPath().resolve(BUILD_FILE);
+    if (context.getSystemInfo().isMac()) {
+      buildFile = context.getSoftwareRepositoryPath().resolve("default").resolve("intellij/intellij").resolve(getInstalledVersion().toString())
+          .resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents/Resources").resolve(BUILD_FILE);
+    }
+    try {
+      return Files.readString(buildFile);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read IntelliJ build version: " + buildFile, e);
+    }
   }
 
 }
