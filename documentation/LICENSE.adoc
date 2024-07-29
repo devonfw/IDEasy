@@ -80,6 +80,7 @@ The column `inclusion` indicates the way the component is included:
 |https://tomcat.apache.org/[tomcat]|Optional|https://www.apache.org/licenses/LICENSE-2.0[ASL 2.0]
 |https://www.oracle.com/java/technologies/jdk-mission-control.html[Java Mission Control]|Optional|https://github.com/openjdk/jmc/blob/master/license/LICENSE.txt[UPL 1.0] and https://github.com/openjdk/jmc/blob/master/license/THIRDPARTYREADME.txt[EPL 2.0]
 |https://github.com/ctongfei/progressbar[Progressbar]|Optional|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
+|https://github.com/pitest/pitest-junit5-plugin/releases/tag/1.2.1/[Pitest Junit5 Plugin]|Optional|https://www.apache.org/licenses/LICENSE-2.0[ASL 2.0]
 |===
 
 == Apache Software License - Version 2.0
