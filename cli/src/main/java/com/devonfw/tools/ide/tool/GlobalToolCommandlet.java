@@ -78,11 +78,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    */
   private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent) {
 
-    String bashPath = this.context.findBash();
-    if (bashPath == null) {
-      this.context.warning("No bash installation was found to run the package manager commands");
-      return false;
-    }
+    String bashPath = this.context.findBashRequired();
     for (String command : pmCommand.commands()) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(bashPath)
           .addArgs("-c", command);

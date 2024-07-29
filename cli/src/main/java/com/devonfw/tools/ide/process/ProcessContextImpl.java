@@ -271,14 +271,7 @@ public class ProcessContextImpl implements ProcessContext {
     }
     if (isBashScript) {
       interpreter = "bash";
-      String bash = this.context.findBash();
-      if (bash == null) {
-        this.context.warning(
-            "No installation of bash was found.");
-        return null;
-      } else {
-        args.add(bash);
-      }
+      args.add(this.context.findBashRequired());
     }
     if ("msi".equalsIgnoreCase(fileExtension)) {
       args.add(0, "/i");
