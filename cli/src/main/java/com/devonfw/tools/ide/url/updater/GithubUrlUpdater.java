@@ -41,10 +41,4 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, Github
 
     return jsonObject;
   }
-
-  @Override
-  protected String getVersion(GithubTag jsonVersionItem) {
-
-    return jsonVersionItem.getRef().replace("refs/tags/", "");
-  }
 }

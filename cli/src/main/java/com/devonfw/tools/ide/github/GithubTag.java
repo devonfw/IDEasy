@@ -46,4 +46,10 @@ public class GithubTag implements JsonVersionItem {
 
     this.ref = ref;
   }
+
+  @Override
+  public String getVersion() {
+
+    return getRef().replace("refs/tags/", "");
+  }
 }

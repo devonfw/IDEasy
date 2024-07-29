@@ -86,17 +86,4 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
 
     return jsonObject.getVersions();
   }
-
-  @Override
-  protected String getVersion(JavaJsonVersion jsonVersionItem) {
-
-    String version = jsonVersionItem.getOpenjdkVersion();
-    version = version.replace("+", "_");
-    // replace 1.8.0_ to 8u
-    if (version.startsWith("1.8.0_")) {
-      version = "8u" + version.substring(6);
-      version = version.replace("-b", "b");
-    }
-    return version;
-  }
 }

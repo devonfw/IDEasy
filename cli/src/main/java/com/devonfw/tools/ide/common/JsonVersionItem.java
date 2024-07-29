@@ -5,4 +5,6 @@ package com.devonfw.tools.ide.common;
  */
 public interface JsonVersionItem {
 
+  String getVersion();
+
 }

@@ -110,7 +110,9 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
    * @param jsonVersionItem the json item containing information of one version of the tool
    * @return the version of the item
    */
-  protected abstract String getVersion(JVI jsonVersionItem);
+  protected String getVersion(JVI jsonVersionItem) {
+    return jsonVersionItem.getVersion();
+  }
 
   /**
    * Updates the version of a given URL version. Replaces {@link AbstractUrlUpdater#addVersion(UrlVersion)}, when download links are available from within the

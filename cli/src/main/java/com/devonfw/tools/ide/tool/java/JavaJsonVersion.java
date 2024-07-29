@@ -68,4 +68,17 @@ public class JavaJsonVersion implements JsonVersionItem {
 
     this.semver = semver;
   }
+
+  @Override
+  public String getVersion() {
+
+    String version = getOpenjdkVersion();
+    version = version.replace("+", "_");
+    // replace 1.8.0_ to 8u
+    if (version.startsWith("1.8.0_")) {
+      version = "8u" + version.substring(6);
+      version = version.replace("-b", "b");
+    }
+    return version;
+  }
 }
