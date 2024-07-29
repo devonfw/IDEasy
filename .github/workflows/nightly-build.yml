@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: docs
-          path: cli/target/package/*.pdf
+          path: documentation/target/package/*.pdf
 
   # Downloads documentation docs artifact, builds all native images, archives native image for each os with documentation pdf file and uploads artifacts to f.e. natives-windows-latest
   build-natives:

@@ -208,43 +208,6 @@
       </build>
     </profile>
 
-    <!-- Builds the documentation pdf file and stores it in target/package -->
-    <profile>
-      <id>build-documentation</id>
-      <build>
-        <plugins>
-          <plugin>
-            <!-- Include documentation into release -->
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
-            <executions>
-              <execution>
-                <id>copy-documentation</id>
-                <phase>prepare-package</phase>
-                <goals>
-                  <goal>copy</goal>
-                </goals>
-              </execution>
-            </executions>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>${project.groupId}</groupId>
-                  <artifactId>ide-doc</artifactId>
-                  <version>${project.version}</version>
-                  <type>pdf</type>
-                  <destFileName>IDEasy-documentation.pdf</destFileName>
-                </artifactItem>
-              </artifactItems>
-              <outputDirectory>${project.build.directory}/package</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>true</overWriteSnapshots>
-            </configuration>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
     <!-- Attaches artifacts stored in cli/target/*.tgz to the maven build, moves them to documentation/target/nexus-staging/.../*.tgz and deploys them with the name defined in the classifier -->
     <profile>
       <id>deploy</id>

@@ -21,5 +21,44 @@
     <revision>dev-SNAPSHOT</revision>
   </properties>
 
+  <profiles>
+    <!-- Builds the documentation pdf file and stores it in target/package -->
+    <profile>
+      <id>build-documentation</id>
+      <build>
+        <plugins>
+          <plugin>
+            <!-- Include documentation into release -->
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-dependency-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>copy-documentation</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>copy</goal>
+                </goals>
+              </execution>
+            </executions>
+            <configuration>
+              <artifactItems>
+                <artifactItem>
+                  <groupId>${project.groupId}</groupId>
+                  <artifactId>ide-doc</artifactId>
+                  <version>${project.version}</version>
+                  <type>pdf</type>
+                  <destFileName>IDEasy-documentation.pdf</destFileName>
+                </artifactItem>
+              </artifactItems>
+              <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <overWriteReleases>false</overWriteReleases>
+              <overWriteSnapshots>true</overWriteSnapshots>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
   <!-- run "mvn package" and get the PDF result in target/generated-docs/*.pdf -->
 </project>
