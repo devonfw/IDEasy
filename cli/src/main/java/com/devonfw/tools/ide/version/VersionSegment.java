@@ -217,9 +217,17 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       return lettersResult;
     }
     if (!"_".equals(this.separator) && "_".equals(other.separator)) {
-      return VersionComparisonResult.GREATER;
+      if ("".equals(this.separator)) {
+        return VersionComparisonResult.LESS;
+      } else {
+        return VersionComparisonResult.GREATER;
+      }
     } else if ("_".equals(this.separator) && !"_".equals(other.separator)) {
-      return VersionComparisonResult.LESS;
+      if ("".equals(other.separator)) {
+        return VersionComparisonResult.GREATER;
+      } else {
+        return VersionComparisonResult.LESS;
+      }
     }
 
     if (this.number < other.number) {
