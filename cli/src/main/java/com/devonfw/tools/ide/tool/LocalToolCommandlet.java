@@ -176,7 +176,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         if (this.context.isForceMode()) {
           fileAccess.delete(toolPath);
         } else {
-          if (resolvedVersion.equals(getInstalledVersion()) || !isIgnoreSoftwareRepo()) {
+          if (!isIgnoreSoftwareRepo() || resolvedVersion.equals(getInstalledVersion())) {
             this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), toolPath);
             return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
           }
@@ -187,7 +187,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
     }
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
-    fileAccess.mkdirs(toolPath.getParent());
     boolean extract = isExtract();
     if (!extract) {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool, target);
