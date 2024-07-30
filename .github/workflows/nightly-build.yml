@@ -1,22 +1,8 @@
 name: Nightly Build
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 2 * * *'
+  workflow_dispatch
 
 jobs:
-  verify_commit:
-    runs-on: ubuntu-latest
-    name: Verify latest commit
-    outputs:
-      RUN_BUILD: ${{ steps.verify_commit.outputs.RUN_BUILD }}
-    steps:
-      - uses: actions/checkout@v3
-      - id: verify_commit
-        name: Verify latest commit is less than 24 hours
-        if: ${{ (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch') }}
-        run: echo '::set-output name=RUN_BUILD::'$(test -n "$(git log --format=%H --since='24 hours ago')" && echo 'true' || echo 'false')
-
   # Builds documentation pdf file in cli/target/package and uploads artifact to docs
   build-documentation:
     name: Build documentation

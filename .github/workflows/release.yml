@@ -56,6 +56,9 @@ jobs:
       - name: Build native image
         shell: bash
         run: |
+          maven_config="$(cat .mvn/maven.config)"
+          current_version="${maven_config/#*-Drevision=}"
+          current_version="${current_version/ */}"
           cd cli
           mvn -B -ntp -Dideasy.assembly.id=${{ matrix.os }} -Pnative -DskipTests=true package
       - name: Upload native image
