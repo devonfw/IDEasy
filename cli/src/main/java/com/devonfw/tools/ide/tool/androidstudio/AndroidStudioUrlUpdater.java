@@ -38,19 +38,19 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
   @Override
   protected void addVersion(UrlVersion urlVersion, AndroidJsonItem jsonVersionItem) {
 
-    for (AndroidJsonDownload download : jsonVersionItem.getDownload()) {
+    for (AndroidJsonDownload download : jsonVersionItem.download()) {
 
-      if (download.getLink().contains("windows.zip")) {
-        doAddVersion(urlVersion, download.getLink(), WINDOWS, X64, download.getChecksum());
-      } else if (download.getLink().contains("linux.tar.gz")) {
-        doAddVersion(urlVersion, download.getLink(), LINUX, X64, download.getChecksum());
-      } else if (download.getLink().contains("mac.zip")) {
-        doAddVersion(urlVersion, download.getLink(), MAC, X64, download.getChecksum());
-      } else if (download.getLink().contains("mac_arm.zip")) {
-        doAddVersion(urlVersion, download.getLink(), MAC, ARM64, download.getChecksum());
+      if (download.link().contains("windows.zip")) {
+        doAddVersion(urlVersion, download.link(), WINDOWS, X64, download.checksum());
+      } else if (download.link().contains("linux.tar.gz")) {
+        doAddVersion(urlVersion, download.link(), LINUX, X64, download.checksum());
+      } else if (download.link().contains("mac.zip")) {
+        doAddVersion(urlVersion, download.link(), MAC, X64, download.checksum());
+      } else if (download.link().contains("mac_arm.zip")) {
+        doAddVersion(urlVersion, download.link(), MAC, ARM64, download.checksum());
       } else {
         logger.info("Unknown architecture for tool {} version {} and download {}.", getToolWithEdition(),
-            jsonVersionItem.getVersion(), download.getLink());
+            jsonVersionItem.version(), download.link());
       }
     }
   }
@@ -70,13 +70,6 @@ public class AndroidStudioUrlUpdater extends JsonUrlUpdater<AndroidJsonObject, A
   @Override
   protected Collection<AndroidJsonItem> getVersionItems(AndroidJsonObject jsonObject) {
 
-    return jsonObject.getContent().getItem();
+    return jsonObject.content().item();
   }
-
-  @Override
-  protected String getVersion(AndroidJsonItem jsonVersionItem) {
-
-    return jsonVersionItem.getVersion();
-  }
-
 }

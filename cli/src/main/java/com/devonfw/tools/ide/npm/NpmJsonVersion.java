@@ -6,29 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * JSON data object for a version of Npm. We map only properties that we are interested in and let jackson ignore all others.
  *
- * @see NpmJsonObject#getVersions()
+ * @see NpmJsonObject#versions()
  */
-public class NpmJsonVersion implements JsonVersionItem {
+public record NpmJsonVersion(@JsonProperty("version") String version, @JsonProperty("dist") NpmJsonDist dist) implements JsonVersionItem {
 
-  @JsonProperty("version")
-  private String version;
-
-  @JsonProperty("dist")
-  private NpmJsonDist dist;
-
-  /**
-   * @return the version of this {@link JsonVersionItem}
-   */
-  public String getVersion() {
-
-    return version;
-  }
-
-  /**
-   * @return the dist part of this {@link JsonVersionItem}, which contains the download, see {@link NpmJsonDist#getTarball()}
-   */
-  public NpmJsonDist getDist() {
-
-    return dist;
-  }
 }

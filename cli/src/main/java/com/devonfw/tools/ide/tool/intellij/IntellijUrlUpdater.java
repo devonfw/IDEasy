@@ -106,7 +106,7 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, Intel
   private void addVersionEachOs(UrlVersion url, IntellijJsonRelease release, String jsonOS, OperatingSystem os,
       SystemArchitecture systemArchitecture) {
 
-    IntellijJsonDownloadsItem downloadItem = release.getDownloads().get(jsonOS);
+    IntellijJsonDownloadsItem downloadItem = release.downloads().get(jsonOS);
     String link = downloadItem.getLink();
     String checkSumLink = downloadItem.getChecksumLink();
     if (checkSumLink.isEmpty()) {
@@ -121,7 +121,7 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, Intel
   @Override
   protected void addVersion(UrlVersion urlVersion, IntellijJsonRelease release) {
 
-    for (String os : release.getDownloads().keySet()) {
+    for (String os : release.downloads().keySet()) {
       switch (os) {
         case IntellijJsonRelease.KEY_WINDOWS:
           addVersionEachOs(urlVersion, release, os, OperatingSystem.WINDOWS, SystemArchitecture.X64);
@@ -142,12 +142,6 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, Intel
   @Override
   protected Collection<IntellijJsonRelease> getVersionItems(IntellijJsonObject jsonObject) {
 
-    return jsonObject.getReleases();
-  }
-
-  @Override
-  protected String getVersion(IntellijJsonRelease jsonVersionItem) {
-
-    return jsonVersionItem.getVersion();
+    return jsonObject.releases();
   }
 }

@@ -28,19 +28,13 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject, N
   @Override
   protected Collection<NpmJsonVersion> getVersionItems(NpmJsonObject jsonObj) {
 
-    return jsonObj.getVersions().getVersionMap().values();
-  }
-
-  @Override
-  protected String getVersion(NpmJsonVersion jsonObj) {
-
-    return jsonObj.getVersion();
+    return jsonObj.versions().getVersionMap().values();
   }
 
   @Override
   protected void addVersion(UrlVersion urlVersion, NpmJsonVersion jsonVersionItem) {
 
-    doAddVersion(urlVersion, jsonVersionItem.getDist().getTarball());
+    doAddVersion(urlVersion, jsonVersionItem.dist().tarball());
   }
 
   protected String getBaseUrl() {

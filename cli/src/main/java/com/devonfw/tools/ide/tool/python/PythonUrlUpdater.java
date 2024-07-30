@@ -39,10 +39,10 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
   @Override
   protected void addVersion(UrlVersion urlVersion, PythonRelease release) {
 
-    String version = release.getVersion();
+    String version = release.version();
 
     try {
-      for (PythonFile download : release.getFiles()) {
+      for (PythonFile download : release.files()) {
         if (download.getPlatform().equals("win32") && download.getArch().equals("x64")) {
           doAddVersion(urlVersion, download.getDownloadUrl(), WINDOWS, X64);
         } else if (download.getPlatform().equals("linux") && download.getArch().equals("x64")) {
@@ -105,12 +105,6 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
   protected Collection<PythonRelease> getVersionItems(PythonJsonObject jsonObject) {
 
     return jsonObject.getReleases();
-  }
-
-  @Override
-  protected String getVersion(PythonRelease jsonVersionItem) {
-
-    return jsonVersionItem.getVersion();
   }
 
 }

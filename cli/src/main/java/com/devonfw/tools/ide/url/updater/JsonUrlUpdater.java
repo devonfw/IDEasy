@@ -111,7 +111,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
    * @return the version of the item
    */
   protected String getVersion(JVI jsonVersionItem) {
-    return jsonVersionItem.getVersion();
+    return jsonVersionItem.version();
   }
 
   /**

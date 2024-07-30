@@ -84,6 +84,6 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
   @Override
   protected Collection<JavaJsonVersion> getVersionItems(JavaJsonObject jsonObject) {
 
-    return jsonObject.getVersions();
+    return jsonObject.versions();
   }
 }
