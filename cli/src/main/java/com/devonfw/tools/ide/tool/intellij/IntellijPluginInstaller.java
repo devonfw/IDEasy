@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.ide.PluginInstaller;
@@ -45,8 +46,9 @@ public class IntellijPluginInstaller extends PluginInstaller {
   private String readBuildVersion() {
     Path buildFile = commandlet.getToolPath().resolve(BUILD_FILE);
     if (context.getSystemInfo().isMac()) {
-      buildFile = context.getSoftwareRepositoryPath().resolve("default").resolve("intellij/intellij").resolve(commandlet.getInstalledVersion().toString())
-          .resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents/Resources").resolve(BUILD_FILE);
+      MacOsHelper macOsHelper = new MacOsHelper(context);
+      Path rootToolPath = macOsHelper.findRootToolPath(this.commandlet, context);
+      buildFile = rootToolPath.resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents/Resources").resolve(BUILD_FILE);
     }
     try {
       return Files.readString(buildFile);
