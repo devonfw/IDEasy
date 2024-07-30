@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.python;
 
 import java.util.Collection;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * The {@Link JsonUrlUpdater} for Python
  */
-public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject> {
+public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRelease> {
 
   /**
    * The base Url of the Python versions Json
@@ -36,9 +37,27 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject> {
   }
 
   @Override
-  protected void addVersion(UrlVersion urlVersion) {
+  protected void addVersion(UrlVersion urlVersion, PythonRelease release) {
 
-    throw new IllegalStateException();
+    String version = release.version();
+
+    try {
+      for (PythonFile download : release.files()) {
+        if (download.getPlatform().equals("win32") && download.getArch().equals("x64")) {
+          doAddVersion(urlVersion, download.getDownloadUrl(), WINDOWS, X64);
+        } else if (download.getPlatform().equals("linux") && download.getArch().equals("x64")) {
+          doAddVersion(urlVersion, download.getDownloadUrl(), LINUX, X64);
+        } else if (download.getPlatform().equals("darwin") && download.getArch().equals("arm64")) {
+          doAddVersion(urlVersion, download.getDownloadUrl(), MAC, ARM64);
+        } else {
+          logger.info("Unknown architecture for tool {} version {} and download {}.", getToolWithEdition(), version,
+              download.getDownloadUrl());
+        }
+      }
+      urlVersion.save();
+    } catch (Exception exp) {
+      logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), version, exp);
+    }
   }
 
   /**
@@ -62,50 +81,30 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject> {
   }
 
   @Override
-  protected void collectVersionsFromJson(PythonJsonObject jsonItem, Collection<String> versions) {
-
-    throw new IllegalStateException();
-
-  }
-
-  @Override
   public void update(UrlRepository urlRepository) {
 
     UrlTool tool = urlRepository.getOrCreateChild(getTool());
-    String url = doGetVersionUrl();
+    UrlEdition edition = tool.getOrCreateChild(getEdition());
+    updateExistingVersions(edition);
     try {
-      UrlEdition edition = tool.getOrCreateChild(getEdition());
-      updateExistingVersions(edition);
-      String toolWithEdition = getToolWithEdition();
-      String response = doGetResponseBodyAsString(url);
+      String response = doGetResponseBodyAsString(doGetVersionUrl());
+
       PythonRelease[] res = MAPPER.readValue(response, PythonRelease[].class);
 
-      for (PythonRelease result : res) {
-        String version = result.getVersion();
-        if (edition.getChild(version) == null) {
-          try {
-            UrlVersion urlVersion = edition.getOrCreateChild(version);
-            for (PythonFile download : result.getFiles()) {
-              if (download.getPlatform().equals("win32") && download.getArch().equals("x64")) {
-                doAddVersion(urlVersion, download.getDownloadUrl(), WINDOWS, X64);
-              } else if (download.getPlatform().equals("linux") && download.getArch().equals("x64")) {
-                doAddVersion(urlVersion, download.getDownloadUrl(), LINUX, X64);
-              } else if (download.getPlatform().equals("darwin") && download.getArch().equals("arm64")) {
-                doAddVersion(urlVersion, download.getDownloadUrl(), MAC, ARM64);
-              } else {
-                logger.info("Unknown architecture for tool {} version {} and download {}.", toolWithEdition, version,
-                    download.getDownloadUrl());
-              }
-            }
-            urlVersion.save();
-          } catch (Exception exp) {
-            logger.error("For tool {} we failed to add version {}.", toolWithEdition, version, exp);
-          }
-        }
-      }
+      PythonJsonObject jsonObj = new PythonJsonObject();
+      jsonObj.setReleases(List.of(res));
+
+      collectVersionsWithDownloadsFromJson(jsonObj, edition);
+
     } catch (Exception e) {
-      throw new IllegalStateException("Error while getting versions from JSON API " + url, e);
+      throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
     }
+  }
+
+  @Override
+  protected Collection<PythonRelease> getVersionItems(PythonJsonObject jsonObject) {
+
+    return jsonObject.getReleases();
   }
 
 }

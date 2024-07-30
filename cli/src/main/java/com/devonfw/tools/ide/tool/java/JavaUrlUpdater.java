@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 /**
  * {@link JsonUrlUpdater} for Java.
  */
-public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject> {
+public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersion> {
 
   @Override
   protected String getTool() {
@@ -29,7 +29,7 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject> {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String mirror = "https://github.com/adoptium/temurin";
+    String mirror = getMirror();
     String version = urlVersion.getName();
     int i = 0;
     int length = version.length();
@@ -64,6 +64,11 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject> {
 
   }
 
+  protected String getMirror() {
+
+    return "https://github.com/adoptium/temurin";
+  }
+
   @Override
   protected String doGetVersionUrl() {
 
@@ -77,18 +82,8 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject> {
   }
 
   @Override
-  protected void collectVersionsFromJson(JavaJsonObject jsonItem, Collection<String> versions) {
+  protected Collection<JavaJsonVersion> getVersionItems(JavaJsonObject jsonObject) {
 
-    for (JavaJsonVersion item : jsonItem.getVersions()) {
-      String version = item.getOpenjdkVersion();
-      version = version.replace("+", "_");
-      // replace 1.8.0_ to 8u
-      if (version.startsWith("1.8.0_")) {
-        version = "8u" + version.substring(6);
-        version = version.replace("-b", "b");
-      }
-      addVersion(version, versions);
-    }
-
+    return jsonObject.versions();
   }
 }

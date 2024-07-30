@@ -1,14 +1,11 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import java.util.regex.Pattern;
-
-import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
+import com.devonfw.tools.ide.url.updater.NpmBasedUrlUpdater;
 
 /**
- * {@link WebsiteUrlUpdater} for npm (node package manager).
+ * {@link NpmBasedUrlUpdater} for npm (node package manager).
  */
-public class NpmUrlUpdater extends WebsiteUrlUpdater {
+public class NpmUrlUpdater extends NpmBasedUrlUpdater {
 
   @Override
   protected String getTool() {
@@ -17,28 +14,8 @@ public class NpmUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
-  protected void addVersion(UrlVersion urlVersion) {
+  protected String getPackageName() {
 
-    doAddVersion(urlVersion, "https://registry.npmjs.org/npm/-/npm-${version}.tgz");
-
+    return getTool();
   }
-
-  @Override
-  protected String getVersionUrl() {
-
-    return "https://registry.npmjs.org/npm/";
-  }
-
-  @Override
-  protected Pattern getVersionPattern() {
-
-    return Pattern.compile("npm-(\\d{1,2}\\.\\d{1,2}\\.\\d+)");
-  }
-
-  @Override
-  protected String getVersionPrefixToRemove() {
-
-    return "npm-";
-  }
-
 }

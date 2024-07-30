@@ -1,0 +1,29 @@
+{
+  "versions": [
+    {
+      "build": 8,
+      "major": 22,
+      "minor": 0,
+      "openjdk_version": "22.0.1+8",
+      "security": 1,
+      "semver": "22.0.1+8"
+    },
+    {
+      "build": 36,
+      "major": 22,
+      "minor": 0,
+      "openjdk_version": "22+36",
+      "security": 0,
+      "semver": "22.0.0+36"
+    },
+    {
+      "build": 9,
+      "major": 21,
+      "minor": 0,
+      "openjdk_version": "21.0.3+9-LTS",
+      "optional": "LTS",
+      "security": 3,
+      "semver": "21.0.3+9.0.LTS"
+    }
+  ]
+}
