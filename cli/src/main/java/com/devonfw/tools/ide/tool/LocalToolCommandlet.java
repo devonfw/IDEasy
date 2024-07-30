@@ -74,7 +74,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
     try {
       // install configured version of our tool in the software repository if not already installed
-      ToolInstallation installation = installInRepo(configuredVersion);
+      ToolInstallation installation = installTool(configuredVersion);
       // check if we already have this version installed (linked) locally in IDE_HOME/software
       VersionIdentifier resolvedVersion = installation.resolvedVersion();
       if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
@@ -83,14 +83,16 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         step.success();
         return false;
       }
-      // we need to link the version or update the link.
-      Path toolPath = getToolPath();
-      FileAccess fileAccess = this.context.getFileAccess();
-      if (Files.exists(toolPath)) {
-        fileAccess.backup(toolPath);
+      if (!isIgnoreSoftwareRepo()) {
+        // we need to link the version or update the link.
+        Path toolPath = getToolPath();
+        FileAccess fileAccess = this.context.getFileAccess();
+        if (Files.exists(toolPath)) {
+          fileAccess.backup(toolPath);
+        }
+        fileAccess.mkdirs(toolPath.getParent());
+        fileAccess.symlink(installation.linkDir(), toolPath);
       }
-      fileAccess.mkdirs(toolPath.getParent());
-      fileAccess.symlink(installation.linkDir(), toolPath);
       this.context.getPath().setPath(this.tool, installation.binDir());
       postInstall();
       if (installedVersion == null) {
@@ -109,40 +111,48 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet} only in the central software
-   * repository without touching the IDE installation.
+   * Determines whether this tool should be installed directly in the software folder or in the software repository.
    *
-   * @param version the {@link VersionIdentifier} requested to be installed. May also be a {@link VersionIdentifier#isPattern() version pattern}.
-   * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
+   * @return {@code true} if the tool should be installed directly in the software folder, ignoring the central software repository; {@code false} if
+   * the tool should be installed in the central software repository (default behavior).
    */
-  public ToolInstallation installInRepo(VersionIdentifier version) {
+  protected boolean isIgnoreSoftwareRepo() {
 
-    return installInRepo(version, getConfiguredEdition());
+    return false;
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet} only in the central software
-   * repository without touching the IDE installation.
+   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}.
+   *
+   * @param version the {@link VersionIdentifier} requested to be installed. May also be a {@link VersionIdentifier#isPattern() version pattern}.
+   * @return the {@link ToolInstallation} matching the given {@code version}.
+   */
+  public ToolInstallation installTool(VersionIdentifier version) {
+
+    return installTool(version, getConfiguredEdition());
+  }
+
+  /**
+   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a {@link VersionIdentifier#isPattern() version pattern}.
    * @param edition the specific edition to install.
-   * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
+   * @return the {@link ToolInstallation} matching the given {@code version}.
    */
-  public ToolInstallation installInRepo(VersionIdentifier version, String edition) {
+  public ToolInstallation installTool(VersionIdentifier version, String edition) {
 
-    return installInRepo(version, edition, this.context.getDefaultToolRepository());
+    return installTool(version, edition, this.context.getDefaultToolRepository());
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet} only in the central software
-   * repository without touching the IDE installation.
+   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}.
    *
    * @param version the {@link VersionIdentifier} requested to be installed. May also be a {@link VersionIdentifier#isPattern() version pattern}.
    * @param edition the specific edition to install.
    * @param toolRepository the {@link ToolRepository} to use.
-   * @return the {@link ToolInstallation} in the central software repository matching the given {@code version}.
+   * @return the {@link ToolInstallation} matching the given {@code version}.
    */
-  public ToolInstallation installInRepo(VersionIdentifier version, String edition, ToolRepository toolRepository) {
+  public ToolInstallation installTool(VersionIdentifier version, String edition, ToolRepository toolRepository) {
 
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version);
 
@@ -152,8 +162,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.trace("No Dependencies file found");
     }
 
-    Path toolPath = this.context.getSoftwareRepositoryPath().resolve(toolRepository.getId()).resolve(this.tool).resolve(edition)
-        .resolve(resolvedVersion.toString());
+    Path toolPath;
+    if (isIgnoreSoftwareRepo()) {
+      toolPath = getToolPath();
+    } else {
+      toolPath = this.context.getSoftwareRepositoryPath().resolve(toolRepository.getId()).resolve(this.tool).resolve(edition)
+          .resolve(resolvedVersion.toString());
+    }
     Path toolVersionFile = toolPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
     FileAccess fileAccess = this.context.getFileAccess();
     if (Files.isDirectory(toolPath)) {
@@ -161,8 +176,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         if (this.context.isForceMode()) {
           fileAccess.delete(toolPath);
         } else {
-          this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), toolPath);
-          return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
+          if (!isIgnoreSoftwareRepo() || resolvedVersion.equals(getInstalledVersion())) {
+            this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), toolPath);
+            return createToolInstallation(toolPath, resolvedVersion, toolVersionFile);
+          }
         }
       } else {
         this.context.warning("Deleting corrupted installation at {}", toolPath);
@@ -170,11 +187,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
     }
     Path target = toolRepository.download(this.tool, edition, resolvedVersion);
-    fileAccess.mkdirs(toolPath.getParent());
     boolean extract = isExtract();
     if (!extract) {
       this.context.trace("Extraction is disabled for '{}' hence just moving the downloaded file {}.", this.tool, target);
     }
+    if (Files.exists(toolPath)) {
+      fileAccess.backup(toolPath);
+    }
+    fileAccess.mkdirs(toolPath.getParent());
     fileAccess.extract(target, toolPath, this::postExtract, extract);
     try {
       Files.writeString(toolVersionFile, resolvedVersion.toString(), StandardOpenOption.CREATE_NEW);
@@ -365,7 +385,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
     this.context.info("The version {} of the dependency {} is being installed", dependencyVersionToInstall, dependencyName);
     LocalToolCommandlet dependencyLocal = (LocalToolCommandlet) dependencyTool;
-    dependencyLocal.installInRepo(dependencyVersionToInstall);
+    dependencyLocal.installTool(dependencyVersionToInstall);
     this.context.info("The version {} of the dependency {} was successfully installed", dependencyVersionToInstall, dependencyName);
   }
 
