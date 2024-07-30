@@ -6,8 +6,6 @@ jobs:
   # Builds documentation pdf file in cli/target/package and uploads artifact to docs
   build-documentation:
     name: Build documentation
-    needs: [ verify_commit ]
-    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -31,8 +29,7 @@ jobs:
   # Downloads documentation docs artifact, builds all native images, archives native image for each os with documentation pdf file and uploads artifacts to f.e. natives-windows-latest
   build-natives:
     name: Build native images
-    needs: [ verify_commit, build-documentation ]
-    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
+    needs: build-documentation
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -67,8 +64,7 @@ jobs:
   # Downloads all native image artifacts to cli/target and builds the project for deployment to OSSRH Nexus
   deploy:
     name: Build Project and Deploy
-    needs: [ verify_commit, build-documentation, build-natives ]
-    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
+    needs: [ build-documentation, build-natives ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -95,8 +91,6 @@ jobs:
 
   check_status:
     runs-on: ubuntu-latest
-    needs: verify_commit
-    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'false' }}
     steps:
       - name: Check last workflow status
         id: check_status
