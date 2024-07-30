@@ -28,4 +28,10 @@ public class Node extends LocalToolCommandlet {
 
     this.context.info("For a list of supported options and arguments, use \"node --help\"");
   }
+
+  @Override
+  protected boolean isIgnoreSoftwareRepo() {
+
+    return true;
+  }
 }
