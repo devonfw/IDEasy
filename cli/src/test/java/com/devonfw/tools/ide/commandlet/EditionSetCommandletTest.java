@@ -35,7 +35,7 @@ public class EditionSetCommandletTest extends AbstractIdeContextTest {
         # This file contains project specific environment variables
         #********************************************************************************
         JAVA_VERSION=17*
-        MVN_VERSION=3.9.*
+        MVN_VERSION=3.9.0
         ECLIPSE_VERSION=2023-03
         INTELLIJ_EDITION=ultimate
         IDE_TOOLS=mvn,eclipse
