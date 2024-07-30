@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.github.GithubTags;
 /**
  * {@link JsonUrlUpdater} for github projects.
  */
-public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags> {
+public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, GithubTag> {
 
   @Override
   protected String doGetVersionUrl() {
@@ -21,15 +21,6 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags> {
   protected Class<GithubTags> getJsonObjectType() {
 
     return GithubTags.class;
-  }
-
-  @Override
-  protected void collectVersionsFromJson(GithubTags jsonItem, Collection<String> versions) {
-
-    for (GithubTag item : jsonItem) {
-      String version = item.getRef().replace("refs/tags/", "");
-      addVersion(version, versions);
-    }
   }
 
   /**
@@ -45,4 +36,9 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags> {
     return getTool();
   }
 
+  @Override
+  protected Collection<GithubTag> getVersionItems(GithubTags jsonObject) {
+
+    return jsonObject;
+  }
 }

@@ -38,13 +38,13 @@ public class PythonUrlUpdaterTest extends Assertions {
     stubFor(get(urlMatching("/actions/python-versions/main/.*")).willReturn(aResponse().withStatus(200)
         .withBody(Files.readAllBytes(Path.of(testdataRoot).resolve("python-version.json")))));
 
-    stubFor(any(urlMatching("/actions/python-versions/releases/download.*"))
-        .willReturn(aResponse().withStatus(200).withBody("aBody")));
+    stubFor(any(urlMatching("/actions/python-versions/releases/download.*")).willReturn(
+        aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempPath);
     PythonUrlUpdaterMock pythonUpdaterMock = new PythonUrlUpdaterMock();
     pythonUpdaterMock.update(urlRepository);
-    Path pythonPath = tempPath.resolve("python").resolve("python").resolve("3.12.0-beta.2");
+    Path pythonPath = tempPath.resolve("python").resolve("python").resolve("3.12.0");
 
     assertThat(pythonPath.resolve("status.json")).exists();
     assertThat(pythonPath.resolve("linux_x64.urls")).exists();
