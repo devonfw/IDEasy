@@ -112,6 +112,10 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
     return this.context.getPluginsPath().resolve(this.tool);
   }
 
+  public PluginInstaller getPluginInstaller() {
+    return new PluginInstaller(context, this);
+  }
+
   /**
    * @param key the filename of the properties file configuring the requested plugin (typically excluding the ".properties" extension).
    * @return the {@link PluginDescriptor} for the given {@code key}.
