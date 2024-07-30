@@ -33,6 +33,8 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
@@ -538,8 +540,11 @@ public class FileAccessImpl implements FileAccess {
         this.context.trace("Determined file extension {}", extension);
       }
       switch (extension) {
-        case "zip", "jar" -> {
+        case "zip" -> {
           extractZip(archiveFile, tmpDir);
+        }
+        case "jar" -> {
+          extractJar(archiveFile, tmpDir);
         }
         case "dmg" -> {
           extractDmg(archiveFile, tmpDir);
@@ -602,6 +607,33 @@ public class FileAccessImpl implements FileAccess {
   public void extractTar(Path file, Path targetDir, TarCompression compression) {
 
     extractArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
+  }
+
+  @Override
+  public void extractJar(Path file, Path targetDir) {
+
+    this.context.trace("Unpacking JAR {} to {}", file, targetDir);
+    try (JarInputStream jis = new JarInputStream(Files.newInputStream(file))) {
+      JarEntry entry;
+      while ((entry = jis.getNextJarEntry()) != null) {
+        Path entryPath = targetDir.resolve(entry.getName()).toAbsolutePath();
+
+        if (!entryPath.startsWith(targetDir)) {
+          throw new IOException("Preventing path traversal attack from " + entry.getName() + " to " + entryPath);
+        }
+
+        if (entry.isDirectory()) {
+          Files.createDirectories(entryPath);
+        } else {
+          Files.createDirectories(entryPath.getParent());
+          Files.copy(jis, entryPath);
+        }
+
+        jis.closeEntry();
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract JAR " + file + " to " + targetDir, e);
+    }
   }
 
   /**
