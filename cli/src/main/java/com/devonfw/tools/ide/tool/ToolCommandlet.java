@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -277,7 +277,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void setVersion(VersionIdentifier version, boolean hint) {
 
-    setVersion(version, hint, EnvironmentVariablesType.SETTINGS);
+    setVersion(version, hint, null);
   }
 
   /**
@@ -287,14 +287,18 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param hint - {@code true} to print the installation hint, {@code false} otherwise.
    * @param destination - the destination for the property to be set
    */
-  public void setVersion(VersionIdentifier version, boolean hint, EnvironmentVariablesType destination) {
+  public void setVersion(VersionIdentifier version, boolean hint, EnvironmentVariablesFiles destination) {
 
     String edition = getConfiguredEdition();
     this.context.getUrls()
         .getVersionFolder(this.tool, edition, version); // CliException is thrown if the version is not existing
 
     EnvironmentVariables variables = this.context.getVariables();
-    EnvironmentVariables settingsVariables = variables.getByType(destination);
+    if (destination == null) {
+      //use default location
+      destination = EnvironmentVariablesFiles.SETTINGS;
+    }
+    EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
     String name = EnvironmentVariables.getToolVersionVariable(this.tool);
     VersionIdentifier resolvedVersion = this.context.getUrls().getVersion(this.tool, edition, version);
     if (version.isPattern()) {
@@ -332,7 +336,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void setEdition(String edition, boolean hint) {
 
-    setEdition(edition, hint, EnvironmentVariablesType.SETTINGS);
+    setEdition(edition, hint, null);
   }
 
   /**
@@ -342,18 +346,22 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param hint - {@code true} to print the installation hint, {@code false} otherwise.
    * @param destination - the destination for the property to be set
    */
-  public void setEdition(String edition, boolean hint, EnvironmentVariablesType destination) {
+  public void setEdition(String edition, boolean hint, EnvironmentVariablesFiles destination) {
 
     if ((edition == null) || edition.isBlank()) {
       throw new IllegalStateException("Edition has to be specified!");
     }
 
+    if (destination == null) {
+      //use default location
+      destination = EnvironmentVariablesFiles.SETTINGS;
+    }
     if (!Files.exists(this.context.getUrls().getEdition(getName(), edition).getPath())) {
       this.context.warning("Edition {} seems to be invalid", edition);
 
     }
     EnvironmentVariables variables = this.context.getVariables();
-    EnvironmentVariables settingsVariables = variables.getByType(destination);
+    EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
     String name = EnvironmentVariables.getToolEditionVariable(this.tool);
     settingsVariables.set(name, edition, false);
     settingsVariables.save();
