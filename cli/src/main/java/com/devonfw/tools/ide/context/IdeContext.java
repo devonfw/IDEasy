@@ -532,6 +532,23 @@ public interface IdeContext extends IdeLogger {
   String findBash();
 
   /**
+   * Finds the path to the Bash executable.
+   *
+   * @return the {@link String} to the Bash executable. Throws an {@link IllegalStateException} if no bash was found.
+   */
+  default String findBashRequired() {
+    String bash = findBash();
+    if (bash == null) {
+      String message = "Could not find bash what is a prerequisite of IDEasy.";
+      if (getSystemInfo().isWindows()) {
+        message = message + "\nPlease install Git for Windows and rerun.";
+      }
+      throw new IllegalStateException(message);
+    }
+    return bash;
+  }
+
+  /**
    * @return the {@link WindowsPathSyntax} used for {@link Path} conversion or {@code null} for no such conversion (typically if not on Windows).
    */
   WindowsPathSyntax getPathSyntax();
