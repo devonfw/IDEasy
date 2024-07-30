@@ -17,11 +17,37 @@ jobs:
         if: ${{ (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch') }}
         run: echo '::set-output name=RUN_BUILD::'$(test -n "$(git log --format=%H --since='24 hours ago')" && echo 'true' || echo 'false')
 
+  # Builds documentation pdf file in cli/target/package and uploads artifact to docs
+  build-documentation:
+    name: Build documentation
+    needs: [ verify_commit ]
+    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '17'
+      - name: Make documentation available
+        run: |
+          cd documentation
+          mvn -B -ntp -Dstyle.color=always -DskipTests=true package
+      - name: Upload documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs
+          path: documentation/target/generated-docs/*.pdf
+
+  # Downloads documentation docs artifact, builds all native images, archives native image for each os with documentation pdf file and uploads artifacts to f.e. natives-windows-latest
   build-natives:
     name: Build native images
-    runs-on: ${{ matrix.os }}
-    needs: verify_commit
+    needs: [ verify_commit, build-documentation ]
     if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
@@ -36,19 +62,26 @@ jobs:
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
-      - name: Build native images with nativ maven plugin and extract in tar.gz
+      - name: Download documentation
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+          path: ./cli/target/package
+      - name: Build native image
         shell: bash
         run: |
           cd cli
-          mvn -B -ntp -Pnative -P!include-docs -DskipTests=true package
-      - uses: actions/upload-artifact@v3
+          mvn -B -ntp -Dideasy.assembly.id=${{ matrix.os }} -Pnative -DskipTests=true package
+      - name: Upload native image
+        uses: actions/upload-artifact@v4
         with:
-          name: natives
+          name: natives-${{ matrix.os }}
           path: cli/target/*.tar.gz
 
-  build:
+  # Downloads all native image artifacts to cli/target and builds the project for deployment to OSSRH Nexus
+  deploy:
     name: Build Project and Deploy
-    needs: [ build-natives, verify_commit ]
+    needs: [ verify_commit, build-documentation, build-natives ]
     if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
     runs-on: ubuntu-latest
     steps:
@@ -60,16 +93,19 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '17'
-      - uses: actions/download-artifact@v3
-      - name: Make natives available and build project
-        run: |
+      - name: Download natives and build project
+        uses: actions/download-artifact@v4
+        with:
+          pattern: natives-*
+          path: ./cli/target/
+          merge-multiple: true
+      - run: |
           mvn -B -ntp -Dstyle.color=always install
-          mv ./natives/* ./cli/target/
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -P deploy deploy
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -Pdeploy deploy
 
   check_status:
     runs-on: ubuntu-latest
