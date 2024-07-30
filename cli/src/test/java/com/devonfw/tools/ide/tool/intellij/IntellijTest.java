@@ -22,6 +22,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 /**
  * Integration test of {@link Intellij}.
  */
+// TODO: replace with dynamic ports, see: https://github.com/devonfw/IDEasy/pull/487
 @WireMockTest(httpPort = 8080)
 public class IntellijTest extends AbstractIdeContextTest {
 
