@@ -165,7 +165,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
-        if (FOLDER_WORKSPACES.equals(name1)) {
+        if (FOLDER_WORKSPACES.equals(name1) && !name2.isEmpty()) {
           workspace = name2;
         }
         break;
@@ -176,11 +176,6 @@ public abstract class AbstractIdeContext implements IdeContext {
         name1 = currentDir.getName(nameCount - 1).toString();
       }
       currentDir = getParentPath(currentDir);
-    }
-
-    // fallback to main
-    if (workspace.isEmpty()) {
-      workspace = WORKSPACE_MAIN;
     }
 
     // detection completed, initializing variables
