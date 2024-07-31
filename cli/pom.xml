@@ -196,6 +196,7 @@
                   <goal>single</goal>
                 </goals>
                 <configuration>
+                  <finalName>${project.artifactId}-${revision}</finalName>
                   <appendAssemblyId>true</appendAssemblyId>
                   <descriptors>
                     <descriptor>/src/main/assembly/release-${ideasy.assembly.id}.xml</descriptor>
