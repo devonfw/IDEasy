@@ -191,7 +191,7 @@
             <executions>
               <execution>
                 <id>create-distribution</id>
-                <phase>package</phase>
+                <phase>compile</phase>
                 <goals>
                   <goal>single</goal>
                 </goals>
