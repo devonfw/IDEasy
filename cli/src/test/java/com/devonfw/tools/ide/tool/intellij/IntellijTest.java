@@ -6,9 +6,12 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -17,19 +20,27 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Integration test of {@link Intellij}.
  */
-// TODO: replace with dynamic ports, see: https://github.com/devonfw/IDEasy/pull/487
-@WireMockTest(httpPort = 8080)
+@WireMockTest
 public class IntellijTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_INTELLIJ = "intellij";
   private static final String MOCKED_PLUGIN_JAR = "mocked-plugin.jar";
+  private static final String TEST_DATA_ROOT = "src/test/resources/ide-projects/intellij/project/settings/intellij/plugins";
 
   private final IdeTestContext context = newContext(PROJECT_INTELLIJ);
+
+
+  @BeforeAll
+  public static void setup(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+    String content = "plugin_id=mockedPlugin\nplugin_active=true\nplugin_url=" + wmRuntimeInfo.getHttpBaseUrl() + "/mockedPlugin";
+    Files.write(Path.of(TEST_DATA_ROOT).resolve("MockedPlugin.properties"), content.getBytes(StandardCharsets.UTF_8));
+  }
 
   /**
    * Tests if the {@link Intellij} can be installed properly.
@@ -111,4 +122,10 @@ public class IntellijTest extends AbstractIdeContextTest {
         aResponse().withStatus(200).withHeader("Content-Type", "application/java-archive").withHeader("Content-Length", String.valueOf(contentLength))
             .withBody(contentBytes)));
   }
+
+  @AfterAll
+  public static void cleanup() throws IOException {
+    Files.write(Path.of(TEST_DATA_ROOT).resolve("MockedPlugin.properties"), "".getBytes(StandardCharsets.UTF_8));
+  }
+
 }
