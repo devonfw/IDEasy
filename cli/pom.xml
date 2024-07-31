@@ -158,7 +158,7 @@
                 <goals>
                   <goal>compile-no-fork</goal>
                 </goals>
-                <phase>compile</phase>
+                <phase>package</phase>
               </execution>
               <execution>
                 <id>test-native</id>
@@ -191,12 +191,12 @@
             <executions>
               <execution>
                 <id>create-distribution</id>
-                <phase>compile</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>single</goal>
                 </goals>
                 <configuration>
-                  <finalName>${project.artifactId}-${revision}-</finalName>
+                  <finalName>${project.artifactId}-${revision}</finalName>
                   <appendAssemblyId>true</appendAssemblyId>
                   <descriptors>
                     <descriptor>/src/main/assembly/release-${ideasy.assembly.id}.xml</descriptor>
