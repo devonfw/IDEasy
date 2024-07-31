@@ -54,7 +54,7 @@ jobs:
         shell: bash
         run: |
           cd cli
-          mvn -B -ntp -Dideasy.assembly.id=${{ matrix.os }} -Pnative -DskipTests=true package
+          mvn -B -ntp -Dideasy.assembly.id=${{ matrix.os }} -Pnative -DskipTests=true compile
       - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
