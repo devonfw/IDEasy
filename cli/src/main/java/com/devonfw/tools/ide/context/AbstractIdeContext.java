@@ -925,6 +925,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     return matches;
   }
 
+
   /**
    * @param arguments the {@link CliArguments#ofCompletion(String...) completion arguments}.
    * @param includeContextOptions to include the options of {@link ContextCommandlet}.
@@ -949,19 +950,27 @@ public abstract class AbstractIdeContext implements IdeContext {
       Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
       boolean matches = false;
       if (firstCandidate != null) {
-        matches = apply(arguments.copy(), firstCandidate, collector);
+        matches = completeCommandlet(arguments, firstCandidate, collector);
       } else if (current.isCombinedShortOption()) {
         collector.add(keyword, null, null, null);
       }
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
           if (cmd != firstCandidate) {
-            apply(arguments.copy(), cmd, collector);
+            completeCommandlet(arguments, cmd, collector);
           }
         }
       }
     }
     return collector.getSortedCandidates();
+  }
+
+  private boolean completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+    if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
+      return false;
+    } else {
+      return apply(arguments.copy(), cmd, collector);
+    }
   }
 
   /**
