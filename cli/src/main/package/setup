@@ -10,6 +10,7 @@ if ! grep -q "${AUTOCOMPLETION}" ~/.bashrc; then
 fi
 if ! grep -q "alias ide=" ~/.bashrc; then
   echo -e "alias ide=\"source ${PWD}/bin/ide\"" >> ~/.bashrc
+  echo -e "ide" >> ~/.bashrc
 fi
 
 if [ -f ~/.zshrc ]; then
@@ -27,5 +28,6 @@ if [ -f ~/.zshrc ]; then
   fi
   if ! grep -q "alias ide=" ~/.zshrc; then
     echo -e "alias ide=\"source ${PWD}/bin/ide\"" >> ~/.zshrc
+    echo -e "ide" >> ~/.zshrc
   fi
 fi
