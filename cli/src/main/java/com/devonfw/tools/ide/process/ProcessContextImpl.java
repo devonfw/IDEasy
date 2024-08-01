@@ -1,14 +1,5 @@
 package com.devonfw.tools.ide.process;
 
-import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.common.SystemPath;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.VariableLine;
-import com.devonfw.tools.ide.log.IdeSubLogger;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
-import com.devonfw.tools.ide.os.WindowsPathSyntax;
-import com.devonfw.tools.ide.util.FilenameUtil;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,6 +14,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
+
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.SystemPath;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.VariableLine;
+import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.util.FilenameUtil;
 
 /**
  * Implementation of {@link ProcessContext}.
@@ -77,7 +77,7 @@ public class ProcessContextImpl implements ProcessContext {
       this.processBuilder.directory(directory.toFile());
     } else {
       this.context.debug(
-              "Could not set the process builder's working directory! Directory of the current java process is used.");
+          "Could not set the process builder's working directory! Directory of the current java process is used.");
     }
 
     return this;
@@ -177,8 +177,7 @@ public class ProcessContextImpl implements ProcessContext {
   }
 
   /**
-   * Asynchronously and parallel reads {@link InputStream input stream} and stores it in {@link CompletableFuture}.
-   * Inspired by: <a href=
+   * Asynchronously and parallel reads {@link InputStream input stream} and stores it in {@link CompletableFuture}. Inspired by: <a href=
    * "https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki/57483714#57483714">StackOverflow</a>
    *
    * @param is {@link InputStream}.
@@ -272,7 +271,7 @@ public class ProcessContextImpl implements ProcessContext {
     }
     if (isBashScript) {
       interpreter = "bash";
-      args.add(this.context.findBash());
+      args.add(this.context.findBashRequired());
     }
     if ("msi".equalsIgnoreCase(fileExtension)) {
       args.add(0, "/i");
@@ -314,8 +313,8 @@ public class ProcessContextImpl implements ProcessContext {
 
     String bash = this.context.findBash();
     if (bash == null) {
-      context.warning(
-              "Cannot start background process via bash because no bash installation was found. Hence, output will be discarded.");
+      this.context.warning(
+          "Cannot start background process via bash because no bash installation was found. Hence, output will be discarded.");
       this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
       return;
     }

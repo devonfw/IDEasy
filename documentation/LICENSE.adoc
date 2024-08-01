@@ -11,9 +11,12 @@ The documentation of this product is licensed under the terms of the http://crea
 
 All of the source code to this product is available under licenses which are both free and open source.
 
-More specifically, most of the source code is available under the Apache License 2.0. The remainder of the software which is not under the Apache License is available under one of a variety of other free and open source licenses. Those that require reproduction of the license text in the distribution are given below. (Note: your copy of this product may not contain code covered by one or more of the licenses listed here, depending on the exact product and version you choose.)
+More specifically, most of the source code is available under the Apache License 2.0. The remainder of the software which is not under the Apache License is available under one of a variety of other free and open source licenses.
+Those that require reproduction of the license text in the distribution are given below.
+(Note: your copy of this product may not contain code covered by one or more of the licenses listed here, depending on the exact product and version you choose.)
 
-The following table shows the components that may be used. The column `inclusion` indicates the way the component is included:
+The following table shows the components that may be used.
+The column `inclusion` indicates the way the component is included:
 
 * `directly included` means the component is directly contained in the download package of `IDEasy` we provide
 * `default setup` means the component is not initially included but will be downloaded during the link:setup.asciidoc[`setup`] by default
@@ -77,6 +80,7 @@ The following table shows the components that may be used. The column `inclusion
 |https://tomcat.apache.org/[tomcat]|Optional|https://www.apache.org/licenses/LICENSE-2.0[ASL 2.0]
 |https://www.oracle.com/java/technologies/jdk-mission-control.html[Java Mission Control]|Optional|https://github.com/openjdk/jmc/blob/master/license/LICENSE.txt[UPL 1.0] and https://github.com/openjdk/jmc/blob/master/license/THIRDPARTYREADME.txt[EPL 2.0]
 |https://github.com/ctongfei/progressbar[Progressbar]|Optional|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
+|https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
 |===
 
 == Apache Software License - Version 2.0
@@ -463,6 +467,7 @@ Exhibit A – Form of Secondary Licenses Notice
 
     You may add additional accurate notices of copyright ownership.
 ```
+
 == MIT License
 
 ```
@@ -476,6 +481,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 ```
 
 == Artistic License - Version 2.0
+
 ```
 Copyright (c) 2000-2006, The Perl Foundation.
 
@@ -552,6 +558,7 @@ General Provisions
 ```
 
 == Creative Commons License - Attribution-NoDerivatives 4.0 International
+
 ```
 By exercising the Licensed Rights (defined below), You accept and agree to be bound by the terms and conditions of this Creative Commons Attribution-NoDerivatives 4.0 International Public License ("Public License"). To the extent this Public License may be interpreted as a contract, You are granted the Licensed Rights in consideration of Your acceptance of these terms and conditions, and the Licensor grants You such rights in consideration of benefits the Licensor receives from making the Licensed Material available under these terms and conditions.
 
@@ -648,6 +655,7 @@ Section 8 – Interpretation.
 ```
 
 == GNU LESSER GENERAL PUBLIC LICENSE - Version 2.1
+
 ```
  Version 2.1, February 1999
 
@@ -825,6 +833,7 @@ Ty Coon, President of Vice
 ```
 
 == GNU LESSER GENERAL PUBLIC LICENSE - Version 3
+
 ```
 Version 3, 29 June 2007
 
@@ -1026,6 +1035,7 @@ Ty Coon, President of Vice
 ```
 
 == "CLASSPATH" EXCEPTION TO THE GPL
+
 ```
 Certain source files distributed by Oracle America and/or its affiliates
 are subject to the following clarification and special exception to the GPLv2,
@@ -1081,6 +1091,7 @@ statement from your version.
 ```
 
 == DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE - Version 2
+
 ```
             DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
                     Version 2, December 2004
@@ -1098,6 +1109,7 @@ statement from your version.
 ```
 
 == License of Node.js
+
 ```
 Node.js is licensed for use as follows:
 
@@ -2901,6 +2913,7 @@ The externally maintained libraries used by Node.js are:
 ```
 
 == MICROSOFT SOFTWARE LICENSE TERMS
+
 ```
 MICROSOFT VISUAL STUDIO CODE
 
@@ -2943,7 +2956,9 @@ IF YOU COMPLY WITH THESE LICENSE TERMS, YOU HAVE THE RIGHTS BELOW.
 
     It also applies even if Microsoft knew or should have known about the possibility of the damages. The above limitation or exclusion may not apply to you because your state or country may not allow the exclusion or limitation of incidental, consequential or other damages.
 ```
+
 == Mozilla Public License 2.0
+
 ```
 Mozilla Public License, version 2.0
 
@@ -3299,7 +3314,9 @@ Exhibit B - “Incompatible With Secondary Licenses” Notice
       With Secondary Licenses”, as defined by
       the Mozilla Public License, v. 2.0.
 ```
+
 == The Universal Permissive License, Version 1.0
+
 ```
 Copyright (c) 2018, 2022, Oracle and/or its affiliates. All rights reserved.
 
@@ -3365,4 +3382,17 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+== The PostgreSQL Licence
+
+```
+Copyright (c) 2013 - 2021, The pgAdmin Development Team
+
+Permission to use, copy, modify, and distribute this software and its documentation for any purpose, without fee, and without a written agreement is hereby granted, provided that the above copyright notice and this paragraph and the following two paragraphs appear in all copies.
+
+IN NO EVENT SHALL THE PGADMIN DEVELOPMENT TEAM BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE PGADMIN DEVELOPMENT TEAM HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+THE PGADMIN DEVELOPMENT TEAM SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE PGADMIN DEVELOPMENT TEAM HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 ```

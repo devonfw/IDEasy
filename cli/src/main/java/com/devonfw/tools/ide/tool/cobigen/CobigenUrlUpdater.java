@@ -6,6 +6,7 @@ import com.devonfw.tools.ide.url.updater.MavenBasedUrlUpdater;
  * {@link MavenBasedUrlUpdater} for cobigen-cli.
  */
 public class CobigenUrlUpdater extends MavenBasedUrlUpdater {
+
   @Override
   protected String getTool() {
 

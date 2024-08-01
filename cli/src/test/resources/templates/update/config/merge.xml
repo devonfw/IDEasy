@@ -1,4 +1,5 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?><root attribute2="bar" xmlns:foo="http://foo.org" foo:attributeFoo="foo">
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root attribute2="bar" xmlns:foo="http://foo.org" foo:attributeFoo="foo">
   <list>
     <entry>value2</entry>
     <entry>value3</entry>

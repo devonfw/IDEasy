@@ -6,8 +6,7 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.property.Property;
 
 /**
- * Implementation of {@link CompletionCandidateCollector} that wraps an existing {@link CompletionCandidateCollector}
- * adding a prefix.
+ * Implementation of {@link CompletionCandidateCollector} that wraps an existing {@link CompletionCandidateCollector} adding a prefix.
  */
 public class CompletionCandidateCollectorAdapter implements CompletionCandidateCollector {
 

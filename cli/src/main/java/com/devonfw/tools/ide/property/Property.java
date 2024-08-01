@@ -1,16 +1,16 @@
 package com.devonfw.tools.ide.property;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
+
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorAdapter;
 import com.devonfw.tools.ide.context.IdeContext;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
 
 /**
  * A {@link Property} is a simple container for a {@link #getValue() value} with a fixed {@link #getName() name} and {@link #getValueType() type}. Further we
@@ -164,7 +164,7 @@ public abstract class Property<V> {
    */
   public boolean isMultiValued() {
 
-    return multivalued;
+    return this.multivalued;
   }
 
   /**
@@ -382,7 +382,7 @@ public abstract class Property<V> {
     boolean success = assignValueAsString(argValue, context, commandlet);
 
     if (success) {
-      if (multivalued) {
+      if (this.multivalued) {
 
         while (success && args.hasNext()) {
           CliArgument arg = args.next();

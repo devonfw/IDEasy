@@ -1,13 +1,14 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.variable.IdeVariables;
-import org.junit.jupiter.api.Test;
-
-import java.nio.file.Path;
 
 /**
  * Integration test of {@link IdeContext}.
@@ -67,6 +68,66 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(v5.getType()).isSameAs(EnvironmentVariablesType.SYSTEM);
     assertThat(variables.getByType(EnvironmentVariablesType.SYSTEM)).isSameAs(v5);
     assertThat(v5.getParent()).isNull();
+  }
+
+  /**
+   * Tests if the user is starting IDEasy from the "workspaces" directory, IDEasy should fall back to the "main" workspace.
+   * <p>
+   * See: <a href="https://github.com/devonfw/IDEasy/issues/466">#466</a>
+   */
+  @Test
+  public void testWorkspacePathFallsBackToMainWorkspace() {
+    // arrange
+    String path = "project/workspaces";
+    // act
+    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
+    Path workspacePath = context.getWorkspacePath();
+    String workspaceName = context.getWorkspaceName();
+    // assert
+    assertThat(IdeVariables.WORKSPACE_PATH.get(context)).isEqualTo(workspacePath);
+    assertThat(IdeVariables.WORKSPACE.get(context)).isEqualTo(workspaceName);
+    assertThat(workspacePath).isEqualTo(TEST_PROJECTS.resolve(PROJECT_BASIC).resolve(path).resolve("main").toAbsolutePath());
+    assertThat(workspaceName).isEqualTo("main");
+  }
+
+  /**
+   * Tests if the user is starting IDEasy from the "project" directory, IDEasy should fall back to the "main" workspace.
+   * <p>
+   * See: <a href="https://github.com/devonfw/IDEasy/issues/466">#466</a>
+   */
+  @Test
+  public void testProjectPathFallsBackToMainWorkspace() {
+    // arrange
+    String path = "project";
+    // act
+    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
+    Path workspacePath = context.getWorkspacePath();
+    String workspaceName = context.getWorkspaceName();
+    // assert
+    assertThat(IdeVariables.WORKSPACE_PATH.get(context)).isEqualTo(workspacePath);
+    assertThat(IdeVariables.WORKSPACE.get(context)).isEqualTo(workspaceName);
+    assertThat(workspacePath).isEqualTo(TEST_PROJECTS.resolve(PROJECT_BASIC).resolve(path).resolve("workspaces").resolve("main").toAbsolutePath());
+    assertThat(workspaceName).isEqualTo("main");
+  }
+
+  /**
+   * Tests if the user is starting IDEasy within a workspace directory, IDEasy should use this directory as the current workspace.
+   * <p>
+   * See: <a href="https://github.com/devonfw/IDEasy/issues/466">#466</a>
+   */
+  @Test
+  public void testCurrentWorkspacePathIsUsed() {
+    // arrange
+    String path = "project/workspaces/foo-test";
+    // act
+    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
+    Path workspacePath = context.getWorkspacePath();
+    String workspaceName = context.getWorkspaceName();
+    // assert
+    assertThat(IdeVariables.WORKSPACE_PATH.get(context)).isEqualTo(workspacePath);
+    assertThat(IdeVariables.WORKSPACE.get(context)).isEqualTo(workspaceName);
+    assertThat(workspacePath).isEqualTo(TEST_PROJECTS.resolve(PROJECT_BASIC).resolve(path).toAbsolutePath());
+    assertThat(workspaceName).isEqualTo("foo-test");
   }
 
 }

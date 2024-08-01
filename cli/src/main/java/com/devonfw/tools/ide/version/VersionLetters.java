@@ -49,15 +49,13 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   }
 
   /**
-   * @return the letters or the empty {@link String} ("") for none. In canonical {@link VersionIdentifier}s letters
-   *         indicate the development phase (e.g. "pre", "rc", "alpha", "beta", "milestone", "test", "dev", "SNAPSHOT",
-   *         etc.). However, letters are technically any {@link Character#isLetter(char) letter characters} and may also
-   *         be something like a code-name (e.g. "Cupcake", "Donut", "Eclair", "Froyo", "Gingerbread", "Honeycomb", "Ice
-   *         Cream Sandwich", "Jelly Bean" in case of Android internals). Please note that in such case it is impossible
-   *         to properly decide which version is greater than another versions. To avoid mistakes, the comparison
-   *         supports a strict mode that will let the comparison fail in such case. However, by default (e.g. for
-   *         {@link Comparable#compareTo(Object)}) the default {@link String#compareTo(String) string comparison}
-   *         (lexicographical) is used to ensure a natural order.
+   * @return the letters or the empty {@link String} ("") for none. In canonical {@link VersionIdentifier}s letters indicate the development phase (e.g. "pre",
+   * "rc", "alpha", "beta", "milestone", "test", "dev", "SNAPSHOT", etc.). However, letters are technically any
+   * {@link Character#isLetter(char) letter characters} and may also be something like a code-name (e.g. "Cupcake", "Donut", "Eclair", "Froyo", "Gingerbread",
+   * "Honeycomb", "Ice Cream Sandwich", "Jelly Bean" in case of Android internals). Please note that in such case it is impossible to properly decide which
+   * version is greater than another versions. To avoid mistakes, the comparison supports a strict mode that will let the comparison fail in such case. However,
+   * by default (e.g. for {@link Comparable#compareTo(Object)}) the default {@link String#compareTo(String) string comparison} (lexicographical) is used to
+   * ensure a natural order.
    * @see #getPhase()
    */
   public String getLetters() {
@@ -66,8 +64,7 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   }
 
   /**
-   * @return the {@link VersionPhase} for the {@link #getLetters() letters}. Will be {@link VersionPhase#UNDEFINED} if
-   *         unknown and hence never {@code null}.
+   * @return the {@link VersionPhase} for the {@link #getLetters() letters}. Will be {@link VersionPhase#UNDEFINED} if unknown and hence never {@code null}.
    * @see #isPrePhase()
    * @see #getLetters()
    */
@@ -77,8 +74,8 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
   }
 
   /**
-   * @return {@code true} if the {@link #getLetters() letters} and a potential {@link #getPhase() phase} are prefixed
-   *         with "pre" (e.g. in "pre-alpha"), {@code false} otherwise.
+   * @return {@code true} if the {@link #getLetters() letters} and a potential {@link #getPhase() phase} are prefixed with "pre" (e.g. in "pre-alpha"),
+   * {@code false} otherwise.
    */
   public boolean isPrePhase() {
 
@@ -147,8 +144,7 @@ public final class VersionLetters implements AbstractVersionPhase, VersionObject
 
   /**
    * @param other the other {@link VersionLetters} to match against.
-   * @param pattern - {@code true} if the owning {@link VersionSegment} {@link VersionSegment#isPattern() is a pattern},
-   *        {@code false} otherwise.
+   * @param pattern - {@code true} if the owning {@link VersionSegment} {@link VersionSegment#isPattern() is a pattern}, {@code false} otherwise.
    * @return the {@link VersionMatchResult}.
    * @see VersionSegment#matches(VersionSegment)
    */

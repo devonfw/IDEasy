@@ -39,8 +39,7 @@ public final class Ideasy {
   }
 
   /**
-   * Non-static variant of {@link #main(String...) main method} without invoking {@link System#exit(int)} so it can be
-   * tested.
+   * Non-static variant of {@link #main(String...) main method} without invoking {@link System#exit(int)} so it can be tested.
    *
    * @param args the command-line arguments.
    * @return the exit code.

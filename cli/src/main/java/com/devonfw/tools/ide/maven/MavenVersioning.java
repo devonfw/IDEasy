@@ -26,7 +26,6 @@ public class MavenVersioning {
   }
 
   /**
-   *
    * The constructor.
    *
    * @param latest the {@link #getLatest() latest} version.

@@ -1,5 +1,20 @@
 package com.devonfw.tools.ide.context;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -37,21 +52,6 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * Abstract base implementation of {@link IdeContext}.
@@ -165,7 +165,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
-        if (FOLDER_WORKSPACES.equals(name1)) {
+        if (FOLDER_WORKSPACES.equals(name1) && !name2.isEmpty()) {
           workspace = name2;
         }
         break;
@@ -227,7 +227,7 @@ public abstract class AbstractIdeContext implements IdeContext {
           }
         } else if (!ideRootPath.equals(rootPath)) {
           warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath, this.ideHome.getFileName(),
-                  ideRootPath);
+              ideRootPath);
         }
       }
     }
@@ -653,6 +653,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   /**
    * @return the {@link #getDefaultExecutionDirectory() default execution directory} in which a command process is executed.
    */
+  @Override
   public Path getDefaultExecutionDirectory() {
 
     return this.defaultExecutionDirectory;
@@ -892,10 +893,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to
-   *            {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and {@link Commandlet#run() run}.
-   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   * {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
+   * {@link Commandlet#run() run}.
+   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
+   * {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -1013,6 +1014,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     return true;
   }
 
+  @Override
   public String findBash() {
 
     String bash = "bash";
@@ -1071,7 +1073,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
     // no bash found
-    throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
+    return null;
   }
 
   @Override

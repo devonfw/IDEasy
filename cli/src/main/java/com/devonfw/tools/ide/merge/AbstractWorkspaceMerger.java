@@ -28,8 +28,7 @@ public abstract class AbstractWorkspaceMerger implements WorkspaceMerger {
   }
 
   /**
-   * @param file the {@link Path} for which the {@link Path#getParent() parent directory} needs to exist and will be
-   *        created if absent by this method.
+   * @param file the {@link Path} for which the {@link Path#getParent() parent directory} needs to exist and will be created if absent by this method.
    */
   protected static void ensureParentDirectoryExists(Path file) {
 

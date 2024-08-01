@@ -31,6 +31,7 @@ public record RepositoryConfig(
     String buildCmd,
     Set<String> imports,
     boolean active) {
+
   public static RepositoryConfig loadProperties(Path filePath) {
 
     Properties properties = new Properties();
