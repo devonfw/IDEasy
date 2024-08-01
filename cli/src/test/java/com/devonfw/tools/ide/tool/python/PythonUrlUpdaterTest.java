@@ -28,10 +28,7 @@ public class PythonUrlUpdaterTest extends Assertions {
 
   /** Test resource location */
   private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/PythonJsonUrlUpdater";
-
-  /** Temporary directory for the version json file */
-  @TempDir
-  static Path tempVersionFilePath;
+  private static String pythonVersionJson;
 
   /**
    * Creates a python-version json file based on the given test resource in a temporary directory according to the http url and port of the
@@ -41,12 +38,10 @@ public class PythonUrlUpdaterTest extends Assertions {
    * @throws IOException
    */
   @BeforeAll
-  public static void setupTestVersionFile(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
-    assertThat(Files.isDirectory(tempVersionFilePath)).isTrue();
-    String content = new String(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("python-version.json")), StandardCharsets.UTF_8);
-    content = content.replaceAll("\\$\\{testbaseurl\\}", wmRuntimeInfo.getHttpBaseUrl());
-    Files.write(tempVersionFilePath.resolve("python-version.json"), content.getBytes(StandardCharsets.UTF_8));
+    pythonVersionJson = new String(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("python-version.json")), StandardCharsets.UTF_8);
+    pythonVersionJson = pythonVersionJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
   }
 
 
@@ -55,17 +50,14 @@ public class PythonUrlUpdaterTest extends Assertions {
    *
    * @param tempDir Path to a temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
-   * @throws IOException test fails
    */
   @Test
-  public void testPythonURl(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void testPythonURl(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
-    stubFor(get(urlMatching("/actions/python-versions/main/.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(tempVersionFilePath.resolve("python-version.json")))));
+    stubFor(get(urlMatching("/actions/python-versions/main/.*")).willReturn(aResponse().withStatus(200).withBody(pythonVersionJson.getBytes())));
 
-    stubFor(any(urlMatching("/actions/python-versions/releases/download.*")).willReturn(
-        aResponse().withStatus(200).withBody("aBody")));
+    stubFor(any(urlMatching("/actions/python-versions/releases/download.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     PythonUrlUpdaterMock pythonUpdaterMock = new PythonUrlUpdaterMock(wmRuntimeInfo);

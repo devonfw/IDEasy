@@ -7,7 +7,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -35,9 +34,8 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
   /** This is the SHA256 checksum of aBody (a placeholder body which gets returned by WireMock) */
   private static final String EXPECTED_ABODY_CHECKSUM = "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30";
 
-  /** Temporary directory for the version json file */
-  @TempDir
-  static Path tempVersionFilePath;
+  private static String androidVersionJson;
+  private static String androidVersionWithoutChecksumJson;
 
   /**
    * Creates an android-version and android-version-without-checksum json file based on the given test resource in a temporary directory according to the http
@@ -47,16 +45,13 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
    * @throws IOException
    */
   @BeforeAll
-  public static void setupTestVersionFile(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
-    assertThat(Files.isDirectory(tempVersionFilePath)).isTrue();
-    String content = new String(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("android-version.json")), StandardCharsets.UTF_8);
-    content = content.replaceAll("\\$\\{testbaseurl\\}", wmRuntimeInfo.getHttpBaseUrl());
-    Files.write(tempVersionFilePath.resolve("android-version.json"), content.getBytes(StandardCharsets.UTF_8));
+    androidVersionJson = Files.readString(Path.of(TEST_DATA_ROOT).resolve("android-version.json"));
+    androidVersionJson = androidVersionJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
 
-    content = new String(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("android-version-without-checksum.json")), StandardCharsets.UTF_8);
-    content = content.replaceAll("\\$\\{testbaseurl\\}", wmRuntimeInfo.getHttpBaseUrl());
-    Files.write(tempVersionFilePath.resolve("android-version-without-checksum.json"), content.getBytes(StandardCharsets.UTF_8));
+    androidVersionWithoutChecksumJson = Files.readString(Path.of(TEST_DATA_ROOT).resolve("android-version-without-checksum.json"));
+    androidVersionWithoutChecksumJson = androidVersionWithoutChecksumJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
   }
 
   /**
@@ -64,17 +59,14 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
    *
    * @param tempDir Path to a temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
-   * @throws IOException test fails
    */
   @Test
-  public void testJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void testJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
-    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(tempVersionFilePath.resolve("android-version.json")))));
+    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionJson.getBytes())));
 
-    stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*"))
-        .willReturn(aResponse().withStatus(200).withBody("aBody")));
+    stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     AndroidStudioUrlUpdaterMock updater = new AndroidStudioUrlUpdaterMock(wmRuntimeInfo);
@@ -102,15 +94,12 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
    *
    * @param tempDir Path to a temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
-   * @throws IOException test fails
    */
   @Test
-  public void testJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo)
-      throws IOException {
+  public void testJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
-    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(tempVersionFilePath.resolve("android-version.json")))));
+    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionJson.getBytes())));
 
     stubFor(get(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(404)));
 
@@ -133,17 +122,14 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
    *
    * @param tempDir Path to a temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
-   * @throws IOException test fails
    */
   @Test
-  public void testJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void testJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
-    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(tempVersionFilePath.resolve("android-version-without-checksum.json")))));
+    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionWithoutChecksumJson.getBytes())));
 
-    stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*"))
-        .willReturn(aResponse().withStatus(200).withBody("aBody")));
+    stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     AndroidStudioUrlUpdaterMock updater = new AndroidStudioUrlUpdaterMock(wmRuntimeInfo);
@@ -154,8 +140,7 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
     Path androidStudioVersionsPath = tempDir.resolve("android-studio").resolve("android-studio").resolve("2023.1.1.2");
 
     // then
-    assertThat(androidStudioVersionsPath.resolve("windows_x64.urls.sha256")).exists()
-        .hasContent(EXPECTED_ABODY_CHECKSUM);
+    assertThat(androidStudioVersionsPath.resolve("windows_x64.urls.sha256")).exists().hasContent(EXPECTED_ABODY_CHECKSUM);
 
   }
 }
