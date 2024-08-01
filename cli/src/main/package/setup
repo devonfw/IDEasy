@@ -1,0 +1,31 @@
+#!/bin/bash
+
+cd "$(dirname "${BASH_SOURCE:-$0}")" || exit 255
+echo "Setting up your IDEasy in ${PWD}"
+
+AUTOCOMPLETION="source ${PWD}/autocomplete"
+
+if ! grep -q "${AUTOCOMPLETION}" ~/.bashrc; then
+  echo -e "${AUTOCOMPLETION}" >> ~/.bashrc
+fi
+if ! grep -q "alias ide=" ~/.bashrc; then
+  echo -e "alias ide=\"source ${PWD}/bin/ide\"" >> ~/.bashrc
+fi
+
+if [ -f ~/.zshrc ]; then
+  if ! grep -q "compinit" ~/.zshrc
+  then
+    echo -e 'autoload -Uz compinit\ncompinit' >> ~/.zshrc
+  fi
+  if ! grep -q "bashcompinit" ~/.zshrc
+  then
+    echo -e 'autoload bashcompinit\nbashcompinit' >> ~/.zshrc
+  fi
+  if ! grep -q "${AUTOCOMPLETION}" ~/.zshrc
+  then
+    echo -e "${AUTOCOMPLETION}" >> ~/.zshrc
+  fi
+  if ! grep -q "alias ide=" ~/.zshrc; then
+    echo -e "alias ide=\"source ${PWD}/bin/ide\"" >> ~/.zshrc
+  fi
+fi
