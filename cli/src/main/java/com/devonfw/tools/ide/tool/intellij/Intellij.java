@@ -1,8 +1,5 @@
 package com.devonfw.tools.ide.tool.intellij;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Set;
 
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -10,7 +7,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
@@ -49,7 +45,6 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   protected String getBinaryName() {
 
-    Path toolBinPath = getToolBinPath();
     if (this.context.getSystemInfo().isWindows()) {
       return IDEA64_EXE;
     } else if (this.context.getSystemInfo().isLinux()) {
@@ -73,30 +68,6 @@ public class Intellij extends IdeToolCommandlet {
     EnvironmentVariables envVars = this.context.getVariables().getByType(EnvironmentVariablesType.CONF);
     envVars.set("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString(), true);
     envVars.save();
-    if (this.context.getSystemInfo().isMac()) {
-      setMacOsFilePermissions(getToolPath().resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents").resolve("MacOS").resolve(IDEA));
-    }
-  }
-
-  private String generateMacEditionString() {
-
-    String edition = "";
-    if (getConfiguredEdition().equals("intellij")) {
-      edition = " CE";
-    }
-    return edition;
-  }
-
-  private void setMacOsFilePermissions(Path binaryFile) {
-
-    if (Files.exists(binaryFile)) {
-      FileAccess fileAccess = this.context.getFileAccess();
-      try {
-        fileAccess.makeExecutable(binaryFile);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
   }
 
   @Override
