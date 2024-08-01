@@ -20,12 +20,12 @@ import com.devonfw.tools.ide.version.IdeVersion;
 public final class HelpCommandlet extends Commandlet {
 
   static final String LOGO = """
-          __       ___ ___  ___
-          ╲ ╲     |_ _|   ╲| __|__ _ ____ _
-           > >     | || |) | _|/ _` (_-< || |
-          /_/ ___ |___|___/|___╲__,_/__/╲_, |
-             |___|                       |__/
-          """.replace('╲', '\\');
+      __       ___ ___  ___
+      ╲ ╲     |_ _|   ╲| __|__ _ ____ _
+       > >     | || |) | _|/ _` (_-< || |
+      /_/ ___ |___|___/|___╲__,_/__/╲_, |
+         |___|                       |__/
+      """.replace('╲', '\\');
 
   /** The optional commandlet to get help about. */
   public final CommandletProperty commandlet;
