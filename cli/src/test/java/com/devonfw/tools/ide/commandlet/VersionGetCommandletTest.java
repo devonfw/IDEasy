@@ -61,6 +61,6 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     versionGet.configured.setValue(true);
     versionGet.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "3.9.*");
+    assertLogMessage(context, IdeLogLevel.INFO, "3.9.1");
   }
 }

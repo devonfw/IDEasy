@@ -15,8 +15,8 @@
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ideasy</mainClass>
     <imageName>ideasy</imageName>
-    <releaseName>${project.artifactId}-${os.detected.name}-${os.detected.arch}</releaseName>
-    <native.maven.plugin.version>0.9.28</native.maven.plugin.version>
+    <native.maven.plugin.version>0.10.2</native.maven.plugin.version>
+    <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
     <jline.version>3.24.1</jline.version>
     <jansi.version>2.4.0</jansi.version>
   </properties>
@@ -131,6 +131,10 @@
                 <resource>
                   <directory>src/main/package</directory>
                   <filtering>true</filtering>
+                  <excludes>
+                    <exclude>**/*.bak</exclude>
+                    <exclude>system/**/*</exclude>
+                  </excludes>
                 </resource>
               </resources>
             </configuration>
@@ -140,52 +144,9 @@
     </plugins>
   </build>
 
+
   <profiles>
-    <profile>
-      <id>deploy</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>3.4.0</version>
-            <executions>
-              <execution>
-                <id>attach-artifacts</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>attach-artifact</goal>
-                </goals>
-                <configuration>
-                  <artifacts>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-linux-x86_64.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>linux-x64</classifier>
-                    </artifact>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-windows-x86_64.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>windows-x64</classifier>
-                    </artifact>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-osx-x86_64.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>mac-x64</classifier>
-                    </artifact>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-osx-aarch_64.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>mac-arm</classifier>
-                    </artifact>
-                  </artifacts>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
+    <!-- Builds the native image and archives it with the documentation from the github artifact -->
     <profile>
       <id>native</id>
       <build>
@@ -230,6 +191,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-assembly-plugin</artifactId>
+            <version>${assembly.maven.plugin.version}</version>
             <executions>
               <execution>
                 <id>create-distribution</id>
@@ -238,25 +200,12 @@
                   <goal>single</goal>
                 </goals>
                 <configuration>
-                  <finalName>${releaseName}</finalName>
-                  <appendAssemblyId>false</appendAssemblyId>
+                  <finalName>${project.artifactId}-${revision}</finalName>
+                  <appendAssemblyId>true</appendAssemblyId>
                   <descriptors>
-                    <descriptor>/src/main/assembly/release.xml</descriptor>
+                    <descriptor>/src/main/assembly/release-${ideasy.assembly.id}.xml</descriptor>
                   </descriptors>
                 </configuration>
-              </execution>
-            </executions>
-          </plugin>
-          <plugin>
-            <groupId>kr.motd.maven</groupId>
-            <artifactId>os-maven-plugin</artifactId>
-            <version>1.7.1</version>
-            <executions>
-              <execution>
-                <phase>initialize</phase>
-                <goals>
-                  <goal>detect</goal>
-                </goals>
               </execution>
             </executions>
           </plugin>
@@ -264,41 +213,48 @@
       </build>
     </profile>
 
-    <!-- New profile for including documentation -->
+    <!-- Attaches artifacts stored in cli/target/*.tgz to the maven build, moves them to documentation/target/nexus-staging/.../*.tgz and deploys them with the name defined in the classifier -->
     <profile>
-      <id>include-docs</id>
-      <activation>
-        <activeByDefault>true</activeByDefault>
-      </activation>
+      <id>deploy</id>
       <build>
         <plugins>
           <plugin>
-            <!-- Include documentation into release -->
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-dependency-plugin</artifactId>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.4.0</version>
             <executions>
               <execution>
-                <id>copy-documentation</id>
-                <phase>prepare-package</phase>
+                <id>attach-artifacts</id>
+                <phase>package</phase>
                 <goals>
-                  <goal>copy</goal>
+                  <goal>attach-artifact</goal>
                 </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.build.directory}/${project.artifactId}-${revision}-windows_x86_64.tar.gz</file>
+                      <type>tar.gz</type>
+                      <classifier>windows-x64</classifier>
+                    </artifact>
+                    <artifact>
+                      <file>${project.build.directory}/${project.artifactId}-${revision}-linux_x86_64.tar.gz</file>
+                      <type>tar.gz</type>
+                      <classifier>linux-x64</classifier>
+                    </artifact>
+                    <artifact>
+                      <file>${project.build.directory}/${project.artifactId}-${revision}-osx_x86_64.tar.gz</file>
+                      <type>tar.gz</type>
+                      <classifier>mac-x64</classifier>
+                    </artifact>
+                    <artifact>
+                      <file>${project.build.directory}/${project.artifactId}-${revision}-osx_aarch_64.tar.gz</file>
+                      <type>tar.gz</type>
+                      <classifier>mac-arm</classifier>
+                    </artifact>
+                  </artifacts>
+                </configuration>
               </execution>
             </executions>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>${project.groupId}</groupId>
-                  <artifactId>ide-doc</artifactId>
-                  <version>${project.version}</version>
-                  <type>pdf</type>
-                  <destFileName>IDEasy-documentation.pdf</destFileName>
-                </artifactItem>
-              </artifactItems>
-              <outputDirectory>${project.build.directory}/package</outputDirectory>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>true</overWriteSnapshots>
-            </configuration>
           </plugin>
         </plugins>
       </build>

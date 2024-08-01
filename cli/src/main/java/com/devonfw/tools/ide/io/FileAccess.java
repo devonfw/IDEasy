@@ -154,6 +154,12 @@ public interface FileAccess {
   void extractTar(Path file, Path targetDir, TarCompression compression);
 
   /**
+   * @param file the JAR file to extract.
+   * @param targetDir the {@link Path} with the directory to extract to.
+   */
+  void extractJar(Path file, Path targetDir);
+
+  /**
    * Extracts an Apple DMG (Disk Image) file that is similar to an ISO image. DMG files are commonly used for software releases on MacOS. Double-clicking such
    * files on MacOS mounts them and show the application together with a symbolic link to the central applications folder and some help instructions. The user
    * then copies the application to the applications folder via drag and drop in order to perform the installation.

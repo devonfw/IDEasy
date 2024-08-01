@@ -15,12 +15,13 @@ import com.devonfw.tools.ide.tool.AbstractUrlUpdaterTest;
 import com.devonfw.tools.ide.url.model.file.json.StatusJson;
 import com.devonfw.tools.ide.url.model.file.json.UrlStatus;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link PipUrlUpdater} based on Wiremock.
  */
-@WireMockTest(httpPort = 8080)
+@WireMockTest
 public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   /**
@@ -31,16 +32,16 @@ public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param tempDir Temporary directory
    */
   @Test
-  public void testPipUrlUpdaterWithTextContentTypeWillSucceed(@TempDir Path tempDir) {
+  public void testPipUrlUpdaterWithTextContentTypeWillSucceed(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
     stubFor(any(urlMatching("/pip/.*"))
         .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain").withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    PipUrlUpdaterMock updater = new PipUrlUpdaterMock();
+    PipUrlUpdaterMock updater = new PipUrlUpdaterMock(wmRuntimeInfo);
 
-    String statusUrl = "http://localhost:8080/pip/1.0/get-pip.py";
+    String statusUrl = wmRuntimeInfo.getHttpBaseUrl() + "/pip/1.0/get-pip.py";
     String toolName = "pip";
     String editionName = "pip";
     String versionName = "1.0";

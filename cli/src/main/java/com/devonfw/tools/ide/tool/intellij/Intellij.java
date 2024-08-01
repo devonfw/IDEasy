@@ -72,6 +72,15 @@ public class Intellij extends IdeToolCommandlet {
 
   @Override
   public void installPlugin(PluginDescriptor plugin) {
-    // TODO: needs to be implemented see: https://github.com/devonfw/IDEasy/issues/433
+
+    IntellijPluginInstaller pluginInstaller = this.getPluginInstaller();
+    String downloadUrl = pluginInstaller.getDownloadUrl(plugin);
+    pluginInstaller.installPlugin(plugin, downloadUrl);
   }
+
+  @Override
+  public IntellijPluginInstaller getPluginInstaller() {
+    return new IntellijPluginInstaller(context, this);
+  }
+
 }
