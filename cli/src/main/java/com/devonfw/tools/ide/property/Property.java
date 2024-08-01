@@ -48,9 +48,9 @@ public abstract class Property<V> {
   /**
    * The constructor.
    *
-   * @param name     the {@link #getName() property name}.
+   * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
-   * @param alias    the {@link #getAlias() property alias}.
+   * @param alias the {@link #getAlias() property alias}.
    */
   public Property(String name, boolean required, String alias) {
 
@@ -65,11 +65,11 @@ public abstract class Property<V> {
   /**
    * The constructor.
    *
-   * @param name        the {@link #getName() property name}.
-   * @param required    the {@link #isRequired() required flag}.
-   * @param alias       the {@link #getAlias() property alias}.
+   * @param name the {@link #getName() property name}.
+   * @param required the {@link #isRequired() required flag}.
+   * @param alias the {@link #getAlias() property alias}.
    * @param multivalued the boolean flag about multiple arguments
-   * @param validator   the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
   public Property(String name, boolean required, String alias, boolean multivalued, Consumer<V> validator) {
 
@@ -252,7 +252,7 @@ public abstract class Property<V> {
 
   /**
    * @param value the new {@link #getValue() value} to set.
-   * @param i     the position to set.
+   * @param i the position to set.
    */
   public void setValue(V value, int i) {
 
@@ -367,7 +367,7 @@ public abstract class Property<V> {
    * @return {@code true} if it matches, {@code false} otherwise.
    */
   protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context, Commandlet commandlet,
-                               CompletionCandidateCollector collector) {
+      CompletionCandidateCollector collector) {
 
     boolean success = assignValueAsString(argValue, context, commandlet);
 
