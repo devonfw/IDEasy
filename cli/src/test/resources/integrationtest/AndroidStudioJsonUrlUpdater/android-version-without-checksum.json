@@ -7,7 +7,7 @@
         "download": [
           {
             "size": "1.1 GB",
-            "link": "http://localhost:8080/edgedl/android/studio/ide-zips/2023.1.1.2/android-studio-2023.1.1.2-windows.zip",
+            "link": "${testbaseurl}/edgedl/android/studio/ide-zips/2023.1.1.2/android-studio-2023.1.1.2-windows.zip",
             "checksum": ""
           }
         ],

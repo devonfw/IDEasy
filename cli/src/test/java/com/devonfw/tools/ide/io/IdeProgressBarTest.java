@@ -12,12 +12,13 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link IdeProgressBar}.
  */
-@WireMockTest(httpPort = 8080)
+@WireMockTest
 public class IdeProgressBarTest extends AbstractIdeContextTest {
 
   /**
@@ -26,7 +27,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
    * @param tempDir temporary directory to use.
    */
   @Test
-  public void testProgressBarDownloadWithValidContentLength(@TempDir Path tempDir) {
+  public void testProgressBarDownloadWithValidContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     int maxLength = 10_000;
 
@@ -35,7 +36,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
 
     IdeContext context = newContext(tempDir);
     FileAccess impl = context.getFileAccess();
-    impl.download("http://localhost:8080/os/windows_x64_url.tgz", tempDir.resolve("windows_x64_url.tgz"));
+    impl.download(wmRuntimeInfo.getHttpBaseUrl() + "/os/windows_x64_url.tgz", tempDir.resolve("windows_x64_url.tgz"));
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     assertProgressBar(context, "Downloading", maxLength);
   }
