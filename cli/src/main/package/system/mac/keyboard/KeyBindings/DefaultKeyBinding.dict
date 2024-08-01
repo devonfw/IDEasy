@@ -1,0 +1,16 @@
+{
+"\UF729" = "moveToBeginningOfLine:"; /* Home */
+"\UF72B" = "moveToEndOfLine:"; /* End */
+"$\UF729" = "moveToBeginningOfLineAndModifySelection:"; /* Shift + Home */
+"$\UF72B" = "moveToEndOfLineAndModifySelection:"; /* Shift + End */
+"@\UF729" = "moveToBeginningOfDocument:"; /* Cmd + Home */
+"@\UF72B" = "moveToEndOfDocument:"; /* Cmd + End */
+"@$\UF729" = "moveToBeginningOfDocumentAndModifySelection:"; /* Shift + Cmd + Home */
+"@$\UF72B" = "moveToEndOfDocumentAndModifySelection:"; /* Shift + Cmd + End */
+"@$\UF703" = "moveWordForwardAndModifySelection:"; /* Shift + Cmd + Rightarrow */
+"@$\UF702" = "moveWordBackwardAndModifySelection:"; /* Shift + Cmd + Leftarrow */
+"@\UF702" = "moveWordBackward:"; /* Cmd + LeftArrow */
+"@\UF703" = "moveWordForward:"; /* Cmd + RightArrow */
+"@<" = ("insertText:", "\U00AB"); /* Cmd + < */
+"@$>" = ("insertText:", "\U00BB"); /* Cmd + Shift + > */
+}
