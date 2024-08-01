@@ -137,11 +137,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   /**
    * The constructor.
    *
-   * @param minLogLevel    the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
-   * @param factory        the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
-   * @param userDir        the optional {@link Path} to current working directory.
+   * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
+   * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
+   * @param userDir the optional {@link Path} to current working directory.
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will be
-   *                       used.
+   * used.
    */
   public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository) {
 
@@ -927,7 +927,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
 
   /**
-   * @param arguments             the {@link CliArguments#ofCompletion(String...) completion arguments}.
+   * @param arguments the {@link CliArguments#ofCompletion(String...) completion arguments}.
    * @param includeContextOptions to include the options of {@link ContextCommandlet}.
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
@@ -975,8 +975,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
-   *                  {@link CliArguments#copy() copy} as needed.
-   * @param cmd       the potential {@link Commandlet} to match.
+   * {@link CliArguments#copy() copy} as needed.
+   * @param cmd the potential {@link Commandlet} to match.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
    * and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
@@ -1034,8 +1034,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
 
     // If not found in the default location, try the registry query
-    String[] bashVariants = {"GitForWindows", "Cygwin\\setup"};
-    String[] registryKeys = {"HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER"};
+    String[] bashVariants = { "GitForWindows", "Cygwin\\setup" };
+    String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
     String regQueryResult;
     for (String bashVariant : bashVariants) {
       for (String registryKey : registryKeys) {
