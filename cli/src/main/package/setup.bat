@@ -72,20 +72,8 @@ if %ERRORLEVEL% neq 0 (
   echo %_fBRed%Error occurred while running setup of IDEasy in bash.%_RESET%
   exit /b %ERRORLEVEL%
 )
-REM reg import system/windows/cmd/ide-cmd.reg >nul 2>&1
-REM reg import system/windows/power-shell/ide-power-shell.reg >nul 2>&1
-
-dir %USERPROFILE%\AppData\Local\Microsoft\WindowsApps\wt.exe >NUL 2>NUL
-if "%ERRORLEVEL%" == "0" (
-  REM reg import system/windows/windows-terminal/ide-wt.reg >nul 2>&1
-  REM reg import system/windows/windows-terminal/ide-wt-cmd.reg >nul 2>&1
-  REM reg import system/windows/windows-terminal/ide-wt-gitbash.reg >nul 2>&1
-  REM reg import system/windows/windows-terminal/ide-wt-ps.reg >nul 2>&1
-)
-
-echo %_fBGreen%Setup of devonfw-ide completed%_RESET%
+echo %_fBGreen%Setup of IDEasy completed%_RESET%
 if not "%1%" == "-b" (
   pause
 )
-
 popd
