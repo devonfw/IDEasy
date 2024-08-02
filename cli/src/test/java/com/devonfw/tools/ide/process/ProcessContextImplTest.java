@@ -18,7 +18,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.platform.commons.util.ReflectionUtils;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
@@ -33,7 +32,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
   private ProcessBuilder mockProcessBuilder;
 
-  private IdeContext context;
+  private IdeTestContext context;
 
   @BeforeEach
   public void setUp() throws Exception {
@@ -191,7 +190,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
   @ParameterizedTest
   @EnumSource(value = ProcessErrorHandling.class, names = { "WARNING", "ERROR" })
-  public void ProcessWarningAndErrorShouldBeLogged(ProcessErrorHandling processErrorHandling) throws Exception {
+  public void processWarningAndErrorShouldBeLogged(ProcessErrorHandling processErrorHandling) throws Exception {
 
     // arrange
     when(this.processMock.waitFor()).thenReturn(ProcessResult.TOOL_NOT_INSTALLED);
@@ -202,7 +201,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
     // assert
     IdeLogLevel level = convertToIdeLogLevel(processErrorHandling);
-    assertLogMessage((IdeTestContext) this.context, level, expectedMessage, true);
+    assertThat(this.context).log(level).hasMessageContaining(expectedMessage);
   }
 
   private IdeLogLevel convertToIdeLogLevel(ProcessErrorHandling processErrorHandling) {

@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.log;
 
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -8,33 +7,33 @@ import java.util.List;
  */
 public class IdeTestLogger extends IdeSlf4jLogger {
 
-  private final List<String> messages;
+  private final List<IdeLogEntry> entries;
 
   /**
    * The constructor.
    *
    * @param level the {@link #getLevel() log-level}.
    */
-  public IdeTestLogger(IdeLogLevel level) {
+  public IdeTestLogger(IdeLogLevel level, List<IdeLogEntry> entries) {
 
     super(level);
-    this.messages = new LinkedList<>();
+    this.entries = entries;
   }
 
   @Override
   public String log(Throwable error, String message, Object... args) {
 
     String result = super.log(error, message, args);
-    this.messages.add(result);
+    this.entries.add(new IdeLogEntry(level, result));
     return result;
   }
 
   /**
-   * @return the {@link List} of messages that have been logged for test assertions.
+   * @return the {@link List} of {@link IdeLogEntry} that have been logged for test assertions.
    */
-  public List<String> getMessages() {
+  public List<IdeLogEntry> getEntries() {
 
-    return this.messages;
+    return this.entries;
   }
 
   @Override

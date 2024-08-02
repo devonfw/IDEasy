@@ -8,7 +8,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
@@ -49,7 +48,7 @@ public class DotNetTest extends AbstractIdeContextTest {
     assertThat(this.context.getSoftwarePath().resolve("dotnet/.ide.software.version")).exists();
     assertThat(this.context.getSoftwarePath().resolve("dotnet/.ide.software.version")).hasContent("6.0.419");
 
-    assertLogMessage(this.context, IdeLogLevel.SUCCESS, "Successfully installed dotnet in version 6.0.419", false);
+    assertThat(this.context).logAtSuccess().hasMessage("Successfully installed dotnet in version 6.0.419");
   }
 
   @Test
@@ -79,7 +78,7 @@ public class DotNetTest extends AbstractIdeContextTest {
 
   private void checkExpectedOutput(String expectedOutput) {
 
-    assertLogMessage(this.context, IdeLogLevel.INFO, expectedOutput);
+    assertThat(this.context).logAtInfo().hasMessage(expectedOutput);
   }
 
   private void runExecutable(String operatingSystem) {

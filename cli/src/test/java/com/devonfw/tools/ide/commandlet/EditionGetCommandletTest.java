@@ -1,14 +1,13 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
-import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 
 /** Integration test of {@link EditionGetCommandlet}. */
 
@@ -29,8 +28,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     editionGet.run();
 
     // assert
-    List<String> logs = context.level(IdeLogLevel.INFO).getMessages();
-    assertThat(logs).contains("az");
+    assertThat(context).log().hasMessage("az");
   }
 
   /**
@@ -59,7 +57,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     // act
     editionGet.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "java");
+    assertThat(context).logAtInfo().hasMessage("java");
   }
 
   /** Test of {@link VersionGetCommandlet} run, with --installed flag, when Installed Version is null. */
@@ -74,9 +72,8 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     // act
     editionGet.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "No installation of tool java was found.");
-    assertLogMessage(context, IdeLogLevel.INFO, "The configured edition for tool java is java");
-    assertLogMessage(context, IdeLogLevel.INFO, "To install that edition call the following command:");
-    assertLogMessage(context, IdeLogLevel.INFO, "ide install java");
+    assertThat(context).log().hasEntries(IdeLogEntry.ofInfo("No installation of tool java was found."),
+        IdeLogEntry.ofInfo("The configured edition for tool java is java"), IdeLogEntry.ofInfo(
+            "To install that edition call the following command:"), IdeLogEntry.ofInfo("ide install java"));
   }
 }
