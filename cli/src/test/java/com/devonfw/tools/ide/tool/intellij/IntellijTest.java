@@ -15,7 +15,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -55,7 +54,7 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     //if tool already installed
     commandlet.install();
-    assertLogMessage(this.context, IdeLogLevel.DEBUG, "Version 2023.3.3 of tool intellij is already installed");
+    assertThat(this.context).logAtDebug().hasMessage("Version 2023.3.3 of tool intellij is already installed");
   }
 
   /**
@@ -81,13 +80,7 @@ public class IntellijTest extends AbstractIdeContextTest {
     SystemInfo currentSystemInfo = this.context.getSystemInfo();
     Path workspacePath = this.context.getWorkspacePath();
 
-    if (currentSystemInfo.isMac()) {
-      assertLogMessage(this.context, IdeLogLevel.INFO, "intellij mac " + workspacePath);
-    } else if (currentSystemInfo.isLinux()) {
-      assertLogMessage(this.context, IdeLogLevel.INFO, "intellij linux " + workspacePath);
-    } else if (currentSystemInfo.isWindows()) {
-      assertLogMessage(this.context, IdeLogLevel.INFO, "intellij windows " + workspacePath);
-    }
+    assertThat(this.context).logAtInfo().hasMessage("intellij " + currentSystemInfo.getOs() + " " + workspacePath);
     checkInstallation(this.context);
   }
 
@@ -95,9 +88,9 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
     assertThat(context.getVariables().get("IDEA_PROPERTIES")).isEqualTo(context.getWorkspacePath().resolve("idea.properties").toString());
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed intellij in version 2023.3.3");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Install plugin: mockedPlugin");
+    assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
+        "Successfully installed intellij in version 2023.3.3",
+        "Install plugin: mockedPlugin");
     assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).exists();
   }
 

@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 
 public class RepositoryCommandletTest extends AbstractIdeContextTest {
 
@@ -33,7 +32,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     // act
     rc.run();
     // assert
-    assertLogMessage(this.context, IdeLogLevel.INFO, "Importing repository from " + PROPERTIES_FILE + " ...");
+    assertThat(this.context).logAtInfo().hasMessage("Importing repository from " + PROPERTIES_FILE + " ...");
   }
 
   @Test
@@ -45,8 +44,8 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     // act
     rc.run();
     // assert
-    assertLogMessage(this.context, IdeLogLevel.INFO, "Importing repository from " + PROPERTIES_FILE + " ...");
-    assertLogMessage(this.context, IdeLogLevel.INFO, "Skipping repository - use force (-f) to setup all repositories ...");
+    assertThat(this.context).logAtInfo().hasEntries("Importing repository from " + PROPERTIES_FILE + " ...",
+        "Skipping repository - use force (-f) to setup all repositories ...");
   }
 
   @Test
@@ -62,8 +61,8 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     // act
     rc.run();
     // assert
-    assertLogMessage(this.context, IdeLogLevel.WARNING,
-        "Invalid repository configuration " + PROPERTIES_FILE + " - both 'path' and 'git-url' have to be defined.");
+    assertThat(this.context).logAtWarning()
+        .hasMessage("Invalid repository configuration " + PROPERTIES_FILE + " - both 'path' and 'git-url' have to be defined.");
   }
 
   @Test
@@ -76,7 +75,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     // act
     rc.run();
     // assert
-    assertLogMessage(this.context, IdeLogLevel.WARNING, "Cannot find repositories folder nor projects folder.");
+    assertThat(this.context).logAtWarning().hasMessage("Cannot find repositories folder nor projects folder.");
   }
 
   private void createPropertiesFile() {

@@ -5,7 +5,6 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
@@ -48,6 +47,6 @@ public class NpmTest extends AbstractIdeContextTest {
     }
 
     assertThat(context.getSoftwarePath().resolve("npm/.ide.software.version")).exists().hasContent("9.9.2");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed npm in version 9.9.2");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed npm in version 9.9.2");
   }
 }
