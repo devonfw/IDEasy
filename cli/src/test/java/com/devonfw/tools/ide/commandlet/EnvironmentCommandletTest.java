@@ -29,7 +29,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
     // act
     env.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "MVN_VERSION=\"3.9.*\"");
+    assertLogMessage(context, IdeLogLevel.INFO, "MVN_VERSION=\"3.9.1\""); //overwritten by conf
     assertLogMessage(context, IdeLogLevel.INFO, "SOME=\"some-${UNDEFINED}\"");
     assertLogMessage(context, IdeLogLevel.INFO, "BAR=\"bar-some-${UNDEFINED}\"");
     assertLogMessage(context, IdeLogLevel.INFO, "IDE_TOOLS=\"mvn,eclipse\"");
