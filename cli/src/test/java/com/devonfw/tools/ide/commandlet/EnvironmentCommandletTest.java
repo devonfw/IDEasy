@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -22,6 +24,8 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
     String path = "project/workspaces/foo-test/my-git-repo";
     IdeTestContext context = newContext(PROJECT_BASIC, path, false);
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
+    Path settingsIdeProperties = context.getSettingsPath().resolve("ide.properties");
+    Path confIdeProperties = context.getConfPath().resolve("ide.properties");
     // act
     env.run();
     // assert
@@ -34,6 +38,11 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
     assertLogMessage(context, IdeLogLevel.INFO, "JAVA_VERSION=\"17*\"");
     assertLogMessage(context, IdeLogLevel.INFO, "INTELLIJ_EDITION=\"ultimate\"");
     assertLogMessage(context, IdeLogLevel.INFO, "DOCKER_EDITION=\"docker\"");
+    //assert messages of debug level grouping of environment variable are present
+    assertLogMessage(context, IdeLogLevel.DEBUG, "from defaults:");
+    assertLogMessage(context, IdeLogLevel.DEBUG, "from " + settingsIdeProperties + ":");
+    assertLogMessage(context, IdeLogLevel.DEBUG, "from " + confIdeProperties + ":");
+
   }
 
   /**

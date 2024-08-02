@@ -189,9 +189,12 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
   }
 
   @Override
-  protected void collectVariables(Set<String> variableNames) {
+  protected void collectVariables(Map<String, String> variableNames) {
 
-    variableNames.addAll(this.variables.keySet());
+    for (String key : this.variables.keySet()) {
+      variableNames.put(key, this.propertiesFilePath.toString());
+    }
+
     super.collectVariables(variableNames);
   }
 
