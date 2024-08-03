@@ -2,8 +2,8 @@ package com.devonfw.tools.ide.environment;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 
@@ -96,18 +96,18 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   @Override
-  public final Collection<VariableLine> collectVariables() {
+  public final List<VariableLine> collectVariables() {
 
     return collectVariables(false);
   }
 
   @Override
-  public final Collection<VariableLine> collectExportedVariables() {
+  public final List<VariableLine> collectExportedVariables() {
 
     return collectVariables(true);
   }
 
-  private final Collection<VariableLine> collectVariables(boolean onlyExported) {
+  private final List<VariableLine> collectVariables(boolean onlyExported) {
 
     Map<String, VariableLine> variables = new HashMap<>();
     collectVariables(variables, onlyExported, this);

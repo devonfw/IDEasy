@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
 
 /**
@@ -63,6 +64,20 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
 
+    return newContext(testProject, projectPath, copyForMutation, IdeLogLevel.TRACE);
+  }
+
+  /**
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}. E.g.
+   * "basic".
+   * @param projectPath the relative path inside the test project where to create the context.
+   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test, {@code false} otherwise (only to save resources if
+   * you are 100% sure that your test never modifies anything in that project.)
+   * @param logLevel the {@link IdeLogLevel} used as threshold for logging.
+   * @return the {@link IdeTestContext} pointing to that project.
+   */
+  protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation, IdeLogLevel logLevel) {
+
     Path ideRoot = TEST_PROJECTS.resolve(testProject);
     if (copyForMutation) {
       Path ideRootCopy = TEST_PROJECTS_COPY.resolve(testProject);
@@ -81,7 +96,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(repositoryFolder);
     }
-    IdeTestContext context = new IdeTestContext(userDir, toolRepository);
+    IdeTestContext context = new IdeTestContext(userDir, toolRepository, logLevel);
     if (toolRepository != null) {
       toolRepository.setContext(context);
     }

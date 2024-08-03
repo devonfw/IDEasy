@@ -26,7 +26,7 @@ public class IdeTestContextAssertion {
    */
   public IdeTestLoggerAssertion log(IdeLogLevel level) {
 
-    return new IdeTestLoggerAssertion(context.level(IdeLogLevel.INFO).getEntries(), level); // random level - all loggers share the same list of log entries
+    return new IdeTestLoggerAssertion(context.getLoggerFactory().getEntries(), level);
   }
 
   /**

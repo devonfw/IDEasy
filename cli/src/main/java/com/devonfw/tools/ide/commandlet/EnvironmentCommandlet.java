@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,14 +62,14 @@ public final class EnvironmentCommandlet extends Commandlet {
       }
     }
     ((AbstractIdeContext) this.context).setPathSyntax(pathSyntax);
-    Collection<VariableLine> variables = this.context.getVariables().collectVariables();
+    List<VariableLine> variables = this.context.getVariables().collectVariables();
     if (this.context.debug().isEnabled()) {
       Map<EnvironmentVariablesType, List<VariableLine>> type2lines = variables.stream().collect(Collectors.groupingBy(l -> l.getSource().type()));
       for (EnvironmentVariablesType type : EnvironmentVariablesType.values()) {
         List<VariableLine> lines = type2lines.get(type);
         if (lines != null) {
           boolean sourcePrinted = false;
-          Collections.sort(lines, (c1, c2) -> c1.getName().compareTo(c2.getName()));
+          sortVariables(lines);
           for (VariableLine line : lines) {
             if (!sourcePrinted) {
               this.context.debug("from {}:", line.getSource());
@@ -81,10 +80,15 @@ public final class EnvironmentCommandlet extends Commandlet {
         }
       }
     } else {
+      sortVariables(variables);
       for (VariableLine line : variables) {
         printEnvLine(line);
       }
     }
+  }
+
+  private static void sortVariables(List<VariableLine> lines) {
+    Collections.sort(lines, (c1, c2) -> c1.getName().compareTo(c2.getName()));
   }
 
   private void printEnvLine(VariableLine line) {
