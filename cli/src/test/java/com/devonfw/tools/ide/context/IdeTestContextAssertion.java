@@ -1,6 +1,7 @@
-package com.devonfw.tools.ide.log;
+package com.devonfw.tools.ide.context;
 
-import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeTestLoggerAssertion;
 
 /**
  * Assertion for {@link IdeTestContext}.

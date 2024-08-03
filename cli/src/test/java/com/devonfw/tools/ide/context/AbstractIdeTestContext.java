@@ -1,10 +1,15 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.devonfw.tools.ide.common.SystemPath;
+import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
@@ -13,6 +18,7 @@ import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Implementation of {@link IdeContext} for testing.
@@ -82,6 +88,26 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       assert duplicate == null;
     }
     return progressBar;
+  }
+
+  @Override
+  protected AbstractEnvironmentVariables createSystemVariables() {
+
+    Path home = getUserHome();
+    if (home != null) {
+      Path systemPropertiesFile = home.resolve("system.properties");
+      if (Files.exists(systemPropertiesFile)) {
+        return new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.SYSTEM, systemPropertiesFile, this);
+      }
+    }
+    return super.createSystemVariables();
+  }
+
+  @Override
+  protected SystemPath computeSystemPath() {
+
+    String envPath = getVariables().getByType(EnvironmentVariablesType.SYSTEM).get(IdeVariables.PATH.getName());
+    return new SystemPath(this, envPath);
   }
 
   @Override

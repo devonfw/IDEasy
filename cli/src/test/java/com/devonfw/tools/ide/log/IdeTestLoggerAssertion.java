@@ -89,23 +89,38 @@ public class IdeTestLoggerAssertion {
 
     assert (exprectedEntries.length > 0);
     int i = 0;
-    for (IdeLogEntry entry : exprectedEntries) {
-      if (entry.equals(exprectedEntries[i])) {
+    int max = 0;
+    for (IdeLogEntry entry : this.entries) {
+      if (exprectedEntries[i].matches(entry)) {
         i++;
       } else {
         if (nothingElseInBetween) {
           i = 0;
-        } else if (entry.equals(exprectedEntries[i])) {
+        } else if (exprectedEntries[0].matches(entry)) {
           i = 1;
         }
       }
       if (i == exprectedEntries.length) {
         return;
       }
+      if (i > max) {
+        max = i;
+      }
     }
     StringBuilder error = new StringBuilder(4096);
-    error.append("Could not find expected log entries:\n");
-    for (IdeLogEntry entry : exprectedEntries) {
+    if (max > 0) {
+      error.append("Found expected log entries:\n");
+      for (i = 0; i < max; i++) {
+        IdeLogEntry entry = exprectedEntries[i];
+        error.append(entry.level());
+        error.append(":");
+        error.append(entry.message());
+        error.append('\n');
+      }
+    }
+    error.append("\nBut could not find expected log entries:\n");
+    for (i = max; i < exprectedEntries.length; i++) {
+      IdeLogEntry entry = exprectedEntries[i];
       error.append(entry.level());
       error.append(":");
       error.append(entry.message());

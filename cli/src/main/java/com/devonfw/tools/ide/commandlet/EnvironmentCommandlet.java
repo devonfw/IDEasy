@@ -1,10 +1,14 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.property.FlagProperty;
@@ -61,10 +65,17 @@ public final class EnvironmentCommandlet extends Commandlet {
     ((AbstractIdeContext) this.context).setPathSyntax(pathSyntax);
     Collection<VariableLine> variables = this.context.getVariables().collectVariables();
     if (this.context.debug().isEnabled()) {
-      for (String source : variables.stream().map(VariableLine::getSource).collect(Collectors.toSet())) {
-        this.context.debug("from {}:", source);
-        for (VariableLine line : variables) {
-          if (line.getSource().equals(source)) {
+      Map<EnvironmentVariablesType, List<VariableLine>> type2lines = variables.stream().collect(Collectors.groupingBy(l -> l.getSource().type()));
+      for (EnvironmentVariablesType type : EnvironmentVariablesType.values()) {
+        List<VariableLine> lines = type2lines.get(type);
+        if (lines != null) {
+          boolean sourcePrinted = false;
+          Collections.sort(lines, (c1, c2) -> c1.getName().compareTo(c2.getName()));
+          for (VariableLine line : lines) {
+            if (!sourcePrinted) {
+              this.context.debug("from {}:", line.getSource());
+              sourcePrinted = true;
+            }
             printEnvLine(line);
           }
         }

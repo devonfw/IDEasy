@@ -10,7 +10,6 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
-import com.devonfw.tools.ide.log.IdeTestContextAssertion;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
 
 /**

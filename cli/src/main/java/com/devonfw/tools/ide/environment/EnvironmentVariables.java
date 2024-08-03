@@ -126,9 +126,9 @@ public interface EnvironmentVariables {
   Path getPropertiesFilePath();
 
   /**
-   * @return the source identifier describing this {@link EnvironmentVariables} for debugging.
+   * @return the {@link VariableSource} of this {@link EnvironmentVariables}.
    */
-  String getSource();
+  VariableSource getSource();
 
   /**
    * @return the parent {@link EnvironmentVariables} to inherit from or {@code null} if this is the {@link EnvironmentVariablesType#SYSTEM root}
