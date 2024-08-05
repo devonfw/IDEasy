@@ -8,6 +8,7 @@ import java.util.function.Function;
 
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -106,7 +107,9 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   @Override
   protected SystemPath computeSystemPath() {
 
-    String envPath = getVariables().getByType(EnvironmentVariablesType.SYSTEM).get(IdeVariables.PATH.getName());
+    EnvironmentVariables systemVars = getVariables().getByType(EnvironmentVariablesType.SYSTEM);
+    String envPath = systemVars.get(IdeVariables.PATH.getName());
+    envPath = getVariables().resolve(envPath, systemVars.getSource());
     return new SystemPath(this, envPath);
   }
 
