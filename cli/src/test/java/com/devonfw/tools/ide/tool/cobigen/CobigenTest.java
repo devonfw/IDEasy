@@ -26,7 +26,7 @@ public class CobigenTest extends AbstractIdeContextTest {
     Cobigen commandlet = new Cobigen(context);
 
     // act
-    commandlet.install();
+    commandlet.install(null);
 
     // assert
     checkInstallation(context);

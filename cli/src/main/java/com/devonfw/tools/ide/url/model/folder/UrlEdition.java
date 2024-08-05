@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.url.model.folder;
 
 import com.devonfw.tools.ide.url.model.AbstractUrlFolderWithParent;
+import com.devonfw.tools.ide.url.model.file.UrlDependencyFile;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
 
 /**
@@ -11,6 +12,8 @@ import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
 public class UrlEdition extends AbstractUrlFolderWithParent<UrlTool, UrlVersion> {
 
   private UrlSecurityFile securityFile;
+
+  private UrlDependencyFile dependencyFile;
 
   /**
    * The constructor.
@@ -46,6 +49,15 @@ public class UrlEdition extends AbstractUrlFolderWithParent<UrlTool, UrlVersion>
       this.securityFile.load(false);
     }
     return this.securityFile;
+  }
+
+  public UrlDependencyFile getDependencyFile() {
+
+    if (this.dependencyFile == null) {
+      this.dependencyFile = new UrlDependencyFile(this);
+      this.dependencyFile.load(false);
+    }
+    return dependencyFile;
   }
 
   @Override

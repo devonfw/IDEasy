@@ -32,7 +32,7 @@ public class DotNetTest extends AbstractIdeContextTest {
     assignDummyUserHome(context, "dummyUserHome");
 
     // act
-    commandlet.install();
+    commandlet.install(null);
 
     // assert
     assertThat(context.getSoftwarePath().resolve("dotnet")).exists();

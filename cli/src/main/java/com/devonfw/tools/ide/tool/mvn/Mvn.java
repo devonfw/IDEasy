@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.mvn;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -66,10 +67,10 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  public boolean install(EnvironmentContext environmentContext, boolean silent) {
 
-    getCommandlet(Java.class).install();
-    return super.install(silent);
+    getCommandlet(Java.class).install(environmentContext);
+    return super.install(environmentContext, silent);
   }
 
   @Override

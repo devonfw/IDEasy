@@ -8,6 +8,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.os.MacOsHelper;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -99,14 +100,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
     Path binaryPath;
-    Path toolPath = Path.of(getBinaryName());
+    binaryPath = Path.of(getBinaryName());
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
+
     if (toolVersion == null) {
-      install(true);
-      binaryPath = toolPath;
+      install(pc, true);
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
 
     pc.run(processMode);
   }
@@ -166,9 +167,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
-  public boolean install() {
+  public boolean install(EnvironmentContext environmentContext) {
 
-    return install(true);
+    return install(environmentContext, true);
   }
 
   /**
@@ -177,9 +178,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
-  public boolean install(boolean silent) {
+  public boolean install(EnvironmentContext environmentContext, boolean silent) {
 
-    return doInstall(silent);
+    return doInstall(environmentContext, silent);
   }
 
   /**
@@ -188,7 +189,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
-  protected abstract boolean doInstall(boolean silent);
+  protected abstract boolean doInstall(EnvironmentContext environmentContext, boolean silent);
 
   /**
    * This method is called after the tool has been newly installed or updated to a new version.

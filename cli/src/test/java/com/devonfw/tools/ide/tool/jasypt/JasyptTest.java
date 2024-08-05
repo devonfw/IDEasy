@@ -19,7 +19,7 @@ public class JasyptTest extends AbstractIdeContextTest {
   private static final String JASYPT_OPTS = "custom_argument";
 
   private static final String PROJECT_JASYPT = "jasypt";
-  
+
   /**
    * Tests if {@link Jasypt} is properly installed by the {@link InstallCommandlet}
    */
@@ -49,7 +49,7 @@ public class JasyptTest extends AbstractIdeContextTest {
     Jasypt commandlet = new Jasypt(context);
 
     // act
-    commandlet.install();
+    commandlet.install(null);
 
     // assert
     checkInstallation(context);

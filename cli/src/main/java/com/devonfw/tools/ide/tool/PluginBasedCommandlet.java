@@ -4,6 +4,7 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptorImpl;
@@ -142,11 +143,10 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     return pluginDescriptor;
   }
 
-  
   @Override
-  protected boolean doInstall(boolean silent) {
+  protected boolean doInstall(EnvironmentContext environmentContext, boolean silent) {
 
-    boolean newlyInstalled = super.doInstall(silent);
+    boolean newlyInstalled = super.doInstall(environmentContext, silent);
     // post installation...
     boolean installPlugins = newlyInstalled;
     Path pluginsInstallationPath = getPluginsInstallationPath();

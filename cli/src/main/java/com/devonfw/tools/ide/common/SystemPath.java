@@ -149,7 +149,7 @@ public class SystemPath {
 
   private Path findBinaryInOrder(Path path, String tool) {
 
-    List<String> extensionPriority = List.of("");
+    List<String> extensionPriority = List.of("", ".sh");
     if (SystemInfoImpl.INSTANCE.isWindows()) {
       extensionPriority = EXTENSION_PRIORITY;
     }

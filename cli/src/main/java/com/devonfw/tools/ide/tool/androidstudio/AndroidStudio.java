@@ -4,6 +4,7 @@ import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
@@ -53,15 +54,15 @@ public class AndroidStudio extends IdeToolCommandlet {
 
     args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
 
-    install(true);
+    install(null, true);
     super.runTool(processMode, toolVersion, args);
 
   }
 
   @Override
-  public boolean install(boolean silent) {
+  public boolean install(EnvironmentContext environmentContext, boolean silent) {
 
-    return super.install(silent);
+    return super.install(environmentContext, silent);
   }
 
   @Override

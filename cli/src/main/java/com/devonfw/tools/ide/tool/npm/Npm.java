@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.npm;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.node.Node;
@@ -26,10 +27,10 @@ public class Npm extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  public boolean install(EnvironmentContext environmentContext, boolean silent) {
 
-    getCommandlet(Node.class).install();
-    return super.doInstall(silent);
+    getCommandlet(Node.class).install(environmentContext);
+    return super.doInstall(environmentContext, silent);
   }
 
   protected void postExtract(Path extractedDir) {

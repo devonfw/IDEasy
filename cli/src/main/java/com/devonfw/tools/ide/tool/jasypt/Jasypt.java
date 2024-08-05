@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.jasypt;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.nls.NlsBundle;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.property.PasswordProperty;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
@@ -55,11 +56,11 @@ public class Jasypt extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean doInstall(boolean silent) {
+  public boolean doInstall(EnvironmentContext environmentContext, boolean silent) {
 
-    getCommandlet(Java.class).install();
+    getCommandlet(Java.class).install(environmentContext);
 
-    return super.doInstall(silent);
+    return super.doInstall(environmentContext, silent);
   }
 
   @Override
@@ -73,7 +74,7 @@ public class Jasypt extends LocalToolCommandlet {
 
     Path toolPath = getToolPath();
     if (!toolPath.toFile().exists()) {
-      super.install(true);
+      super.install(null, true);
     }
 
     JasyptCommand command = this.command.getValue();

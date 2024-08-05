@@ -20,7 +20,7 @@ public class GraalVmTest extends AbstractIdeContextTest {
     GraalVm commandlet = new GraalVm(context);
 
     // act
-    commandlet.install();
+    commandlet.install(null);
 
     // assert
     assertThat(context.getSoftwareExtraPath().resolve("graalvm/bin/HelloWorld.txt")).exists();

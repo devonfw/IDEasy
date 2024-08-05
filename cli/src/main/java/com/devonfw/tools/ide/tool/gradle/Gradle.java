@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.gradle;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
@@ -24,10 +25,10 @@ public class Gradle extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  public boolean install(EnvironmentContext environmentContext, boolean silent) {
 
-    getCommandlet(Java.class).install();
-    return super.install(silent);
+    getCommandlet(Java.class).install(environmentContext);
+    return super.install(environmentContext, silent);
   }
 
   @Override

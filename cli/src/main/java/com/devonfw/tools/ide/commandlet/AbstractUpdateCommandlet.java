@@ -167,7 +167,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
       // update/install the toolCommandlets
       for (ToolCommandlet toolCommandlet : toolCommandlets) {
-        toolCommandlet.install(false);
+        toolCommandlet.install(null, false);
       }
       step.success();
     } finally {
