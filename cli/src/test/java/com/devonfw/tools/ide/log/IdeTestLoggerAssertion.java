@@ -153,7 +153,9 @@ public class IdeTestLoggerAssertion {
         }
       }
     }
-    Assertions.fail(errorMessage); // no log entry matched by predicate
+    if (mode == PredicateMode.MATCH_ONE) {
+      Assertions.fail(errorMessage); // no log entry matched by predicate
+    }
   }
 
 }
