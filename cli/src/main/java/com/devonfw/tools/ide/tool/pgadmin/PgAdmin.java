@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.tool.pgadmin;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
@@ -9,15 +14,11 @@ import com.devonfw.tools.ide.tool.PackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 /**
  * {@link GlobalToolCommandlet} for <a href="https://www.pgadmin.org/">pgadmin</a>
  */
 public class PgAdmin extends GlobalToolCommandlet {
+
   /**
    * The constructor.
    *

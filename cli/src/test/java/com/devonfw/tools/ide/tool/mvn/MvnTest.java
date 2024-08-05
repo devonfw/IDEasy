@@ -1,11 +1,5 @@
 package com.devonfw.tools.ide.tool.mvn;
 
-import com.devonfw.tools.ide.commandlet.InstallCommandlet;
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -13,6 +7,12 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.Test;
+
+import com.devonfw.tools.ide.commandlet.InstallCommandlet;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Integration test of {@link Mvn}.
@@ -65,7 +65,7 @@ public class MvnTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "mvn " + "foo bar");
+    assertThat(context).logAtInfo().hasMessage("mvn " + "foo bar");
     checkInstallation(context);
   }
 
@@ -74,7 +74,7 @@ public class MvnTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("java/bin/java")).exists();
 
     assertThat(context.getSoftwarePath().resolve("mvn/.ide.software.version")).exists().hasContent("3.9.7");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed mvn in version 3.9.7");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed mvn in version 3.9.7");
 
     Path settingsFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
     assertThat(settingsFile).exists();

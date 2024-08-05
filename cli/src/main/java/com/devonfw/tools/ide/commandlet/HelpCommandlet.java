@@ -1,5 +1,9 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
@@ -7,11 +11,8 @@ import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.CommandletProperty;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.IdeVersion;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * {@link Commandlet} to print the environment variables.
@@ -19,12 +20,12 @@ import java.util.List;
 public final class HelpCommandlet extends Commandlet {
 
   static final String LOGO = """
-          __       ___ ___  ___
-          ╲ ╲     |_ _|   ╲| __|__ _ ____ _
-           > >     | || |) | _|/ _` (_-< || |
-          /_/ ___ |___|___/|___╲__,_/__/╲_, |
-             |___|                       |__/
-          """.replace('╲', '\\');
+      __       ___ ___  ___
+      ╲ ╲     |_ _|   ╲| __|__ _ ____ _
+       > >     | || |) | _|/ _` (_-< || |
+      /_/ ___ |___|___/|___╲__,_/__/╲_, |
+         |___|                       |__/
+      """.replace('╲', '\\');
 
   /** The optional commandlet to get help about. */
   public final CommandletProperty commandlet;
@@ -68,7 +69,6 @@ public final class HelpCommandlet extends Commandlet {
     if (cmd == null) {
       this.context.info(bundle.get("usage") + " ide [option]* [[commandlet] [arg]*]");
       this.context.info("");
-      this.context.info(bundle.get("commandlets"));
       printCommandlets(bundle);
     } else {
       printCommandletHelp(bundle, cmd);
@@ -129,15 +129,25 @@ public final class HelpCommandlet extends Commandlet {
   private void printCommandlets(NlsBundle bundle) {
 
     Args commandlets = new Args();
+    Args toolcommandlets = new Args();
     for (Commandlet cmd : this.context.getCommandletManager().getCommandlets()) {
       String key = cmd.getName();
       String keyword = cmd.getKeyword();
       if ((keyword != null) && !keyword.equals(key)) {
         key = key + "(" + keyword + ")";
       }
-      commandlets.add(key, bundle.get(cmd));
+      if (cmd instanceof ToolCommandlet) {
+        toolcommandlets.add(key, bundle.get(cmd));
+      } else {
+        commandlets.add(key, bundle.get(cmd));
+      }
     }
+
+    this.context.info(bundle.get("commandlets"));
     commandlets.print(IdeLogLevel.INTERACTION);
+    this.context.info("");
+    this.context.info(bundle.get("toolcommandlets"));
+    toolcommandlets.print(IdeLogLevel.INTERACTION);
   }
 
   private void collectOptions(Args options, Commandlet cmd, NlsBundle bundle) {

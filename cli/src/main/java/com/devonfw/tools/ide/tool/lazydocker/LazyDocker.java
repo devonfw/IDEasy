@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.lazydocker;
 
+import java.util.Set;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
@@ -10,8 +12,6 @@ import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.util.Set;
 
 /**
  * {@link ToolCommandlet} for <a href="https://github.com/jesseduffield/lazydocker">lazydocker</a>.
@@ -31,7 +31,7 @@ public class LazyDocker extends LocalToolCommandlet {
   @Override
   public boolean install(EnvironmentContext environmentContext, boolean silent) {
 
-    String bashPath = this.context.findBash();
+    String bashPath = this.context.findBashRequired();
     String command = "docker version --format '{{.Client.APIVersion}}'";
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable(bashPath)
         .addArgs("-c", command);

@@ -36,8 +36,8 @@ import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
 
 /**
- * Abstract base implementation of {@link UrlUpdater}. Contains methods for retrieving response bodies from URLs,
- * updating tool versions, and checking if download URLs work.
+ * Abstract base implementation of {@link UrlUpdater}. Contains methods for retrieving response bodies from URLs, updating tool versions, and checking if
+ * download URLs work.
  */
 public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout implements UrlUpdater {
 
@@ -84,8 +84,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @return the combination of {@link #getTool() tool} and {@link #getEdition() edition} but simplified if both are
-   *         equal.
+   * @return the combination of {@link #getTool() tool} and {@link #getEdition() edition} but simplified if both are equal.
    */
   protected final String getToolWithEdition() {
 
@@ -262,9 +261,9 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     if (isSuccess(response)) {
       String contentType = response.headers().firstValue("content-type").orElse("undefined");
       boolean isValidContentType = isValidContentType(contentType);
-      if (!isValidContentType){
+      if (!isValidContentType) {
         logger.error("For tool {} and version {} the download has an invalid content type {} for URL {}", tool, version,
-        contentType, url);
+            contentType, url);
         return false;
       }
       return true;
@@ -274,7 +273,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * Checks if the content type was not of type text (this method is required because {@link com.devonfw.tools.ide.tool.pip.PipUrlUpdater} returns text and needs to be overridden)
+   * Checks if the content type was not of type text (this method is required because {@link com.devonfw.tools.ide.tool.pip.PipUrlUpdater} returns text and
+   * needs to be overridden)
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
@@ -389,15 +389,13 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * Creates or refreshes the status JSON file for a given UrlVersion instance based on the URLRequestResult of checking
-   * if a download URL works.
+   * Creates or refreshes the status JSON file for a given UrlVersion instance based on the URLRequestResult of checking if a download URL works.
    *
    * @param success - {@code true} on successful HTTP response, {@code false} otherwise.
    * @param statusCode the HTTP status code of the response.
    * @param urlVersion the {@link UrlVersion} instance to create or refresh the status JSON file for.
    * @param url the checked download URL.
-   * @param update - {@code true} in case the URL was updated (verification), {@code false} otherwise (version/URL
-   *        initially added).
+   * @param update - {@code true} in case the URL was updated (verification), {@code false} otherwise (version/URL initially added).
    */
   @SuppressWarnings("null") // Eclipse is too stupid to check this
   private void doUpdateStatusJson(boolean success, int statusCode, UrlVersion urlVersion, String url, boolean update) {
@@ -625,10 +623,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     String vLower = version.toLowerCase(Locale.ROOT);
     if (vLower.contains("alpha") || vLower.contains("beta") || vLower.contains("dev") || vLower.contains("snapshot")
         || vLower.contains("preview") || vLower.contains("test") || vLower.contains("tech-preview") //
-        || vLower.contains("-pre") || vLower.startsWith("ce-")
+        || vLower.contains("-pre") || vLower.startsWith("ce-") || vLower.contains("-next") || vLower.contains("-rc")
         // vscode nonsense
-        || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/")
-        || vLower.contains("-insiders")) {
+        || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/") || vLower.contains(
+        "-insiders")) {
       return null;
     }
     return version;
@@ -645,20 +643,22 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @param version the version to add (e.g. "1.0").
    * @param versions the {@link Collection} with the versions to collect.
+   * @return {@code true} if the version has been added to the collection.
    */
-  protected final void addVersion(String version, Collection<String> versions) {
+  protected final boolean addVersion(String version, Collection<String> versions) {
 
     String mappedVersion = mapVersion(version);
     if ((mappedVersion == null) || mappedVersion.isBlank()) {
       logger.debug("Filtered version {}", version);
-      return;
-    } else if (!mappedVersion.equals(version)) {
+      return false;
+    } else if (!version.equals(mappedVersion)) {
       logger.debug("Mapped version {} to {}", version, mappedVersion);
     }
     boolean added = versions.add(mappedVersion);
     if (!added) {
-      logger.warn("Duplicate version {}", version);
+      logger.warn("Duplicate version {}", mappedVersion);
     }
+    return added;
   }
 
   /**

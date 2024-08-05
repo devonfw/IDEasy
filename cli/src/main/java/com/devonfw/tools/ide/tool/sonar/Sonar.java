@@ -59,11 +59,11 @@ public class Sonar extends LocalToolCommandlet {
         break;
       case START:
         printSonarWebPort();
-        arguments.setValueAsString("start", context);
+        this.arguments.setValueAsString("start", this.context);
         super.run();
         break;
       case STOP:
-        arguments.setValueAsString("stop", context);
+        this.arguments.setValueAsString("stop", this.context);
         super.run();
         break;
       default:

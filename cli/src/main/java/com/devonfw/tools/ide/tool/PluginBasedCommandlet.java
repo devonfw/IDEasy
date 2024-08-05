@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -9,14 +14,8 @@ import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptorImpl;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
-
 /**
- * Base class for {@link LocalToolCommandlet}s that support plugins. It can automatically install configured plugins for
- * the tool managed by this commandlet.
+ * Base class for {@link LocalToolCommandlet}s that support plugins. It can automatically install configured plugins for the tool managed by this commandlet.
  */
 public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
@@ -27,8 +26,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    *
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   * method.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
   public PluginBasedCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -38,7 +36,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   protected PluginMaps getPluginsMap() {
 
     if (this.pluginsMap == null) {
-      PluginMaps map = new PluginMaps(context);
+      PluginMaps map = new PluginMaps(this.context);
 
       // Load project-specific plugins
       Path pluginsPath = getPluginsConfigPath();
@@ -121,8 +119,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * @param key the filename of the properties file configuring the requested plugin (typically excluding the
-   * ".properties" extension).
+   * @param key the filename of the properties file configuring the requested plugin (typically excluding the ".properties" extension).
    * @return the {@link PluginDescriptor} for the given {@code key}.
    */
   public PluginDescriptor getPlugin(String key) {
@@ -142,6 +139,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     }
     return pluginDescriptor;
   }
+
 
   @Override
   protected boolean doInstall(EnvironmentContext environmentContext, boolean silent) {
@@ -169,8 +167,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * @param plugin the in{@link PluginDescriptor#isActive() active} {@link PluginDescriptor} that is skipped for regular
-   * plugin installation.
+   * @param plugin the in{@link PluginDescriptor#isActive() active} {@link PluginDescriptor} that is skipped for regular plugin installation.
    */
   protected void handleInstall4InactivePlugin(PluginDescriptor plugin) {
 

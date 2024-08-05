@@ -1,13 +1,14 @@
 package com.devonfw.tools.ide.context;
 
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeTestLogger;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.repo.ToolRepository;
-
 import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
+
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeTestLogger;
+import com.devonfw.tools.ide.log.IdeTestLoggerFactory;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.repo.ToolRepository;
 
 /**
  * Implementation of {@link IdeContext} for testing.
@@ -24,7 +25,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
    */
   public IdeTestContext(Path userDir, String... answers) {
 
-    super(level -> new IdeTestLogger(level), userDir, null, answers);
+    this(userDir, null, answers);
   }
 
   /**
@@ -37,7 +38,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
    */
   public IdeTestContext(Path userDir, ToolRepository toolRepository, String... answers) {
 
-    super(level -> new IdeTestLogger(level), userDir, toolRepository, answers);
+    super(new IdeTestLoggerFactory(), userDir, toolRepository, answers);
   }
 
   @Override
@@ -79,7 +80,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
   @Override
   public String askForInput(String message) {
 
-    return inputValues.isEmpty() ? null : inputValues.poll();
+    return this.inputValues.isEmpty() ? null : this.inputValues.poll();
   }
 
 }

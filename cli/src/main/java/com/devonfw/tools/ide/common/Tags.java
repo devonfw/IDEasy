@@ -8,8 +8,8 @@ import java.util.Set;
 public interface Tags {
 
   /**
-   * @return a {@link Set} with the tags classifying this object. E.g. for mvn (maven) the tags {@link Tag#JAVA java}
-   *         and {@link Tag#BUILD build} could be associated.
+   * @return a {@link Set} with the tags classifying this object. E.g. for mvn (maven) the tags {@link Tag#JAVA java} and {@link Tag#BUILD build} could be
+   * associated.
    */
   Set<Tag> getTags();
 

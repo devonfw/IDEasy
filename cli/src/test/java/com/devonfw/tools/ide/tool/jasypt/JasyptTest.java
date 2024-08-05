@@ -1,11 +1,12 @@
 package com.devonfw.tools.ide.tool.jasypt;
 
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
 import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
+
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -73,7 +74,7 @@ public class JasyptTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, context.getVariables().get("JASYPT_OPTS"));
+    assertThat(context).logAtInfo().hasMessage(context.getVariables().get("JASYPT_OPTS"));
     checkInstallation(context);
   }
 
@@ -87,7 +88,7 @@ public class JasyptTest extends AbstractIdeContextTest {
   public void testJasyptRunWithCustomVariable() {
 
     // arrange
-    environment.set("JASYPT_OPTS", JASYPT_OPTS);
+    this.environment.set("JASYPT_OPTS", JASYPT_OPTS);
 
     IdeTestContext context = newContext(PROJECT_JASYPT);
     Jasypt commandlet = new Jasypt(context);
@@ -100,7 +101,7 @@ public class JasyptTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, context.getVariables().get("JASYPT_OPTS"));
+    assertThat(context).logAtInfo().hasMessage(context.getVariables().get("JASYPT_OPTS"));
 
     checkInstallation(context);
   }
@@ -113,6 +114,6 @@ public class JasyptTest extends AbstractIdeContextTest {
     // commandlet - jasypt
     assertThat(context.getSoftwarePath().resolve("jasypt/jasypt-1.9.3.jar")).hasContent("This is a jar file.");
     assertThat(context.getSoftwarePath().resolve("jasypt/.ide.software.version")).exists().hasContent("1.9.3");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed jasypt in version 1.9.3");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed jasypt in version 1.9.3");
   }
 }

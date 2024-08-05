@@ -16,15 +16,15 @@ public class CustomToolCommandlet extends LocalToolCommandlet {
   }
 
   @Override
-  public ToolInstallation installInRepo(EnvironmentContext environmentContext, VersionIdentifier version) {
+  public ToolInstallation installTool(EnvironmentContext environmentContext, VersionIdentifier version) {
 
-    return installInRepo(environmentContext, version, this.customTool.getEdition());
+    return installTool(environmentContext, version, this.customTool.getEdition());
   }
 
   @Override
-  public ToolInstallation installInRepo(EnvironmentContext environmentContext, VersionIdentifier version, String edition) {
+  public ToolInstallation installTool(EnvironmentContext environmentContext, VersionIdentifier version, String edition) {
 
-    return installInRepo(environmentContext, version, edition, this.context.getCustomToolRepository());
+    return installTool(environmentContext, version, edition, this.context.getCustomToolRepository());
   }
 
   @Override

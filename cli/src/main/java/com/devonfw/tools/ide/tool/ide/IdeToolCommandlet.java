@@ -1,5 +1,16 @@
 package com.devonfw.tools.ide.tool.ide;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Stream;
+
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -12,20 +23,8 @@ import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
-
 /**
- * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or
- * {@link Intellij}.
+ * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or {@link Intellij}.
  */
 public abstract class IdeToolCommandlet extends LocalToolCommandlet {
 
@@ -38,8 +37,7 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
    *
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of}
-   *        method.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
   public IdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -115,9 +113,12 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
     return this.context.getPluginsPath().resolve(this.tool);
   }
 
+  public PluginInstaller getPluginInstaller() {
+    return new PluginInstaller(context, this);
+  }
+
   /**
-   * @param key the filename of the properties file configuring the requested plugin (typically excluding the
-   *        ".properties" extension).
+   * @param key the filename of the properties file configuring the requested plugin (typically excluding the ".properties" extension).
    * @return the {@link PluginDescriptor} for the given {@code key}.
    */
   public PluginDescriptor getPlugin(String key) {
@@ -161,8 +162,7 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * @param plugin the in{@link PluginDescriptor#isActive() active} {@link PluginDescriptor} that is skipped for regular
-   *        plugin installation.
+   * @param plugin the in{@link PluginDescriptor#isActive() active} {@link PluginDescriptor} that is skipped for regular plugin installation.
    */
   protected void handleInstall4InactivePlugin(PluginDescriptor plugin) {
 

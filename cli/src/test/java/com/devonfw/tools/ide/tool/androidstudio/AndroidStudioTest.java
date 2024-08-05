@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.tool.androidstudio;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoMock;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
  * Test class for {@link AndroidStudio Android Studio IDE} tests.
@@ -54,13 +54,7 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    if (this.context.getSystemInfo().isMac()) {
-      assertLogMessage(this.context, IdeLogLevel.INFO, ANDROID_STUDIO + " mac " + this.context.getWorkspacePath());
-    } else if (this.context.getSystemInfo().isLinux()) {
-      assertLogMessage(this.context, IdeLogLevel.INFO, ANDROID_STUDIO + " linux " + this.context.getWorkspacePath());
-    } else if (this.context.getSystemInfo().isWindows()) {
-      assertLogMessage(this.context, IdeLogLevel.INFO, ANDROID_STUDIO + " windows " + this.context.getWorkspacePath());
-    }
+    assertThat(this.context).logAtInfo().hasMessage(ANDROID_STUDIO + " " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
 
     checkInstallation(this.context);
   }
@@ -68,7 +62,8 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
     // commandlet - android-studio
     assertThat(context.getSoftwarePath().resolve("android-studio/.ide.software.version")).exists().hasContent("2024.1.1.1");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed android-studio in version 2024.1.1.1");
+    assertThat(context.getVariables().get("STUDIO_PROPERTIES")).isEqualTo(context.getWorkspacePath().resolve("studio.properties").toString());
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed android-studio in version 2024.1.1.1");
   }
 
 }

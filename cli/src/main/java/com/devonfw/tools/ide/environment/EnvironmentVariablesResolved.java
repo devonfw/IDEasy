@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.environment;
 
+import java.util.Map;
+
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
-
-import java.util.Set;
 
 /**
  * Implementation of {@link EnvironmentVariables} that resolves variables recursively.
@@ -49,11 +49,11 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
   }
 
   @Override
-  protected void collectVariables(Set<String> variables) {
+  protected void collectVariables(Map<String, String> variables) {
 
     for (VariableDefinition<?> var : IdeVariables.VARIABLES) {
       if (var.isExport() || var.isForceDefaultValue()) {
-        variables.add(var.getName());
+        variables.put(var.getName(), "defaults");
       }
     }
     super.collectVariables(variables);

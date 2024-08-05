@@ -1,11 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
-import org.junit.jupiter.api.Test;
 
 /**
  * Test of {@link BuildCommandlet}.
@@ -24,9 +25,9 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
     context.setCwd(context.getWorkspacePath().resolve("mvn"), context.getWorkspacePath().toString(), context.getIdeHome());
     buildCommandlet.run();
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed mvn in version 3.9.6");
-    assertLogMessage(context, IdeLogLevel.INFO, "mvn clean compile");
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully installed java in version 17.0.10_7"),
+        IdeLogEntry.ofSuccess("Successfully installed mvn in version 3.9.6"),
+        IdeLogEntry.ofInfo("mvn clean compile"));
   }
 
   /**
@@ -41,9 +42,9 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     buildCommandlet.arguments.addValue("clean");
     buildCommandlet.arguments.addValue("install");
     buildCommandlet.run();
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed mvn in version 3.9.6");
-    assertLogMessage(context, IdeLogLevel.INFO, "mvn clean install");
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully installed java in version 17.0.10_7"),
+        IdeLogEntry.ofSuccess("Successfully installed mvn in version 3.9.6"),
+        IdeLogEntry.ofInfo("mvn clean install"));
   }
 
   /**
@@ -58,9 +59,9 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     buildCommandlet.arguments.addValue("task1");
     buildCommandlet.arguments.addValue("task2");
     buildCommandlet.run();
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed java in version 17.0.10_7");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed gradle in version 8.7");
-    assertLogMessage(context, IdeLogLevel.INFO, "gradle task1 task2");
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully installed java in version 17.0.10_7"),
+        IdeLogEntry.ofSuccess("Successfully installed gradle in version 8.7"),
+        IdeLogEntry.ofInfo("gradle task1 task2"));
   }
 
   /**
@@ -77,8 +78,8 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     buildCommandlet.arguments.addValue("start");
     buildCommandlet.arguments.addValue("test");
     buildCommandlet.run();
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed node in version v18.19.1");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed npm in version 9.9.2");
-    assertLogMessage(context, IdeLogLevel.INFO, "npm start test");
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully installed node in version v18.19.1"),
+        IdeLogEntry.ofSuccess("Successfully installed npm in version 9.9.2"),
+        IdeLogEntry.ofInfo("npm start test"));
   }
 }

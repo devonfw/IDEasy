@@ -1,5 +1,9 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Locale;
+
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -21,10 +25,6 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Locale;
 
 /**
  * Interface for interaction with the user allowing to input and output information.
@@ -530,6 +530,23 @@ public interface IdeContext extends IdeLogger {
    * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
    */
   String findBash();
+
+  /**
+   * Finds the path to the Bash executable.
+   *
+   * @return the {@link String} to the Bash executable. Throws an {@link IllegalStateException} if no bash was found.
+   */
+  default String findBashRequired() {
+    String bash = findBash();
+    if (bash == null) {
+      String message = "Could not find bash what is a prerequisite of IDEasy.";
+      if (getSystemInfo().isWindows()) {
+        message = message + "\nPlease install Git for Windows and rerun.";
+      }
+      throw new IllegalStateException(message);
+    }
+    return bash;
+  }
 
   /**
    * @return the {@link WindowsPathSyntax} used for {@link Path} conversion or {@code null} for no such conversion (typically if not on Windows).

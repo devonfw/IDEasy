@@ -11,44 +11,64 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test class for integrations of the {@link IntellijUrlUpdater}
  */
-@WireMockTest(httpPort = 8080)
+@WireMockTest
 public class IntellijJsonUrlUpdaterTest extends Assertions {
 
-  /**
-   * Test resource location
-   */
+  /** Test resource location */
   private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/IntellijJsonUrlUpdater";
 
   /** This is the SHA256 checksum of aBody (a placeholder body which gets returned by WireMock) */
   private static final String EXPECTED_ABODY_CHECKSUM = "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30";
 
+  private static String intellijVersionJson;
+  private static String intellijVersionWithoutChecksumJson;
+
+  /**
+   * Creates an intellij-version and intellij-version-without-checksum json file based on the given test resource in a temporary directory according to the http
+   * url and port of the {@link WireMockRuntimeInfo}.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
+   * @throws IOException
+   */
+  @BeforeAll
+  public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+    //preparing test data with dynamic port
+    Path testDataPath = Path.of(TEST_DATA_ROOT);
+    intellijVersionJson = Files.readString(testDataPath.resolve("intellij-version.json"));
+    intellijVersionJson = intellijVersionJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
+
+    intellijVersionWithoutChecksumJson = Files.readString(testDataPath.resolve("intellij-version-without-checksum.json"));
+    intellijVersionWithoutChecksumJson = intellijVersionWithoutChecksumJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
+  }
+
   /**
    * Test of {@link JsonUrlUpdater} for the creation of {@link IntellijUrlUpdater} download URLs and checksums.
    *
    * @param tempDir Path to a temporary directory
-   * @throws IOException test fails
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testIntellijJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir) throws IOException {
+  public void testIntellijJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
-    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("intellij-version.json")))));
+    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionJson.getBytes())));
 
     stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock();
+    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
 
     // when
     updater.update(urlRepository);
@@ -63,24 +83,22 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
   }
 
   /**
-   * Test if the {@link JsonUrlUpdater} for {@link IntellijUrlUpdater} can handle downloads with missing checksums
-   * (generate checksum from download file if no checksum was provided)
+   * Test if the {@link JsonUrlUpdater} for {@link IntellijUrlUpdater} can handle downloads with missing checksums (generate checksum from download file if no
+   * checksum was provided)
    *
    * @param tempDir Path to a temporary directory
-   * @throws IOException test fails
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testIntellijJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir)
-      throws IOException {
+  public void testIntellijJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
-    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("intellij-version.json")))));
+    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionJson.getBytes())));
 
     stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(404)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock();
+    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
 
     // when
     updater.update(urlRepository);
@@ -93,23 +111,22 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
   }
 
   /**
-   * Test if the {@link JsonUrlUpdater} for {@link IntellijUrlUpdater} can handle downloads with missing checksums
-   * (generate checksum from download file if no checksum was provided)
+   * Test if the {@link JsonUrlUpdater} for {@link IntellijUrlUpdater} can handle downloads with missing checksums (generate checksum from download file if no
+   * checksum was provided)
    *
    * @param tempDir Path to a temporary directory
-   * @throws IOException test fails
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testIntellijJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir) throws IOException {
+  public void testIntellijJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
-    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("intellij-version-withoutchecksum.json")))));
+    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionWithoutChecksumJson.getBytes())));
 
     stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock();
+    IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
 
     // when
     updater.update(urlRepository);

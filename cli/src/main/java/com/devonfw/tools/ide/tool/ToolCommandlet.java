@@ -1,11 +1,16 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
+
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.EnvironmentContext;
@@ -14,11 +19,6 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
 
 /**
  * {@link Commandlet} for a tool integrated into the IDE.
@@ -131,8 +131,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted
-   *     if same as tool.
+   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted if same as tool.
    * @see #getToolWithEdition(String, String)
    */
   protected final String getToolWithEdition() {
@@ -143,8 +142,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /**
    * @param tool the tool name.
    * @param edition the edition.
-   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted
-   *     if same as tool.
+   * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted if same as tool.
    */
   protected final static String getToolWithEdition(String tool, String edition) {
 
@@ -280,12 +278,28 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void setVersion(VersionIdentifier version, boolean hint) {
 
+    setVersion(version, hint, null);
+  }
+
+  /**
+   * Sets the tool version in the environment variable configuration file.
+   *
+   * @param version the version to set. May also be a {@link VersionIdentifier#isPattern() version pattern}.
+   * @param hint - {@code true} to print the installation hint, {@code false} otherwise.
+   * @param destination - the destination for the property to be set
+   */
+  public void setVersion(VersionIdentifier version, boolean hint, EnvironmentVariablesFiles destination) {
+
     String edition = getConfiguredEdition();
     this.context.getUrls()
-        .getVersionFolder(tool, edition, version); // CliException is thrown if the version is not existing
+        .getVersionFolder(this.tool, edition, version); // CliException is thrown if the version is not existing
 
     EnvironmentVariables variables = this.context.getVariables();
-    EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
+    if (destination == null) {
+      //use default location
+      destination = EnvironmentVariablesFiles.SETTINGS;
+    }
+    EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
     String name = EnvironmentVariables.getToolVersionVariable(this.tool);
     VersionIdentifier resolvedVersion = this.context.getUrls().getVersion(this.tool, edition, version);
     if (version.isPattern()) {
@@ -323,16 +337,32 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void setEdition(String edition, boolean hint) {
 
+    setEdition(edition, hint, null);
+  }
+
+  /**
+   * Sets the tool edition in the environment variable configuration file.
+   *
+   * @param edition the edition to set
+   * @param hint - {@code true} to print the installation hint, {@code false} otherwise.
+   * @param destination - the destination for the property to be set
+   */
+  public void setEdition(String edition, boolean hint, EnvironmentVariablesFiles destination) {
+
     if ((edition == null) || edition.isBlank()) {
       throw new IllegalStateException("Edition has to be specified!");
     }
 
+    if (destination == null) {
+      //use default location
+      destination = EnvironmentVariablesFiles.SETTINGS;
+    }
     if (!Files.exists(this.context.getUrls().getEdition(getName(), edition).getPath())) {
       this.context.warning("Edition {} seems to be invalid", edition);
 
     }
     EnvironmentVariables variables = this.context.getVariables();
-    EnvironmentVariables settingsVariables = variables.getByType(EnvironmentVariablesType.SETTINGS);
+    EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
     String name = EnvironmentVariables.getToolEditionVariable(this.tool);
     settingsVariables.set(name, edition, false);
     settingsVariables.save();

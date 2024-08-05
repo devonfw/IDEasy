@@ -1,23 +1,24 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.io.FileAccessImpl;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.property.ToolProperty;
-import com.devonfw.tools.ide.tool.dotnet.DotNet;
-import com.devonfw.tools.ide.tool.eclipse.Eclipse;
-import com.devonfw.tools.ide.tool.npm.Npm;
-import org.junit.jupiter.api.Test;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+import org.junit.jupiter.api.Test;
+
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.io.FileAccessImpl;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.property.ToolProperty;
+import com.devonfw.tools.ide.tool.dotnet.DotNet;
+import com.devonfw.tools.ide.tool.eclipse.Eclipse;
+import com.devonfw.tools.ide.tool.npm.Npm;
 
 /**
  * Integration test of {@link UninstallCommandlet}.
@@ -46,9 +47,9 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     // act
     uninstallCommandlet.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully uninstalled " + npm);
-    assertLogMessage(context, IdeLogLevel.WARNING, "An installed version of " + dotnet + " does not exist");
-    assertThat(Files.notExists(context.getSoftwarePath().resolve(npm)));
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled " + npm),
+        IdeLogEntry.ofWarning("An installed version of " + dotnet + " does not exist"));
+    assertThat(context.getSoftwarePath().resolve(npm)).doesNotExist();
   }
 
   @Test
@@ -64,7 +65,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     // act
     uninstallCommandlet.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.WARNING, "An installed version of " + eclipse + " does not exist");
+    assertThat(context).logAtWarning().hasMessage("An installed version of " + eclipse + " does not exist");
     assertThat(Files.notExists(context.getSoftwarePath().resolve(eclipse)));
   }
 

@@ -3,8 +3,8 @@ package com.devonfw.tools.ide.environment;
 import com.devonfw.tools.ide.log.IdeLogger;
 
 /**
- * Container that represents a line from a properties (ide.properties) file. We do not use {@link java.util.Properties}
- * as we need support for exported variables, lists/arrays, and saving changes without loosing comments, etc.
+ * Container that represents a line from a properties (ide.properties) file. We do not use {@link java.util.Properties} as we need support for exported
+ * variables, lists/arrays, and saving changes without loosing comments, etc.
  */
 public abstract class VariableLine {
 
@@ -17,8 +17,7 @@ public abstract class VariableLine {
   }
 
   /**
-   * @return the name of the variable. Will be {@code null} if not a regular variable line (e.g. a comment or empty
-   *         line).
+   * @return the name of the variable. Will be {@code null} if not a regular variable line (e.g. a comment or empty line).
    */
   public String getName() {
 
@@ -26,8 +25,7 @@ public abstract class VariableLine {
   }
 
   /**
-   * @return the value of the variable. Will be {@code null} if not a regular variable line (e.g. a comment or empty
-   *         line).
+   * @return the value of the variable. Will be {@code null} if not a regular variable line (e.g. a comment or empty line).
    */
   public String getValue() {
 
@@ -38,6 +36,14 @@ public abstract class VariableLine {
    * @return the comment line (including the '#' character). Will be {@code null} if not a comment line.
    */
   public String getComment() {
+
+    return null;
+  }
+
+  /**
+   * @return the source of the variable.
+   */
+  public String getSource() {
 
     return null;
   }
@@ -79,12 +85,14 @@ public abstract class VariableLine {
 
     private final String line;
 
+    private final Object source;
+
     Variable(boolean export, String name, String value) {
 
-      this(export, name, value, null);
+      this(export, name, value, null, null);
     }
 
-    private Variable(boolean export, String name, String value, String line) {
+    private Variable(boolean export, String name, String value, String line, Object source) {
 
       super();
       this.export = export;
@@ -102,6 +110,7 @@ public abstract class VariableLine {
       } else {
         this.line = line;
       }
+      this.source = source;
     }
 
     @Override
@@ -120,6 +129,11 @@ public abstract class VariableLine {
     public String getValue() {
 
       return this.value;
+    }
+
+    @Override
+    public String getSource() {
+      return source.toString();
     }
 
     @Override
@@ -271,7 +285,7 @@ public abstract class VariableLine {
         } else if (value.startsWith("\"") && value.endsWith("\"")) {
           value = value.substring(1, value.length() - 1);
         }
-        return new Variable(export, name, value, line);
+        return new Variable(export, name, value, line, source);
       }
       end++;
     }
@@ -288,6 +302,18 @@ public abstract class VariableLine {
   public static VariableLine of(boolean export, String name, String value) {
 
     return new Variable(export, name, value);
+  }
+
+  /**
+   * @param export the {@link #isExport() export flag}.
+   * @param name the {@link #getName() name}.
+   * @param value the {@link #getValue() value}.
+   * @param source the {@link #getSource() source} of the variable.
+   * @return the {@link VariableLine} for the given values.
+   */
+  public static VariableLine of(boolean export, String name, String value, Object source) {
+
+    return new Variable(export, name, value, null, source);
   }
 
 }

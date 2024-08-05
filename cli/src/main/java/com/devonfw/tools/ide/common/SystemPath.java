@@ -1,10 +1,5 @@
 package com.devonfw.tools.ide.common;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
-import com.devonfw.tools.ide.os.WindowsPathSyntax;
-import com.devonfw.tools.ide.variable.IdeVariables;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,17 +12,20 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.variable.IdeVariables;
+
 /**
- * Represents the PATH variable in a structured way. The PATH contains the system path entries together with the entries
- * for the IDEasy tools. The generic system path entries are stored in a {@link List} ({@code paths}) and the tool
- * entries are stored in a {@link Map} ({@code tool2pathMap}) as they can change dynamically at runtime (e.g. if a new
- * tool is installed). As the tools must have priority the actual PATH is build by first the entries for the tools and
- * then the generic entries from the system PATH. Such tool entries are ignored from the actual PATH of the
- * {@link System#getenv(String) environment} at construction time and are recomputed from the "software" folder. This is
- * important as the initial {@link System#getenv(String) environment} PATH entries can come from a different IDEasy
- * project and the use may have changed projects before calling us again. Recomputing the PATH ensures side-effects from
- * other projects. However, it also will ensure all the entries to IDEasy locations are automatically managed and
- * therefore cannot be managed manually be the end-user.
+ * Represents the PATH variable in a structured way. The PATH contains the system path entries together with the entries for the IDEasy tools. The generic
+ * system path entries are stored in a {@link List} ({@code paths}) and the tool entries are stored in a {@link Map} ({@code tool2pathMap}) as they can change
+ * dynamically at runtime (e.g. if a new tool is installed). As the tools must have priority the actual PATH is build by first the entries for the tools and
+ * then the generic entries from the system PATH. Such tool entries are ignored from the actual PATH of the {@link System#getenv(String) environment} at
+ * construction time and are recomputed from the "software" folder. This is important as the initial {@link System#getenv(String) environment} PATH entries can
+ * come from a different IDEasy project and the use may have changed projects before calling us again. Recomputing the PATH ensures side-effects from other
+ * projects. However, it also will ensure all the entries to IDEasy locations are automatically managed and therefore cannot be managed manually be the
+ * end-user.
  */
 public class SystemPath {
 
@@ -69,9 +67,9 @@ public class SystemPath {
   /**
    * The constructor.
    *
-   * @param context      {@link IdeContext} for the output of information.
-   * @param envPath      the value of the PATH variable.
-   * @param ideRoot      the {@link IdeContext#getIdeRoot() IDE_ROOT}.
+   * @param context {@link IdeContext} for the output of information.
+   * @param envPath the value of the PATH variable.
+   * @param ideRoot the {@link IdeContext#getIdeRoot() IDE_ROOT}.
    * @param softwarePath the {@link IdeContext#getSoftwarePath() software path}.
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath) {
@@ -82,10 +80,10 @@ public class SystemPath {
   /**
    * The constructor.
    *
-   * @param context       {@link IdeContext} for the output of information.
-   * @param envPath       the value of the PATH variable.
-   * @param ideRoot       the {@link IdeContext#getIdeRoot() IDE_ROOT}.
-   * @param softwarePath  the {@link IdeContext#getSoftwarePath() software path}.
+   * @param context {@link IdeContext} for the output of information.
+   * @param envPath the value of the PATH variable.
+   * @param ideRoot the {@link IdeContext#getIdeRoot() IDE_ROOT}.
+   * @param softwarePath the {@link IdeContext#getSoftwarePath() software path}.
    * @param pathSeparator the path separator char (';' for Windows and ':' otherwise).
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath, char pathSeparator) {
@@ -167,8 +165,7 @@ public class SystemPath {
 
   /**
    * @param toolPath the {@link Path} to the tool installation.
-   * @return the {@link Path} to the binary executable of the tool. E.g. is "software/mvn" is given
-   * "software/mvn/bin/mvn" could be returned.
+   * @return the {@link Path} to the binary executable of the tool. E.g. is "software/mvn" is given "software/mvn/bin/mvn" could be returned.
    */
   public Path findBinary(Path toolPath) {
 
@@ -177,7 +174,7 @@ public class SystemPath {
 
     if (parent == null) {
 
-      for (Path path : tool2pathMap.values()) {
+      for (Path path : this.tool2pathMap.values()) {
         Path binaryPath = findBinaryInOrder(path, fileName);
         if (binaryPath != null) {
           return binaryPath;
@@ -202,8 +199,7 @@ public class SystemPath {
 
   /**
    * @param tool the name of the tool.
-   * @return the {@link Path} to the directory of the tool where the binaries can be found or {@code null} if the tool
-   * is not installed.
+   * @return the {@link Path} to the directory of the tool where the binaries can be found or {@code null} if the tool is not installed.
    */
   public Path getPath(String tool) {
 

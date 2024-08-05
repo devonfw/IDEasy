@@ -1,5 +1,11 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -9,12 +15,6 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
 
 /**
  * {@link ToolCommandlet} that is installed globally.
@@ -26,8 +26,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    *
    * @param context the {@link IdeContext}.
    * @param tool the {@link #getName() tool name}.
-   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via
-   *     {@link Set#of(Object) Set.of} method.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
   public GlobalToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
@@ -39,8 +38,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    *
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @param commandStrings commandStrings The package manager command strings to execute.
-   * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands,
-   *     {@code false} otherwise.
+   * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands, {@code false} otherwise.
    */
   protected boolean runWithPackageManager(boolean silent, String... commandStrings) {
 
@@ -53,8 +51,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    *
    * @param silent {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @param pmCommands A list of {@link PackageManagerCommand} to be used for installation or uninstallation.
-   * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands,
-   *     {@code false} otherwise.
+   * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands, {@code false} otherwise.
    */
   protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
 
@@ -82,7 +79,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    */
   private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent) {
 
-    String bashPath = this.context.findBash();
+    String bashPath = this.context.findBashRequired();
     for (String command : pmCommand.commands()) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(bashPath)
           .addArgs("-c", command);

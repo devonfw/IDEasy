@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.commandlet;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
 
 /**
  * Integration test of {@link VersionGetCommandlet}.
@@ -23,10 +23,8 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     // act
     versionGet.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "No installation of tool java was found.");
-    assertLogMessage(context, IdeLogLevel.INFO, "The configured version for tool java is 17*");
-    assertLogMessage(context, IdeLogLevel.INFO, "To install that version call the following command:");
-    assertLogMessage(context, IdeLogLevel.INFO, "ide install java");
+    assertThat(context).logAtInfo().hasEntries("No installation of tool java was found.", "The configured version for tool java is 17*",
+        "To install that version call the following command:", "ide install java");
   }
 
   /**
@@ -43,7 +41,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     versionGet.installed.setValue(true);
     versionGet.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "3.9.4");
+    assertThat(context).logAtInfo().hasMessage("3.9.4");
   }
 
   /**
@@ -60,6 +58,6 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     versionGet.configured.setValue(true);
     versionGet.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "3.9.*");
+    assertThat(context).logAtInfo().hasMessage("3.9.1");
   }
 }
