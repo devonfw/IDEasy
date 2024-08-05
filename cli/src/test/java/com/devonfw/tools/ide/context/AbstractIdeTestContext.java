@@ -96,7 +96,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
     Path home = getUserHome();
     if (home != null) {
-      Path systemPropertiesFile = home.resolve("system.properties");
+      Path systemPropertiesFile = home.resolve("environment.properties");
       if (Files.exists(systemPropertiesFile)) {
         return new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.SYSTEM, systemPropertiesFile, this);
       }
