@@ -69,38 +69,38 @@ public class IdeTestLoggerAssertion {
   }
 
   /**
-   * @param exprectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} in order.
+   * @param expectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} in order.
    */
-  public void hasEntries(IdeLogEntry... exprectedEntries) {
+  public void hasEntries(IdeLogEntry... expectedEntries) {
 
-    hasEntries(false, exprectedEntries);
+    hasEntries(false, expectedEntries);
   }
 
   /**
-   * @param exprectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} to be logged in order without any other log statement in
+   * @param expectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} to be logged in order without any other log statement in
    * between them.
    */
-  public void hasEntriesWithNothingElseInBetween(IdeLogEntry... exprectedEntries) {
+  public void hasEntriesWithNothingElseInBetween(IdeLogEntry... expectedEntries) {
 
-    hasEntries(true, exprectedEntries);
+    hasEntries(true, expectedEntries);
   }
 
-  private void hasEntries(boolean nothingElseInBetween, IdeLogEntry... exprectedEntries) {
+  private void hasEntries(boolean nothingElseInBetween, IdeLogEntry... expectedEntries) {
 
-    assert (exprectedEntries.length > 0);
+    assert (expectedEntries.length > 0);
     int i = 0;
     int max = 0;
     for (IdeLogEntry entry : this.entries) {
-      if (exprectedEntries[i].matches(entry)) {
+      if (expectedEntries[i].matches(entry)) {
         i++;
       } else {
         if (nothingElseInBetween) {
           i = 0;
-        } else if (exprectedEntries[0].matches(entry)) {
+        } else if (expectedEntries[0].matches(entry)) {
           i = 1;
         }
       }
-      if (i == exprectedEntries.length) {
+      if (i == expectedEntries.length) {
         return;
       }
       if (i > max) {
@@ -111,7 +111,7 @@ public class IdeTestLoggerAssertion {
     if (max > 0) {
       error.append("Found expected log entries:\n");
       for (i = 0; i < max; i++) {
-        IdeLogEntry entry = exprectedEntries[i];
+        IdeLogEntry entry = expectedEntries[i];
         error.append(entry.level());
         error.append(":");
         error.append(entry.message());
@@ -119,8 +119,8 @@ public class IdeTestLoggerAssertion {
       }
     }
     error.append("\nBut could not find expected log entries:\n");
-    for (i = max; i < exprectedEntries.length; i++) {
-      IdeLogEntry entry = exprectedEntries[i];
+    for (i = max; i < expectedEntries.length; i++) {
+      IdeLogEntry entry = expectedEntries[i];
       error.append(entry.level());
       error.append(":");
       error.append(entry.message());
