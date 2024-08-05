@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -369,7 +370,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     this.context.info("The version {} of the dependency {} is being installed", dependencyVersionToInstall, dependencyName);
 
     if (dependencyTool instanceof LocalToolCommandlet) {
-      ((LocalToolCommandlet) dependencyTool).installInRepo(ec, dependencyVersionToInstall);
+      ((LocalToolCommandlet) dependencyTool).installTool(ec, dependencyVersionToInstall);
     } else {
       // TODO
     }

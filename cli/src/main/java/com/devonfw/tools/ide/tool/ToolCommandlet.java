@@ -161,7 +161,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * Method to be called for {@link #install(boolean)} from dependent {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
+   * Method to be called for {@link #install(EnvironmentContext, boolean)} from dependent {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
    *
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
