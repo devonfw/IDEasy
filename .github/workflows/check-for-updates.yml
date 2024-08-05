@@ -15,9 +15,9 @@ jobs:
       - id: verify_commit
         run: |
           if git log --since='24 hours ago' --oneline | grep '.'; then
-            echo "::set-output name=RUN_BUILD::true"
+            echo "RUN_BUILD=true" >> $GITHUB_OUTPUT
           else
-            echo "::set-output name=RUN_BUILD::false"
+            echo "RUN_BUILD=false" >> $GITHUB_OUTPUT
           fi
 
   trigger_build:
