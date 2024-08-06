@@ -5,7 +5,6 @@ Set _fBGreen=[92m
 Set _fBRed=[91m
 Set _RESET=[0m
 
-
 pushd %~dp0
 echo Setting up IDEasy in %CD%
 
@@ -13,7 +12,7 @@ REM https://stackoverflow.com/questions/61888625/what-is-f-in-the-for-loop-comma
 for %%f in (ideasy.exe) do set "p=%%~$PATH:f"
 if not defined p (
   for /F "tokens=2* delims= " %%f IN ('reg query HKCU\Environment /v PATH ^| findstr /i path') do set USER_PATH=%%g
-  call :set_userpath
+  goto :set_userpath
 ) else (
   echo IDEasy is already added to your PATH.
   goto :find_bash
@@ -33,10 +32,11 @@ if "%USER_PATH%" == "" (
   echo Otherwise all is correct and you can continue by pressing enter.
   echo %_RESET%
   pause
-  setx PATH "%%PATH%%;%%CD%%\bin"
+  setx PATH "%PATH%;%CD%\bin"
 ) else (
-  setx PATH "%USER_PATH%;%%CD%%\bin"
+  setx PATH "%USER_PATH%;%CD%\bin"
 )
+setx IDE_ROOT "%CD%"
 
 :find_bash
 REM find bash on your Windows system...
@@ -77,3 +77,4 @@ if not "%1%" == "-b" (
   pause
 )
 popd
+goto :EOF
