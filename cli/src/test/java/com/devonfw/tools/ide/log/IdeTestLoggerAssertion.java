@@ -111,29 +111,29 @@ public class IdeTestLoggerAssertion {
     if (max > 0) {
       error.append("Found expected log entries:\n");
       for (i = 0; i < max; i++) {
-        IdeLogEntry entry = expectedEntries[i];
-        error.append(entry.level());
-        error.append(":");
-        error.append(entry.message());
-        error.append('\n');
+        appendEntry(error, expectedEntries[i]);
       }
     }
-    error.append("\nBut could not find expected log entries:\n");
-    for (i = max; i < expectedEntries.length; i++) {
-      IdeLogEntry entry = expectedEntries[i];
-      error.append(entry.level());
-      error.append(":");
-      error.append(entry.message());
-      error.append('\n');
+    error.append("\nThe first entry that was not matching from a block of ");
+    error.append(expectedEntries.length);
+    error.append(" expected log-entries ");
+    if (nothingElseInBetween) {
+      error.append("with nothing else logged in between ");
     }
+    error.append("was:\n");
+    appendEntry(error, expectedEntries[max]);
     error.append("\nIn the logs of this test:\n");
     for (IdeLogEntry entry : this.entries) {
-      error.append(entry.level());
-      error.append(":");
-      error.append(entry.message());
-      error.append('\n');
+      appendEntry(error, entry);
     }
     Assertions.fail(error.toString());
+  }
+
+  private static void appendEntry(StringBuilder sb, IdeLogEntry entry) {
+    sb.append(entry.level());
+    sb.append(":");
+    sb.append(entry.message());
+    sb.append('\n');
   }
 
   private void fulfillsPredicate(Predicate<IdeLogEntry> predicate, PredicateMode mode, String errorMessage) {
