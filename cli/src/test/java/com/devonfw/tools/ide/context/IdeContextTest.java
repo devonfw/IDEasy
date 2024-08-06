@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -30,7 +29,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(IdeVariables.DOCKER_EDITION.get(context)).isEqualTo("docker");
     EnvironmentVariables variables = context.getVariables();
     assertThat(variables.get("FOO")).isEqualTo("foo-bar-some-${UNDEFINED}");
-    assertLogMessage(context, IdeLogLevel.WARNING, "Undefined variable ${UNDEFINED} in 'FOO' at 'SOME=some-${UNDEFINED}'");
+    assertThat(context).logAtWarning().hasMessage("Undefined variable ${UNDEFINED} in 'FOO' at 'SOME=some-${UNDEFINED}'");
     assertThat(context.getIdeHome().resolve("readme")).hasContent("this is the IDE_HOME directory");
     assertThat(context.getIdeRoot().resolve("readme")).hasContent("this is the IDE_ROOT directory");
     assertThat(context.getUserHome().resolve("readme")).hasContent("this is the users HOME directory");
@@ -41,8 +40,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(context.getWorkspacePath().resolve("readme")).hasContent("this is the foo-test workspace of basic");
     SystemPath systemPath = IdeVariables.PATH.get(context);
     assertThat(systemPath).isSameAs(context.getPath());
-    String envPath = System.getenv(IdeVariables.PATH.getName());
-    envPath = envPath.replaceAll("[\\\\][;]", ";").replaceAll("[\\/][:]", ":");
+    String envPath = context.getIdeRoot().resolve("_ide").resolve("bin").toString();
     assertThat(systemPath.toString()).isNotEqualTo(envPath).endsWith(envPath);
     Path softwarePath = context.getSoftwarePath();
     Path javaBin = softwarePath.resolve("java/bin");

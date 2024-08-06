@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
+import com.devonfw.tools.ide.log.IdeTestLoggerFactory;
 import com.devonfw.tools.ide.process.ProcessContext;
 
 /**
@@ -31,7 +32,7 @@ public class GitContextTestContext extends AbstractIdeTestContext {
    */
   public GitContextTestContext(boolean isOnline, Path userDir, String... answers) {
 
-    super(level -> new IdeTestLogger(level), userDir, null, answers);
+    super(new IdeTestLoggerFactory(), userDir, null, answers);
     testOnlineMode = isOnline;
     this.errors = new ArrayList<>();
     this.outs = new ArrayList<>();

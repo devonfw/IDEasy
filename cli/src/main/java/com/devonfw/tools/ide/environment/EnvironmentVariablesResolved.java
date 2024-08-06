@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.environment;
 
-import java.util.Set;
+import java.util.Map;
 
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
@@ -49,14 +49,14 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
   }
 
   @Override
-  protected void collectVariables(Set<String> variables) {
+  protected void collectVariables(Map<String, VariableLine> variables, boolean onlyExported, AbstractEnvironmentVariables resolver) {
 
     for (VariableDefinition<?> var : IdeVariables.VARIABLES) {
       if (var.isExport() || var.isForceDefaultValue()) {
-        variables.add(var.getName());
+        variables.computeIfAbsent(var.getName(), k -> createVariableLine(k, onlyExported, resolver));
       }
     }
-    super.collectVariables(variables);
+    super.collectVariables(variables, onlyExported, resolver);
   }
 
   @Override

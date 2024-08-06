@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Integration test of {@link Cobigen}.
@@ -46,7 +45,7 @@ public class CobigenTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertLogMessage(this.context, IdeLogLevel.INFO, COBIGEN + " ");
+    assertThat(this.context).logAtInfo().hasMessage(COBIGEN + " ");
 
     checkInstallation(this.context);
   }
@@ -60,6 +59,6 @@ public class CobigenTest extends AbstractIdeContextTest {
 
     // commandlet - cobigen
     assertThat(context.getSoftwarePath().resolve("cobigen/.ide.software.version")).exists().hasContent("2021.12.006");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed cobigen in version 2021.12.006");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed cobigen in version 2021.12.006");
   }
 }
