@@ -1,10 +1,13 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.property.FlagProperty;
@@ -50,30 +53,49 @@ public final class EnvironmentCommandlet extends Commandlet {
   @Override
   public void run() {
 
+    boolean winCmd = false;
     WindowsPathSyntax pathSyntax = null;
     if (this.context.getSystemInfo().isWindows()) {
       if (this.bash.isTrue()) {
         pathSyntax = WindowsPathSyntax.MSYS;
       } else {
+        winCmd = true;
         pathSyntax = WindowsPathSyntax.WINDOWS;
       }
     }
     ((AbstractIdeContext) this.context).setPathSyntax(pathSyntax);
-    Collection<VariableLine> variables = this.context.getVariables().collectVariables();
+    List<VariableLine> variables = this.context.getVariables().collectVariables();
     if (this.context.debug().isEnabled()) {
-      for (String source : variables.stream().map(VariableLine::getSource).collect(Collectors.toSet())) {
-        this.context.debug("from {}:", source);
-        for (VariableLine line : variables) {
-          if (line.getSource().equals(source)) {
+      Map<EnvironmentVariablesType, List<VariableLine>> type2lines = variables.stream().collect(Collectors.groupingBy(l -> l.getSource().type()));
+      for (EnvironmentVariablesType type : EnvironmentVariablesType.values()) {
+        List<VariableLine> lines = type2lines.get(type);
+        if (lines != null) {
+          boolean sourcePrinted = false;
+          sortVariables(lines);
+          for (VariableLine line : lines) {
+            if (!sourcePrinted) {
+              this.context.debug("from {}:", line.getSource());
+              sourcePrinted = true;
+            }
             printEnvLine(line);
           }
         }
       }
     } else {
+      sortVariables(variables);
       for (VariableLine line : variables) {
-        printEnvLine(line);
+        if (winCmd) {
+          // MS-Dos (aka CMD) has no concept of exported variables
+          this.context.info(line.getName() + "=" + line.getValue() + "");
+        } else {
+          printEnvLine(line);
+        }
       }
     }
+  }
+
+  private static void sortVariables(List<VariableLine> lines) {
+    Collections.sort(lines, (c1, c2) -> c1.getName().compareTo(c2.getName()));
   }
 
   private void printEnvLine(VariableLine line) {

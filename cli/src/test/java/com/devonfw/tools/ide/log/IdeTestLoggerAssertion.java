@@ -69,56 +69,71 @@ public class IdeTestLoggerAssertion {
   }
 
   /**
-   * @param exprectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} in order.
+   * @param expectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} in order.
    */
-  public void hasEntries(IdeLogEntry... exprectedEntries) {
+  public void hasEntries(IdeLogEntry... expectedEntries) {
 
-    hasEntries(false, exprectedEntries);
+    hasEntries(false, expectedEntries);
   }
 
   /**
-   * @param exprectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} to be logged in order without any other log statement in
+   * @param expectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} to be logged in order without any other log statement in
    * between them.
    */
-  public void hasEntriesWithNothingElseInBetween(IdeLogEntry... exprectedEntries) {
+  public void hasEntriesWithNothingElseInBetween(IdeLogEntry... expectedEntries) {
 
-    hasEntries(true, exprectedEntries);
+    hasEntries(true, expectedEntries);
   }
 
-  private void hasEntries(boolean nothingElseInBetween, IdeLogEntry... exprectedEntries) {
+  private void hasEntries(boolean nothingElseInBetween, IdeLogEntry... expectedEntries) {
 
-    assert (exprectedEntries.length > 0);
+    assert (expectedEntries.length > 0);
     int i = 0;
-    for (IdeLogEntry entry : exprectedEntries) {
-      if (entry.equals(exprectedEntries[i])) {
+    int max = 0;
+    for (IdeLogEntry entry : this.entries) {
+      if (expectedEntries[i].matches(entry)) {
         i++;
       } else {
         if (nothingElseInBetween) {
           i = 0;
-        } else if (entry.equals(exprectedEntries[i])) {
+        } else if (expectedEntries[0].matches(entry)) {
           i = 1;
         }
       }
-      if (i == exprectedEntries.length) {
+      if (i == expectedEntries.length) {
         return;
+      }
+      if (i > max) {
+        max = i;
       }
     }
     StringBuilder error = new StringBuilder(4096);
-    error.append("Could not find expected log entries:\n");
-    for (IdeLogEntry entry : exprectedEntries) {
-      error.append(entry.level());
-      error.append(":");
-      error.append(entry.message());
-      error.append('\n');
+    if (max > 0) {
+      error.append("Found expected log entries:\n");
+      for (i = 0; i < max; i++) {
+        appendEntry(error, expectedEntries[i]);
+      }
     }
+    error.append("\nThe first entry that was not matching from a block of ");
+    error.append(expectedEntries.length);
+    error.append(" expected log-entries ");
+    if (nothingElseInBetween) {
+      error.append("with nothing else logged in between ");
+    }
+    error.append("was:\n");
+    appendEntry(error, expectedEntries[max]);
     error.append("\nIn the logs of this test:\n");
     for (IdeLogEntry entry : this.entries) {
-      error.append(entry.level());
-      error.append(":");
-      error.append(entry.message());
-      error.append('\n');
+      appendEntry(error, entry);
     }
     Assertions.fail(error.toString());
+  }
+
+  private static void appendEntry(StringBuilder sb, IdeLogEntry entry) {
+    sb.append(entry.level());
+    sb.append(":");
+    sb.append(entry.message());
+    sb.append('\n');
   }
 
   private void fulfillsPredicate(Predicate<IdeLogEntry> predicate, PredicateMode mode, String errorMessage) {
@@ -138,7 +153,9 @@ public class IdeTestLoggerAssertion {
         }
       }
     }
-    Assertions.fail(errorMessage); // no log entry matched by predicate
+    if (mode == PredicateMode.MATCH_ONE) {
+      Assertions.fail(errorMessage); // no log entry matched by predicate
+    }
   }
 
 }
