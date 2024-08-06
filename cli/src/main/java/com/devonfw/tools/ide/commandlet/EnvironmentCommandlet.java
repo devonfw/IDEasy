@@ -53,11 +53,13 @@ public final class EnvironmentCommandlet extends Commandlet {
   @Override
   public void run() {
 
+    boolean winCmd = false;
     WindowsPathSyntax pathSyntax = null;
     if (this.context.getSystemInfo().isWindows()) {
       if (this.bash.isTrue()) {
         pathSyntax = WindowsPathSyntax.MSYS;
       } else {
+        winCmd = true;
         pathSyntax = WindowsPathSyntax.WINDOWS;
       }
     }
@@ -82,7 +84,12 @@ public final class EnvironmentCommandlet extends Commandlet {
     } else {
       sortVariables(variables);
       for (VariableLine line : variables) {
-        printEnvLine(line);
+        if (winCmd) {
+          // MS-Dos (aka CMD) has no concept of exported variables
+          this.context.info(line.getName() + "=" + line.getValue() + "");
+        } else {
+          printEnvLine(line);
+        }
       }
     }
   }
