@@ -576,7 +576,7 @@ public class FileAccessImpl implements FileAccess {
   /**
    * @param path the {@link Path} to start the recursive search from.
    * @return the deepest subdir {@code s} of the passed path such that all directories between {@code s} and the passed path (including {@code s}) are the sole
-   * item in their respective directory and {@code s} is not named "bin".
+   *     item in their respective directory and {@code s} is not named "bin".
    */
   private Path getProperInstallationSubDirOf(Path path, Path archiveFile) {
 

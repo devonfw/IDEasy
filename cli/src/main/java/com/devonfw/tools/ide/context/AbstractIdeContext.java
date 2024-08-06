@@ -140,8 +140,8 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will be
-   * used.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
+   *     be used.
    */
   public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository) {
 
@@ -899,9 +899,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
-   * {@link Commandlet#run() run}.
+   *     {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
-   * {@link Commandlet} did not match and we have to try a different candidate).
+   *     {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -971,11 +971,11 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
-   * {@link CliArguments#copy() copy} as needed.
+   *     {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
-   * and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   *     and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   public boolean apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
