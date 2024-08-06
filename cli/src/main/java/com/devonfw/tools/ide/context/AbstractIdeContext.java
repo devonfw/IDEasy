@@ -918,7 +918,10 @@ public abstract class AbstractIdeContext implements IdeContext {
           debug(getMessageIdeHomeFound());
         }
       }
-      getGitContext().fetchIfNeeded(getSettingsPath());
+      if (getGitContext().isRepositoryUpdateAvailable(getSettingsPath()))
+        info("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+      else
+        getGitContext().fetchIfNeeded(getSettingsPath());
       cmd.run();
     } else {
       trace("Commandlet did not match");

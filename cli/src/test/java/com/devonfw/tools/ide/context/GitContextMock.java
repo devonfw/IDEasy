@@ -40,6 +40,11 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
+  public void fetch(Path targetRepository, String remote, String branch) {
+
+  }
+
+  @Override
   public void reset(Path targetRepository, String branchName, String remoteName) {
 
   }
@@ -66,10 +71,8 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public boolean isRepositoryUpdateAvailable(Path targetRepository, String remoteName, String branch) {
+  public boolean isRepositoryUpdateAvailable(Path targetRepository) {
 
     return false;
   }
-
-
 }

@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.context;
 import java.nio.file.Path;
 
 import com.devonfw.tools.ide.cli.CliOfflineException;
-import java.io.IOException;
 
 /**
  * Interface for git commands with input and output of information for the user.
@@ -29,7 +28,7 @@ public interface GitContext {
 
   /**
    * Checks if a git fetch is needed and performs it if required.
-   *
+   * <p>
    * This method checks the last modified time of the `FETCH_HEAD` file in the `.git`
    * directory to determine if a fetch is needed based on a predefined threshold.
    * If updates are available in the remote repository, it logs an information message
@@ -42,7 +41,7 @@ public interface GitContext {
 
   /**
    * Checks if a git fetch is needed and performs it if required.
-   *
+   * <p>
    * This method checks the last modified time of the `FETCH_HEAD` file in the `.git`
    * directory to determine if a fetch is needed based on a predefined threshold.
    * If updates are available in the remote repository, it logs an information message
@@ -61,12 +60,9 @@ public interface GitContext {
    *
    * @param targetRepository the {@link Path} to the target folder where the git repository is located.
    *        This should be the folder containing the ".git" subfolder.
-   * @param remoteName the name of the remote repository, e.g., "origin". If {@code null} or empty, the default remote
-   *        name "origin" will be used.
-   * @param branch the name of the branch to check for updates.
    * @return {@code true} if updates are available, {@code false} otherwise.
    */
-  boolean isRepositoryUpdateAvailable(Path targetRepository, String remoteName, String branch);
+  boolean isRepositoryUpdateAvailable(Path targetRepository);
 
   /**
    * Attempts a git pull and reset if required.
@@ -168,6 +164,17 @@ public interface GitContext {
 
     reset(targetRepository, branch, null);
   }
+
+  /**
+   * Runs a git fetch.
+   *
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
+   * will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @param remote the name of the remote repository, e.g., "origin". If {@code null} or empty, the default remote
+   * name "origin" will be used.
+   * @param branch the name of the branch to check for updates.
+   */
+  void fetch(Path targetRepository, String remote, String branch);
 
   /**
    * Runs a git reset reverting all local changes to the git repository.

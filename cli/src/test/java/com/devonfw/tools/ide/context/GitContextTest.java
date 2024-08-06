@@ -232,7 +232,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     GitContext gitContext = new GitContextImpl(context);
 
     // act
-    boolean result = gitContext.isRepositoryUpdateAvailable(tempDir, "origin", "test_branch");
+    boolean result = gitContext.isRepositoryUpdateAvailable(tempDir);
 
     // assert
     assertThat(result).isFalse(); // No updates should be available

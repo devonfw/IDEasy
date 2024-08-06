@@ -87,8 +87,8 @@ public class GitContextImpl implements GitContext {
     String[] remoteAndBranch = remoteAndBranchOpt.get();
     String remoteName = remoteAndBranch[0];
     String branch = remoteAndBranch[1];
-    fetchIfNeeded(remoteName, branch, targetRepository);
 
+    fetchIfNeeded(remoteName, branch, targetRepository);
   }
 
   @Override
@@ -107,7 +107,9 @@ public class GitContextImpl implements GitContext {
         long fileModifiedTime = Files.getLastModifiedTime(fetchHeadPath).toMillis();
         // Check if the file modification time is older than the delta threshold
         if ((currentTime - fileModifiedTime > GIT_FETCH_CACHE_DELAY.toMillis())) {
-          if (isRepositoryUpdateAvailable(targetRepository, remoteName, branch)) {
+          fetch(targetRepository, remoteName, branch);
+          boolean isUpdateAvailable = isRepositoryUpdateAvailable(targetRepository);
+          if (isUpdateAvailable) {
             this.context.info("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
           }
           try {
@@ -123,11 +125,7 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public boolean isRepositoryUpdateAvailable(Path targetRepository, String remoteName, String branch) {
-
-    if ((remoteName == null) || remoteName.isEmpty()) {
-      remoteName = DEFAULT_REMOTE;
-    }
+  public boolean isRepositoryUpdateAvailable(Path targetRepository) {
 
     this.processContext.directory(targetRepository);
     ProcessResult result;
@@ -148,28 +146,8 @@ public class GitContextImpl implements GitContext {
       return false;
     }
     String remote_commit_code = result.getOut().stream().findFirst().orElse("").trim();
-
-    // compare commit codes
-    if (local_commit_code.equals(remote_commit_code)) {
-      // do a git fetch and look if there are really no changes
-      result = this.processContext.addArg("fetch").addArg(remoteName).addArg(branch).run(PROCESS_MODE_FOR_FETCH);
-
-      if (!result.isSuccessful()) {
-        this.context.warning("Git failed to fetch updates from remote '{}'.", remoteName);
-        return false;
-      }
-
-      // compare commit codes
-      result = this.processContext.addArg("rev-parse").addArg("@{u}").run(PROCESS_MODE_FOR_FETCH);
-
-      String remoteCommitCodeAfterFetching = result.getOut().stream().findFirst().orElse("").trim();
-
-      return !local_commit_code.equals(remoteCommitCodeAfterFetching);
-    } else {
-      return true;
-    }
+    return !local_commit_code.equals(remote_commit_code);
   }
-
 
   @Override
   public void pullOrCloneAndResetIfNeeded(String repoUrl, Path targetRepository, String branch, String remoteName) {
@@ -288,6 +266,19 @@ public class GitContextImpl implements GitContext {
       this.context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"), remoteAndBranchName.get("branch"),
           targetRepository);
       handleErrors(targetRepository, result);
+    }
+  }
+
+  @Override
+  public void fetch(Path targetRepository, String remote, String branch) {
+
+    this.processContext.directory(targetRepository);
+    ProcessResult result;
+
+    result = this.processContext.addArg("fetch").addArg(remote).addArg(branch).run(PROCESS_MODE_FOR_FETCH);
+
+    if (!result.isSuccessful()) {
+      this.context.warning("Git fetch for '{}/{} failed.'.", remote, branch);
     }
   }
 
