@@ -623,10 +623,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     String vLower = version.toLowerCase(Locale.ROOT);
     if (vLower.contains("alpha") || vLower.contains("beta") || vLower.contains("dev") || vLower.contains("snapshot")
         || vLower.contains("preview") || vLower.contains("test") || vLower.contains("tech-preview") //
-        || vLower.contains("-pre") || vLower.startsWith("ce-")
+        || vLower.contains("-pre") || vLower.startsWith("ce-") || vLower.contains("-next") || vLower.contains("-rc")
         // vscode nonsense
-        || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/")
-        || vLower.contains("-insiders")) {
+        || vLower.startsWith("bad") || vLower.contains("vsda-") || vLower.contains("translation/") || vLower.contains(
+        "-insiders")) {
       return null;
     }
     return version;
@@ -643,20 +643,22 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @param version the version to add (e.g. "1.0").
    * @param versions the {@link Collection} with the versions to collect.
+   * @return {@code true} if the version has been added to the collection.
    */
-  protected final void addVersion(String version, Collection<String> versions) {
+  protected final boolean addVersion(String version, Collection<String> versions) {
 
     String mappedVersion = mapVersion(version);
     if ((mappedVersion == null) || mappedVersion.isBlank()) {
       logger.debug("Filtered version {}", version);
-      return;
-    } else if (!mappedVersion.equals(version)) {
+      return false;
+    } else if (!version.equals(mappedVersion)) {
       logger.debug("Mapped version {} to {}", version, mappedVersion);
     }
     boolean added = versions.add(mappedVersion);
     if (!added) {
-      logger.warn("Duplicate version {}", version);
+      logger.warn("Duplicate version {}", mappedVersion);
     }
+    return added;
   }
 
   /**

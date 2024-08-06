@@ -7,7 +7,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -128,7 +127,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(proxy).isEqualTo(Proxy.NO_PROXY);
-    assertLogMessage(context, IdeLogLevel.WARNING, PROXY_FORMAT_WARNING_MESSAGE);
+    assertThat(context).logAtWarning().hasMessage(PROXY_FORMAT_WARNING_MESSAGE);
   }
 
   /**
@@ -147,7 +146,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(proxy).isEqualTo(Proxy.NO_PROXY);
-    assertLogMessage(context, IdeLogLevel.WARNING, PROXY_FORMAT_WARNING_MESSAGE);
+    assertThat(context).logAtWarning().hasMessage(PROXY_FORMAT_WARNING_MESSAGE);
   }
 
   /**
@@ -166,7 +165,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(proxy).isEqualTo(Proxy.NO_PROXY);
-    assertLogMessage(context, IdeLogLevel.WARNING, PROXY_FORMAT_WARNING_MESSAGE);
+    assertThat(context).logAtWarning().hasMessage(PROXY_FORMAT_WARNING_MESSAGE);
   }
 
 }

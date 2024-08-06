@@ -165,7 +165,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
-        if (FOLDER_WORKSPACES.equals(name1)) {
+        if (FOLDER_WORKSPACES.equals(name1) && !name2.isEmpty()) {
           workspace = name2;
         }
         break;
@@ -1068,7 +1068,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
     // no bash found
-    throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
+    return null;
   }
 
   @Override

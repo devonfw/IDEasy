@@ -1,0 +1,36 @@
+name: Check for Updates
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  # Checks if new commits since 24 hours of the last call of this workflow were found and adjusts the GITHUB_OUTPUT accordingly
+  verify_commit:
+    runs-on: ubuntu-latest
+    outputs:
+      RUN_BUILD: ${{ steps.verify_commit.outputs.RUN_BUILD }}
+    steps:
+      - uses: actions/checkout@v3
+      - id: verify_commit
+        run: |
+          if git log --since='24 hours ago' --oneline | grep '.'; then
+            echo "RUN_BUILD=true" >> $GITHUB_OUTPUT
+          else
+            echo "RUN_BUILD=false" >> $GITHUB_OUTPUT
+          fi
+
+  # Starts nightly_build workflow when new commits were found
+  trigger_build:
+    runs-on: ubuntu-latest
+    needs: verify_commit
+    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
+    steps:
+      - name: Trigger Nightly Build Workflow
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/nightly-build.yml/dispatches \
+            -d '{"ref":"main"}'

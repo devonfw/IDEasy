@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -30,7 +29,7 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(IdeVariables.DOCKER_EDITION.get(context)).isEqualTo("docker");
     EnvironmentVariables variables = context.getVariables();
     assertThat(variables.get("FOO")).isEqualTo("foo-bar-some-${UNDEFINED}");
-    assertLogMessage(context, IdeLogLevel.WARNING, "Undefined variable ${UNDEFINED} in 'FOO' at 'SOME=some-${UNDEFINED}'");
+    assertThat(context).logAtWarning().hasMessage("Undefined variable ${UNDEFINED} in 'FOO' at 'SOME=some-${UNDEFINED}'");
     assertThat(context.getIdeHome().resolve("readme")).hasContent("this is the IDE_HOME directory");
     assertThat(context.getIdeRoot().resolve("readme")).hasContent("this is the IDE_ROOT directory");
     assertThat(context.getUserHome().resolve("readme")).hasContent("this is the users HOME directory");
@@ -68,6 +67,66 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(v5.getType()).isSameAs(EnvironmentVariablesType.SYSTEM);
     assertThat(variables.getByType(EnvironmentVariablesType.SYSTEM)).isSameAs(v5);
     assertThat(v5.getParent()).isNull();
+  }
+
+  /**
+   * Tests if the user is starting IDEasy from the "workspaces" directory, IDEasy should fall back to the "main" workspace.
+   * <p>
+   * See: <a href="https://github.com/devonfw/IDEasy/issues/466">#466</a>
+   */
+  @Test
+  public void testWorkspacePathFallsBackToMainWorkspace() {
+    // arrange
+    String path = "project/workspaces";
+    // act
+    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
+    Path workspacePath = context.getWorkspacePath();
+    String workspaceName = context.getWorkspaceName();
+    // assert
+    assertThat(IdeVariables.WORKSPACE_PATH.get(context)).isEqualTo(workspacePath);
+    assertThat(IdeVariables.WORKSPACE.get(context)).isEqualTo(workspaceName);
+    assertThat(workspacePath).isEqualTo(TEST_PROJECTS.resolve(PROJECT_BASIC).resolve(path).resolve("main").toAbsolutePath());
+    assertThat(workspaceName).isEqualTo("main");
+  }
+
+  /**
+   * Tests if the user is starting IDEasy from the "project" directory, IDEasy should fall back to the "main" workspace.
+   * <p>
+   * See: <a href="https://github.com/devonfw/IDEasy/issues/466">#466</a>
+   */
+  @Test
+  public void testProjectPathFallsBackToMainWorkspace() {
+    // arrange
+    String path = "project";
+    // act
+    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
+    Path workspacePath = context.getWorkspacePath();
+    String workspaceName = context.getWorkspaceName();
+    // assert
+    assertThat(IdeVariables.WORKSPACE_PATH.get(context)).isEqualTo(workspacePath);
+    assertThat(IdeVariables.WORKSPACE.get(context)).isEqualTo(workspaceName);
+    assertThat(workspacePath).isEqualTo(TEST_PROJECTS.resolve(PROJECT_BASIC).resolve(path).resolve("workspaces").resolve("main").toAbsolutePath());
+    assertThat(workspaceName).isEqualTo("main");
+  }
+
+  /**
+   * Tests if the user is starting IDEasy within a workspace directory, IDEasy should use this directory as the current workspace.
+   * <p>
+   * See: <a href="https://github.com/devonfw/IDEasy/issues/466">#466</a>
+   */
+  @Test
+  public void testCurrentWorkspacePathIsUsed() {
+    // arrange
+    String path = "project/workspaces/foo-test";
+    // act
+    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
+    Path workspacePath = context.getWorkspacePath();
+    String workspaceName = context.getWorkspaceName();
+    // assert
+    assertThat(IdeVariables.WORKSPACE_PATH.get(context)).isEqualTo(workspacePath);
+    assertThat(IdeVariables.WORKSPACE.get(context)).isEqualTo(workspaceName);
+    assertThat(workspacePath).isEqualTo(TEST_PROJECTS.resolve(PROJECT_BASIC).resolve(path).toAbsolutePath());
+    assertThat(workspaceName).isEqualTo("foo-test");
   }
 
 }

@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -59,12 +60,26 @@ public final class EnvironmentCommandlet extends Commandlet {
     }
     ((AbstractIdeContext) this.context).setPathSyntax(pathSyntax);
     Collection<VariableLine> variables = this.context.getVariables().collectVariables();
-    for (VariableLine line : variables) {
-      String lineValue = line.getValue();
-      lineValue = "\"" + lineValue + "\"";
-      line = line.withValue(lineValue);
-      this.context.info(line.toString());
+    if (this.context.debug().isEnabled()) {
+      for (String source : variables.stream().map(VariableLine::getSource).collect(Collectors.toSet())) {
+        this.context.debug("from {}:", source);
+        for (VariableLine line : variables) {
+          if (line.getSource().equals(source)) {
+            printEnvLine(line);
+          }
+        }
+      }
+    } else {
+      for (VariableLine line : variables) {
+        printEnvLine(line);
+      }
     }
   }
 
+  private void printEnvLine(VariableLine line) {
+    String lineValue = line.getValue();
+    lineValue = "\"" + lineValue + "\"";
+    line = line.withValue(lineValue);
+    this.context.info(line.toString());
+  }
 }

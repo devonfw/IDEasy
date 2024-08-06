@@ -1,27 +1,36 @@
 name: Nightly Build
 on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 2 * * *'
+  workflow_dispatch
 
 jobs:
-  verify_commit:
+  # Builds documentation pdf file in cli/target/package and uploads artifact to docs
+  build-documentation:
+    name: Build documentation
     runs-on: ubuntu-latest
-    name: Verify latest commit
-    outputs:
-      RUN_BUILD: ${{ steps.verify_commit.outputs.RUN_BUILD }}
     steps:
-      - uses: actions/checkout@v3
-      - id: verify_commit
-        name: Verify latest commit is less than 24 hours
-        if: ${{ (github.event_name == 'schedule') || (github.event_name == 'workflow_dispatch') }}
-        run: echo '::set-output name=RUN_BUILD::'$(test -n "$(git log --format=%H --since='24 hours ago')" && echo 'true' || echo 'false')
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: '17'
+      - name: Make documentation available
+        run: |
+          cd documentation
+          mvn -B -ntp -Dstyle.color=always -DskipTests=true package
+      - name: Upload documentation
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs
+          path: documentation/target/generated-docs/*.pdf
 
+  # Downloads documentation docs artifact, builds all native images, archives native image for each os with documentation pdf file and uploads artifacts to f.e. natives-windows-latest
   build-natives:
     name: Build native images
+    needs: build-documentation
     runs-on: ${{ matrix.os }}
-    needs: verify_commit
-    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
     strategy:
       matrix:
         os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
@@ -36,20 +45,26 @@ jobs:
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
-      - name: Build native images with nativ maven plugin and extract in tar.gz
+      - name: Download documentation
+        uses: actions/download-artifact@v4
+        with:
+          name: docs
+          path: ./cli/target/package
+      - name: Build native image
         shell: bash
         run: |
           cd cli
-          mvn -B -ntp -Pnative -P!include-docs -DskipTests=true package
-      - uses: actions/upload-artifact@v3
+          mvn -B -ntp -Dideasy.assembly.id=${{ matrix.os }} -Pnative -DskipTests=true package
+      - name: Upload native image
+        uses: actions/upload-artifact@v4
         with:
-          name: natives
+          name: natives-${{ matrix.os }}
           path: cli/target/*.tar.gz
 
-  build:
+  # Downloads all native image artifacts to cli/target and builds the project for deployment to OSSRH Nexus
+  deploy:
     name: Build Project and Deploy
-    needs: [ build-natives, verify_commit ]
-    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'true' }}
+    needs: [ build-documentation, build-natives ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -60,37 +75,16 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '17'
-      - uses: actions/download-artifact@v3
-      - name: Make natives available and build project
-        run: |
+      - name: Download natives and build project
+        uses: actions/download-artifact@v4
+        with:
+          pattern: natives-*
+          path: ./cli/target/
+          merge-multiple: true
+      - run: |
           mvn -B -ntp -Dstyle.color=always install
-          mv ./natives/* ./cli/target/
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -P deploy deploy
-
-  check_status:
-    runs-on: ubuntu-latest
-    needs: verify_commit
-    if: ${{ needs.verify_commit.outputs.RUN_BUILD == 'false' }}
-    steps:
-      - name: Check last workflow status
-        id: check_status
-        run: |
-          workflow_filename="nightly-build.yml"
-          last_workflow=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/workflows/$workflow_filename/runs?per_page=1" | jq -r '.workflow_runs[0]')
-          conclusion=$(echo $last_workflow | jq -r '.conclusion')
-          echo "conclusion=$conclusion" >> $GITHUB_ENV
-
-      - name: Print and handle the status
-        run: |
-          echo "The status of the last workflow run is: ${{ env.conclusion }}"
-          if [ "${{ env.conclusion }}" != "success" ]; then
-            echo "The last workflow did not succeed. Failing this workflow."
-            exit 1
-          else
-            echo "The last workflow succeeded. This workflow will succeed."
-          fi
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dmaven.install.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -Pdeploy deploy
