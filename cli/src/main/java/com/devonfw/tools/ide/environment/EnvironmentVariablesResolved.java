@@ -49,14 +49,14 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
   }
 
   @Override
-  protected void collectVariables(Map<String, String> variables) {
+  protected void collectVariables(Map<String, VariableLine> variables, boolean onlyExported, AbstractEnvironmentVariables resolver) {
 
     for (VariableDefinition<?> var : IdeVariables.VARIABLES) {
       if (var.isExport() || var.isForceDefaultValue()) {
-        variables.put(var.getName(), "defaults");
+        variables.computeIfAbsent(var.getName(), k -> createVariableLine(k, onlyExported, resolver));
       }
     }
-    super.collectVariables(variables);
+    super.collectVariables(variables, onlyExported, resolver);
   }
 
   @Override

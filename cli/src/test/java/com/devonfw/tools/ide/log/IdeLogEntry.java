@@ -6,7 +6,25 @@ package com.devonfw.tools.ide.log;
  * @param level the {@link IdeLogLevel}.
  * @param message the message that has been logged.
  */
-public record IdeLogEntry(IdeLogLevel level, String message) {
+public record IdeLogEntry(IdeLogLevel level, String message, boolean contains) {
+
+  public IdeLogEntry(IdeLogLevel level, String message) {
+    this(level, message, false);
+  }
+
+  public boolean matches(IdeLogEntry entry) {
+
+    if (this.level != entry.level) {
+      return false;
+    } else if (this.contains) {
+      if (!entry.message.contains(this.message)) {
+        return false;
+      }
+    } else if (!entry.message.equals(this.message)) {
+      return false;
+    }
+    return true;
+  }
 
   public static IdeLogEntry ofError(String message) {
 
@@ -42,4 +60,5 @@ public record IdeLogEntry(IdeLogLevel level, String message) {
 
     return new IdeLogEntry(IdeLogLevel.TRACE, message);
   }
+
 }

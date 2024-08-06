@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.environment;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    */
   protected final IdeContext context;
 
-  private String source;
+  private VariableSource source;
 
   /**
    * The constructor.
@@ -74,14 +73,10 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   @Override
-  public String getSource() {
+  public VariableSource getSource() {
 
     if (this.source == null) {
-      this.source = getType().toString();
-      Path propertiesPath = getPropertiesFilePath();
-      if (propertiesPath != null) {
-        this.source = this.source + "@" + propertiesPath;
-      }
+      this.source = new VariableSource(getType(), getPropertiesFilePath());
     }
     return this.source;
   }
@@ -101,42 +96,44 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   @Override
-  public final Collection<VariableLine> collectVariables() {
+  public final List<VariableLine> collectVariables() {
 
     return collectVariables(false);
   }
 
   @Override
-  public final Collection<VariableLine> collectExportedVariables() {
+  public final List<VariableLine> collectExportedVariables() {
 
     return collectVariables(true);
   }
 
-  private final Collection<VariableLine> collectVariables(boolean onlyExported) {
+  private final List<VariableLine> collectVariables(boolean onlyExported) {
 
-    Map<String, String> variableNames = new HashMap<>();
-    collectVariables(variableNames);
-    List<VariableLine> variables = new ArrayList<>(variableNames.size());
-    for (String name : variableNames.keySet()) {
-      boolean export = isExported(name);
-      if (!onlyExported || export) {
-        String value = get(name, false);
-        if (value != null) {
-          variables.add(VariableLine.of(export, name, value, variableNames.get(name)));
-        }
-      }
-    }
-    return variables;
+    Map<String, VariableLine> variables = new HashMap<>();
+    collectVariables(variables, onlyExported, this);
+    return new ArrayList<>(variables.values());
   }
 
   /**
    * @param variables the {@link Map} where to add the names of the variables defined here as keys, and their corresponding source as value.
    */
-  protected void collectVariables(Map<String, String> variables) {
+  protected void collectVariables(Map<String, VariableLine> variables, boolean onlyExported, AbstractEnvironmentVariables resolver) {
 
     if (this.parent != null) {
-      this.parent.collectVariables(variables);
+      this.parent.collectVariables(variables, onlyExported, resolver);
     }
+  }
+
+  protected VariableLine createVariableLine(String name, boolean onlyExported, AbstractEnvironmentVariables resolver) {
+
+    boolean export = resolver.isExported(name);
+    if (!onlyExported || export) {
+      String value = resolver.get(name, false);
+      if (value != null) {
+        return VariableLine.of(export, name, value, getSource());
+      }
+    }
+    return null;
   }
 
   /**
@@ -326,7 +323,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   @Override
   public String toString() {
 
-    return getSource();
+    return getSource().toString();
   }
 
   /**

@@ -137,9 +137,12 @@ public class SystemPath {
       return null;
     }
     if (path.startsWith(ideRoot)) {
-      int i = ideRoot.getNameCount();
-      if (path.getNameCount() > i) {
-        return path.getName(i).toString();
+      Path relativized = ideRoot.relativize(path);
+      int count = relativized.getNameCount();
+      if (count >= 3) {
+        if (relativized.getName(1).toString().equals("software")) {
+          return relativized.getName(2).toString();
+        }
       }
     }
     return null;

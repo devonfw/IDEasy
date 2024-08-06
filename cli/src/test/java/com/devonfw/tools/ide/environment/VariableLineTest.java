@@ -18,7 +18,7 @@ public class VariableLineTest extends Assertions {
 
   private VariableLine line(String line) {
 
-    return VariableLine.of(line, LOGGER, "junit-source");
+    return VariableLine.of(line, LOGGER, new VariableSource(EnvironmentVariablesType.RESOLVED, null));
   }
 
   /**

@@ -373,6 +373,25 @@ public interface IdeContext extends IdeLogger {
   Path getSettingsPath();
 
   /**
+   * @return the {@link Path} to the templates folder inside the {@link #getSettingsPath() settings}. The relative directory structure in this templates folder
+   * is to be applied to {@link #getIdeHome() IDE_HOME} when the project is set up.
+   */
+  default Path getSettingsTemplatePath() {
+    Path settingsFolder = getSettingsPath();
+    Path templatesFolder = settingsFolder.resolve(IdeContext.FOLDER_TEMPLATES);
+    if (!Files.isDirectory(templatesFolder)) {
+      Path templatesFolderLegacy = settingsFolder.resolve(IdeContext.FOLDER_LEGACY_TEMPLATES);
+      if (Files.isDirectory(templatesFolderLegacy)) {
+        templatesFolder = templatesFolderLegacy;
+      } else {
+        warning("No templates found in settings git repo neither in {} nor in {} - configuration broken", templatesFolder, templatesFolderLegacy);
+        return null;
+      }
+    }
+    return templatesFolder;
+  }
+
+  /**
    * @return the {@link Path} to the {@code conf} folder with instance specific tool configurations and the
    * {@link EnvironmentVariablesType#CONF user specific project configuration}.
    */
@@ -439,13 +458,11 @@ public interface IdeContext extends IdeLogger {
     if (getIdeHome() == null) {
       return null;
     }
-    Path confFolder = getConfPath();
-    Path mvnSettingsFile = confFolder.resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
+    Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
+    Path mavenConfFolder = mvn.getMavenConfFolder(false);
+    Path mvnSettingsFile = mavenConfFolder.resolve(Mvn.SETTINGS_FILE);
     if (!Files.exists(mvnSettingsFile)) {
-      mvnSettingsFile = confFolder.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve(Mvn.SETTINGS_FILE);
-      if (!Files.exists(mvnSettingsFile)) {
-        return null;
-      }
+      return null;
     }
     String settingsPath;
     WindowsPathSyntax pathSyntax = getPathSyntax();
@@ -460,10 +477,18 @@ public interface IdeContext extends IdeLogger {
   /**
    * @return the String value for the variable M2_REPO, or null if called outside an IDEasy installation.
    */
-  default Path getMavenRepoEnvVariable() {
+  default Path getMavenRepository() {
 
     if (getIdeHome() != null) {
-      return getConfPath().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER).resolve("repository");
+      Path confPath = getConfPath();
+      Path m2Folder = confPath.resolve(Mvn.MVN_CONFIG_FOLDER);
+      if (!Files.isDirectory(m2Folder)) {
+        Path m2LegacyFolder = confPath.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
+        if (Files.isDirectory(m2LegacyFolder)) {
+          m2Folder = m2LegacyFolder;
+        }
+      }
+      return m2Folder.resolve("repository");
     }
     return null;
   }

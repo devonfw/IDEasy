@@ -45,7 +45,7 @@ public interface IdeVariables {
   VariableDefinitionString MAVEN_ARGS = new VariableDefinitionString("MAVEN_ARGS", null, c -> c.getMavenArgs(), false, true);
 
   /** {@link VariableDefinition} arguments for maven to set the m2 repo location. */
-  VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, c -> c.getMavenRepoEnvVariable(), false, true);
+  VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, c -> c.getMavenRepository(), false, true);
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
   VariableDefinitionString DOCKER_EDITION = new VariableDefinitionString("DOCKER_EDITION", null, c -> "rancher");

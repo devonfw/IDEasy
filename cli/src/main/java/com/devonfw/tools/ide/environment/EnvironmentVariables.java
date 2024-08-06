@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.environment;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -126,9 +127,9 @@ public interface EnvironmentVariables {
   Path getPropertiesFilePath();
 
   /**
-   * @return the source identifier describing this {@link EnvironmentVariables} for debugging.
+   * @return the {@link VariableSource} of this {@link EnvironmentVariables}.
    */
-  String getSource();
+  VariableSource getSource();
 
   /**
    * @return the parent {@link EnvironmentVariables} to inherit from or {@code null} if this is the {@link EnvironmentVariablesType#SYSTEM root}
@@ -180,13 +181,13 @@ public interface EnvironmentVariables {
   /**
    * @return the {@link Collection} of the {@link VariableLine}s defined by this {@link EnvironmentVariables} including inheritance.
    */
-  Collection<VariableLine> collectVariables();
+  List<VariableLine> collectVariables();
 
   /**
    * @return the {@link Collection} of the {@link VariableLine#isExport() exported} {@link VariableLine}s defined by this {@link EnvironmentVariables} including
    * inheritance.
    */
-  Collection<VariableLine> collectExportedVariables();
+  List<VariableLine> collectExportedVariables();
 
   /**
    * @param string the {@link String} that potentially contains variables in {@link VariableSyntax#CURLY} ("${«variable«}"). Those will be resolved by this
