@@ -14,7 +14,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
    * Test of {@link VersionGetCommandlet} run, when Installed Version is null.
    */
   @Test
-  public void testVersionGetCommandletRunThrowsCliException() {
+  public void testVersionGetCommandletNotInstalledRun() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
@@ -25,6 +25,23 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).logAtInfo().hasEntries("No installation of tool java was found.", "The configured version for tool java is 17*",
         "To install that version call the following command:", "ide install java");
+  }
+
+  @Test
+  public void testVersionGetCommandletNotInstalledRunInstalledFlag() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
+    versionGet.tool.setValueAsString("java", context);
+    versionGet.installed.setValue(true);
+    // act
+    versionGet.run();
+    // assert
+    assertThat(context).logAtInfo().hasMessage("No installation of tool java was found.");
+    assertThat(context).logAtInfo().hasMessage("The configured version for tool java is 17*");
+    assertThat(context).logAtInfo().hasMessage("To install that version call the following command:");
+    assertThat(context).logAtInfo().hasMessage("ide install java");
   }
 
   /**
