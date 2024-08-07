@@ -7,6 +7,7 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
  * {@link GithubUrlUpdater} for GCViewer.
  */
 public class GcViewerUrlUpdater extends GithubUrlUpdater {
+
   @Override
   protected String getTool() {
 

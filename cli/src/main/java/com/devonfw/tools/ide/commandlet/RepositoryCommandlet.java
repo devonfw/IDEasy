@@ -1,20 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.PathProperty;
-import com.devonfw.tools.ide.property.RepositoryProperty;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
-import static com.devonfw.tools.ide.commandlet.RepositoryConfig.loadProperties;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.property.RepositoryProperty;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
  * {@link Commandlet} to setup one or multiple GIT repositories for development.
@@ -46,7 +38,7 @@ public class RepositoryCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    Path repositoryFile = repository.getValue();
+    Path repositoryFile = this.repository.getValue();
 
     if (repositoryFile != null) {
       // Handle the case when a specific repository is provided
@@ -65,8 +57,7 @@ public class RepositoryCommandlet extends Commandlet {
         return;
       }
 
-      List <Path> propertiesFiles = this.context.getFileAccess().listChildren(repositories,
-          path -> path.getFileName().toString().endsWith(".properties"));
+      List<Path> propertiesFiles = this.context.getFileAccess().listChildren(repositories, path -> path.getFileName().toString().endsWith(".properties"));
 
       boolean forceMode = this.context.isForceMode();
       for (Path propertiesFile : propertiesFiles) {
@@ -78,7 +69,7 @@ public class RepositoryCommandlet extends Commandlet {
   private void doImportRepository(Path repositoryFile, boolean forceMode) {
 
     this.context.info("Importing repository from {} ...", repositoryFile.getFileName().toString());
-    RepositoryConfig repositoryConfig = loadProperties(repositoryFile);
+    RepositoryConfig repositoryConfig = RepositoryConfig.loadProperties(repositoryFile);
 
     if (!repositoryConfig.active()) {
       this.context.info("Repository is not active by default.");
@@ -93,8 +84,7 @@ public class RepositoryCommandlet extends Commandlet {
     String repository = repositoryConfig.path();
     String gitUrl = repositoryConfig.gitUrl();
     if (repository == null || "".equals(repository) || gitUrl == null || "".equals(gitUrl)) {
-      this.context.warning("Invalid repository configuration {} - both 'path' and 'git-url' have to be defined."
-          , repositoryFile.getFileName().toString());
+      this.context.warning("Invalid repository configuration {} - both 'path' and 'git-url' have to be defined.", repositoryFile.getFileName().toString());
       return;
     }
 
@@ -112,11 +102,10 @@ public class RepositoryCommandlet extends Commandlet {
     if (buildCmd != null && !buildCmd.isEmpty()) {
       String[] command = buildCmd.split("\\s+");
       ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
-      List<String> args = new ArrayList<>(command.length - 1);
+
       for (int i = 1; i < command.length; i++) {
-        args.add(command[i]);
+        commandlet.arguments.addValue(command[i]);
       }
-      commandlet.arguments.setValue(args);
       commandlet.run();
     } else {
       this.context.info("Build command not set. Skipping build for repository.");

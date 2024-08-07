@@ -1,15 +1,18 @@
 package com.devonfw.tools.ide.merge;
 
-import com.devonfw.tools.ide.context.IdeContext;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * {@link WorkspaceMerger} responsible for a single type of file.
  */
 public abstract class FileMerger extends AbstractWorkspaceMerger {
+
+  protected final boolean legacySupport;
 
   /**
    * The constructor.
@@ -19,6 +22,7 @@ public abstract class FileMerger extends AbstractWorkspaceMerger {
   public FileMerger(IdeContext context) {
 
     super(context);
+    this.legacySupport = IdeVariables.IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED.get(context).booleanValue();
   }
 
   /**

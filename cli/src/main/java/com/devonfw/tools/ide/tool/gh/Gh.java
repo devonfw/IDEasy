@@ -22,4 +22,9 @@ public class Gh extends LocalToolCommandlet {
     super(context, "gh", Set.of(Tag.CLOUD));
   }
 
+  @Override
+  public String getToolHelpArguments() {
+
+    return "help";
+  }
 }

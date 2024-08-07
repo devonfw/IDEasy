@@ -32,10 +32,11 @@ public class Npm extends LocalToolCommandlet {
     return super.doInstall(silent);
   }
 
+  @Override
   protected void postExtract(Path extractedDir) {
 
-    FileAccess fileAccess = context.getFileAccess();
-    if (context.getSystemInfo().isWindows()) {
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (this.context.getSystemInfo().isWindows()) {
       Path nodeHomePath = this.context.getSoftwarePath().resolve("node/");
       Path npmBinBath = nodeHomePath.resolve("node_modules/npm/bin/");
       String npm = "npm";
@@ -47,10 +48,16 @@ public class Npm extends LocalToolCommandlet {
       fileAccess.delete(nodeHomePath.resolve(npx));
       fileAccess.delete(nodeHomePath.resolve(npx + cmd));
 
-      fileAccess.copy(npmBinBath.resolve(npm), nodeHomePath.resolve(npm));
-      fileAccess.copy(npmBinBath.resolve(npm + cmd), nodeHomePath.resolve(npm + cmd));
-      fileAccess.copy(npmBinBath.resolve(npx), nodeHomePath.resolve(npx));
-      fileAccess.copy(npmBinBath.resolve(npx + cmd), nodeHomePath.resolve(npx + cmd));
+      fileAccess.copy(npmBinBath.resolve(npm), nodeHomePath);
+      fileAccess.copy(npmBinBath.resolve(npm + cmd), nodeHomePath);
+      fileAccess.copy(npmBinBath.resolve(npx), nodeHomePath);
+      fileAccess.copy(npmBinBath.resolve(npx + cmd), nodeHomePath);
     }
+  }
+
+  @Override
+  public String getToolHelpArguments() {
+
+    return "help";
   }
 }

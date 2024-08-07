@@ -1,15 +1,15 @@
 package com.devonfw.tools.ide.tool;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.util.Set;
+
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
-import org.junit.jupiter.api.Test;
-
-import java.util.Map;
-import java.util.Set;
-
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Test of {@link PluginBasedCommandlet}.
@@ -24,17 +24,17 @@ public class PluginBasedCommandletTest extends AbstractIdeContextTest {
     Set<Tag> tags = null;
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, tool, tags);
 
-    Map<String, PluginDescriptor> pluginsMap = pluginBasedCommandlet.getPluginsMap();
+    PluginMaps pluginsMap = pluginBasedCommandlet.getPluginsMap();
     assertThat(pluginsMap).isNotNull();
 
-    assertThat(pluginsMap.containsKey("checkstyle")).isTrue();
-    assertThat(pluginsMap.containsKey("anyedit")).isTrue();
+    assertThat(pluginsMap.getByName("checkstyle")).isNotNull();
+    assertThat(pluginsMap.getByName("anyedit")).isNotNull();
 
-    PluginDescriptor plugin1 = pluginsMap.get("checkstyle");
+    PluginDescriptor plugin1 = pluginsMap.getByName("checkstyle");
     assertNotNull(plugin1);
     assertThat(plugin1.getName()).isEqualTo("checkstyle");
 
-    PluginDescriptor plugin2 = pluginsMap.get("anyedit");
+    PluginDescriptor plugin2 = pluginsMap.getByName("anyedit");
     assertNotNull(plugin2);
     assertThat(plugin2.getName()).isEqualTo("anyedit");
 

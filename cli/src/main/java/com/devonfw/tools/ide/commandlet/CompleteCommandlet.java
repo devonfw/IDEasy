@@ -6,15 +6,15 @@ import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.StringListProperty;
+import com.devonfw.tools.ide.property.StringProperty;
 
 /**
  * {@link Commandlet} for auto-completion.
  */
 public final class CompleteCommandlet extends Commandlet {
 
-  /** {@link StringListProperty} with the current CLI arguments to complete. */
-  public final StringListProperty args;
+  /** {@link StringProperty} with the current CLI arguments to complete. */
+  public final StringProperty args;
 
   /**
    * The constructor.
@@ -25,7 +25,7 @@ public final class CompleteCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.args = add(new StringListProperty("", false, "args"));
+    this.args = add(new StringProperty("", false, true, "args"));
   }
 
   @Override
@@ -35,9 +35,15 @@ public final class CompleteCommandlet extends Commandlet {
   }
 
   @Override
-  public boolean isIdeHomeRequired() {
+  public boolean isIdeRootRequired() {
 
     return false;
+  }
+
+  @Override
+  public boolean isProcessableOutput() {
+
+    return true;
   }
 
   @Override
@@ -46,7 +52,8 @@ public final class CompleteCommandlet extends Commandlet {
     CliArguments arguments = CliArguments.ofCompletion(this.args.asArray());
     List<CompletionCandidate> candidates = ((AbstractIdeContext) this.context).complete(arguments, true);
     for (CompletionCandidate candidate : candidates) {
-      System.out.println(candidate.text()); // enforce output via System.out even if logging is disabled
+      System.out.print(candidate.text()); // enforce output via System.out even if logging is disabled
+      System.out.print('\n'); // do not use println to prevent Carriage-Return character in bash completion on Windows
     }
   }
 }

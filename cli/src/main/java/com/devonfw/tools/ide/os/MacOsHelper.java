@@ -1,15 +1,16 @@
 package com.devonfw.tools.ide.os;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogger;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
  * Internal helper class for MacOS workarounds.
@@ -73,6 +74,18 @@ public final class MacOsHelper {
       }
     }
     return rootDir;
+  }
+
+  /**
+   * Finds the root tool path of a tool in MacOS
+   *
+   * @param commandlet the {@link ToolCommandlet}
+   * @param context the {@link IdeContext}
+   * @return a {@link String}
+   */
+  public Path findRootToolPath(ToolCommandlet commandlet, IdeContext context) {
+    return context.getSoftwareRepositoryPath().resolve("default").resolve(commandlet.getName()).resolve(commandlet.getName())
+        .resolve(commandlet.getInstalledVersion().toString());
   }
 
   private Path findLinkDir(Path contentsDir, Path rootDir, String tool) {

@@ -1,15 +1,16 @@
 package com.devonfw.tools.ide.network;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
+import java.net.Proxy;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
+
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
-
-import java.net.Proxy;
 
 /**
  * Test of {@link ProxyContext} and {@link ProxyConfig}.
@@ -61,7 +62,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
   public void testWithMockedHttpVar() {
 
     // arrange
-    environment.set("HTTP_PROXY", HTTP_PROXY);
+    this.environment.set("HTTP_PROXY", HTTP_PROXY);
 
     // act
     IdeTestContext context = newContext(PROJECT_BASIC, PROJECT_PATH, false);
@@ -80,7 +81,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
   public void testWithMockedHttpVarLowercase() {
 
     // arrange
-    environment.set("http_proxy", HTTP_PROXY);
+    this.environment.set("http_proxy", HTTP_PROXY);
 
     // act
     IdeTestContext context = newContext(PROJECT_BASIC, PROJECT_PATH, false);
@@ -99,7 +100,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
   public void testWithMockedHttpsVar() {
 
     // arrange
-    environment.set("HTTPS_PROXY", HTTPS_PROXY);
+    this.environment.set("HTTPS_PROXY", HTTPS_PROXY);
 
     // act
     IdeTestContext context = newContext(PROJECT_BASIC, PROJECT_PATH, false);
@@ -118,7 +119,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
   public void testWithMockedHttpVarWrongFormat() {
 
     // arrange
-    environment.set("HTTP_PROXY", HTTP_PROXY_WRONG_FORMAT);
+    this.environment.set("HTTP_PROXY", HTTP_PROXY_WRONG_FORMAT);
 
     // act
     IdeTestContext context = newContext(PROJECT_BASIC, PROJECT_PATH, false);
@@ -126,7 +127,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(proxy).isEqualTo(Proxy.NO_PROXY);
-    assertLogMessage(context, IdeLogLevel.WARNING, PROXY_FORMAT_WARNING_MESSAGE);
+    assertThat(context).logAtWarning().hasMessage(PROXY_FORMAT_WARNING_MESSAGE);
   }
 
   /**
@@ -137,7 +138,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
   public void testWithMockedHttpVarWrongHost() {
 
     // arrange
-    environment.set("HTTP_PROXY", HTTP_PROXY_WRONG_HOST);
+    this.environment.set("HTTP_PROXY", HTTP_PROXY_WRONG_HOST);
 
     // act
     IdeTestContext context = newContext(PROJECT_BASIC, PROJECT_PATH, false);
@@ -145,7 +146,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(proxy).isEqualTo(Proxy.NO_PROXY);
-    assertLogMessage(context, IdeLogLevel.WARNING, PROXY_FORMAT_WARNING_MESSAGE);
+    assertThat(context).logAtWarning().hasMessage(PROXY_FORMAT_WARNING_MESSAGE);
   }
 
   /**
@@ -156,7 +157,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
   public void testWithMockedHttpVarWrongProtocol() {
 
     // arrange
-    environment.set("HTTP_PROXY", HTTP_PROXY_WRONG_PROTOCOL);
+    this.environment.set("HTTP_PROXY", HTTP_PROXY_WRONG_PROTOCOL);
 
     // act
     IdeTestContext context = newContext(PROJECT_BASIC, PROJECT_PATH, false);
@@ -164,7 +165,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(proxy).isEqualTo(Proxy.NO_PROXY);
-    assertLogMessage(context, IdeLogLevel.WARNING, PROXY_FORMAT_WARNING_MESSAGE);
+    assertThat(context).logAtWarning().hasMessage(PROXY_FORMAT_WARNING_MESSAGE);
   }
 
 }

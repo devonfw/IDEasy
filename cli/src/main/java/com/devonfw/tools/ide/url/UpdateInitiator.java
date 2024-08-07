@@ -12,15 +12,15 @@ import com.devonfw.tools.ide.url.model.UrlErrorReport;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
 
 /**
- * This is the main program to run the updater of {@code ide-urls} repository. It is run nightly via an automated
- * process.
+ * This is the main program to run the updater of {@code ide-urls} repository. It is run nightly via an automated process.
  */
 public class UpdateInitiator {
+
   private static final Logger logger = LoggerFactory.getLogger(UpdateInitiator.class.getName());
 
   /**
-   * @param args the command-line arguments. arg[0] points to the {@code ide-urls} repository. arg[1] defines a timeout
-   * for GitHub actions in Duration string format.
+   * @param args the command-line arguments. arg[0] points to the {@code ide-urls} repository. arg[1] defines a timeout for GitHub actions in Duration string
+   * format.
    */
   public static void main(String[] args) {
 

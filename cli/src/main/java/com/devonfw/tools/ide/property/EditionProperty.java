@@ -1,8 +1,8 @@
 package com.devonfw.tools.ide.property;
 
-import com.devonfw.tools.ide.context.IdeContext;
-
 import java.util.function.Consumer;
+
+import com.devonfw.tools.ide.context.IdeContext;
 
 public class EditionProperty extends Property<String> {
 
@@ -28,7 +28,7 @@ public class EditionProperty extends Property<String> {
    */
   public EditionProperty(String name, boolean required, String alias, Consumer<String> validator) {
 
-    super(name, required, alias, validator);
+    super(name, required, alias, false, validator);
   }
 
   @Override

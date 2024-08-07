@@ -30,4 +30,10 @@ public class Gradle extends LocalToolCommandlet {
     return super.install(silent);
   }
 
+  @Override
+  public String getToolHelpArguments() {
+
+    return "--help";
+  }
+
 }

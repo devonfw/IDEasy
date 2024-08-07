@@ -33,7 +33,7 @@ public class CommandletProperty extends Property<Commandlet> {
    */
   public CommandletProperty(String name, boolean required, String alias, Consumer<Commandlet> validator) {
 
-    super(name, required, alias, validator);
+    super(name, required, alias, false, validator);
   }
 
   @Override
@@ -49,8 +49,7 @@ public class CommandletProperty extends Property<Commandlet> {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
-      CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
       String cmdName = cmd.getName();

@@ -22,4 +22,9 @@ public class Java extends LocalToolCommandlet {
     super(context, "java", Set.of(Tag.JAVA, Tag.RUNTIME));
   }
 
+  @Override
+  public String getToolHelpArguments() {
+
+    return "--help";
+  }
 }

@@ -29,4 +29,10 @@ public class Terraform extends LocalToolCommandlet {
     super.postInstall();
     runTool(ProcessMode.DEFAULT, null, "-install-autocomplete");
   }
+
+  @Override
+  public String getToolHelpArguments() {
+
+    return "-help";
+  }
 }

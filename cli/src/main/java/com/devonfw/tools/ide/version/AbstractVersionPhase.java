@@ -6,8 +6,8 @@ package com.devonfw.tools.ide.version;
 public interface AbstractVersionPhase {
 
   /**
-   * @return {@code true} if this {@link VersionPhase} is a real development phase that says something about the quality
-   *         of the release, {@code false} otherwise.
+   * @return {@code true} if this {@link VersionPhase} is a real development phase that says something about the quality of the release, {@code false}
+   * otherwise.
    */
   boolean isDevelopmentPhase();
 

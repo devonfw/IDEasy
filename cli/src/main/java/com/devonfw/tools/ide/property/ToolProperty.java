@@ -21,7 +21,20 @@ public class ToolProperty extends Property<ToolCommandlet> {
    */
   public ToolProperty(String name, boolean required, String alias) {
 
-    this(name, required, alias, null);
+    this(name, required, alias, false, null);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param name the {@link #getName() property name}.
+   * @param required the {@link #isRequired() required flag}.
+   * @param multivalued the boolean flag about multiple arguments
+   * @param alias the {@link #getAlias() property alias}.
+   */
+  public ToolProperty(String name, boolean required, boolean multivalued, String alias) {
+
+    this(name, required, alias, multivalued, null);
   }
 
   /**
@@ -30,11 +43,12 @@ public class ToolProperty extends Property<ToolCommandlet> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
+   * @param multivalued the boolean flag about multiple arguments
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public ToolProperty(String name, boolean required, String alias, Consumer<ToolCommandlet> validator) {
+  public ToolProperty(String name, boolean required, String alias, boolean multivalued, Consumer<ToolCommandlet> validator) {
 
-    super(name, required, alias, validator);
+    super(name, required, alias, multivalued, validator);
   }
 
   @Override
@@ -56,8 +70,7 @@ public class ToolProperty extends Property<ToolCommandlet> {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
-      CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
       if (cmd instanceof ToolCommandlet) {

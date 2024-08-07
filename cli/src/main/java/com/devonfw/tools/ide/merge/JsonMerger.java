@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-
 import javax.json.Json;
 import javax.json.JsonArray;
 import javax.json.JsonArrayBuilder;
@@ -44,6 +43,7 @@ public class JsonMerger extends FileMerger {
   public void merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
 
     JsonStructure json = null;
+    Path template = setup;
     boolean updateFileExists = Files.exists(update);
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
@@ -60,9 +60,10 @@ public class JsonMerger extends FileMerger {
       } else {
         mergeJson = load(update);
       }
+      template = update;
     }
     Status status = new Status();
-    JsonStructure result = (JsonStructure) mergeAndResolve(json, mergeJson, variables, status, workspace.getFileName());
+    JsonStructure result = (JsonStructure) mergeAndResolve(json, mergeJson, variables, status, template.toString());
     if (status.updated) {
       save(result, workspace);
       this.context.debug("Saved created/updated file {}", workspace);
@@ -206,7 +207,7 @@ public class JsonMerger extends FileMerger {
     if (status.inverse) {
       resolvedString = variables.inverseResolve(string, src);
     } else {
-      resolvedString = variables.resolve(string, src);
+      resolvedString = variables.resolve(string, src, this.legacySupport);
     }
     if (!resolvedString.equals(string)) {
       status.updated = true;
@@ -226,7 +227,9 @@ public class JsonMerger extends FileMerger {
 
   private static class Status {
 
-    /** {@code true} for inverse merge, {@code false} otherwise (for regular forward merge). */
+    /**
+     * {@code true} for inverse merge, {@code false} otherwise (for regular forward merge).
+     */
     private final boolean inverse;
 
     private final boolean addNewProperties;
@@ -244,8 +247,7 @@ public class JsonMerger extends FileMerger {
     /**
      * The constructor.
      *
-     * @param addNewProperties - {@code true} to add new properties from workspace on reverse merge, {@code false}
-     *        otherwise.
+     * @param addNewProperties - {@code true} to add new properties from workspace on reverse merge, {@code false} otherwise.
      */
     public Status(boolean addNewProperties) {
 

@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.CommandletProperty;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
@@ -48,7 +49,7 @@ public final class HelpCommandlet extends Commandlet {
   }
 
   @Override
-  public boolean isIdeHomeRequired() {
+  public boolean isIdeRootRequired() {
 
     return false;
   }
@@ -68,7 +69,6 @@ public final class HelpCommandlet extends Commandlet {
     if (cmd == null) {
       this.context.info(bundle.get("usage") + " ide [option]* [[commandlet] [arg]*]");
       this.context.info("");
-      this.context.info(bundle.get("commandlets"));
       printCommandlets(bundle);
     } else {
       printCommandletHelp(bundle, cmd);
@@ -82,6 +82,10 @@ public final class HelpCommandlet extends Commandlet {
       collectOptions(options, cmd, bundle);
     }
     options.print();
+    if (cmd == null) {
+      this.context.info("");
+      this.context.info(bundle.getDetail(this.context.getCommandletManager().getCommandlet(HelpCommandlet.class)));
+    }
   }
 
   private void printCommandletHelp(NlsBundle bundle, Commandlet cmd) {
@@ -115,23 +119,35 @@ public final class HelpCommandlet extends Commandlet {
     }
     this.context.info(usage.toString());
     this.context.info(bundle.get(cmd));
+    this.context.info(bundle.getDetail(cmd));
     this.context.info("");
     this.context.info(bundle.get("values"));
     values.print();
+    cmd.printHelp(bundle);
   }
 
   private void printCommandlets(NlsBundle bundle) {
 
     Args commandlets = new Args();
+    Args toolcommandlets = new Args();
     for (Commandlet cmd : this.context.getCommandletManager().getCommandlets()) {
       String key = cmd.getName();
       String keyword = cmd.getKeyword();
       if ((keyword != null) && !keyword.equals(key)) {
         key = key + "(" + keyword + ")";
       }
-      commandlets.add(key, bundle.get(cmd));
+      if (cmd instanceof ToolCommandlet) {
+        toolcommandlets.add(key, bundle.get(cmd));
+      } else {
+        commandlets.add(key, bundle.get(cmd));
+      }
     }
+
+    this.context.info(bundle.get("commandlets"));
     commandlets.print(IdeLogLevel.INTERACTION);
+    this.context.info("");
+    this.context.info(bundle.get("toolcommandlets"));
+    toolcommandlets.print(IdeLogLevel.INTERACTION);
   }
 
   private void collectOptions(Args options, Commandlet cmd, NlsBundle bundle) {

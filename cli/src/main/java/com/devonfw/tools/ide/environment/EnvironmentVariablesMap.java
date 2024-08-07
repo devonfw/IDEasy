@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.environment;
 import java.util.Map;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 
 /**
  * Implementation of {@link EnvironmentVariables}.
@@ -21,8 +22,7 @@ abstract class EnvironmentVariablesMap extends AbstractEnvironmentVariables {
   }
 
   /**
-   * @return the {@link Map} with the underlying variables. Internal method do not call from outside and never
-   *         manipulate this {@link Map} externally.
+   * @return the {@link Map} with the underlying variables. Internal method do not call from outside and never manipulate this {@link Map} externally.
    */
   protected abstract Map<String, String> getVariables();
 
@@ -34,6 +34,14 @@ abstract class EnvironmentVariablesMap extends AbstractEnvironmentVariables {
       this.context.trace("{}: Variable {} is undefined.", getSource(), name);
     } else {
       this.context.trace("{}: Variable {}={}", getSource(), name, value);
+      WindowsPathSyntax pathSyntax = this.context.getPathSyntax();
+      if (pathSyntax != null) {
+        String normalized = pathSyntax.normalize(value);
+        if (!value.equals(normalized)) {
+          this.context.trace("Normalized {} using {} to {}", value, pathSyntax, normalized);
+          value = normalized;
+        }
+      }
     }
     return value;
   }

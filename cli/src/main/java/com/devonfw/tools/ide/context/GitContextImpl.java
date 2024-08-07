@@ -1,11 +1,5 @@
 package com.devonfw.tools.ide.context;
 
-import com.devonfw.tools.ide.cli.CliOfflineException;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.process.ProcessResult;
-
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -18,10 +12,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.devonfw.tools.ide.cli.CliOfflineException;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
+
 /**
  * Implements the {@link GitContext}.
  */
 public class GitContextImpl implements GitContext {
+
   private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMinutes(30);
 
   private final IdeContext context;
@@ -179,7 +180,7 @@ public class GitContextImpl implements GitContext {
     this.processContext.directory(targetRepository);
     ProcessResult result;
     // pull from remote
-    result = this.processContext.addArg("--no-pager").addArg("pull").run(PROCESS_MODE);
+    result = this.processContext.addArg("--no-pager").addArg("pull").addArg("--quiet").run(PROCESS_MODE);
 
     if (!result.isSuccessful()) {
       Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();

@@ -79,8 +79,7 @@ public class VersionRangeTest extends Assertions {
   }
 
   /**
-   * Test of {@link VersionRange#contains(VersionIdentifier)} and testing if a {@link VersionIdentifier version} is
-   * contained in the {@link VersionRange}.
+   * Test of {@link VersionRange#contains(VersionIdentifier)} and testing if a {@link VersionIdentifier version} is contained in the {@link VersionRange}.
    */
   @Test
   public void testContains() {
@@ -90,14 +89,20 @@ public class VersionRangeTest extends Assertions {
     assertThat(VersionRange.of("1.2,3.4").contains(VersionIdentifier.of("2"))).isTrue();
     assertThat(VersionRange.of("1.2,3.4").contains(VersionIdentifier.of("3.4"))).isTrue();
 
+    assertThat(VersionRange.of("(1.2,3.4)").contains(VersionIdentifier.of("1.2"))).isFalse();
     assertThat(VersionRange.of("(1.2,3.4)").contains(VersionIdentifier.of("1.2.1"))).isTrue();
     assertThat(VersionRange.of("(1.2,3.4)").contains(VersionIdentifier.of("2"))).isTrue();
     assertThat(VersionRange.of("(1.2,3.4)").contains(VersionIdentifier.of("3.3.9"))).isTrue();
+    assertThat(VersionRange.of("(1.2,3.4)").contains(VersionIdentifier.of("3.4"))).isFalse();
+
+    assertThat(VersionRange.of("[11,22]").contains(VersionIdentifier.of("11"))).isTrue();
+    assertThat(VersionRange.of("[11,22]").contains(VersionIdentifier.of("22"))).isTrue();
+    assertThat(VersionRange.of("[11,22]").contains(VersionIdentifier.of("22.1"))).isFalse();
+    assertThat(VersionRange.of("[11,22]").contains(VersionIdentifier.of("22_1"))).isFalse();
   }
 
   /**
-   * Test of {@link VersionRange#contains(VersionIdentifier)} and testing if a {@link VersionIdentifier version} is not
-   * contained in the {@link VersionRange}.
+   * Test of {@link VersionRange#contains(VersionIdentifier)} and testing if a {@link VersionIdentifier version} is not contained in the {@link VersionRange}.
    */
   @Test
   public void testNotContains() {

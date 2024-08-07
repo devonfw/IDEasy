@@ -40,7 +40,7 @@ public class VersionProperty extends Property<VersionIdentifier> {
    */
   public VersionProperty(String name, boolean required, String alias, Consumer<VersionIdentifier> validator) {
 
-    super(name, required, alias, validator);
+    super(name, required, alias, false, validator);
   }
 
   @Override
@@ -56,15 +56,16 @@ public class VersionProperty extends Property<VersionIdentifier> {
   }
 
   @Override
-  protected void completeValue(String arg, IdeContext context, Commandlet commandlet,
-      CompletionCandidateCollector collector) {
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     ToolCommandlet tool = commandlet.getToolForVersionCompletion();
     if (tool != null) {
       completeVersion(VersionIdentifier.of(arg), tool, context, commandlet, collector);
     }
   }
-  private void completeVersion(VersionIdentifier version2complete, ToolCommandlet tool, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+
+  private void completeVersion(VersionIdentifier version2complete, ToolCommandlet tool, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
 
     collector.disableSorting();
     if (tool != null) {
@@ -78,7 +79,8 @@ public class VersionProperty extends Property<VersionIdentifier> {
           return;
         }
       }
-      List<VersionIdentifier> versions = context.getUrls().getSortedVersions(tool.getName(), tool.getEdition());
+      List<VersionIdentifier> versions = context.getUrls()
+          .getSortedVersions(tool.getName(), tool.getConfiguredEdition());
       int size = versions.size();
       String[] sortedCandidates = IntStream.rangeClosed(1, size).mapToObj(i -> versions.get(size - i).toString())
           .toArray(String[]::new);

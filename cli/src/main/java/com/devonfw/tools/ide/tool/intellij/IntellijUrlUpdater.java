@@ -1,12 +1,8 @@
 package com.devonfw.tools.ide.tool.intellij;
 
 import java.util.Collection;
-import java.util.List;
-import java.util.Map;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
@@ -20,24 +16,19 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * {@link IntellijUrlUpdater} base class for IntelliJ.
  */
-public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
+public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, IntellijJsonRelease> {
 
   private static final String VERSION_BASE_URL = "https://data.services.jetbrains.com";
-
   private static final String JSON_URL = "products?code=IIU%2CIIC&release.type=release";
-
   private static final String ULTIMATE_EDITION = "ultimate";
-
   private static final String COMMUNITY_EDITION = "intellij";
-
   private static final ObjectMapper MAPPER = JsonMapping.create();
-
-  private static final Logger logger = LoggerFactory.getLogger(IntellijUrlUpdater.class);
 
   @Override
   public void update(UrlRepository urlRepository) {
 
     UrlTool tool = urlRepository.getOrCreateChild(getTool());
+
     try {
       String response = doGetResponseBodyAsString(doGetVersionUrl());
       IntellijJsonObject[] jsonObj = MAPPER.readValue(response, IntellijJsonObject[].class);
@@ -52,86 +43,20 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
 
         if (ultimateRelease != null) {
           edition = tool.getOrCreateChild(ULTIMATE_EDITION);
-          addVersionForEdition(ultimateRelease, edition);
+          updateExistingVersions(edition);
+          collectVersionsWithDownloadsFromJson(ultimateRelease, edition);
         }
 
         if (communityRelease != null) {
           edition = tool.getOrCreateChild(COMMUNITY_EDITION);
-          addVersionForEdition(communityRelease, edition);
+          updateExistingVersions(edition);
+          collectVersionsWithDownloadsFromJson(communityRelease, edition);
         }
       }
 
     } catch (Exception e) {
       throw new IllegalStateException("Error while getting versions from JSON API " + JSON_URL, e);
     }
-  }
-
-  /**
-   * Adds a version for the provided {@link UrlEdition}
-   *
-   * @param release the {@link IntellijJsonObject}
-   * @param edition the {@link UrlEdition}
-   */
-  private void addVersionForEdition(IntellijJsonObject release, UrlEdition edition) {
-
-    updateExistingVersions(edition);
-    String toolWithEdition = getToolWithEdition();
-
-    List<IntellijJsonRelease> releases = release.getReleases();
-    for (IntellijJsonRelease r : releases) {
-      String version = r.getVersion();
-      Map<String, IntellijJsonDownloadsItem> downloads = r.getDownloads();
-      UrlVersion urlVersion = edition.getChild(version);
-
-      if (urlVersion == null || isMissingOs(urlVersion)) {
-        try {
-          urlVersion = edition.getOrCreateChild(version);
-          for (String os : downloads.keySet()) {
-            switch (os) {
-              case IntellijJsonRelease.KEY_WINDOWS:
-                addVersionEachOs(urlVersion, downloads, os, OperatingSystem.WINDOWS, SystemArchitecture.X64);
-                break;
-              case IntellijJsonRelease.KEY_LINUX:
-                addVersionEachOs(urlVersion, downloads, os, OperatingSystem.LINUX, SystemArchitecture.X64);
-                break;
-              case IntellijJsonRelease.KEY_MAC:
-                addVersionEachOs(urlVersion, downloads, os, OperatingSystem.MAC, SystemArchitecture.X64);
-                break;
-              case IntellijJsonRelease.KEY_MAC_ARM:
-                addVersionEachOs(urlVersion, downloads, os, OperatingSystem.MAC, SystemArchitecture.ARM64);
-                break;
-            }
-          }
-          urlVersion.save();
-        } catch (Exception e) {
-          logger.error("For tool {} we failed to add version {}.", toolWithEdition, version, e);
-        }
-      }
-    }
-  }
-
-  @Override
-  protected void addVersion(UrlVersion urlVersion) {
-
-    throw new IllegalStateException();
-  }
-
-  /**
-   * Get link and link for the checksum for each OS, which are separate nodes in the json
-   */
-  private void addVersionEachOs(UrlVersion url, Map<String, IntellijJsonDownloadsItem> downloads, String jsonOS,
-      OperatingSystem os, SystemArchitecture systemArchitecture) {
-
-    IntellijJsonDownloadsItem downloadItem = downloads.get(jsonOS);
-    String link = downloadItem.getLink();
-    String checkSumLink = downloadItem.getChecksumLink();
-    if (checkSumLink.isEmpty()) {
-      doAddVersion(url, link, os, systemArchitecture);
-    } else {
-      String cs = getCheckSum(checkSumLink);
-      doAddVersion(url, link, os, systemArchitecture, cs);
-    }
-
   }
 
   /**
@@ -169,9 +94,54 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject> {
     return IntellijJsonObject.class;
   }
 
-  @Override
-  protected void collectVersionsFromJson(IntellijJsonObject jsonItem, Collection<String> versions) {
+  /**
+   * Get link and link for the checksum for each OS, which are separate nodes in the json
+   *
+   * @param url {@link UrlVersion} to be updated
+   * @param release the {@link JsonVersionItem} holding the download references for the version
+   * @param jsonOS the OS as specified in the json
+   * @param os the {@link OperatingSystem} matching the jsonOS
+   * @param systemArchitecture {@link SystemArchitecture} of the version to be updated
+   */
+  private void addVersionEachOs(UrlVersion url, IntellijJsonRelease release, String jsonOS, OperatingSystem os,
+      SystemArchitecture systemArchitecture) {
 
-    throw new IllegalStateException();
+    IntellijJsonDownloadsItem downloadItem = release.downloads().get(jsonOS);
+    String link = downloadItem.getLink();
+    String checkSumLink = downloadItem.getChecksumLink();
+    if (checkSumLink.isEmpty()) {
+      doAddVersion(url, link, os, systemArchitecture);
+    } else {
+      String cs = getCheckSum(checkSumLink);
+      doAddVersion(url, link, os, systemArchitecture, cs);
+    }
+
+  }
+
+  @Override
+  protected void addVersion(UrlVersion urlVersion, IntellijJsonRelease release) {
+
+    for (String os : release.downloads().keySet()) {
+      switch (os) {
+        case IntellijJsonRelease.KEY_WINDOWS:
+          addVersionEachOs(urlVersion, release, os, OperatingSystem.WINDOWS, SystemArchitecture.X64);
+          break;
+        case IntellijJsonRelease.KEY_LINUX:
+          addVersionEachOs(urlVersion, release, os, OperatingSystem.LINUX, SystemArchitecture.X64);
+          break;
+        case IntellijJsonRelease.KEY_MAC:
+          addVersionEachOs(urlVersion, release, os, OperatingSystem.MAC, SystemArchitecture.X64);
+          break;
+        case IntellijJsonRelease.KEY_MAC_ARM:
+          addVersionEachOs(urlVersion, release, os, OperatingSystem.MAC, SystemArchitecture.ARM64);
+          break;
+      }
+    }
+  }
+
+  @Override
+  protected Collection<IntellijJsonRelease> getVersionItems(IntellijJsonObject jsonObject) {
+
+    return jsonObject.releases();
   }
 }

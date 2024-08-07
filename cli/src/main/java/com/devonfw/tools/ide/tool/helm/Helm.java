@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
  * {@link ToolCommandlet} for <a href="https://helm.sh/">Helm</a>, the package manager for Kubernetes.
  */
 public class Helm extends LocalToolCommandlet {
+
   /**
    * The constructor.
    *
@@ -21,4 +22,9 @@ public class Helm extends LocalToolCommandlet {
     super(context, "helm", Set.of(Tag.KUBERNETES));
   }
 
+  @Override
+  public String getToolHelpArguments() {
+
+    return "--help";
+  }
 }

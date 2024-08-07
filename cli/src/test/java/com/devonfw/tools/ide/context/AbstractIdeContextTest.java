@@ -5,15 +5,12 @@ import java.nio.file.Path;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ListAssert;
 
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
 
 /**
@@ -37,8 +34,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
   private static final int CHUNK_SIZE = 1024;
 
   /**
-   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   * project in {@link #TEST_PROJECTS}. E.g. "basic".
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}. E.g.
+   * "basic".
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected IdeTestContext newContext(String testProject) {
@@ -47,8 +44,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
   }
 
   /**
-   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   * project in {@link #TEST_PROJECTS}. E.g. "basic".
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}. E.g.
+   * "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @return the {@link IdeTestContext} pointing to that project.
    */
@@ -58,15 +55,28 @@ public abstract class AbstractIdeContextTest extends Assertions {
   }
 
   /**
-   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test
-   * project in {@link #TEST_PROJECTS}. E.g. "basic".
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}. E.g.
+   * "basic".
    * @param projectPath the relative path inside the test project where to create the context.
-   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test,
-   *        {@code false} otherwise (only to save resources if you are 100% sure that your test never modifies anything
-   *        in that project.)
+   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test, {@code false} otherwise (only to save resources if
+   * you are 100% sure that your test never modifies anything in that project.)
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
+
+    return newContext(testProject, projectPath, copyForMutation, IdeLogLevel.TRACE);
+  }
+
+  /**
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}. E.g.
+   * "basic".
+   * @param projectPath the relative path inside the test project where to create the context.
+   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test, {@code false} otherwise (only to save resources if
+   * you are 100% sure that your test never modifies anything in that project.)
+   * @param logLevel the {@link IdeLogLevel} used as threshold for logging.
+   * @return the {@link IdeTestContext} pointing to that project.
+   */
+  protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation, IdeLogLevel logLevel) {
 
     Path ideRoot = TEST_PROJECTS.resolve(testProject);
     if (copyForMutation) {
@@ -74,7 +84,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
       FileAccess fileAccess = new FileAccessImpl(IdeTestContextMock.get());
       fileAccess.delete(ideRootCopy);
       fileAccess.mkdirs(TEST_PROJECTS_COPY);
-      fileAccess.copy(ideRoot, ideRootCopy, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
+      fileAccess.copy(ideRoot, TEST_PROJECTS_COPY, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
       ideRoot = ideRootCopy;
     }
     if (projectPath == null) {
@@ -86,7 +96,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(repositoryFolder);
     }
-    IdeTestContext context = new IdeTestContext(userDir, toolRepository);
+    IdeTestContext context = new IdeTestContext(userDir, toolRepository, logLevel);
     if (toolRepository != null) {
       toolRepository.setContext(context);
     }
@@ -110,8 +120,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param isOnline boolean if it should be run in online mode.
    * @return the {@link GitContextTestContext} pointing to that project.
    */
-  protected static GitContextTestContext newGitContext(Path projectPath, List<String> errors, List<String> outs,
-      int exitCode, boolean isOnline) {
+  protected static GitContextTestContext newGitContext(Path projectPath, List<String> errors, List<String> outs, int exitCode, boolean isOnline) {
 
     GitContextTestContext context;
     context = new GitContextTestContext(isOnline, projectPath);
@@ -121,80 +130,13 @@ public abstract class AbstractIdeContextTest extends Assertions {
     return context;
   }
 
-  /**
-   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
-   * @param level the expected {@link IdeLogLevel}.
-   * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
-   */
-  protected static void assertLogMessage(IdeTestContext context, IdeLogLevel level, String message) {
+  protected static IdeTestContextAssertion assertThat(IdeTestContext context) {
 
-    assertLogMessage(context, level, message, false);
+    return new IdeTestContextAssertion(context);
   }
 
   /**
-   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
-   * @param level the expected {@link IdeLogLevel}.
-   * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
-   * @param contains - {@code true} if the given {@code message} may only be a sub-string of the log-message to assert,
-   * {@code false} otherwise (the entire log message including potential parameters being filled in is asserted).
-   */
-  protected static void assertLogMessage(IdeTestContext context, IdeLogLevel level, String message, boolean contains) {
-
-    IdeTestLogger logger = context.level(level);
-    ListAssert<String> assertion = assertThat(logger.getMessages()).as(level.name() + "-Log messages");
-    if (contains) {
-      Condition<String> condition = new Condition<>() {
-        public boolean matches(String e) {
-
-          return e.contains(message);
-        }
-      };
-      assertion.filteredOn(condition).isNotEmpty();
-    } else {
-      assertion.contains(message);
-    }
-  }
-
-  /**
-   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
-   * @param level the expected {@link IdeLogLevel}.
-   * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that should not have been
-   * logged.
-   */
-  protected static void assertNoLogMessage(IdeTestContext context, IdeLogLevel level, String message) {
-
-    assertNoLogMessage(context, level, message, false);
-  }
-
-  /**
-   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
-   * @param level the expected {@link IdeLogLevel}.
-   * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that should not have been
-   * logged.
-   * @param contains - {@code true} if the given {@code message} may only be a sub-string of the log-message to assert,
-   * {@code false} otherwise (the entire log message including potential parameters being filled in is asserted).
-   */
-  protected static void assertNoLogMessage(IdeTestContext context, IdeLogLevel level, String message,
-      boolean contains) {
-
-    IdeTestLogger logger = context.level(level);
-    ListAssert<String> assertion = assertThat(logger.getMessages()).as(level.name() + "-Log messages");
-    if (contains) {
-      Condition<String> condition = new Condition<>() {
-        public boolean matches(String e) {
-
-          return e.contains(message);
-        }
-      };
-      assertion.filteredOn(condition).isEmpty();
-    } else {
-      assertion.doesNotContain(message);
-    }
-  }
-
-  /**
-   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default
-   * behavior
+   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default behavior
    *
    * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
    * @param taskName name of the task e.g. Downloading.
@@ -203,8 +145,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param chunkCount amount of chunks.
    * @param restSize remaining size.
    */
-  protected static void assertProgressBar(IdeContext context, String taskName, long maxSize, long chunkSize,
-      int chunkCount, long restSize) {
+  protected static void assertProgressBar(IdeContext context, String taskName, long maxSize, long chunkSize, int chunkCount, long restSize) {
 
     AbstractIdeTestContext testContext = (AbstractIdeTestContext) context;
     IdeProgressBarTestImpl progressBar = testContext.getProgressBarMap().get(taskName);
@@ -223,8 +164,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
   }
 
   /**
-   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default
-   * behaviour, chunk size is fixed.
+   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default behaviour, chunk size is fixed.
    *
    * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
    * @param taskName name of the task e.g. Downloading.
@@ -232,15 +172,14 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param chunkCount amount of chunks.
    * @param restSize remaining size.
    */
-  protected static void assertProgressBar(IdeContext context, String taskName, long maxSize, int chunkCount,
-      long restSize) {
+  protected static void assertProgressBar(IdeContext context, String taskName, long maxSize, int chunkCount, long restSize) {
 
     assertProgressBar(context, taskName, maxSize, CHUNK_SIZE, chunkCount, restSize);
   }
 
   /**
-   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default
-   * behaviour, chunk size is fixed, chunk count and rest size get automatically calculated.
+   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default behaviour, chunk size is fixed, chunk count
+   * and rest size get automatically calculated.
    *
    * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
    * @param taskName name of the task e.g. Downloading.

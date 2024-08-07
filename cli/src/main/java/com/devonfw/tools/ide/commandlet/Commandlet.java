@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -68,8 +69,17 @@ public abstract class Commandlet {
   }
 
   /**
-   * @param nameOrAlias the potential {@link Property#getName() name} or {@link Property#getAlias() alias} of the
-   *        requested {@link Property}.
+   * Clear the set values on all properties of the {@link Commandlet#propertiesList}
+   */
+  public void clearProperties() {
+
+    for (Property<?> property : this.propertiesList) {
+      property.clearValue();
+    }
+  }
+
+  /**
+   * @param nameOrAlias the potential {@link Property#getName() name} or {@link Property#getAlias() alias} of the requested {@link Property}.
    * @return the requested {@link Property property} or {@code null} if not found.
    */
   public Property<?> getOption(String nameOrAlias) {
@@ -108,8 +118,7 @@ public abstract class Commandlet {
   protected <P extends Property<?>> P add(P property) {
 
     if (this.multiValued != null) {
-      throw new IllegalStateException(
-          "The multi-valued property " + this.multiValued + " can not be followed by " + property);
+      throw new IllegalStateException("The multi-valued property " + this.multiValued + " can not be followed by " + property);
     }
     this.propertiesList.add(property);
     if (property.isOption()) {
@@ -147,8 +156,7 @@ public abstract class Commandlet {
   public abstract String getName();
 
   /**
-   * @return the first keyword of this {@link Commandlet}. Typically the same as {@link #getName() name} but may also
-   *         differ (e.g. "set" vs. "set-version").
+   * @return the first keyword of this {@link Commandlet}. Typically the same as {@link #getName() name} but may also differ (e.g. "set" vs. "set-version").
    */
   public String getKeyword() {
 
@@ -167,19 +175,39 @@ public abstract class Commandlet {
   }
 
   /**
-   * @return {@code true} if {@link IdeContext#getIdeHome() IDE_HOME} is required for this commandlet, {@code false}
-   *         otherwise.
+   * @return {@code true} if {@link IdeContext#getIdeHome() IDE_HOME} is required for this commandlet, {@code false} otherwise.
    */
   public boolean isIdeHomeRequired() {
+
+    if (!isIdeRootRequired()) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
+   * @return {@code true} if {@link IdeContext#getIdeRoot() IDE_ROOT} is required for this commandlet, {@code false} otherwise.
+   */
+  public boolean isIdeRootRequired() {
 
     return true;
   }
 
   /**
-   * @return {@code true} to suppress the {@link com.devonfw.tools.ide.step.StepImpl#logSummary(boolean) step summary
-   *         success message}.
+   * @return {@code true} to suppress the {@link com.devonfw.tools.ide.step.StepImpl#logSummary(boolean) step summary success message}.
    */
   public boolean isSuppressStepSuccess() {
+
+    return false;
+  }
+
+  /**
+   * @return {@code true} if the output of this commandlet is (potentially) processed automatically from outside, {@code false} otherwise. For example
+   * {@link CompleteCommandlet} logs the suggestions for auto-completion to a bash script. Also the {@link EnvironmentCommandlet} logs the environment variables
+   * for the {@code ide} wrapper script. In such scenarios these logs shall not be spammed with warnings like "IDE_ROOT is not set" that would break the
+   * processing of the output.
+   */
+  public boolean isProcessableOutput() {
 
     return false;
   }
@@ -190,8 +218,7 @@ public abstract class Commandlet {
   public abstract void run();
 
   /**
-   * @return {@code true} if this {@link Commandlet} is the valid candidate to be {@link #run()}, {@code false}
-   *         otherwise.
+   * @return {@code true} if this {@link Commandlet} is the valid candidate to be {@link #run()}, {@code false} otherwise.
    * @see Property#validate()
    */
   public boolean validate() {
@@ -210,6 +237,13 @@ public abstract class Commandlet {
     return true;
   }
 
+  /**
+   * Provide additional usage help of this {@link Commandlet} to the user.
+   */
+  public void printHelp(NlsBundle bundle) {
+
+  }
+
   @Override
   public String toString() {
 
@@ -217,8 +251,8 @@ public abstract class Commandlet {
   }
 
   /**
-   * @return the {@link ToolCommandlet} set in a {@link Property} of this commandlet used for auto-completion of a
-   *         {@link VersionIdentifier} or {@code null} if not exists or not configured.
+   * @return the {@link ToolCommandlet} set in a {@link Property} of this commandlet used for auto-completion of a {@link VersionIdentifier} or {@code null} if
+   * not exists or not configured.
    */
   public ToolCommandlet getToolForVersionCompletion() {
 

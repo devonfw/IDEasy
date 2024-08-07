@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * <a href="https://www.docker.com/products/docker-desktop/">Docker Desktop</a>.
  */
 public class Docker extends GlobalToolCommandlet {
+
   /**
    * The constructor.
    *
@@ -44,15 +45,15 @@ public class Docker extends GlobalToolCommandlet {
   protected boolean doInstall(boolean silent) {
 
     if (this.context.getSystemInfo().isLinux()) {
-      return installWithPackageManager(silent, getPackageManagerCommands());
+      return runWithPackageManager(silent, getPackageManagerCommandsInstall());
     } else {
       return super.doInstall(silent);
     }
   }
 
-  private List<PackageManagerCommand> getPackageManagerCommands() {
+  private List<PackageManagerCommand> getPackageManagerCommandsInstall() {
 
-    String edition = getEdition();
+    String edition = getConfiguredEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion).toString();
@@ -66,9 +67,30 @@ public class Docker extends GlobalToolCommandlet {
             + " sudo dd status=none of=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg",
         "echo 'deb [signed-by=/usr/share/keyrings/isv-rancher-stable-archive-keyring.gpg]"
             + " https://download.opensuse.org/repositories/isv:/Rancher:/stable/deb/ ./' |"
-            + " sudo dd status=none of=/etc/apt/sources.list.d/isv-rancher-stable.list",
-        "sudo apt update",
+            + " sudo dd status=none of=/etc/apt/sources.list.d/isv-rancher-stable.list", "sudo apt update",
         String.format("sudo apt install -y --allow-downgrades rancher-desktop=%s*", resolvedVersion))));
+
+    return pmCommands;
+  }
+
+  @Override
+  public void uninstall() {
+
+    if (this.context.getSystemInfo().isLinux()) {
+      runWithPackageManager(false, getPackageManagerCommandsUninstall());
+    } else {
+      super.uninstall();
+    }
+
+  }
+
+  private List<PackageManagerCommand> getPackageManagerCommandsUninstall() {
+
+    List<PackageManagerCommand> pmCommands = new ArrayList<>();
+    pmCommands.add(
+        new PackageManagerCommand(PackageManager.ZYPPER, Arrays.asList("sudo zypper remove rancher-desktop")));
+    pmCommands.add(
+        new PackageManagerCommand(PackageManager.APT, Arrays.asList("sudo apt -y autoremove rancher-desktop")));
 
     return pmCommands;
   }
@@ -77,9 +99,16 @@ public class Docker extends GlobalToolCommandlet {
   protected String getBinaryName() {
 
     if (this.context.getSystemInfo().isLinux()) {
+      // TODO this is wrong. The install method may need to run this on linux but the binary name is always docker (read the JavaDoc)
       return "rancher-desktop";
     } else {
       return super.getBinaryName();
     }
+  }
+
+  @Override
+  public String getToolHelpArguments() {
+
+    return "help";
   }
 }

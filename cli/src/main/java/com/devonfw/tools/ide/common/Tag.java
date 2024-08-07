@@ -10,8 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 
 /**
- * A {@link Tag} represents a classifier or category. A tool and plugin can be associated with {@link Tag}s allowing end
- * users to find them.
+ * A {@link Tag} represents a classifier or category. A tool and plugin can be associated with {@link Tag}s allowing end users to find them.
  */
 public final class Tag {
 
@@ -214,6 +213,9 @@ public final class Tag {
   /** {@link #Tag} for WSL. */
   public static final Tag WSL = create("wsl", VIRTUALIZATION);
 
+  /** {@link Tag} for everything related to databases. */
+  public static final Tag DB = create("database", ROOT);
+
   /** {@link #Tag} for network. */
   public static final Tag NETWORK = create("network", ROOT, false, "remote");
 
@@ -364,7 +366,7 @@ public final class Tag {
 
   /**
    * @param i the index of the requested parent. Should be in the range from {@code 0} to
-   *        <code>{@link #getParentCount()}-1</code>.
+   * <code>{@link #getParentCount()}-1</code>.
    * @return the requested {@link Tag}.
    */
   public Tag getParent(int i) {
@@ -387,8 +389,7 @@ public final class Tag {
   }
 
   /**
-   * @return {@code true} if this {@link Tag} is abstract and cannot be selected since it is just a generic parent
-   *         container, {@code false} otherwise.
+   * @return {@code true} if this {@link Tag} is abstract and cannot be selected since it is just a generic parent container, {@code false} otherwise.
    */
   public boolean isAbstract() {
 
@@ -402,11 +403,10 @@ public final class Tag {
 
   /**
    * @param tag the {@link Tag} to check.
-   * @param includeAdditionalParents - {@code true} if {@link #getParent(int) additional parents} should be included,
-   *        {@code false} otherwise (only consider {@link #getParent() primary parent}).
-   * @return {@code true} if the given {@link Tag} is an ancestor of this tag, {@code false} otherwise. An ancestor is
-   *         a direct or indirect {@link #getParent() parent}. Therefore, if {@link #ROOT} is given as {@link Tag} parameter,
-   *         this method should always return {@code true}.
+   * @param includeAdditionalParents - {@code true} if {@link #getParent(int) additional parents} should be included, {@code false} otherwise (only consider
+   * {@link #getParent() primary parent}).
+   * @return {@code true} if the given {@link Tag} is an ancestor of this tag, {@code false} otherwise. An ancestor is a direct or indirect
+   * {@link #getParent() parent}. Therefore, if {@link #ROOT} is given as {@link Tag} parameter, this method should always return {@code true}.
    */
   public boolean isAncestorOf(Tag tag, boolean includeAdditionalParents) {
 
@@ -522,8 +522,7 @@ public final class Tag {
 
   /**
    * @param id the {@link #getId() ID} of the requested {@link Tag}.
-   * @return the {@link Tag} with the given {@link #getId() ID}. Will be lazily created as child of {@link #MISC} if not
-   *         already exists.
+   * @return the {@link Tag} with the given {@link #getId() ID}. Will be lazily created as child of {@link #MISC} if not already exists.
    */
   public static Tag of(String id) {
 

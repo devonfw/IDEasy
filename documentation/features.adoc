@@ -6,8 +6,7 @@ toc::[]
 Every developer needs great tools to work efficiently.
 Setting up these tools manually can be tedious and error-prone.
 Furthermore, some projects may require different versions and configurations of such tools.
-In case you are working for more than one project in parallel,
-you may have contradicting requirements for your environments (e.g. different versions of Java, Node.js, etc. or different code-styles).
+In case you are working for more than one project in parallel, you may have contradicting requirements for your environments (e.g. different versions of Java, Node.js, etc. or different code-styles).
 Especially configurations like code-formatters should be consistent within a project to avoid diff-wars.
 
 `IDEasy` will solve these issues.
@@ -45,6 +44,7 @@ You can see the workspace name in the title-bar of your IDE so you do not get co
 See link:license.adoc[LICENSE] for details.
 
 == IDEs
+
 We support the following IDEs:
 
 * https://www.eclipse.org/[Eclipse]
@@ -54,34 +54,35 @@ We support the following IDEs:
 
 == Motivation
 
-`TL;DR`? Lets talk to developers a correct language.
+`TL;DR`?
+Lets talk to developers a correct language.
 Here are some examples with `IDEasy`:
 
 [source,bash]
 --------
-[/]$ ide
-You are not inside an IDEasy project: /
-[/]$ cd /projects/devonfw
+[~]$ ide
+You are not inside an IDEasy project: /home
+[~]$ cd projects/devonfw
 [devonfw]$ mvn
 command not found: mvn
 [devonfw]$ ide
-Environment variables have been set for /projects/devonfw in workspace main
+Environment variables have been set for ~/projects/devonfw in workspace main
 [devonfw]$ mvn -v
 Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T20:41:47+02:00)
-Maven home: /projects/devonfw/software/mvn
-Java version: 1.8.0_191, vendor: Oracle Corporation, runtime: /projects/devonfw/software/java
+Maven home: ~/projects/devonfw/software/mvn
+Java version: 1.8.0_191, vendor: Oracle Corporation, runtime: ~/projects/devonfw/software/java
 Default locale: en_DE, platform encoding: UTF-8
 OS name: "mac os x", version: "10.14.3", arch: "x86_64", family: "mac"
-[devonfw]$ cd /projects/ide-test/workspaces/test/my-project
+[devonfw]$ cd ../ide-test/workspaces/test/my-project
 [my-project]$ ide
-Environment variables have been set for /projects/ide-test in workspace test
+Environment variables have been set for ~/projects/ide-test in workspace test
 [my-project]$ mvn -v
 Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T20:41:47+02:00)
-Maven home: /projects/ide-test/software/mvn
-Java version: 11.0.2, vendor: Oracle Corporation, runtime: /projects/ide-test/software/jdk/Contents/Home
+Maven home: ~/projects/ide-test/software/mvn
+Java version: 11.0.2, vendor: Oracle Corporation, runtime: ~/projects/ide-test/software/java
 Default locale: en_DE, platform encoding: UTF-8
 OS name: "mac os x", version: "10.14.3", arch: "x86_64", family: "mac"
-[ide-test]$ ide eclipse
+[my-project]$ ide eclipse
 launching Eclipse for workspace test...
 [my-project]$ ide build
 [INFO] Scanning for projects...
@@ -99,7 +100,8 @@ Now you might ask:
 * But I use cygwin or git-bash on Windows - it works!
 * But I run this inside Windows-Terminal and want tight integration - it works!
 * But I am on MacOS want to use Terminal or iTerm2 with tight integration? - it works!
-* But I use (OhMy)Zsh  - it works!
+* But I use (OhMy)Zsh - it works!
 * But ...? - it works!
 
-Wow! So let's get started with link:setup.adoc[download & setup].
+Wow!
+So let's get started with link:setup.adoc[download & setup].

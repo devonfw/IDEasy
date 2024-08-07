@@ -1,19 +1,5 @@
 package com.devonfw.tools.ide.io;
 
-import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.url.model.file.UrlChecksum;
-import com.devonfw.tools.ide.util.DateTimeUtil;
-import com.devonfw.tools.ide.util.FilenameUtil;
-import com.devonfw.tools.ide.util.HexUtil;
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
-
 import java.io.BufferedOutputStream;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -47,12 +33,35 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.jar.JarEntry;
+import java.util.jar.JarInputStream;
 import java.util.stream.Stream;
+
+import org.apache.commons.compress.archivers.ArchiveEntry;
+import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.url.model.file.UrlChecksum;
+import com.devonfw.tools.ide.util.DateTimeUtil;
+import com.devonfw.tools.ide.util.FilenameUtil;
+import com.devonfw.tools.ide.util.HexUtil;
 
 /**
  * Implementation of {@link FileAccess}.
  */
 public class FileAccessImpl implements FileAccess {
+
+  private static final String WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/windows-file-lock.adoc";
+
+  private static final String WINDOWS_FILE_LOCK_WARNING =
+      "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
+          + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
 
   private final IdeContext context;
 
@@ -275,25 +284,32 @@ public class FileAccessImpl implements FileAccess {
     try {
       Files.move(source, targetDir);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to move " + source + " to " + targetDir, e);
+      String fileType = Files.isSymbolicLink(source) ? "symlink" : isJunction(source) ? "junction" : Files.isDirectory(source) ? "directory" : "file";
+      String message = "Failed to move " + fileType + ": " + source + " to " + targetDir + ".";
+      if (this.context.getSystemInfo().isWindows()) {
+        message = message + "\n" + WINDOWS_FILE_LOCK_WARNING;
+      }
+      throw new IllegalStateException(message, e);
     }
   }
 
   @Override
   public void copy(Path source, Path target, FileCopyMode mode) {
 
+    if (mode != FileCopyMode.COPY_TREE_CONTENT) {
+      // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy
+      // source into that folder so that we as a result have a copy in "target/source".
+      // With Java NIO the raw copy method will fail as we cannot copy "source" to the path of the "target" folder.
+      // For folders we want the same behavior as the linux "cp -r" command so that the "source" folder is copied
+      // and not only its content what also makes it consistent with the move method that also behaves this way.
+      // Therefore we need to add the filename (foldername) of "source" to the "target" path before.
+      // For the rare cases, where we want to copy the content of a folder (cp -r source/* target) we support
+      // it via the COPY_TREE_CONTENT mode.
+      target = target.resolve(source.getFileName());
+    }
     boolean fileOnly = mode.isFileOnly();
     if (fileOnly) {
       this.context.debug("Copying file {} to {}", source, target);
-      if (Files.isDirectory(target)) {
-        // if we want to copy "file.txt" to the existing folder "path/to/folder/" in a shell this will copy "file.txt"
-        // into that folder
-        // with Java NIO the raw copy method will fail as we cannot copy the file to the path of the target folder
-        // even worse if FileCopyMode is override the target folder ("path/to/folder/") would be deleted and the result
-        // of our "file.txt" would later appear in "path/to/folder". To prevent such bugs we append the filename to
-        // target
-        target = target.resolve(source.getFileName());
-      }
     } else {
       this.context.debug("Copying {} recursively to {}", source, target);
     }
@@ -501,12 +517,8 @@ public class FileAccessImpl implements FileAccess {
 
     if (Files.isDirectory(archiveFile)) {
       Path properInstallDir = archiveFile; // getProperInstallationSubDirOf(archiveFile, archiveFile);
-      if (extract) {
-        this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
-        copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
-      } else {
-        move(properInstallDir, targetDir);
-      }
+      this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
+      copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_CONTENT);
       postExtractHook(postExtractHook, properInstallDir);
       return;
     } else if (!extract) {
@@ -528,8 +540,11 @@ public class FileAccessImpl implements FileAccess {
         this.context.trace("Determined file extension {}", extension);
       }
       switch (extension) {
-        case "zip", "jar" -> {
+        case "zip" -> {
           extractZip(archiveFile, tmpDir);
+        }
+        case "jar" -> {
+          extractJar(archiveFile, tmpDir);
         }
         case "dmg" -> {
           extractDmg(archiveFile, tmpDir);
@@ -594,6 +609,33 @@ public class FileAccessImpl implements FileAccess {
     extractArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
   }
 
+  @Override
+  public void extractJar(Path file, Path targetDir) {
+
+    this.context.trace("Unpacking JAR {} to {}", file, targetDir);
+    try (JarInputStream jis = new JarInputStream(Files.newInputStream(file))) {
+      JarEntry entry;
+      while ((entry = jis.getNextJarEntry()) != null) {
+        Path entryPath = targetDir.resolve(entry.getName()).toAbsolutePath();
+
+        if (!entryPath.startsWith(targetDir)) {
+          throw new IOException("Preventing path traversal attack from " + entry.getName() + " to " + entryPath);
+        }
+
+        if (entry.isDirectory()) {
+          Files.createDirectories(entryPath);
+        } else {
+          Files.createDirectories(entryPath.getParent());
+          Files.copy(jis, entryPath);
+        }
+
+        jis.closeEntry();
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract JAR " + file + " to " + targetDir, e);
+    }
+  }
+
   /**
    * @param permissions The integer as returned by {@link TarArchiveEntry#getMode()} that represents the file permissions of a file on a Unix file system.
    * @return A String representing the file permissions. E.g. "rwxrwxr-x" or "rw-rw-r--"
@@ -650,6 +692,7 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
+  @Override
   public void extractDmg(Path file, Path targetDir) {
 
     assert this.context.getSystemInfo().isMac();
@@ -664,11 +707,13 @@ public class FileAccessImpl implements FileAccess {
     if (appPath == null) {
       throw new IllegalStateException("Failed to unpack DMG as no MacOS *.app was found in file " + file);
     }
-    copy(appPath, targetDir);
+
+    copy(appPath, targetDir, FileCopyMode.COPY_TREE_OVERRIDE_TREE);
     pc.addArgs("detach", "-force", mountPath);
     pc.run();
   }
 
+  @Override
   public void extractMsi(Path file, Path targetDir) {
 
     this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + targetDir).run();
@@ -677,6 +722,7 @@ public class FileAccessImpl implements FileAccess {
     delete(msiCopy);
   }
 
+  @Override
   public void extractPkg(Path file, Path targetDir) {
 
     Path tmpDirPkg = createTempDir("ide-pkg-");
@@ -726,6 +772,9 @@ public class FileAccessImpl implements FileAccess {
   public Path findFirst(Path dir, Predicate<Path> filter, boolean recursive) {
 
     try {
+      if (!Files.isDirectory(dir)) {
+        return null;
+      }
       return findFirstRecursive(dir, filter, recursive);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to search for file in " + dir, e);

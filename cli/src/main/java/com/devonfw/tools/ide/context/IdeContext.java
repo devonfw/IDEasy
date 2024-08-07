@@ -1,5 +1,9 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Locale;
+
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -13,6 +17,7 @@ import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
@@ -20,10 +25,6 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Locale;
 
 /**
  * Interface for interaction with the user allowing to input and output information.
@@ -372,6 +373,25 @@ public interface IdeContext extends IdeLogger {
   Path getSettingsPath();
 
   /**
+   * @return the {@link Path} to the templates folder inside the {@link #getSettingsPath() settings}. The relative directory structure in this templates folder
+   * is to be applied to {@link #getIdeHome() IDE_HOME} when the project is set up.
+   */
+  default Path getSettingsTemplatePath() {
+    Path settingsFolder = getSettingsPath();
+    Path templatesFolder = settingsFolder.resolve(IdeContext.FOLDER_TEMPLATES);
+    if (!Files.isDirectory(templatesFolder)) {
+      Path templatesFolderLegacy = settingsFolder.resolve(IdeContext.FOLDER_LEGACY_TEMPLATES);
+      if (Files.isDirectory(templatesFolderLegacy)) {
+        templatesFolder = templatesFolderLegacy;
+      } else {
+        warning("No templates found in settings git repo neither in {} nor in {} - configuration broken", templatesFolder, templatesFolderLegacy);
+        return null;
+      }
+    }
+    return templatesFolder;
+  }
+
+  /**
    * @return the {@link Path} to the {@code conf} folder with instance specific tool configurations and the
    * {@link EnvironmentVariablesType#CONF user specific project configuration}.
    */
@@ -435,14 +455,42 @@ public interface IdeContext extends IdeLogger {
    */
   default String getMavenArgs() {
 
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
+    Path mavenConfFolder = mvn.getMavenConfFolder(false);
+    Path mvnSettingsFile = mavenConfFolder.resolve(Mvn.SETTINGS_FILE);
+    if (!Files.exists(mvnSettingsFile)) {
+      return null;
+    }
+    String settingsPath;
+    WindowsPathSyntax pathSyntax = getPathSyntax();
+    if (pathSyntax == null) {
+      settingsPath = mvnSettingsFile.toString();
+    } else {
+      settingsPath = pathSyntax.format(mvnSettingsFile);
+    }
+    return "-s " + settingsPath;
+  }
+
+  /**
+   * @return the String value for the variable M2_REPO, or null if called outside an IDEasy installation.
+   */
+  default Path getMavenRepository() {
+
     if (getIdeHome() != null) {
-      Path mvnSettingsFile = getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
-      if (Files.exists(mvnSettingsFile)) {
-        return "-s " + mvnSettingsFile;
+      Path confPath = getConfPath();
+      Path m2Folder = confPath.resolve(Mvn.MVN_CONFIG_FOLDER);
+      if (!Files.isDirectory(m2Folder)) {
+        Path m2LegacyFolder = confPath.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
+        if (Files.isDirectory(m2LegacyFolder)) {
+          m2Folder = m2LegacyFolder;
+        }
       }
+      return m2Folder.resolve("repository");
     }
     return null;
-
   }
 
   /**
@@ -507,5 +555,27 @@ public interface IdeContext extends IdeLogger {
    * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
    */
   String findBash();
+
+  /**
+   * Finds the path to the Bash executable.
+   *
+   * @return the {@link String} to the Bash executable. Throws an {@link IllegalStateException} if no bash was found.
+   */
+  default String findBashRequired() {
+    String bash = findBash();
+    if (bash == null) {
+      String message = "Could not find bash what is a prerequisite of IDEasy.";
+      if (getSystemInfo().isWindows()) {
+        message = message + "\nPlease install Git for Windows and rerun.";
+      }
+      throw new IllegalStateException(message);
+    }
+    return bash;
+  }
+
+  /**
+   * @return the {@link WindowsPathSyntax} used for {@link Path} conversion or {@code null} for no such conversion (typically if not on Windows).
+   */
+  WindowsPathSyntax getPathSyntax();
 
 }

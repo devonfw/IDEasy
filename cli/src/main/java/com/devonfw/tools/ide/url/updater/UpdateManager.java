@@ -26,6 +26,7 @@ import com.devonfw.tools.ide.tool.graalvm.GraalVmOracleUrlUpdater;
 import com.devonfw.tools.ide.tool.gradle.GradleUrlUpdater;
 import com.devonfw.tools.ide.tool.helm.HelmUrlUpdater;
 import com.devonfw.tools.ide.tool.intellij.IntellijUrlUpdater;
+import com.devonfw.tools.ide.tool.jasypt.JasyptUrlUpdater;
 import com.devonfw.tools.ide.tool.java.JavaUrlUpdater;
 import com.devonfw.tools.ide.tool.jenkins.JenkinsUrlUpdater;
 import com.devonfw.tools.ide.tool.jmc.JmcUrlUpdater;
@@ -37,6 +38,7 @@ import com.devonfw.tools.ide.tool.mvn.MvnUrlUpdater;
 import com.devonfw.tools.ide.tool.node.NodeUrlUpdater;
 import com.devonfw.tools.ide.tool.npm.NpmUrlUpdater;
 import com.devonfw.tools.ide.tool.oc.OcUrlUpdater;
+import com.devonfw.tools.ide.tool.pgadmin.PgAdminUrlUpdater;
 import com.devonfw.tools.ide.tool.pip.PipUrlUpdater;
 import com.devonfw.tools.ide.tool.python.PythonUrlUpdater;
 import com.devonfw.tools.ide.tool.quarkus.QuarkusUrlUpdater;
@@ -45,13 +47,11 @@ import com.devonfw.tools.ide.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.tool.vscode.VsCodeUrlUpdater;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.devonfw.tools.ide.tool.jasypt.JasyptUrlUpdater;
 
 /**
- * The {@code UpdateManager} class manages the update process for various tools by using a list of
- * {@link AbstractUrlUpdater}s to update the {@link UrlRepository}. The list of {@link AbstractUrlUpdater}s contains
- * crawlers for different tools and services, To use the UpdateManager, simply create an instance with the path to the
- * repository as a parameter and call the {@link #updateAll()} method.
+ * The {@code UpdateManager} class manages the update process for various tools by using a list of {@link AbstractUrlUpdater}s to update the
+ * {@link UrlRepository}. The list of {@link AbstractUrlUpdater}s contains crawlers for different tools and services, To use the UpdateManager, simply create an
+ * instance with the path to the repository as a parameter and call the {@link #updateAll()} method.
  */
 public class UpdateManager extends AbstractProcessorWithTimeout {
 
@@ -63,12 +63,12 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new AzureUrlUpdater(), new CobigenUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
-      new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JavaUrlUpdater(),
-      new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(), new KotlincNativeUrlUpdater(),
-      new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new Mvn4UrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(),
-      new PipUrlUpdater(), new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(),
-      new SonarUrlUpdater(), new TerraformUrlUpdater(), new TomcatUrlUpdater(), new VsCodeUrlUpdater(),
-      new JasyptUrlUpdater());
+      new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),
+      new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
+      new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new Mvn4UrlUpdater(),
+      new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(),
+      new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
+      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new VsCodeUrlUpdater());
 
   /**
    * The constructor.

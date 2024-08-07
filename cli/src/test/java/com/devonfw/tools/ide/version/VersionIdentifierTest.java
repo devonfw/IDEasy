@@ -108,7 +108,7 @@ public class VersionIdentifierTest extends Assertions {
   public void testCompare() {
 
     String[] versions = { "0.1", "0.2-SNAPSHOT", "0.2-nb5", "0.2-a", "0.2-alpha1", "0.2-beta", "0.2-b2", "0.2.M1",
-    "0.2M9", "0.2M10", "0.2-rc1", "0.2-RC2", "0.2", "0.2-fix9", "0.2-hf1", "0.3", "0.3.1", "1", "1.0", "10-alpha1" };
+        "0.2M9", "0.2M10", "0.2-rc1", "0.2-RC2", "0.2", "0.2-fix9", "0.2-hf1", "0.3", "0.3.1", "1", "1.0", "10-alpha1" };
     List<VersionIdentifier> vids = new ArrayList<>(versions.length);
     for (String version : versions) {
       VersionIdentifier vid = VersionIdentifier.of(version);
@@ -125,8 +125,7 @@ public class VersionIdentifierTest extends Assertions {
   }
 
   /**
-   * Test of {@link VersionIdentifier#matches(VersionIdentifier)} with
-   * {@link VersionSegment#PATTERN_MATCH_ANY_STABLE_VERSION}.
+   * Test of {@link VersionIdentifier#matches(VersionIdentifier)} with {@link VersionSegment#PATTERN_MATCH_ANY_STABLE_VERSION}.
    */
   @Test
   public void testMatchStable() {
@@ -247,6 +246,17 @@ public class VersionIdentifierTest extends Assertions {
     assertThat(pattern.matches(VersionIdentifier.of("17.0.alpa7"))).isTrue();
     assertThat(pattern.matches(VersionIdentifier.of("17.0-beta2"))).isTrue();
     assertThat(pattern.matches(VersionIdentifier.of("17.0-SNAPSHOT"))).isTrue();
+  }
+
+  @Test
+  public void testCompareJavaVersions() {
+
+    VersionIdentifier v21_35 = VersionIdentifier.of("21_35");
+    VersionIdentifier v21_0_2_13 = VersionIdentifier.of("21.0.2_13");
+    VersionIdentifier v21_0_3_9 = VersionIdentifier.of("21.0.3_9");
+    assertThat(v21_35).isLessThan(v21_0_2_13);
+    assertThat(v21_0_2_13).isLessThan(v21_0_3_9);
+    assertThat(v21_0_3_9).isGreaterThan(v21_35);
   }
 
 }

@@ -1,5 +1,20 @@
 package com.devonfw.tools.ide.context;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
+import java.net.URLConnection;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
@@ -25,6 +40,7 @@ import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -36,20 +52,6 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 /**
  * Abstract base implementation of {@link IdeContext}.
@@ -97,6 +99,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   private Path userHomeIde;
 
   private SystemPath path;
+
+  private WindowsPathSyntax pathSyntax;
 
   private final SystemInfo systemInfo;
 
@@ -161,7 +165,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
-        if (FOLDER_WORKSPACES.equals(name1)) {
+        if (FOLDER_WORKSPACES.equals(name1) && !name2.isEmpty()) {
           workspace = name2;
         }
         break;
@@ -173,32 +177,11 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
       currentDir = getParentPath(currentDir);
     }
-    // detection completed, initializing variables
-    setCwd(userDir, workspace, currentDir);
-    Path ideRootPath = null;
-    if (currentDir == null) {
-      info(getMessageIdeHomeNotFound());
-    } else {
-      debug(getMessageIdeHomeFound());
-      ideRootPath = this.ideHome.getParent();
-    }
 
-    if (!isTest()) {
-      String root = System.getenv("IDE_ROOT");
-      if (root != null) {
-        Path rootPath = Path.of(root);
-        if (ideRootPath == null) {
-          ideRootPath = rootPath;
-        } else if (!ideRootPath.equals(rootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath, this.ideHome.getFileName(),
-              ideRootPath);
-        }
-      }
-    }
-    if (ideRootPath == null || !Files.isDirectory(ideRootPath)) {
-      error("IDE_ROOT is not set or not a valid directory.");
-    }
-    this.ideRoot = ideRootPath;
+    // detection completed, initializing variables
+    this.ideRoot = findIdeRoot(currentDir);
+
+    setCwd(userDir, workspace, currentDir);
 
     if (this.ideRoot == null) {
       this.toolRepository = null;
@@ -225,6 +208,30 @@ public abstract class AbstractIdeContext implements IdeContext {
     } else {
       this.defaultToolRepository = toolRepository;
     }
+  }
+
+  private Path findIdeRoot(Path ideHomePath) {
+    final Path ideRoot;
+    Path ideRootPath = null;
+    if (ideHomePath != null) {
+      ideRootPath = ideHomePath.getParent();
+    }
+
+    if (!isTest()) {
+      String root = System.getenv("IDE_ROOT");
+      if (root != null) {
+        Path rootPath = Path.of(root);
+        if ((ideRootPath == null)) {
+          if (Files.isDirectory(rootPath)) {
+            ideRootPath = rootPath;
+          }
+        } else if (!ideRootPath.equals(rootPath)) {
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath, this.ideHome.getFileName(),
+              ideRootPath);
+        }
+      }
+    }
+    return ideRootPath;
   }
 
   @Override
@@ -277,6 +284,15 @@ public abstract class AbstractIdeContext implements IdeContext {
     return "You are not inside an IDE installation: " + this.cwd;
   }
 
+  private static String getMessageIdeRootNotFound() {
+    String root = System.getenv("IDE_ROOT");
+    if (root == null) {
+      return "The environment variable IDE_ROOT is undefined. Please reinstall IDEasy or manually repair IDE_ROOT variable.";
+    } else {
+      return "The environment variable IDE_ROOT is pointing to an invalid path " + root + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
+    }
+  }
+
   /**
    * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable initialization.
    */
@@ -304,7 +320,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     return false;
   }
 
-  private SystemPath computeSystemPath() {
+  protected SystemPath computeSystemPath() {
 
     return new SystemPath(this);
   }
@@ -336,7 +352,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private EnvironmentVariables createVariables() {
 
-    AbstractEnvironmentVariables system = EnvironmentVariables.ofSystem(this);
+    AbstractEnvironmentVariables system = createSystemVariables();
     AbstractEnvironmentVariables user = extendVariables(system, this.userHomeIde, EnvironmentVariablesType.USER);
     AbstractEnvironmentVariables settings = extendVariables(user, this.settingsPath, EnvironmentVariablesType.SETTINGS);
     // TODO should we keep this workspace properties? Was this feature ever used?
@@ -345,7 +361,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     return conf.resolved();
   }
 
-  private AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
+  protected AbstractEnvironmentVariables createSystemVariables() {
+
+    return EnvironmentVariables.ofSystem(this);
+  }
+
+  protected AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
 
     Path propertiesFile = null;
     if (propertiesPath == null) {
@@ -598,7 +619,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     boolean online = false;
     try {
       int timeout = 1000;
-      online = InetAddress.getByName("github.com").isReachable(timeout);
+      //open a connection to github.com and try to retrieve data
+      //getContent fails if there is no connection
+      URLConnection connection = new URL("https://www.github.com").openConnection();
+      connection.setConnectTimeout(timeout);
+      connection.getContent();
+      online = true;
+
     } catch (Exception ignored) {
 
     }
@@ -631,6 +658,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   /**
    * @return the {@link #getDefaultExecutionDirectory() default execution directory} in which a command process is executed.
    */
+  @Override
   public Path getDefaultExecutionDirectory() {
 
     return this.defaultExecutionDirectory;
@@ -826,10 +854,11 @@ public abstract class AbstractIdeContext implements IdeContext {
     assert (this.currentStep == null);
     boolean supressStepSuccess = false;
     StepImpl step = newStep(true, "ide", (Object[]) current.asArray());
+    Commandlet firstCandidate = null;
     try {
       if (!current.isEnd()) {
         String keyword = current.get();
-        Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
+        firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
         boolean matches;
         if (firstCandidate != null) {
           matches = applyAndRun(arguments.copy(), firstCandidate);
@@ -851,13 +880,18 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
         step.error("Invalid arguments: {}", current.getArgs());
       }
-      this.commandletManager.getCommandlet(HelpCommandlet.class).run();
+
+      HelpCommandlet help = this.commandletManager.getCommandlet(HelpCommandlet.class);
+      if (firstCandidate != null) {
+        help.commandlet.setValue(firstCandidate);
+      }
+      help.run();
       return 1;
     } catch (Throwable t) {
       step.error(t, true);
       throw t;
     } finally {
-      step.end();
+      step.close();
       assert (this.currentStep == null);
       step.logSummary(supressStepSuccess);
     }
@@ -871,6 +905,8 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
+    cmd.clearProperties();
+
     boolean matches = apply(arguments, cmd, null);
     if (matches) {
       matches = cmd.validate();
@@ -878,7 +914,14 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (matches) {
       debug("Running commandlet {}", cmd);
       if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
-        throw new CliException(getMessageIdeHomeNotFound());
+        throw new CliException(getMessageIdeHomeNotFound(), ProcessResult.NO_IDE_HOME);
+      } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
+        throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
+      }
+      if (!cmd.isProcessableOutput()) {
+        if (cmd.isIdeHomeRequired()) {
+          debug(getMessageIdeHomeFound());
+        }
       }
       cmd.run();
     } else {
@@ -967,6 +1010,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     return true;
   }
 
+  @Override
   public String findBash() {
 
     String bash = "bash";
@@ -1025,7 +1069,19 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
     // no bash found
-    throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
+    return null;
   }
 
+  @Override
+  public WindowsPathSyntax getPathSyntax() {
+    return this.pathSyntax;
+  }
+
+  /**
+   * @param pathSyntax new value of {@link #getPathSyntax()}.
+   */
+  public void setPathSyntax(WindowsPathSyntax pathSyntax) {
+
+    this.pathSyntax = pathSyntax;
+  }
 }
