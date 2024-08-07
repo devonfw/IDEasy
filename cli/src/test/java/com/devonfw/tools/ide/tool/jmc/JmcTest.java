@@ -42,7 +42,7 @@ public class JmcTest extends AbstractIdeContextTest {
     Jmc commandlet = new Jmc(context);
 
     // act
-    commandlet.install();
+    commandlet.install(null);
 
     // assert
     checkInstallation(context);

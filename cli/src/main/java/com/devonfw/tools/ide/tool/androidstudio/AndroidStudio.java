@@ -50,7 +50,7 @@ public class AndroidStudio extends IdeToolCommandlet {
 
     args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
 
-    install(true);
+    install(null, true);
     super.runTool(processMode, toolVersion, args);
 
   }
