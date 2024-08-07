@@ -1,6 +1,7 @@
-package com.devonfw.tools.ide.log;
+package com.devonfw.tools.ide.context;
 
-import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeTestLoggerAssertion;
 
 /**
  * Assertion for {@link IdeTestContext}.
@@ -25,7 +26,7 @@ public class IdeTestContextAssertion {
    */
   public IdeTestLoggerAssertion log(IdeLogLevel level) {
 
-    return new IdeTestLoggerAssertion(context.level(IdeLogLevel.INFO).getEntries(), level); // random level - all loggers share the same list of log entries
+    return new IdeTestLoggerAssertion(context.getLoggerFactory().getEntries(), level);
   }
 
   /**
