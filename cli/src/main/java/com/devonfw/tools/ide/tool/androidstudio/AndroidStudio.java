@@ -66,6 +66,15 @@ public class AndroidStudio extends IdeToolCommandlet {
 
   @Override
   public void installPlugin(PluginDescriptor plugin) {
-    // TODO: needs to be implemented see: https://github.com/devonfw/IDEasy/issues/433
+
+    AndroidStudioPluginInstaller pluginInstaller = this.getPluginInstaller();
+    String downloadUrl = pluginInstaller.getDownloadUrl(plugin);
+    pluginInstaller.installPlugin(plugin, downloadUrl);
   }
+
+  @Override
+  public AndroidStudioPluginInstaller getPluginInstaller() {
+    return new AndroidStudioPluginInstaller(context, this);
+  }
+
 }
