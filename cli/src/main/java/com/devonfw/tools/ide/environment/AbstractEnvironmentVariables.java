@@ -168,19 +168,19 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   /**
    * This method is called recursively. This allows you to resolve variables that are defined by other variables.
    *
-   * @param value the {@link String} that potentially contains variables in the syntax "${«variable«}". Those will be resolved by this method and replaced with
-   * their {@link #get(String) value}.
-   * @param source the source where the {@link String} to resolve originates from. Should have a reasonable {@link Object#toString() string representation} that
-   * will be used in error or log messages if a variable could not be resolved.
+   * @param value the {@link String} that potentially contains variables in the syntax "${«variable«}". Those will be resolved by this method and replaced
+   *     with their {@link #get(String) value}.
+   * @param source the source where the {@link String} to resolve originates from. Should have a reasonable {@link Object#toString() string representation}
+   *     that will be used in error or log messages if a variable could not be resolved.
    * @param recursion the current recursion level. This is used to interrupt endless recursion.
    * @param resolvedVars this is a reference to an object of {@link EnvironmentVariablesResolved} being the lowest level in the
-   * {@link EnvironmentVariablesType hierarchy} of variables. In case of a self-referencing variable {@code x} the resolving has to continue one level higher in
-   * the {@link EnvironmentVariablesType hierarchy} to avoid endless recursion. The {@link EnvironmentVariablesResolved} is then used if another variable
-   * {@code y} must be resolved, since resolving this variable has to again start at the lowest level. For example: For levels {@code l1, l2} with
-   * {@code l1 < l2} and {@code x=${x} foo} and {@code y=bar} defined at level {@code l1} and {@code x=test ${y}} defined at level {@code l2}, {@code x} is
-   * first resolved at level {@code l1} and then up the {@link EnvironmentVariablesType hierarchy} at {@code l2} to avoid endless recursion. However, {@code y}
-   * must be resolved starting from the lowest level in the {@link EnvironmentVariablesType hierarchy} and therefore {@link EnvironmentVariablesResolved} is
-   * used.
+   *     {@link EnvironmentVariablesType hierarchy} of variables. In case of a self-referencing variable {@code x} the resolving has to continue one level
+   *     higher in the {@link EnvironmentVariablesType hierarchy} to avoid endless recursion. The {@link EnvironmentVariablesResolved} is then used if another
+   *     variable {@code y} must be resolved, since resolving this variable has to again start at the lowest level. For example: For levels {@code l1, l2} with
+   *     {@code l1 < l2} and {@code x=${x} foo} and {@code y=bar} defined at level {@code l1} and {@code x=test ${y}} defined at level {@code l2}, {@code x} is
+   *     first resolved at level {@code l1} and then up the {@link EnvironmentVariablesType hierarchy} at {@code l2} to avoid endless recursion. However,
+   *     {@code y} must be resolved starting from the lowest level in the {@link EnvironmentVariablesType hierarchy} and therefore
+   *     {@link EnvironmentVariablesResolved} is used.
    * @param context the {@link ResolveContext}.
    * @return the given {@link String} with the variables resolved.
    */
@@ -268,7 +268,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    *
    * @param name the name of the variable to get.
    * @param ignoreDefaultValue - {@code true} if the {@link VariableDefinition#getDefaultValue(IdeContext) default value} of a potential
-   * {@link VariableDefinition} shall be ignored, {@code false} to return default instead of {@code null}.
+   *     {@link VariableDefinition} shall be ignored, {@code false} to return default instead of {@code null}.
    * @return the value of the variable.
    */
   protected String getValue(String name, boolean ignoreDefaultValue) {

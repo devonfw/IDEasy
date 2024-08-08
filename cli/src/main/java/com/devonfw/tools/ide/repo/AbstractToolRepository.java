@@ -151,7 +151,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
    * @param downloadFilename the filename of the download file.
    * @param resolvedVersion the resolved {@link VersionIdentifier} to download.
    * @return the actual {@link Path} where the file was downloaded to. Typically the given {@link Path} {@code target} but may also be a different file in
-   * edge-cases.
+   *     edge-cases.
    */
   protected Path download(String url, Path target, String downloadFilename, VersionIdentifier resolvedVersion) {
 

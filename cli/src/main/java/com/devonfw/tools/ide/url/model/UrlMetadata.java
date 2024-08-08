@@ -97,8 +97,8 @@ public class UrlMetadata {
   /**
    * @param tool the name of the {@link UrlTool}.
    * @param edition the name of the {@link UrlEdition}.
-   * @param version the {@link VersionIdentifier} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for the
-   * latest version.
+   * @param version the {@link VersionIdentifier} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for
+   *     the latest version.
    * @return the latest matching {@link VersionIdentifier} for the given {@code tool} and {@code edition}.
    */
   public VersionIdentifier getVersion(String tool, String edition, VersionIdentifier version) {
@@ -124,8 +124,8 @@ public class UrlMetadata {
   /**
    * @param tool the name of the {@link UrlTool}.
    * @param edition the name of the {@link UrlEdition}.
-   * @param version the {@link VersionIdentifier} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for the
-   * latest version.
+   * @param version the {@link VersionIdentifier} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for
+   *     the latest version.
    * @return the latest matching {@link UrlVersion} for the given {@code tool} and {@code edition}.
    */
   public UrlVersion getVersionFolder(String tool, String edition, VersionIdentifier version) {

@@ -22,7 +22,7 @@ import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link ToolCommandlet} that is installed locally into the IDE.
+ * {@link ToolCommandlet} that is installed locally into the IDEasy.
  */
 public abstract class LocalToolCommandlet extends ToolCommandlet {
 
@@ -113,8 +113,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   /**
    * Determines whether this tool should be installed directly in the software folder or in the software repository.
    *
-   * @return {@code true} if the tool should be installed directly in the software folder, ignoring the central software repository; {@code false} if
-   * the tool should be installed in the central software repository (default behavior).
+   * @return {@code true} if the tool should be installed directly in the software folder, ignoring the central software repository; {@code false} if the tool
+   *     should be installed in the central software repository (default behavior).
    */
   protected boolean isIgnoreSoftwareRepo() {
 
@@ -256,8 +256,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent directory of the real path corresponding to
-   * the passed {@link Path path} must be the name of the edition.
+   * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent directory of the real path corresponding
+   *     to the passed {@link Path path} must be the name of the edition.
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   public String getInstalledEdition(Path toolPath) {

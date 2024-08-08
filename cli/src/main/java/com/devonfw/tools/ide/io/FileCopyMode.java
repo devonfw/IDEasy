@@ -31,7 +31,7 @@ public enum FileCopyMode {
 
   /**
    * @return {@code true} if only a single file shall be copied. Will fail if a directory is given to copy, {@code false} otherwise (to copy folders
-   * recursively).
+   *     recursively).
    */
   public boolean isFileOnly() {
 

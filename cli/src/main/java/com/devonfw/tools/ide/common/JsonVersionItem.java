@@ -5,6 +5,9 @@ package com.devonfw.tools.ide.common;
  */
 public interface JsonVersionItem {
 
+  /**
+   * @return the {@link com.devonfw.tools.ide.version.VersionIdentifier version}.
+   */
   String version();
 
 }

@@ -20,8 +20,8 @@ public interface GitContext {
    *
    * @param repoUrl the git remote URL to clone from.
    * @param branch the explicit name of the branch to checkout e.g. "main" or {@code null} to use the default branch.
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
    * @throws CliOfflineException if offline and cloning is needed.
    */
   void pullOrCloneIfNeeded(String repoUrl, String branch, Path targetRepository);
@@ -30,8 +30,8 @@ public interface GitContext {
    * Attempts a git pull and reset if required.
    *
    * @param repoUrl the git remote URL to clone from.
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
    * @throws CliOfflineException if offline and cloning is needed.
    */
   default void pullOrCloneAndResetIfNeeded(String repoUrl, Path targetRepository) {
@@ -43,8 +43,8 @@ public interface GitContext {
    * Attempts a git pull and reset if required.
    *
    * @param repoUrl the git remote URL to clone from.
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
    * @param branch the explicit name of the branch to checkout e.g. "main" or {@code null} to use the default branch.
    * @throws CliOfflineException if offline and cloning is needed.
    */
@@ -57,8 +57,8 @@ public interface GitContext {
    * Attempts a git pull and reset if required.
    *
    * @param repoUrl the git remote URL to clone from.
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
    * @param branch the explicit name of the branch to checkout e.g. "main" or {@code null} to use the default branch.
    * @param remoteName the remote name e.g. origin.
    * @throws CliOfflineException if offline and cloning is needed.
@@ -69,8 +69,8 @@ public interface GitContext {
    * Runs a git pull or a git clone.
    *
    * @param gitRepoUrl the git remote URL to clone from.
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
    * @throws CliOfflineException if offline and cloning is needed.
    */
   void pullOrClone(String gitRepoUrl, Path targetRepository);
@@ -80,8 +80,8 @@ public interface GitContext {
    *
    * @param gitRepoUrl the git remote URL to clone from.
    * @param branch the explicit name of the branch to checkout e.g. "main" or {@code null} to use the default branch.
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
    * @throws CliOfflineException if offline and cloning is needed.
    */
   void pullOrClone(String gitRepoUrl, String branch, Path targetRepository);
@@ -90,8 +90,8 @@ public interface GitContext {
    * Runs a git clone.
    *
    * @param gitRepoUrl the {@link GitUrl} to use for the repository URL.
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
    * @throws CliOfflineException if offline and cloning is needed.
    */
   void clone(GitUrl gitRepoUrl, Path targetRepository);
@@ -99,16 +99,16 @@ public interface GitContext {
   /**
    * Runs a git pull.
    *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
    */
   void pull(Path targetRepository);
 
   /**
    * Runs a git diff-index to detect local changes and if so reverts them via git reset.
    *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
    */
   default void reset(Path targetRepository) {
 
@@ -118,8 +118,8 @@ public interface GitContext {
   /**
    * Runs a git diff-index to detect local changes and if so reverts them via git reset.
    *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
    * @param branch the explicit name of the branch to checkout e.g. "main" or {@code null} to use the default branch.
    */
   default void reset(Path targetRepository, String branch) {
@@ -130,8 +130,8 @@ public interface GitContext {
   /**
    * Runs a git reset reverting all local changes to the git repository.
    *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
    * @param branch the explicit name of the branch to checkout e.g. "main" or {@code null} to use the default branch.
    * @param remoteName the name of the git remote e.g. "origin".
    */
@@ -140,8 +140,8 @@ public interface GitContext {
   /**
    * Runs a git cleanup if untracked files were found.
    *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
    */
   void cleanup(Path targetRepository);
 

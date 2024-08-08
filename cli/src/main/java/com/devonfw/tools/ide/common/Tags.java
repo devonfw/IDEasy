@@ -9,7 +9,7 @@ public interface Tags {
 
   /**
    * @return a {@link Set} with the tags classifying this object. E.g. for mvn (maven) the tags {@link Tag#JAVA java} and {@link Tag#BUILD build} could be
-   * associated.
+   *     associated.
    */
   Set<Tag> getTags();
 

@@ -29,7 +29,7 @@ public interface ToolRepository {
    * @param edition the edition of the tool to download.
    * @param version the {@link VersionIdentifier} to download.
    * @return the resolved {@link VersionIdentifier}. If the given {@link VersionIdentifier} is NOT a {@link VersionIdentifier#isPattern() pattern} this method
-   * will always just return the given {@link VersionIdentifier}.
+   *     will always just return the given {@link VersionIdentifier}.
    */
   VersionIdentifier resolveVersion(String tool, String edition, VersionIdentifier version);
 
