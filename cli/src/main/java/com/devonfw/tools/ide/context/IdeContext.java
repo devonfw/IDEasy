@@ -475,7 +475,7 @@ public interface IdeContext extends IdeLogger {
   }
 
   /**
-   * @return the String value for the variable M2_REPO, or null if called outside an IDEasy installation.
+   * @return the String value for the variable M2_REPO, or falls back to the default USER_HOME/.m2 location if called outside an IDEasy installation.
    */
   default Path getMavenRepository() {
 
@@ -486,6 +486,9 @@ public interface IdeContext extends IdeLogger {
         Path m2LegacyFolder = confPath.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
         if (Files.isDirectory(m2LegacyFolder)) {
           m2Folder = m2LegacyFolder;
+        } else {
+          // fallback to USER_HOME/.m2 folder
+          m2Folder = getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
         }
       }
       return m2Folder.resolve("repository");
