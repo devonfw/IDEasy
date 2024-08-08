@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.PluginProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
+import com.devonfw.tools.ide.tool.PluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
@@ -39,7 +40,15 @@ public class UninstallPluginCommandlet extends Commandlet {
 
   @Override
   public void run() {
-    throw new UnsupportedOperationException("Not yet implemented");
+    ToolCommandlet commandlet = this.tool.getValue();
+    String plugin = this.plugin.getValue();
+
+    if (commandlet instanceof PluginBasedCommandlet) {
+      PluginBasedCommandlet cmd = (PluginBasedCommandlet) commandlet;
+      cmd.uninstallPlugin(cmd.getPlugin(plugin));
+    } else {
+      context.warning("Tool {} does not support plugins.", tool.getName());
+    }
   }
 
 }
