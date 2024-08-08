@@ -226,8 +226,8 @@ public abstract class AbstractIdeContext implements IdeContext {
             ideRootPath = rootPath;
           }
         } else if (!ideRootPath.equals(rootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath, this.ideHome.getFileName(),
-              ideRootPath);
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath,
+              (this.ideHome == null) ? "undefined" : this.ideHome.getFileName(), ideRootPath);
         }
       }
     }
