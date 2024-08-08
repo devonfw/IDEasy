@@ -320,7 +320,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     return false;
   }
 
-  private SystemPath computeSystemPath() {
+  protected SystemPath computeSystemPath() {
 
     return new SystemPath(this);
   }
@@ -352,7 +352,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private EnvironmentVariables createVariables() {
 
-    AbstractEnvironmentVariables system = EnvironmentVariables.ofSystem(this);
+    AbstractEnvironmentVariables system = createSystemVariables();
     AbstractEnvironmentVariables user = extendVariables(system, this.userHomeIde, EnvironmentVariablesType.USER);
     AbstractEnvironmentVariables settings = extendVariables(user, this.settingsPath, EnvironmentVariablesType.SETTINGS);
     // TODO should we keep this workspace properties? Was this feature ever used?
@@ -361,7 +361,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     return conf.resolved();
   }
 
-  private AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
+  protected AbstractEnvironmentVariables createSystemVariables() {
+
+    return EnvironmentVariables.ofSystem(this);
+  }
+
+  protected AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
 
     Path propertiesFile = null;
     if (propertiesPath == null) {
