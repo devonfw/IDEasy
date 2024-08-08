@@ -11,7 +11,6 @@ import org.slf4j.LoggerFactory;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudioUrlUpdater;
 import com.devonfw.tools.ide.tool.aws.AwsUrlUpdater;
 import com.devonfw.tools.ide.tool.az.AzureUrlUpdater;
-import com.devonfw.tools.ide.tool.cobigen.CobigenUrlUpdater;
 import com.devonfw.tools.ide.tool.docker.DockerDesktopUrlUpdater;
 import com.devonfw.tools.ide.tool.docker.DockerRancherDesktopUrlUpdater;
 import com.devonfw.tools.ide.tool.dotnet.DotNetUrlUpdater;
@@ -60,7 +59,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
   private final UrlRepository urlRepository;
 
   private final List<AbstractUrlUpdater> updaters = Arrays.asList(new AndroidStudioUrlUpdater(), new AwsUrlUpdater(),
-      new AzureUrlUpdater(), new CobigenUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
+      new AzureUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
       new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),

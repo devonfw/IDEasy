@@ -34,7 +34,6 @@ The column `inclusion` indicates the way the component is included:
 |https://code.visualstudio.com/[VS Code] |Optional| https://github.com/Microsoft/vscode/blob/master/LICENSE.txt[MIT] (https://code.visualstudio.com/License/[Terms])
 |https://github.com/devonfw/extension-pack-vscode[extension-pack-vscode] |Optional|https://github.com/devonfw/extension-pack-vscode/blob/master/LICENSE[ASL 2.0]
 |https://www.eclipse.org/[Eclipse] |Optional|https://www.eclipse.org/legal/epl-2.0/[EPL 2.0]
-|https://github.com/devonfw/cobigen[CobiGen] |Optional|https://github.com/devonfw/cobigen/blob/master/LICENSE.txt[ASL 2.0]
 |https://marketplace.eclipse.org/content/tm-terminal[TM Terminal] |Optional|https://www.eclipse.org/legal/epl-2.0/[EPL 2.0] (see https://marketplace.eclipse.org/content/tm-terminal[here])
 |https://github.com/iloveeclipse/anyedittools/[AnyEdit] |Optional|https://github.com/iloveeclipse/anyedittools/blob/master/LICENSE.md[EPL 1.0]
 |https://checkstyle.org/eclipse-cs/[EclipseCS] |Optional|https://github.com/checkstyle/eclipse-cs/blob/master/LICENSE[LGPL 2.1]

@@ -41,7 +41,7 @@ public class MavenMetadata {
   }
 
   /**
-   * @return the maven groupId (e.g. "com.devonfw.cobigen").
+   * @return the maven groupId.
    */
   @JsonProperty(GROUP_ID)
   public String getGroupId() {
@@ -59,7 +59,7 @@ public class MavenMetadata {
   }
 
   /**
-   * @return the maven artifactId (e.g. "cobigen-cli").
+   * @return the maven artifactId.
    */
   @JsonProperty(ARTIFACT_ID)
   public String getArtifactId() {
