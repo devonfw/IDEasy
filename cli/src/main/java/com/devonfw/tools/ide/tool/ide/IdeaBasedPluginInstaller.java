@@ -46,7 +46,7 @@ public class IdeaBasedPluginInstaller extends PluginInstaller {
     if (context.getSystemInfo().isMac()) {
       MacOsHelper macOsHelper = new MacOsHelper(context);
       Path rootToolPath = macOsHelper.findRootToolPath(this.commandlet, context);
-      buildFile = rootToolPath.resolve(getMacToolApp()).resolve("Contents/Resources").resolve(BUILD_FILE);
+      buildFile = rootToolPath.resolve(this.commandlet.getMacToolApp()).resolve("Contents/Resources").resolve(BUILD_FILE);
     }
     try {
       return Files.readString(buildFile);
@@ -55,7 +55,4 @@ public class IdeaBasedPluginInstaller extends PluginInstaller {
     }
   }
 
-  public String getMacToolApp() {
-    throw new IllegalStateException();
-  }
 }

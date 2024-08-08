@@ -9,6 +9,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.tool.ide.IdeaBasedPluginInstaller;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -73,14 +74,18 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    IntellijPluginInstaller pluginInstaller = this.getPluginInstaller();
+    IdeaBasedPluginInstaller pluginInstaller = new IdeaBasedPluginInstaller(context, this);
     String downloadUrl = pluginInstaller.getDownloadUrl(plugin);
     pluginInstaller.installPlugin(plugin, downloadUrl);
   }
 
   @Override
-  public IntellijPluginInstaller getPluginInstaller() {
-    return new IntellijPluginInstaller(context, this);
-  }
+  public String getMacToolApp() {
 
+    String edition = "";
+    if (this.getConfiguredEdition().equals("intellij")) {
+      edition = " CE";
+    }
+    return "IntelliJ IDEA" + edition + ".app";
+  }
 }
