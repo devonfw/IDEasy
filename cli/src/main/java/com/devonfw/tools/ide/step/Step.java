@@ -50,7 +50,7 @@ public interface Step extends AutoCloseable {
 
   /**
    * @return {@code Boolean#TRUE} if this {@link Step} has {@link #success() succeeded}, {@code Boolean#FALSE} if the {@link Step} has {@link #close() ended}
-   * without {@link #success() success} and {@code null} if the {@link Step} is still running.
+   *     without {@link #success() success} and {@code null} if the {@link Step} is still running.
    */
   Boolean getSuccess();
 
@@ -64,7 +64,7 @@ public interface Step extends AutoCloseable {
 
   /**
    * @return {@code true} if this step {@link #close() ended} without {@link #success() success} e.g. with an {@link #error(String) error}, {@code false}
-   * otherwise.
+   *     otherwise.
    */
   default boolean isFailure() {
 
@@ -197,7 +197,7 @@ public interface Step extends AutoCloseable {
 
   /**
    * @param i the index of the requested parameter. Should be in the range from {@code 0} to
-   * <code>{@link #getParameterCount()}-1</code>.
+   *     <code>{@link #getParameterCount()}-1</code>.
    * @return the parameter at the given index {@code i} or {@code null} if no such parameter exists.
    */
   Object getParameter(int i);

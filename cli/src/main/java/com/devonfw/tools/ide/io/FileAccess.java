@@ -22,7 +22,8 @@ public interface FileAccess {
    * Downloads a file from an arbitrary location.
    *
    * @param url the location of the binary file to download. May also be a local or remote path to copy from.
-   * @param targetFile the {@link Path} to the target file to download to. Should not already exists. Missing parent directories will be created automatically.
+   * @param targetFile the {@link Path} to the target file to download to. Should not already exists. Missing parent directories will be created
+   *     automatically.
    */
   void download(String url, Path targetFile);
 
@@ -36,7 +37,7 @@ public interface FileAccess {
   /**
    * @param file the {@link Path} to check.
    * @return {@code true} if the given {@code file} points to an existing file, {@code false} otherwise (the given {@link Path} does not exist or is a
-   * directory).
+   *     directory).
    */
   boolean isFile(Path file);
 
@@ -91,8 +92,8 @@ public interface FileAccess {
 
   /**
    * @param source the source {@link Path file or folder} to copy.
-   * @param target the {@link Path} to copy {@code source} to. See {@link #copy(Path, Path, FileCopyMode)} for details. will always ensure that in the end you
-   * will find the same content of {@code source} in {@code target}.
+   * @param target the {@link Path} to copy {@code source} to. See {@link #copy(Path, Path, FileCopyMode)} for details. will always ensure that in the end
+   *     you will find the same content of {@code source} in {@code target}.
    */
   default void copy(Path source, Path target) {
 
@@ -101,13 +102,13 @@ public interface FileAccess {
 
   /**
    * @param source the source {@link Path file or folder} to copy.
-   * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not take the filename of {@code source} and
-   * copy that to {@code target} in case that is an existing folder. Instead it will always be simple and stupid and just copy from {@code source} to
-   * {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
-   * {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find the
-   * same content of {@code source} in {@code target}.
+   * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not take the filename of {@code source}
+   *     and copy that to {@code target} in case that is an existing folder. Instead it will always be simple and stupid and just copy from {@code source} to
+   *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
+   *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
+   *     the same content of {@code source} in {@code target}.
    * @param fileOnly - {@code true} if {@code fileOrFolder} is expected to be a file and an exception shall be thrown if it is a directory, {@code false}
-   * otherwise (copy recursively).
+   *     otherwise (copy recursively).
    */
   void copy(Path source, Path target, FileCopyMode fileOnly);
 
@@ -222,7 +223,7 @@ public interface FileAccess {
    * @param dir the {@link Path} to the directory where to list the children.
    * @param filter the {@link Predicate} used to {@link Predicate#test(Object) decide} which children to include (if {@code true} is returned).
    * @return all children of the given {@link Path} that match the given {@link Predicate}. Will be the empty list of the given {@link Path} is not an existing
-   * directory.
+   *     directory.
    */
   List<Path> listChildren(Path dir, Predicate<Path> filter);
 

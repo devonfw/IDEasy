@@ -5,8 +5,9 @@ import java.nio.file.Path;
 /**
  * {@link Record} for the {@link EnvironmentVariables#getSource() source} of {@link EnvironmentVariables} or {@link VariableLine}.
  *
- * @param type
- * @param properties
+ * @param type the {@link EnvironmentVariablesType}.
+ * @param properties the optional {@link Path} to the properties file in case the {@link EnvironmentVariables#getSource() source} is from a properties
+ *     file.
  */
 public record VariableSource(EnvironmentVariablesType type, Path properties) {
 
