@@ -92,8 +92,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
    * @param processMode see {@link ProcessMode}
-   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version is installed and use that one. Otherwise,
-   * the specified version will be installed in the software repository without touching and IDE installation and used to run.
+   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version is installed and use that one.
+   *     Otherwise, the specified version will be installed in the software repository without touching and IDE installation and used to run.
    * @param args the command-line arguments to run the tool.
    */
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
