@@ -11,12 +11,7 @@ if [ $# != 0 ]; then
   fi
 fi
 
-ide_env=
-if [ "${OSTYPE}" = "cygwin" ] || [ "${OSTYPE}" = "msys" ]; then
-  ide_env="$("${_IDEASY}" env --bash)"
-else
-  ide_env="$("${_IDEASY}" env)"
-fi
+ide_env="$("${_IDEASY}" env --bash)"
 if [ $? = 0 ]; then
   eval "${ide_env}"
   if [ $# = 0 ]; then

@@ -9,13 +9,12 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  *
  * @param rootDir the top-level installation directory where the tool software package has been extracted to.
  * @param linkDir the installation directory to link to the software folder inside IDE_HOME. Typically the same as {@code rootDir} but may differ (e.g. for
- * MacOS applications).
+ *     MacOS applications).
  * @param binDir the {@link Path} relative to {@code linkDir} pointing to the directory containing the binaries that should be put on the path (typically
- * "bin").
+ *     "bin").
  * @param resolvedVersion the {@link VersionIdentifier} of the resolved tool version installed in {@code rootDir}.
  * @param newInstallation {@code true} - if the tool should be installed newly, {@code true} - else
  */
-public record ToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier resolvedVersion,
-                               boolean newInstallation) {
+public record ToolInstallation(Path rootDir, Path linkDir, Path binDir, VersionIdentifier resolvedVersion, boolean newInstallation) {
 
 }

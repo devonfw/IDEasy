@@ -52,9 +52,9 @@ public class StepTest extends AbstractIdeContextTest {
     assertThat(step.getParameter(1)).isEqualTo("arg2");
     assertThat(step.getParameter(2)).isNull();
     assertThat(context).log().hasEntries(IdeLogEntry.ofTrace("Starting step Test-Step with params [arg1, arg2]..."),
-        IdeLogEntry.ofStep("Start: Test-Step"),
-        IdeLogEntry.ofSuccess("Test-Step"),
         IdeLogEntry.ofDebug("Step 'Test-Step' ended successfully."));
+    assertThat(context).log().hasNoMessage("Start: Test-Step");
+    assertThat(context).log().hasNoMessage("Test-Step");
   }
 
   @Test

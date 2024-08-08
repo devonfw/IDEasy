@@ -41,9 +41,9 @@ public abstract class VariableLine {
   }
 
   /**
-   * @return the source of the variable.
+   * @return the {@link VariableSource} of the variable.
    */
-  public String getSource() {
+  public VariableSource getSource() {
 
     return null;
   }
@@ -85,14 +85,14 @@ public abstract class VariableLine {
 
     private final String line;
 
-    private final Object source;
+    private final VariableSource source;
 
     Variable(boolean export, String name, String value) {
 
       this(export, name, value, null, null);
     }
 
-    private Variable(boolean export, String name, String value, String line, Object source) {
+    private Variable(boolean export, String name, String value, String line, VariableSource source) {
 
       super();
       this.export = export;
@@ -132,8 +132,8 @@ public abstract class VariableLine {
     }
 
     @Override
-    public String getSource() {
-      return source.toString();
+    public VariableSource getSource() {
+      return source;
     }
 
     @Override
@@ -239,7 +239,7 @@ public abstract class VariableLine {
    * @param source the source where the given {@link String} to parse is from (e.g. the file path).
    * @return the parsed {@link VariableLine}.
    */
-  public static VariableLine of(String line, IdeLogger logger, Object source) {
+  public static VariableLine of(String line, IdeLogger logger, VariableSource source) {
 
     int len = line.length();
     int start = 0;
@@ -311,7 +311,7 @@ public abstract class VariableLine {
    * @param source the {@link #getSource() source} of the variable.
    * @return the {@link VariableLine} for the given values.
    */
-  public static VariableLine of(boolean export, String name, String value, Object source) {
+  public static VariableLine of(boolean export, String name, String value, VariableSource source) {
 
     return new Variable(export, name, value, null, source);
   }
