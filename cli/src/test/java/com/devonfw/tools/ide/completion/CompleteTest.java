@@ -28,7 +28,7 @@ public class CompleteTest extends Assertions {
     AbstractIdeContext context = IdeTestContextMock.get();
     CliArguments args = CliArguments.ofCompletion("");
     args.next();
-    List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions);
+    List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions, true);
     // act
     List<CompletionCandidate> candidates = context.complete(args, includeContextOptions);
     // assert
@@ -45,7 +45,7 @@ public class CompleteTest extends Assertions {
     AbstractIdeContext context = IdeTestContextMock.get();
     CliArguments args = CliArguments.ofCompletion("");
     args.next();
-    List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions);
+    List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions, true);
     // act
     List<CompletionCandidate> candidates = context.complete(args, includeContextOptions);
     // assert
@@ -100,9 +100,7 @@ public class CompleteTest extends Assertions {
     // arrange
     AbstractIdeContext context = IdeTestContextMock.get();
     CliArguments args = CliArguments.ofCompletion("help", "");
-    List<String> expectedCandidates = getExpectedCandidates(context, true, false);
-    // TODO: fix the hacky workaround, see: https://github.com/devonfw/IDEasy/issues/188
-    expectedCandidates.remove("-v"); // hackish solution, improve me please
+    List<String> expectedCandidates = getExpectedCandidates(context, true, false, false);
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
@@ -124,7 +122,7 @@ public class CompleteTest extends Assertions {
   }
 
   private static List<String> getExpectedCandidates(AbstractIdeContext context, boolean commandlets,
-      boolean ctxOptions) {
+      boolean ctxOptions, boolean addVersionAlias) {
 
     List<String> expectedCandidates = new ArrayList<>();
     if (ctxOptions) {
@@ -141,7 +139,9 @@ public class CompleteTest extends Assertions {
       for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
         expectedCandidates.add(cmd.getName());
       }
-      expectedCandidates.add("-v"); // alias for VersionCommandlet (--version)
+      if (addVersionAlias) {
+        expectedCandidates.add("-v"); // alias for VersionCommandlet (--version)
+      }
     }
     Collections.sort(expectedCandidates);
     return expectedCandidates;
