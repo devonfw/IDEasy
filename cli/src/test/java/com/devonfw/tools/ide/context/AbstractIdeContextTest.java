@@ -5,15 +5,12 @@ import java.nio.file.Path;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
-import org.assertj.core.api.Condition;
-import org.assertj.core.api.ListAssert;
 
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.repo.ToolRepositoryMock;
 
 /**
@@ -67,6 +64,20 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
 
+    return newContext(testProject, projectPath, copyForMutation, IdeLogLevel.TRACE);
+  }
+
+  /**
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}. E.g.
+   * "basic".
+   * @param projectPath the relative path inside the test project where to create the context.
+   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test, {@code false} otherwise (only to save resources if
+   * you are 100% sure that your test never modifies anything in that project.)
+   * @param logLevel the {@link IdeLogLevel} used as threshold for logging.
+   * @return the {@link IdeTestContext} pointing to that project.
+   */
+  protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation, IdeLogLevel logLevel) {
+
     Path ideRoot = TEST_PROJECTS.resolve(testProject);
     if (copyForMutation) {
       Path ideRootCopy = TEST_PROJECTS_COPY.resolve(testProject);
@@ -85,7 +96,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(repositoryFolder);
     }
-    IdeTestContext context = new IdeTestContext(userDir, toolRepository);
+    IdeTestContext context = new IdeTestContext(userDir, toolRepository, logLevel);
     if (toolRepository != null) {
       toolRepository.setContext(context);
     }
@@ -119,72 +130,9 @@ public abstract class AbstractIdeContextTest extends Assertions {
     return context;
   }
 
-  /**
-   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
-   * @param level the expected {@link IdeLogLevel}.
-   * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
-   */
-  protected static void assertLogMessage(IdeTestContext context, IdeLogLevel level, String message) {
+  protected static IdeTestContextAssertion assertThat(IdeTestContext context) {
 
-    assertLogMessage(context, level, message, false);
-  }
-
-  /**
-   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
-   * @param level the expected {@link IdeLogLevel}.
-   * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
-   * @param contains - {@code true} if the given {@code message} may only be a sub-string of the log-message to assert, {@code false} otherwise (the entire log
-   * message including potential parameters being filled in is asserted).
-   */
-  protected static void assertLogMessage(IdeTestContext context, IdeLogLevel level, String message, boolean contains) {
-
-    IdeTestLogger logger = context.level(level);
-    ListAssert<String> assertion = assertThat(logger.getMessages()).as(level.name() + "-Log messages");
-    if (contains) {
-      Condition<String> condition = new Condition<>() {
-        public boolean matches(String e) {
-
-          return e.contains(message);
-        }
-      };
-      assertion.filteredOn(condition).isNotEmpty();
-    } else {
-      assertion.contains(message);
-    }
-  }
-
-  /**
-   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
-   * @param level the expected {@link IdeLogLevel}.
-   * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that should not have been logged.
-   */
-  protected static void assertNoLogMessage(IdeTestContext context, IdeLogLevel level, String message) {
-
-    assertNoLogMessage(context, level, message, false);
-  }
-
-  /**
-   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
-   * @param level the expected {@link IdeLogLevel}.
-   * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that should not have been logged.
-   * @param contains - {@code true} if the given {@code message} may only be a sub-string of the log-message to assert, {@code false} otherwise (the entire log
-   * message including potential parameters being filled in is asserted).
-   */
-  protected static void assertNoLogMessage(IdeTestContext context, IdeLogLevel level, String message, boolean contains) {
-
-    IdeTestLogger logger = context.level(level);
-    ListAssert<String> assertion = assertThat(logger.getMessages()).as(level.name() + "-Log messages");
-    if (contains) {
-      Condition<String> condition = new Condition<>() {
-        public boolean matches(String e) {
-
-          return e.contains(message);
-        }
-      };
-      assertion.filteredOn(condition).isEmpty();
-    } else {
-      assertion.doesNotContain(message);
-    }
+    return new IdeTestContextAssertion(context);
   }
 
   /**

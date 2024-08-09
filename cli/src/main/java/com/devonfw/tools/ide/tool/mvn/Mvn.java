@@ -76,42 +76,13 @@ public class Mvn extends PluginBasedCommandlet {
   public void postInstall() {
 
     // locate templates...
-    boolean legacy = false;
-    boolean hasMvnTemplates = true;
-    Path settingsFolder = this.context.getSettingsPath();
-    Path templatesFolder = settingsFolder.resolve(IdeContext.FOLDER_TEMPLATES);
-    if (!Files.isDirectory(templatesFolder)) {
-      Path templatesFolderLegacy = settingsFolder.resolve(IdeContext.FOLDER_LEGACY_TEMPLATES);
-      if (Files.isDirectory(templatesFolderLegacy)) {
-        templatesFolder = templatesFolderLegacy;
-      } else {
-        this.context.warning("No maven templates found. Neither in {} nor in {} - configuration broken",
-            templatesFolder, templatesFolderLegacy);
-        hasMvnTemplates = false;
-      }
-    }
-    Path templatesConfFolder = templatesFolder.resolve(IdeContext.FOLDER_CONF);
-    Path templatesConfMvnFolder = templatesConfFolder.resolve(MVN_CONFIG_FOLDER);
-    if (hasMvnTemplates) {
-      if (!Files.isDirectory(templatesConfMvnFolder)) {
-        Path templatesConfMvnLegacyFolder = templatesConfFolder.resolve(MVN_CONFIG_LEGACY_FOLDER);
-        if (Files.isDirectory(templatesConfMvnLegacyFolder)) {
-          templatesConfMvnFolder = templatesConfMvnLegacyFolder;
-          legacy = true;
-        } else {
-          this.context.warning("No maven templates found. Neither in {} nor in {} - configuration broken", templatesConfMvnFolder,
-              templatesConfMvnLegacyFolder);
-          hasMvnTemplates = false;
-        }
-      }
+    Path templatesConfMvnFolder = getMavenTemplatesFolder();
+    if (templatesConfMvnFolder == null) {
+      return;
     }
     // locate real config...
-    Path confPath = this.context.getConfPath();
-    Path mvnConfigPath = confPath.resolve(MVN_CONFIG_FOLDER);
-    if (!Files.isDirectory(mvnConfigPath) && legacy) {
-      mvnConfigPath = confPath.resolve(MVN_CONFIG_LEGACY_FOLDER);
-    }
-    this.context.getFileAccess().mkdirs(mvnConfigPath);
+    boolean legacy = templatesConfMvnFolder.getFileName().toString().equals(MVN_CONFIG_LEGACY_FOLDER);
+    Path mvnConfigPath = getMavenConfFolder(legacy);
 
     Path settingsSecurityFile = mvnConfigPath.resolve(SETTINGS_SECURITY_FILE);
     createSettingsSecurityFile(settingsSecurityFile);
@@ -229,5 +200,43 @@ public class Mvn extends PluginBasedCommandlet {
   public String getToolHelpArguments() {
 
     return "-h";
+  }
+
+  public Path getMavenTemplatesFolder() {
+
+    Path templatesFolder = this.context.getSettingsTemplatePath();
+    if (templatesFolder == null) {
+      return null;
+    }
+    Path templatesConfFolder = templatesFolder.resolve(IdeContext.FOLDER_CONF);
+    Path templatesConfMvnFolder = templatesConfFolder.resolve(MVN_CONFIG_FOLDER);
+    if (!Files.isDirectory(templatesConfMvnFolder)) {
+      Path templatesConfMvnLegacyFolder = templatesConfFolder.resolve(MVN_CONFIG_LEGACY_FOLDER);
+      if (!Files.isDirectory(templatesConfMvnLegacyFolder)) {
+        this.context.warning("No maven templates found neither in {} nor in {} - configuration broken", templatesConfMvnFolder,
+            templatesConfMvnLegacyFolder);
+        return null;
+      }
+      templatesConfMvnFolder = templatesConfMvnLegacyFolder;
+    }
+    return templatesConfMvnFolder;
+  }
+
+  public Path getMavenConfFolder(boolean legacy) {
+
+    Path confPath = this.context.getConfPath();
+    Path mvnConfigFolder = confPath.resolve(MVN_CONFIG_FOLDER);
+    if (!Files.isDirectory(mvnConfigFolder)) {
+      Path mvnConfigLegacyFolder = confPath.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
+      if (Files.isDirectory(mvnConfigLegacyFolder)) {
+        mvnConfigFolder = mvnConfigLegacyFolder;
+      } else {
+        if (legacy) {
+          mvnConfigFolder = mvnConfigLegacyFolder;
+        }
+        this.context.getFileAccess().mkdirs(mvnConfigFolder);
+      }
+    }
+    return mvnConfigFolder;
   }
 }

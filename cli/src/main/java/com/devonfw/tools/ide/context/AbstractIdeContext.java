@@ -140,8 +140,8 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will be
-   * used.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
+   *     be used.
    */
   public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository) {
 
@@ -165,7 +165,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
-        if (FOLDER_WORKSPACES.equals(name1)) {
+        if (FOLDER_WORKSPACES.equals(name1) && !name2.isEmpty()) {
           workspace = name2;
         }
         break;
@@ -226,8 +226,8 @@ public abstract class AbstractIdeContext implements IdeContext {
             ideRootPath = rootPath;
           }
         } else if (!ideRootPath.equals(rootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath, this.ideHome.getFileName(),
-              ideRootPath);
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath,
+              (this.ideHome == null) ? "undefined" : this.ideHome.getFileName(), ideRootPath);
         }
       }
     }
@@ -320,7 +320,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     return false;
   }
 
-  private SystemPath computeSystemPath() {
+  protected SystemPath computeSystemPath() {
 
     return new SystemPath(this);
   }
@@ -352,7 +352,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private EnvironmentVariables createVariables() {
 
-    AbstractEnvironmentVariables system = EnvironmentVariables.ofSystem(this);
+    AbstractEnvironmentVariables system = createSystemVariables();
     AbstractEnvironmentVariables user = extendVariables(system, this.userHomeIde, EnvironmentVariablesType.USER);
     AbstractEnvironmentVariables settings = extendVariables(user, this.settingsPath, EnvironmentVariablesType.SETTINGS);
     // TODO should we keep this workspace properties? Was this feature ever used?
@@ -361,7 +361,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     return conf.resolved();
   }
 
-  private AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
+  protected AbstractEnvironmentVariables createSystemVariables() {
+
+    return EnvironmentVariables.ofSystem(this);
+  }
+
+  protected AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
 
     Path propertiesFile = null;
     if (propertiesPath == null) {
@@ -894,9 +899,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
-   * {@link Commandlet#run() run}.
+   *     {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
-   * {@link Commandlet} did not match and we have to try a different candidate).
+   *     {@link Commandlet} did not match and we have to try a different candidate).
    */
   private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -966,11 +971,11 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
-   * {@link CliArguments#copy() copy} as needed.
+   *     {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
    * @param collector the {@link CompletionCandidateCollector}.
    * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
-   * and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   *     and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   public boolean apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
@@ -1064,7 +1069,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
     // no bash found
-    throw new IllegalStateException("Could not find Bash. Please install Git for Windows and rerun.");
+    return null;
   }
 
   @Override

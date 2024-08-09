@@ -28,12 +28,12 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
   }
 
   /**
-   * @return the maven groupId as path (e.g. "com/devonfw/cobigen").
+   * @return the maven groupId as path.
    */
   protected abstract String getMavenGroupIdPath();
 
   /**
-   * @return the maven artifactId (e.g. "cobigen-cli").
+   * @return the maven artifactId.
    */
   protected abstract String getMavenArtifcatId();
 

@@ -2,11 +2,17 @@ package com.devonfw.tools.ide.context;
 
 import static com.devonfw.tools.ide.io.FileAccessImpl.DEFAULT_CONTENT_LENGTH;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+import com.devonfw.tools.ide.common.SystemPath;
+import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
@@ -15,6 +21,7 @@ import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Implementation of {@link IdeContext} for testing.
@@ -38,8 +45,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    *
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will be
-   * used.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
+   *     be used.
    * @param answers the automatic answers simulating a user in test.
    */
   public AbstractIdeTestContext(Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository, String... answers) {
@@ -90,6 +97,28 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
+  protected AbstractEnvironmentVariables createSystemVariables() {
+
+    Path home = getUserHome();
+    if (home != null) {
+      Path systemPropertiesFile = home.resolve("environment.properties");
+      if (Files.exists(systemPropertiesFile)) {
+        return new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.SYSTEM, systemPropertiesFile, this);
+      }
+    }
+    return super.createSystemVariables();
+  }
+
+  @Override
+  protected SystemPath computeSystemPath() {
+
+    EnvironmentVariables systemVars = getVariables().getByType(EnvironmentVariablesType.SYSTEM);
+    String envPath = systemVars.get(IdeVariables.PATH.getName());
+    envPath = getVariables().resolve(envPath, systemVars.getSource());
+    return new SystemPath(this, envPath);
+  }
+
+  @Override
   public SystemInfo getSystemInfo() {
 
     return this.systemInfo;
@@ -122,7 +151,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   /**
    * @return a dummy UserHome path to avoid global path access in a commandlet test. The defined {@link #dummyUserHome} will be returned if it is not
-   * {@code null}, else see implementation {@link #AbstractIdeContext}.
+   *     {@code null}, else see implementation {@link #AbstractIdeContext}.
    */
   @Override
   public Path getUserHome() {

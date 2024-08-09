@@ -15,12 +15,13 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link IdeProgressBar}.
  */
-@WireMockTest(httpPort = 8080)
+@WireMockTest
 public class IdeProgressBarTest extends AbstractIdeContextTest {
 
   private static final int MAX_LENGTH = 10_000;
@@ -33,14 +34,14 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
    * @param tempDir temporary directory to use.
    */
   @Test
-  public void testProgressBarDownloadWithValidContentLength(@TempDir Path tempDir) {
+  public void testProgressBarDownloadWithValidContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     stubFor(any(urlMatching("/os/.*")).willReturn(
         aResponse().withStatus(200).withBody(new byte[MAX_LENGTH]).withHeader("Content-Length", String.valueOf(MAX_LENGTH))));
 
     IdeContext context = newContext(tempDir);
     FileAccess impl = context.getFileAccess();
-    impl.download(TEST_URL, tempDir.resolve("windows_x64_url.tgz"), true);
+    impl.download(wmRuntimeInfo.getHttpBaseUrl() + "/os/windows_x64_url.tgz", tempDir.resolve("windows_x64_url.tgz"), true);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     assertProgressBar(context, "Downloading", MAX_LENGTH);
   }

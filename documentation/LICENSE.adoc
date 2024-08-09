@@ -34,7 +34,6 @@ The column `inclusion` indicates the way the component is included:
 |https://code.visualstudio.com/[VS Code] |Optional| https://github.com/Microsoft/vscode/blob/master/LICENSE.txt[MIT] (https://code.visualstudio.com/License/[Terms])
 |https://github.com/devonfw/extension-pack-vscode[extension-pack-vscode] |Optional|https://github.com/devonfw/extension-pack-vscode/blob/master/LICENSE[ASL 2.0]
 |https://www.eclipse.org/[Eclipse] |Optional|https://www.eclipse.org/legal/epl-2.0/[EPL 2.0]
-|https://github.com/devonfw/cobigen[CobiGen] |Optional|https://github.com/devonfw/cobigen/blob/master/LICENSE.txt[ASL 2.0]
 |https://marketplace.eclipse.org/content/tm-terminal[TM Terminal] |Optional|https://www.eclipse.org/legal/epl-2.0/[EPL 2.0] (see https://marketplace.eclipse.org/content/tm-terminal[here])
 |https://github.com/iloveeclipse/anyedittools/[AnyEdit] |Optional|https://github.com/iloveeclipse/anyedittools/blob/master/LICENSE.md[EPL 1.0]
 |https://checkstyle.org/eclipse-cs/[EclipseCS] |Optional|https://github.com/checkstyle/eclipse-cs/blob/master/LICENSE[LGPL 2.1]
@@ -80,6 +79,7 @@ The column `inclusion` indicates the way the component is included:
 |https://tomcat.apache.org/[tomcat]|Optional|https://www.apache.org/licenses/LICENSE-2.0[ASL 2.0]
 |https://www.oracle.com/java/technologies/jdk-mission-control.html[Java Mission Control]|Optional|https://github.com/openjdk/jmc/blob/master/license/LICENSE.txt[UPL 1.0] and https://github.com/openjdk/jmc/blob/master/license/THIRDPARTYREADME.txt[EPL 2.0]
 |https://github.com/ctongfei/progressbar[Progressbar]|Optional|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
+|https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
 |===
 
 == Apache Software License - Version 2.0
@@ -3381,4 +3381,17 @@ SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
 CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+```
+
+== The PostgreSQL Licence
+
+```
+Copyright (c) 2013 - 2021, The pgAdmin Development Team
+
+Permission to use, copy, modify, and distribute this software and its documentation for any purpose, without fee, and without a written agreement is hereby granted, provided that the above copyright notice and this paragraph and the following two paragraphs appear in all copies.
+
+IN NO EVENT SHALL THE PGADMIN DEVELOPMENT TEAM BE LIABLE TO ANY PARTY FOR DIRECT, INDIRECT, SPECIAL, INCIDENTAL, OR CONSEQUENTIAL DAMAGES, INCLUDING LOST PROFITS, ARISING OUT OF THE USE OF THIS SOFTWARE AND ITS DOCUMENTATION, EVEN IF THE PGADMIN DEVELOPMENT TEAM HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+THE PGADMIN DEVELOPMENT TEAM SPECIFICALLY DISCLAIMS ANY WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+THE SOFTWARE PROVIDED HEREUNDER IS ON AN "AS IS" BASIS, AND THE PGADMIN DEVELOPMENT TEAM HAS NO OBLIGATIONS TO PROVIDE MAINTENANCE, SUPPORT, UPDATES, ENHANCEMENTS, OR MODIFICATIONS.
 ```

@@ -41,6 +41,14 @@ public abstract class VariableLine {
   }
 
   /**
+   * @return the {@link VariableSource} of the variable.
+   */
+  public VariableSource getSource() {
+
+    return null;
+  }
+
+  /**
    * @param newName the new variable {@link #getName() name}.
    * @return the new {@link VariableLine} with the modified {@link #getName() name}.
    */
@@ -77,12 +85,14 @@ public abstract class VariableLine {
 
     private final String line;
 
+    private final VariableSource source;
+
     Variable(boolean export, String name, String value) {
 
-      this(export, name, value, null);
+      this(export, name, value, null, null);
     }
 
-    private Variable(boolean export, String name, String value, String line) {
+    private Variable(boolean export, String name, String value, String line, VariableSource source) {
 
       super();
       this.export = export;
@@ -100,6 +110,7 @@ public abstract class VariableLine {
       } else {
         this.line = line;
       }
+      this.source = source;
     }
 
     @Override
@@ -118,6 +129,11 @@ public abstract class VariableLine {
     public String getValue() {
 
       return this.value;
+    }
+
+    @Override
+    public VariableSource getSource() {
+      return source;
     }
 
     @Override
@@ -223,7 +239,7 @@ public abstract class VariableLine {
    * @param source the source where the given {@link String} to parse is from (e.g. the file path).
    * @return the parsed {@link VariableLine}.
    */
-  public static VariableLine of(String line, IdeLogger logger, Object source) {
+  public static VariableLine of(String line, IdeLogger logger, VariableSource source) {
 
     int len = line.length();
     int start = 0;
@@ -269,7 +285,7 @@ public abstract class VariableLine {
         } else if (value.startsWith("\"") && value.endsWith("\"")) {
           value = value.substring(1, value.length() - 1);
         }
-        return new Variable(export, name, value, line);
+        return new Variable(export, name, value, line, source);
       }
       end++;
     }
@@ -286,6 +302,18 @@ public abstract class VariableLine {
   public static VariableLine of(boolean export, String name, String value) {
 
     return new Variable(export, name, value);
+  }
+
+  /**
+   * @param export the {@link #isExport() export flag}.
+   * @param name the {@link #getName() name}.
+   * @param value the {@link #getValue() value}.
+   * @param source the {@link #getSource() source} of the variable.
+   * @return the {@link VariableLine} for the given values.
+   */
+  public static VariableLine of(boolean export, String name, String value, VariableSource source) {
+
+    return new Variable(export, name, value, null, source);
   }
 
 }

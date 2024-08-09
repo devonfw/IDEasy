@@ -7,16 +7,6 @@ import com.devonfw.tools.ide.common.JsonObject;
 /**
  * {@link JsonObject} for Intellij content.
  */
-public class IntellijJsonObject implements JsonObject {
-
-  private List<IntellijJsonRelease> releases;
-
-  /**
-   * @return the {@link List} of the {@link IntellijJsonRelease}s.
-   */
-  public List<IntellijJsonRelease> getReleases() {
-
-    return this.releases;
-  }
+public record IntellijJsonObject(List<IntellijJsonRelease> releases) implements JsonObject {
 
 }
