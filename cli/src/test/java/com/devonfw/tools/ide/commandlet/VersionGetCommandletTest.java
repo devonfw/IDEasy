@@ -114,4 +114,23 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtInfo().hasMessage("3.9.4");
   }
 
+  /**
+   * Test of {@link VersionGetCommandlet} run, where the tool is neither installed nor configured.
+   */
+  @Test
+  public void testVersionGetCommandletNeitherInstalledNorConfigured() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
+    VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
+    // act
+    versionGet.tool.setValueAsString("java", context);
+    versionGet.run();
+    // assert
+    assertThat(context).logAtInfo().hasMessage("No installation of tool java was found.");
+    assertThat(context).logAtInfo().hasMessage("The configured version for tool java is *");
+    assertThat(context).logAtInfo().hasMessage("To install that version call the following command:");
+    assertThat(context).logAtInfo().hasMessage("ide install java");
+  }
+
 }
