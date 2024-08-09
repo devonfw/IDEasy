@@ -26,6 +26,9 @@ import com.devonfw.tools.ide.merge.FileMerger;
 import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
 import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 
+/**
+ * {@link FileMerger} for XML files.
+ */
 public class XmlMerger extends FileMerger {
 
   private static final DocumentBuilder DOCUMENT_BUILDER;
