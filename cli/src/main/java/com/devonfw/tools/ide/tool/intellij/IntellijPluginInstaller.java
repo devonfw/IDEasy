@@ -7,8 +7,8 @@ import java.nio.file.Path;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 import com.devonfw.tools.ide.tool.ide.PluginInstaller;
+import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
 
 /**
  * Plugin Installer for {@link Intellij}.

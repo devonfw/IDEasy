@@ -5,7 +5,7 @@ import java.util.function.Consumer;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.PluginBasedCommandlet;
+import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
 
 /**
  * {@link Property} representing the plugin of a {@link PluginBasedCommandlet}.

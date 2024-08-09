@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
 
 /**
  * Manager class to install plugins for the {@link IdeToolCommandlet commandlet}.

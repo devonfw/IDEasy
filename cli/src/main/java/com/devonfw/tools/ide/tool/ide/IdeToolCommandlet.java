@@ -10,10 +10,11 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.tool.PluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
+import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
+import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 
 /**

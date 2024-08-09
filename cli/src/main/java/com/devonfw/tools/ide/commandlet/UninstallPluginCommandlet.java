@@ -3,8 +3,8 @@ package com.devonfw.tools.ide.commandlet;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.PluginProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
-import com.devonfw.tools.ide.tool.PluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
 
 /**
  * {@link Commandlet} to install a tool.
