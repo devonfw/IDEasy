@@ -1,5 +1,0 @@
-#!/bin/bash
-if [ "$1" == "-h" ]; then
-  echo "usage: mvn [options] [<goal(s)>] [<phase(s)>]"
-fi
-echo "mvn $*"
