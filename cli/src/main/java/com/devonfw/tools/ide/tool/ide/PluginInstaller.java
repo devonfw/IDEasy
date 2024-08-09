@@ -83,7 +83,7 @@ public class PluginInstaller {
     }
     String fileName = String.format("%s-plugin-%s%s", commandlet.getName(), pluginId, extension);
     Path downloadedFile = tmpDir.resolve(fileName);
-    fileAccess.download(downloadUrl, downloadedFile);
+    fileAccess.download(downloadUrl, downloadedFile, false);
     return downloadedFile;
   }
 

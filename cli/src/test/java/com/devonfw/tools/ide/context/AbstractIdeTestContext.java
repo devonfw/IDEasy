@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.context;
 
+import static com.devonfw.tools.ide.io.FileAccessImpl.DEFAULT_CONTENT_LENGTH;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -43,12 +45,11 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    *
    * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will be
-   * used.
+   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
+   *     be used.
    * @param answers the automatic answers simulating a user in test.
    */
-  public AbstractIdeTestContext(Function<IdeLogLevel, IdeSubLogger> factory, Path userDir,
-      ToolRepository toolRepository, String... answers) {
+  public AbstractIdeTestContext(Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository, String... answers) {
 
     super(IdeLogLevel.TRACE, factory, userDir, toolRepository);
     this.answers = answers;
@@ -81,6 +82,10 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   @Override
   public IdeProgressBar prepareProgressBar(String taskName, long size) {
+
+    if (size == 0) {
+      size = DEFAULT_CONTENT_LENGTH;
+    }
 
     IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
     IdeProgressBarTestImpl duplicate = this.progressBarMap.put(taskName, progressBar);
@@ -146,7 +151,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   /**
    * @return a dummy UserHome path to avoid global path access in a commandlet test. The defined {@link #dummyUserHome} will be returned if it is not
-   * {@code null}, else see implementation {@link #AbstractIdeContext}.
+   *     {@code null}, else see implementation {@link #AbstractIdeContext}.
    */
   @Override
   public Path getUserHome() {
