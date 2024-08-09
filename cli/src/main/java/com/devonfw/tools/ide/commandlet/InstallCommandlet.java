@@ -46,7 +46,7 @@ public class InstallCommandlet extends Commandlet {
     if (versionIdentifier != null) {
       commandlet.setVersion(versionIdentifier, false);
     }
-    commandlet.install(null, false);
+    commandlet.install(false);
   }
 
   @Override

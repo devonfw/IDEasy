@@ -22,14 +22,22 @@ public class CustomToolCommandlet extends LocalToolCommandlet {
   }
 
   @Override
+  public ToolInstallation installTool(VersionIdentifier version) {
+
+    return installTool(null, version, this.customTool.getEdition());
+  }
+
+  @Override
   public ToolInstallation installTool(EnvironmentContext environmentContext, VersionIdentifier version, String edition) {
 
     return installTool(environmentContext, version, edition, this.context.getCustomToolRepository());
   }
+
 
   @Override
   public VersionIdentifier getConfiguredVersion() {
 
     return this.customTool.getVersion();
   }
+
 }

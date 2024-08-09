@@ -22,11 +22,10 @@ public class CobigenTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(COBIGEN);
-
     Cobigen commandlet = new Cobigen(context);
 
     // act
-    commandlet.install(null);
+    commandlet.install();
 
     // assert
     checkInstallation(context);

@@ -47,13 +47,13 @@ public class IntellijTest extends AbstractIdeContextTest {
     Intellij commandlet = new Intellij(this.context);
 
     // act
-    commandlet.install(null);
+    commandlet.install();
 
     // assert
     checkInstallation(this.context);
 
     //if tool already installed
-    commandlet.install(null);
+    commandlet.install();
     assertThat(this.context).logAtDebug().hasMessage("Version 2023.3.3 of tool intellij is already installed");
   }
 

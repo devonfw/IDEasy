@@ -31,7 +31,7 @@ public class NpmTest extends AbstractIdeContextTest {
     Npm commandlet = new Npm(context);
 
     // act
-    commandlet.install(null);
+    commandlet.install();
 
     // assert
     checkInstallation(context);

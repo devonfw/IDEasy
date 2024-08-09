@@ -89,6 +89,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     runTool(ProcessMode.DEFAULT, null, this.arguments.asArray());
   }
 
+
   /**
    * Ensures the tool is installed and then runs this tool with the given arguments.
    *
@@ -97,18 +98,38 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * the specified version will be installed in the software repository without touching and IDE installation and used to run.
    * @param args the command-line arguments to run the tool.
    */
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, boolean existsEnvironmentcontext, String... args) {
+
+    Path binaryPath;
+    binaryPath = Path.of(getBinaryName());
+
+    if (existsEnvironmentcontext) {
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
+
+      if (toolVersion == null) {
+        install(pc, true);
+      } else {
+        throw new UnsupportedOperationException("Not yet implemented!");
+      }
+
+      pc.run(processMode);
+    } else {
+
+    }
+  }
+
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
     Path binaryPath;
     binaryPath = Path.of(getBinaryName());
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
 
     if (toolVersion == null) {
-      install(pc, true);
+      install(true);
     } else {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
 
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
     pc.run(processMode);
   }
 
@@ -170,6 +191,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return install(environmentContext, true);
   }
 
+  public boolean install() {
+
+    return install(true);
+  }
+
   /**
    * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}.
    *
@@ -181,12 +207,18 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return doInstall(environmentContext, silent);
   }
 
+  public boolean install(boolean silent) {
+
+    return doInstall(null, silent);
+  }
+
   /**
    * Installs or updates the managed {@link #getName() tool}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
+
   protected abstract boolean doInstall(EnvironmentContext environmentContext, boolean silent);
 
   /**

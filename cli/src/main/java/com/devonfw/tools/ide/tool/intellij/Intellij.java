@@ -7,7 +7,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
@@ -38,7 +37,7 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    install(null, true);
+    install(true);
     args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
     super.runTool(ProcessMode.BACKGROUND, toolVersion, args);
   }
@@ -56,10 +55,10 @@ public class Intellij extends IdeToolCommandlet {
   }
 
   @Override
-  public boolean install(EnvironmentContext environmentContext, boolean silent) {
+  public boolean install(boolean silent) {
 
-    getCommandlet(Java.class).install(environmentContext);
-    return super.install(environmentContext, silent);
+    getCommandlet(Java.class).install();
+    return super.install(silent);
   }
 
   @Override

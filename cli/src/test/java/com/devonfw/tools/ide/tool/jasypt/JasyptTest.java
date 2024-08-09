@@ -50,7 +50,7 @@ public class JasyptTest extends AbstractIdeContextTest {
     Jasypt commandlet = new Jasypt(context);
 
     // act
-    commandlet.install(null);
+    commandlet.install();
 
     // assert
     checkInstallation(context);

@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.process.ProcessMode;
 
 public class TomcatTest extends AbstractIdeContextTest {
 
@@ -17,7 +18,7 @@ public class TomcatTest extends AbstractIdeContextTest {
     Tomcat tomcatCommandlet = new Tomcat(context);
 
     // run
-    tomcatCommandlet.run();
+    tomcatCommandlet.runTool(ProcessMode.DEFAULT, null, true);
 
     // assert
     checkInstallation(context);
@@ -27,9 +28,8 @@ public class TomcatTest extends AbstractIdeContextTest {
 
   private void checkDependencyInstallation(IdeTestContext context) {
 
-    assertThat(context).logAtInfo().hasMessage("The version 17.0.10_7 of the dependency java is being installed");
-    assertThat(context).logAtInfo().hasMessage("The version 17.0.10_7 of the dependency java was successfully installed");
-
+    assertThat(context).logAtInfo().hasEntries("The version 17.0.10_7 of the dependency java is being installed",
+        "The version 17.0.10_7 of the dependency java was successfully installed");
   }
 
   //  private void checkRunningTomcat(IdeTestContext context) {

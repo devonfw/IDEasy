@@ -31,7 +31,7 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
     AndroidStudio commandlet = new AndroidStudio(this.context);
 
     // act
-    commandlet.install(null);
+    commandlet.install();
 
     // assert
     checkInstallation(this.context);

@@ -67,8 +67,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier installedVersion = getInstalledVersion();
     Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
     try {
+      ToolInstallation installation;
+      if (environmentContext == null) {
+        installation = installTool(configuredVersion);
+      } else {
+        installation = installTool(environmentContext, configuredVersion);
+      }
       // install configured version of our tool in the software repository if not already installed
-      ToolInstallation installation = installTool(environmentContext, configuredVersion);
+
       // check if we already have this version installed (linked) locally in IDE_HOME/software
       VersionIdentifier resolvedVersion = installation.resolvedVersion();
       if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
@@ -88,6 +94,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         fileAccess.symlink(installation.linkDir(), toolPath);
       }
       this.context.getPath().setPath(this.tool, installation.binDir());
+      postInstall();
       postInstall();
       if (installedVersion == null) {
         step.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
@@ -126,6 +133,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return installTool(environmentContext, version, getConfiguredEdition());
   }
 
+  public ToolInstallation installTool(VersionIdentifier version) {
+
+    return installTool(version, getConfiguredEdition());
+  }
+
   /**
    * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}.
    *
@@ -136,6 +148,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public ToolInstallation installTool(EnvironmentContext environmentContext, VersionIdentifier version, String edition) {
 
     return installTool(environmentContext, version, edition, this.context.getDefaultToolRepository());
+  }
+
+  public ToolInstallation installTool(VersionIdentifier version, String edition) {
+
+    return installTool(null, version, edition, this.context.getDefaultToolRepository());
   }
 
   /**

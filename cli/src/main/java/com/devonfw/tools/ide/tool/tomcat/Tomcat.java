@@ -1,23 +1,25 @@
 package com.devonfw.tools.ide.tool.tomcat;
 
-import com.devonfw.tools.ide.common.Tag;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Set;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Set;
+import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 
 public class Tomcat extends LocalToolCommandlet {
+
   /**
    * The constructor.
    *
@@ -48,7 +50,7 @@ public class Tomcat extends LocalToolCommandlet {
   }
 
   @Override
-  protected String getBinaryName() {
+  public String getBinaryName() {
 
     return "catalina";
   }
