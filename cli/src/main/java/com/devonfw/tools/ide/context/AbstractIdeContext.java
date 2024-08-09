@@ -987,21 +987,33 @@ public abstract class AbstractIdeContext implements IdeContext {
     } else {
       propertyIterator = cmd.getValues().iterator();
     }
+    Property<?> property = null;
+    if (propertyIterator.hasNext()) {
+      property = propertyIterator.next();
+    }
     while (!currentArgument.isEnd()) {
       trace("Trying to match argument '{}'", currentArgument);
-      Property<?> property = null;
+      Property<?> currentProperty = property;
       if (!arguments.isEndOptions()) {
-        property = cmd.getOption(currentArgument.getKey());
-      }
-      if (property == null) {
-        if (!propertyIterator.hasNext()) {
-          trace("No option or next value found");
-          return false;
+        Property<?> option = cmd.getOption(currentArgument.getKey());
+        if (option != null) {
+          currentProperty = option;
         }
-        property = propertyIterator.next();
       }
-      trace("Next property candidate to match argument is {}", property);
-      boolean matches = property.apply(arguments, this, cmd, collector);
+      if (currentProperty == null) {
+        trace("No option or next value found");
+        return false;
+      }
+      trace("Next property candidate to match argument is {}", currentProperty);
+      if (currentProperty == property) {
+        if (propertyIterator.hasNext()) {
+          property = propertyIterator.next();
+        }
+        if (property.isValue() && property.isMultiValued()) {
+          arguments.endOptions();
+        }
+      }
+      boolean matches = currentProperty.apply(arguments, this, cmd, collector);
       if (!matches || currentArgument.isCompletion()) {
         return false;
       }
