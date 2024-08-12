@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.tool.gcviewer;
 
+import java.util.Set;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-
-import java.util.Set;
 
 /**
  * {@link ToolCommandlet} for GcViewer.
@@ -32,7 +32,7 @@ public class GcViewer extends LocalToolCommandlet {
   @Override
   public void run() {
 
-    install(null, true);
+    install(true);
     ProcessContext pc = this.context.newProcess();
     pc.directory(getToolPath());
     pc.executable("java");

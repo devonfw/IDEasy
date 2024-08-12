@@ -1,17 +1,16 @@
 package com.devonfw.tools.ide.tool.sonar;
 
+import java.nio.file.Path;
+import java.util.Properties;
+import java.util.Set;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.util.PropertiesFileUtil;
-
-import java.nio.file.Path;
-import java.util.Properties;
-import java.util.Set;
 
 public class Sonar extends LocalToolCommandlet {
 
@@ -37,10 +36,10 @@ public class Sonar extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean install(EnvironmentContext environmentContext, boolean silent) {
+  public boolean install(boolean silent) {
 
-    getCommandlet(Java.class).install(environmentContext);
-    return super.install(environmentContext, silent);
+    getCommandlet(Java.class).install();
+    return super.install(silent);
   }
 
   @Override

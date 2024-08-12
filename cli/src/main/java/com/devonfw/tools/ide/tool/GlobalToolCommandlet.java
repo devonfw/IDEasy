@@ -105,6 +105,12 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
+  protected boolean doInstall(boolean silent) {
+
+    return doInstall(null, silent);
+  }
+
+  @Override
   protected boolean doInstall(EnvironmentContext environmentContext, boolean silent) {
 
     Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));

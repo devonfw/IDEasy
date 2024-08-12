@@ -23,7 +23,7 @@ public class TomcatTest extends AbstractIdeContextTest {
     // assert
     checkInstallation(context);
     checkDependencyInstallation(context);
-    //    checkRunningTomcat(context);
+    checkRunningTomcat(context);
   }
 
   private void checkDependencyInstallation(IdeTestContext context) {
@@ -32,11 +32,11 @@ public class TomcatTest extends AbstractIdeContextTest {
         "The version 17.0.10_7 of the dependency java was successfully installed");
   }
 
-  //  private void checkRunningTomcat(IdeTestContext context) {
-  //
-  //    assertLogMessage(context, IdeLogLevel.INFO, "Tomcat is running at localhost on the following port (default 8080):");
-  //    assertLogMessage(context, IdeLogLevel.INFO, "8080");
-  //  }
+  private void checkRunningTomcat(IdeTestContext context) {
+
+    assertThat(context).logAtInfo().hasMessage("Tomcat is running at localhost on the following port (default 8080):");
+    assertThat(context).logAtInfo().hasMessage("8080");
+  }
 
   private void checkInstallation(IdeTestContext context) {
 

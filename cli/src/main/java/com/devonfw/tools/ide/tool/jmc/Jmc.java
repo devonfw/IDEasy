@@ -10,7 +10,6 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -33,10 +32,10 @@ public class Jmc extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean doInstall(EnvironmentContext environmentContext, boolean silent) {
+  public boolean doInstall(boolean silent) {
 
-    getCommandlet(Java.class).install(environmentContext);
-    return super.doInstall(environmentContext, silent);
+    getCommandlet(Java.class).install();
+    return super.doInstall(silent);
   }
 
   @Override

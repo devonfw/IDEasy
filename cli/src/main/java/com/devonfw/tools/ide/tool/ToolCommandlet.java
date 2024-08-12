@@ -98,12 +98,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *     Otherwise, the specified version will be installed in the software repository without touching and IDE installation and used to run.
    * @param args the command-line arguments to run the tool.
    */
-  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, boolean existsEnvironmentcontext, String... args) {
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, boolean existsEnvironmentContext, String... args) {
 
     Path binaryPath;
     binaryPath = Path.of(getBinaryName());
 
-    if (existsEnvironmentcontext) {
+    if (existsEnvironmentContext) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
 
       if (toolVersion == null) {
@@ -113,8 +113,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
 
       pc.run(processMode);
-    } else {
-
     }
   }
 
@@ -209,7 +207,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   public boolean install(boolean silent) {
 
-    return doInstall(null, silent);
+    return doInstall(silent);
   }
 
   /**
@@ -220,6 +218,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
 
   protected abstract boolean doInstall(EnvironmentContext environmentContext, boolean silent);
+
+  protected abstract boolean doInstall(boolean silent);
 
   /**
    * This method is called after the tool has been newly installed or updated to a new version.

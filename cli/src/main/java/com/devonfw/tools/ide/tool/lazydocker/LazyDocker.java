@@ -4,7 +4,6 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -29,7 +28,7 @@ public class LazyDocker extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean install(EnvironmentContext environmentContext, boolean silent) {
+  public boolean install(boolean silent) {
 
     String bashPath = this.context.findBashRequired();
     String command = "docker version --format '{{.Client.APIVersion}}'";
@@ -66,6 +65,6 @@ public class LazyDocker extends LocalToolCommandlet {
       }
     }
 
-    return super.doInstall(environmentContext, silent);
+    return super.doInstall(silent);
   }
 }

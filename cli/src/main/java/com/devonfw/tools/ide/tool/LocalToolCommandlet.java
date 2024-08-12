@@ -60,6 +60,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
+  protected boolean doInstall(boolean silent) {
+    
+    return doInstall(null, silent);
+  }
+
+  @Override
   protected boolean doInstall(EnvironmentContext environmentContext, boolean silent) {
 
     VersionIdentifier configuredVersion = getConfiguredVersion();
@@ -335,10 +341,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return createToolInstallation(rootDir, resolvedVersion, toolVersionFile, false);
   }
 
-  public void setEnvironment(EnvironmentContext context, Path dependencyPath, String dependencyName) {
+  public void setEnvironment(EnvironmentContext envContext, Path dependencyPath, String dependencyName) {
 
-    String pathVariable = dependencyName.toUpperCase(Locale.ROOT) + "_HOME";
-    context.withEnvVar(pathVariable, dependencyPath.toString());
+    if (envContext != null) {
+      String pathVariable = dependencyName.toUpperCase(Locale.ROOT) + "_HOME";
+      envContext.withEnvVar(pathVariable, dependencyPath.toString());
+    }
   }
 
   public DependencyInfo readDependencies(VersionIdentifier toolVersion) {

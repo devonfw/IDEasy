@@ -14,9 +14,11 @@ import org.xml.sax.SAXException;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 public class Tomcat extends LocalToolCommandlet {
 
@@ -31,16 +33,44 @@ public class Tomcat extends LocalToolCommandlet {
     add(this.arguments);
   }
 
+//@Override
+//  public void postInstall() {
+//
+//    super.postInstall();
+//
+//    EnvironmentVariables variables = this.context.getVariables();
+//    EnvironmentVariables typeVariables = variables.getByType(EnvironmentVariablesType.CONF);
+//
+//    typeVariables.set("CATALINA_HOME", getToolPath().toString(), true);
+//    typeVariables.save();
+//  }
+
+
   @Override
-  public void postInstall() {
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    super.postInstall();
+    runTool(processMode, toolVersion, true, args);
+  }
 
-    EnvironmentVariables variables = this.context.getVariables();
-    EnvironmentVariables typeVariables = variables.getByType(EnvironmentVariablesType.CONF);
+  @Override
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, boolean existsEnvironmentContext, String... args) {
 
-    typeVariables.set("CATALINA_HOME", getToolPath().toString(), true);
-    typeVariables.save();
+    Path binaryPath;
+    binaryPath = Path.of(getBinaryName());
+
+    if (existsEnvironmentContext) {
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
+
+      if (toolVersion == null) {
+        install(pc, true);
+      } else {
+        throw new UnsupportedOperationException("Not yet implemented!");
+      }
+
+      pc.withEnvVar("CATALINA_HOME", getToolPath().toString());
+      pc.run(processMode);
+    }
+    printTomcatPort();
   }
 
   @Override
@@ -52,7 +82,7 @@ public class Tomcat extends LocalToolCommandlet {
   @Override
   public String getBinaryName() {
 
-    return "catalina";
+    return "catalina.sh";
   }
 
   private void printTomcatPort() {

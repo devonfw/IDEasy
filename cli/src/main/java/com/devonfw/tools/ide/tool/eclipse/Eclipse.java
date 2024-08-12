@@ -13,7 +13,6 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -45,10 +44,10 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  public boolean install(EnvironmentContext environmentContext, boolean silent) {
+  public boolean install(boolean silent) {
 
-    getCommandlet(Java.class).install(environmentContext);
-    return super.install(environmentContext, silent);
+    getCommandlet(Java.class).install();
+    return super.install(silent);
   }
 
   /**
