@@ -31,7 +31,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     super(context, tool, tags);
   }
 
-  protected PluginMaps getPluginsMap() {
+  public PluginMaps getPluginsMap() {
 
     if (this.pluginsMap == null) {
       PluginMaps map = new PluginMaps(this.context);

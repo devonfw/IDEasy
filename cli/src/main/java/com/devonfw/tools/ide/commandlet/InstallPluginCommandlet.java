@@ -29,7 +29,7 @@ public class InstallPluginCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     this.tool = add(new ToolProperty("", true, "tool"));
-    this.plugin = add(new PluginProperty("", false, "plugin"));
+    this.plugin = add(new PluginProperty("", true, "plugin"));
   }
 
   @Override
@@ -50,6 +50,12 @@ public class InstallPluginCommandlet extends Commandlet {
       context.warning("Tool {} does not support installation of plugins.", tool.getName());
     }
 
+  }
+
+  @Override
+  public ToolCommandlet getToolForCompletion() {
+
+    return this.tool.getValue();
   }
 
 }

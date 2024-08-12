@@ -254,7 +254,7 @@ public abstract class Commandlet {
    * @return the {@link ToolCommandlet} set in a {@link Property} of this commandlet used for auto-completion of a {@link VersionIdentifier} or {@code null} if
    * not exists or not configured.
    */
-  public ToolCommandlet getToolForVersionCompletion() {
+  public ToolCommandlet getToolForCompletion() {
 
     return null;
   }

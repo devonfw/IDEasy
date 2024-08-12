@@ -29,7 +29,7 @@ public class UninstallPluginCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     this.tool = add(new ToolProperty("", true, "tool"));
-    this.plugin = add(new PluginProperty("", false, "plugin"));
+    this.plugin = add(new PluginProperty("", true, "plugin"));
   }
 
   @Override
@@ -51,4 +51,8 @@ public class UninstallPluginCommandlet extends Commandlet {
     }
   }
 
+  @Override
+  public ToolCommandlet getToolForCompletion() {
+    return this.tool.getValue();
+  }
 }
