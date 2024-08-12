@@ -29,7 +29,7 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, Github
   protected abstract String getGithubOrganization();
 
   /**
-   * @return the github repository name (e.g. "cobigen").
+   * @return the github repository name.
    */
   protected String getGithubRepository() {
 
