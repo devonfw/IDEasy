@@ -49,7 +49,7 @@ public class Sonar extends LocalToolCommandlet {
 
     Path toolPath = getToolPath();
     if (!toolPath.toFile().exists()) {
-      super.install(null, true);
+      super.install(true);
     }
 
     switch (command) {

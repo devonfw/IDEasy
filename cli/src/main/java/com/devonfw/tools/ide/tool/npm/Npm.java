@@ -29,7 +29,7 @@ public class Npm extends LocalToolCommandlet {
   public boolean install(boolean silent) {
 
     getCommandlet(Node.class).install();
-    return super.install(silent);
+    return super.doInstall(silent);
   }
 
   @Override

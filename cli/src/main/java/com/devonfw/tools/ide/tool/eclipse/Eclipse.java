@@ -39,7 +39,7 @@ public class Eclipse extends IdeToolCommandlet {
   @Override
   protected void runIde(String... args) {
 
-    install(null, true);
+    install(true);
     runEclipse(ProcessMode.BACKGROUND, CliArgument.prepend(args, "gui", "-showlocation", this.context.getIdeHome().getFileName().toString()));
   }
 
