@@ -27,7 +27,7 @@ public interface CommandletManager {
   /**
    * @param keyword the first keyword argument.
    * @return a {@link Commandlet} having the first {@link Property} {@link Property#isRequired() required} and a {@link KeywordProperty} with the given
-   * {@link Property#getName() name} or {@code null} if no such {@link Commandlet} is registered.
+   *     {@link Property#getName() name} or {@code null} if no such {@link Commandlet} is registered.
    */
   Commandlet getCommandletByFirstKeyword(String keyword);
 

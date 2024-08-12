@@ -24,8 +24,9 @@ public interface ProcessContext extends EnvironmentContext {
   /**
    * Sets the executable command to be {@link #run()}.
    *
-   * @param executable the {@link Path} to the command to be executed by {@link #run()}. Depending on your operating system and the extension of the executable
-   * or OS specific conventions. So e.g. a *.cmd or *.bat file will be called via CMD shell on windows while a *.sh file will be called via Bash, etc.
+   * @param executable the {@link Path} to the command to be executed by {@link #run()}. Depending on your operating system and the extension of the
+   *     executable or OS specific conventions. So e.g. a *.cmd or *.bat file will be called via CMD shell on windows while a *.sh file will be called via Bash,
+   *     etc.
    * @return this {@link ProcessContext} for fluent API calls.
    */
   ProcessContext executable(Path executable);
