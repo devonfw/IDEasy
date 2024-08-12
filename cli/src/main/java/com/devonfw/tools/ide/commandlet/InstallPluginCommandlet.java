@@ -47,7 +47,7 @@ public class InstallPluginCommandlet extends Commandlet {
       PluginBasedCommandlet cmd = (PluginBasedCommandlet) commandlet;
       cmd.installPlugin(cmd.getPlugin(plugin));
     } else {
-      context.warning("Tool {} does not support installation of plugins.", tool.getName());
+      context.warning("Tool {} does not support installation of plugins.", commandlet.getName());
     }
 
   }

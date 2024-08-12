@@ -82,6 +82,35 @@ public class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests if the {@link Intellij} can be installed properly, and a plugin can be uninstalled afterward.
+   *
+   * @param os String of the OS to use.
+   * @throws IOException if reading the content of the mocked plugin fails
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  public void testIntellijUninstallPluginAfterwards(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+
+    // arrange
+    setupMockedPlugin(wmRuntimeInfo, true);
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    this.context.setSystemInfo(systemInfo);
+    Intellij commandlet = new Intellij(this.context);
+
+    // act
+    commandlet.install();
+
+    // assert
+    checkInstallation(this.context);
+
+    // act
+    commandlet.uninstallPlugin(commandlet.getPluginsMap().getById("mockedPlugin"));
+
+    //assert
+    assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).doesNotExist();
+  }
+
+  /**
    * Tests if {@link Intellij IntelliJ IDE} can be run.
    *
    * @param os String of the OS to use.
