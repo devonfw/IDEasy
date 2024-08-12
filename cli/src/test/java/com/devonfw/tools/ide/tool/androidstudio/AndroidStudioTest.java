@@ -35,6 +35,7 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
    * Tests if {@link AndroidStudio Android Studio IDE} can be installed.
    *
    * @param os String of the OS to use.
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
@@ -56,6 +57,7 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
    * Tests if {@link AndroidStudio Android Studio IDE} can be run.
    *
    * @param os String of the OS to use.
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
