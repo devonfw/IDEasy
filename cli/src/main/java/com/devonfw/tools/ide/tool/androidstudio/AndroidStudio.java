@@ -72,9 +72,4 @@ public class AndroidStudio extends IdeToolCommandlet {
     String downloadUrl = pluginInstaller.getDownloadUrl(plugin);
     pluginInstaller.installPlugin(plugin, downloadUrl);
   }
-
-  @Override
-  public String getMacToolApp() {
-    return "Android Studio Preview.app";
-  }
 }

@@ -53,6 +53,15 @@ public final class MacOsHelper {
 
   /**
    * @param rootDir the {@link Path} to the root directory.
+   * @return the path to the app directory.
+   */
+  public Path findAppDir(Path rootDir) {
+    return this.fileAccess.findFirst(rootDir,
+        p -> p.getFileName().toString().endsWith(".app") && Files.isDirectory(p), false);
+  }
+
+  /**
+   * @param rootDir the {@link Path} to the root directory.
    * @param tool the name of the tool to find the link directory for.
    * @return the {@link com.devonfw.tools.ide.tool.ToolInstallation#linkDir() link directory}.
    */
@@ -65,8 +74,7 @@ public final class MacOsHelper {
     if (Files.isDirectory(contentsDir)) {
       return findLinkDir(contentsDir, rootDir, tool);
     }
-    Path appDir = this.fileAccess.findFirst(rootDir,
-        p -> p.getFileName().toString().endsWith(".app") && Files.isDirectory(p), false);
+    Path appDir = findAppDir(rootDir);
     if (appDir != null) {
       contentsDir = appDir.resolve(IdeContext.FOLDER_CONTENTS);
       if (Files.isDirectory(contentsDir)) {

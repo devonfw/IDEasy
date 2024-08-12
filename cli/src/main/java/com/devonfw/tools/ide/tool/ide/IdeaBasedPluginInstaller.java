@@ -45,8 +45,8 @@ public class IdeaBasedPluginInstaller extends PluginInstaller {
     Path buildFile = commandlet.getToolPath().resolve(BUILD_FILE);
     if (context.getSystemInfo().isMac()) {
       MacOsHelper macOsHelper = new MacOsHelper(context);
-      Path rootToolPath = macOsHelper.findRootToolPath(this.commandlet, context);
-      buildFile = rootToolPath.resolve(this.commandlet.getMacToolApp()).resolve("Contents/Resources").resolve(BUILD_FILE);
+      Path appPath = macOsHelper.findAppDir(macOsHelper.findRootToolPath(this.commandlet, context));
+      buildFile = appPath.resolve("Contents/Resources").resolve(BUILD_FILE);
     }
     try {
       return Files.readString(buildFile);

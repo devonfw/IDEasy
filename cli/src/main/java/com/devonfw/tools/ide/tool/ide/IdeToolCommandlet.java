@@ -234,12 +234,4 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
     this.context.step("Configuring workspace {} for IDE {}", ideWorkspacePath.getFileName(), this.tool);
     this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), ideWorkspacePath);
   }
-
-  /**
-   * @return app name of the tool on MacOS, in which the build file is located.
-   */
-  public String getMacToolApp() {
-    throw new IllegalStateException();
-  }
-
 }

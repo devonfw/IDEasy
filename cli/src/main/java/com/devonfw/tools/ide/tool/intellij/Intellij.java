@@ -78,14 +78,4 @@ public class Intellij extends IdeToolCommandlet {
     String downloadUrl = pluginInstaller.getDownloadUrl(plugin);
     pluginInstaller.installPlugin(plugin, downloadUrl);
   }
-
-  @Override
-  public String getMacToolApp() {
-
-    String edition = "";
-    if (this.getConfiguredEdition().equals("intellij")) {
-      edition = " CE";
-    }
-    return "IntelliJ IDEA" + edition + ".app";
-  }
 }
