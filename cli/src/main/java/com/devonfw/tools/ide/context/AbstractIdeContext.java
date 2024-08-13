@@ -1013,7 +1013,7 @@ public abstract class AbstractIdeContext implements IdeContext {
             property = null;
           }
         }
-        if (property.isValue() && property.isMultiValued()) {
+        if ((property != null) && property.isValue() && property.isMultiValued()) {
           arguments.endOptions();
         }
       }
