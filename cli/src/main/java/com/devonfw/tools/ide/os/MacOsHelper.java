@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
@@ -92,7 +93,8 @@ public final class MacOsHelper {
    * @return a {@link String}
    */
   public Path findRootToolPath(ToolCommandlet commandlet, IdeContext context) {
-    return context.getSoftwareRepositoryPath().resolve("default").resolve(commandlet.getName()).resolve(commandlet.getName())
+    return context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve(commandlet.getName())
+        .resolve(commandlet.getInstalledEdition().toString())
         .resolve(commandlet.getInstalledVersion().toString());
   }
 
