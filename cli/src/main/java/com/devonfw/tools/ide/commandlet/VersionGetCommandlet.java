@@ -71,7 +71,7 @@ public class VersionGetCommandlet extends Commandlet {
     } else { // get both configured and installed version
 
       VersionIdentifier installedVersion = commandlet.getInstalledVersion();
-      if (configuredVersion.compareVersion(installedVersion).isEqual()) {
+      if (configuredVersion.matches(installedVersion)) {
         this.context.info(installedVersion.toString());
       } else {
         if (installedVersion == null) {

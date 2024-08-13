@@ -1,0 +1,4 @@
+This project
+- simulates having mvn installed at version 3.9.4
+- configures mvn to any version (*) in conf, home, settings as well as the workspace ide-properties
+- makes fake mvn versions "3.2.conf", "3.2.home", "3.2.settings", and "3.2.workspace" available has a status.json file each, but does not provide urls files.
