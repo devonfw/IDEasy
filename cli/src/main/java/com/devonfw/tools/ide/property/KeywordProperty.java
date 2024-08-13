@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.property;
 
+import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
+import com.devonfw.tools.ide.context.IdeContext;
+
 /**
  * {@link BooleanProperty} for a keyword (e.g. "install" in "ide install mvn 3.9.4").
  */
@@ -24,4 +29,11 @@ public class KeywordProperty extends BooleanProperty {
     return false;
   }
 
+  @Override
+  protected boolean applyValue(String argValue, boolean lookahead, CliArguments args, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
+
+    setValue(true);
+    return true;
+  }
 }
