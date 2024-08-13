@@ -36,11 +36,6 @@ public class Dependency {
     this.tool = tool;
   }
 
-  public boolean existsDependencyJsonPath(String toolEdition) {
-
-    return Files.exists(getDependencyUrlEdition(toolEdition).getDependencyFile().getPath());
-  }
-
   private UrlEdition getDependencyUrlEdition(String toolEdition) {
 
     return this.context.getUrls().getEdition(this.tool, toolEdition);
