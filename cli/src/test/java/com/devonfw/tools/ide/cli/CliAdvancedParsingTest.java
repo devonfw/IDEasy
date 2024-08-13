@@ -4,10 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.tool.mvn.Mvn;
 
 /**
- * Integration test of {@link Mvn}.
+ * Integration test of {@link com.devonfw.tools.ide.context.AbstractIdeContext#run(CliArguments) CLI parsing}.
  */
 public class CliAdvancedParsingTest extends AbstractIdeContextTest {
 
