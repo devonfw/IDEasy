@@ -22,42 +22,47 @@ public class IdeTestLoggerAssertion {
 
   /**
    * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasMessage(String message) {
+  public IdeTestLoggerAssertion hasMessage(String message) {
 
-    fulfillsPredicate(e -> e.message().equals(message), PredicateMode.MATCH_ONE, "Could not find log message equal to '" + message + "'");
+    return fulfillsPredicate(e -> e.message().equals(message), PredicateMode.MATCH_ONE, "Could not find log message equal to '" + message + "'");
   }
 
   /**
    * @param message the {@link String} expected to be {@link String#contains(CharSequence) contained} in a
-   * {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   *     {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasMessageContaining(String message) {
+  public IdeTestLoggerAssertion hasMessageContaining(String message) {
 
-    fulfillsPredicate(e -> e.message().contains(message), PredicateMode.MATCH_ONE, "Could not find log message containing '" + message + "'");
+    return fulfillsPredicate(e -> e.message().contains(message), PredicateMode.MATCH_ONE, "Could not find log message containing '" + message + "'");
   }
 
   /**
    * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that is not expected and should not have been logged.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasNoMessage(String message) {
+  public IdeTestLoggerAssertion hasNoMessage(String message) {
 
-    fulfillsPredicate(e -> !e.message().equals(message), PredicateMode.MATCH_ALL, "No log message should be equal to '" + message + "'");
+    return fulfillsPredicate(e -> !e.message().equals(message), PredicateMode.MATCH_ALL, "No log message should be equal to '" + message + "'");
   }
 
   /**
    * @param message the {@link String} expected not be {@link String#contains(CharSequence) contained} in any
-   * {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   *     {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasNoMessageContaining(String message) {
+  public IdeTestLoggerAssertion hasNoMessageContaining(String message) {
 
-    fulfillsPredicate(e -> !e.message().contains(message), PredicateMode.MATCH_ALL, "No log message should contain '" + message + "'");
+    return fulfillsPredicate(e -> !e.message().contains(message), PredicateMode.MATCH_ALL, "No log message should contain '" + message + "'");
   }
 
   /**
    * @param messages the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}s in order.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasEntries(String... messages) {
+  public IdeTestLoggerAssertion hasEntries(String... messages) {
 
     assert (this.level != null);
     IdeLogEntry[] entries = new IdeLogEntry[messages.length];
@@ -65,27 +70,29 @@ public class IdeTestLoggerAssertion {
     for (String message : messages) {
       entries[i++] = new IdeLogEntry(this.level, message);
     }
-    hasEntries(false, entries);
+    return hasEntries(false, entries);
   }
 
   /**
    * @param expectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} in order.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasEntries(IdeLogEntry... expectedEntries) {
+  public IdeTestLoggerAssertion hasEntries(IdeLogEntry... expectedEntries) {
 
-    hasEntries(false, expectedEntries);
+    return hasEntries(false, expectedEntries);
   }
 
   /**
    * @param expectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} to be logged in order without any other log statement in
-   * between them.
+   *     between them.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasEntriesWithNothingElseInBetween(IdeLogEntry... expectedEntries) {
+  public IdeTestLoggerAssertion hasEntriesWithNothingElseInBetween(IdeLogEntry... expectedEntries) {
 
-    hasEntries(true, expectedEntries);
+    return hasEntries(true, expectedEntries);
   }
 
-  private void hasEntries(boolean nothingElseInBetween, IdeLogEntry... expectedEntries) {
+  private IdeTestLoggerAssertion hasEntries(boolean nothingElseInBetween, IdeLogEntry... expectedEntries) {
 
     assert (expectedEntries.length > 0);
     int i = 0;
@@ -101,7 +108,7 @@ public class IdeTestLoggerAssertion {
         }
       }
       if (i == expectedEntries.length) {
-        return;
+        return this;
       }
       if (i > max) {
         max = i;
@@ -127,6 +134,7 @@ public class IdeTestLoggerAssertion {
       appendEntry(error, entry);
     }
     Assertions.fail(error.toString());
+    return this;
   }
 
   private static void appendEntry(StringBuilder sb, IdeLogEntry entry) {
@@ -136,7 +144,7 @@ public class IdeTestLoggerAssertion {
     sb.append('\n');
   }
 
-  private void fulfillsPredicate(Predicate<IdeLogEntry> predicate, PredicateMode mode, String errorMessage) {
+  private IdeTestLoggerAssertion fulfillsPredicate(Predicate<IdeLogEntry> predicate, PredicateMode mode, String errorMessage) {
 
     if (this.level != null) {
       errorMessage = errorMessage + " on level " + this.level;
@@ -145,17 +153,18 @@ public class IdeTestLoggerAssertion {
       if ((this.level == null) || (this.level == entry.level())) {
         if (predicate.test(entry)) {
           if (mode == PredicateMode.MATCH_ONE) {
-            return;
+            return this;
           }
         } else if (mode == PredicateMode.MATCH_ALL) {
           Assertions.fail(errorMessage + "\nFound unexpected log entry: " + entry);
-          return;
+          return this;
         }
       }
     }
     if (mode == PredicateMode.MATCH_ONE) {
       Assertions.fail(errorMessage); // no log entry matched by predicate
     }
+    return this;
   }
 
 }
