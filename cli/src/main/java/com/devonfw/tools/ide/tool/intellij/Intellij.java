@@ -9,6 +9,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
+import com.devonfw.tools.ide.tool.ide.IdeaBasedPluginInstaller;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -73,9 +74,8 @@ public class Intellij extends IdeToolCommandlet {
   @Override
   public void installPlugin(PluginDescriptor plugin) {
 
-    IntellijPluginInstaller pluginInstaller = new IntellijPluginInstaller(context, this);
+    IdeaBasedPluginInstaller pluginInstaller = new IdeaBasedPluginInstaller(context, this);
     String downloadUrl = pluginInstaller.getDownloadUrl(plugin);
     pluginInstaller.installPlugin(plugin, downloadUrl);
   }
-
 }

@@ -43,7 +43,7 @@ public interface IdeSubLogger {
 
   /**
    * @return {@code true} if this logger is enabled, {@code false} otherwise (this logger does nothing and all {@link #log(String) logged messages} with be
-   * ignored).
+   *     ignored).
    */
   boolean isEnabled();
 
