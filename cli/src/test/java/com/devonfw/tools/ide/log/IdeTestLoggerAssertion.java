@@ -22,16 +22,17 @@ public class IdeTestLoggerAssertion {
 
   /**
    * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasMessage(String message) {
 
-    fulfillsPredicate(e -> e.message().equals(message), PredicateMode.MATCH_ONE, "Could not find log message equal to '" + message + "'");
-    return this;
+    return fulfillsPredicate(e -> e.message().equals(message), PredicateMode.MATCH_ONE, "Could not find log message equal to '" + message + "'");
   }
 
   /**
    * @param message the {@link String} expected to be {@link String#contains(CharSequence) contained} in a
    *     {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasMessageContaining(String message) {
 
@@ -40,6 +41,7 @@ public class IdeTestLoggerAssertion {
 
   /**
    * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that is not expected and should not have been logged.
+   * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasNoMessage(String message) {
 
@@ -49,6 +51,7 @@ public class IdeTestLoggerAssertion {
   /**
    * @param message the {@link String} expected not be {@link String#contains(CharSequence) contained} in any
    *     {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasNoMessageContaining(String message) {
 
@@ -57,6 +60,7 @@ public class IdeTestLoggerAssertion {
 
   /**
    * @param messages the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}s in order.
+   * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasEntries(String... messages) {
 
@@ -71,6 +75,7 @@ public class IdeTestLoggerAssertion {
 
   /**
    * @param expectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} in order.
+   * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasEntries(IdeLogEntry... expectedEntries) {
 
@@ -80,6 +85,7 @@ public class IdeTestLoggerAssertion {
   /**
    * @param expectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} to be logged in order without any other log statement in
    *     between them.
+   * @return this assertion itself for fluent API calls.
    */
   public IdeTestLoggerAssertion hasEntriesWithNothingElseInBetween(IdeLogEntry... expectedEntries) {
 
