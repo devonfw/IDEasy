@@ -1,4 +1,4 @@
-name: Pitest
+name: Mutation Test
 
 # Runs manually
 on:
