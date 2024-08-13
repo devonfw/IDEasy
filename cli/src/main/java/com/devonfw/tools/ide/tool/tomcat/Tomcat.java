@@ -73,7 +73,7 @@ public class Tomcat extends LocalToolCommandlet {
   @Override
   public String getBinaryName() {
 
-    return "catalina";
+    return "catalina.sh";
   }
 
   private void printTomcatPort() {
