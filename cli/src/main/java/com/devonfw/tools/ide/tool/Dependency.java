@@ -1,14 +1,5 @@
 package com.devonfw.tools.ide.tool;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.url.model.file.UrlDependencyFile;
-import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
-import com.devonfw.tools.ide.url.model.folder.UrlEdition;
-import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.devonfw.tools.ide.url.model.folder.UrlTool;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.version.VersionRange;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,6 +7,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.url.model.file.UrlDependencyFile;
+import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
+import com.devonfw.tools.ide.url.model.folder.UrlEdition;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionRange;
 
 /**
  * Class to represent the functionality of installing the dependencies when a tool is being installed.
@@ -38,12 +36,6 @@ public class Dependency {
     this.tool = tool;
   }
 
-  /**
-   * Method to get the dependency json file path
-   *
-   * @param toolEdition the edition of the tool.
-   * @return the {@link Path} of the dependency.json file
-   */
   public boolean existsDependencyJsonPath(String toolEdition) {
 
     return Files.exists(getDependencyUrlEdition(toolEdition).getDependencyFile().getPath());
@@ -51,10 +43,7 @@ public class Dependency {
 
   private UrlEdition getDependencyUrlEdition(String toolEdition) {
 
-    UrlRepository urlRepository = new UrlRepository(this.context.getUrlsPath());
-    UrlTool urlTool = new UrlTool(urlRepository, tool);
-    UrlEdition urlEdition = new UrlEdition(urlTool, toolEdition);
-    return urlEdition;
+    return this.context.getUrls().getEdition(this.tool, toolEdition);
   }
 
   /**
@@ -67,8 +56,11 @@ public class Dependency {
   public List<DependencyInfo> readJson(VersionIdentifier version, String toolEdition) {
 
     UrlDependencyFile urlDependencyFile = getDependencyUrlEdition(toolEdition).getDependencyFile();
-    Map<VersionRange, List<DependencyInfo>> dependencyMap = urlDependencyFile.getDependencyMap();
-    return findDependenciesFromJson(dependencyMap, version);
+    if (!urlDependencyFile.isDependencyMapNull()) {
+      Map<VersionRange, List<DependencyInfo>> dependencyMap = urlDependencyFile.getDependencyMap();
+      return urlDependencyFile.findDependenciesFromJson(dependencyMap, version);
+    }
+    return null;
   }
 
   /**
@@ -116,16 +108,5 @@ public class Dependency {
     return Path.of("");
   }
 
-  private List<DependencyInfo> findDependenciesFromJson(Map<VersionRange, List<DependencyInfo>> dependencyMap, VersionIdentifier toolVersionToCheck) {
 
-    for (Map.Entry<VersionRange, List<DependencyInfo>> map : dependencyMap.entrySet()) {
-
-      VersionRange foundToolVersionRange = map.getKey();
-
-      if (foundToolVersionRange.contains(toolVersionToCheck)) {
-        return map.getValue();
-      }
-    }
-    return null;
-  }
 }

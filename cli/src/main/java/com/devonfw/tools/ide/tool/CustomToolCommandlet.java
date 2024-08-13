@@ -5,6 +5,9 @@ import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.repo.CustomTool;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+/**
+ * {@link LocalToolCommandlet} for a {@link CustomTool}.
+ */
 public class CustomToolCommandlet extends LocalToolCommandlet {
 
   private CustomTool customTool;
@@ -16,21 +19,21 @@ public class CustomToolCommandlet extends LocalToolCommandlet {
   }
 
   @Override
-  public ToolInstallation installTool(EnvironmentContext environmentContext, VersionIdentifier version) {
+  public ToolInstallation installTool(VersionIdentifier version, EnvironmentContext environmentContext) {
 
-    return installTool(environmentContext, version, this.customTool.getEdition());
+    return installTool(version, this.customTool.getEdition(), environmentContext);
   }
 
   @Override
   public ToolInstallation installTool(VersionIdentifier version) {
 
-    return installTool(null, version, this.customTool.getEdition());
+    return installTool(version, this.customTool.getEdition(), null);
   }
 
   @Override
-  public ToolInstallation installTool(EnvironmentContext environmentContext, VersionIdentifier version, String edition) {
+  public ToolInstallation installTool(VersionIdentifier version, String edition, EnvironmentContext environmentContext) {
 
-    return installTool(environmentContext, version, edition, this.context.getCustomToolRepository());
+    return installTool(version, edition, this.context.getCustomToolRepository(), environmentContext);
   }
 
 

@@ -38,7 +38,7 @@ public class UrlEdition extends AbstractUrlFolderWithParent<UrlTool, UrlVersion>
 
   /**
    * @return the {@link UrlSecurityFile} of this {@link UrlEdition}. Will be lazily initialized on the first call of this method. If the file exists, it will be
-   * loaded, otherwise it will be empty and only created on save if data was added.
+   *     loaded, otherwise it will be empty and only created on save if data was added.
    */
   public UrlSecurityFile getSecurityFile() {
 
@@ -49,6 +49,10 @@ public class UrlEdition extends AbstractUrlFolderWithParent<UrlTool, UrlVersion>
     return this.securityFile;
   }
 
+  /**
+   * @return the {@link UrlDependencyFile} of this {@link UrlEdition}. Will be lazily initialized on the first call of this method. If the file exists, it will
+   *     be loaded, otherwise it will be empty and only created on save if data was added.
+   */
   public UrlDependencyFile getDependencyFile() {
 
     if (this.dependencyFile == null) {

@@ -104,7 +104,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     binaryPath = Path.of(getBinaryName());
 
     if (existsEnvironmentContext) {
-      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
 
       if (toolVersion == null) {
         install(pc, true);
@@ -127,7 +127,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       throw new UnsupportedOperationException("Not yet implemented!");
     }
 
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
     pc.run(processMode);
   }
 
@@ -180,8 +180,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * Method to be called for {@link #install(EnvironmentContext, boolean)} from dependent {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
+   * Method to be called for {@link #install(boolean)} from dependent {@link com.devonfw.tools.ide.commandlet.Commandlet}s. Additionally, contains the
+   * environmentContext of the tool
    *
+   * @param environmentContext - the environment context that can be used for the dependencies
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
   public boolean install(EnvironmentContext environmentContext) {
@@ -189,14 +191,21 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return install(environmentContext, true);
   }
 
+  /**
+   * Method to be called for {@link #install(boolean)} from dependent {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
+   *
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
+   */
   public boolean install() {
 
     return install(true);
   }
 
   /**
-   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}.
+   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}. Additionally, contains the
+   * environmentContext of the tool
    *
+   * @param environmentContext - the environment context that can be used for the dependencies
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
@@ -205,10 +214,26 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return doInstall(environmentContext, silent);
   }
 
+  /**
+   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}.
+   *
+   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
+   */
   public boolean install(boolean silent) {
 
     return doInstall(silent);
   }
+
+
+  /**
+   * Installs or updates the managed {@link #getName() tool}. Additionally works with the environment context of the tool.
+   *
+   * @param environmentContext - the environment context that can be used for the dependencies
+   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
+   */
+  protected abstract boolean doInstall(EnvironmentContext environmentContext, boolean silent);
 
   /**
    * Installs or updates the managed {@link #getName() tool}.
@@ -216,9 +241,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
-
-  protected abstract boolean doInstall(EnvironmentContext environmentContext, boolean silent);
-
   protected abstract boolean doInstall(boolean silent);
 
   /**

@@ -18,8 +18,12 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+/**
+ * {@link ToolCommandlet} for <a href="https://tomcat.apache.org/">tomcat</a>.
+ */
 public class Tomcat extends LocalToolCommandlet {
 
   /**
@@ -32,7 +36,7 @@ public class Tomcat extends LocalToolCommandlet {
     super(context, "tomcat", Set.of(Tag.JAVA));
     add(this.arguments);
   }
-  
+
   @Override
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
@@ -69,7 +73,7 @@ public class Tomcat extends LocalToolCommandlet {
   @Override
   public String getBinaryName() {
 
-    return "catalina.sh";
+    return "catalina";
   }
 
   private void printTomcatPort() {
