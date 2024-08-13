@@ -1006,8 +1006,12 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
       trace("Next property candidate to match argument is {}", currentProperty);
       if (currentProperty == property) {
-        if (propertyIterator.hasNext()) {
-          property = propertyIterator.next();
+        if (!property.isMultiValued()) {
+          if (propertyIterator.hasNext()) {
+            property = propertyIterator.next();
+          } else {
+            property = null;
+          }
         }
         if (property.isValue() && property.isMultiValued()) {
           arguments.endOptions();
