@@ -14,13 +14,15 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
  */
 public class VersionSetCommandletTest extends AbstractIdeContextTest {
 
+  private static final String PROJECT_SETTINGS = "settings";
+
   /**
    * Test of {@link VersionSetCommandlet} run.
    *
    * @throws IOException on error.
    */
   @Test
-  public void testVersionSetCommandletRun() throws IOException {
+  public void testVersionSetCommandletRun() {
 
     // arrange
     IdeContext context = newContext(PROJECT_BASIC);
@@ -58,14 +60,14 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
    * @throws IOException on error.
    */
   @Test
-  public void testVersionSetCommandletConfRun() throws IOException {
+  public void testVersionSetCommandletConfRun() {
 
     // arrange
-    IdeContext context = newContext(PROJECT_BASIC);
+    IdeContext context = newContext(PROJECT_SETTINGS);
     VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
     versionSet.tool.setValueAsString("mvn", context);
-    versionSet.version.setValueAsString("3.2.1", context);
     versionSet.cfg.setValue(EnvironmentVariablesFiles.CONF);
+    versionSet.version.setValueAsString("3.2.conf", context);
     // act
     versionSet.run();
     // assert
@@ -74,16 +76,66 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
         #********************************************************************************
         # This file contains project specific environment variables defined by the user
         #********************************************************************************
-        M2_REPO=~/.m2/repository
-        MVN_VERSION=3.2.1
-        SOME=some-${UNDEFINED}
-        TEST_ARGS1=${TEST_ARGS1} conf1
-        TEST_ARGS2=${TEST_ARGS2} conf2
-        TEST_ARGS5=${TEST_ARGS5} conf5
-        TEST_ARGS6=${TEST_ARGS6} conf6
-        TEST_ARGS7=${TEST_ARGS7} conf7
-        TEST_ARGS8=${TEST_ARGS8} conf8
-        TEST_ARGSa=${TEST_ARGS1} ${TEST_ARGS3} confa
-        TEST_ARGSc=${TEST_ARGSc} confc""");
+        MVN_VERSION=3.2.conf""");
+  }
+
+  @Test
+  public void testVersionSetCommandletWorkspaceRun() {
+
+    // arrange
+    IdeContext context = newContext(PROJECT_SETTINGS);
+    VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
+    versionSet.tool.setValueAsString("mvn", context);
+    versionSet.cfg.setValue(EnvironmentVariablesFiles.WORKSPACE);
+    versionSet.version.setValueAsString("3.2.workspace", context);
+    // act
+    versionSet.run();
+    // assert
+    Path confIdeProperties = context.getWorkspacePath().resolve("ide.properties");
+    assertThat(confIdeProperties).hasContent("""
+        #********************************************************************************
+        # This file contains workspace specific environment variables
+        #********************************************************************************
+        MVN_VERSION=3.2.workspace""");
+  }
+
+  @Test
+  public void testVersionSetCommandletUserRun() {
+
+    // arrange
+    IdeContext context = newContext(PROJECT_SETTINGS);
+    VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
+    versionSet.tool.setValueAsString("mvn", context);
+    versionSet.cfg.setValue(EnvironmentVariablesFiles.USER);
+    versionSet.version.setValueAsString("3.2.user", context);
+    // act
+    versionSet.run();
+    // assert
+    Path confIdeProperties = context.getUserHome().resolve(".ide").resolve("ide.properties");
+    assertThat(confIdeProperties).hasContent("""
+        #********************************************************************************
+        # This file contains the global configuration from the user HOME directory.
+        #********************************************************************************
+        MVN_VERSION=3.2.user""");
+  }
+
+  @Test
+  public void testVersionSetCommandletSettingsRun() {
+
+    // arrange
+    IdeContext context = newContext(PROJECT_SETTINGS);
+    VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
+    versionSet.tool.setValueAsString("mvn", context);
+    versionSet.cfg.setValue(EnvironmentVariablesFiles.SETTINGS);
+    versionSet.version.setValueAsString("3.2.settings", context);
+    // act
+    versionSet.run();
+    // assert
+    Path confIdeProperties = context.getSettingsPath().resolve("ide.properties");
+    assertThat(confIdeProperties).hasContent("""
+        #********************************************************************************
+        # This file contains project specific environment variables
+        #********************************************************************************
+        MVN_VERSION=3.2.settings""");
   }
 }
