@@ -32,20 +32,7 @@ public class Tomcat extends LocalToolCommandlet {
     super(context, "tomcat", Set.of(Tag.JAVA));
     add(this.arguments);
   }
-
-//@Override
-//  public void postInstall() {
-//
-//    super.postInstall();
-//
-//    EnvironmentVariables variables = this.context.getVariables();
-//    EnvironmentVariables typeVariables = variables.getByType(EnvironmentVariablesType.CONF);
-//
-//    typeVariables.set("CATALINA_HOME", getToolPath().toString(), true);
-//    typeVariables.save();
-//  }
-
-
+  
   @Override
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 

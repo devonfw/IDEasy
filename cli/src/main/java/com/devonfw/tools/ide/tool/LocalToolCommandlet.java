@@ -61,7 +61,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   @Override
   protected boolean doInstall(boolean silent) {
-    
+
     return doInstall(null, silent);
   }
 
@@ -392,14 +392,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   private void installDependencyInRepo(String dependencyName, ToolCommandlet dependencyTool, VersionIdentifier dependencyVersionToInstall,
       EnvironmentContext ec) {
 
-    this.context.info("The version {} of the dependency {} is being installed", dependencyVersionToInstall, dependencyName);
-
     if (dependencyTool instanceof LocalToolCommandlet) {
+      this.context.info("The version {} of the dependency {} is being installed", dependencyVersionToInstall, dependencyName);
       ((LocalToolCommandlet) dependencyTool).installTool(ec, dependencyVersionToInstall);
+      this.context.info("The version {} of the dependency {} was successfully installed", dependencyVersionToInstall, dependencyName);
     } else {
-      // TODO
+      this.context.trace("The dependency is not an instance of LocalToolCommandlet, hence not able to be installed");
     }
-    this.context.info("The version {} of the dependency {} was successfully installed", dependencyVersionToInstall, dependencyName);
   }
 
 
