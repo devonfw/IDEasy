@@ -60,8 +60,8 @@ public class PathProperty extends Property<Path> {
   @Override
   public boolean validate() {
 
-    if (this.value != null) {
-      if (Files.exists(getValue())) {
+    if (!this.value.isEmpty()) {
+      if (getValue() != null && Files.exists(getValue())) {
         if (isPathRequiredToBeFile() && !Files.isRegularFile(getValue())) {
           throw new IllegalStateException("Path " + this.value + " is not a file.");
         } else if (isPathRequiredToBeFolder() && !Files.isDirectory(getValue())) {
