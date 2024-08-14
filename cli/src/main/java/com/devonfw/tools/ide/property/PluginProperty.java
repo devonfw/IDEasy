@@ -32,19 +32,6 @@ public class PluginProperty extends Property<String> {
    *
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
-   * @param multivalued the boolean flag about multiple arguments
-   * @param alias the {@link #getAlias() property alias}.
-   */
-  public PluginProperty(String name, boolean required, boolean multivalued, String alias) {
-
-    this(name, required, alias, multivalued, null);
-  }
-
-  /**
-   * The constructor.
-   *
-   * @param name the {@link #getName() property name}.
-   * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
    * @param multivalued the boolean flag about multiple arguments
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
@@ -79,5 +66,4 @@ public class PluginProperty extends Property<String> {
       }
     }
   }
-
 }

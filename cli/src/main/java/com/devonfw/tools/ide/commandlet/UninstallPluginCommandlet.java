@@ -43,8 +43,7 @@ public class UninstallPluginCommandlet extends Commandlet {
     ToolCommandlet commandlet = this.tool.getValue();
     String plugin = this.plugin.getValue();
 
-    if (commandlet instanceof PluginBasedCommandlet) {
-      PluginBasedCommandlet cmd = (PluginBasedCommandlet) commandlet;
+    if (commandlet instanceof PluginBasedCommandlet cmd) {
       cmd.uninstallPlugin(cmd.getPlugin(plugin));
     } else {
       context.warning("Tool {} does not support plugins.", tool.getName());

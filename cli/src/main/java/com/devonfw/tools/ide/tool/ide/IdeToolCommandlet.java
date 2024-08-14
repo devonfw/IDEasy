@@ -1,9 +1,6 @@
 package com.devonfw.tools.ide.tool.ide;
 
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -14,17 +11,12 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
-import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 
 /**
  * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or {@link Intellij}.
  */
 public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
-
-  private Map<String, PluginDescriptor> pluginsMap;
-
-  private Collection<PluginDescriptor> configuredPlugins;
 
   /**
    * The constructor.
@@ -47,17 +39,6 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
       }
     }
     throw new IllegalStateException("Tags of IdeTool hat to be connected with tag IDE: " + tags);
-  }
-
-  /**
-   * @return the immutable {@link Collection} of {@link PluginDescriptor}s configured for this IDE tool.
-   */
-  public Collection<PluginDescriptor> getConfiguredPlugins() {
-
-    if (this.configuredPlugins == null) {
-      this.configuredPlugins = Collections.unmodifiableCollection(getPluginsMap().getPlugins());
-    }
-    return this.configuredPlugins;
   }
 
   @Override
