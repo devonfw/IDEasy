@@ -44,6 +44,13 @@ public class UrlDependencyFile extends AbstractUrlFile<UrlEdition> {
     return this.dependencyMap;
   }
 
+  /**
+   * Finds the dependency from Json file.
+   *
+   * @param dependencyMap the Map of the VersionRange and the List of DependencyInfo
+   * @param toolVersionToCheck the version of the tool to check
+   * @return The List of the DependencyInfo found in the Json file
+   */
   public List<DependencyInfo> findDependenciesFromJson(Map<VersionRange, List<DependencyInfo>> dependencyMap, VersionIdentifier toolVersionToCheck) {
 
     for (Map.Entry<VersionRange, List<DependencyInfo>> map : dependencyMap.entrySet()) {
@@ -57,6 +64,9 @@ public class UrlDependencyFile extends AbstractUrlFile<UrlEdition> {
     return null;
   }
 
+  /**
+   * Checks if the dependency map is null
+   */
   public boolean isDependencyMapNull() {
     return dependencyMap == null;
   }
