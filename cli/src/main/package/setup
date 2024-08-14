@@ -3,7 +3,7 @@
 cd "$(dirname "${BASH_SOURCE:-$0}")" || exit 255
 echo "Setting up your IDEasy in ${PWD}"
 
-AUTOCOMPLETION="source ${PWD}/autocomplete"
+AUTOCOMPLETION="source ${PWD}/completion"
 
 if ! grep -q "${AUTOCOMPLETION}" ~/.bashrc; then
   echo -e "${AUTOCOMPLETION}" >> ~/.bashrc

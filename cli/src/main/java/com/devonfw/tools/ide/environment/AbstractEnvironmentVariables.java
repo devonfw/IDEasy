@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.environment;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +38,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    */
   protected final IdeContext context;
 
-  private String source;
+  private VariableSource source;
 
   /**
    * The constructor.
@@ -74,14 +73,10 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   @Override
-  public String getSource() {
+  public VariableSource getSource() {
 
     if (this.source == null) {
-      this.source = getType().toString();
-      Path propertiesPath = getPropertiesFilePath();
-      if (propertiesPath != null) {
-        this.source = this.source + "@" + propertiesPath;
-      }
+      this.source = new VariableSource(getType(), getPropertiesFilePath());
     }
     return this.source;
   }
@@ -101,42 +96,44 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   @Override
-  public final Collection<VariableLine> collectVariables() {
+  public final List<VariableLine> collectVariables() {
 
     return collectVariables(false);
   }
 
   @Override
-  public final Collection<VariableLine> collectExportedVariables() {
+  public final List<VariableLine> collectExportedVariables() {
 
     return collectVariables(true);
   }
 
-  private final Collection<VariableLine> collectVariables(boolean onlyExported) {
+  private final List<VariableLine> collectVariables(boolean onlyExported) {
 
-    Map<String, String> variableNames = new HashMap<>();
-    collectVariables(variableNames);
-    List<VariableLine> variables = new ArrayList<>(variableNames.size());
-    for (String name : variableNames.keySet()) {
-      boolean export = isExported(name);
-      if (!onlyExported || export) {
-        String value = get(name, false);
-        if (value != null) {
-          variables.add(VariableLine.of(export, name, value, variableNames.get(name)));
-        }
-      }
-    }
-    return variables;
+    Map<String, VariableLine> variables = new HashMap<>();
+    collectVariables(variables, onlyExported, this);
+    return new ArrayList<>(variables.values());
   }
 
   /**
    * @param variables the {@link Map} where to add the names of the variables defined here as keys, and their corresponding source as value.
    */
-  protected void collectVariables(Map<String, String> variables) {
+  protected void collectVariables(Map<String, VariableLine> variables, boolean onlyExported, AbstractEnvironmentVariables resolver) {
 
     if (this.parent != null) {
-      this.parent.collectVariables(variables);
+      this.parent.collectVariables(variables, onlyExported, resolver);
     }
+  }
+
+  protected VariableLine createVariableLine(String name, boolean onlyExported, AbstractEnvironmentVariables resolver) {
+
+    boolean export = resolver.isExported(name);
+    if (!onlyExported || export) {
+      String value = resolver.get(name, false);
+      if (value != null) {
+        return VariableLine.of(export, name, value, getSource());
+      }
+    }
+    return null;
   }
 
   /**
@@ -171,19 +168,19 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   /**
    * This method is called recursively. This allows you to resolve variables that are defined by other variables.
    *
-   * @param value the {@link String} that potentially contains variables in the syntax "${«variable«}". Those will be resolved by this method and replaced with
-   * their {@link #get(String) value}.
-   * @param source the source where the {@link String} to resolve originates from. Should have a reasonable {@link Object#toString() string representation} that
-   * will be used in error or log messages if a variable could not be resolved.
+   * @param value the {@link String} that potentially contains variables in the syntax "${«variable«}". Those will be resolved by this method and replaced
+   *     with their {@link #get(String) value}.
+   * @param source the source where the {@link String} to resolve originates from. Should have a reasonable {@link Object#toString() string representation}
+   *     that will be used in error or log messages if a variable could not be resolved.
    * @param recursion the current recursion level. This is used to interrupt endless recursion.
    * @param resolvedVars this is a reference to an object of {@link EnvironmentVariablesResolved} being the lowest level in the
-   * {@link EnvironmentVariablesType hierarchy} of variables. In case of a self-referencing variable {@code x} the resolving has to continue one level higher in
-   * the {@link EnvironmentVariablesType hierarchy} to avoid endless recursion. The {@link EnvironmentVariablesResolved} is then used if another variable
-   * {@code y} must be resolved, since resolving this variable has to again start at the lowest level. For example: For levels {@code l1, l2} with
-   * {@code l1 < l2} and {@code x=${x} foo} and {@code y=bar} defined at level {@code l1} and {@code x=test ${y}} defined at level {@code l2}, {@code x} is
-   * first resolved at level {@code l1} and then up the {@link EnvironmentVariablesType hierarchy} at {@code l2} to avoid endless recursion. However, {@code y}
-   * must be resolved starting from the lowest level in the {@link EnvironmentVariablesType hierarchy} and therefore {@link EnvironmentVariablesResolved} is
-   * used.
+   *     {@link EnvironmentVariablesType hierarchy} of variables. In case of a self-referencing variable {@code x} the resolving has to continue one level
+   *     higher in the {@link EnvironmentVariablesType hierarchy} to avoid endless recursion. The {@link EnvironmentVariablesResolved} is then used if another
+   *     variable {@code y} must be resolved, since resolving this variable has to again start at the lowest level. For example: For levels {@code l1, l2} with
+   *     {@code l1 < l2} and {@code x=${x} foo} and {@code y=bar} defined at level {@code l1} and {@code x=test ${y}} defined at level {@code l2}, {@code x} is
+   *     first resolved at level {@code l1} and then up the {@link EnvironmentVariablesType hierarchy} at {@code l2} to avoid endless recursion. However,
+   *     {@code y} must be resolved starting from the lowest level in the {@link EnvironmentVariablesType hierarchy} and therefore
+   *     {@link EnvironmentVariablesResolved} is used.
    * @param context the {@link ResolveContext}.
    * @return the given {@link String} with the variables resolved.
    */
@@ -271,7 +268,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
    *
    * @param name the name of the variable to get.
    * @param ignoreDefaultValue - {@code true} if the {@link VariableDefinition#getDefaultValue(IdeContext) default value} of a potential
-   * {@link VariableDefinition} shall be ignored, {@code false} to return default instead of {@code null}.
+   *     {@link VariableDefinition} shall be ignored, {@code false} to return default instead of {@code null}.
    * @return the value of the variable.
    */
   protected String getValue(String name, boolean ignoreDefaultValue) {
@@ -326,7 +323,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   @Override
   public String toString() {
 
-    return getSource();
+    return getSource().toString();
   }
 
   /**

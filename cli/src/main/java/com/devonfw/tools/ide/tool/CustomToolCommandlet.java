@@ -4,7 +4,9 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.repo.CustomTool;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
-
+/**
+ * {@link LocalToolCommandlet} for a {@link CustomTool}.
+ */
 public class CustomToolCommandlet extends LocalToolCommandlet {
 
   private CustomTool customTool;
