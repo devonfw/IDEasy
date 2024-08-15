@@ -94,18 +94,21 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     Path binaryPath;
     binaryPath = Path.of(getBinaryName());
+    ProcessContext pc;
 
-    if (existsEnvironmentContext) {
-      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
-
-      if (toolVersion == null) {
+    if (toolVersion == null) {
+      if (existsEnvironmentContext) {
+        pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
         install(pc, true);
       } else {
-        throw new UnsupportedOperationException("Not yet implemented!");
+        install(true);
+        pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
       }
-
-      pc.run(processMode);
+    } else {
+      throw new UnsupportedOperationException("Not yet implemented!");
     }
+
+    pc.run(processMode);
   }
 
   /**
@@ -118,17 +121,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    Path binaryPath;
-    binaryPath = Path.of(getBinaryName());
-
-    if (toolVersion == null) {
-      install(true);
-    } else {
-      throw new UnsupportedOperationException("Not yet implemented!");
-    }
-
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
-    pc.run(processMode);
+    runTool(processMode, toolVersion, false, args);
   }
 
   /**
