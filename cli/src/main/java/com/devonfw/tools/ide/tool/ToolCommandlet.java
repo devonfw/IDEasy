@@ -89,7 +89,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     runTool(ProcessMode.DEFAULT, null, this.arguments.asArray());
   }
 
-
+  /**
+   * Ensures the tool is installed and then runs this tool with the given arguments.
+   *
+   * @param processMode see {@link ProcessMode}
+   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version is installed and use that one.
+   *     Otherwise, the specified version will be installed in the software repository without touching and IDE installation and used to run.
+   * @param existsEnvironmentContext the {@link Boolean} that checks if an environment context exits. If true, then the process context is passed to the
+   *     installation method as an argument.
+   * @param args the command-line arguments to run the tool.
+   */
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, boolean existsEnvironmentContext, String... args) {
 
     Path binaryPath;
@@ -112,12 +121,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * Ensures the tool is installed and then runs this tool with the given arguments.
-   *
    * @param processMode see {@link ProcessMode}
-   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version is installed and use that one.
-   *     Otherwise, the specified version will be installed in the software repository without touching and IDE installation and used to run.
+   * @param toolVersion the explicit {@link VersionIdentifier} of the tool to run.
    * @param args the command-line arguments to run the tool.
+   * @see ToolCommandlet#runTool(ProcessMode, VersionIdentifier, boolean, String...)
    */
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
