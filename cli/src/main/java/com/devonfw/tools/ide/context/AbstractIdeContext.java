@@ -33,6 +33,7 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.log.IdeLoggerImpl;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.ProxyContext;
@@ -58,7 +59,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private static final String IDE_URLS_GIT = "https://github.com/devonfw/ide-urls.git";
 
-  private final IdeLogger logger;
+  private final IdeLoggerImpl logger;
 
   private Path ideHome;
 
@@ -138,7 +139,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
    *     be used.
    */
-  public AbstractIdeContext(IdeLogger logger, Path userDir, ToolRepository toolRepository) {
+  public AbstractIdeContext(IdeLoggerImpl logger, Path userDir, ToolRepository toolRepository) {
 
     super();
     this.logger = logger;
@@ -891,7 +892,13 @@ public abstract class AbstractIdeContext implements IdeContext {
       } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
         throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
       }
-      if (!cmd.isProcessableOutput()) {
+      if (cmd.isProcessableOutput()) {
+        for (IdeLogLevel level : IdeLogLevel.values()) {
+          if (level != IdeLogLevel.INFO) {
+            this.logger.setLogLevel(level, false);
+          }
+        }
+      } else {
         if (cmd.isIdeHomeRequired()) {
           debug(getMessageIdeHomeFound());
         }
