@@ -34,6 +34,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if the {@link Intellij} can be installed properly.
    *
    * @param os String of the OS to use.
+   * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException if reading the content of the mocked plugin fails
    */
   @ParameterizedTest

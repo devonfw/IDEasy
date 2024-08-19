@@ -25,6 +25,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
    * Tests if a download of a file with a valid content length was displaying an {@link IdeProgressBar} properly.
    *
    * @param tempDir temporary directory to use.
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
   public void testProgressBarDownloadWithValidContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {

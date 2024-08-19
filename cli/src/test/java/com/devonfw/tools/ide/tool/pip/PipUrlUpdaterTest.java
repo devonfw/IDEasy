@@ -30,6 +30,7 @@ public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
    * @param tempDir Temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
   public void testPipUrlUpdaterWithTextContentTypeWillSucceed(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {

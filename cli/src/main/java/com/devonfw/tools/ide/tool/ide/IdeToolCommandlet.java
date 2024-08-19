@@ -234,5 +234,4 @@ public abstract class IdeToolCommandlet extends LocalToolCommandlet {
     this.context.step("Configuring workspace {} for IDE {}", ideWorkspacePath.getFileName(), this.tool);
     this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), ideWorkspacePath);
   }
-
 }
