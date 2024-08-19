@@ -303,14 +303,6 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public boolean isTest() {
 
-    return isMock();
-  }
-
-  /**
-   * @return {@code true} if this is a mock context for JUnits, {@code false} otherwise.
-   */
-  public boolean isMock() {
-
     return false;
   }
 
