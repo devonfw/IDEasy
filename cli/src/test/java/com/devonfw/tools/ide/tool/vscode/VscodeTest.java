@@ -29,8 +29,8 @@ public class VscodeTest extends AbstractIdeContextTest {
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context.getSoftwarePath().resolve("vscode/bin/code.bat")).exists().hasContent("@echo test for windows");
-    assertThat(context.getSoftwarePath().resolve("vscode/bin/code.sh")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
+    assertThat(context.getSoftwarePath().resolve("vscode/bin/code.cmd")).exists().hasContent("@echo test for windows");
+    assertThat(context.getSoftwarePath().resolve("vscode/bin/code")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed vscode in version 1.92.1");
