@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.url.model;
 
+/**
+ * Class that collects the number of successful or failed additions and verifications of tools with editions and calculates the error rate when updating urls.
+ */
 public final class UrlErrorState {
 
   private final String toolWithEdition;
@@ -65,6 +68,7 @@ public final class UrlErrorState {
   private int getTotalAdditions() {
     return this.additionFailures + this.additionSuccesses;
   }
+
   private int getTotalVerification() {
     return this.verificationFailures + this.verificationSuccesses;
   }
@@ -77,6 +81,7 @@ public final class UrlErrorState {
       return String.format("%.2f", errorRate);
     }
   }
+
   public void updateAdditions(boolean success) {
     if (success) {
       this.additionSuccesses += 1;

@@ -4,12 +4,17 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Class that outputs a report for all {@link UrlErrorState} after url updated
+ */
 public class UrlErrorReport {
 
   private static final UrlErrorReport instance = new UrlErrorReport();
+
   private static UrlErrorReport getInstance() {
     return instance;
   }
+
   public static List<UrlErrorState> urlErrorStates = new ArrayList<>();
 
   private static UrlErrorState addErrorState(String toolWithEdition) {
@@ -18,7 +23,7 @@ public class UrlErrorReport {
     return state;
   }
 
-  public static UrlErrorState getErrorState(String toolWithEdition){
+  public static UrlErrorState getErrorState(String toolWithEdition) {
     if (!urlErrorStates.isEmpty()) {
       for (UrlErrorState state : urlErrorStates) {
         if (state.getToolWithEdition().equals(toolWithEdition)) {
