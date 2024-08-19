@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.intellij;
+package com.devonfw.tools.ide.tool.ide;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -6,24 +6,22 @@ import java.nio.file.Path;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.MacOsHelper;
-import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
-import com.devonfw.tools.ide.tool.ide.PluginInstaller;
 
 /**
- * Plugin Installer for {@link Intellij}.
+ * Manager class to install plugins for the {@link IdeToolCommandlet commandlet}.
  */
-public class IntellijPluginInstaller extends PluginInstaller {
+public class IdeaBasedPluginInstaller extends PluginInstaller {
 
   private static final String BUILD_FILE = "build.txt";
 
   /**
-   * The constructor.
+   * The constructor
    *
    * @param context the {@link IdeContext}.
-   * @param commandlet the {@link IdeToolCommandlet}
+   * @param commandlet the {@link IdeToolCommandlet commandlet}.
    */
-  public IntellijPluginInstaller(IdeContext context, IdeToolCommandlet commandlet) {
+  public IdeaBasedPluginInstaller(IdeContext context, IdeToolCommandlet commandlet) {
+
     super(context, commandlet);
   }
 
@@ -47,23 +45,14 @@ public class IntellijPluginInstaller extends PluginInstaller {
     Path buildFile = commandlet.getToolPath().resolve(BUILD_FILE);
     if (context.getSystemInfo().isMac()) {
       MacOsHelper macOsHelper = new MacOsHelper(context);
-      Path rootToolPath = macOsHelper.findRootToolPath(this.commandlet, context);
-      buildFile = rootToolPath.resolve("IntelliJ IDEA" + generateMacEditionString() + ".app").resolve("Contents/Resources").resolve(BUILD_FILE);
+      Path appPath = macOsHelper.findAppDir(macOsHelper.findRootToolPath(this.commandlet, context));
+      buildFile = appPath.resolve("Contents/Resources").resolve(BUILD_FILE);
     }
     try {
       return Files.readString(buildFile);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to read IntelliJ build version: " + buildFile, e);
+      throw new IllegalStateException("Failed to read " + commandlet.getName() + " build version: " + buildFile, e);
     }
-  }
-
-  private String generateMacEditionString() {
-
-    String edition = "";
-    if (commandlet.getConfiguredEdition().equals("intellij")) {
-      edition = " CE";
-    }
-    return edition;
   }
 
 }
