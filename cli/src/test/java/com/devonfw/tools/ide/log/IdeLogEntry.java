@@ -1,7 +1,7 @@
 package com.devonfw.tools.ide.log;
 
 /**
- * Single entry that was logged by {@link IdeTestLogger}.
+ * Single entry that was logged by {@link IdeSubLoggerTest}.
  *
  * @param level the {@link IdeLogLevel}.
  * @param message the message that has been logged.

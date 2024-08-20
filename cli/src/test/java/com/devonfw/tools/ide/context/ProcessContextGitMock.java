@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -17,7 +17,7 @@ import com.devonfw.tools.ide.process.ProcessResultImpl;
 /**
  * Mocks the {@link ProcessContext}.
  */
-public class GitContextProcessContextMock implements ProcessContext {
+public class ProcessContextGitMock implements ProcessContext {
 
   private final List<String> arguments;
 
@@ -25,23 +25,55 @@ public class GitContextProcessContextMock implements ProcessContext {
 
   private final List<String> outs;
 
+  private final LocalDateTime now;
+
   private int exitCode;
 
   private final Path directory;
 
   /**
-   * @param errors List of errors.
-   * @param outs List of out texts.
-   * @param exitCode the exit code.
    * @param directory the {@link Path} to the git repository.
    */
-  public GitContextProcessContextMock(List<String> errors, List<String> outs, int exitCode, Path directory) {
+  public ProcessContextGitMock(Path directory) {
 
     this.arguments = new ArrayList<>();
-    this.errors = errors;
-    this.outs = outs;
-    this.exitCode = exitCode;
+    this.errors = new ArrayList<>();
+    this.outs = new ArrayList<>();
+    this.exitCode = ProcessResult.SUCCESS;
     this.directory = directory;
+    this.now = LocalDateTime.now();
+  }
+
+  /**
+   * @return the mocked {@link ProcessResult#getExitCode() exit code}.
+   */
+  public int getExitCode() {
+
+    return this.exitCode;
+  }
+
+  /**
+   * @param exitCode the {@link #getExitCode() exit code}.
+   */
+  public void setExitCode(int exitCode) {
+
+    this.exitCode = exitCode;
+  }
+
+  /**
+   * @return the {@link List} of mocked error messages.
+   */
+  public List<String> getErrors() {
+
+    return errors;
+  }
+
+  /**
+   * @return the {@link List} of mocked out messages.
+   */
+  public List<String> getOuts() {
+
+    return outs;
   }
 
   @Override
@@ -67,6 +99,11 @@ public class GitContextProcessContextMock implements ProcessContext {
 
     this.arguments.add(arg);
     return this;
+  }
+
+  public LocalDateTime getNow() {
+
+    return this.now;
   }
 
   @Override
@@ -126,8 +163,7 @@ public class GitContextProcessContextMock implements ProcessContext {
       try {
         Files.createDirectories(gitFolderPath);
         Path newFile = Files.createFile(gitFolderPath.resolve("update"));
-        Date currentDate = new Date();
-        Files.writeString(newFile, currentDate.toString());
+        Files.writeString(newFile, this.now.toString());
         this.exitCode = 0;
       } catch (IOException e) {
         throw new RuntimeException(e);

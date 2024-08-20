@@ -34,8 +34,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
   private static final int CHUNK_SIZE = 1024;
 
   /**
-   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}. E.g.
-   * "basic".
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}.
+   *     E.g. "basic".
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected IdeTestContext newContext(String testProject) {
@@ -44,8 +44,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
   }
 
   /**
-   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}. E.g.
-   * "basic".
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}.
+   *     E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
    * @return the {@link IdeTestContext} pointing to that project.
    */
@@ -55,11 +55,11 @@ public abstract class AbstractIdeContextTest extends Assertions {
   }
 
   /**
-   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}. E.g.
-   * "basic".
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}.
+   *     E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
-   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test, {@code false} otherwise (only to save resources if
-   * you are 100% sure that your test never modifies anything in that project.)
+   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test, {@code false} otherwise (only to save resources
+   *     if you are 100% sure that your test never modifies anything in that project.)
    * @return the {@link IdeTestContext} pointing to that project.
    */
   protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
@@ -68,11 +68,11 @@ public abstract class AbstractIdeContextTest extends Assertions {
   }
 
   /**
-   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}. E.g.
-   * "basic".
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}.
+   *     E.g. "basic".
    * @param projectPath the relative path inside the test project where to create the context.
-   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test, {@code false} otherwise (only to save resources if
-   * you are 100% sure that your test never modifies anything in that project.)
+   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test, {@code false} otherwise (only to save resources
+   *     if you are 100% sure that your test never modifies anything in that project.)
    * @param logLevel the {@link IdeLogLevel} used as threshold for logging.
    * @return the {@link IdeTestContext} pointing to that project.
    */
@@ -110,24 +110,6 @@ public abstract class AbstractIdeContextTest extends Assertions {
   protected static IdeTestContext newContext(Path projectPath) {
 
     return new IdeTestContext(projectPath);
-  }
-
-  /**
-   * @param projectPath the relative path inside the test project where to create the context.
-   * @param errors list of error messages.
-   * @param outs list of out messages.
-   * @param exitCode the exit code.
-   * @param isOnline boolean if it should be run in online mode.
-   * @return the {@link GitContextTestContext} pointing to that project.
-   */
-  protected static GitContextTestContext newGitContext(Path projectPath, List<String> errors, List<String> outs, int exitCode, boolean isOnline) {
-
-    GitContextTestContext context;
-    context = new GitContextTestContext(isOnline, projectPath);
-    context.setErrors(errors);
-    context.setOuts(outs);
-    context.setExitCode(exitCode);
-    return context;
   }
 
   protected static IdeTestContextAssertion assertThat(IdeTestContext context) {

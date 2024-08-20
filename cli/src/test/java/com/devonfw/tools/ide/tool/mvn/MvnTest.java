@@ -35,7 +35,7 @@ public class MvnTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
-    context.setInputValues(List.of("testLogin", "testPassword"));
+    context.setAnswers("testLogin", "testPassword");
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("mvn", context);
 
@@ -55,7 +55,7 @@ public class MvnTest extends AbstractIdeContextTest {
   public void testMvnRun() throws IOException {
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
-    context.setInputValues(List.of("testLogin", "testPassword"));
+    context.setAnswers("testLogin", "testPassword");
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("mvn", context);
     Mvn commandlet = (Mvn) install.tool.getValue();
