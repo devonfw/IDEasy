@@ -61,13 +61,15 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public void fetchIfNeeded(String remoteName, String branch, Path targetRepository) {
+  public boolean fetchIfNeeded(String remoteName, String branch, Path targetRepository) {
 
+    return false;
   }
 
   @Override
-  public void fetchIfNeeded(Path targetRepository) {
+  public boolean fetchIfNeeded(Path targetRepository) {
 
+    return false;
   }
 
   @Override
