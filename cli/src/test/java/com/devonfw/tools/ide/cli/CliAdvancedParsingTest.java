@@ -27,4 +27,22 @@ public class CliAdvancedParsingTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).logAtInfo().hasNoMessage("java -v -e -r -s -i -o -n").hasMessage("java -version");
   }
+
+  /**
+   * Tests if a 'repository setup' with a missing repository argument will succeed.
+   * <p>
+   * See: <a href="https://github.com/devonfw/IDEasy/issues/537">#537</a>
+   */
+  @Test
+  public void testRunRepositorySetupWithoutArgumentWillSucceed() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_MVN);
+    CliArguments args = new CliArguments("repository", "setup");
+    args.next();
+    // act
+    int success = context.run(args);
+    // assert
+    assertThat(success).isEqualTo(0);
+  }
 }
