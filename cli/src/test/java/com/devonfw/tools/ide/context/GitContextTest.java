@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -174,7 +173,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     String remoteName = "origin";
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
-    IdeContext context = newGitContext(tempDir, errors, outs, 0, false);
+    IdeContext context = newGitContext(tempDir);
     GitContext gitContext = new GitContextImpl(context);
 
     // act
@@ -198,7 +197,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     String remoteName = "origin";
     List<String> errors = new ArrayList<>();
     List<String> outs = new ArrayList<>();
-    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
+    IdeContext context = newGitContext(tempDir);
     GitContext gitContext = new GitContextImpl(context);
 
     Path gitDir = tempDir.resolve(".git");
@@ -228,7 +227,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     List<String> outs = new ArrayList<>();
     outs.add("local_commit_hash");
     outs.add("local_commit_hash"); // same as remote to simulate no updates
-    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
+    IdeContext context = newGitContext(tempDir);
     GitContext gitContext = new GitContextImpl(context);
 
     // act
