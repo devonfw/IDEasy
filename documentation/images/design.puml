@@ -4,7 +4,9 @@ skinparam classAttributeIconSize 0
 
 '''' Attributes and methods '''
 
-class Ide
+class Ide {
+  {static} +main(String [])
+}
 
 class CliArgument
 class Property
@@ -26,9 +28,16 @@ interface UrlArtifact
 
 class Commandlet
 class ToolCommandlet
+class LocalToolCommandlet
+class GlobalToolCommandlet
+class PluginBasedToolCommandlet
 class IdeToolCommandlet
+class IdeaBasedIdeToolCommandlet
 
-class UpdateInitiator
+class UpdateInitiator{
+  {static} +main(String [])
+}
+
 class UpdateManager
 interface UrlUpdater
 
@@ -49,11 +58,22 @@ IdeContext ..> ProcessContext
 IdeContext ..> SystemInfo
 IdeContext ..> ToolRepository
 IdeContext ..> UrlMetadata
+IdeContext ..> GitContext
 UrlMetadata ..> UrlArtifact
+
+AbstractIdeContext ..|> IdeContext : implements
+IdeContextConsole --|> AbstractIdeContext : extends
+IdeLoggerImpl ..|> IdeLogger : implements
+
+GitContextImpl ..|> GitContext  : implements
 
 CommandletManager ..> Commandlet
 Commandlet <|-- ToolCommandlet : extends
-ToolCommandlet <|-- IdeToolCommandlet : extends
+ToolCommandlet <|-- LocalToolCommandlet : extends
+ToolCommandlet <|-- GlobalToolCommandlet : extends
+LocalToolCommandlet <|-- PluginBasedToolCommandlet : extends
+PluginBasedToolCommandlet <|-- IdeToolCommandlet : extends
+IdeToolCommandlet <|-- IdeaBasedIdeToolCommandlet : extends
 
 ToolRepository <|-- CustomToolRepository : extends
 
