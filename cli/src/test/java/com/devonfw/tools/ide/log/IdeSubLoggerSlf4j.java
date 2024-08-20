@@ -8,9 +8,9 @@ import org.slf4j.spi.LoggingEventBuilder;
 /**
  * Implementation of {@link IdeSubLogger} for testing that delegates to slf4j.
  */
-public class IdeSlf4jLogger extends AbstractIdeSubLogger {
+public class IdeSubLoggerSlf4j extends AbstractIdeSubLogger {
 
-  private static final Logger LOG = LoggerFactory.getLogger(IdeSlf4jLogger.class);
+  private static final Logger LOG = LoggerFactory.getLogger(IdeSubLoggerSlf4j.class);
 
   private final Level logLevel;
 
@@ -19,7 +19,7 @@ public class IdeSlf4jLogger extends AbstractIdeSubLogger {
    *
    * @param level the {@link #getLevel() log-level}.
    */
-  public IdeSlf4jLogger(IdeLogLevel level) {
+  public IdeSubLoggerSlf4j(IdeLogLevel level) {
 
     super(level);
     this.logLevel = switch (level) {
