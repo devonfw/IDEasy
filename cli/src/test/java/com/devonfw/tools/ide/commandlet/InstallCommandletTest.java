@@ -93,6 +93,7 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
     install.run();
     // assert
     assertTestInstall(context);
+    assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent("17.0.6");
   }
 
   private void assertTestInstall(IdeContext context) {
