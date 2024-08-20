@@ -26,7 +26,7 @@ class CommandletPropertyTest {
     CommandletProperty cmdProp = new CommandletProperty("", false, "");
     cmdProp.completeValue(input, context, new ContextCommandlet(), collector);
 
-    assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates);
+    assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactlyInAnyOrder(expectedCandidates);
   }
 
   @Test

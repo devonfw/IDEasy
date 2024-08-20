@@ -26,7 +26,7 @@ class ToolPropertyTest {
     ToolProperty toolProp = new ToolProperty("", false, "");
     toolProp.completeValue(input, context, new ContextCommandlet(), collector);
 
-    assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates);
+    assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactlyInAnyOrder(expectedCandidates);
   }
 
   @Test

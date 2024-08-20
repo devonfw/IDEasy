@@ -57,6 +57,7 @@ class VersionPropertyTest {
     versionProp.completeValue(anyVersion, context, installCmd, collector);
     assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(anyVersion);
 
+    collector = new CompletionCandidateCollectorDefault(context);
     versionProp.completeValue(anyVersionAfter2, context, installCmd, collector);
     assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(anyVersionAfter2);
   }
