@@ -33,6 +33,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     rc.run();
     // assert
     assertThat(this.context).logAtInfo().hasMessage("Importing repository from " + PROPERTIES_FILE + " ...");
+    assertThat(context.getIdeHome().resolve("workspaces").resolve("test")).exists();
   }
 
   @Test
@@ -49,12 +50,29 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testRunInvalidConfiguration() {
+  public void testRunInvalidConfigurationNoPath() {
 
     // arrange
     RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
     createPropertiesFile();
     this.properties.setProperty("path", "");
+    this.properties.setProperty("git_url", "test");
+    saveProperties(this.properties);
+    rc.repository.setValueAsString(PROPERTIES_FILE, this.context);
+    // act
+    rc.run();
+    // assert
+    assertThat(this.context).logAtWarning()
+        .hasMessage("Invalid repository configuration " + PROPERTIES_FILE + " - both 'path' and 'git-url' have to be defined.");
+  }
+
+  @Test
+  public void testRunInvalidConfigurationNoGiturl() {
+
+    // arrange
+    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    createPropertiesFile();
+    this.properties.setProperty("path", "test");
     this.properties.setProperty("git_url", "");
     saveProperties(this.properties);
     rc.repository.setValueAsString(PROPERTIES_FILE, this.context);
@@ -111,5 +129,4 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
       throw new IllegalStateException("Failed to save properties file during tests.", e);
     }
   }
-
 }

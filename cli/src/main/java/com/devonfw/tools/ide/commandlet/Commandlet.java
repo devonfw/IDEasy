@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -179,10 +180,7 @@ public abstract class Commandlet {
    */
   public boolean isIdeHomeRequired() {
 
-    if (!isIdeRootRequired()) {
-      return false;
-    }
-    return true;
+    return isIdeRootRequired();
   }
 
   /**
@@ -203,9 +201,9 @@ public abstract class Commandlet {
 
   /**
    * @return {@code true} if the output of this commandlet is (potentially) processed automatically from outside, {@code false} otherwise. For example
-   * {@link CompleteCommandlet} logs the suggestions for auto-completion to a bash script. Also the {@link EnvironmentCommandlet} logs the environment variables
-   * for the {@code ide} wrapper script. In such scenarios these logs shall not be spammed with warnings like "IDE_ROOT is not set" that would break the
-   * processing of the output.
+   *     {@link CompleteCommandlet} logs the suggestions for auto-completion to a bash script. Also the {@link EnvironmentCommandlet} logs the environment
+   *     variables for the {@code ide} wrapper script. In such scenarios these logs shall not be spammed with warnings like "IDE_ROOT is not set" that would
+   *     break the processing of the output.
    */
   public boolean isProcessableOutput() {
 
@@ -251,11 +249,10 @@ public abstract class Commandlet {
   }
 
   /**
-   * @return the {@link ToolCommandlet} set in a {@link Property} of this commandlet used for auto-completion of a {@link VersionIdentifier} or {@code null} if
-   * not exists or not configured.
+   * @return the {@link ToolCommandlet} set in a {@link Property} of this commandlet used for auto-completion of a {@link VersionIdentifier} or
+   *     {@link PluginDescriptor}, otherwise {@code null} if not exists or not configured.
    */
-  public ToolCommandlet getToolForVersionCompletion() {
-
+  public ToolCommandlet getToolForCompletion() {
     return null;
   }
 }

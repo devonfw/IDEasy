@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
-import com.devonfw.tools.ide.tool.cobigen.Cobigen;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
@@ -81,6 +80,8 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new UpdateCommandlet(context));
     add(new CreateCommandlet(context));
     add(new BuildCommandlet(context));
+    add(new InstallPluginCommandlet(context));
+    add(new UninstallPluginCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));
@@ -99,7 +100,6 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Vscode(context));
     add(new Azure(context));
     add(new Aws(context));
-    add(new Cobigen(context));
     add(new Jmc(context));
     add(new DotNet(context));
     add(new Intellij(context));

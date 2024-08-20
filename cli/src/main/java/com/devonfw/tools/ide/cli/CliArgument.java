@@ -224,7 +224,7 @@ public class CliArgument {
 
   /**
    * @return a {@link String} representing all arguments from this {@link CliArgument} recursively along is {@link #getNext(boolean) next} arguments to the
-   * {@link #isEnd() end}.
+   *     {@link #isEnd() end}.
    */
   public String getArgs() {
 

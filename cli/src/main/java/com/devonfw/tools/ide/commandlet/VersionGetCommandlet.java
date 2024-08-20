@@ -60,8 +60,9 @@ public class VersionGetCommandlet extends Commandlet {
       if (installedVersion == null) {
         this.context.info("No installation of tool {} was found.", commandlet.getName());
         toolInstallInfo(commandlet.getName(), configuredVersion);
+      } else {
+        this.context.info(installedVersion.toString());
       }
-      this.context.info(installedVersion.toString());
 
     } else if (!this.installed.isTrue() && this.configured.isTrue()) {// get configured version
 
@@ -70,7 +71,7 @@ public class VersionGetCommandlet extends Commandlet {
     } else { // get both configured and installed version
 
       VersionIdentifier installedVersion = commandlet.getInstalledVersion();
-      if (configuredVersion.compareVersion(installedVersion).isEqual()) {
+      if (configuredVersion.matches(installedVersion)) {
         this.context.info(installedVersion.toString());
       } else {
         if (installedVersion == null) {

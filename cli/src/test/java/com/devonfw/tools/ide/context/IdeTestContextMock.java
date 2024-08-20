@@ -16,12 +16,6 @@ public class IdeTestContextMock extends IdeSlf4jContext {
     super(Path.of("/"));
   }
 
-  @Override
-  public boolean isMock() {
-
-    return true;
-  }
-
   /**
    * @return the singleton mock instance of {@link com.devonfw.tools.ide.context.IdeContext}. Does NOT have {@link #getIdeHome() IDE_HOME}.
    */

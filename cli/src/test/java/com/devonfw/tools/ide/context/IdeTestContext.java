@@ -1,12 +1,9 @@
 package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
 
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
-import com.devonfw.tools.ide.log.IdeTestLoggerFactory;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.ToolRepository;
 
@@ -15,42 +12,63 @@ import com.devonfw.tools.ide.repo.ToolRepository;
  */
 public class IdeTestContext extends AbstractIdeTestContext {
 
-  private LinkedList<String> inputValues;
+  private final IdeTestLogger logger;
+
+  private GitContext gitContext;
 
   /**
    * The constructor.
    *
    * @param userDir the optional {@link Path} to current working directory.
-   * @param answers the automatic answers simulating a user in test.
    */
-  public IdeTestContext(Path userDir, String... answers) {
+  public IdeTestContext(Path userDir) {
 
-    this(userDir, null, answers);
+    this(userDir, null);
   }
 
   /**
    * The constructor.
    *
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} * {@link com.devonfw.tools.ide.repo.DefaultToolRepository}
-   * will be used.
-   * @param answers the automatic answers simulating a user in test.
+   * @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} *
+   *     {@link com.devonfw.tools.ide.repo.DefaultToolRepository} will be used.
    */
-  public IdeTestContext(Path userDir, ToolRepository toolRepository, String... answers) {
+  public IdeTestContext(Path userDir, ToolRepository toolRepository) {
 
-    super(new IdeTestLoggerFactory(), userDir, toolRepository, answers);
+    this(userDir, toolRepository, IdeLogLevel.TRACE);
   }
 
-  @Override
-  public IdeTestLogger level(IdeLogLevel level) {
+  /**
+   * The constructor.
+   *
+   * @param userDir the optional {@link Path} to current working directory.
+   * @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} *
+   *     {@link com.devonfw.tools.ide.repo.DefaultToolRepository} will be used.
+   * @param logLevel the {@link IdeLogLevel} used as threshold for logging.
+   */
+  public IdeTestContext(Path userDir, ToolRepository toolRepository, IdeLogLevel logLevel) {
 
-    return (IdeTestLogger) super.level(level);
+    this(new IdeTestLogger(logLevel), userDir, toolRepository);
+  }
+
+  private IdeTestContext(IdeTestLogger logger, Path userDir, ToolRepository toolRepository) {
+
+    super(logger, userDir, toolRepository);
+    this.logger = logger;
+    this.gitContext = new GitContextMock();
   }
 
   @Override
   public GitContext getGitContext() {
+    return this.gitContext;
+  }
 
-    return new GitContextMock();
+  /**
+   * @param gitContext the instance to mock {@link GitContext}.
+   */
+  public void setGitContext(GitContext gitContext) {
+
+    this.gitContext = gitContext;
   }
 
   @Override
@@ -67,20 +85,18 @@ public class IdeTestContext extends AbstractIdeTestContext {
     return new IdeTestContext(Path.of("/"));
   }
 
-  /**
-   * Set a mocked value to be returned by the {@link IdeContext#askForInput(String)} method
-   *
-   * @param values a {@link LinkedList} with the mocked input value
-   */
-  public void setInputValues(List<String> values) {
-
-    this.inputValues = new LinkedList<>(values);
-  }
-
   @Override
   public String askForInput(String message) {
 
-    return this.inputValues.isEmpty() ? null : this.inputValues.poll();
+    return super.askForInput(message);
+    // return this.inputValues.isEmpty() ? null : this.inputValues.poll();
   }
 
+  /**
+   * @return the {@link IdeTestLogger}.
+   */
+  public IdeTestLogger getLogger() {
+
+    return logger;
+  }
 }

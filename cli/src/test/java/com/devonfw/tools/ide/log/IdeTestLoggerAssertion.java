@@ -22,42 +22,47 @@ public class IdeTestLoggerAssertion {
 
   /**
    * @param message the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasMessage(String message) {
+  public IdeTestLoggerAssertion hasMessage(String message) {
 
-    fulfillsPredicate(e -> e.message().equals(message), PredicateMode.MATCH_ONE, "Could not find log message equal to '" + message + "'");
+    return fulfillsPredicate(e -> e.message().equals(message), PredicateMode.MATCH_ONE, "Could not find log message equal to '" + message + "'");
   }
 
   /**
    * @param message the {@link String} expected to be {@link String#contains(CharSequence) contained} in a
-   * {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   *     {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasMessageContaining(String message) {
+  public IdeTestLoggerAssertion hasMessageContaining(String message) {
 
-    fulfillsPredicate(e -> e.message().contains(message), PredicateMode.MATCH_ONE, "Could not find log message containing '" + message + "'");
+    return fulfillsPredicate(e -> e.message().contains(message), PredicateMode.MATCH_ONE, "Could not find log message containing '" + message + "'");
   }
 
   /**
    * @param message the {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message} that is not expected and should not have been logged.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasNoMessage(String message) {
+  public IdeTestLoggerAssertion hasNoMessage(String message) {
 
-    fulfillsPredicate(e -> !e.message().equals(message), PredicateMode.MATCH_ALL, "No log message should be equal to '" + message + "'");
+    return fulfillsPredicate(e -> !e.message().equals(message), PredicateMode.MATCH_ALL, "No log message should be equal to '" + message + "'");
   }
 
   /**
    * @param message the {@link String} expected not be {@link String#contains(CharSequence) contained} in any
-   * {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   *     {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasNoMessageContaining(String message) {
+  public IdeTestLoggerAssertion hasNoMessageContaining(String message) {
 
-    fulfillsPredicate(e -> !e.message().contains(message), PredicateMode.MATCH_ALL, "No log message should contain '" + message + "'");
+    return fulfillsPredicate(e -> !e.message().contains(message), PredicateMode.MATCH_ALL, "No log message should contain '" + message + "'");
   }
 
   /**
    * @param messages the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}s in order.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasEntries(String... messages) {
+  public IdeTestLoggerAssertion hasEntries(String... messages) {
 
     assert (this.level != null);
     IdeLogEntry[] entries = new IdeLogEntry[messages.length];
@@ -65,63 +70,81 @@ public class IdeTestLoggerAssertion {
     for (String message : messages) {
       entries[i++] = new IdeLogEntry(this.level, message);
     }
-    hasEntries(false, entries);
+    return hasEntries(false, entries);
   }
 
   /**
-   * @param exprectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} in order.
+   * @param expectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} in order.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasEntries(IdeLogEntry... exprectedEntries) {
+  public IdeTestLoggerAssertion hasEntries(IdeLogEntry... expectedEntries) {
 
-    hasEntries(false, exprectedEntries);
+    return hasEntries(false, expectedEntries);
   }
 
   /**
-   * @param exprectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} to be logged in order without any other log statement in
-   * between them.
+   * @param expectedEntries the expected {@link com.devonfw.tools.ide.log.IdeLogEntry log entries} to be logged in order without any other log statement in
+   *     between them.
+   * @return this assertion itself for fluent API calls.
    */
-  public void hasEntriesWithNothingElseInBetween(IdeLogEntry... exprectedEntries) {
+  public IdeTestLoggerAssertion hasEntriesWithNothingElseInBetween(IdeLogEntry... expectedEntries) {
 
-    hasEntries(true, exprectedEntries);
+    return hasEntries(true, expectedEntries);
   }
 
-  private void hasEntries(boolean nothingElseInBetween, IdeLogEntry... exprectedEntries) {
+  private IdeTestLoggerAssertion hasEntries(boolean nothingElseInBetween, IdeLogEntry... expectedEntries) {
 
-    assert (exprectedEntries.length > 0);
+    assert (expectedEntries.length > 0);
     int i = 0;
-    for (IdeLogEntry entry : exprectedEntries) {
-      if (entry.equals(exprectedEntries[i])) {
+    int max = 0;
+    for (IdeLogEntry entry : this.entries) {
+      if (expectedEntries[i].matches(entry)) {
         i++;
       } else {
         if (nothingElseInBetween) {
           i = 0;
-        } else if (entry.equals(exprectedEntries[i])) {
+        } else if (expectedEntries[0].matches(entry)) {
           i = 1;
         }
       }
-      if (i == exprectedEntries.length) {
-        return;
+      if (i == expectedEntries.length) {
+        return this;
+      }
+      if (i > max) {
+        max = i;
       }
     }
     StringBuilder error = new StringBuilder(4096);
-    error.append("Could not find expected log entries:\n");
-    for (IdeLogEntry entry : exprectedEntries) {
-      error.append(entry.level());
-      error.append(":");
-      error.append(entry.message());
-      error.append('\n');
+    if (max > 0) {
+      error.append("Found expected log entries:\n");
+      for (i = 0; i < max; i++) {
+        appendEntry(error, expectedEntries[i]);
+      }
     }
+    error.append("\nThe first entry that was not matching from a block of ");
+    error.append(expectedEntries.length);
+    error.append(" expected log-entries ");
+    if (nothingElseInBetween) {
+      error.append("with nothing else logged in between ");
+    }
+    error.append("was:\n");
+    appendEntry(error, expectedEntries[max]);
     error.append("\nIn the logs of this test:\n");
     for (IdeLogEntry entry : this.entries) {
-      error.append(entry.level());
-      error.append(":");
-      error.append(entry.message());
-      error.append('\n');
+      appendEntry(error, entry);
     }
     Assertions.fail(error.toString());
+    return this;
   }
 
-  private void fulfillsPredicate(Predicate<IdeLogEntry> predicate, PredicateMode mode, String errorMessage) {
+  private static void appendEntry(StringBuilder sb, IdeLogEntry entry) {
+    sb.append(entry.level());
+    sb.append(":");
+    sb.append(entry.message());
+    sb.append('\n');
+  }
+
+  private IdeTestLoggerAssertion fulfillsPredicate(Predicate<IdeLogEntry> predicate, PredicateMode mode, String errorMessage) {
 
     if (this.level != null) {
       errorMessage = errorMessage + " on level " + this.level;
@@ -130,15 +153,18 @@ public class IdeTestLoggerAssertion {
       if ((this.level == null) || (this.level == entry.level())) {
         if (predicate.test(entry)) {
           if (mode == PredicateMode.MATCH_ONE) {
-            return;
+            return this;
           }
         } else if (mode == PredicateMode.MATCH_ALL) {
           Assertions.fail(errorMessage + "\nFound unexpected log entry: " + entry);
-          return;
+          return this;
         }
       }
     }
-    Assertions.fail(errorMessage); // no log entry matched by predicate
+    if (mode == PredicateMode.MATCH_ONE) {
+      Assertions.fail(errorMessage); // no log entry matched by predicate
+    }
+    return this;
   }
 
 }

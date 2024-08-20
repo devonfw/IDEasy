@@ -128,6 +128,6 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
 
   private IdeTestContext newTestContext() {
 
-    return new IdeTestContext(Path.of(""), "");
+    return new IdeTestContext(Path.of(""));
   }
 }

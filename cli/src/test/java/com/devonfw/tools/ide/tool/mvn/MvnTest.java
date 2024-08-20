@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Integration test of {@link Mvn}.
@@ -34,7 +35,7 @@ public class MvnTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
-    context.setInputValues(List.of("testLogin", "testPassword"));
+    context.setAnswers("testLogin", "testPassword");
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("mvn", context);
 
@@ -54,7 +55,7 @@ public class MvnTest extends AbstractIdeContextTest {
   public void testMvnRun() throws IOException {
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
-    context.setInputValues(List.of("testLogin", "testPassword"));
+    context.setAnswers("testLogin", "testPassword");
     InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
     install.tool.setValueAsString("mvn", context);
     Mvn commandlet = (Mvn) install.tool.getValue();
@@ -83,6 +84,22 @@ public class MvnTest extends AbstractIdeContextTest {
     Path settingsSecurityFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_SECURITY_FILE);
     assertThat(settingsSecurityFile).exists();
     assertFileContent(settingsSecurityFile, List.of("masterPassword"));
+  }
+
+  /**
+   * Tests if the user is starting IDEasy without a Maven repository, IDEasy should fall back to USER_HOME/.m2/repository.
+   * <p>
+   * See: <a href="https://github.com/devonfw/IDEasy/issues/463">#463</a>
+   */
+  @Test
+  public void testMavenRepositoryPathFallsBackToUserHome() {
+    // arrange
+    String path = "project/workspaces";
+    // act
+    IdeTestContext context = newContext(PROJECT_MVN, path, false);
+    Path mavenRepository = context.getUserHome().resolve(".m2").resolve("repository");
+    // assert
+    assertThat(IdeVariables.M2_REPO.get(context)).isEqualTo(mavenRepository);
   }
 
   private void assertFileContent(Path filePath, List<String> expectedValues) throws IOException {
