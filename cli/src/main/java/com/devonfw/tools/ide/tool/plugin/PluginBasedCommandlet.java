@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool;
+package com.devonfw.tools.ide.tool.plugin;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -9,9 +9,8 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptorImpl;
 
 /**
  * Base class for {@link LocalToolCommandlet}s that support plugins. It can automatically install configured plugins for the tool managed by this commandlet.
@@ -32,7 +31,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     super(context, tool, tags);
   }
 
-  protected PluginMaps getPluginsMap() {
+  public PluginMaps getPluginsMap() {
 
     if (this.pluginsMap == null) {
       PluginMaps map = new PluginMaps(this.context);

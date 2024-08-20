@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool;
+package com.devonfw.tools.ide.tool.plugin;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 
 /**
  * A wrapper class for holding two maps of plugin descriptors: one keyed by plugin ID and the other keyed by plugin name.

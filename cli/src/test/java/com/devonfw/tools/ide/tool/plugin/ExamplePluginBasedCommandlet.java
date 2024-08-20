@@ -1,10 +1,9 @@
-package com.devonfw.tools.ide.tool;
+package com.devonfw.tools.ide.tool.plugin;
 
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
 
 /**
  * Example implementation of {@link PluginBasedCommandlet} for testing.
