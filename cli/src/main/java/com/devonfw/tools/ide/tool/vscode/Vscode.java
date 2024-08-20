@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
+import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
 
 /**
  * {@link ToolCommandlet} for <a href="https://code.visualstudio.com/">vscode</a>.
