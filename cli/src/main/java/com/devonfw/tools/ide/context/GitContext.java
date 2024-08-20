@@ -34,7 +34,7 @@ public interface GitContext {
    *
    * @param targetRepository the {@link Path} to the target folder where the git repository is located. It contains the `.git` subfolder.
    * @return {@code true} if updates were detected after fetching from the remote repository, indicating that the local repository is behind the remote. *
-   * {@code false} if no updates were detected or if no fetching was performed (e.g., the cache threshold was not met or the context is offline)
+   *     {@code false} if no updates were detected or if no fetching was performed (e.g., the cache threshold was not met or the context is offline)
    */
   boolean fetchIfNeeded(Path targetRepository);
 
@@ -48,7 +48,7 @@ public interface GitContext {
    * @param branch the name of the branch to check for updates.
    * @param targetRepository the {@link Path} to the target folder where the git repository is located. It contains the `.git` subfolder.
    * @return {@code true} if updates were detected after fetching from the remote repository, indicating that the local repository is behind the remote.
-   * {@code false} if no updates were detected or if no fetching was performed (e.g., the cache threshold was not met or the context is offline)
+   *     {@code false} if no updates were detected or if no fetching was performed (e.g., the cache threshold was not met or the context is offline)
    */
   boolean fetchIfNeeded(String remoteName, String branch, Path targetRepository);
 
@@ -57,9 +57,9 @@ public interface GitContext {
    * hash.
    *
    * @param targetRepository the {@link Path} to the target folder where the git repository is located. This should be the folder containing the ".git"
-   * subfolder.
+   *     subfolder.
    * @return {@code true} if the remote repository contains commits that are not present in the local repository, indicating that updates are available.
-   * {@code false} if the local and remote repositories are in sync, or if there was an issue retrieving the commit hashes.
+   *     {@code false} if the local and remote repositories are in sync, or if there was an issue retrieving the commit hashes.
    */
   boolean isRepositoryUpdateAvailable(Path targetRepository);
 
@@ -167,8 +167,8 @@ public interface GitContext {
   /**
    * Runs a git fetch.
    *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the final folder that will contain the ".git" subfolder.
    * @param remote the name of the remote repository, e.g., "origin". If {@code null} or empty, the default remote name "origin" will be used.
    * @param branch the name of the branch to check for updates.
    */
