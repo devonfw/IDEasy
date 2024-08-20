@@ -52,7 +52,11 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     help.run();
     // assert
     assertLogoMessage(context);
+    assertThat(context).logAtSuccess().hasMessageContaining("Current version of IDE is");
     assertThat(context).logAtInfo().hasMessage("Usage: ide [option]* [[commandlet] [arg]*]");
+    for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
+      assertThat(context).log().hasMessageContaining(cmd.getName());
+    }
     assertOptionLogMessages(context);
   }
 

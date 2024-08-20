@@ -1,7 +1,10 @@
 package com.devonfw.tools.ide.commandlet;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
@@ -81,5 +84,29 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully installed node in version v18.19.1"),
         IdeLogEntry.ofSuccess("Successfully installed npm in version 9.9.2"),
         IdeLogEntry.ofInfo("npm start test"));
+  }
+
+  /**
+   * Tests a build with no cwd.
+   */
+  @Test
+  public void testBuildWithNoCwd() {
+
+    IdeTestContext context = newContext(PROJECT_BUILD);
+    BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
+    context.setCwd(null, context.getWorkspacePath().toString(), context.getIdeHome());
+    assertThrows(CliException.class, () -> buildCommandlet.run());
+  }
+
+  /**
+   * Tests a build with an empty workspace.
+   */
+  @Test
+  public void testBuildWithNoBuildFile() {
+
+    IdeTestContext context = newContext(PROJECT_BUILD);
+    BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
+    context.setCwd(context.getWorkspacePath().resolve("empty"), context.getWorkspacePath().toString(), context.getIdeHome());
+    assertThrows(CliException.class, () -> buildCommandlet.run());
   }
 }

@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.common;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import java.util.Collection;
 import java.util.Set;
 
@@ -141,11 +143,42 @@ public class TagTest extends Assertions {
   public void testIsAncestorOf() {
 
     assertThat(Tag.QUARKUS.isAncestorOf(Tag.ROOT)).isTrue();
+    assertThat(Tag.QUARKUS.isAncestorOf(Tag.FRAMEWORK)).isTrue();
     assertThat(Tag.QUARKUS.isAncestorOf(Tag.DOCUMENTATION)).isFalse();
     assertThat(Tag.QUARKUS.isAncestorOf(Tag.JAVA)).isFalse();
     assertThat(Tag.QUARKUS.isAncestorOf(Tag.QUARKUS)).isFalse();
     boolean includeAdditionalParents = true;
     assertThat(Tag.QUARKUS.isAncestorOf(Tag.JAVA, includeAdditionalParents)).isTrue();
     assertThat(Tag.QUARKUS.isAncestorOf(Tag.LANGUAGE, includeAdditionalParents)).isTrue();
+    assertThat(Tag.QUARKUS.isAncestorOf(Tag.DOCUMENTATION, includeAdditionalParents)).isFalse();
+  }
+
+  @Test
+  public void testCreateSimple() {
+    String newTagId = "new-tag";
+    Tag newTag = Tag.create(newTagId, Tag.ROOT);
+
+    assertThat(newTag.getId()).isEqualTo(newTagId);
+    assertThat(Tag.getAll()).contains(newTag);
+    assertThat(Tag.of(newTagId)).isSameAs(newTag);
+  }
+
+  @Test
+  public void testCreateDuplicateThrowsException() {
+
+    Tag.create("duplicate-tag", Tag.ROOT);
+
+    assertThrows(IllegalStateException.class, () -> Tag.create("duplicate-tag", Tag.ROOT));
+  }
+
+  @Test
+  public void testCreateWithSynonym() {
+    String newTagId = "new-tag-with-synonym";
+    Tag newTag = Tag.create(newTagId, Tag.ROOT, false, "synonym-of-new-tag");
+
+    assertThat(newTag.getId()).isEqualTo(newTagId);
+    assertThat(Tag.getAll()).contains(newTag);
+    assertThat(Tag.of(newTagId)).isSameAs(newTag);
+    assertThat(Tag.of("synonym-of-new-tag")).isSameAs(newTag);
   }
 }

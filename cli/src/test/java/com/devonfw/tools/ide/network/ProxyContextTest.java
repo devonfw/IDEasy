@@ -24,6 +24,7 @@ public class ProxyContextTest extends AbstractIdeContextTest {
 
   private static final String HTTPS_PROXY = "https://127.0.0.1:8888";
 
+  private static final String HTTP_PROXY_NO_HOST = "http://:8888";
   private static final String HTTP_PROXY_WRONG_HOST = "http://127.0.0.1wrongwrong:8888";
 
   private static final String HTTP_PROXY_WRONG_PROTOCOL = "wrong://127.0.0.1:8888";
@@ -36,6 +37,20 @@ public class ProxyContextTest extends AbstractIdeContextTest {
       "Proxy configuration detected, but the formatting appears to be incorrect. Proxy configuration will be skipped.\n"
           + "Please note that IDEasy can detect a proxy only if the corresponding environmental variables are properly formatted. "
           + "For further details, see " + PROXY_DOCUMENTATION_PAGE;
+
+  /**
+   * Verifies that when the download URL is malformed, {@link ProxyContext#getProxy(String)} returns {@link Proxy#NO_PROXY}.
+   */
+  @Test
+  public void testNoProxyMalformedUrl() {
+
+    // act
+    IdeTestContext context = newContext(PROJECT_BASIC, PROJECT_PATH, false);
+    Proxy proxy = context.getProxyContext().getProxy("htt:p//example.com");
+
+    // assert
+    assertThat(proxy).isEqualTo(Proxy.NO_PROXY);
+  }
 
   /**
    * Verifies that in an environment where no proxy variables are set, {@link ProxyContext#getProxy(String)} returns {@link Proxy#NO_PROXY}.
@@ -128,6 +143,24 @@ public class ProxyContextTest extends AbstractIdeContextTest {
     // assert
     assertThat(proxy).isEqualTo(Proxy.NO_PROXY);
     assertThat(context).logAtWarning().hasMessage(PROXY_FORMAT_WARNING_MESSAGE);
+  }
+
+  /**
+   * Verifies that in an environment where a http proxy variable is wrongly formatted, i.e. the host is empty, {@link ProxyContext#getProxy(String)} returns
+   * {@link Proxy#NO_PROXY}.
+   */
+  @Test
+  public void testWithMockedHttpVarNoHost() {
+
+    // arrange
+    this.environment.set("HTTP_PROXY", HTTP_PROXY_NO_HOST);
+
+    // act
+    IdeTestContext context = newContext(PROJECT_BASIC, PROJECT_PATH, false);
+    Proxy proxy = context.getProxyContext().getProxy("http://example.com");
+
+    // assert
+    assertThat(proxy).isEqualTo(Proxy.NO_PROXY);
   }
 
   /**

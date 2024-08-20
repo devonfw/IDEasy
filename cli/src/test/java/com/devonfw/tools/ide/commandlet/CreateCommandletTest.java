@@ -29,6 +29,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     // assert
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     assertThat(newProjectPath).exists();
+    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
