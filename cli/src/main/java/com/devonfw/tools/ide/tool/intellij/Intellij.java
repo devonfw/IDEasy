@@ -9,15 +9,14 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
-import com.devonfw.tools.ide.tool.ide.IdeaBasedPluginInstaller;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
+import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
  */
-public class Intellij extends IdeToolCommandlet {
+public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   private static final String IDEA = "idea";
 
@@ -71,11 +70,4 @@ public class Intellij extends IdeToolCommandlet {
     envVars.save();
   }
 
-  @Override
-  public void installPlugin(PluginDescriptor plugin) {
-
-    IdeaBasedPluginInstaller pluginInstaller = new IdeaBasedPluginInstaller(context, this);
-    String downloadUrl = pluginInstaller.getDownloadUrl(plugin);
-    pluginInstaller.installPlugin(plugin, downloadUrl);
-  }
 }

@@ -5,37 +5,34 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
 
+import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
 
-/**
- * Manager class to install plugins for the {@link IdeToolCommandlet commandlet}.
- */
-public class PluginInstaller {
+public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
 
-  protected final IdeContext context;
-  protected final IdeToolCommandlet commandlet;
+  private static final String BUILD_FILE = "build.txt";
 
   /**
-   * The constructor
+   * The constructor.
    *
    * @param context the {@link IdeContext}.
-   * @param commandlet the {@link IdeToolCommandlet commandlet}.
+   * @param tool the {@link #getName() tool name}.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
    */
-  public PluginInstaller(IdeContext context, IdeToolCommandlet commandlet) {
-    this.context = context;
-    this.commandlet = commandlet;
+  public IdeaBasedIdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
+    super(context, tool, tags);
   }
 
-  /**
-   * Installs a plugin.
-   *
-   * @param plugin the {@link PluginDescriptor}.
-   * @param downloadUrl the download URL for the plugin.
-   */
-  public void installPlugin(PluginDescriptor plugin, String downloadUrl) {
+  @Override
+  public void installPlugin(PluginDescriptor plugin) {
+    String downloadUrl = getDownloadUrl(plugin);
+
     String pluginId = plugin.getId();
 
     Path tmpDir = null;
@@ -43,7 +40,7 @@ public class PluginInstaller {
     Step step = this.context.newStep("Install plugin: " + pluginId);
     try {
 
-      Path installationPath = commandlet.getPluginsInstallationPath();
+      Path installationPath = this.getPluginsInstallationPath();
       ensureInstallationPathExists(installationPath);
 
       FileAccess fileAccess = context.getFileAccess();
@@ -65,6 +62,35 @@ public class PluginInstaller {
     }
   }
 
+  /**
+   * @param plugin the {@link PluginDescriptor} to be installer
+   * @return a {@link String} representing the download URL.
+   */
+  private String getDownloadUrl(PluginDescriptor plugin) {
+    String downloadUrl = plugin.getUrl();
+    String pluginId = plugin.getId();
+
+    String buildVersion = readBuildVersion();
+
+    if (downloadUrl == null || downloadUrl.isEmpty()) {
+      downloadUrl = String.format("https://plugins.jetbrains.com/pluginManager?action=download&id=%s&build=%s", pluginId, buildVersion);
+    }
+    return downloadUrl;
+  }
+
+  private String readBuildVersion() {
+    Path buildFile = this.getToolPath().resolve(BUILD_FILE);
+    if (context.getSystemInfo().isMac()) {
+      MacOsHelper macOsHelper = new MacOsHelper(context);
+      Path appPath = macOsHelper.findAppDir(macOsHelper.findRootToolPath(this, context));
+      buildFile = appPath.resolve("Contents/Resources").resolve(BUILD_FILE);
+    }
+    try {
+      return Files.readString(buildFile);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read " + this.getName() + " build version: " + buildFile, e);
+    }
+  }
 
   private void ensureInstallationPathExists(Path installationPath) throws IOException {
     if (!Files.exists(installationPath)) {
@@ -81,14 +107,14 @@ public class PluginInstaller {
     if (extension.isEmpty()) {
       throw new IllegalStateException("Unknown file type for URL: " + downloadUrl);
     }
-    String fileName = String.format("%s-plugin-%s%s", commandlet.getName(), pluginId, extension);
+    String fileName = String.format("%s-plugin-%s%s", this.getName(), pluginId, extension);
     Path downloadedFile = tmpDir.resolve(fileName);
     fileAccess.download(downloadUrl, downloadedFile);
     return downloadedFile;
   }
 
   private void extractDownloadedPlugin(FileAccess fileAccess, Path downloadedFile, String pluginId) throws IOException {
-    Path targetDir = commandlet.getPluginsInstallationPath().resolve(pluginId);
+    Path targetDir = this.getPluginsInstallationPath().resolve(pluginId);
     if (Files.exists(targetDir)) {
       context.info("Plugin already installed, target directory already existing: ", targetDir);
     } else {
@@ -117,5 +143,4 @@ public class PluginInstaller {
       default -> "";
     };
   }
-
 }
