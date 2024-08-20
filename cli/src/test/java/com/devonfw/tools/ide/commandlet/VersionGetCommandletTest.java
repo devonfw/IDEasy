@@ -25,8 +25,10 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     // act
     versionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasEntries("No installation of tool java was found.", "The configured version for tool java is 17*",
-        "To install that version call the following command:", "ide install java");
+    assertThat(context).logAtInfo().hasEntries("No installation of tool java was found.",
+        "The configured version for tool java is 17*",
+        "To install that version call the following command:",
+        "ide install java");
   }
 
   @Test
@@ -40,10 +42,10 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     // act
     versionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasMessage("No installation of tool java was found.");
-    assertThat(context).logAtInfo().hasMessage("The configured version for tool java is 17*");
-    assertThat(context).logAtInfo().hasMessage("To install that version call the following command:");
-    assertThat(context).logAtInfo().hasMessage("ide install java");
+    assertThat(context).logAtInfo().hasEntries("No installation of tool java was found.",
+        "The configured version for tool java is 17*",
+        "To install that version call the following command:",
+        "ide install java");
   }
 
   /**
@@ -127,10 +129,10 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     versionGet.tool.setValueAsString("java", context);
     versionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasMessage("No installation of tool java was found.");
-    assertThat(context).logAtInfo().hasMessage("The configured version for tool java is *");
-    assertThat(context).logAtInfo().hasMessage("To install that version call the following command:");
-    assertThat(context).logAtInfo().hasMessage("ide install java");
+    assertThat(context).logAtInfo().hasEntries("No installation of tool java was found.",
+        "The configured version for tool java is *",
+        "To install that version call the following command:",
+        "ide install java");
   }
 
 }

@@ -58,7 +58,7 @@ public class VersionProperty extends Property<VersionIdentifier> {
   @Override
   protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
-    ToolCommandlet tool = commandlet.getToolForVersionCompletion();
+    ToolCommandlet tool = commandlet.getToolForCompletion();
     if (tool != null) {
       completeVersion(VersionIdentifier.of(arg), tool, context, commandlet, collector);
     }
