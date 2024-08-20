@@ -10,6 +10,7 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
@@ -53,6 +54,15 @@ public final class MacOsHelper {
 
   /**
    * @param rootDir the {@link Path} to the root directory.
+   * @return the path to the app directory.
+   */
+  public Path findAppDir(Path rootDir) {
+    return this.fileAccess.findFirst(rootDir,
+        p -> p.getFileName().toString().endsWith(".app") && Files.isDirectory(p), false);
+  }
+
+  /**
+   * @param rootDir the {@link Path} to the root directory.
    * @param tool the name of the tool to find the link directory for.
    * @return the {@link com.devonfw.tools.ide.tool.ToolInstallation#linkDir() link directory}.
    */
@@ -65,8 +75,7 @@ public final class MacOsHelper {
     if (Files.isDirectory(contentsDir)) {
       return findLinkDir(contentsDir, rootDir, tool);
     }
-    Path appDir = this.fileAccess.findFirst(rootDir,
-        p -> p.getFileName().toString().endsWith(".app") && Files.isDirectory(p), false);
+    Path appDir = findAppDir(rootDir);
     if (appDir != null) {
       contentsDir = appDir.resolve(IdeContext.FOLDER_CONTENTS);
       if (Files.isDirectory(contentsDir)) {
@@ -84,7 +93,8 @@ public final class MacOsHelper {
    * @return a {@link String}
    */
   public Path findRootToolPath(ToolCommandlet commandlet, IdeContext context) {
-    return context.getSoftwareRepositoryPath().resolve("default").resolve(commandlet.getName()).resolve(commandlet.getName())
+    return context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve(commandlet.getName())
+        .resolve(commandlet.getInstalledEdition().toString())
         .resolve(commandlet.getInstalledVersion().toString());
   }
 
