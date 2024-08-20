@@ -1,11 +1,15 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 
 /** Integration test of {@link EditionSetCommandlet}. */
 public class EditionSetCommandletTest extends AbstractIdeContextTest {
@@ -46,5 +50,38 @@ public class EditionSetCommandletTest extends AbstractIdeContextTest {
         TEST_ARGSb=${TEST_ARGS10} settingsb ${TEST_ARGSa} ${TEST_ARGSb}
         TEST_ARGSc=${TEST_ARGSc} settingsc
         MVN_EDITION=setEdition""");
+  }
+
+  @Test
+  public void testEditionSetCommandletRunOverridenEdition() throws IOException {
+
+    IdeTestContext context = newContext(PROJECT_BASIC);
+
+    //arrange
+    Path settingsIdeProperties = context.getSettingsPath().resolve("ide.properties");
+    Path confIdeProperties = context.getConfPath().resolve("ide.properties");
+    EditionSetCommandlet editionSet = context.getCommandletManager().getCommandlet(EditionSetCommandlet.class);
+
+    // act
+    editionSet.tool.setValueAsString("mvn", context);
+    editionSet.cfg.setValue(EnvironmentVariablesFiles.CONF);
+    editionSet.edition.setValueAsString("confSetEdition", context);
+    editionSet.run();
+
+    //act again
+    editionSet.cfg.clearValue();
+    editionSet.edition.clearValue();
+    editionSet.edition.setValueAsString("settingsSetEdition", context);
+    editionSet.run();
+
+    // assert
+    assertThat(context).logAtInfo().hasMessageContaining("MVN_EDITION=confSetEdition");
+    assertThat(context).logAtInfo().hasMessageContaining("MVN_EDITION=settingsSetEdition");
+    assertThat(context).logAtWarning().hasMessageContaining("The variable MVN_EDITION is overridden");
+
+    String content = Files.readString(confIdeProperties, StandardCharsets.UTF_8);
+    assertThat(content).contains("MVN_EDITION=confSetEdition");
+    content = Files.readString(settingsIdeProperties, StandardCharsets.UTF_8);
+    assertThat(content).contains("MVN_EDITION=settingsSetEdition");
   }
 }

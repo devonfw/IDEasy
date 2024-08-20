@@ -18,6 +18,7 @@ class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
   @Test
   public void testAddAllMatches() {
 
+    // arrange
     String[] sortedCandidates = { "1", "2.0", "2.1", "3", "20", "30", "200" };
     String input = "2";
     String[] expectedCandidates = { "2.0", "2.1", "20", "200" };
@@ -26,10 +27,52 @@ class CompletionCandidateCollectorDefaultTest extends AbstractIdeContextTest {
     IdeContext context = IdeTestContextMock.get();
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
 
+    // act
     int matches = collector.addAllMatches(input, sortedCandidates, versionProperty, new VersionCommandlet(context));
 
+    // assert
     assertThat(matches).isEqualTo(expectedCandidates.length);
     assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates);
+  }
 
+  @Test
+  public void testAddAllMatchesEmptyInput() {
+
+    // arrange
+    String[] sortedCandidates = { "1", "2.0", "2.1", "3", "20", "30", "200" };
+    String input = "";
+    String[] expectedCandidates = sortedCandidates;
+
+    VersionProperty versionProperty = new VersionProperty("", false, "version");
+    IdeContext context = IdeTestContextMock.get();
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
+
+    // act
+    int matches = collector.addAllMatches(input, sortedCandidates, versionProperty, new VersionCommandlet(context));
+
+    // assert
+    assertThat(matches).isEqualTo(expectedCandidates.length);
+    assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactly(expectedCandidates);
+  }
+
+  @Test
+  public void testClearCandidates() {
+
+    // arrange
+    String[] sortedCandidates = { "11" };
+    String input = "1";
+    String[] expectedCandidates = sortedCandidates;
+
+    VersionProperty versionProperty = new VersionProperty("", false, "version");
+    IdeContext context = IdeTestContextMock.get();
+    CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
+
+    // act
+    collector.addAllMatches(input, sortedCandidates, versionProperty, new VersionCommandlet(context));
+    assertThat(collector.getCandidates()).isNotEmpty();
+    collector.clear();
+
+    // assert
+    assertThat(collector.getCandidates()).isEmpty();
   }
 }

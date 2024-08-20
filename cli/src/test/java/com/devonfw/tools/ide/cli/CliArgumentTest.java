@@ -152,4 +152,108 @@ public class CliArgumentTest extends Assertions {
     arg = arg.getNext(split);
     assertThat(arg.isEnd()).isTrue();
   }
+
+  @Test
+  public void testIsOption() {
+
+    CliArgument empty = of("");
+    CliArgument notanoption = of("arg");
+
+    CliArgument shortoptionsimple = of("-a");
+    CliArgument shortoptioncombined = of("-abc");
+    CliArgument longoption = of("--arg");
+
+    assertThat(empty.isOption()).isFalse();
+    assertThat(notanoption.isOption()).isFalse();
+
+    assertThat(shortoptionsimple.isOption()).isTrue();
+    assertThat(shortoptioncombined.isOption()).isTrue();
+    assertThat(longoption.isOption()).isTrue();
+
+  }
+
+  @Test
+  public void testIsLongOption() {
+
+    CliArgument empty = of("");
+    CliArgument notanoption = of("arg");
+    CliArgument shortoptionsimple = of("-a");
+    CliArgument shortoptioncombined = of("-abc");
+
+    CliArgument longoption = of("--arg");
+
+    assertThat(empty.isLongOption()).isFalse();
+    assertThat(notanoption.isLongOption()).isFalse();
+    assertThat(shortoptionsimple.isLongOption()).isFalse();
+    assertThat(shortoptioncombined.isLongOption()).isFalse();
+
+    assertThat(longoption.isLongOption()).isTrue();
+  }
+
+  @Test
+  public void testIsShortOption() {
+
+    CliArgument empty = of("");
+    CliArgument notanoption = of("arg");
+    CliArgument longoption = of("--arg");
+
+    CliArgument shortoptionsimple = of("-a");
+    CliArgument shortoptioncombined = of("-abc");
+
+    assertThat(empty.isShortOption()).isFalse();
+    assertThat(notanoption.isShortOption()).isFalse();
+    assertThat(longoption.isShortOption()).isFalse();
+
+    assertThat(shortoptionsimple.isShortOption()).isTrue();
+    assertThat(shortoptioncombined.isShortOption()).isTrue();
+  }
+
+  @Test
+  public void testIsCombinedShortOption() {
+
+    CliArgument empty = of("");
+    CliArgument notanoption = of("arg");
+    CliArgument longoption = of("--arg");
+    CliArgument shortoptionsimple = of("-a");
+
+    CliArgument shortoptioncombined = of("-abc");
+
+    assertThat(empty.isCombinedShortOption()).isFalse();
+    assertThat(notanoption.isCombinedShortOption()).isFalse();
+    assertThat(longoption.isCombinedShortOption()).isFalse();
+    assertThat(shortoptionsimple.isCombinedShortOption()).isFalse();
+
+    assertThat(shortoptioncombined.isCombinedShortOption()).isTrue();
+  }
+
+  @Test
+  public void testToString() {
+
+    // arrange
+    String[] args = { "one", "two", "-s", "--long", "-combined" };
+    // act
+    CliArgument arg = of(args);
+    String argstring = arg.getArgs();
+    // assert
+    assertThat(argstring).contains("one");
+    assertThat(argstring).contains("two");
+    assertThat(argstring).contains("-s");
+    assertThat(argstring).contains("--long");
+    assertThat(argstring).contains("-combined");
+  }
+
+  @Test
+  void testJoinArguments() {
+    String[] argset1 = { "one", "-t" };
+    String[] argset2 = { "--three", "four" };
+
+    String[] combined_with_append = CliArgument.append(argset1, argset2);
+    String[] combined_with_prepend = CliArgument.prepend(argset1, argset2);
+
+    assertThat(combined_with_append).contains(argset1);
+    assertThat(combined_with_append).contains(argset2);
+    assertThat(combined_with_prepend).contains(argset1);
+    assertThat(combined_with_prepend).contains(argset2);
+    assertThat(combined_with_append).isEqualTo(combined_with_prepend);
+  }
 }
