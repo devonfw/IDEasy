@@ -75,27 +75,28 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void fetchIfNeeded(Path targetRepository) {
+  public boolean fetchIfNeeded(Path targetRepository) {
 
     Optional<String[]> remoteAndBranchOpt = getLocalRemoteAndBranch(targetRepository);
 
     if (remoteAndBranchOpt.isEmpty()) {
       context.warning("Could not determine the remote or branch for the repository at " + targetRepository);
-      return;
+      return false;
     }
 
     String[] remoteAndBranch = remoteAndBranchOpt.get();
     String remoteName = remoteAndBranch[0];
     String branch = remoteAndBranch[1];
 
-    fetchIfNeeded(remoteName, branch, targetRepository);
+    return fetchIfNeeded(remoteName, branch, targetRepository);
   }
 
   @Override
-  public void fetchIfNeeded(String remoteName, String branch, Path targetRepository) {
+  public boolean fetchIfNeeded(String remoteName, String branch, Path targetRepository) {
 
-    if (!context.isOnline())
-      return;
+    if (!context.isOnline()) {
+      return false;
+    }
 
     Path gitDirectory = targetRepository.resolve(".git");
     // Check if the .git directory exists
@@ -108,12 +109,9 @@ public class GitContextImpl implements GitContext {
         // Check if the file modification time is older than the delta threshold
         if ((currentTime - fileModifiedTime > GIT_FETCH_CACHE_DELAY.toMillis())) {
           fetch(targetRepository, remoteName, branch);
-          boolean isUpdateAvailable = isRepositoryUpdateAvailable(targetRepository);
-          if (isUpdateAvailable) {
-            this.context.info("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
-          }
           try {
             Files.setLastModifiedTime(fetchHeadPath, FileTime.fromMillis(currentTime));
+            return true;
           } catch (IOException e) {
             this.context.warning().log(e, "Could not update modification-time of {}", fetchHeadPath);
           }
@@ -122,6 +120,7 @@ public class GitContextImpl implements GitContext {
         this.context.error(e);
       }
     }
+    return false;
   }
 
   @Override
@@ -311,8 +310,8 @@ public class GitContextImpl implements GitContext {
   private Optional<String[]> getLocalRemoteAndBranch(Path repositoryPath) {
 
     this.processContext.directory(repositoryPath);
-    ProcessResult result = this.processContext.addArg("rev-parse").addArg("--abbrev-ref").addArg("--symbolic-full-name")
-        .addArg("@{u}").run(PROCESS_MODE_FOR_FETCH);
+    ProcessResult result = this.processContext.addArg("rev-parse").addArg("--abbrev-ref").addArg("--symbolic-full-name").addArg("@{u}")
+        .run(PROCESS_MODE_FOR_FETCH);
     if (result.isSuccessful()) {
       String upstream = result.getOut().stream().findFirst().orElse("");
       if (upstream.contains("/")) {
