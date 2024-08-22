@@ -50,7 +50,7 @@ public class InstallCommandlet extends Commandlet {
   }
 
   @Override
-  public ToolCommandlet getToolForVersionCompletion() {
+  public ToolCommandlet getToolForCompletion() {
 
     return this.tool.getValue();
   }

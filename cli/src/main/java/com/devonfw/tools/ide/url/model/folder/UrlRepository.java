@@ -3,8 +3,7 @@ package com.devonfw.tools.ide.url.model.folder;
 import java.nio.file.Path;
 
 /**
- * An instance of this class represents the folder that starts an url-file repository, having {@link UrlTool} objects as
- * children.
+ * An instance of this class represents the folder that starts an url-file repository, having {@link UrlTool} objects as children.
  */
 public class UrlRepository extends AbstractUrlFolder<UrlTool> {
 

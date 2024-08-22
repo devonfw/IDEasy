@@ -100,8 +100,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
   }
 
   /**
-   * Computes the normalized filename of the download package. It uses the schema
-   * {@code «tool»-«version»[-«edition»][-«os»][-«arch»].«ext»}.
+   * Computes the normalized filename of the download package. It uses the schema {@code «tool»-«version»[-«edition»][-«os»][-«arch»].«ext»}.
    *
    * @param tool the name of the tool to download.
    * @param edition the edition of the tool to download.
@@ -151,8 +150,8 @@ public abstract class AbstractToolRepository implements ToolRepository {
    * @param target the {@link Path} to the target file to download to.
    * @param downloadFilename the filename of the download file.
    * @param resolvedVersion the resolved {@link VersionIdentifier} to download.
-   * @return the actual {@link Path} where the file was downloaded to. Typically the given {@link Path} {@code target}
-   *         but may also be a different file in edge-cases.
+   * @return the actual {@link Path} where the file was downloaded to. Typically the given {@link Path} {@code target} but may also be a different file in
+   *     edge-cases.
    */
   protected Path download(String url, Path target, String downloadFilename, VersionIdentifier resolvedVersion) {
 

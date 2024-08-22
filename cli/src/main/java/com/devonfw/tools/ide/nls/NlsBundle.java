@@ -81,13 +81,21 @@ public class NlsBundle {
   }
 
   /**
-   * @param commandlet the {@link com.devonfw.tools.ide.commandlet.Commandlet#getName() name} of the
-   *        {@link com.devonfw.tools.ide.commandlet.Commandlet}.
+   * @param commandlet the {@link com.devonfw.tools.ide.commandlet.Commandlet} to get the help summary for.
    * @return the localized message (translated to the users language).
    */
   public String get(Commandlet commandlet) {
 
     return get("cmd." + commandlet.getName());
+  }
+
+  /**
+   * @param commandlet the {@link com.devonfw.tools.ide.commandlet.Commandlet} to get the help detail for.
+   * @return the localized message (translated to the users language).
+   */
+  public String getDetail(Commandlet commandlet) {
+
+    return get("cmd." + commandlet.getName() + ".detail");
   }
 
   /**

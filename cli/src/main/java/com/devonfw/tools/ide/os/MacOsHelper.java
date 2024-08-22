@@ -1,15 +1,17 @@
 package com.devonfw.tools.ide.os;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.log.IdeLogger;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.repo.ToolRepository;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
  * Internal helper class for MacOS workarounds.
@@ -52,6 +54,15 @@ public final class MacOsHelper {
 
   /**
    * @param rootDir the {@link Path} to the root directory.
+   * @return the path to the app directory.
+   */
+  public Path findAppDir(Path rootDir) {
+    return this.fileAccess.findFirst(rootDir,
+        p -> p.getFileName().toString().endsWith(".app") && Files.isDirectory(p), false);
+  }
+
+  /**
+   * @param rootDir the {@link Path} to the root directory.
    * @param tool the name of the tool to find the link directory for.
    * @return the {@link com.devonfw.tools.ide.tool.ToolInstallation#linkDir() link directory}.
    */
@@ -64,8 +75,7 @@ public final class MacOsHelper {
     if (Files.isDirectory(contentsDir)) {
       return findLinkDir(contentsDir, rootDir, tool);
     }
-    Path appDir = this.fileAccess.findFirst(rootDir,
-        p -> p.getFileName().toString().endsWith(".app") && Files.isDirectory(p), false);
+    Path appDir = findAppDir(rootDir);
     if (appDir != null) {
       contentsDir = appDir.resolve(IdeContext.FOLDER_CONTENTS);
       if (Files.isDirectory(contentsDir)) {
@@ -73,6 +83,19 @@ public final class MacOsHelper {
       }
     }
     return rootDir;
+  }
+
+  /**
+   * Finds the root tool path of a tool in MacOS
+   *
+   * @param commandlet the {@link ToolCommandlet}
+   * @param context the {@link IdeContext}
+   * @return a {@link String}
+   */
+  public Path findRootToolPath(ToolCommandlet commandlet, IdeContext context) {
+    return context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve(commandlet.getName())
+        .resolve(commandlet.getInstalledEdition().toString())
+        .resolve(commandlet.getInstalledVersion().toString());
   }
 
   private Path findLinkDir(Path contentsDir, Path rootDir, String tool) {

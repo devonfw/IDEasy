@@ -23,18 +23,17 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
   public MavenBasedUrlUpdater() {
 
     super();
-    this.mavenBaseRepoUrl = "https://repo1.maven.org/maven2/" + getMavenGroupIdPath() + "/" + getMavenArtifcatId()
-        + "/";
+    this.mavenBaseRepoUrl = "https://repo1.maven.org/maven2/" + getMavenGroupIdPath() + "/" + getMavenArtifcatId() + "/";
 
   }
 
   /**
-   * @return the maven groupId as path (e.g. "com/devonfw/cobigen").
+   * @return the maven groupId as path.
    */
   protected abstract String getMavenGroupIdPath();
 
   /**
-   * @return the maven artifactId (e.g. "cobigen-cli").
+   * @return the maven artifactId.
    */
   protected abstract String getMavenArtifcatId();
 
@@ -74,12 +73,25 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
       XmlMapper mapper = new XmlMapper();
       MavenMetadata metaData = mapper.readValue(response, MavenMetadata.class);
       for (String version : metaData.getVersioning().getVersions()) {
-        addVersion(version, versions);
+        if (isValidVersion(version)) {
+          addVersion(version, versions);
+        }
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to get version from " + url, e);
     }
     return versions;
+  }
+
+  /**
+   * Subclasses should override this method to enforce version validation.
+   *
+   * @param version the version of the artifact.
+   * @return true as default implementation.
+   */
+  protected boolean isValidVersion(String version) {
+
+    return true;
   }
 
 }

@@ -1,14 +1,13 @@
 package com.devonfw.tools.ide.variable;
 
-import com.devonfw.tools.ide.common.SystemPath;
-import com.devonfw.tools.ide.context.IdeContext;
-
 import java.nio.file.Path;
 import java.util.function.Function;
 
+import com.devonfw.tools.ide.common.SystemPath;
+import com.devonfw.tools.ide.context.IdeContext;
+
 /**
- * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type}
- * {@link Path}.
+ * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type} {@link Path}.
  */
 public class VariableDefinitionSystemPath extends AbstractVariableDefinition<SystemPath> {
 
@@ -38,8 +37,7 @@ public class VariableDefinitionSystemPath extends AbstractVariableDefinition<Sys
    *
    * @param name the {@link #getName() variable name}.
    * @param legacyName the {@link #getLegacyName() legacy name}.
-   * @param defaultValueFactory the factory {@link Function} for the
-   * {@link #getDefaultValue(IdeContext) default value}.
+   * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
    */
   public VariableDefinitionSystemPath(String name, String legacyName,
       Function<IdeContext, SystemPath> defaultValueFactory) {
@@ -52,8 +50,7 @@ public class VariableDefinitionSystemPath extends AbstractVariableDefinition<Sys
    *
    * @param name the {@link #getName() variable name}.
    * @param legacyName the {@link #getLegacyName() legacy name}.
-   * @param defaultValueFactory the factory {@link Function} for the
-   * {@link #getDefaultValue(IdeContext) default value}.
+   * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
    * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
    */
   public VariableDefinitionSystemPath(String name, String legacyName,
@@ -67,8 +64,7 @@ public class VariableDefinitionSystemPath extends AbstractVariableDefinition<Sys
    *
    * @param name the {@link #getName() variable name}.
    * @param legacyName the {@link #getLegacyName() legacy name}.
-   * @param defaultValueFactory the factory {@link Function} for the
-   * {@link #getDefaultValue(IdeContext) default value}.
+   * @param defaultValueFactory the factory {@link Function} for the {@link #getDefaultValue(IdeContext) default value}.
    * @param forceDefaultValue the {@link #isForceDefaultValue() forceDefaultValue} flag.
    * @param export the {@link #isExport() export} flag.
    */
@@ -88,5 +84,10 @@ public class VariableDefinitionSystemPath extends AbstractVariableDefinition<Sys
   public SystemPath fromString(String value, IdeContext context) {
 
     return new SystemPath(context, value);
+  }
+
+  @Override
+  public String toString(SystemPath value, IdeContext context) {
+    return value.toString(context.getPathSyntax());
   }
 }

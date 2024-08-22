@@ -1,11 +1,5 @@
 package com.devonfw.tools.ide.context;
 
-import com.devonfw.tools.ide.cli.CliOfflineException;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.process.ProcessResult;
-
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -18,10 +12,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import com.devonfw.tools.ide.cli.CliOfflineException;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
+
 /**
  * Implements the {@link GitContext}.
  */
 public class GitContextImpl implements GitContext {
+
   private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMinutes(30);
 
   private final IdeContext context;
@@ -119,8 +120,8 @@ public class GitContextImpl implements GitContext {
   /**
    * Handles errors which occurred during git pull.
    *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
    * @param result the {@link ProcessResult} to evaluate.
    */
   private void handleErrors(Path targetRepository, ProcessResult result) {

@@ -22,4 +22,9 @@ public class Oc extends LocalToolCommandlet {
     super(context, "oc", Set.of(Tag.CLOUD));
   }
 
+  @Override
+  public String getToolHelpArguments() {
+
+    return "help";
+  }
 }

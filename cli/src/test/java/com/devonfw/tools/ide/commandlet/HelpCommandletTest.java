@@ -16,7 +16,6 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
@@ -53,7 +52,11 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     help.run();
     // assert
     assertLogoMessage(context);
-    assertLogMessage(context, IdeLogLevel.INFO, "Usage: ide [option]* [[commandlet] [arg]*]");
+    assertThat(context).logAtSuccess().hasMessageContaining("Current version of IDE is");
+    assertThat(context).logAtInfo().hasMessage("Usage: ide [option]* [[commandlet] [arg]*]");
+    for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
+      assertThat(context).log().hasMessageContaining(cmd.getName());
+    }
     assertOptionLogMessages(context);
   }
 
@@ -71,16 +74,15 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     help.run();
     // assert
     assertLogoMessage(context);
-    assertLogMessage(context, IdeLogLevel.INFO, "Usage: ide [option]* mvn [<args>*]");
-    assertLogMessage(context, IdeLogLevel.INFO, "Tool commandlet for Maven (Build-Tool).");
+    assertThat(context).logAtInfo()
+        .hasEntries("Usage: ide [option]* mvn [<args>*]", "Tool commandlet for Maven (Build-Tool).", "usage: mvn [options] [<goal(s)>] [<phase(s)>]");
     assertOptionLogMessages(context);
   }
 
   /**
    * Ensure that for every {@link Commandlet} and each of their {@link Property} a help text is defined.
    *
-   * @param locale the {@link String} representation of the {@link Locale} to test. The empty {@link String} will be
-   *        used for {@link Locale#ROOT}.
+   * @param locale the {@link String} representation of the {@link Locale} to test. The empty {@link String} will be used for {@link Locale#ROOT}.
    */
   @ParameterizedTest
   @ValueSource(strings = { "", "de" })
@@ -95,8 +97,11 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     for (Commandlet commandlet : context.getCommandletManager().getCommandlets()) {
       String message = bundle.get(commandlet);
       soft.assertThat(message).doesNotStartWith("?");
+      String detail = bundle.getDetail(commandlet);
+      soft.assertThat(detail).doesNotStartWith("?");
       if (!locale.isEmpty()) {
         soft.assertThat(message).isNotEqualTo(bundleRoot.get(commandlet));
+        soft.assertThat(detail).isNotEqualTo(bundleRoot.getDetail(commandlet));
       }
       for (Property<?> property : commandlet.getProperties()) {
         if (!(property instanceof KeywordProperty)) {
@@ -136,13 +141,14 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
    */
   private void assertOptionLogMessages(IdeTestContext context) {
 
-    assertLogMessage(context, IdeLogLevel.INFO, "--locale        the locale (e.g. '--locale=de' for German language).");
-    assertLogMessage(context, IdeLogLevel.INFO, "-b | --batch    enable batch mode (non-interactive).");
-    assertLogMessage(context, IdeLogLevel.INFO, "-d | --debug    enable debug logging.");
-    assertLogMessage(context, IdeLogLevel.INFO, "-f | --force    enable force mode.");
-    assertLogMessage(context, IdeLogLevel.INFO, "-o | --offline  enable offline mode (skip updates or git pull, fail downloads or git clone).");
-    assertLogMessage(context, IdeLogLevel.INFO, "-q | --quiet    disable info logging (only log success, warning or error).");
-    assertLogMessage(context, IdeLogLevel.INFO, "-t | --trace    enable trace logging.");
+    assertThat(context).logAtInfo().hasEntries(
+        "--locale        the locale (e.g. '--locale=de' for German language).",
+        "-b | --batch    enable batch mode (non-interactive).",
+        "-d | --debug    enable debug logging.",
+        "-f | --force    enable force mode.",
+        "-o | --offline  enable offline mode (skip updates or git pull, fail downloads or git clone).",
+        "-q | --quiet    disable info logging (only log success, warning or error).",
+        "-t | --trace    enable trace logging.");
   }
 
   /**
@@ -150,6 +156,6 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
    */
   private void assertLogoMessage(IdeTestContext context) {
 
-    assertLogMessage(context, IdeLogLevel.INFO, HelpCommandlet.LOGO);
+    assertThat(context).logAtInfo().hasMessage(HelpCommandlet.LOGO);
   }
 }

@@ -1,19 +1,20 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.repo.CustomTool;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.variable.IdeVariables;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Abstract {@link Commandlet} base-class for both {@link UpdateCommandlet} and {@link CreateCommandlet}.
@@ -23,6 +24,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   /** {@link StringProperty} for the settings repository URL. */
   protected final StringProperty settingsRepo;
 
+  /** {@link FlagProperty} for skipping installation/updating of tools */
+  protected final FlagProperty skipTools;
+
   /**
    * The constructor.
    *
@@ -31,6 +35,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   public AbstractUpdateCommandlet(IdeContext context) {
 
     super(context);
+    addKeyword(getName());
+    this.skipTools = add(new FlagProperty("--skip-tools", false, null));
     this.settingsRepo = new StringProperty("", false, "settingsRepository");
   }
 
@@ -38,8 +44,18 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   public void run() {
 
     updateSettings();
-    Path templatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
+    updateConf();
 
+    if (this.skipTools.isTrue()) {
+      this.context.info("Skipping installation/update of tools as specified by the user.");
+    } else {
+      updateSoftware();
+    }
+  }
+
+  private void updateConf() {
+
+    Path templatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
     if (!Files.exists(templatesFolder)) {
       Path legacyTemplatesFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_TEMPLATES);
       if (Files.exists(legacyTemplatesFolder)) {
@@ -55,9 +71,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       setupConf(templatesFolder, this.context.getIdeHome());
       step.success();
     } finally {
-      step.end();
+      step.close();
     }
-    updateSoftware();
   }
 
   private void setupConf(Path template, Path conf) {
@@ -115,7 +130,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       step.success("Successfully updated settings repository.");
     } finally {
       if (step != null) {
-        step.end();
+        step.close();
       }
     }
   }
@@ -156,7 +171,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       }
       step.success();
     } finally {
-      step.end();
+      step.close();
     }
   }
 

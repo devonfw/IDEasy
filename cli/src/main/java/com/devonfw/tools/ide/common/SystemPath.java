@@ -1,9 +1,5 @@
 package com.devonfw.tools.ide.common;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
-import com.devonfw.tools.ide.variable.IdeVariables;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,19 +12,24 @@ import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.variable.IdeVariables;
+
 /**
- * Represents the PATH variable in a structured way. The PATH contains the system path entries together with the entries
- * for the IDEasy tools. The generic system path entries are stored in a {@link List} ({@code paths}) and the tool
- * entries are stored in a {@link Map} ({@code tool2pathMap}) as they can change dynamically at runtime (e.g. if a new
- * tool is installed). As the tools must have priority the actual PATH is build by first the entries for the tools and
- * then the generic entries from the system PATH. Such tool entries are ignored from the actual PATH of the
- * {@link System#getenv(String) environment} at construction time and are recomputed from the "software" folder. This is
- * important as the initial {@link System#getenv(String) environment} PATH entries can come from a different IDEasy
- * project and the use may have changed projects before calling us again. Recomputing the PATH ensures side-effects from
- * other projects. However, it also will ensure all the entries to IDEasy locations are automatically managed and
- * therefore cannot be managed manually be the end-user.
+ * Represents the PATH variable in a structured way. The PATH contains the system path entries together with the entries for the IDEasy tools. The generic
+ * system path entries are stored in a {@link List} ({@code paths}) and the tool entries are stored in a {@link Map} ({@code tool2pathMap}) as they can change
+ * dynamically at runtime (e.g. if a new tool is installed). As the tools must have priority the actual PATH is build by first the entries for the tools and
+ * then the generic entries from the system PATH. Such tool entries are ignored from the actual PATH of the {@link System#getenv(String) environment} at
+ * construction time and are recomputed from the "software" folder. This is important as the initial {@link System#getenv(String) environment} PATH entries can
+ * come from a different IDEasy project and the use may have changed projects before calling us again. Recomputing the PATH ensures side-effects from other
+ * projects. However, it also will ensure all the entries to IDEasy locations are automatically managed and therefore cannot be managed manually be the
+ * end-user.
  */
 public class SystemPath {
+
+  private static final Pattern REGEX_WINDOWS_PATH = Pattern.compile("([a-zA-Z]:)?(\\\\[a-zA-Z0-9\\s_.-]+)+\\\\?");
 
   private final String envPath;
 
@@ -136,9 +137,12 @@ public class SystemPath {
       return null;
     }
     if (path.startsWith(ideRoot)) {
-      int i = ideRoot.getNameCount();
-      if (path.getNameCount() > i) {
-        return path.getName(i).toString();
+      Path relativized = ideRoot.relativize(path);
+      int count = relativized.getNameCount();
+      if (count >= 3) {
+        if (relativized.getName(1).toString().equals("software")) {
+          return relativized.getName(2).toString();
+        }
       }
     }
     return null;
@@ -164,8 +168,7 @@ public class SystemPath {
 
   /**
    * @param toolPath the {@link Path} to the tool installation.
-   * @return the {@link Path} to the binary executable of the tool. E.g. is "software/mvn" is given
-   * "software/mvn/bin/mvn" could be returned.
+   * @return the {@link Path} to the binary executable of the tool. E.g. is "software/mvn" is given "software/mvn/bin/mvn" could be returned.
    */
   public Path findBinary(Path toolPath) {
 
@@ -174,7 +177,7 @@ public class SystemPath {
 
     if (parent == null) {
 
-      for (Path path : tool2pathMap.values()) {
+      for (Path path : this.tool2pathMap.values()) {
         Path binaryPath = findBinaryInOrder(path, fileName);
         if (binaryPath != null) {
           return binaryPath;
@@ -199,8 +202,7 @@ public class SystemPath {
 
   /**
    * @param tool the name of the tool.
-   * @return the {@link Path} to the directory of the tool where the binaries can be found or {@code null} if the tool
-   * is not installed.
+   * @return the {@link Path} to the directory of the tool where the binaries can be found or {@code null} if the tool is not installed.
    */
   public Path getPath(String tool) {
 
@@ -219,60 +221,43 @@ public class SystemPath {
   @Override
   public String toString() {
 
-    return toString(false);
+    return toString(null);
   }
 
   /**
-   * @param bash - {@code true} to convert the PATH to bash syntax (relevant for git-bash or cygwin on windows),
-   * {@code false} otherwise.
+   * @param pathSyntax the {@link WindowsPathSyntax} to convert to.
    * @return this {@link SystemPath} as {@link String} for the PATH environment variable.
    */
-  public String toString(boolean bash) {
+  public String toString(WindowsPathSyntax pathSyntax) {
 
     char separator;
-    if (bash) {
+    if (pathSyntax == WindowsPathSyntax.MSYS) {
       separator = ':';
     } else {
       separator = this.pathSeparator;
     }
     StringBuilder sb = new StringBuilder(this.envPath.length() + 128);
     for (Path path : this.tool2pathMap.values()) {
-      appendPath(path, sb, separator, bash);
+      appendPath(path, sb, separator, pathSyntax);
     }
     for (Path path : this.paths) {
-      appendPath(path, sb, separator, bash);
+      appendPath(path, sb, separator, pathSyntax);
     }
     return sb.toString();
   }
 
-  private static void appendPath(Path path, StringBuilder sb, char separator, boolean bash) {
+  private static void appendPath(Path path, StringBuilder sb, char separator, WindowsPathSyntax pathSyntax) {
 
     if (sb.length() > 0) {
       sb.append(separator);
     }
-    String pathString = path.toString();
-    if (bash && (pathString.length() > 3) && (pathString.charAt(1) == ':')) {
-      pathString = convertWindowsPathToUnixPath(pathString);
+    String pathString;
+    if (pathSyntax == null) {
+      pathString = path.toString();
+    } else {
+      pathString = pathSyntax.format(path);
     }
     sb.append(pathString);
-  }
-
-  /**
-   * Method to convert a valid Windows path string representation to its corresponding one in Unix format.
-   *
-   * @param pathString The Windows path string to convert.
-   * @return The converted Unix path string.
-   */
-  public static String convertWindowsPathToUnixPath(String pathString) {
-
-    char slash = pathString.charAt(2);
-    if ((slash == '\\') || (slash == '/')) {
-      char drive = Character.toLowerCase(pathString.charAt(0));
-      if ((drive >= 'a') && (drive <= 'z')) {
-        pathString = "/" + drive + pathString.substring(2).replace('\\', '/');
-      }
-    }
-    return pathString;
   }
 
   /**
@@ -283,7 +268,6 @@ public class SystemPath {
    */
   public static boolean isValidWindowsPath(String pathString) {
 
-    String windowsFilePathRegEx = "([a-zA-Z]:)?(\\\\[a-zA-Z0-9\\s_.-]+)+\\\\?";
-    return Pattern.matches(windowsFilePathRegEx, pathString);
+    return REGEX_WINDOWS_PATH.matcher(pathString).matches();
   }
 }

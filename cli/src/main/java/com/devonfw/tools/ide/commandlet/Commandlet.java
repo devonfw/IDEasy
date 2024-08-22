@@ -1,17 +1,19 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.KeywordProperty;
-import com.devonfw.tools.ide.property.Property;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.nls.NlsBundle;
+import com.devonfw.tools.ide.property.KeywordProperty;
+import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * A {@link Commandlet} is a sub-command of the IDE CLI.
@@ -65,6 +67,16 @@ public abstract class Commandlet {
   public List<Property<?>> getValues() {
 
     return this.values;
+  }
+
+  /**
+   * Clear the set values on all properties of the {@link Commandlet#propertiesList}
+   */
+  public void clearProperties() {
+
+    for (Property<?> property : this.propertiesList) {
+      property.clearValue();
+    }
   }
 
   /**
@@ -168,6 +180,14 @@ public abstract class Commandlet {
    */
   public boolean isIdeHomeRequired() {
 
+    return isIdeRootRequired();
+  }
+
+  /**
+   * @return {@code true} if {@link IdeContext#getIdeRoot() IDE_ROOT} is required for this commandlet, {@code false} otherwise.
+   */
+  public boolean isIdeRootRequired() {
+
     return true;
   }
 
@@ -175,6 +195,17 @@ public abstract class Commandlet {
    * @return {@code true} to suppress the {@link com.devonfw.tools.ide.step.StepImpl#logSummary(boolean) step summary success message}.
    */
   public boolean isSuppressStepSuccess() {
+
+    return false;
+  }
+
+  /**
+   * @return {@code true} if the output of this commandlet is (potentially) processed automatically from outside, {@code false} otherwise. For example
+   *     {@link CompleteCommandlet} logs the suggestions for auto-completion to a bash script. Also the {@link EnvironmentCommandlet} logs the environment
+   *     variables for the {@code ide} wrapper script. In such scenarios these logs shall not be spammed with warnings like "IDE_ROOT is not set" that would
+   *     break the processing of the output.
+   */
+  public boolean isProcessableOutput() {
 
     return false;
   }
@@ -204,6 +235,13 @@ public abstract class Commandlet {
     return true;
   }
 
+  /**
+   * Provide additional usage help of this {@link Commandlet} to the user.
+   */
+  public void printHelp(NlsBundle bundle) {
+
+  }
+
   @Override
   public String toString() {
 
@@ -211,11 +249,10 @@ public abstract class Commandlet {
   }
 
   /**
-   * @return the {@link ToolCommandlet} set in a {@link Property} of this commandlet used for auto-completion of a {@link VersionIdentifier} or {@code null} if
-   * not exists or not configured.
+   * @return the {@link ToolCommandlet} set in a {@link Property} of this commandlet used for auto-completion of a {@link VersionIdentifier} or
+   *     {@link PluginDescriptor}, otherwise {@code null} if not exists or not configured.
    */
-  public ToolCommandlet getToolForVersionCompletion() {
-
+  public ToolCommandlet getToolForCompletion() {
     return null;
   }
 }

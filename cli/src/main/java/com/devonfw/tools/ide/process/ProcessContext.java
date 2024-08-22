@@ -24,9 +24,9 @@ public interface ProcessContext {
   /**
    * Sets the executable command to be {@link #run()}.
    *
-   * @param executable the {@link Path} to the command to be executed by {@link #run()}. Depending on your operating
-   *        system and the extension of the executable or OS specific conventions. So e.g. a *.cmd or *.bat file will be
-   *        called via CMD shell on windows while a *.sh file will be called via Bash, etc.
+   * @param executable the {@link Path} to the command to be executed by {@link #run()}. Depending on your operating system and the extension of the
+   *     executable or OS specific conventions. So e.g. a *.cmd or *.bat file will be called via CMD shell on windows while a *.sh file will be called via Bash,
+   *     etc.
    * @return this {@link ProcessContext} for fluent API calls.
    */
   ProcessContext executable(Path executable);
@@ -64,10 +64,9 @@ public interface ProcessContext {
   }
 
   /**
-   * Adds the given arguments for {@link #executable(Path) command}. E.g. for {@link #executable(Path) command} "mvn"
-   * the arguments "clean" and "install" may be added here to run "mvn clean install". If this method would be called
-   * again with "-Pmyprofile" and "-X" before {@link #run()} gets called then "mvn clean install -Pmyprofile -X" would
-   * be run.
+   * Adds the given arguments for {@link #executable(Path) command}. E.g. for {@link #executable(Path) command} "mvn" the arguments "clean" and "install" may be
+   * added here to run "mvn clean install". If this method would be called again with "-Pmyprofile" and "-X" before {@link #run()} gets called then "mvn clean
+   * install -Pmyprofile -X" would be run.
    *
    * @param args the arguments for {@link #executable(Path) command} to be added.
    * @return this {@link ProcessContext} for fluent API calls.
@@ -81,8 +80,8 @@ public interface ProcessContext {
   }
 
   /**
-   * Adds the given arguments for {@link #executable(Path) command} as arbitrary Java objects. It will add the
-   * {@link Object#toString() string representation} of these arguments to the command.
+   * Adds the given arguments for {@link #executable(Path) command} as arbitrary Java objects. It will add the {@link Object#toString() string representation}
+   * of these arguments to the command.
    *
    * @param args the arguments for {@link #executable(Path) command} to be added.
    * @return this {@link ProcessContext} for fluent API calls.
@@ -96,8 +95,8 @@ public interface ProcessContext {
   }
 
   /**
-   * Adds the given arguments for {@link #executable(Path) command} as arbitrary Java objects. It will add the
-   * {@link Object#toString() string representation} of these arguments to the command.
+   * Adds the given arguments for {@link #executable(Path) command} as arbitrary Java objects. It will add the {@link Object#toString() string representation}
+   * of these arguments to the command.
    *
    * @param args the {@link List} of arguments for {@link #executable(Path) command} to be added.
    * @return this {@link ProcessContext} for fluent API calls.
@@ -111,11 +110,10 @@ public interface ProcessContext {
   }
 
   /**
-   * Sets or overrides the specified environment variable only for the planned {@link #run() process execution}. Please
-   * note that the environment variables are initialized when the {@link ProcessContext} is created. This method
-   * explicitly set an additional or overrides an existing environment and will have effect for each {@link #run()
-   * process execution} invoked from this {@link ProcessContext} instance. Be aware of such side-effects when reusing
-   * the same {@link ProcessContext} to {@link #run() run} multiple commands.
+   * Sets or overrides the specified environment variable only for the planned {@link #run() process execution}. Please note that the environment variables are
+   * initialized when the {@link ProcessContext} is created. This method explicitly set an additional or overrides an existing environment and will have effect
+   * for each {@link #run() process execution} invoked from this {@link ProcessContext} instance. Be aware of such side-effects when reusing the same
+   * {@link ProcessContext} to {@link #run() run} multiple commands.
    *
    * @param key the name of the environment variable (E.g. "PATH").
    * @param value the value of the environment variable.
@@ -124,9 +122,8 @@ public interface ProcessContext {
   ProcessContext withEnvVar(String key, String value);
 
   /**
-   * Runs the previously configured {@link #executable(Path) command} with the configured {@link #addArgs(String...)
-   * arguments}. Will reset the {@link #addArgs(String...) arguments} but not the {@link #executable(Path) command} for
-   * sub-sequent calls.
+   * Runs the previously configured {@link #executable(Path) command} with the configured {@link #addArgs(String...) arguments}. Will reset the
+   * {@link #addArgs(String...) arguments} but not the {@link #executable(Path) command} for sub-sequent calls.
    *
    * @return the exit code. Will be {@link ProcessResult#SUCCESS} on successful completion of the {@link Process}.
    */
@@ -136,9 +133,8 @@ public interface ProcessContext {
   }
 
   /**
-   * Runs the previously configured {@link #executable(Path) command} with the configured {@link #addArgs(String...)
-   * arguments}. Will reset the {@link #addArgs(String...) arguments} but not the {@link #executable(Path) command} for
-   * sub-sequent calls.
+   * Runs the previously configured {@link #executable(Path) command} with the configured {@link #addArgs(String...) arguments}. Will reset the
+   * {@link #addArgs(String...) arguments} but not the {@link #executable(Path) command} for sub-sequent calls.
    *
    * @param processMode {@link ProcessMode}
    * @return the {@link ProcessResult}.

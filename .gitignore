@@ -6,6 +6,8 @@
 *.bak
 .*
 !.gitignore
+!.gitkeep
+!.editorconfig
 !.ide.software.version
 !.devon.software.version
 !.ide
@@ -15,6 +17,7 @@
 target/
 eclipse-target/
 generated/
+node_modules
 
 # Package Files #
 *.jar

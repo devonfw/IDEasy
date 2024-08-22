@@ -22,11 +22,12 @@ Please note that we are trying to minimize any potential side-effect from `IDEas
 |*`WORKSPACE`*|`main`|The link:workspaces.adoc[workspace] you are currently in. Defaults to `main` if you are not inside a link:workspaces.adoc[workspace]. Never set this variable in any `ide.properties` file.
 |`WORKSPACE_PATH`|`$IDE_HOME/workspaces/$WORKSPACE`|Absolute path to current link:workspaces.adoc[workspace]. Never set this variable in any `ide.properties` file.
 |*`JAVA_HOME`*|`$IDE_HOME/software/java`|Path to JDK
-|*`MVN_REPO`*|`$IDE_HOME/conf/mvn/repository`|Path to your local maven repository. For projects without high security demands, you may change this to the maven default `~/.m2/repository` and share your repository among multiple projects.
+|*`M2_REPO`*|`$IDE_HOME/conf/mvn/repository`|Path to your local maven repository. For projects without high security demands, you may change this to the maven default `~/.m2/repository` and share your repository among multiple projects.
 |*`MVN_HOME`*|`$IDE_HOME/software/mvn`|Path to Maven
 |*`MAVEN_ARGS`*|`-s $IDE_HOME/conf/mvn/settings.xml`|Maven arguments. This variable is set just if the `settings.xml` file in link:conf.adoc[conf] is found.
-|*`DOCKER_EDITION`*|e.g. `rancher`| If set as `docker` the command `ide install docker` will setup Docker Desktop globally at the users computer what requires a subscription/license for professional usage. If set to `rancher` or undefined it will install Rancher Desktop instead.
+|*`DOCKER_EDITION`*|`rancher`| If set as `docker` the command `ide install docker` will setup Docker Desktop globally at the users computer what requires a subscription/license for professional usage. If set to `rancher` or undefined it will install Rancher Desktop instead.
 |*`GRAALVM_HOME`*|`$IDE_HOME/software/extra/graalvm`|Path to GraalVM
+|*`IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED`*|`true`|Enable/disable legacy support for devonfw-ide link:configurator.adoc[configuration templates] in IDE workspace folders.
 |`ECLIPSE_VMARGS`|`-Xms128M -Xmx768M -XX:MaxPermSize=256M`|JVM options for Eclipse
 |`«TOOL»_EDITION`|`-`|The edition of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_EDITION`, `INTELLIJ_EDITION` or `DOCKER_EDITION`)
 |`«TOOL»_VERSION`|`-`|The version of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_VERSION` or `MVN_VERSION`).

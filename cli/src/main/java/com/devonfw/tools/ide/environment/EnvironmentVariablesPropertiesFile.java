@@ -21,7 +21,7 @@ import com.devonfw.tools.ide.variable.VariableDefinition;
 /**
  * Implementation of {@link EnvironmentVariables}.
  */
-final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
+public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
 
   private static final String NEWLINE = "\n";
 
@@ -43,7 +43,8 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
    * @param propertiesFilePath the {@link #getSource() source}.
    * @param context the {@link IdeContext}.
    */
-  EnvironmentVariablesPropertiesFile(AbstractEnvironmentVariables parent, EnvironmentVariablesType type, Path propertiesFilePath, IdeContext context) {
+  public EnvironmentVariablesPropertiesFile(AbstractEnvironmentVariables parent, EnvironmentVariablesType type,
+      Path propertiesFilePath, IdeContext context) {
 
     super(parent, context);
     Objects.requireNonNull(type);
@@ -71,7 +72,7 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
       do {
         line = reader.readLine();
         if (line != null) {
-          VariableLine variableLine = VariableLine.of(line, this.context, this.propertiesFilePath);
+          VariableLine variableLine = VariableLine.of(line, this.context, getSource());
           String name = variableLine.getName();
           if (name != null) {
             variableLine = migrateLine(variableLine, false);
@@ -116,7 +117,7 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
       do {
         line = reader.readLine();
         if (line != null) {
-          VariableLine variableLine = VariableLine.of(line, this.context, reader);
+          VariableLine variableLine = VariableLine.of(line, this.context, getSource());
           lines.add(variableLine);
         }
       } while (line != null);
@@ -195,10 +196,12 @@ final class EnvironmentVariablesPropertiesFile extends EnvironmentVariablesMap {
   }
 
   @Override
-  protected void collectVariables(Set<String> variableNames) {
+  protected void collectVariables(Map<String, VariableLine> variables, boolean onlyExported, AbstractEnvironmentVariables resolver) {
 
-    variableNames.addAll(this.variables.keySet());
-    super.collectVariables(variableNames);
+    for (String key : this.variables.keySet()) {
+      variables.computeIfAbsent(key, k -> createVariableLine(key, onlyExported, resolver));
+    }
+    super.collectVariables(variables, onlyExported, resolver);
   }
 
   @Override

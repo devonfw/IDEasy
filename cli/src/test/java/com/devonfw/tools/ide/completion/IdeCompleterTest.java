@@ -1,10 +1,11 @@
 package com.devonfw.tools.ide.completion;
 
-import com.devonfw.tools.ide.cli.AutocompletionReaderTestSupport;
-import com.devonfw.tools.ide.context.IdeTestContext;
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
-import java.nio.file.Path;
+import com.devonfw.tools.ide.cli.AutocompletionReaderTestSupport;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 /**
  * Integration test of {@link IdeCompleter}.
@@ -12,8 +13,7 @@ import java.nio.file.Path;
 public class IdeCompleterTest extends AutocompletionReaderTestSupport {
 
   /**
-   * Test of 1st level auto-completion (commandlet name). As suggestions are sorted alphabetically "helm" will be the
-   * first match.
+   * Test of 1st level auto-completion (commandlet name). As suggestions are sorted alphabetically "helm" will be the first match.
    */
   @Test
   public void testIdeCompleterHelp() {
@@ -23,8 +23,8 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   }
 
   /**
-   * Test of 1st level auto-completion (commandlet name). Here we test the special case of the
-   * {@link com.devonfw.tools.ide.commandlet.VersionCommandlet} that has a long-option style.
+   * Test of 1st level auto-completion (commandlet name). Here we test the special case of the {@link com.devonfw.tools.ide.commandlet.VersionCommandlet} that
+   * has a long-option style.
    */
   @Test
   public void testIdeCompleterVersion() {
@@ -34,8 +34,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   }
 
   /**
-   * Test of 2nd level auto-completion with tool property of
-   * {@link com.devonfw.tools.ide.commandlet.InstallCommandlet}.
+   * Test of 2nd level auto-completion with tool property of {@link com.devonfw.tools.ide.commandlet.InstallCommandlet}.
    */
   @Test
   public void testIdeCompleterInstall() {
@@ -45,8 +44,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   }
 
   /**
-   * Test of 2nd level auto-completion with commandlet property of
-   * {@link com.devonfw.tools.ide.commandlet.HelpCommandlet}.
+   * Test of 2nd level auto-completion with commandlet property of {@link com.devonfw.tools.ide.commandlet.HelpCommandlet}.
    */
   @Test
   public void testIdeCompleterHelpWithToolCompletion() {
@@ -67,9 +65,8 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   }
 
   /**
-   * Test of 3rd level completion using version property of {@link com.devonfw.tools.ide.commandlet.InstallCommandlet}
-   * contextual to the specified tool. The version "3.2.1" is the latest one from the mocked "basic" project configured
-   * for the tool "mvn".
+   * Test of 3rd level completion using version property of {@link com.devonfw.tools.ide.commandlet.InstallCommandlet} contextual to the specified tool. The
+   * version "3.2.1" is the latest one from the mocked "basic" project configured for the tool "mvn".
    */
   @Test
   public void testIdeCompleterThirdLayerVersions() {
@@ -91,8 +88,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   }
 
   /**
-   * Test that no options are completed on 2nd level for {@link com.devonfw.tools.ide.commandlet.VersionGetCommandlet}
-   * that has no options.
+   * Test that no options are completed on 2nd level for {@link com.devonfw.tools.ide.commandlet.VersionGetCommandlet} that has no options.
    */
   @Test
   public void testIdeCompleterPreventsOptionsAfterCommandWithMinus() {
@@ -132,6 +128,6 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
 
   private IdeTestContext newTestContext() {
 
-    return new IdeTestContext(Path.of(""), "");
+    return new IdeTestContext(Path.of(""));
   }
 }

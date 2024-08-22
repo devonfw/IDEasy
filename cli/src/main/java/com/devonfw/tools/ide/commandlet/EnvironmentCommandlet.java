@@ -1,12 +1,16 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.property.FlagProperty;
-import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * {@link Commandlet} to print the environment variables.
@@ -41,7 +45,7 @@ public final class EnvironmentCommandlet extends Commandlet {
   }
 
   @Override
-  public boolean isSuppressStepSuccess() {
+  public boolean isProcessableOutput() {
 
     return true;
   }
@@ -49,46 +53,55 @@ public final class EnvironmentCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    Collection<VariableLine> variables = this.context.getVariables().collectVariables();
-    for (VariableLine line : variables) {
-      if (this.context.getSystemInfo().isWindows()) {
-        line = normalizeWindowsValue(line);
+    boolean winCmd = false;
+    WindowsPathSyntax pathSyntax = null;
+    if (this.context.getSystemInfo().isWindows()) {
+      if (this.bash.isTrue()) {
+        pathSyntax = WindowsPathSyntax.MSYS;
+      } else {
+        winCmd = true;
+        pathSyntax = WindowsPathSyntax.WINDOWS;
       }
-      String lineValue = line.getValue();
-      if (IdeVariables.PATH.getName().equals(line.getName())) {
-        lineValue = this.context.getPath().toString(this.bash.isTrue());
+    }
+    ((AbstractIdeContext) this.context).setPathSyntax(pathSyntax);
+    List<VariableLine> variables = this.context.getVariables().collectVariables();
+    if (this.context.debug().isEnabled()) {
+      Map<EnvironmentVariablesType, List<VariableLine>> type2lines = variables.stream().collect(Collectors.groupingBy(l -> l.getSource().type()));
+      for (EnvironmentVariablesType type : EnvironmentVariablesType.values()) {
+        List<VariableLine> lines = type2lines.get(type);
+        if (lines != null) {
+          boolean sourcePrinted = false;
+          sortVariables(lines);
+          for (VariableLine line : lines) {
+            if (!sourcePrinted) {
+              this.context.debug("from {}:", line.getSource());
+              sourcePrinted = true;
+            }
+            printEnvLine(line);
+          }
+        }
       }
-      lineValue = "\"" + lineValue + "\"";
-      line = line.withValue(lineValue);
-      this.context.info(line.toString());
-    }
-  }
-
-  VariableLine normalizeWindowsValue(VariableLine line) {
-
-    String value = line.getValue();
-    String normalized = normalizeWindowsValue(value);
-    if (normalized != value) {
-      line = line.withValue(normalized);
-    }
-    return line;
-  }
-
-  String normalizeWindowsValue(String value) {
-
-    WindowsPathSyntax pathSyntax;
-    if (this.bash.isTrue()) {
-      pathSyntax = WindowsPathSyntax.MSYS;
     } else {
-      pathSyntax = WindowsPathSyntax.WINDOWS;
+      sortVariables(variables);
+      for (VariableLine line : variables) {
+        if (winCmd) {
+          // MS-Dos (aka CMD) has no concept of exported variables
+          this.context.info(line.getName() + "=" + line.getValue() + "");
+        } else {
+          printEnvLine(line);
+        }
+      }
     }
-    String drive = WindowsPathSyntax.WINDOWS.getDrive(value);
-    if (drive == null) {
-      drive = WindowsPathSyntax.MSYS.getDrive(value);
-    }
-    if (drive != null) {
-      value = pathSyntax.replaceDrive(value, drive);
-    }
-    return value;
+  }
+
+  private static void sortVariables(List<VariableLine> lines) {
+    Collections.sort(lines, (c1, c2) -> c1.getName().compareTo(c2.getName()));
+  }
+
+  private void printEnvLine(VariableLine line) {
+    String lineValue = line.getValue();
+    lineValue = "\"" + lineValue + "\"";
+    line = line.withValue(lineValue);
+    this.context.info(line.toString());
   }
 }

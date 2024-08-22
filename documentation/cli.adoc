@@ -3,30 +3,37 @@ toc::[]
 
 = Ide CLI
 
-`IDEasy` is shipped with a central command `ide`. The link:setup.adoc[setup] will automatically register this command so it is available in any shell on your system. This page describes the Command Line Interface (CLI) of this command.
+`IDEasy` is shipped with a central command `ide`.
+The link:setup.adoc[setup] will automatically register this command so it is available in any shell on your system.
+This page describes the Command Line Interface (CLI) of this command.
 
 == Ide
-Without any argument the `ide` command will determine your `IDE_HOME` and setup your link:variables.adoc[environment variables] automatically. In case you are not inside of a `IDEasy` folder the command will echo a message and do nothing.
+
+Without any argument the `ide` command will determine your `IDE_HOME` and setup your link:variables.adoc[environment variables] automatically.
+In case you are not inside of a `IDEasy` folder the command will echo a message and do nothing.
 
 [source,bash]
 --------
-[/]$ ide
+[~]$ ide
 You are not inside an IDEasy installation: /
-[/]$ cd /projects/my-project/workspaces/test/my-git-repo
+[~]$ cd projects/my-project/workspaces/test/my-git-repo
 [my-git-repo]$ ide
 IDEasy environment variables have been set for /projects/my-project in workspace main
 [my-git-repo]$ echo $IDE_HOME
-/projects/ide
+~/projects/my-project
 [my-git-repo]$ echo $JAVA_HOME
-/projects/my-project/software/java
+~/projects/my-project/software/java
 --------
 
 == Commandlets
-The `ide` command supports a pluggable set of _commandlets_. Such commandlet is provided as first argument to the ide command and may take additional arguments:
+
+The `ide` command supports a pluggable set of _commandlets_.
+Such commandlet is provided as first argument to the ide command and may take additional arguments:
 
 `ide «commandlet» [«arg»]*`
 
-Technically, a commandlet is a bash script located in `$IDE_HOME/.ide/scripts/command`. So if you want to integrate another tool with `IDEasy` we are awaiting your pull-request.
+Technically, a commandlet is a bash script located in `$IDE_HOME/.ide/scripts/command`.
+So if you want to integrate another tool with `IDEasy` we are awaiting your pull-request.
 Every commandlet takes the following generic arguments:
 
 .Generic arguments of every commandlet
@@ -38,6 +45,7 @@ Every commandlet takes the following generic arguments:
 |=======================
 
 === Command-wrapper
+
 For many commandlets the `ide` command acts as a wrapper.
 Similar to `mvnw` or `gradlew` you can use it as a proxy command.
 Therefore `ide mvn clean install` will be the same as `mvn clean install`.

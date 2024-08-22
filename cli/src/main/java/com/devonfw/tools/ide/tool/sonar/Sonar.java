@@ -58,11 +58,11 @@ public class Sonar extends LocalToolCommandlet {
         break;
       case START:
         printSonarWebPort();
-        arguments.setValueAsString("start", context);
+        this.arguments.setValueAsString("start", this.context);
         super.run();
         break;
       case STOP:
-        arguments.setValueAsString("stop", context);
+        this.arguments.setValueAsString("stop", this.context);
         super.run();
         break;
       default:
@@ -72,23 +72,17 @@ public class Sonar extends LocalToolCommandlet {
   @Override
   protected String getBinaryName() {
 
-    SonarCommand command = this.command.getValue();
-
-    Path toolBinPath = getToolBinPath();
-    String sonarLocation = null;
-
     if (this.context.getSystemInfo().isWindows()) {
+      SonarCommand command = this.command.getValue();
       if (command.equals(SonarCommand.START)) {
-        sonarLocation = "windows-x86-64/StartSonar.bat";
+        return "windows-x86-64/StartSonar.bat";
       } else if (command.equals(SonarCommand.STOP)) {
-        sonarLocation = "windows-x86-64/SonarService.bat";
+        return "windows-x86-64/SonarService.bat";
       }
     } else if (this.context.getSystemInfo().isMac()) {
-      sonarLocation = "macosx-universal-64/sonar.sh";
-    } else {
-      sonarLocation = "linux-x86-64/sonar.sh";
+      return "macosx-universal-64/sonar.sh";
     }
-    return toolBinPath.resolve(sonarLocation).toString();
+    return "linux-x86-64/sonar.sh";
   }
 
   private void printSonarWebPort() {

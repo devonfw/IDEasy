@@ -1,5 +1,9 @@
 package com.devonfw.tools.ide.context;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Locale;
+
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -13,6 +17,7 @@ import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
@@ -20,10 +25,6 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Locale;
 
 /**
  * Interface for interaction with the user allowing to input and output information.
@@ -267,7 +268,7 @@ public interface IdeContext extends IdeLogger {
 
   /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different
-   * isolated projects.
+   *     isolated projects.
    * @see com.devonfw.tools.ide.variable.IdeVariables#IDE_HOME
    */
   Path getIdeHome();
@@ -280,8 +281,8 @@ public interface IdeContext extends IdeLogger {
 
   /**
    * @return the {@link Path} to the IDE installation root directory. This is the top-level folder where the {@link #getIdeHome() IDE instances} are located as
-   * sub-folder. There is a reserved ".ide" folder where central IDE data is stored such as the {@link #getUrlsPath() download metadata} and the central
-   * software repository.
+   *     sub-folder. There is a reserved ".ide" folder where central IDE data is stored such as the {@link #getUrlsPath() download metadata} and the central
+   *     software repository.
    * @see com.devonfw.tools.ide.variable.IdeVariables#IDE_ROOT
    */
   Path getIdeRoot();
@@ -303,7 +304,7 @@ public interface IdeContext extends IdeLogger {
 
   /**
    * @return the {@link Path} to the download metadata (ide-urls). Here a git repository is cloned and updated (pulled) to always have the latest metadata to
-   * download tools.
+   *     download tools.
    * @see com.devonfw.tools.ide.url.model.folder.UrlRepository
    */
   Path getUrlsPath();
@@ -315,43 +316,43 @@ public interface IdeContext extends IdeLogger {
 
   /**
    * @return the {@link Path} to the download cache. All downloads will be placed here using a unique naming pattern that allows to reuse these artifacts. So if
-   * the same artifact is requested again it will be taken from the cache to avoid downloading it again.
+   *     the same artifact is requested again it will be taken from the cache to avoid downloading it again.
    */
   Path getDownloadPath();
 
   /**
    * @return the {@link Path} to the software folder inside {@link #getIdeHome() IDE_HOME}. All tools for that IDE instance will be linked here from the
-   * {@link #getSoftwareRepositoryPath() software repository} as sub-folder named after the according tool.
+   *     {@link #getSoftwareRepositoryPath() software repository} as sub-folder named after the according tool.
    */
   Path getSoftwarePath();
 
   /**
    * @return the {@link Path} to the extra folder inside software folder inside {@link #getIdeHome() IDE_HOME}. All tools for that IDE instance will be linked
-   * here from the {@link #getSoftwareRepositoryPath() software repository} as sub-folder named after the according tool.
+   *     here from the {@link #getSoftwareRepositoryPath() software repository} as sub-folder named after the according tool.
    */
   Path getSoftwareExtraPath();
 
   /**
    * @return the {@link Path} to the global software repository. This is the central directory where the tools are extracted physically on the local disc. Those
-   * are shared among all IDE instances (see {@link #getIdeHome() IDE_HOME}) via symbolic links (see {@link #getSoftwarePath()}). Therefore this repository
-   * follows the sub-folder structure {@code «repository»/«tool»/«edition»/«version»/}. So multiple versions of the same tool exist here as different folders.
-   * Further, such software may not be modified so e.g. installation of plugins and other kind of changes to such tool need to happen strictly out of the scope
-   * of this folders.
+   *     are shared among all IDE instances (see {@link #getIdeHome() IDE_HOME}) via symbolic links (see {@link #getSoftwarePath()}). Therefore this repository
+   *     follows the sub-folder structure {@code «repository»/«tool»/«edition»/«version»/}. So multiple versions of the same tool exist here as different
+   *     folders. Further, such software may not be modified so e.g. installation of plugins and other kind of changes to such tool need to happen strictly out
+   *     of the scope of this folders.
    */
   Path getSoftwareRepositoryPath();
 
   /**
    * @return the {@link Path} to the {@link #FOLDER_PLUGINS plugins folder} inside {@link #getIdeHome() IDE_HOME}. All plugins of the IDE instance will be
-   * stored here. For each tool that supports plugins a sub-folder with the tool name will be created where the plugins for that tool get installed.
+   *     stored here. For each tool that supports plugins a sub-folder with the tool name will be created where the plugins for that tool get installed.
    */
   Path getPluginsPath();
 
   /**
    * @return the {@link Path} to the central tool repository. All tools will be installed in this location using the directory naming schema of
-   * {@code «repository»/«tool»/«edition»/«version»/}. Actual {@link #getIdeHome() IDE instances} will only contain symbolic links to the physical tool
-   * installations in this repository. This allows to share and reuse tool installations across multiple {@link #getIdeHome() IDE instances}. The variable
-   * {@code «repository»} is typically {@code default} for the tools from our standard {@link #getUrlsPath() ide-urls download metadata} but this will differ
-   * for custom tools from a private repository.
+   *     {@code «repository»/«tool»/«edition»/«version»/}. Actual {@link #getIdeHome() IDE instances} will only contain symbolic links to the physical tool
+   *     installations in this repository. This allows to share and reuse tool installations across multiple {@link #getIdeHome() IDE instances}. The variable
+   *     {@code «repository»} is typically {@code default} for the tools from our standard {@link #getUrlsPath() ide-urls download metadata} but this will
+   *     differ for custom tools from a private repository.
    */
   Path getToolRepositoryPath();
 
@@ -372,8 +373,27 @@ public interface IdeContext extends IdeLogger {
   Path getSettingsPath();
 
   /**
+   * @return the {@link Path} to the templates folder inside the {@link #getSettingsPath() settings}. The relative directory structure in this templates folder
+   *     is to be applied to {@link #getIdeHome() IDE_HOME} when the project is set up.
+   */
+  default Path getSettingsTemplatePath() {
+    Path settingsFolder = getSettingsPath();
+    Path templatesFolder = settingsFolder.resolve(IdeContext.FOLDER_TEMPLATES);
+    if (!Files.isDirectory(templatesFolder)) {
+      Path templatesFolderLegacy = settingsFolder.resolve(IdeContext.FOLDER_LEGACY_TEMPLATES);
+      if (Files.isDirectory(templatesFolderLegacy)) {
+        templatesFolder = templatesFolderLegacy;
+      } else {
+        warning("No templates found in settings git repo neither in {} nor in {} - configuration broken", templatesFolder, templatesFolderLegacy);
+        return null;
+      }
+    }
+    return templatesFolder;
+  }
+
+  /**
    * @return the {@link Path} to the {@code conf} folder with instance specific tool configurations and the
-   * {@link EnvironmentVariablesType#CONF user specific project configuration}.
+   *     {@link EnvironmentVariablesType#CONF user specific project configuration}.
    */
   Path getConfPath();
 
@@ -390,7 +410,7 @@ public interface IdeContext extends IdeLogger {
 
   /**
    * @return the value of the system {@link IdeVariables#PATH PATH} variable. It is automatically extended according to the tools available in
-   * {@link #getSoftwarePath() software path} unless {@link #getIdeHome() IDE_HOME} was not found.
+   *     {@link #getSoftwarePath() software path} unless {@link #getIdeHome() IDE_HOME} was not found.
    */
   SystemPath getPath();
 
@@ -435,14 +455,45 @@ public interface IdeContext extends IdeLogger {
    */
   default String getMavenArgs() {
 
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
+    Path mavenConfFolder = mvn.getMavenConfFolder(false);
+    Path mvnSettingsFile = mavenConfFolder.resolve(Mvn.SETTINGS_FILE);
+    if (!Files.exists(mvnSettingsFile)) {
+      return null;
+    }
+    String settingsPath;
+    WindowsPathSyntax pathSyntax = getPathSyntax();
+    if (pathSyntax == null) {
+      settingsPath = mvnSettingsFile.toString();
+    } else {
+      settingsPath = pathSyntax.format(mvnSettingsFile);
+    }
+    return "-s " + settingsPath;
+  }
+
+  /**
+   * @return the String value for the variable M2_REPO, or falls back to the default USER_HOME/.m2 location if called outside an IDEasy installation.
+   */
+  default Path getMavenRepository() {
+
     if (getIdeHome() != null) {
-      Path mvnSettingsFile = getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_FILE);
-      if (Files.exists(mvnSettingsFile)) {
-        return "-s " + mvnSettingsFile;
+      Path confPath = getConfPath();
+      Path m2Folder = confPath.resolve(Mvn.MVN_CONFIG_FOLDER);
+      if (!Files.isDirectory(m2Folder)) {
+        Path m2LegacyFolder = confPath.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
+        if (Files.isDirectory(m2LegacyFolder)) {
+          m2Folder = m2LegacyFolder;
+        } else {
+          // fallback to USER_HOME/.m2 folder
+          m2Folder = getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
+        }
       }
+      return m2Folder.resolve("repository");
     }
     return null;
-
   }
 
   /**
@@ -507,5 +558,27 @@ public interface IdeContext extends IdeLogger {
    * @return the {@link String} to the Bash executable, or {@code null} if Bash is not found
    */
   String findBash();
+
+  /**
+   * Finds the path to the Bash executable.
+   *
+   * @return the {@link String} to the Bash executable. Throws an {@link IllegalStateException} if no bash was found.
+   */
+  default String findBashRequired() {
+    String bash = findBash();
+    if (bash == null) {
+      String message = "Could not find bash what is a prerequisite of IDEasy.";
+      if (getSystemInfo().isWindows()) {
+        message = message + "\nPlease install Git for Windows and rerun.";
+      }
+      throw new IllegalStateException(message);
+    }
+    return bash;
+  }
+
+  /**
+   * @return the {@link WindowsPathSyntax} used for {@link Path} conversion or {@code null} for no such conversion (typically if not on Windows).
+   */
+  WindowsPathSyntax getPathSyntax();
 
 }

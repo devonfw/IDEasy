@@ -1,7 +1,11 @@
 package com.devonfw.tools.ide.io;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -10,34 +14,36 @@ import java.util.function.Predicate;
  */
 public interface FileAccess {
 
+  /** {@link PosixFilePermission}s for "rwxr-xr-x" or 0755. */
+  Set<PosixFilePermission> RWX_RX_RX = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE, PosixFilePermission.OWNER_EXECUTE,
+      PosixFilePermission.GROUP_READ, PosixFilePermission.GROUP_EXECUTE, PosixFilePermission.OTHERS_READ, PosixFilePermission.OTHERS_EXECUTE);
+
   /**
    * Downloads a file from an arbitrary location.
    *
    * @param url the location of the binary file to download. May also be a local or remote path to copy from.
-   * @param targetFile the {@link Path} to the target file to download to. Should not already exists. Missing parent
-   *        directories will be created automatically.
+   * @param targetFile the {@link Path} to the target file to download to. Should not already exists. Missing parent directories will be created
+   *     automatically.
    */
   void download(String url, Path targetFile);
 
   /**
    * Creates the entire {@link Path} as directories if not already existing.
    *
-   * @param directory the {@link Path} to
-   *        {@link java.nio.file.Files#createDirectories(Path, java.nio.file.attribute.FileAttribute...) create}.
+   * @param directory the {@link Path} to {@link java.nio.file.Files#createDirectories(Path, java.nio.file.attribute.FileAttribute...) create}.
    */
   void mkdirs(Path directory);
 
   /**
    * @param file the {@link Path} to check.
-   * @return {@code true} if the given {@code file} points to an existing file, {@code false} otherwise (the given
-   *         {@link Path} does not exist or is a directory).
+   * @return {@code true} if the given {@code file} points to an existing file, {@code false} otherwise (the given {@link Path} does not exist or is a
+   *     directory).
    */
   boolean isFile(Path file);
 
   /**
    * @param folder the {@link Path} to check.
-   * @return {@code true} if the given {@code folder} points to an existing directory, {@code false} otherwise (a
-   *         warning is logged in this case).
+   * @return {@code true} if the given {@code folder} points to an existing directory, {@code false} otherwise (a warning is logged in this case).
    */
   boolean isExpectedFolder(Path folder);
 
@@ -61,9 +67,9 @@ public interface FileAccess {
   void move(Path source, Path targetDir);
 
   /**
-   * Creates a symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a Windows
-   * junction, it will be replaced. In case of missing privileges, Windows Junctions may be used as fallback, which must
-   * point to absolute paths. Therefore, the created link will be absolute instead of relative.
+   * Creates a symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a Windows junction, it will be replaced. In case of
+   * missing privileges, Windows Junctions may be used as fallback, which must point to absolute paths. Therefore, the created link will be absolute instead of
+   * relative.
    *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
@@ -72,9 +78,9 @@ public interface FileAccess {
   void symlink(Path source, Path targetLink, boolean relative);
 
   /**
-   * Creates a relative symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a
-   * Windows junction, it will be replaced. In case of missing privileges, Windows Junctions may be used as fallback,
-   * which must point to absolute paths. Therefore, the created link will be absolute instead of relative.
+   * Creates a relative symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a Windows junction, it will be replaced. In case
+   * of missing privileges, Windows Junctions may be used as fallback, which must point to absolute paths. Therefore, the created link will be absolute instead
+   * of relative.
    *
    * @param source the source {@link Path} to link to, may be relative or absolute.
    * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
@@ -86,8 +92,8 @@ public interface FileAccess {
 
   /**
    * @param source the source {@link Path file or folder} to copy.
-   * @param target the {@link Path} to copy {@code source} to. See {@link #copy(Path, Path, FileCopyMode)} for details.
-   *        will always ensure that in the end you will find the same content of {@code source} in {@code target}.
+   * @param target the {@link Path} to copy {@code source} to. See {@link #copy(Path, Path, FileCopyMode)} for details. will always ensure that in the end
+   *     you will find the same content of {@code source} in {@code target}.
    */
   default void copy(Path source, Path target) {
 
@@ -96,14 +102,13 @@ public interface FileAccess {
 
   /**
    * @param source the source {@link Path file or folder} to copy.
-   * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not
-   *        take the filename of {@code source} and copy that to {@code target} in case that is an existing folder.
-   *        Instead it will always be simple and stupid and just copy from {@code source} to {@code target}. Therefore
-   *        the result is always clear and easy to predict and understand. Also you can easily rename a file to copy.
-   *        While {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method
-   *        will always ensure that in the end you will find the same content of {@code source} in {@code target}.
-   * @param fileOnly - {@code true} if {@code fileOrFolder} is expected to be a file and an exception shall be thrown if
-   *        it is a directory, {@code false} otherwise (copy recursively).
+   * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not take the filename of {@code source}
+   *     and copy that to {@code target} in case that is an existing folder. Instead it will always be simple and stupid and just copy from {@code source} to
+   *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
+   *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
+   *     the same content of {@code source} in {@code target}.
+   * @param fileOnly - {@code true} if {@code fileOrFolder} is expected to be a file and an exception shall be thrown if it is a directory, {@code false}
+   *     otherwise (copy recursively).
    */
   void copy(Path source, Path target, FileCopyMode fileOnly);
 
@@ -119,8 +124,7 @@ public interface FileAccess {
   /**
    * @param archiveFile the {@link Path} to the archive file to extract.
    * @param targetDir the {@link Path} to the directory where to extract the {@code archiveFile}.
-   * @param postExtractHook the {@link Consumer} to be called after the extraction on the final folder before it is
-   *        moved to {@code targetDir}.
+   * @param postExtractHook the {@link Consumer} to be called after the extraction on the final folder before it is moved to {@code targetDir}.
    */
   default void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook) {
 
@@ -130,15 +134,13 @@ public interface FileAccess {
   /**
    * @param archiveFile the {@link Path} to the archive file to extract.
    * @param targetDir the {@link Path} to the directory where to extract the {@code archiveFile}.
-   * @param postExtractHook the {@link Consumer} to be called after the extraction on the final folder before it is
-   *        moved to {@code targetDir}.
+   * @param postExtractHook the {@link Consumer} to be called after the extraction on the final folder before it is moved to {@code targetDir}.
    * @param extract {@code true} if the {@code archiveFile} should be extracted (default), {@code false} otherwise.
    */
   void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook, boolean extract);
 
   /**
-   * Extracts a ZIP file what is the common archive format on Windows. Initially invented by PKZIP for MS-DOS and also
-   * famous from WinZIP software for Windows.
+   * Extracts a ZIP file what is the common archive format on Windows. Initially invented by PKZIP for MS-DOS and also famous from WinZIP software for Windows.
    *
    * @param file the ZIP file to extract.
    * @param targetDir the {@link Path} with the directory to unzip to.
@@ -153,10 +155,15 @@ public interface FileAccess {
   void extractTar(Path file, Path targetDir, TarCompression compression);
 
   /**
-   * Extracts an Apple DMG (Disk Image) file that is similar to an ISO image. DMG files are commonly used for software
-   * releases on MacOS. Double-clicking such files on MacOS mounts them and show the application together with a
-   * symbolic link to the central applications folder and some help instructions. The user then copies the application
-   * to the applications folder via drag and drop in order to perform the installation.
+   * @param file the JAR file to extract.
+   * @param targetDir the {@link Path} with the directory to extract to.
+   */
+  void extractJar(Path file, Path targetDir);
+
+  /**
+   * Extracts an Apple DMG (Disk Image) file that is similar to an ISO image. DMG files are commonly used for software releases on MacOS. Double-clicking such
+   * files on MacOS mounts them and show the application together with a symbolic link to the central applications folder and some help instructions. The user
+   * then copies the application to the applications folder via drag and drop in order to perform the installation.
    *
    * @param file the DMG file to extract.
    * @param targetDir the target directory where to extract the contents to.
@@ -164,8 +171,8 @@ public interface FileAccess {
   void extractDmg(Path file, Path targetDir);
 
   /**
-   * Extracts an MSI (Microsoft Installer) file. MSI files are commonly used for software releases on Windows that allow
-   * an installation wizard and easy later uninstallation.
+   * Extracts an MSI (Microsoft Installer) file. MSI files are commonly used for software releases on Windows that allow an installation wizard and easy later
+   * uninstallation.
    *
    * @param file the MSI file to extract.
    * @param targetDir the target directory where to extract the contents to.
@@ -173,10 +180,9 @@ public interface FileAccess {
   void extractMsi(Path file, Path targetDir);
 
   /**
-   * Extracts an Apple PKG (Package) file. PKG files are used instead of {@link #extractDmg(Path, Path) DMG files} if
-   * additional changes have to be performed like drivers to be installed. Similar to what
-   * {@link #extractMsi(Path, Path) MSI} is on Windows. PKG files are internally a xar based archive with a specific
-   * structure.
+   * Extracts an Apple PKG (Package) file. PKG files are used instead of {@link #extractDmg(Path, Path) DMG files} if additional changes have to be performed
+   * like drivers to be installed. Similar to what {@link #extractMsi(Path, Path) MSI} is on Windows. PKG files are internally a xar based archive with a
+   * specific structure.
    *
    * @param file the PKG file to extract.
    * @param targetDir the target directory where to extract the contents to.
@@ -197,11 +203,10 @@ public interface FileAccess {
   void delete(Path path);
 
   /**
-   * Creates a new temporary directory. ATTENTION: The user of this method is responsible to do house-keeping and
-   * {@link #delete(Path) delete} it after the work is done.
+   * Creates a new temporary directory. ATTENTION: The user of this method is responsible to do house-keeping and {@link #delete(Path) delete} it after the work
+   * is done.
    *
-   * @param name the default name of the temporary directory to create. A prefix or suffix may be added to ensure
-   *        uniqueness.
+   * @param name the default name of the temporary directory to create. A prefix or suffix may be added to ensure uniqueness.
    * @return the {@link Path} to the newly created and unique temporary directory.
    */
   Path createTempDir(String name);
@@ -216,10 +221,9 @@ public interface FileAccess {
 
   /**
    * @param dir the {@link Path} to the directory where to list the children.
-   * @param filter the {@link Predicate} used to {@link Predicate#test(Object) decide} which children to include (if
-   *        {@code true} is returned).
-   * @return all children of the given {@link Path} that match the given {@link Predicate}. Will be the empty list of
-   *         the given {@link Path} is not an existing directory.
+   * @param filter the {@link Predicate} used to {@link Predicate#test(Object) decide} which children to include (if {@code true} is returned).
+   * @return all children of the given {@link Path} that match the given {@link Predicate}. Will be the empty list of the given {@link Path} is not an existing
+   *     directory.
    */
   List<Path> listChildren(Path dir, Predicate<Path> filter);
 
@@ -234,8 +238,20 @@ public interface FileAccess {
 
   /**
    * Checks if the given directory is empty.
+   *
    * @param dir The {@link Path} object representing the directory to check.
    * @return {@code true} if the directory is empty, {@code false} otherwise.
    */
   boolean isEmptyDir(Path dir);
+
+  /**
+   * Makes the file executable.
+   *
+   * @param path Path to the file.
+   * @throws IOException if an I/O error occurs.
+   */
+  default void makeExecutable(Path path) throws IOException {
+
+    Files.setPosixFilePermissions(path, RWX_RX_RX);
+  }
 }

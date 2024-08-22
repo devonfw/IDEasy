@@ -1,16 +1,16 @@
 package com.devonfw.tools.ide.property;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
+
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorAdapter;
 import com.devonfw.tools.ide.context.IdeContext;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.function.Consumer;
 
 /**
  * A {@link Property} is a simple container for a {@link #getValue() value} with a fixed {@link #getName() name} and {@link #getValueType() type}. Further we
@@ -26,7 +26,7 @@ public abstract class Property<V> {
 
   private static final String INVALID_ARGUMENT = "Invalid CLI argument '{}' for property '{}' of commandlet '{}'";
 
-  private static final String INVALID_ARGUMENT_WITH_CAUSE = INVALID_ARGUMENT + ":{}";
+  private static final String INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE = INVALID_ARGUMENT + ": {}";
 
   /** @see #getName() */
   protected final String name;
@@ -154,7 +154,7 @@ public abstract class Property<V> {
    */
   public boolean isMultiValued() {
 
-    return multivalued;
+    return this.multivalued;
   }
 
   /**
@@ -231,10 +231,15 @@ public abstract class Property<V> {
    */
   public void setValue(V value) {
 
-    if (!this.multivalued) {
-      this.value.clear();
-    }
     this.value.add(value);
+  }
+
+  /**
+   * Clears the {@link #value value} list.
+   */
+  public void clearValue() {
+
+    this.value.clear();
   }
 
   public void addValue(V value) {
@@ -282,11 +287,11 @@ public abstract class Property<V> {
       setValueAsString(valueAsString, context);
       return true;
     } catch (Exception e) {
-      String message = INVALID_ARGUMENT_WITH_CAUSE;
       if (e instanceof IllegalArgumentException) {
-        message = INVALID_ARGUMENT;
+        context.warning(INVALID_ARGUMENT, valueAsString, getNameOrAlias(), commandlet.getName());
+      } else {
+        context.warning(INVALID_ARGUMENT_WITH_EXCEPTION_MESSAGE, valueAsString, getNameOrAlias(), commandlet.getName(), e.getMessage());
       }
-      context.warning(message, valueAsString, getNameOrAlias(), commandlet.getName(), e.getMessage());
       return false;
     }
   }
@@ -367,7 +372,7 @@ public abstract class Property<V> {
     boolean success = assignValueAsString(argValue, context, commandlet);
 
     if (success) {
-      if (multivalued) {
+      if (this.multivalued) {
 
         while (success && args.hasNext()) {
           CliArgument arg = args.next();
@@ -454,7 +459,9 @@ public abstract class Property<V> {
       return false;
     }
     if (this.validator != null) {
-      this.validator.accept(getValue());
+      for (V value : this.value) {
+        this.validator.accept(value);
+      }
     }
     return true;
   }

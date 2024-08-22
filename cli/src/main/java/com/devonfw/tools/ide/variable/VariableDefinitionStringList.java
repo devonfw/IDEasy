@@ -9,8 +9,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
 
 /**
- * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type}
- * {@link String}.
+ * Implementation of {@link VariableDefinition} for a variable with the {@link #getValueType() value type} {@link String}.
  */
 public class VariableDefinitionStringList extends AbstractVariableDefinition<List<String>> {
 
@@ -62,7 +61,7 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
     super(name, legacyName, defaultValueFactory, forceDefaultValue);
   }
 
-  @SuppressWarnings({ "unchecked", "rawtypes" })
+  @SuppressWarnings( { "unchecked", "rawtypes" })
   @Override
   public Class<List<String>> getValueType() {
 
@@ -108,7 +107,7 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
   }
 
   @Override
-  public String toString(List<String> value) {
+  public String toString(List<String> value, IdeContext context) {
 
     if (value == null) {
       return "";

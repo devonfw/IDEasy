@@ -41,13 +41,30 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for version of maven (mvn). */
   VariableDefinitionVersion MVN_VERSION = new VariableDefinitionVersion("MVN_VERSION", "MAVEN_VERSION");
 
-  /** {@link VariableDefinition} arguments for maven to set the m2 repo location. */
+  /** {@link VariableDefinition} arguments for maven to locate the settings file. */
   VariableDefinitionString MAVEN_ARGS = new VariableDefinitionString("MAVEN_ARGS", null, c -> c.getMavenArgs(), false, true);
+
+  /** {@link VariableDefinition} arguments for maven to set the m2 repo location. */
+  VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, c -> c.getMavenRepository(), false, true);
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
   VariableDefinitionString DOCKER_EDITION = new VariableDefinitionString("DOCKER_EDITION", null, c -> "rancher");
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
+
+  /** {@link VariableDefinition} for default build options of mvn */
+  VariableDefinitionString MVN_BUILD_OPTS = new VariableDefinitionString("MVN_BUILD_OPTS", null, c -> "clean install");
+
+  /** {@link VariableDefinition} for default build options of npm */
+  // TODO: add default build options, see: https://github.com/devonfw/IDEasy/issues/441
+  VariableDefinitionString NPM_BUILD_OPTS = new VariableDefinitionString("NPM_BUILD_OPTS", null, c -> "");
+
+  /** {@link VariableDefinition} for default build options of gradle */
+  VariableDefinitionString GRADLE_BUILD_OPTS = new VariableDefinitionString("GRADLE_BUILD_OPTS", null, c -> "clean dist");
+
+  /** {@link VariableDefinition} for default build options of yarn */
+  // TODO: add default build options, see: https://github.com/devonfw/IDEasy/issues/441
+  VariableDefinitionString YARN_BUILD_OPTS = new VariableDefinitionString("YARN_BUILD_OPTS", null, c -> "");
 
   /** {@link VariableDefinition} for options of jasypt */
   VariableDefinitionString JASYPT_OPTS = new VariableDefinitionString("JASYPT_OPTS", null,
@@ -56,9 +73,17 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() PROJECT_NAME}. */
   VariableDefinitionString PROJECT_NAME = new VariableDefinitionString("PROJECT_NAME", null, c -> c.getProjectName());
 
+  /**
+   * {@link VariableDefinition} for support of legacy variable syntax when
+   * {@link com.devonfw.tools.ide.environment.EnvironmentVariables#resolve(String, Object, boolean) resolving variables} in configuration templates.
+   */
+  VariableDefinitionBoolean IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED = new VariableDefinitionBoolean("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED", null,
+      c -> Boolean.TRUE);
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, CREATE_START_SCRIPTS,
-      IDE_MIN_VERSION, MVN_VERSION, DOCKER_EDITION, JASYPT_OPTS, MAVEN_ARGS, PROJECT_NAME);
+      IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, GRADLE_BUILD_OPTS, YARN_BUILD_OPTS, JASYPT_OPTS, MAVEN_ARGS,
+      PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED);
 
   /**
    * @param name the name of the requested {@link VariableDefinition}.

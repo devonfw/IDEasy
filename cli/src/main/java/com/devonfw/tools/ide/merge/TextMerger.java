@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.merge;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 /**
  * Implementation of {@link FileMerger} for Text files.
@@ -39,7 +39,7 @@ public class TextMerger extends FileMerger {
       String line;
       String resolvedValue;
       while ((line = reader.readLine()) != null) {
-        resolvedValue = variables.resolve(line, workspace.getFileName());
+        resolvedValue = variables.resolve(line, template.toString(), this.legacySupport);
         inputBuffer.append(resolvedValue);
         inputBuffer.append('\n');
       }
@@ -47,6 +47,7 @@ public class TextMerger extends FileMerger {
       throw new IllegalStateException("Could not read text file: " + workspace, e);
     }
     try {
+      ensureParentDirectoryExists(workspace);
       Files.write(workspace, inputBuffer.toString().getBytes());
     } catch (IOException e) {
       throw new IllegalStateException("Could not write to text file: " + workspace, e);

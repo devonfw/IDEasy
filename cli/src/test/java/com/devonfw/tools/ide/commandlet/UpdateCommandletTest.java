@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Test of {@link UpdateCommandlet}.
@@ -28,7 +27,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     uc.run();
 
     // assert
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully updated settings repository.");
+    assertThat(context).logAtSuccess().hasMessage("Successfully updated settings repository.");
     assertThat(context.getConfPath()).exists();
     assertThat(context.getSoftwarePath().resolve("java")).exists();
     assertThat(context.getSoftwarePath().resolve("mvn")).exists();
@@ -46,7 +45,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     uc.run();
 
     // assert
-    assertLogMessage(context, IdeLogLevel.WARNING, "Templates folder is missing in settings repository.");
+    assertThat(context).logAtWarning().hasEntries("Templates folder is missing in settings repository.");
   }
 
   private void deleteTemplatesFolder(IdeContext context) throws IOException {

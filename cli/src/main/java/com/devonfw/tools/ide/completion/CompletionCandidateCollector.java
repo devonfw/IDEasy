@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.completion;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.property.Property;
@@ -50,25 +51,15 @@ public interface CompletionCandidateCollector {
       }
       return sortedCandidates.length;
     }
-    int count = 0;
-    int index = Arrays.binarySearch(sortedCandidates, text);
-    if (index >= 0) {
-      add(sortedCandidates[index], "", property, commandlet);
-      index++;
-      count++;
-    } else {
-      index = -index;
+
+    List<String> prefixWords = Arrays.asList(sortedCandidates).stream().filter(word -> word.startsWith(text))
+        .collect(Collectors.toList());
+
+    for (String match : prefixWords) {
+      add(match, "", property, commandlet);
     }
-    while ((index >= 0) && (index < sortedCandidates.length)) {
-      if (sortedCandidates[index].startsWith(text)) {
-        add(sortedCandidates[index], "", property, commandlet);
-        count++;
-      } else {
-        break;
-      }
-      index++;
-    }
-    return count;
+
+    return prefixWords.size();
   }
 
   /**

@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.step;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.log.IdeSubLogger;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import com.devonfw.tools.ide.context.AbstractIdeContext;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeSubLogger;
 
 /**
  * Regular implementation of {@link Step}.
@@ -124,7 +124,7 @@ public final class StepImpl implements Step {
   }
 
   @Override
-  public void end() {
+  public void close() {
 
     end(null, null, false, null, null);
   }
@@ -147,7 +147,7 @@ public final class StepImpl implements Step {
     if (newSuccess == null) {
       newSuccess = Boolean.FALSE;
     }
-    if (this.success != Boolean.FALSE) { // never allow a failed step to change to success
+    if (!Boolean.FALSE.equals(this.success)) { // never allow a failed step to change to success
       this.duration = delay;
       this.success = newSuccess;
     }
@@ -192,7 +192,7 @@ public final class StepImpl implements Step {
     if (this.context.trace().isEnabled()) {
       this.context.trace(toString());
     }
-    if (this.context.isQuietMode()) {
+    if (this.context.isQuietMode() || (this.children.isEmpty())) {
       return;
     }
     StepSummary summary = new StepSummary();

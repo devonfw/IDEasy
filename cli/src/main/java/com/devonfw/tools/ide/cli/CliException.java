@@ -1,9 +1,8 @@
 package com.devonfw.tools.ide.cli;
 
 /**
- * {@link RuntimeException} for to abort CLI process in expected situations. It allows to abort with a defined message
- * for the end user and a defined exit code. Unlike other exceptions a {@link CliException} is not treated as technical
- * error. Therefore by default (unless in debug mode) no stacktrace is printed.
+ * {@link RuntimeException} for to abort CLI process in expected situations. It allows to abort with a defined message for the end user and a defined exit code.
+ * Unlike other exceptions a {@link CliException} is not treated as technical error. Therefore by default (unless in debug mode) no stacktrace is printed.
  */
 public class CliException extends RuntimeException {
 

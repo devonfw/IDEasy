@@ -1,16 +1,16 @@
 package com.devonfw.tools.ide.tool.jmc;
 
-import com.devonfw.tools.ide.commandlet.InstallCommandlet;
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoMock;
+import java.io.IOException;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import java.io.IOException;
+import com.devonfw.tools.ide.commandlet.InstallCommandlet;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
  * Integration test of {@link Jmc}.
@@ -64,8 +64,7 @@ public class JmcTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "java jmc");
-    assertLogMessage(context, IdeLogLevel.INFO, "jmc " + os + " foo bar");
+    assertThat(context).logAtInfo().hasEntries("java jmc", "jmc " + os + " foo bar");
     checkInstallation(context);
   }
 
@@ -80,6 +79,6 @@ public class JmcTest extends AbstractIdeContextTest {
       assertThat(context.getSoftwarePath().resolve("jmc/jmc")).exists();
     }
     assertThat(context.getSoftwarePath().resolve("jmc/.ide.software.version")).exists().hasContent("8.3.0");
-    assertLogMessage(context, IdeLogLevel.SUCCESS, "Successfully installed jmc in version 8.3.0");
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed jmc in version 8.3.0");
   }
 }

@@ -1,14 +1,15 @@
 package com.devonfw.tools.ide.merge;
 
-import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map.Entry;
 import java.util.Properties;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Test of {@link DirectoryMerger}.
@@ -93,7 +94,8 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     Properties indent = PropertiesMerger.load(indentFile);
     assertThat(indent).containsOnly(INDENTATION);
     assertThat(configFolder.resolve("layout.xml")).hasContent("""
-        <?xml version="1.0" encoding="UTF-8" standalone="no"?><layout>
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+        <layout>
           <left>navigator</left>
           <right>debugger</right>
           <top>editor</top>

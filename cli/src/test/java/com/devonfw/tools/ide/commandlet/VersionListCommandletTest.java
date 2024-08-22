@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.commandlet;
 
+import org.junit.jupiter.api.Test;
+
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import org.junit.jupiter.api.Test;
 
 /**
  * Integration test of {@link VersionListCommandlet}.
@@ -23,8 +23,6 @@ public class VersionListCommandletTest extends AbstractIdeContextTest {
     // act
     versionList.run();
     // assert
-    assertLogMessage(context, IdeLogLevel.INFO, "3.0.5");
-    assertLogMessage(context, IdeLogLevel.INFO, "3.1.0");
-    assertLogMessage(context, IdeLogLevel.INFO, "3.2.1");
+    assertThat(context).logAtInfo().hasEntries("3.2.1", "3.1.0", "3.0.5");
   }
 }
