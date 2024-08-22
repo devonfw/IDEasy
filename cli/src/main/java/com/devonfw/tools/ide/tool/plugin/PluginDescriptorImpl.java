@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.ide;
+package com.devonfw.tools.ide.tool.plugin;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -18,7 +18,6 @@ import com.devonfw.tools.ide.log.IdeLogger;
 public class PluginDescriptorImpl implements PluginDescriptor {
 
   private final String id;
-
   private final String name;
 
   private final String url;

@@ -16,6 +16,23 @@ public class CliArgumentsTest extends Assertions {
   }
 
   /**
+   * Test of {@link CliArgument}s toString method.
+   */
+  @Test
+  public void testToString() {
+
+    // arrange
+    String[] args = { "one", "-two", "--three" };
+    // act
+    CliArguments arguments = of(args);
+    String argString = arguments.toString();
+    // assert
+    assertThat(argString).contains("one");
+    assertThat(argString).contains("-two");
+    assertThat(argString).contains("--three");
+  }
+
+  /**
    * Test of {@link CliArgument} with simple usage.
    */
   @Test
@@ -38,6 +55,7 @@ public class CliArgumentsTest extends Assertions {
     assertThat(arguments.hasNext()).isFalse();
     arg = arguments.next();
     assertThat(arg.isEnd()).isTrue();
+    assertThat(arguments.hasNext()).isFalse();
   }
 
   /**
@@ -78,6 +96,7 @@ public class CliArgumentsTest extends Assertions {
     assertThat(arguments.hasNext()).isFalse();
     arg = arguments.next();
     assertThat(arg.isEnd()).isTrue();
+    assertThat(arguments.hasNext()).isFalse();
   }
 
   /**
@@ -107,6 +126,7 @@ public class CliArgumentsTest extends Assertions {
     assertThat(arguments.hasNext()).isFalse();
     arg = arguments.next(); // actually violating contract of Iterator
     assertThat(arg.isEnd()).isTrue();
+    assertThat(arguments.hasNext()).isFalse();
   }
 
   /**
@@ -148,5 +168,6 @@ public class CliArgumentsTest extends Assertions {
     assertThat(arguments.hasNext()).isFalse();
     arg = arguments.next(); // actually violating contract of Iterator
     assertThat(arg.isEnd()).isTrue();
+    assertThat(arguments.hasNext()).isFalse();
   }
 }
