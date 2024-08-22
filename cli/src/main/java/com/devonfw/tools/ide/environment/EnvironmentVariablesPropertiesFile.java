@@ -104,7 +104,8 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
       this.context.info("Converting legacy properties to {}", newPropertiesFilePath);
     }
     List<VariableLine> lines = new ArrayList<>();
-    
+    // TODO FixMe: we should simply skip reading if not exists instead of creating an empty file and then reading it. 
+    //             Also we should do mkdirs on parent folder to ensure it exists - see Review from https://github.com/devonfw/IDEasy/pull/374
     if (!Files.exists(newPropertiesFilePath)) {
       try {
         Files.createFile(newPropertiesFilePath);
