@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -25,11 +26,14 @@ public class GitContextImpl implements GitContext {
 
   private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMinutes(30);
 
+  private static final Duration GIT_FETCH_CACHE_DELAY = Duration.ofMinutes(5);
+
   private final IdeContext context;
 
   private final ProcessContext processContext;
 
   private static final ProcessMode PROCESS_MODE = ProcessMode.DEFAULT;
+  private static final ProcessMode PROCESS_MODE_FOR_FETCH = ProcessMode.DEFAULT_CAPTURE;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -68,6 +72,80 @@ public class GitContextImpl implements GitContext {
     }
     // If the .git directory does not exist or in case of an error, perform git operation directly
     pullOrClone(repoUrl, branch, targetRepository);
+  }
+
+  @Override
+  public boolean fetchIfNeeded(Path targetRepository) {
+
+    Optional<String[]> remoteAndBranchOpt = getLocalRemoteAndBranch(targetRepository);
+
+    if (remoteAndBranchOpt.isEmpty()) {
+      context.warning("Could not determine the remote or branch for the repository at " + targetRepository);
+      return false;
+    }
+
+    String[] remoteAndBranch = remoteAndBranchOpt.get();
+    String remoteName = remoteAndBranch[0];
+    String branch = remoteAndBranch[1];
+
+    return fetchIfNeeded(remoteName, branch, targetRepository);
+  }
+
+  @Override
+  public boolean fetchIfNeeded(String remoteName, String branch, Path targetRepository) {
+
+    if (!context.isOnline()) {
+      return false;
+    }
+
+    Path gitDirectory = targetRepository.resolve(".git");
+    // Check if the .git directory exists
+    if (!this.context.isForceMode() && Files.isDirectory(gitDirectory)) {
+      Path fetchHeadPath = gitDirectory.resolve("FETCH_HEAD");
+      long currentTime = System.currentTimeMillis();
+      // Get the modification time of the FETCH_HEAD file
+      try {
+        long fileModifiedTime = Files.getLastModifiedTime(fetchHeadPath).toMillis();
+        // Check if the file modification time is older than the delta threshold
+        if ((currentTime - fileModifiedTime > GIT_FETCH_CACHE_DELAY.toMillis())) {
+          fetch(targetRepository, remoteName, branch);
+          try {
+            Files.setLastModifiedTime(fetchHeadPath, FileTime.fromMillis(currentTime));
+            return true;
+          } catch (IOException e) {
+            this.context.warning().log(e, "Could not update modification-time of {}", fetchHeadPath);
+          }
+        }
+      } catch (IOException e) {
+        this.context.error(e);
+      }
+    }
+    return false;
+  }
+
+  @Override
+  public boolean isRepositoryUpdateAvailable(Path targetRepository) {
+
+    this.processContext.directory(targetRepository);
+    ProcessResult result;
+
+    // get local commit code
+    result = this.processContext.addArg("rev-parse").addArg("HEAD").run(PROCESS_MODE_FOR_FETCH);
+    if (!result.isSuccessful()) {
+      this.context.warning("Failed to get the local commit hash.");
+      return false;
+    }
+
+    String local_commit_code = result.getOut().stream().findFirst().orElse("").trim();
+
+    // get remote commit code
+    result = this.processContext.addArg("rev-parse").addArg("@{u}").run(PROCESS_MODE_FOR_FETCH);
+    if (!result.isSuccessful()) {
+      this.context.warning("Failed to get the remote commit hash.");
+      return false;
+    }
+    String remote_commit_code = result.getOut().stream().findFirst().orElse("").trim();
+    return !local_commit_code.equals(remote_commit_code);
   }
 
   @Override
@@ -190,6 +268,19 @@ public class GitContextImpl implements GitContext {
     }
   }
 
+  @Override
+  public void fetch(Path targetRepository, String remote, String branch) {
+
+    this.processContext.directory(targetRepository);
+    ProcessResult result;
+
+    result = this.processContext.addArg("fetch").addArg(remote).addArg(branch).run(PROCESS_MODE_FOR_FETCH);
+
+    if (!result.isSuccessful()) {
+      this.context.warning("Git fetch for '{}/{} failed.'.", remote, branch);
+    }
+  }
+
   private Map<String, String> retrieveRemoteAndBranchName() {
 
     Map<String, String> remoteAndBranchName = new HashMap<>();
@@ -214,6 +305,22 @@ public class GitContextImpl implements GitContext {
     }
 
     return remoteAndBranchName;
+  }
+
+  private Optional<String[]> getLocalRemoteAndBranch(Path repositoryPath) {
+
+    this.processContext.directory(repositoryPath);
+    ProcessResult result = this.processContext.addArg("rev-parse").addArg("--abbrev-ref").addArg("--symbolic-full-name").addArg("@{u}")
+        .run(PROCESS_MODE_FOR_FETCH);
+    if (result.isSuccessful()) {
+      String upstream = result.getOut().stream().findFirst().orElse("");
+      if (upstream.contains("/")) {
+        return Optional.of(upstream.split("/", 2)); // Split into remote and branch
+      }
+    } else {
+      this.context.warning("Failed to determine the remote tracking branch.");
+    }
+    return Optional.empty();
   }
 
   @Override
@@ -273,6 +380,7 @@ public class GitContextImpl implements GitContext {
     this.context.error("Failed to retrieve git URL for repository: {}", repository);
     return null;
   }
+
 }
 
 
