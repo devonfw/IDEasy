@@ -138,7 +138,7 @@ Tools typically can take parameters and options.
 Please consider best practices from POSIX, GNU, IEE, and Open Group (e.g. see https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html[here]) from the start.
 Most CLIs violate such rules for no good reason.
 As an example distinguish between short options (`-h`, `-v`, `-q`, `-f`) that typically can be combined (`-qf` for `-q -f`) and long-options (`--help` or `--version`).
-Also a good convention is the end options argument (`--`) that e.g. allows you to delete an accidentally created file named `-f` in bash (via `rm -- -f`).
+Also a good convention is the end options argument (`--`) that e.g. allows you to delete an accidentally created file named `-f` in bash (via `rm \-- -f`).
 
 === Version
 
