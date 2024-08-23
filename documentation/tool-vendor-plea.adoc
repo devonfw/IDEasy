@@ -16,14 +16,14 @@ Even though it should be common sense how to do configuration- and release-manag
 
 === Binary Releases
 
-First of all a reasonable tool should offer binary releases for all major platforms.
+First of all a reasonable tool should either be entirely platform independent or offer binary releases for all major platforms.
 A minimum requirement for major platforms should be:
 
 * Windows on x86 architecture
 * MacOS on ARM architecture
 * Linux on x86 architecture
 
-Additional platforms like MacOS on x86 architecture would also be lovely to have if you want your tool to be used worldwide.
+Additional platforms like MacOS on x86 and Windows on ARM would also be lovely to have if you want your tool to be used worldwide.
 Do not leave your users left in the rain saying "build the release from the source-code" without shipping ready to use binaries!
 Nowadays platforms like github and others make it easy to automate cross platform builds and publishing releases with the click of a button.
 Tools that tell MacOS users to build the binary manually from the source-code (with complex and maybe vague instructions) should not be considered premium.
