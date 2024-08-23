@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.intellij;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
@@ -22,6 +23,7 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, Intel
   private static final String JSON_URL = "products?code=IIU%2CIIC&release.type=release";
   private static final String ULTIMATE_EDITION = "ultimate";
   private static final String COMMUNITY_EDITION = "intellij";
+  private static final List<String> EDITIONS = List.of("ultimate", "intellij");
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
   @Override
@@ -33,27 +35,15 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, Intel
       String response = doGetResponseBodyAsString(doGetVersionUrl());
       IntellijJsonObject[] jsonObj = MAPPER.readValue(response, IntellijJsonObject[].class);
       // Has 2 elements, 1. Ultimate Edition, 2. Community Edition
-      IntellijJsonObject ultimateRelease;
-      IntellijJsonObject communityRelease;
-
-      if (jsonObj.length == 2) {
-        ultimateRelease = jsonObj[0];
-        communityRelease = jsonObj[1];
-        UrlEdition edition;
-
-        if (ultimateRelease != null) {
-          edition = tool.getOrCreateChild(ULTIMATE_EDITION);
-          updateExistingVersions(edition);
-          collectVersionsWithDownloadsFromJson(ultimateRelease, edition);
-        }
-
-        if (communityRelease != null) {
-          edition = tool.getOrCreateChild(COMMUNITY_EDITION);
-          updateExistingVersions(edition);
-          collectVersionsWithDownloadsFromJson(communityRelease, edition);
+      for (String edition : EDITIONS) {
+        IntellijJsonObject release = jsonObj[EDITIONS.indexOf(edition)];
+        UrlEdition urlEdition;
+        if (release != null) {
+          urlEdition = tool.getOrCreateChild(edition);
+          updateExistingVersions(urlEdition);
+          collectVersionsWithDownloadsFromJson(release, urlEdition);
         }
       }
-
     } catch (Exception e) {
       throw new IllegalStateException("Error while getting versions from JSON API " + JSON_URL, e);
     }
