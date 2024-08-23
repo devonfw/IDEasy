@@ -36,12 +36,16 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   public void update(UrlRepository urlRepository) {
 
     UrlTool tool = urlRepository.getOrCreateChild(getTool());
-    UrlEdition edition = tool.getOrCreateChild(getEdition());
-    updateExistingVersions(edition);
     try {
       String response = doGetResponseBodyAsString(doGetVersionUrl());
-      J jsonObj = getJsonObjectFromResponse(response);
-      collectVersionsWithDownloadsFromJson(jsonObj, edition);
+      for (String edition : getEditions()) {
+        J jsonObj = getJsonObjectFromResponse(response, edition);
+        if (jsonObj != null) {
+          UrlEdition urlEdition = tool.getOrCreateChild(edition);
+          updateExistingVersions(urlEdition);
+          collectVersionsWithDownloadsFromJson(jsonObj, urlEdition);
+        }
+      }
     } catch (Exception e) {
       throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
     }
@@ -104,7 +108,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
    * @return {@link JsonObject} holding the available versions and possibly download urls of the tool.
    * @throws JsonProcessingException
    */
-  protected J getJsonObjectFromResponse(String response) throws JsonProcessingException {
+  protected J getJsonObjectFromResponse(String response, String edition) throws JsonProcessingException {
     return MAPPER.readValue(response, getJsonObjectType());
   }
 

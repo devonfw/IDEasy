@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Collection;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
@@ -81,6 +82,14 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected String getEdition() {
 
     return getTool();
+  }
+
+  /**
+   * @return the names of the {@link UrlEdition editions} handled by this updater.
+   */
+  protected List<String> getEditions() {
+
+    return List.of(getTool());
   }
 
   /**

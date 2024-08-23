@@ -79,7 +79,7 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
   }
 
   @Override
-  protected PythonJsonObject getJsonObjectFromResponse(String response) throws JsonProcessingException {
+  protected PythonJsonObject getJsonObjectFromResponse(String response, String edition) throws JsonProcessingException {
     PythonRelease[] res = MAPPER.readValue(response, PythonRelease[].class);
     PythonJsonObject jsonObj = new PythonJsonObject();
     jsonObj.setReleases(List.of(res));

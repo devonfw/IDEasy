@@ -7,11 +7,9 @@ import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
-import com.devonfw.tools.ide.url.model.folder.UrlEdition;
-import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -21,33 +19,8 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, Intel
 
   private static final String VERSION_BASE_URL = "https://data.services.jetbrains.com";
   private static final String JSON_URL = "products?code=IIU%2CIIC&release.type=release";
-  private static final String ULTIMATE_EDITION = "ultimate";
-  private static final String COMMUNITY_EDITION = "intellij";
   private static final List<String> EDITIONS = List.of("ultimate", "intellij");
   private static final ObjectMapper MAPPER = JsonMapping.create();
-
-  @Override
-  public void update(UrlRepository urlRepository) {
-
-    UrlTool tool = urlRepository.getOrCreateChild(getTool());
-
-    try {
-      String response = doGetResponseBodyAsString(doGetVersionUrl());
-      IntellijJsonObject[] jsonObj = MAPPER.readValue(response, IntellijJsonObject[].class);
-      // Has 2 elements, 1. Ultimate Edition, 2. Community Edition
-      for (String edition : EDITIONS) {
-        IntellijJsonObject release = jsonObj[EDITIONS.indexOf(edition)];
-        UrlEdition urlEdition;
-        if (release != null) {
-          urlEdition = tool.getOrCreateChild(edition);
-          updateExistingVersions(urlEdition);
-          collectVersionsWithDownloadsFromJson(release, urlEdition);
-        }
-      }
-    } catch (Exception e) {
-      throw new IllegalStateException("Error while getting versions from JSON API " + JSON_URL, e);
-    }
-  }
 
   /**
    * Follows link and gets body as string which contains checksum
@@ -62,6 +35,11 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, Intel
   protected String getTool() {
 
     return "intellij";
+  }
+
+  @Override
+  protected List<String> getEditions() {
+    return EDITIONS;
   }
 
   @Override
@@ -127,6 +105,11 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, Intel
           break;
       }
     }
+  }
+
+  protected IntellijJsonObject getJsonObjectFromResponse(String response, String edition) throws JsonProcessingException {
+    IntellijJsonObject[] jsonObjects = MAPPER.readValue(response, IntellijJsonObject[].class);
+    return jsonObjects[EDITIONS.indexOf(edition)];
   }
 
   @Override
