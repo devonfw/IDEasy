@@ -626,23 +626,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       }
     }
   }
-  /*
-      UrlTool tool = urlRepository.getOrCreateChild(getTool());
-    try {
-      String response = doGetResponseBodyAsString(doGetVersionUrl());
-      for (String edition : getEditions()) {
-        J jsonObj = getJsonObjectFromResponse(response, edition);
-        if (jsonObj != null) {
-          UrlEdition urlEdition = tool.getOrCreateChild(edition);
-          updateExistingVersions(urlEdition);
-          collectVersionsWithDownloadsFromJson(jsonObj, urlEdition);
-        }
-      }
-    } catch (Exception e) {
-      throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
-    }
-  }
-   */
 
   /**
    * Update existing versions of the tool in the URL repository.

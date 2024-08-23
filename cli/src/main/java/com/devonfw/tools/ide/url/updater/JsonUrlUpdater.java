@@ -18,7 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * {@link AbstractUrlUpdater} that retrieves the {@link UrlVersion versions} of a {@link UrlEdition tool edition} from a HTTP response with JSON body.
+ * {@link AbstractUrlUpdater} that retrieves the {@link UrlVersion versions} of a {@link UrlEdition tool edition} from an HTTP response with JSON body.
  *
  * @param <J> type of the {@link JsonObject}.
  */
@@ -104,7 +104,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   /**
    * Gets the {@link JsonObject} from the response of the version URL.
    *
-   * @param response
+   * @param response String from the JSON API request
    * @return {@link JsonObject} holding the available versions and possibly download urls of the tool.
    * @throws JsonProcessingException
    */
@@ -135,7 +135,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
    * json
    *
    * @param urlVersion the {@link UrlVersion} to be updated
-   * @param jsonVersionItem
+   * @param jsonVersionItem the {@link JsonVersionItem} holding the information about a specific version and possibly download links
    */
   protected void addVersion(UrlVersion urlVersion, JVI jsonVersionItem) {
 
