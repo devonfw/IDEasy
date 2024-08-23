@@ -94,7 +94,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
           addVersion(urlVersion, item);
           urlVersion.save();
         } catch (Exception e) {
-          logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), version, e);
+          logger.error("For tool {} we failed to add version {}.", getToolWithEdition(edition.getName()), version, e);
         }
 
       }

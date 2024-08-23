@@ -89,7 +89,20 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   protected List<String> getEditions() {
 
-    return List.of(getTool());
+    return List.of(getEdition());
+  }
+
+  /**
+   * @param edition the edition of the tool
+   * @return the combination of {@link #getTool() tool} and edition but simplified if both are equal.
+   */
+  protected final String getToolWithEdition(String edition) {
+
+    String tool = getTool();
+    if (tool.equals(edition)) {
+      return tool;
+    }
+    return tool + "/" + edition;
   }
 
   /**
@@ -98,7 +111,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected final String getToolWithEdition() {
 
     String tool = getTool();
-
     String edition = getEdition();
     if (tool.equals(edition)) {
       return tool;
@@ -141,6 +153,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     }
   }
 
+
   /**
    * Updates a tool version with the given arguments (OS independent).
    *
@@ -150,8 +163,22 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   protected boolean doAddVersion(UrlVersion urlVersion, String downloadUrl) {
 
-    return doAddVersion(urlVersion, downloadUrl, null);
+    return doAddVersion(getEdition(), urlVersion, downloadUrl, null);
   }
+
+  /**
+   * Updates a tool version with the given arguments (OS independent).
+   *
+   * @param edition the edition of the tool.
+   * @param urlVersion the {@link UrlVersion} with the {@link UrlVersion#getName() version-number} to process.
+   * @param downloadUrl the URL of the download for the tool.
+   * @return true if the version was successfully updated, false otherwise.
+   */
+  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String downloadUrl) {
+
+    return doAddVersion(edition, urlVersion, downloadUrl, null);
+  }
+
 
   /**
    * Updates a tool version with the given arguments.
@@ -163,7 +190,21 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   protected boolean doAddVersion(UrlVersion urlVersion, String downloadUrl, OperatingSystem os) {
 
-    return doAddVersion(urlVersion, downloadUrl, os, null);
+    return doAddVersion(getEdition(), urlVersion, downloadUrl, os, null);
+  }
+
+  /**
+   * Updates a tool version with the given arguments.
+   *
+   * @param edition the edition of the tool.
+   * @param urlVersion the {@link UrlVersion} with the {@link UrlVersion#getName() version-number} to process.
+   * @param downloadUrl the URL of the download for the tool.
+   * @param os the {@link OperatingSystem} for the tool (can be null).
+   * @return true if the version was successfully updated, false otherwise.
+   */
+  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String downloadUrl, OperatingSystem os) {
+
+    return doAddVersion(edition, urlVersion, downloadUrl, os, null);
   }
 
   /**
@@ -178,8 +219,25 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   protected boolean doAddVersion(UrlVersion urlVersion, String downloadUrl, OperatingSystem os,
       SystemArchitecture architecture) {
 
-    return doAddVersion(urlVersion, downloadUrl, os, architecture, "");
+    return doAddVersion(getEdition(), urlVersion, downloadUrl, os, architecture, "");
   }
+
+  /**
+   * Updates a tool version with the given arguments.
+   *
+   * @param edition the edition of the tool.
+   * @param urlVersion the {@link UrlVersion} with the {@link UrlVersion#getName() version-number} to process.
+   * @param downloadUrl the URL of the download for the tool.
+   * @param os the {@link OperatingSystem} for the tool (can be null).
+   * @param architecture the optional {@link SystemArchitecture}.
+   * @return true if the version was successfully updated, false otherwise.
+   */
+  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String downloadUrl, OperatingSystem os,
+      SystemArchitecture architecture) {
+
+    return doAddVersion(edition, urlVersion, downloadUrl, os, architecture, "");
+  }
+
 
   /**
    * Updates a tool version with the given arguments.
@@ -191,7 +249,22 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param checksum String of the checksum to utilize
    * @return {@code true} if the version was successfully updated, {@code false} otherwise.
    */
-  protected boolean doAddVersion(UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture,
+  protected boolean doAddVersion(UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture, String checksum) {
+    return doAddVersion(getEdition(), urlVersion, url, os, architecture, checksum);
+  }
+
+  /**
+   * Updates a tool version with the given arguments.
+   *
+   * @param edition the edition of the tool.
+   * @param urlVersion the {@link UrlVersion} with the {@link UrlVersion#getName() version-number} to process.
+   * @param url the URL of the download for the tool.
+   * @param os the optional {@link OperatingSystem}.
+   * @param architecture the optional {@link SystemArchitecture}.
+   * @param checksum String of the checksum to utilize
+   * @return {@code true} if the version was successfully updated, {@code false} otherwise.
+   */
+  protected boolean doAddVersion(String edition, UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture,
       String checksum) {
 
     UrlStatusFile status = urlVersion.getStatus();
@@ -208,9 +281,9 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     if (architecture != null) {
       url = url.replace("${arch}", architecture.toString());
     }
-    url = url.replace("${edition}", getEdition());
+    url = url.replace("${edition}", edition);
 
-    return checkDownloadUrl(url, urlVersion, os, architecture, checksum);
+    return checkDownloadUrl(edition, url, urlVersion, os, architecture, checksum);
 
   }
 
@@ -298,18 +371,19 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * Checks the download URL by checksum or by downloading the file and generating the checksum from it
    *
+   * @param edition the edition of the tool.
    * @param url the URL of the download to check.
    * @param urlVersion the {@link UrlVersion} where to store the collected information like status and checksum.
    * @param os the {@link OperatingSystem}
    * @param architecture the {@link SystemArchitecture}
    * @return {@code true} if the download was checked successfully, {@code false} otherwise.
    */
-  private boolean checkDownloadUrl(String url, UrlVersion urlVersion, OperatingSystem os,
+  private boolean checkDownloadUrl(String edition, String url, UrlVersion urlVersion, OperatingSystem os,
       SystemArchitecture architecture, String checksum) {
 
     HttpResponse<?> response = doCheckDownloadViaHeadRequest(url);
     int statusCode = response.statusCode();
-    String tool = getToolWithEdition();
+    String tool = getToolWithEdition(edition);
     String version = urlVersion.getName();
 
     boolean success = isValidDownload(url, tool, version, response);
@@ -320,7 +394,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       UrlChecksum urlChecksum = urlVersion.getChecksum(urlDownloadFile.getName());
       if (urlChecksum != null) {
         logger.warn("Checksum is already existing for: {}, skipping.", url);
-        doUpdateStatusJson(success, statusCode, urlVersion, url, true);
+        doUpdateStatusJson(success, statusCode, edition, urlVersion, url, true);
         return true;
       }
     }
@@ -328,7 +402,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     if (success) {
       if (checksum == null || checksum.isEmpty()) {
         String contentType = response.headers().firstValue("content-type").orElse("undefined");
-        checksum = doGenerateChecksum(doGetResponseAsStream(url), url, version, contentType);
+        checksum = doGenerateChecksum(doGetResponseAsStream(url), url, edition, version, contentType);
       }
 
       success = isChecksumStillValid(url, urlVersion, os, architecture, checksum, tool, version);
@@ -338,7 +412,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       urlVersion.save();
     }
 
-    doUpdateStatusJson(success, statusCode, urlVersion, url, false);
+    doUpdateStatusJson(success, statusCode, edition, urlVersion, url, false);
 
     return success;
   }
@@ -346,10 +420,11 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @param response the {@link HttpResponse}.
    * @param url the download URL
+   * @param edition the edition of the tool
    * @param version the {@link UrlVersion version} identifier.
    * @return checksum of input stream as hex string
    */
-  private String doGenerateChecksum(HttpResponse<InputStream> response, String url, String version,
+  private String doGenerateChecksum(HttpResponse<InputStream> response, String url, String edition, String version,
       String contentType) {
 
     try (InputStream inputStream = response.body()) {
@@ -369,7 +444,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       String checksum = HexUtil.toHexString(digestBytes);
       logger.info(
           "For tool {} and version {} we received {} bytes with content-type {} and computed SHA256 {} from URL {}",
-          getToolWithEdition(), version, Long.valueOf(size), contentType, checksum, url);
+          getToolWithEdition(edition), version, Long.valueOf(size), contentType, checksum, url);
       return checksum;
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read body of download " + url, e);
@@ -407,7 +482,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param update - {@code true} in case the URL was updated (verification), {@code false} otherwise (version/URL initially added).
    */
   @SuppressWarnings("null") // Eclipse is too stupid to check this
-  private void doUpdateStatusJson(boolean success, int statusCode, UrlVersion urlVersion, String url, boolean update) {
+  private void doUpdateStatusJson(boolean success, int statusCode, String edition, UrlVersion urlVersion, String url, boolean update) {
 
     UrlStatusFile urlStatusFile = null;
     StatusJson statusJson = null;
@@ -431,7 +506,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     }
     Integer code = Integer.valueOf(statusCode);
     String version = urlVersion.getName();
-    String tool = getToolWithEdition();
+    String tool = getToolWithEdition(edition);
     boolean modified = false;
 
     if (success) {
@@ -525,30 +600,49 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   public void update(UrlRepository urlRepository) {
 
     UrlTool tool = urlRepository.getOrCreateChild(getTool());
-    UrlEdition edition = tool.getOrCreateChild(getEdition());
-    updateExistingVersions(edition);
-    Set<String> versions = getVersions();
-    String toolWithEdition = getToolWithEdition();
-    logger.info("For tool {} we found the following versions : {}", toolWithEdition, versions);
+    for (String edition : getEditions()) {
+      UrlEdition urlEdition = tool.getOrCreateChild(edition);
+      updateExistingVersions(urlEdition);
+      Set<String> versions = getVersions();
+      String toolWithEdition = getToolWithEdition(edition);
+      logger.info("For tool {} we found the following versions : {}", toolWithEdition, versions);
 
-    for (String version : versions) {
+      for (String version : versions) {
 
-      if (isTimeoutExpired()) {
-        break;
-      }
+        if (isTimeoutExpired()) {
+          break;
+        }
 
-      UrlVersion urlVersion = edition.getChild(version);
-      if (urlVersion == null || isMissingOs(urlVersion)) {
-        try {
-          urlVersion = edition.getOrCreateChild(version);
-          addVersion(urlVersion);
-          urlVersion.save();
-        } catch (Exception e) {
-          logger.error("For tool {} we failed to add version {}.", toolWithEdition, version, e);
+        UrlVersion urlVersion = urlEdition.getChild(version);
+        if (urlVersion == null || isMissingOs(urlVersion)) {
+          try {
+            urlVersion = urlEdition.getOrCreateChild(version);
+            addVersion(urlVersion);
+            urlVersion.save();
+          } catch (Exception e) {
+            logger.error("For tool {} we failed to add version {}.", toolWithEdition, version, e);
+          }
         }
       }
     }
   }
+  /*
+      UrlTool tool = urlRepository.getOrCreateChild(getTool());
+    try {
+      String response = doGetResponseBodyAsString(doGetVersionUrl());
+      for (String edition : getEditions()) {
+        J jsonObj = getJsonObjectFromResponse(response, edition);
+        if (jsonObj != null) {
+          UrlEdition urlEdition = tool.getOrCreateChild(edition);
+          updateExistingVersions(urlEdition);
+          collectVersionsWithDownloadsFromJson(jsonObj, urlEdition);
+        }
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
+    }
+  }
+   */
 
   /**
    * Update existing versions of the tool in the URL repository.
@@ -564,21 +658,21 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
         UrlStatusFile urlStatusFile = urlVersion.getOrCreateStatus();
         StatusJson statusJson = urlStatusFile.getStatusJson();
         if (statusJson.isManual()) {
-          logger.info("For tool {} the version {} is set to manual, hence skipping update", getToolWithEdition(),
+          logger.info("For tool {} the version {} is set to manual, hence skipping update", getToolWithEdition(edition.getName()),
               version);
         } else {
-          updateExistingVersion(version, urlVersion, statusJson, urlStatusFile);
+          updateExistingVersion(edition.getName(), version, urlVersion, statusJson, urlStatusFile);
           urlVersion.save();
         }
       }
     }
   }
 
-  private void updateExistingVersion(String version, UrlVersion urlVersion, StatusJson statusJson,
+  private void updateExistingVersion(String edition, String version, UrlVersion urlVersion, StatusJson statusJson,
       UrlStatusFile urlStatusFile) {
 
     boolean modified = false;
-    String toolWithEdition = getToolWithEdition();
+    String toolWithEdition = getToolWithEdition(edition);
     Instant now = Instant.now();
     for (UrlFile<?> child : urlVersion.getChildren()) {
       if (child instanceof UrlDownloadFile) {
@@ -586,7 +680,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
         for (String url : urls) {
           if (shouldVerifyDownloadUrl(version, statusJson, toolWithEdition, now)) {
             HttpResponse<?> response = doCheckDownloadViaHeadRequest(url);
-            doUpdateStatusJson(isSuccess(response), response.statusCode(), urlVersion, url, true);
+            doUpdateStatusJson(isSuccess(response), response.statusCode(), edition, urlVersion, url, true);
             modified = true;
           }
         }
