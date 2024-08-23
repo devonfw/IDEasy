@@ -94,7 +94,9 @@ In general most great tools like https://www.java.com/[java], https://dotnet.mic
 
 === Rationale
 
-For arbitary reasons we introduced the concept of a shared link:software.adoc#repository[software repository] what is a powerful feature giving many advantages and on Windows seems to be the only reasonable way to allow upgrading/downgrading tools without hitting the famous https://techcommunity.microsoft.com/t5/windows-blog-archive/the-case-of-the-mysterious-locked-file/ba-p/723349[Windows file locking error].
+First of all it is a security best-practice that a tool should not modify itself and write to its installation location.
+However, in the early days of computers nobody was thinking about the Internet and Hackers.
+Also, for arbitary reasons we introduced the concept of a shared link:software.adoc#repository[software repository] what is a powerful feature giving many advantages and on Windows seems to be the only reasonable way to allow upgrading/downgrading tools without hitting the famous https://techcommunity.microsoft.com/t5/windows-blog-archive/the-case-of-the-mysterious-locked-file/ba-p/723349[Windows file locking error].
 Another important aspect is to consider the link:sandbox.adoc[sandbox] principle of IDEasy.
 
 === Plugins
@@ -118,6 +120,9 @@ Tools that are widely used but do not support this principle are:
 
 These tools have their package manager as an individual tool with its own release cycles that lives inside the runtime of the tool itself.
 Even worse, other tools from their ecosystem installed via the package manager are also installed inside the runtime installation itself violating the principle of a pristine software installation.
+You end up with a "big ball of mud" where many different libraries and tools get mixed up in the same installation.
+How do you deal with two dependent tools that require different versions of the SDK (e.g. Python or node)?
+How do you update something if all is mixed inside this "big ball of mud" (what files to remove and replace and what to keep untouched)?
 
 ==== Example
 
