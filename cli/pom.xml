@@ -232,22 +232,22 @@
                 <configuration>
                   <artifacts>
                     <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-${revision}-windows_x86_64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-${revision}-windows-x64.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>windows-x64</classifier>
                     </artifact>
                     <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-${revision}-linux_x86_64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-${revision}-linux-x64.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>linux-x64</classifier>
                     </artifact>
                     <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-${revision}-osx_x86_64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-${revision}-mac-x64.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>mac-x64</classifier>
                     </artifact>
                     <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-${revision}-osx_aarch_64.tar.gz</file>
+                      <file>${project.build.directory}/${project.artifactId}-${revision}-mac-arm.tar.gz</file>
                       <type>tar.gz</type>
                       <classifier>mac-arm</classifier>
                     </artifact>
