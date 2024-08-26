@@ -19,8 +19,8 @@
       <outputDirectory>.</outputDirectory>
       <excludes>
         <exclude>**/*.bat</exclude>
-        <exclude>system/windows/**/*</exclude>
-        <exclude>system/linux/**/*</exclude>
+        <exclude>system/windows</exclude>
+        <exclude>system/linux</exclude>
       </excludes>
     </fileSet>
   </fileSets>
