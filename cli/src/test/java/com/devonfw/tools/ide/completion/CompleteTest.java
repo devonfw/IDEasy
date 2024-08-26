@@ -4,20 +4,19 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.context.IdeContextTest;
 import com.devonfw.tools.ide.property.Property;
 
 /**
  * Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion}.
  */
-public class CompleteTest extends Assertions {
+public class CompleteTest extends IdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for empty input. */
   @Test
@@ -25,7 +24,7 @@ public class CompleteTest extends Assertions {
 
     // arrange
     boolean includeContextOptions = true;
-    AbstractIdeContext context = IdeTestContextMock.get();
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
     CliArguments args = CliArguments.ofCompletion("");
     args.next();
     List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions, true);
@@ -42,7 +41,7 @@ public class CompleteTest extends Assertions {
 
     // arrange
     boolean includeContextOptions = false;
-    AbstractIdeContext context = IdeTestContextMock.get();
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
     CliArguments args = CliArguments.ofCompletion("");
     args.next();
     List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions, true);
@@ -58,7 +57,7 @@ public class CompleteTest extends Assertions {
   public void testCompleteCommandletFirstLetter() {
 
     // arrange
-    AbstractIdeContext context = IdeTestContextMock.get();
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
     CliArguments args = CliArguments.ofCompletion("h");
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
@@ -71,7 +70,7 @@ public class CompleteTest extends Assertions {
   public void testCompleteShortOptsCombined() {
 
     // arrange
-    AbstractIdeContext context = IdeTestContextMock.get();
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
     CliArguments args = CliArguments.ofCompletion("-f");
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
@@ -85,7 +84,7 @@ public class CompleteTest extends Assertions {
   public void testCompleteShortOptsCombinedAllButVersion() {
 
     // arrange
-    AbstractIdeContext context = IdeTestContextMock.get();
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
     CliArguments args = CliArguments.ofCompletion("-fbdoqt");
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
@@ -98,7 +97,7 @@ public class CompleteTest extends Assertions {
   public void testCompleteHelpEmptyArgs() {
 
     // arrange
-    AbstractIdeContext context = IdeTestContextMock.get();
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
     CliArguments args = CliArguments.ofCompletion("help", "");
     List<String> expectedCandidates = getExpectedCandidates(context, true, false, false);
     // act
@@ -113,7 +112,7 @@ public class CompleteTest extends Assertions {
   public void testCompleteVersionNoMoreArgs() {
 
     // arrange
-    AbstractIdeContext context = IdeTestContextMock.get();
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
     CliArguments args = CliArguments.ofCompletion("--version", "");
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
