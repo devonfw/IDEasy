@@ -18,8 +18,8 @@
       <directory>${project.build.directory}/package</directory>
       <outputDirectory>.</outputDirectory>
       <excludes>
-        <exclude>system/mac</exclude>
-        <exclude>system/linux</exclude>
+        <exclude>system/mac/**</exclude>
+        <exclude>system/linux/**</exclude>
       </excludes>
     </fileSet>
   </fileSets>
