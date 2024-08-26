@@ -221,7 +221,7 @@ public abstract class AbstractIdeContext implements IdeContext {
           }
         } else if (!ideRootPath.equals(rootPath)) {
           warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath,
-              (this.ideHome == null) ? "undefined" : this.ideHome.getFileName(), ideRootPath);
+              (ideHomePath == null) ? "undefined" : ideHomePath.getFileName(), ideRootPath);
         }
       }
     }
@@ -894,6 +894,10 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (cmd.isIdeHomeRequired()) {
           debug(getMessageIdeHomeFound());
         }
+      }
+      if (getGitContext().isRepositoryUpdateAvailable(getSettingsPath()) ||
+          (getGitContext().fetchIfNeeded(getSettingsPath()) && getGitContext().isRepositoryUpdateAvailable(getSettingsPath()))) {
+        info("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
       }
       cmd.run();
     } else {
