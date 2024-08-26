@@ -3,10 +3,12 @@ package com.devonfw.tools.ide.log;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.devonfw.tools.ide.context.IdeStartContextmpl;
+
 /**
- * Extends {@link IdeLoggerImpl} for testing.
+ * Extends {@link IdeStartContextmpl} for testing.
  */
-public class IdeTestLogger extends IdeLoggerImpl {
+public class IdeTestLogger extends IdeStartContextmpl {
 
   private final List<IdeLogEntry> entries;
 

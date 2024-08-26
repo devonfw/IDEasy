@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeContextConsole;
+import com.devonfw.tools.ide.context.IdeStartContextmpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeSubLoggerOut;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.LocaleProperty;
 
@@ -26,7 +26,7 @@ public class ContextCommandlet extends Commandlet {
 
   private final LocaleProperty locale;
 
-  private AbstractIdeContext ideContext;
+  private IdeStartContextmpl logger;
 
   /**
    * The constructor.
@@ -58,6 +58,16 @@ public class ContextCommandlet extends Commandlet {
   @Override
   public void run() {
 
+    IdeLogLevel logLevel = determineLogLevel();
+    this.logger = new IdeStartContextmpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel));
+    this.logger.setBatchMode(this.batch.isTrue());
+    this.logger.setForceMode(this.force.isTrue());
+    this.logger.setQuietMode(this.quiet.isTrue());
+    this.logger.setOfflineMode(this.offline.isTrue());
+    this.logger.setLocale(this.locale.getValue());
+  }
+
+  private IdeLogLevel determineLogLevel() {
     IdeLogLevel logLevel = IdeLogLevel.INFO;
     if (this.trace.isTrue()) {
       logLevel = IdeLogLevel.TRACE;
@@ -66,20 +76,14 @@ public class ContextCommandlet extends Commandlet {
     } else if (this.quiet.isTrue()) {
       logLevel = IdeLogLevel.WARNING;
     }
-
-    this.ideContext = new IdeContextConsole(logLevel, null, true);
-    this.ideContext.setBatchMode(this.batch.isTrue());
-    this.ideContext.setForceMode(this.force.isTrue());
-    this.ideContext.setQuietMode(this.quiet.isTrue());
-    this.ideContext.setOfflineMode(this.offline.isTrue());
-    this.ideContext.setLocale(this.locale.getValue());
+    return logLevel;
   }
 
   /**
-   * @return the {@link IdeContext} that has been created by {@link #run()}.
+   * @return the {@link IdeStartContextmpl} that has been created by {@link #run()}.
    */
-  public AbstractIdeContext getIdeContext() {
+  public IdeStartContextmpl getStartContext() {
 
-    return this.ideContext;
+    return this.logger;
   }
 }

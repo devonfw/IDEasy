@@ -13,7 +13,6 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
-import com.devonfw.tools.ide.log.IdeLoggerImpl;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
@@ -47,7 +46,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
    *     be used.
    */
-  public AbstractIdeTestContext(IdeLoggerImpl logger, Path userDir,
+  public AbstractIdeTestContext(IdeStartContextmpl logger, Path userDir,
       ToolRepository toolRepository) {
 
     super(logger, userDir, toolRepository);
