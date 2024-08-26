@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -39,7 +40,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
     updateExistingVersions(edition);
     try {
       String response = doGetResponseBodyAsString(doGetVersionUrl());
-      J jsonObj = MAPPER.readValue(response, getJsonObjectType());
+      J jsonObj = getJsonObjectFromResponse(response);
       collectVersionsWithDownloadsFromJson(jsonObj, edition);
     } catch (Exception e) {
       throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
@@ -94,6 +95,17 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
 
       }
     }
+  }
+
+  /**
+   * Gets the {@link JsonObject} from the response of the version URL.
+   *
+   * @param response
+   * @return {@link JsonObject} holding the available versions and possibly download urls of the tool.
+   * @throws JsonProcessingException
+   */
+  protected J getJsonObjectFromResponse(String response) throws JsonProcessingException {
+    return MAPPER.readValue(response, getJsonObjectType());
   }
 
   /**

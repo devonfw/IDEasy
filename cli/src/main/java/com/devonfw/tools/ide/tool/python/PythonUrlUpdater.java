@@ -7,11 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.json.mapping.JsonMapping;
-import com.devonfw.tools.ide.url.model.folder.UrlEdition;
-import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -81,24 +79,11 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
   }
 
   @Override
-  public void update(UrlRepository urlRepository) {
-
-    UrlTool tool = urlRepository.getOrCreateChild(getTool());
-    UrlEdition edition = tool.getOrCreateChild(getEdition());
-    updateExistingVersions(edition);
-    try {
-      String response = doGetResponseBodyAsString(doGetVersionUrl());
-
-      PythonRelease[] res = MAPPER.readValue(response, PythonRelease[].class);
-
-      PythonJsonObject jsonObj = new PythonJsonObject();
-      jsonObj.setReleases(List.of(res));
-
-      collectVersionsWithDownloadsFromJson(jsonObj, edition);
-
-    } catch (Exception e) {
-      throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
-    }
+  protected PythonJsonObject getJsonObjectFromResponse(String response) throws JsonProcessingException {
+    PythonRelease[] res = MAPPER.readValue(response, PythonRelease[].class);
+    PythonJsonObject jsonObj = new PythonJsonObject();
+    jsonObj.setReleases(List.of(res));
+    return jsonObj;
   }
 
   @Override
