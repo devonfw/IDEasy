@@ -104,16 +104,21 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     Path binaryPath;
     binaryPath = Path.of(getBinaryName());
     ProcessContext pc;
-    
+
     if (existsEnvironmentContext) {
-      pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
+      pc = getProcessContext(binaryPath, args);
       install(pc, true);
     } else {
       install(true);
-      pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
+      pc = getProcessContext(binaryPath, args);
     }
 
     pc.run(processMode);
+  }
+
+  private ProcessContext getProcessContext(Path binaryPath, String... args) {
+
+    return this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
   }
 
   /**

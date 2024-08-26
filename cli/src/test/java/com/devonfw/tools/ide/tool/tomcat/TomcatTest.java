@@ -34,8 +34,7 @@ public class TomcatTest extends AbstractIdeContextTest {
 
   private void checkRunningTomcat(IdeTestContext context) {
 
-    assertThat(context).logAtInfo().hasMessage("Tomcat is running at localhost on the following port (default 8080):");
-    assertThat(context).logAtInfo().hasMessage("8080");
+    assertThat(context).logAtInfo().hasEntries("Tomcat is running at localhost on the following port (default 8080):", "8080");
   }
 
   private void checkInstallation(IdeTestContext context) {

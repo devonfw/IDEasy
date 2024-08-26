@@ -362,12 +362,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *
    * @param envContext the {@link EnvironmentContext} of the tool.
    * @param dependencyPath the {@link Path} of the dependency.
-   * @param dependencyName the {@link String} of the dependency, for example "java"
    */
-  private void setEnvironment(EnvironmentContext envContext, Path dependencyPath, String dependencyName) {
+  private void setEnvironment(EnvironmentContext envContext, Path dependencyPath) {
 
     if (envContext != null) {
-      String pathVariable = dependencyName.toUpperCase(Locale.ROOT) + "_HOME";
+      String pathVariable = this.tool.toUpperCase(Locale.ROOT) + "_HOME";
       envContext.withEnvVar(pathVariable, dependencyPath.toString());
     }
   }
@@ -392,23 +391,23 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   private void installDependencies(DependencyInfo dependencyInfo, EnvironmentContext ec) {
 
     String dependencyName = dependencyInfo.getTool();
-    ToolCommandlet dependencyTool = this.context.getCommandletManager().getToolCommandlet(dependencyName);
+    LocalToolCommandlet dependencyTool = (LocalToolCommandlet) this.context.getCommandletManager().getToolCommandlet(dependencyName);
     VersionIdentifier dependencyVersionToInstall = this.dependency.findDependencyVersionToInstall(dependencyInfo);
 
     Path dependencyRepository = getDependencySoftwareRepository(dependencyName, dependencyTool.getConfiguredEdition());
 
     if (!Files.exists(dependencyRepository)) {
       installDependencyInRepo(dependencyName, dependencyTool, dependencyVersionToInstall, ec);
-      setEnvironment(ec, dependencyRepository.resolve(dependencyVersionToInstall.toString()), dependencyName);
+      dependencyTool.setEnvironment(ec, dependencyRepository.resolve(dependencyVersionToInstall.toString()));
     } else {
       Path versionExistingInRepository = this.dependency.versionExistsInRepository(dependencyRepository, dependencyInfo.getVersionRange());
       boolean versionExistingInRepositoryIsEmpty = versionExistingInRepository.equals(Path.of(""));
 
       if (versionExistingInRepositoryIsEmpty) {
         installDependencyInRepo(dependencyName, dependencyTool, dependencyVersionToInstall, ec);
-        setEnvironment(ec, dependencyRepository.resolve(dependencyVersionToInstall.toString()), dependencyName);
+        dependencyTool.setEnvironment(ec, dependencyRepository.resolve(dependencyVersionToInstall.toString()));
       } else {
-        setEnvironment(ec, versionExistingInRepository, dependencyName);
+        dependencyTool.setEnvironment(ec, versionExistingInRepository);
         this.context.info("Necessary version of the dependency {} is already installed in repository", dependencyName);
       }
     }
