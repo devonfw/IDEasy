@@ -34,6 +34,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
    * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} can automatically add a missing OS (in this case the linux_x64)
    *
    * @param tempDir Temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException test fails
    */
   @Test
@@ -99,6 +100,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
    * @param tempDir Temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
   public void testUrlUpdaterStatusJsonRefreshBugStillExisting(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
@@ -172,6 +174,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
    * @param tempDir Temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
   public void testUrlUpdaterWithTextContentTypeWillNotCreateStatusJson(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
