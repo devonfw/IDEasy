@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
@@ -70,8 +71,10 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     if (this.context.getSystemInfo().isMac()) {
       try {
         bashFile = Files.createFile(getToolBinPath().resolve(getName()));
+        MacOsHelper macOsHelper = new MacOsHelper(context);
+        Path appPath = macOsHelper.findAppDir(macOsHelper.findRootToolPath(this, context));
         Files.writeString(bashFile,
-            bashFileContentStart + getToolPath().resolve("IntelliJ IDEA CE.app").resolve("Contents").resolve("MacOS").resolve(IDEA) + bashFileContentEnd);
+            bashFileContentStart + getToolPath().resolve(appPath).resolve(IdeContext.FOLDER_CONTENTS).resolve("MacOS").resolve(IDEA) + bashFileContentEnd);
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
