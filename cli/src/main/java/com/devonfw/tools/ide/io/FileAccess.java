@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.io;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
@@ -245,13 +244,10 @@ public interface FileAccess {
   boolean isEmptyDir(Path dir);
 
   /**
-   * Makes the file executable.
+   * Makes a file executable. Equivalent of using 'chmod a+x'. Adds execute permissions to current file permissions.
    *
-   * @param path Path to the file.
+   * @param filePath Path to the file.
    * @throws IOException if an I/O error occurs.
    */
-  default void makeExecutable(Path path) throws IOException {
-
-    Files.setPosixFilePermissions(path, RWX_RX_RX);
-  }
+  void makeExecutable(Path filePath) throws IOException;
 }

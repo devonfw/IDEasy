@@ -3,8 +3,6 @@ package com.devonfw.tools.ide.tool.intellij;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Set;
 
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -12,8 +10,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.io.FileAccessImpl;
-import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
@@ -79,10 +75,6 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-      // Setting execute permissions is only required if executed on a real MacOS, won't work on Windows.
-      if (SystemInfoImpl.INSTANCE.isMac()) {
-        setMacOsFilePermissions(bashFile);
-      }
     } else if (this.context.getSystemInfo().isWindows()) {
       try {
         bashFile = Files.createFile(getToolBinPath().resolve(getName()));
@@ -100,18 +92,11 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         throw new RuntimeException(e);
       }
     }
-  }
 
-  private void setMacOsFilePermissions(Path binaryFile) {
-
-    if (Files.exists(binaryFile)) {
-      String permissionStr = FileAccessImpl.generatePermissionString(111);
-      Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
-      try {
-        Files.setPosixFilePermissions(binaryFile, permissions);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+    try {
+      context.getFileAccess().makeExecutable(bashFile);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
     }
   }
 

@@ -840,6 +840,33 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
+  public void makeExecutable(Path filePath) throws IOException {
+    if (Files.exists(filePath)) {
+      // Read the current file permissions
+      Set<PosixFilePermission> perms;
+      try {
+        perms = Files.getPosixFilePermissions(filePath);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+
+      if (perms != null) {
+        // Add execute permission for all users
+        perms.add(PosixFilePermission.OWNER_EXECUTE);
+        perms.add(PosixFilePermission.GROUP_EXECUTE);
+        perms.add(PosixFilePermission.OTHERS_EXECUTE);
+
+        // Set the new permissions
+        try {
+          Files.setPosixFilePermissions(filePath, perms);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    }
+  }
+
+  @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {
 
     for (Path dir : searchDirs) {
