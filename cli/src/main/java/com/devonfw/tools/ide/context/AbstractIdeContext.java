@@ -12,8 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -34,8 +32,9 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.log.IdeLoggerImpl;
 import com.devonfw.tools.ide.log.IdeSubLogger;
-import com.devonfw.tools.ide.log.IdeSubLoggerNone;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
@@ -60,7 +59,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private static final String IDE_URLS_GIT = "https://github.com/devonfw/ide-urls.git";
 
-  private final Map<IdeLogLevel, IdeSubLogger> loggers;
+  private final IdeLoggerImpl logger;
 
   private Path ideHome;
 
@@ -116,8 +115,6 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private DirectoryMerger workspaceMerger;
 
-  private final Function<IdeLogLevel, IdeSubLogger> loggerFactory;
-
   private boolean offlineMode;
 
   private boolean forceMode;
@@ -137,18 +134,15 @@ public abstract class AbstractIdeContext implements IdeContext {
   /**
    * The constructor.
    *
-   * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
-   * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
+   * @param logger the {@link IdeLogger}.
    * @param userDir the optional {@link Path} to current working directory.
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
    *     be used.
    */
-  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository) {
+  public AbstractIdeContext(IdeLoggerImpl logger, Path userDir, ToolRepository toolRepository) {
 
     super();
-    this.loggerFactory = factory;
-    this.loggers = new HashMap<>();
-    setLogLevel(minLogLevel);
+    this.logger = logger;
     this.systemInfo = SystemInfoImpl.INSTANCE;
     this.commandletManager = new CommandletManagerImpl(this);
     this.fileAccess = new FileAccessImpl(this);
@@ -227,7 +221,7 @@ public abstract class AbstractIdeContext implements IdeContext {
           }
         } else if (!ideRootPath.equals(rootPath)) {
           warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath,
-              (this.ideHome == null) ? "undefined" : this.ideHome.getFileName(), ideRootPath);
+              (ideHomePath == null) ? "undefined" : ideHomePath.getFileName(), ideRootPath);
         }
       }
     }
@@ -308,14 +302,6 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @return {@code true} if this is a test context for JUnits, {@code false} otherwise.
    */
   public boolean isTest() {
-
-    return isMock();
-  }
-
-  /**
-   * @return {@code true} if this is a mock context for JUnits, {@code false} otherwise.
-   */
-  public boolean isMock() {
 
     return false;
   }
@@ -708,9 +694,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public IdeSubLogger level(IdeLogLevel level) {
 
-    IdeSubLogger logger = this.loggers.get(level);
-    Objects.requireNonNull(logger);
-    return logger;
+    return this.logger.level(level);
   }
 
   @Override
@@ -790,24 +774,6 @@ public abstract class AbstractIdeContext implements IdeContext {
     O duplicate = mapping.put(key, option);
     if (duplicate != null) {
       throw new IllegalArgumentException("Duplicated option " + key);
-    }
-  }
-
-  /**
-   * Sets the log level.
-   *
-   * @param logLevel {@link IdeLogLevel}
-   */
-  public void setLogLevel(IdeLogLevel logLevel) {
-
-    for (IdeLogLevel level : IdeLogLevel.values()) {
-      IdeSubLogger logger;
-      if (level.ordinal() < logLevel.ordinal()) {
-        logger = new IdeSubLoggerNone(level);
-      } else {
-        logger = this.loggerFactory.apply(level);
-      }
-      this.loggers.put(level, logger);
     }
   }
 
@@ -918,10 +884,20 @@ public abstract class AbstractIdeContext implements IdeContext {
       } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
         throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
       }
-      if (!cmd.isProcessableOutput()) {
+      if (cmd.isProcessableOutput()) {
+        for (IdeLogLevel level : IdeLogLevel.values()) {
+          if (level != IdeLogLevel.INFO) {
+            this.logger.setLogLevel(level, false);
+          }
+        }
+      } else {
         if (cmd.isIdeHomeRequired()) {
           debug(getMessageIdeHomeFound());
         }
+      }
+      if (getGitContext().isRepositoryUpdateAvailable(getSettingsPath()) ||
+          (getGitContext().fetchIfNeeded(getSettingsPath()) && getGitContext().isRepositoryUpdateAvailable(getSettingsPath()))) {
+        info("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
       }
       cmd.run();
     } else {
@@ -954,20 +930,29 @@ public abstract class AbstractIdeContext implements IdeContext {
       Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
       boolean matches = false;
       if (firstCandidate != null) {
-        matches = apply(arguments.copy(), firstCandidate, collector);
+        matches = completeCommandlet(arguments, firstCandidate, collector);
       } else if (current.isCombinedShortOption()) {
         collector.add(keyword, null, null, null);
       }
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
           if (cmd != firstCandidate) {
-            apply(arguments.copy(), cmd, collector);
+            completeCommandlet(arguments, cmd, collector);
           }
         }
       }
     }
     return collector.getSortedCandidates();
   }
+
+  private boolean completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+    if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
+      return false;
+    } else {
+      return apply(arguments.copy(), cmd, collector);
+    }
+  }
+
 
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a

@@ -9,14 +9,13 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
-import com.devonfw.tools.ide.tool.ide.IdeaBasedPluginInstaller;
-import com.devonfw.tools.ide.tool.ide.PluginDescriptor;
+import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://developer.android.com/studio">AndroidStudio</a>.
  */
-public class AndroidStudio extends IdeToolCommandlet {
+public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
 
   private static final String STUDIO = "studio";
 
@@ -63,13 +62,5 @@ public class AndroidStudio extends IdeToolCommandlet {
     EnvironmentVariables envVars = this.context.getVariables().getByType(EnvironmentVariablesType.CONF);
     envVars.set("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString(), true);
     envVars.save();
-  }
-
-  @Override
-  public void installPlugin(PluginDescriptor plugin) {
-
-    IdeaBasedPluginInstaller pluginInstaller = new IdeaBasedPluginInstaller(context, this);
-    String downloadUrl = pluginInstaller.getDownloadUrl(plugin);
-    pluginInstaller.installPlugin(plugin, downloadUrl);
   }
 }

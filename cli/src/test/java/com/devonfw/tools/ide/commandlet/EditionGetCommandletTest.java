@@ -7,13 +7,12 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.log.IdeLogEntry;
 
 /** Integration test of {@link EditionGetCommandlet}. */
 
 public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
-  /** Test of {@link VersionGetCommandlet} run. */
+  /** Test of {@link EditionGetCommandlet} run. */
   @Test
   public void testEditionGetCommandletRun() {
 
@@ -28,7 +27,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     editionGet.run();
 
     // assert
-    assertThat(context).log().hasMessage("az");
+    assertThat(context).log().hasMessage(tool);
   }
 
   /**
@@ -40,14 +39,14 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
   private static void mockInstallTool(IdeTestContext context, String tool) {
 
     Path pathToInstallationOfDummyTool = context.getSoftwareRepositoryPath()
-        .resolve(context.getDefaultToolRepository().getId()).resolve(tool).resolve("az/testVersion");
+        .resolve(context.getDefaultToolRepository().getId()).resolve(tool).resolve(tool + "/testVersion");
     Path pathToLinkedSoftware = context.getSoftwarePath().resolve(tool);
     context.getFileAccess().symlink(pathToInstallationOfDummyTool, pathToLinkedSoftware);
   }
 
   /** Test of {@link VersionGetCommandlet} run with --configured flag */
   @Test
-  public void testVersionGetCommandletRunPrintConfiguredEdition() {
+  public void testEditionGetCommandletConfiguredEdition() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
@@ -60,9 +59,26 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtInfo().hasMessage("java");
   }
 
-  /** Test of {@link VersionGetCommandlet} run, with --installed flag, when Installed Version is null. */
+  /** Test of {@link EditionGetCommandlet} run, when tool is not installed. */
   @Test
-  public void testVersionGetCommandletRunPrintInstalledEdition() {
+  public void testEditionGetCommandletToolNotInstalled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
+    // act
+    editionGet.tool.setValueAsString("az", context);
+    editionGet.run();
+    // assert
+    assertThat(context).logAtInfo().hasEntries("No installation of tool az was found.",
+        "The configured edition for tool az is az",
+        "To install that edition call the following command:",
+        "ide install az");
+  }
+
+  /** Test of {@link EditionGetCommandlet} run, with --installed flag, when Installed Version is null. */
+  @Test
+  public void testEditionGetCommandletInstalledEditionToolNotInstalled() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
@@ -72,8 +88,25 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     // act
     editionGet.run();
     // assert
-    assertThat(context).log().hasEntries(IdeLogEntry.ofInfo("No installation of tool java was found."),
-        IdeLogEntry.ofInfo("The configured edition for tool java is java"), IdeLogEntry.ofInfo(
-            "To install that edition call the following command:"), IdeLogEntry.ofInfo("ide install java"));
+    assertThat(context).logAtInfo().hasEntries("No installation of tool java was found.",
+        "The configured edition for tool java is java",
+        "To install that edition call the following command:",
+        "ide install java");
+  }
+
+
+  /** Test of {@link EditionGetCommandlet} run, with --installed flag, when tool is installed. */
+  @Test
+  public void testEditionGetCommandletInstalledEditionToolInstalled() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
+    // act
+    editionGet.tool.setValueAsString("mvn", context);
+    editionGet.installed.setValue(true);
+    editionGet.run();
+    // assert
+    assertThat(context).logAtInfo().hasMessage("mvn");
   }
 }
