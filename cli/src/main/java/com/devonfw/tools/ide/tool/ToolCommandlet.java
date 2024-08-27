@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.os.MacOsHelper;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -94,21 +95,41 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param processMode see {@link ProcessMode}
    * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version is installed and use that one.
    *     Otherwise, the specified version will be installed in the software repository without touching and IDE installation and used to run.
+   * @param existsEnvironmentContext the {@link Boolean} that checks if an environment context exits. If true, then the process context is passed to the
+   *     installation method as an argument.
    * @param args the command-line arguments to run the tool.
+   */
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, boolean existsEnvironmentContext, String... args) {
+
+    Path binaryPath;
+    binaryPath = Path.of(getBinaryName());
+    ProcessContext pc;
+
+    if (existsEnvironmentContext) {
+      pc = getProcessContext(binaryPath, args);
+      install(pc, true);
+    } else {
+      install(true);
+      pc = getProcessContext(binaryPath, args);
+    }
+
+    pc.run(processMode);
+  }
+
+  private ProcessContext getProcessContext(Path binaryPath, String... args) {
+
+    return this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
+  }
+
+  /**
+   * @param processMode see {@link ProcessMode}
+   * @param toolVersion the explicit {@link VersionIdentifier} of the tool to run.
+   * @param args the command-line arguments to run the tool.
+   * @see ToolCommandlet#runTool(ProcessMode, VersionIdentifier, boolean, String...)
    */
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    Path binaryPath;
-    Path toolPath = Path.of(getBinaryName());
-    if (toolVersion == null) {
-      install(true);
-      binaryPath = toolPath;
-    } else {
-      throw new UnsupportedOperationException("Not yet implemented!");
-    }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
-
-    pc.run(processMode);
+    runTool(processMode, toolVersion, false, args);
   }
 
   /**
@@ -160,6 +181,18 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * Method to be called for {@link #install(boolean)} from dependent {@link com.devonfw.tools.ide.commandlet.Commandlet}s. Additionally, contains the
+   * environmentContext of the tool
+   *
+   * @param environmentContext - the environment context that can be used for the dependencies
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
+   */
+  public boolean install(EnvironmentContext environmentContext) {
+
+    return install(environmentContext, true);
+  }
+
+  /**
    * Method to be called for {@link #install(boolean)} from dependent {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
    *
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
@@ -167,6 +200,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public boolean install() {
 
     return install(true);
+  }
+
+  /**
+   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}. Additionally, contains the
+   * environmentContext of the tool
+   *
+   * @param environmentContext - the environment context that can be used for the dependencies
+   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
+   */
+  public boolean install(EnvironmentContext environmentContext, boolean silent) {
+
+    return doInstall(environmentContext, silent);
   }
 
   /**
@@ -179,6 +225,16 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     return doInstall(silent);
   }
+
+
+  /**
+   * Installs or updates the managed {@link #getName() tool}. Additionally works with the environment context of the tool.
+   *
+   * @param environmentContext - the environment context that can be used for the dependencies
+   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
+   */
+  protected abstract boolean doInstall(EnvironmentContext environmentContext, boolean silent);
 
   /**
    * Installs or updates the managed {@link #getName() tool}.

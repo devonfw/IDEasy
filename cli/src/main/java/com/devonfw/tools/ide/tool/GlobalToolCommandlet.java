@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.repo.ToolRepository;
@@ -105,6 +106,12 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   @Override
   protected boolean doInstall(boolean silent) {
+
+    return doInstall(null, silent);
+  }
+
+  @Override
+  protected boolean doInstall(EnvironmentContext environmentContext, boolean silent) {
 
     Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
     // if force mode is enabled, go through with the installation even if the tool is already installed

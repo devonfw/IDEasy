@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.tool.tomcat;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -15,16 +14,17 @@ import org.xml.sax.SAXException;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.property.EnumProperty;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
+/**
+ * {@link ToolCommandlet} for <a href="https://tomcat.apache.org/">tomcat</a>.
+ */
 public class Tomcat extends LocalToolCommandlet {
-
-  private final HashMap<String, String> dependenciesEnvVariableNames = new HashMap<>();
-
-  public final EnumProperty<TomcatCommand> command;
 
   /**
    * The constructor.
@@ -34,20 +34,34 @@ public class Tomcat extends LocalToolCommandlet {
   public Tomcat(IdeContext context) {
 
     super(context, "tomcat", Set.of(Tag.JAVA));
-    this.command = add(new EnumProperty<>("", true, "command", TomcatCommand.class));
-    //  add(this.arguments);
+    add(this.arguments);
   }
 
   @Override
-  public void postInstall() {
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    super.postInstall();
+    runTool(processMode, toolVersion, true, args);
+  }
 
-    EnvironmentVariables variables = this.context.getVariables();
-    EnvironmentVariables typeVariables = variables.getByType(EnvironmentVariablesType.CONF);
+  @Override
+  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, boolean existsEnvironmentContext, String... args) {
 
-    typeVariables.set("CATALINA_HOME", getToolPath().toString(), true);
-    typeVariables.save();
+    Path binaryPath;
+    binaryPath = Path.of(getBinaryName());
+
+    if (existsEnvironmentContext) {
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
+
+      if (toolVersion == null) {
+        install(pc, true);
+      } else {
+        throw new UnsupportedOperationException("Not yet implemented!");
+      }
+
+      pc.withEnvVar("CATALINA_HOME", getToolPath().toString());
+      pc.run(processMode);
+    }
+    printTomcatPort();
   }
 
   @Override
@@ -57,40 +71,9 @@ public class Tomcat extends LocalToolCommandlet {
   }
 
   @Override
-  public void run() {
-
-    Path toolPath = getToolPath();
-    if (!toolPath.toFile().exists()) {
-      super.install(true);
-    }
-
-    TomcatCommand command = this.command.getValue();
-
-    switch (command) {
-      case START:
-        printTomcatPort();
-        this.arguments.setValueAsString("start", this.context);
-        super.run();
-        break;
-      case STOP:
-        this.arguments.setValueAsString("stop", this.context);
-        super.run();
-        break;
-      default:
-    }
-  }
-
-  @Override
-  protected String getBinaryName() {
+  public String getBinaryName() {
 
     return "catalina.sh";
-  }
-
-  @Override
-  protected HashMap<String, String> listOfDependencyEnvVariableNames() {
-
-    this.dependenciesEnvVariableNames.put("java", "JRE_HOME");
-    return this.dependenciesEnvVariableNames;
   }
 
   private void printTomcatPort() {
