@@ -11,7 +11,7 @@ import com.devonfw.tools.ide.log.IdeSubLoggerNone;
 /**
  * Implementation of {@link IdeStartContext}.
  */
-public class IdeStartContextmpl implements IdeStartContext {
+public class IdeStartContextImpl implements IdeStartContext {
 
   private final Function<IdeLogLevel, IdeSubLogger> loggerFactory;
 
@@ -31,7 +31,7 @@ public class IdeStartContextmpl implements IdeStartContext {
    * @param minLogLevel the minimum enabled {@link IdeLogLevel}.
    * @param factory the factory to create active {@link IdeSubLogger} instances.
    */
-  public IdeStartContextmpl(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory) {
+  public IdeStartContextImpl(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory) {
 
     super();
     this.loggerFactory = factory;

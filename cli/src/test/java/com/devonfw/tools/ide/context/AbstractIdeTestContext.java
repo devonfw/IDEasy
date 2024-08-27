@@ -46,7 +46,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
    *     be used.
    */
-  public AbstractIdeTestContext(IdeStartContextmpl logger, Path userDir,
+  public AbstractIdeTestContext(IdeStartContextImpl logger, Path userDir,
       ToolRepository toolRepository) {
 
     super(logger, userDir, toolRepository);

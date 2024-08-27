@@ -59,7 +59,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private static final String IDE_URLS_GIT = "https://github.com/devonfw/ide-urls.git";
 
-  private final IdeStartContextmpl startContext;
+  private final IdeStartContextImpl startContext;
 
   private Path ideHome;
 
@@ -129,7 +129,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
    *     be used.
    */
-  public AbstractIdeContext(IdeStartContextmpl startContext, Path userDir, ToolRepository toolRepository) {
+  public AbstractIdeContext(IdeStartContextImpl startContext, Path userDir, ToolRepository toolRepository) {
 
     super();
     this.startContext = startContext;
@@ -1047,5 +1047,13 @@ public abstract class AbstractIdeContext implements IdeContext {
   public void setPathSyntax(WindowsPathSyntax pathSyntax) {
 
     this.pathSyntax = pathSyntax;
+  }
+
+  /**
+   * @return the {@link IdeStartContextImpl}.
+   */
+  public IdeStartContextImpl getStartContext() {
+
+    return startContext;
   }
 }
