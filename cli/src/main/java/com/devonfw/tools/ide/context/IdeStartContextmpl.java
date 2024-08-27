@@ -5,12 +5,11 @@ import java.util.Objects;
 import java.util.function.Function;
 
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.log.IdeSubLoggerNone;
 
 /**
- * Implementation of {@link IdeLogger}.
+ * Implementation of {@link IdeStartContext}.
  */
 public class IdeStartContextmpl implements IdeStartContext {
 
