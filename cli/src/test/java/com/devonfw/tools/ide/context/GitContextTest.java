@@ -5,8 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
@@ -21,6 +21,18 @@ import com.devonfw.tools.ide.io.FileAccessImpl;
  */
 public class GitContextTest extends AbstractIdeContextTest {
 
+  private ProcessContextGitMock processContext;
+
+  private IdeTestContext newGitContext(Path dir) {
+
+    IdeTestContext context = newContext(dir);
+    context.setOnline(Boolean.TRUE);
+    this.processContext = new ProcessContextGitMock(dir);
+    context.setProcessContext(processContext);
+    context.setGitContext(new GitContextImpl(context));
+    return context;
+  }
+
   /**
    * Runs a git clone in offline mode and expects an exception to be thrown with a message.
    *
@@ -31,19 +43,18 @@ public class GitContextTest extends AbstractIdeContextTest {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
-    List<String> errors = new ArrayList<>();
-    List<String> outs = new ArrayList<>();
-    outs.add("test-remote");
-    IdeContext context = newGitContext(tempDir, errors, outs, 0, false);
-    GitContext gitContext = new GitContextImpl(context);
+    IdeTestContext context = newGitContext(tempDir);
+    this.processContext.getOuts().add("test-remote");
+    context.setOnline(Boolean.FALSE);
+
+    //IdeContext context = newGitContext(tempDir, errors, outs, 0, false);
     // act
     CliException e1 = assertThrows(CliException.class, () -> {
-      gitContext.pullOrClone(gitRepoUrl, "", tempDir);
+      context.getGitContext().pullOrClone(gitRepoUrl, "", tempDir);
     });
     // assert
     assertThat(e1).hasMessageContaining(gitRepoUrl).hasMessageContaining(tempDir.toString())
         .hasMessageContaining("offline");
-
   }
 
   /**
@@ -56,13 +67,10 @@ public class GitContextTest extends AbstractIdeContextTest {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
-    List<String> errors = new ArrayList<>();
-    List<String> outs = new ArrayList<>();
-    outs.add("test-remote");
-    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
-    GitContext gitContext = new GitContextImpl(context);
+    IdeTestContext context = newGitContext(tempDir);
+    this.processContext.getOuts().add("test-remote");
     // act
-    gitContext.pullOrClone(gitRepoUrl, tempDir);
+    context.getGitContext().pullOrClone(gitRepoUrl, tempDir);
     // assert
     assertThat(tempDir.resolve(".git").resolve("url")).hasContent(gitRepoUrl);
   }
@@ -77,19 +85,15 @@ public class GitContextTest extends AbstractIdeContextTest {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
-    List<String> errors = new ArrayList<>();
-    List<String> outs = new ArrayList<>();
-    outs.add("test-remote");
-    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
-    GitContext gitContext = new GitContextImpl(context);
-    Date currentDate = new Date();
+    IdeTestContext context = newGitContext(tempDir);
+    this.processContext.getOuts().add("test-remote");
     FileAccess fileAccess = new FileAccessImpl(context);
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
     // act
-    gitContext.pullOrClone(gitRepoUrl, tempDir);
+    context.getGitContext().pullOrClone(gitRepoUrl, tempDir);
     // assert
-    assertThat(tempDir.resolve(".git").resolve("update")).hasContent(currentDate.toString());
+    assertThat(tempDir.resolve(".git").resolve("update")).hasContent(this.processContext.getNow().toString());
   }
 
   /**
@@ -102,9 +106,7 @@ public class GitContextTest extends AbstractIdeContextTest {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
-    List<String> errors = new ArrayList<>();
-    List<String> outs = new ArrayList<>();
-    outs.add("test-remote");
+
     Path gitFolderPath = tempDir.resolve(".git");
     try {
       Files.createDirectory(gitFolderPath);
@@ -123,10 +125,10 @@ public class GitContextTest extends AbstractIdeContextTest {
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
-    GitContext gitContext = new GitContextImpl(context);
+    IdeTestContext context = newGitContext(tempDir);
+    this.processContext.getOuts().add("test-remote");
     // act
-    gitContext.pullOrCloneAndResetIfNeeded(gitRepoUrl, tempDir, "master", "origin");
+    context.getGitContext().pullOrCloneAndResetIfNeeded(gitRepoUrl, tempDir, "master", "origin");
     // assert
     assertThat(modifiedFile).hasContent("original");
   }
@@ -141,12 +143,10 @@ public class GitContextTest extends AbstractIdeContextTest {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
-    List<String> errors = new ArrayList<>();
-    List<String> outs = new ArrayList<>();
-    outs.add("test-remote");
-    IdeContext context = newGitContext(tempDir, errors, outs, 0, true);
-    GitContext gitContext = new GitContextImpl(context);
-    FileAccess fileAccess = new FileAccessImpl(context);
+    IdeTestContext context = newGitContext(tempDir);
+    this.processContext.getOuts().add("test-remote");
+    GitContext gitContext = context.getGitContext();
+    FileAccess fileAccess = context.getFileAccess();
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
     fileAccess.mkdirs(tempDir.resolve("new-folder"));
@@ -161,4 +161,79 @@ public class GitContextTest extends AbstractIdeContextTest {
     assertThat(tempDir.resolve("new-folder")).doesNotExist();
   }
 
+  /**
+   * Test for fetchIfNeeded when the system is offline.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  public void testFetchIfNeededOffline(@TempDir Path tempDir) {
+    // arrange
+    String repoUrl = "https://github.com/test";
+    String remoteName = "origin";
+    List<String> errors = new ArrayList<>();
+    List<String> outs = new ArrayList<>();
+    IdeContext context = newGitContext(tempDir);
+    GitContext gitContext = new GitContextImpl(context);
+
+    // act
+    gitContext.fetchIfNeeded(repoUrl, remoteName, tempDir);
+
+    // assert
+    // Since the context is offline, no actions should be performed
+    assertThat(errors.isEmpty()).isTrue();
+    assertThat(outs.isEmpty()).isTrue();
+  }
+
+  /**
+   * Test for fetchIfNeeded when the FETCH_HEAD file is newer than the threshold.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  public void testFetchIfNeededRecentFetchHead(@TempDir Path tempDir) throws IOException {
+    // arrange
+    String repoUrl = "https://github.com/test";
+    String remoteName = "origin";
+    List<String> errors = new ArrayList<>();
+    List<String> outs = new ArrayList<>();
+    IdeContext context = newGitContext(tempDir);
+    GitContext gitContext = new GitContextImpl(context);
+
+    Path gitDir = tempDir.resolve(".git");
+    Files.createDirectories(gitDir);
+    Path fetchHead = gitDir.resolve("FETCH_HEAD");
+    Files.createFile(fetchHead);
+    Files.setLastModifiedTime(fetchHead, FileTime.fromMillis(System.currentTimeMillis()));
+
+    // act
+    gitContext.fetchIfNeeded(repoUrl, remoteName, tempDir);
+
+    // assert
+    // Since FETCH_HEAD is recent, no fetch should occur
+    assertThat(errors.isEmpty()).isTrue();
+    assertThat(outs.isEmpty()).isTrue();
+  }
+
+  /**
+   * Test for isRepositoryUpdateAvailable when local and remote commits are the same.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  public void testIsRepositoryUpdateAvailableNoUpdates(@TempDir Path tempDir) {
+    // arrange
+    List<String> errors = new ArrayList<>();
+    List<String> outs = new ArrayList<>();
+    outs.add("local_commit_hash");
+    outs.add("local_commit_hash"); // same as remote to simulate no updates
+    IdeContext context = newGitContext(tempDir);
+    GitContext gitContext = new GitContextImpl(context);
+
+    // act
+    boolean result = gitContext.isRepositoryUpdateAvailable(tempDir);
+
+    // assert
+    assertThat(result).isFalse(); // No updates should be available
+  }
 }

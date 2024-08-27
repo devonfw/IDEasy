@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.ide;
+package com.devonfw.tools.ide.tool.plugin;
 
 import com.devonfw.tools.ide.common.Tags;
 
