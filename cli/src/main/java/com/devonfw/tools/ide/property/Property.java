@@ -11,6 +11,8 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorAdapter;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.validation.PropertyValidator;
+import com.devonfw.tools.ide.validation.ValidationState;
 
 /**
  * A {@link Property} is a simple container for a {@link #getValue() value} with a fixed {@link #getName() name} and {@link #getValueType() type}. Further we
@@ -37,7 +39,9 @@ public abstract class Property<V> {
   /** @see #isRequired() */
   protected final boolean required;
 
-  private final Consumer<V> validator;
+  private final PropertyValidator<V> validator;
+
+  private ValidationState state = new ValidationState();
 
   /** @see #isMultiValued() */
   private final boolean multivalued;
@@ -71,7 +75,7 @@ public abstract class Property<V> {
    * @param multivalued the boolean flag about multiple arguments
    * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public Property(String name, boolean required, String alias, boolean multivalued, Consumer<V> validator) {
+  public Property(String name, boolean required, String alias, boolean multivalued, PropertyValidator<V> validator) {
 
     super();
     this.name = name;
@@ -111,7 +115,7 @@ public abstract class Property<V> {
 
   /**
    * @return {@code true} if this property is required (if argument is not present the {@link Commandlet} cannot be invoked), {@code false} otherwise (if
-   * optional).
+   *     optional).
    */
   public boolean isRequired() {
 
@@ -139,7 +143,7 @@ public abstract class Property<V> {
 
   /**
    * @return {@code true} if this {@link Property} forces an implicit {@link CliArgument#isEndOptions() end-options} as if "--" was provided before its first
-   * {@link CliArgument argument}.
+   *     {@link CliArgument argument}.
    */
   public boolean isEndOptions() {
 
@@ -449,9 +453,9 @@ public abstract class Property<V> {
 
   /**
    * @return {@code true} if this {@link Property} is valid, {@code false} if it is {@link #isRequired() required} but no {@link #getValue() value} has been
-   * set.
-   * @throws RuntimeException if the {@link #getValue() value} is violating given constraints. This is checked by the optional {@link Consumer} function given
-   * at construction time.
+   *     set.
+   * @throws RuntimeException if the {@link #getValue() value} is violating given constraints. This is checked by the optional {@link Consumer} function
+   *     given at construction time.
    */
   public boolean validate() {
 
@@ -460,7 +464,7 @@ public abstract class Property<V> {
     }
     if (this.validator != null) {
       for (V value : this.value) {
-        this.validator.accept(value);
+        validator.validate(value, state);
       }
     }
     return true;
