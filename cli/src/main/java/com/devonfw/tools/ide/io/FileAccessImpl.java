@@ -613,7 +613,8 @@ public class FileAccessImpl implements FileAccess {
   public void extractJar(Path file, Path targetDir) {
 
     this.context.trace("Unpacking JAR {} to {}", file, targetDir);
-    try (JarInputStream jis = new JarInputStream(Files.newInputStream(file))) {
+    try (JarInputStream jis = new JarInputStream(Files.newInputStream(file)); IdeProgressBar pb = this.context.prepareProgressBar("Unpacking",
+        Files.size(file))) {
       JarEntry entry;
       while ((entry = jis.getNextJarEntry()) != null) {
         Path entryPath = targetDir.resolve(entry.getName()).toAbsolutePath();
@@ -627,6 +628,7 @@ public class FileAccessImpl implements FileAccess {
         } else {
           Files.createDirectories(entryPath.getParent());
           Files.copy(jis, entryPath);
+          pb.stepBy(entry.getSize());
         }
 
         jis.closeEntry();
@@ -659,7 +661,8 @@ public class FileAccessImpl implements FileAccess {
   private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
-    try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
+    try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is); IdeProgressBar pb = this.context.prepareProgressBar(
+        "Unpacking", Files.size(file))) {
       ArchiveEntry entry = ais.getNextEntry();
       boolean isTar = ais instanceof TarArchiveInputStream;
       while (entry != null) {
@@ -685,6 +688,7 @@ public class FileAccessImpl implements FileAccess {
           Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
           Files.setPosixFilePermissions(entryPath, permissions);
         }
+        pb.stepBy(entry.getSize());
         entry = ais.getNextEntry();
       }
     } catch (IOException e) {
