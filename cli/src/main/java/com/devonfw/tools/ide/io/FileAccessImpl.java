@@ -841,6 +841,10 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void makeExecutable(Path filePath) throws IOException {
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      return;
+    }
+
     if (Files.exists(filePath)) {
       // Read the current file permissions
       Set<PosixFilePermission> perms;

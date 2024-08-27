@@ -101,7 +101,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
       this.context.getPath().setPath(this.tool, installation.binDir());
       postInstall();
-      postInstall();
       if (installedVersion == null) {
         step.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
       } else {
