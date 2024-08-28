@@ -35,12 +35,14 @@ public class VscodeTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasMessage("Successfully installed vscode in version 1.92.1");
 
     Path executablePath = context.getSoftwareRepositoryPath().resolve("default/vscode/vscode/1.92.1/bin/");
+    
     if (context.getSystemInfo().isWindows()) {
       executablePath = executablePath.resolve("code.cmd");
+      assertThat(context).logAtDebug().hasMessage("Running command '" + executablePath + "' with arguments '--install-extension' 'mockedPlugin' ...");
     } else {
       executablePath = executablePath.resolve("code");
+      assertThat(context).logAtDebug()
+          .hasMessage("Running command '" + executablePath + "' using bash with arguments '--install-extension' 'mockedPlugin' ...");
     }
-
-    assertThat(context).logAtDebug().hasMessage("Running command '" + executablePath + "' with arguments '--install-extension' 'mockedPlugin' ...");
   }
 }
