@@ -221,7 +221,7 @@ public abstract class AbstractIdeContext implements IdeContext {
           }
         } else if (!ideRootPath.equals(rootPath)) {
           warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath,
-              (this.ideHome == null) ? "undefined" : this.ideHome.getFileName(), ideRootPath);
+              (ideHomePath == null) ? "undefined" : ideHomePath.getFileName(), ideRootPath);
         }
       }
     }
@@ -895,6 +895,10 @@ public abstract class AbstractIdeContext implements IdeContext {
           debug(getMessageIdeHomeFound());
         }
       }
+      if (getGitContext().isRepositoryUpdateAvailable(getSettingsPath()) ||
+          (getGitContext().fetchIfNeeded(getSettingsPath()) && getGitContext().isRepositoryUpdateAvailable(getSettingsPath()))) {
+        info("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+      }
       cmd.run();
     } else {
       trace("Commandlet did not match");
@@ -926,20 +930,29 @@ public abstract class AbstractIdeContext implements IdeContext {
       Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
       boolean matches = false;
       if (firstCandidate != null) {
-        matches = apply(arguments.copy(), firstCandidate, collector);
+        matches = completeCommandlet(arguments, firstCandidate, collector);
       } else if (current.isCombinedShortOption()) {
         collector.add(keyword, null, null, null);
       }
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
           if (cmd != firstCandidate) {
-            apply(arguments.copy(), cmd, collector);
+            completeCommandlet(arguments, cmd, collector);
           }
         }
       }
     }
     return collector.getSortedCandidates();
   }
+
+  private boolean completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+    if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
+      return false;
+    } else {
+      return apply(arguments.copy(), cmd, collector);
+    }
+  }
+
 
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
