@@ -34,6 +34,7 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if the {@link Intellij} can be installed properly.
    *
    * @param os String of the OS to use.
+   * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException if reading the content of the mocked plugin fails
    */
   @ParameterizedTest
@@ -41,7 +42,7 @@ public class IntellijTest extends AbstractIdeContextTest {
   public void testIntellijInstall(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
-    setupMockedPlugin(wmRuntimeInfo);
+    setupMockedPlugin(wmRuntimeInfo, true);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
@@ -58,6 +59,59 @@ public class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
+   * Tests if the {@link Intellij} can be installed properly, and a plugin can be installed separately afterward.
+   *
+   * @param os String of the OS to use.
+   * @throws IOException if reading the content of the mocked plugin fails
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  public void testIntellijInstallPluginAfterwards(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+
+    // arrange
+    setupMockedPlugin(wmRuntimeInfo, false);
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    this.context.setSystemInfo(systemInfo);
+    Intellij commandlet = new Intellij(this.context);
+
+    // act
+    commandlet.install();
+    commandlet.installPlugin(commandlet.getPluginsMap().getById("mockedPlugin"));
+
+    // assert
+    checkInstallation(this.context);
+  }
+
+  /**
+   * Tests if the {@link Intellij} can be installed properly, and a plugin can be uninstalled afterward.
+   *
+   * @param os String of the OS to use.
+   * @throws IOException if reading the content of the mocked plugin fails
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  public void testIntellijUninstallPluginAfterwards(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+
+    // arrange
+    setupMockedPlugin(wmRuntimeInfo, true);
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    this.context.setSystemInfo(systemInfo);
+    Intellij commandlet = new Intellij(this.context);
+
+    // act
+    commandlet.install();
+
+    // assert
+    checkInstallation(this.context);
+
+    // act
+    commandlet.uninstallPlugin(commandlet.getPluginsMap().getById("mockedPlugin"));
+
+    //assert
+    assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).doesNotExist();
+  }
+
+  /**
    * Tests if {@link Intellij IntelliJ IDE} can be run.
    *
    * @param os String of the OS to use.
@@ -68,7 +122,7 @@ public class IntellijTest extends AbstractIdeContextTest {
   public void testIntellijRun(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // arrange
-    setupMockedPlugin(wmRuntimeInfo);
+    setupMockedPlugin(wmRuntimeInfo, true);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
@@ -94,9 +148,9 @@ public class IntellijTest extends AbstractIdeContextTest {
     assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).exists();
   }
 
-  private void setupMockedPlugin(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  private void setupMockedPlugin(WireMockRuntimeInfo wmRuntimeInfo, boolean mockedPluginActive) throws IOException {
 
-    String content = "plugin_id=mockedPlugin\nplugin_active=true\nplugin_url=" + wmRuntimeInfo.getHttpBaseUrl() + "/mockedPlugin";
+    String content = "plugin_id=mockedPlugin\nplugin_active=" + mockedPluginActive + "\nplugin_url=" + wmRuntimeInfo.getHttpBaseUrl() + "/mockedPlugin";
     Files.write(this.context.getSettingsPath().resolve("intellij").resolve("plugins").resolve("MockedPlugin.properties"),
         content.getBytes(StandardCharsets.UTF_8));
 

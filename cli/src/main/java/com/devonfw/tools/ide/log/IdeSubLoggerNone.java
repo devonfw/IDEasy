@@ -5,12 +5,22 @@ package com.devonfw.tools.ide.log;
  */
 public final class IdeSubLoggerNone extends AbstractIdeSubLogger {
 
+  private static final IdeSubLoggerNone[] LOGGERS;
+
+  static {
+    IdeLogLevel[] levels = IdeLogLevel.values();
+    LOGGERS = new IdeSubLoggerNone[levels.length];
+    for (int i = 0; i < levels.length; i++) {
+      LOGGERS[i] = new IdeSubLoggerNone(levels[i]);
+    }
+  }
+
   /**
    * The constructor.
    *
    * @param level the {@link #getLevel() log-level}.
    */
-  public IdeSubLoggerNone(IdeLogLevel level) {
+  private IdeSubLoggerNone(IdeLogLevel level) {
 
     super(level);
   }
@@ -25,6 +35,15 @@ public final class IdeSubLoggerNone extends AbstractIdeSubLogger {
   public boolean isEnabled() {
 
     return false;
+  }
+
+  /**
+   * @param level the {@link IdeLogLevel}.
+   * @return the {@link IdeSubLoggerNone} instance.
+   */
+  public static IdeSubLoggerNone of(IdeLogLevel level) {
+
+    return LOGGERS[level.ordinal()];
   }
 
 }
