@@ -1,11 +1,8 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Locale;
-
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.property.FlagProperty;
 
 public class ContextCommandletTest extends AbstractIdeContextTest {
@@ -44,12 +41,11 @@ public class ContextCommandletTest extends AbstractIdeContextTest {
     // act
     cxt.run();
     // assert
-    assertThat(cxt.getIdeContext()).isInstanceOf(IdeContextConsole.class);
-    assertThat(cxt.getIdeContext().isForceMode()).isFalse();
-    assertThat(cxt.getIdeContext().isBatchMode()).isFalse();
-    assertThat(cxt.getIdeContext().isQuietMode()).isFalse();
-    assertThat(cxt.getIdeContext().isOfflineMode()).isFalse();
-    assertThat(cxt.getIdeContext().getLocale()).isEqualTo(Locale.getDefault());
+    assertThat(cxt.getStartContext().isForceMode()).isFalse();
+    assertThat(cxt.getStartContext().isBatchMode()).isFalse();
+    assertThat(cxt.getStartContext().isQuietMode()).isFalse();
+    assertThat(cxt.getStartContext().isOfflineMode()).isFalse();
+    assertThat(cxt.getStartContext().getLocale()).isNull();
   }
 
   /**
@@ -67,11 +63,10 @@ public class ContextCommandletTest extends AbstractIdeContextTest {
     // act
     cxt.run();
     // assert
-    assertThat(cxt.getIdeContext()).isInstanceOf(IdeContextConsole.class);
-    assertThat(cxt.getIdeContext().isForceMode()).isTrue();
-    assertThat(cxt.getIdeContext().isBatchMode()).isTrue();
-    assertThat(cxt.getIdeContext().isQuietMode()).isTrue();
-    assertThat(cxt.getIdeContext().isOfflineMode()).isTrue();
+    assertThat(cxt.getStartContext().isForceMode()).isTrue();
+    assertThat(cxt.getStartContext().isBatchMode()).isTrue();
+    assertThat(cxt.getStartContext().isQuietMode()).isTrue();
+    assertThat(cxt.getStartContext().isOfflineMode()).isTrue();
 
   }
 }
