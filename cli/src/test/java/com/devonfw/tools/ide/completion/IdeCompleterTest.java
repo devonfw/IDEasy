@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.completion;
 
-import java.nio.file.Path;
-
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.AutocompletionReaderTestSupport;
@@ -128,6 +126,6 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
 
   private IdeTestContext newTestContext() {
 
-    return new IdeTestContext(Path.of(""));
+    return newContext(PROJECT_BASIC, null, false);
   }
 }

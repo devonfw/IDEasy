@@ -7,6 +7,7 @@ import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeContextConsole;
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.Property;
@@ -110,7 +111,8 @@ public final class Ideasy {
       }
     }
     contextCommandlet.run();
-    return contextCommandlet.getIdeContext();
+    IdeStartContextImpl startContext = contextCommandlet.getStartContext();
+    return new IdeContextConsole(startContext);
   }
 
 }
