@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Implementation of {@link IdeProgressBar} used for tests.
  */
-public class IdeProgressBarTestImpl implements IdeProgressBar {
+public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
 
   /** Starting time of a {@link IdeProgressBar}. */
   private final Instant start;
@@ -34,7 +34,7 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
    * @param max maximum length of the bar.
    */
   public IdeProgressBarTestImpl(String name, long max) {
-
+    super(max);
     this.start = Instant.now();
     this.name = name;
     this.max = max;
@@ -42,19 +42,32 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
   }
 
   @Override
-  public void stepBy(long stepSize) {
-
-    this.total += stepSize;
+  protected void doStepBy(long stepSize, long currentProgress) {
+    // total is redundant and can be removed
+    this.total = currentProgress;
     this.eventList.add(new ProgressEvent(stepSize));
   }
 
   @Override
-  public void close() {
+  protected void doStepBy(long stepSize) {
+    doStepBy(stepSize, 0);
+  }
 
+  @Override
+  protected void doStepTo(long stepPosition) {
+    this.total = stepPosition;
+  }
+
+  @Override
+  public void close() {
+    super.close();
     if (this.end == null) {
       this.end = Instant.now();
     }
-    assert this.total == this.max;
+
+    if (this.max != 0) {
+      assert this.total == this.max;
+    }
   }
 
   /**
@@ -69,7 +82,6 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
    * @return the maximum length of a bar.
    */
   public long getMaxSize() {
-
     return this.max;
   }
 

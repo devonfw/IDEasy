@@ -65,9 +65,6 @@ public class FileAccessImpl implements FileAccess {
 
   private final IdeContext context;
 
-  /** The default value for missing content length */
-  public static final long DEFAULT_CONTENT_LENGTH = 10000000L;
-
   /**
    * The constructor.
    *
@@ -148,12 +145,10 @@ public class FileAccessImpl implements FileAccess {
           fileComplete = true;
         } else {
           bufferedOut.write(data, 0, count);
-          if (contentLength > 0) {
-            pb.stepBy(count);
-          }
+          pb.stepBy(count);
         }
       }
-      callStepByWithDefaultContentLength(contentLength, pb);
+
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -184,20 +179,12 @@ public class FileAccessImpl implements FileAccess {
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
           if (size > 0) {
-            pb.stepByOne();
+            pb.stepBy(readBytes);
           }
         }
-        callStepByWithDefaultContentLength(size, pb);
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    }
-  }
-
-  private void callStepByWithDefaultContentLength(long contentLength, IdeProgressBar progressBar) {
-
-    if (contentLength == 0) {
-      progressBar.stepBy(DEFAULT_CONTENT_LENGTH);
     }
   }
 
@@ -210,8 +197,8 @@ public class FileAccessImpl implements FileAccess {
       } else {
         source = url;
       }
-      this.context.warning("Content-Length was not provided by download/copy source: {}. Using fallback: Content-Length for the progress bar is set to {}.",
-          source, DEFAULT_CONTENT_LENGTH);
+      this.context.warning("Content-Length was not provided by download/copy source: {}.",
+          source);
     }
   }
 

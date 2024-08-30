@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.context;
 
-import static com.devonfw.tools.ide.io.FileAccessImpl.DEFAULT_CONTENT_LENGTH;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -50,7 +48,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    *     be used.
    * @param answers the automatic answers simulating a user in test.
    */
-  public AbstractIdeTestContext(Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository, String... answers) {
+  public AbstractIdeTestContext(IdeLoggerImpl logger, Path userDir, ToolRepository toolRepository, String... answers) {
 
     super(logger, userDir, toolRepository);
     this.answers = new String[0];
@@ -88,10 +86,6 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   @Override
   public IdeProgressBar prepareProgressBar(String taskName, long size) {
-
-    if (size == 0) {
-      size = DEFAULT_CONTENT_LENGTH;
-    }
 
     IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
     IdeProgressBarTestImpl duplicate = this.progressBarMap.put(taskName, progressBar);

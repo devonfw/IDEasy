@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.io;
 
-import static com.devonfw.tools.ide.io.FileAccessImpl.DEFAULT_CONTENT_LENGTH;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
@@ -65,16 +64,18 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     impl.download(testUrl, tempDir.resolve("windows_x64_url.tgz"), true);
 
     //assert
+    assertProgressBar(context, "Downloading", MAX_LENGTH);
     checkLogMessageForDefaultContentLength(context, testUrl);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
-    assertThat(progressBar.getMaxSize()).isEqualTo(DEFAULT_CONTENT_LENGTH);
+
+    assertThat(progressBar.getMaxSize()).isEqualTo(0);
   }
 
   private void checkLogMessageForDefaultContentLength(IdeTestContext context, String source) {
 
     assertThat(context).logAtWarning().hasMessage(
-        "Content-Length was not provided by download/copy source: " + source + ". Using fallback: Content-Length for the progress bar is set to 10000000.");
+        "Content-Length was not provided by download/copy source: " + source + ".");
   }
 
   /**
@@ -98,6 +99,6 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     checkLogMessageForDefaultContentLength(context, source);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
-    assertThat(progressBar.getMaxSize()).isEqualTo(DEFAULT_CONTENT_LENGTH);
+    assertThat(progressBar.getMaxSize()).isEqualTo(0);
   }
 }

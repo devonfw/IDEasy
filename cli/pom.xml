@@ -77,7 +77,7 @@
     <dependency>
       <groupId>me.tongfei</groupId>
       <artifactId>progressbar</artifactId>
-      <version>0.10.0</version>
+      <version>0.10.1</version>
     </dependency>
     <dependency>
       <groupId>org.jline</groupId>
