@@ -88,11 +88,11 @@ public class GitContextImpl implements GitContext {
     String remoteName = remoteAndBranch[0];
     String branch = remoteAndBranch[1];
 
-    return fetchIfNeeded(remoteName, branch, targetRepository);
+    return fetchIfNeeded(targetRepository, remoteName, branch);
   }
 
   @Override
-  public boolean fetchIfNeeded(String remoteName, String branch, Path targetRepository) {
+  public boolean fetchIfNeeded(Path targetRepository, String remoteName, String branch) {
 
     if (!context.isOnline()) {
       return false;

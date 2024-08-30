@@ -177,7 +177,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     GitContext gitContext = new GitContextImpl(context);
 
     // act
-    gitContext.fetchIfNeeded(repoUrl, remoteName, tempDir);
+    gitContext.fetchIfNeeded(tempDir, repoUrl, remoteName);
 
     // assert
     // Since the context is offline, no actions should be performed
@@ -207,7 +207,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     Files.setLastModifiedTime(fetchHead, FileTime.fromMillis(System.currentTimeMillis()));
 
     // act
-    gitContext.fetchIfNeeded(repoUrl, remoteName, tempDir);
+    gitContext.fetchIfNeeded(tempDir, repoUrl, remoteName);
 
     // assert
     // Since FETCH_HEAD is recent, no fetch should occur
