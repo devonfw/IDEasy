@@ -94,7 +94,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public boolean fetchIfNeeded(Path targetRepository, String remoteName, String branch) {
 
-    if (!context.isOnline()) {
+    if (this.context.isOffline()) {
       return false;
     }
 
