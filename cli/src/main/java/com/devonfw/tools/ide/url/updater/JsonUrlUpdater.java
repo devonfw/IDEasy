@@ -105,6 +105,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
    * Gets the {@link JsonObject} from the response of the version URL.
    *
    * @param response String from the JSON API request
+   * @param edition the data to get from the response corresponding to a specific edition.
    * @return {@link JsonObject} holding the available versions and possibly download urls of the tool.
    * @throws JsonProcessingException
    */
