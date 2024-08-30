@@ -44,13 +44,13 @@ public interface GitContext {
    * This method checks the last modified time of the `FETCH_HEAD` file in the `.git` directory to determine if a fetch is needed based on a predefined
    * threshold. If updates are available in the remote repository, it logs an information message prompting the user to pull the latest changes.
    *
+   * @param targetRepository the {@link Path} to the target folder where the git repository is located. It contains the `.git` subfolder.
    * @param remoteName the name of the remote repository, e.g., "origin".
    * @param branch the name of the branch to check for updates.
-   * @param targetRepository the {@link Path} to the target folder where the git repository is located. It contains the `.git` subfolder.
    * @return {@code true} if updates were detected after fetching from the remote repository, indicating that the local repository is behind the remote.
    *     {@code false} if no updates were detected or if no fetching was performed (e.g., the cache threshold was not met or the context is offline)
    */
-  boolean fetchIfNeeded(String remoteName, String branch, Path targetRepository);
+  boolean fetchIfNeeded(Path targetRepository, String remoteName, String branch);
 
   /**
    * Checks if there are updates available for the Git repository in the specified target folder by comparing the local commit hash with the remote commit
