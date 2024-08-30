@@ -13,14 +13,14 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * The {@Link JsonUrlUpdater} for Python
+ * The {@link JsonUrlUpdater} for Python
  */
 public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRelease> {
 
   /**
    * The base Url of the Python versions Json
    */
-  private String VERSION_BASE_URL = "https://raw.githubusercontent.com";
+  private final String VERSION_BASE_URL = "https://raw.githubusercontent.com";
 
   private final static String VERSION_FILENAME = "actions/python-versions/main/versions-manifest.json";
 
@@ -79,7 +79,7 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
   }
 
   @Override
-  protected PythonJsonObject getJsonObjectFromResponse(String response) throws JsonProcessingException {
+  protected PythonJsonObject getJsonObjectFromResponse(String response, String edition) throws JsonProcessingException {
     PythonRelease[] res = MAPPER.readValue(response, PythonRelease[].class);
     PythonJsonObject jsonObj = new PythonJsonObject();
     jsonObj.setReleases(List.of(res));
