@@ -18,7 +18,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * {@link AbstractUrlUpdater} that retrieves the {@link UrlVersion versions} of a {@link UrlEdition tool edition} from a HTTP response with JSON body.
+ * {@link AbstractUrlUpdater} that retrieves the {@link UrlVersion versions} of a {@link UrlEdition tool edition} from an HTTP response with JSON body.
  *
  * @param <J> type of the {@link JsonObject}.
  */
@@ -36,12 +36,16 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   public void update(UrlRepository urlRepository) {
 
     UrlTool tool = urlRepository.getOrCreateChild(getTool());
-    UrlEdition edition = tool.getOrCreateChild(getEdition());
-    updateExistingVersions(edition);
     try {
       String response = doGetResponseBodyAsString(doGetVersionUrl());
-      J jsonObj = getJsonObjectFromResponse(response);
-      collectVersionsWithDownloadsFromJson(jsonObj, edition);
+      for (String edition : getEditions()) {
+        J jsonObj = getJsonObjectFromResponse(response, edition);
+        if (jsonObj != null) {
+          UrlEdition urlEdition = tool.getOrCreateChild(edition);
+          updateExistingVersions(urlEdition);
+          collectVersionsWithDownloadsFromJson(jsonObj, urlEdition);
+        }
+      }
     } catch (Exception e) {
       throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
     }
@@ -90,7 +94,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
           addVersion(urlVersion, item);
           urlVersion.save();
         } catch (Exception e) {
-          logger.error("For tool {} we failed to add version {}.", getToolWithEdition(), version, e);
+          logger.error("For tool {} we failed to add version {}.", getToolWithEdition(edition.getName()), version, e);
         }
 
       }
@@ -100,11 +104,12 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
   /**
    * Gets the {@link JsonObject} from the response of the version URL.
    *
-   * @param response
+   * @param response String from the JSON API request
+   * @param edition the data to get from the response corresponding to a specific edition.
    * @return {@link JsonObject} holding the available versions and possibly download urls of the tool.
    * @throws JsonProcessingException
    */
-  protected J getJsonObjectFromResponse(String response) throws JsonProcessingException {
+  protected J getJsonObjectFromResponse(String response, String edition) throws JsonProcessingException {
     return MAPPER.readValue(response, getJsonObjectType());
   }
 
@@ -131,7 +136,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
    * json
    *
    * @param urlVersion the {@link UrlVersion} to be updated
-   * @param jsonVersionItem
+   * @param jsonVersionItem the {@link JsonVersionItem} holding the information about a specific version and possibly download links
    */
   protected void addVersion(UrlVersion urlVersion, JVI jsonVersionItem) {
 
