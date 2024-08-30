@@ -13,7 +13,6 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
-import com.devonfw.tools.ide.log.IdeLoggerImpl;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
@@ -48,7 +47,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    *     be used.
    * @param answers the automatic answers simulating a user in test.
    */
-  public AbstractIdeTestContext(IdeLoggerImpl logger, Path userDir, ToolRepository toolRepository, String... answers) {
+  public AbstractIdeTestContext(IdeStartContextImpl logger, Path userDir, ToolRepository toolRepository, String... answers) {
 
     super(logger, userDir, toolRepository);
     this.answers = new String[0];

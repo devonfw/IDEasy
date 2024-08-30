@@ -2,8 +2,9 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.context.IdeContextConsole;
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeSubLoggerOut;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.LocaleProperty;
 
@@ -26,7 +27,7 @@ public class ContextCommandlet extends Commandlet {
 
   private final LocaleProperty locale;
 
-  private AbstractIdeContext ideContext;
+  private IdeStartContextImpl startContext;
 
   /**
    * The constructor.
@@ -58,6 +59,22 @@ public class ContextCommandlet extends Commandlet {
   @Override
   public void run() {
 
+    IdeLogLevel logLevel = determineLogLevel();
+    if (this.startContext == null) {
+      this.startContext = new IdeStartContextImpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel));
+    } else if (this.context != null) {
+      IdeStartContextImpl newStartContext = ((AbstractIdeContext) this.context).getStartContext();
+      assert (this.startContext == newStartContext);
+      this.startContext = newStartContext;
+    }
+    this.startContext.setBatchMode(this.batch.isTrue());
+    this.startContext.setForceMode(this.force.isTrue());
+    this.startContext.setQuietMode(this.quiet.isTrue());
+    this.startContext.setOfflineMode(this.offline.isTrue());
+    this.startContext.setLocale(this.locale.getValue());
+  }
+
+  private IdeLogLevel determineLogLevel() {
     IdeLogLevel logLevel = IdeLogLevel.INFO;
     if (this.trace.isTrue()) {
       logLevel = IdeLogLevel.TRACE;
@@ -66,20 +83,14 @@ public class ContextCommandlet extends Commandlet {
     } else if (this.quiet.isTrue()) {
       logLevel = IdeLogLevel.WARNING;
     }
-
-    this.ideContext = new IdeContextConsole(logLevel, null, true);
-    this.ideContext.setBatchMode(this.batch.isTrue());
-    this.ideContext.setForceMode(this.force.isTrue());
-    this.ideContext.setQuietMode(this.quiet.isTrue());
-    this.ideContext.setOfflineMode(this.offline.isTrue());
-    this.ideContext.setLocale(this.locale.getValue());
+    return logLevel;
   }
 
   /**
-   * @return the {@link IdeContext} that has been created by {@link #run()}.
+   * @return the {@link IdeStartContextImpl} that has been created by {@link #run()}.
    */
-  public AbstractIdeContext getIdeContext() {
+  public IdeStartContextImpl getStartContext() {
 
-    return this.ideContext;
+    return this.startContext;
   }
 }
