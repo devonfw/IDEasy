@@ -467,7 +467,7 @@ public abstract class Property<V> {
         validator.validate(value, state);
       }
     }
-    return true;
+    return state.isValid();
   }
 
   @Override
