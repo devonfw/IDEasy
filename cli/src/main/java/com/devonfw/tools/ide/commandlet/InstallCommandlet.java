@@ -4,7 +4,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.property.VersionProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.validation.PropertyValidator;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -31,13 +30,12 @@ public class InstallCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     this.tool = add(new ToolProperty("", true, "tool"));
-
-    PropertyValidator<VersionIdentifier> p = (VersionIdentifier value, ValidationState validationState) -> {
-      if (!value.isValid()) {
-        validationState.addErrorMessage("Version is not valid");
-      }
-    };
-    this.version = add(new VersionProperty("", false, "version", p));
+    this.version = add(new VersionProperty("", false, "version",
+        (VersionIdentifier v, ValidationState state) -> {
+          if (!v.isValid()) {
+            state.addErrorMessage("Given version " + v + " is not a valid version");
+          }
+        }));
   }
 
   @Override

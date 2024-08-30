@@ -5,11 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.validation.PropertyValidator;
+import com.devonfw.tools.ide.validation.ValidationState;
 
 /**
  * {@link Property} with {@link Path} as {@link #getValueType() value type}.
@@ -59,20 +59,20 @@ public class PathProperty extends Property<Path> {
   }
 
   @Override
-  public boolean validate() {
-
+  public ValidationState validate() {
+    ValidationState state = super.validate();
     for (Path path : this.value) {
       if (path != null && Files.exists(path)) {
         if (isPathRequiredToBeFile() && !Files.isRegularFile(path)) {
-          throw new CliException("Path " + path + " is not a file.");
+          state.addErrorMessage("Path " + path + " is not a file.");
         } else if (isPathRequiredToBeFolder() && !Files.isDirectory(path)) {
-          throw new CliException("Path " + path + " is not a folder.");
+          state.addErrorMessage("Path " + path + " is not a folder.");
         }
       } else if (isPathRequiredToExist()) {
-        throw new CliException("Path " + path + " does not exist.");
+        state.addErrorMessage("Path " + path + " does not exist.");
       }
     }
-    return super.validate();
+    return state;
 
   }
 

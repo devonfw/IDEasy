@@ -41,8 +41,6 @@ public abstract class Property<V> {
 
   private final PropertyValidator<V> validator;
 
-  private ValidationState state = new ValidationState();
-
   /** @see #isMultiValued() */
   private final boolean multivalued;
 
@@ -457,17 +455,20 @@ public abstract class Property<V> {
    * @throws RuntimeException if the {@link #getValue() value} is violating given constraints. This is checked by the optional {@link Consumer} function
    *     given at construction time.
    */
-  public boolean validate() {
+  public ValidationState validate() {
+
+    ValidationState state = new ValidationState();
 
     if (this.required && (getValue() == null)) {
-      return false;
+      state.addErrorMessage("Property " + this.name + " is required but no value has been set");
+      return state;
     }
     if (this.validator != null) {
       for (V value : this.value) {
         validator.validate(value, state);
       }
     }
-    return state.isValid();
+    return state;
   }
 
   @Override
