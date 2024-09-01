@@ -693,8 +693,10 @@ public class FileAccessImpl implements FileAccess {
         if (isTar && !this.context.getSystemInfo().isWindows()) {
           Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
           Files.setPosixFilePermissions(entryPath, permissions);
+          pb.stepBy(((TarArchiveEntry) entry).getRealSize());
+        } else {
+          pb.stepBy(entry.getSize());
         }
-        pb.stepBy(entry.getSize());
         entry = ais.getNextEntry();
       }
       // ensure that missing file size is added to the extraction progressbar
