@@ -613,8 +613,9 @@ public class FileAccessImpl implements FileAccess {
   public void extractJar(Path file, Path targetDir) {
 
     this.context.trace("Unpacking JAR {} to {}", file, targetDir);
+    long totalFileSize = 0;
     try (JarInputStream jis = new JarInputStream(Files.newInputStream(file)); IdeProgressBar pb = this.context.prepareProgressBar("Unpacking",
-        Files.size(file))) {
+        totalFileSize = Files.size(file))) {
       JarEntry entry;
       while ((entry = jis.getNextJarEntry()) != null) {
         Path entryPath = targetDir.resolve(entry.getName()).toAbsolutePath();
@@ -628,10 +629,14 @@ public class FileAccessImpl implements FileAccess {
         } else {
           Files.createDirectories(entryPath.getParent());
           Files.copy(jis, entryPath);
-          pb.stepBy(entry.getSize());
+          pb.stepBy(entry.getCompressedSize());
         }
 
         jis.closeEntry();
+      }
+      // ensure that missing file size is added to the extraction progressbar
+      if (pb.getCurrent() < (totalFileSize)) {
+        pb.stepBy(totalFileSize - pb.getCurrent());
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract JAR " + file + " to " + targetDir, e);
@@ -661,8 +666,9 @@ public class FileAccessImpl implements FileAccess {
   private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
+    long totalFileSize = 0;
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is); IdeProgressBar pb = this.context.prepareProgressBar(
-        "Unpacking", Files.size(file))) {
+        "Unpacking", totalFileSize = Files.size(file))) {
       ArchiveEntry entry = ais.getNextEntry();
       boolean isTar = ais instanceof TarArchiveInputStream;
       while (entry != null) {
@@ -690,6 +696,10 @@ public class FileAccessImpl implements FileAccess {
         }
         pb.stepBy(entry.getSize());
         entry = ais.getNextEntry();
+      }
+      // ensure that missing file size is added to the extraction progressbar
+      if (pb.getCurrent() < (totalFileSize)) {
+        pb.stepBy(totalFileSize - pb.getCurrent());
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);

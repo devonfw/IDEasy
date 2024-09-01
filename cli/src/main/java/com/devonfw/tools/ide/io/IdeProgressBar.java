@@ -13,6 +13,11 @@ public interface IdeProgressBar extends AutoCloseable {
   void stepBy(long stepSize);
 
   /**
+   * @return the current progressbar size
+   */
+  long getCurrent();
+
+  /**
    * Increases the progress bar by one step.
    */
   default void stepByOne() {
@@ -22,4 +27,6 @@ public interface IdeProgressBar extends AutoCloseable {
 
   @Override
   void close();
+
+
 }

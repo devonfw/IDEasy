@@ -49,6 +49,11 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
   }
 
   @Override
+  public long getCurrent() {
+    return this.total;
+  }
+
+  @Override
   public void close() {
 
     if (this.end == null) {
@@ -71,6 +76,14 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
   public long getMaxSize() {
 
     return this.max;
+  }
+
+  /**
+   * @return the total length of a bar.
+   */
+  public long getTotalSize() {
+
+    return this.total;
   }
 
   /**
@@ -110,6 +123,7 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
 
       return this.stepSize;
     }
+
   }
 
 }
