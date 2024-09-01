@@ -5,7 +5,6 @@ import java.util.Scanner;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarConsole;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeLoggerImpl;
 import com.devonfw.tools.ide.log.IdeSubLoggerOut;
 
 import me.tongfei.progressbar.ProgressBarBuilder;
@@ -27,7 +26,23 @@ public class IdeContextConsole extends AbstractIdeContext {
    */
   public IdeContextConsole(IdeLogLevel minLogLevel, Appendable out, boolean colored) {
 
-    super(new IdeLoggerImpl(minLogLevel, level -> new IdeSubLoggerOut(level, out, colored, minLogLevel)), null, null);
+    super(new IdeStartContextImpl(minLogLevel, level -> new IdeSubLoggerOut(level, out, colored, minLogLevel)), null, null);
+    if (System.console() == null) {
+      debug("System console not available - using System.in as fallback");
+      this.scanner = new Scanner(System.in);
+    } else {
+      this.scanner = null;
+    }
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param startContext the {@link IdeStartContextImpl}.
+   */
+  public IdeContextConsole(IdeStartContextImpl startContext) {
+
+    super(startContext, null, null);
     if (System.console() == null) {
       debug("System console not available - using System.in as fallback");
       this.scanner = new Scanner(System.in);
