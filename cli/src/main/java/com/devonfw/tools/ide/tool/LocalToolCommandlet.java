@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -101,11 +104,40 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
       this.context.getPath().setPath(this.tool, installation.binDir());
       postInstall();
+      String successMessage = "";
       if (installedVersion == null) {
-        step.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
+        successMessage = String.format("Successfully installed %s in version %s", this.tool, resolvedVersion);
+        step.success(successMessage);
       } else {
-        step.success("Successfully installed {} in version {} replacing previous version {}", this.tool, resolvedVersion, installedVersion);
+        successMessage = String.format("Successfully installed {} in version {} replacing previous version {}", this.tool, resolvedVersion, installedVersion);
+        step.success(successMessage);
       }
+
+      Path softwarePath = context.getSoftwarePath();
+      Path successFilePath = softwarePath.resolve("success.txt");
+      if (!Files.exists(successFilePath)) {
+        this.context.getFileAccess().mkdirs(successFilePath.getParent());
+        try {
+          Files.createFile(successFilePath);
+        } catch (IOException e) {
+          throw new IllegalStateException("Could not create file: " + successFilePath, e);
+        }
+      }
+
+      List<String> linesToWrite = new ArrayList<>();
+
+      LocalDateTime dateTimeNow = LocalDateTime.now();
+      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+
+      // Format the date-time to the desired format
+      String formattedDateTime = dateTimeNow.format(formatter);
+      linesToWrite.add(formattedDateTime + ": " + successMessage);
+      try {
+        Files.write(successFilePath, linesToWrite, StandardOpenOption.CREATE);
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not write to text file: " + successFilePath, e);
+      }
+
       return true;
     } catch (RuntimeException e) {
       step.error(e, true);
