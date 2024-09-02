@@ -1,0 +1,6 @@
+= IDEAsy Design
+
+[plantuml]
+----
+include::images/design.puml[]
+----

@@ -16,14 +16,14 @@ Even though it should be common sense how to do configuration- and release-manag
 
 === Binary Releases
 
-First of all a reasonable tool should offer binary releases for all major platforms.
+First of all a reasonable tool should either be entirely platform independent or offer binary releases for all major platforms.
 A minimum requirement for major platforms should be:
 
 * Windows on x86 architecture
 * MacOS on ARM architecture
 * Linux on x86 architecture
 
-Additional platforms like MacOS on x86 architecture would also be lovely to have if you want your tool to be used worldwide.
+Additional platforms like MacOS on x86 and Windows on ARM would also be lovely to have if you want your tool to be used worldwide.
 Do not leave your users left in the rain saying "build the release from the source-code" without shipping ready to use binaries!
 Nowadays platforms like github and others make it easy to automate cross platform builds and publishing releases with the click of a button.
 Tools that tell MacOS users to build the binary manually from the source-code (with complex and maybe vague instructions) should not be considered premium.
@@ -94,7 +94,9 @@ In general most great tools like https://www.java.com/[java], https://dotnet.mic
 
 === Rationale
 
-For arbitary reasons we introduced the concept of a shared link:software.adoc#repository[software repository] what is a powerful feature giving many advantages and on Windows seems to be the only reasonable way to allow upgrading/downgrading tools without hitting the famous https://techcommunity.microsoft.com/t5/windows-blog-archive/the-case-of-the-mysterious-locked-file/ba-p/723349[Windows file locking error].
+First of all it is a security best-practice that a tool should not modify itself and write to its installation location.
+However, in the early days of computers nobody was thinking about the Internet and Hackers.
+Also, for arbitary reasons we introduced the concept of a shared link:software.adoc#repository[software repository] what is a powerful feature giving many advantages and on Windows seems to be the only reasonable way to allow upgrading/downgrading tools without hitting the famous https://techcommunity.microsoft.com/t5/windows-blog-archive/the-case-of-the-mysterious-locked-file/ba-p/723349[Windows file locking error].
 Another important aspect is to consider the link:sandbox.adoc[sandbox] principle of IDEasy.
 
 === Plugins
@@ -118,6 +120,9 @@ Tools that are widely used but do not support this principle are:
 
 These tools have their package manager as an individual tool with its own release cycles that lives inside the runtime of the tool itself.
 Even worse, other tools from their ecosystem installed via the package manager are also installed inside the runtime installation itself violating the principle of a pristine software installation.
+You end up with a "big ball of mud" where many different libraries and tools get mixed up in the same installation.
+How do you deal with two dependent tools that require different versions of the SDK (e.g. Python or node)?
+How do you update something if all is mixed inside this "big ball of mud" (what files to remove and replace and what to keep untouched)?
 
 ==== Example
 
@@ -133,7 +138,7 @@ Tools typically can take parameters and options.
 Please consider best practices from POSIX, GNU, IEE, and Open Group (e.g. see https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap12.html[here]) from the start.
 Most CLIs violate such rules for no good reason.
 As an example distinguish between short options (`-h`, `-v`, `-q`, `-f`) that typically can be combined (`-qf` for `-q -f`) and long-options (`--help` or `--version`).
-Also a good convention is the end options argument (`--`) that e.g. allows you to delete an accidentally created file named `-f` in bash (via `rm -- -f`).
+Also a good convention is the end options argument (`--`) that e.g. allows you to delete an accidentally created file named `-f` in bash (via `rm \-- -f`).
 
 === Version
 
