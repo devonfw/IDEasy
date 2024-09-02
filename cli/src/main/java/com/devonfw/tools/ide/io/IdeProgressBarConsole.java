@@ -30,6 +30,14 @@ public class IdeProgressBarConsole extends AbstractIdeProgressBar {
   }
 
   /**
+   * @return the {@link ProgressBar}.
+   */
+  protected ProgressBar getProgressBar() {
+
+    return progressBar;
+  }
+
+  /**
    * Creates the {@link ProgressBar} initializes task name and maximum size as well as the behaviour and style.
    *
    * @param taskName name of the task.
