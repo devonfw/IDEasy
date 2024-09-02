@@ -60,8 +60,7 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
   @Override
   public void close() {
     if (this.currentProgress < this.maxLength) {
-      // TODO: Check if doStepTo should be used instead.
-      doStepBy(this.maxLength - this.currentProgress, this.currentProgress);
+      doStepTo(this.maxLength);
     }
   }
 
