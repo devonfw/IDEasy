@@ -39,15 +39,24 @@ public class IdeProgressBarConsole extends AbstractIdeProgressBar {
   protected ProgressBar createProgressBar(String taskName, long size) {
 
     ProgressBarBuilder pbb = new ProgressBarBuilder();
-    // default (COLORFUL_UNICODE_BLOCK)
-    pbb.setStyle(ProgressBarStyle.builder().refreshPrompt("\r").leftBracket("\u001b[33m│").delimitingSequence("")
-        .rightBracket("│\u001b[0m").block('█').space(' ').fractionSymbols(" ▏▎▍▌▋▊▉").rightSideFractionSymbol(' ')
-        .build());
-    // set different style for Windows systems (ASCII)
+    String leftBracket, rightBracket, fractionSymbols;
+    char block;
     if (this.systemInfo.isWindows()) {
-      pbb.setStyle(ProgressBarStyle.builder().refreshPrompt("\r").leftBracket("[").delimitingSequence("")
-          .rightBracket("]").block('=').space(' ').fractionSymbols(">").rightSideFractionSymbol(' ').build());
+      // set different style for Windows systems (ASCII)
+      leftBracket = "[";
+      rightBracket = "]";
+      fractionSymbols = ">";
+      block = '=';
+    } else {
+      // default (COLORFUL_UNICODE_BLOCK)
+      leftBracket = "\u001b[33m│";
+      rightBracket = "│\u001b[0m";
+      fractionSymbols = " ▏▎▍▌▋▊▉";
+      block = '█';
     }
+    pbb.setStyle(ProgressBarStyle.builder().refreshPrompt("\r").leftBracket(leftBracket).delimitingSequence("")
+        .rightBracket(rightBracket).block(block).space(' ').fractionSymbols(fractionSymbols).rightSideFractionSymbol(' ')
+        .build()); 
 
     pbb.setUnit("MiB", 1048576);
     if (size == 0) {
