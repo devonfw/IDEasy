@@ -40,13 +40,13 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
 
     IdeContext context = newContext(tempDir);
     FileAccess impl = context.getFileAccess();
-    impl.download(wmRuntimeInfo.getHttpBaseUrl() + TEST_URL, tempDir.resolve("windows_x64_url.tgz"), true);
+    impl.download(wmRuntimeInfo.getHttpBaseUrl() + TEST_URL, tempDir.resolve("windows_x64_url.tgz"));
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     assertProgressBar(context, "Downloading", MAX_LENGTH);
   }
 
   /**
-   * Tests if {@link FileAccessImpl#download(String, Path, boolean)} with default value for missing content length is working properly.
+   * Tests if {@link FileAccess#download(String, Path)} with default value for missing content length is working properly.
    *
    * @param tempDir temporary directory to use.
    * @param wmRuntimeInfo wireMock server on a random port
@@ -61,7 +61,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     FileAccess impl = context.getFileAccess();
     //act
     String testUrl = wmRuntimeInfo.getHttpBaseUrl() + TEST_URL;
-    impl.download(testUrl, tempDir.resolve("windows_x64_url.tgz"), true);
+    impl.download(testUrl, tempDir.resolve("windows_x64_url.tgz"));
 
     //assert
     assertProgressBar(context, "Downloading", MAX_LENGTH);
@@ -69,7 +69,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
 
-    assertThat(progressBar.getMaxSize()).isEqualTo(0);
+    assertThat(progressBar.getMaxSize()).isEqualTo(-1);
   }
 
   private void checkLogMessageForDefaultContentLength(IdeTestContext context, String source) {
@@ -79,7 +79,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if {@link FileAccessImpl#download(String, Path, boolean)} with default value for missing content length is working properly.
+   * Tests if {@link FileAccess#download(String, Path)} with default value for missing content length is working properly.
    *
    * @param tempDir temporary directory to use.
    */
@@ -89,16 +89,17 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     //arrange
     String taskName = "Copying";
     IdeTestContext context = newContext(tempDir);
-    FileAccess impl = context.getFileAccess();
+
+    FileAccessTestImpl impl = new FileAccessTestImpl(context);
     String source = Path.of("src/test/resources/__files").resolve("testZip").toString();
 
     //act
-    impl.download(source, tempDir.resolve("windows_x64_url.tgz"), true);
+    impl.download(source, tempDir.resolve("windows_x64_url.tgz"));
 
     //assert
     checkLogMessageForDefaultContentLength(context, source);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
-    assertThat(progressBar.getMaxSize()).isEqualTo(0);
+    assertThat(progressBar.getMaxSize()).isEqualTo(-1);
   }
 }

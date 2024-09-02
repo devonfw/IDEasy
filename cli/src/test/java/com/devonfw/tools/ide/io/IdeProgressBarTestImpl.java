@@ -43,7 +43,6 @@ public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
 
   @Override
   protected void doStepBy(long stepSize, long currentProgress) {
-    // total is redundant and can be removed
     this.total = currentProgress;
     this.eventList.add(new ProgressEvent(stepSize));
   }
@@ -65,7 +64,7 @@ public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
       this.end = Instant.now();
     }
 
-    if (this.max != 0) {
+    if (this.max != -1) {
       assert this.total == this.max;
     }
   }

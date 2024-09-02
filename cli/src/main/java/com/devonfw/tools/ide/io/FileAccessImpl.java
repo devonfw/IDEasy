@@ -89,7 +89,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void download(String url, Path target, boolean test) {
+  public void download(String url, Path target) {
 
     this.context.info("Trying to download {} from {}", target.getFileName(), url);
     mkdirs(target.getParent());
@@ -109,7 +109,8 @@ public class FileAccessImpl implements FileAccess {
         Path source = Path.of(url);
         if (isFile(source)) {
           // network drive
-          copyFileWithProgressBar(source, target, test);
+
+          copyFileWithProgressBar(source, target);
         } else {
           throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
         }
@@ -128,8 +129,8 @@ public class FileAccessImpl implements FileAccess {
    */
   private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
-    long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
-    informAboutSettingDefaultContentLength(contentLength, url, null);
+    long contentLength = response.headers().firstValueAsLong("content-length").orElse(-1);
+    informAboutMissingContentLength(contentLength, url, null);
 
     byte[] data = new byte[1024];
     boolean fileComplete = false;
@@ -159,19 +160,13 @@ public class FileAccessImpl implements FileAccess {
    *
    * @param source Path of file to copy
    * @param target Path of target directory
-   * @param test the flag about calling this method from test classes.
    */
-  private void copyFileWithProgressBar(Path source, Path target, boolean test) throws IOException {
+  private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
     try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
       long size;
-      if (test) {
-        size = 0L;
-      } else {
-        size = source.toFile().length();
-      }
-
-      informAboutSettingDefaultContentLength(size, null, source);
+      size = getFileSize(source);
+      informAboutMissingContentLength(size, null, source);
       byte[] buf = new byte[1024];
       int readBytes;
 
@@ -188,10 +183,10 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  private void informAboutSettingDefaultContentLength(long contentLength, String url, Path path) {
+  private void informAboutMissingContentLength(long contentLength, String url, Path path) {
 
     String source;
-    if (contentLength == 0) {
+    if (contentLength < 0) {
       if (path != null) {
         source = path.toString();
       } else {
@@ -858,6 +853,17 @@ public class FileAccessImpl implements FileAccess {
   public boolean isEmptyDir(Path dir) {
 
     return listChildren(dir, f -> true).isEmpty();
+  }
+
+  /**
+   * Gets the file size of a provided file path.
+   *
+   * @param path of the file.
+   * @return the file size.
+   */
+  protected long getFileSize(Path path) {
+
+    return path.toFile().length();
   }
 
   @Override

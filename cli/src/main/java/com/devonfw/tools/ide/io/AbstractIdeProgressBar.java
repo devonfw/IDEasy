@@ -5,9 +5,6 @@ package com.devonfw.tools.ide.io;
  */
 public abstract class AbstractIdeProgressBar implements IdeProgressBar {
 
-  /** The default value for missing content length */
-  public static final long DEFAULT_CONTENT_LENGTH = 10000000L;
-
   private long currentProgress;
   private final long maxLength;
 
@@ -23,7 +20,7 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
    * Increases the progress bar by given step size.
    *
    * @param stepSize size to step by.
-   * @param currentProgress
+   * @param currentProgress current progress state.
    */
   protected abstract void doStepBy(long stepSize, long currentProgress);
 
@@ -59,6 +56,10 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
 
   @Override
   public void close() {
+    if (this.maxLength < 0) {
+      return;
+    }
+
     if (this.currentProgress < this.maxLength) {
       doStepTo(this.maxLength);
     }

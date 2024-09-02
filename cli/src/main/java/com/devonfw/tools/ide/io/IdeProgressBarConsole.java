@@ -56,10 +56,10 @@ public class IdeProgressBarConsole extends AbstractIdeProgressBar {
     }
     pbb.setStyle(ProgressBarStyle.builder().refreshPrompt("\r").leftBracket(leftBracket).delimitingSequence("")
         .rightBracket(rightBracket).block(block).space(' ').fractionSymbols(fractionSymbols).rightSideFractionSymbol(' ')
-        .build()); 
+        .build());
 
     pbb.setUnit("MiB", 1048576);
-    if (size == 0) {
+    if (size <= 0) {
       pbb.setTaskName(taskName + " (unknown size)");
       pbb.setInitialMax(-1);
       pbb.hideEta();

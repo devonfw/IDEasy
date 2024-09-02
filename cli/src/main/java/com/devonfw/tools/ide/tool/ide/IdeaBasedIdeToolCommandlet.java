@@ -109,7 +109,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     }
     String fileName = String.format("%s-plugin-%s%s", this.getName(), pluginId, extension);
     Path downloadedFile = tmpDir.resolve(fileName);
-    fileAccess.download(downloadUrl, downloadedFile, false);
+    fileAccess.download(downloadUrl, downloadedFile);
     return downloadedFile;
   }
 
