@@ -73,12 +73,24 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
     // when
     updater.update(urlRepository);
 
-    Path intellijVersionsPath = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.1");
-
     // then
-    assertThat(intellijVersionsPath.resolve("status.json")).exists();
-    assertThat(intellijVersionsPath.resolve("linux_x64.urls")).exists();
-    assertThat(intellijVersionsPath.resolve("linux_x64.urls.sha256")).exists();
+    Path intellijVersionsPath1 = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.1");
+    assertThat(intellijVersionsPath1.resolve("status.json")).exists();
+    assertThat(intellijVersionsPath1.resolve("linux_x64.urls")).exists();
+    assertThat(intellijVersionsPath1.resolve("linux_x64.urls.sha256")).exists();
+    Path intellijVersionsPath2 = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.2");
+    assertThat(intellijVersionsPath2.resolve("status.json")).exists();
+    assertThat(intellijVersionsPath2.resolve("linux_x64.urls")).exists();
+    assertThat(intellijVersionsPath2.resolve("linux_x64.urls.sha256")).exists();
+    Path intellijultimateVersionsPath1 = tempDir.resolve("intellij").resolve("ultimate").resolve("2023.1.1");
+    assertThat(intellijultimateVersionsPath1.resolve("status.json")).exists();
+    assertThat(intellijultimateVersionsPath1.resolve("linux_x64.urls")).exists();
+    assertThat(intellijultimateVersionsPath1.resolve("linux_x64.urls.sha256")).exists();
+    Path intellijultimateVersionsPath2 = tempDir.resolve("intellij").resolve("ultimate").resolve("2023.1.2");
+    assertThat(intellijultimateVersionsPath2.resolve("status.json")).exists();
+    assertThat(intellijultimateVersionsPath2.resolve("linux_x64.urls")).exists();
+    assertThat(intellijultimateVersionsPath2.resolve("linux_x64.urls.sha256")).exists();
+
 
   }
 
