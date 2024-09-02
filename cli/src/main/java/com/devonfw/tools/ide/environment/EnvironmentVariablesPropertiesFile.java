@@ -99,10 +99,14 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
     }
     Path newPropertiesFilePath = this.propertiesFilePath;
     String propertiesFileName = this.propertiesFilePath.getFileName().toString();
+    Path propertiesParentPath = newPropertiesFilePath.getParent();
+
     if (LEGACY_PROPERTIES.equals(propertiesFileName)) {
-      newPropertiesFilePath = this.propertiesFilePath.getParent().resolve(DEFAULT_PROPERTIES);
+      newPropertiesFilePath = propertiesParentPath.resolve(DEFAULT_PROPERTIES);
       this.context.info("Converting legacy properties to {}", newPropertiesFilePath);
     }
+
+    this.context.getFileAccess().mkdirs(propertiesParentPath);
     List<VariableLine> lines = new ArrayList<>();
 
     // Skip reading if the file does not exist

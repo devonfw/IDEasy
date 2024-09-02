@@ -21,13 +21,16 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
   /**
    * Test of {@link EnvironmentVariablesPropertiesFile} including legacy support.
    */
+
+  private final static Path envVarPath = Path.of("src/test/resources/com/devonfw/tools/ide/env/var/");
+  private final static EnvironmentVariablesType type = EnvironmentVariablesType.SETTINGS;
+  private final static AbstractEnvironmentVariables parent = null;
+
   @Test
   public void testLoad() {
 
     // arrange
-    AbstractEnvironmentVariables parent = null;
-    Path propertiesFilePath = Path.of("src/test/resources/com/devonfw/tools/ide/env/var/devon.properties");
-    EnvironmentVariablesType type = EnvironmentVariablesType.SETTINGS;
+    Path propertiesFilePath = envVarPath.resolve("devon.properties");
     // act
     EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(parent, type,
         propertiesFilePath, IdeTestContextMock.get());
@@ -66,9 +69,6 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     // check if this writing was correct
     List<String> lines = Files.readAllLines(propertiesFilePath);
     assertThat(lines).containsExactlyElementsOf(linesToWrite);
-
-    AbstractEnvironmentVariables parent = null;
-    EnvironmentVariablesType type = EnvironmentVariablesType.SETTINGS;
 
     EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(parent, type,
         propertiesFilePath, IdeTestContextMock.get());
@@ -109,4 +109,28 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     lines = Files.readAllLines(propertiesFilePath);
     assertThat(lines).containsExactlyElementsOf(linesAfterSave);
   }
+
+  @Test
+  void testSaveWithMissingParentFilePath() throws Exception {
+    // arrange
+    Path propertiesFilePath = envVarPath.resolve("test.properties");
+
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(parent, type,
+        propertiesFilePath, IdeTestContextMock.get());
+
+    // act
+    variables.set("var1", "1.0", false);
+    variables.set("var2", "2", true);
+
+    variables.save();
+
+    // assert
+    List<String> linesAfterSave = new ArrayList<>();
+    linesAfterSave.add("export var2=2");
+    linesAfterSave.add("var1=1.0");
+
+    List<String> lines = Files.readAllLines(propertiesFilePath);
+    assertThat(lines).containsExactlyElementsOf(linesAfterSave);
+  }
+
 }
