@@ -105,15 +105,6 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
     }
     List<VariableLine> lines = new ArrayList<>();
 
-    // Ensure the parent directory exists
-    try {
-      if (newPropertiesFilePath.getParent() != null) {
-        Files.createDirectories(newPropertiesFilePath.getParent());
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to create parent directories for " + newPropertiesFilePath, e);
-    }
-
     // Skip reading if the file does not exist
     if (Files.exists(newPropertiesFilePath)) {
       try (BufferedReader reader = Files.newBufferedReader(newPropertiesFilePath)) {
