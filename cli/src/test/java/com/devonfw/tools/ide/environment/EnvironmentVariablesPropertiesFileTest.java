@@ -22,20 +22,19 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
    * Test of {@link EnvironmentVariablesPropertiesFile} including legacy support.
    */
 
-  private final static Path envVarPath = Path.of("src/test/resources/com/devonfw/tools/ide/env/var/");
-  private final static EnvironmentVariablesType type = EnvironmentVariablesType.SETTINGS;
-  private final static AbstractEnvironmentVariables parent = null;
+  private static final Path ENV_VAR_PATH = Path.of("src/test/resources/com/devonfw/tools/ide/env/var/");
+  private static final EnvironmentVariablesType TYPE = EnvironmentVariablesType.SETTINGS;
 
   @Test
   public void testLoad() {
 
     // arrange
-    Path propertiesFilePath = envVarPath.resolve("devon.properties");
+    Path propertiesFilePath = ENV_VAR_PATH.resolve("devon.properties");
     // act
-    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(parent, type,
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
         propertiesFilePath, IdeTestContextMock.get());
     // assert
-    assertThat(variables.getType()).isSameAs(type);
+    assertThat(variables.getType()).isSameAs(TYPE);
     assertThat(variables.get("MVN_VERSION")).isEqualTo("3.9.0");
     assertThat(variables.get("IDE_TOOLS")).isEqualTo("mvn, npm");
     assertThat(variables.get("CREATE_START_SCRIPTS")).isEqualTo("eclipse");
@@ -70,7 +69,7 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     List<String> lines = Files.readAllLines(propertiesFilePath);
     assertThat(lines).containsExactlyElementsOf(linesToWrite);
 
-    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(parent, type,
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
         propertiesFilePath, IdeTestContextMock.get());
 
     // act
@@ -113,9 +112,9 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
   @Test
   void testSaveWithMissingParentFilePath() throws Exception {
     // arrange
-    Path propertiesFilePath = envVarPath.resolve("test.properties");
+    Path propertiesFilePath = ENV_VAR_PATH.resolve("test.properties");
 
-    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(parent, type,
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
         propertiesFilePath, IdeTestContextMock.get());
 
     // act
