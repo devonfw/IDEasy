@@ -22,9 +22,8 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
    * Test of {@link EnvironmentVariablesPropertiesFile} including legacy support.
    */
 
-  private final static Path envVarPath = Path.of("src/test/resources/com/devonfw/tools/ide/env/var/");
-  private final static EnvironmentVariablesType type = EnvironmentVariablesType.SETTINGS;
-  private final static AbstractEnvironmentVariables parent = null;
+  private static final Path ENV_VAR_PATH = Path.of("src/test/resources/com/devonfw/tools/ide/env/var/");
+  private static final EnvironmentVariablesType TYPE = EnvironmentVariablesType.SETTINGS;
 
   @Test
   public void testLoad() {
