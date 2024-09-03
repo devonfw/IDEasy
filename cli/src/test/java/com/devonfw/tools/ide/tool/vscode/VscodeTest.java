@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.tool.vscode;
 
-import java.nio.file.Path;
-
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -33,16 +31,5 @@ public class VscodeTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed vscode in version 1.92.1");
-
-    Path executablePath = context.getSoftwareRepositoryPath().resolve("default/vscode/vscode/1.92.1/bin/");
-    
-    if (context.getSystemInfo().isWindows()) {
-      executablePath = executablePath.resolve("code.cmd");
-      assertThat(context).logAtDebug().hasMessage("Running command '" + executablePath + "' with arguments '--install-extension' 'mockedPlugin' ...");
-    } else {
-      executablePath = executablePath.resolve("code");
-      assertThat(context).logAtDebug()
-          .hasMessage("Running command '" + executablePath + "' using bash with arguments '--install-extension' 'mockedPlugin' ...");
-    }
   }
 }

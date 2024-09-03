@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.plugin;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -153,15 +154,20 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     }
     if (installPlugins) {
       PluginMaps pluginMaps = getPluginsMap();
-      for (PluginDescriptor plugin : pluginMaps.getPlugins()) {
-        if (plugin.isActive()) {
-          installPlugin(plugin);
-        } else {
-          handleInstall4InactivePlugin(plugin);
-        }
-      }
+      Collection<PluginDescriptor> plugins = pluginMaps.getPlugins();
+      installPlugins(plugins);
     }
     return newlyInstalled;
+  }
+
+  protected void installPlugins(Collection<PluginDescriptor> plugins) {
+    for (PluginDescriptor plugin : plugins) {
+      if (plugin.isActive()) {
+        installPlugin(plugin);
+      } else {
+        handleInstall4InactivePlugin(plugin);
+      }
+    }
   }
 
   /**
