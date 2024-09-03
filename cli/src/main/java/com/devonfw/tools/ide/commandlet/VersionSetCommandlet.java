@@ -53,7 +53,7 @@ public class VersionSetCommandlet extends Commandlet {
   }
 
   @Override
-  public ToolCommandlet getToolForVersionCompletion() {
+  public ToolCommandlet getToolForCompletion() {
 
     return this.tool.getValue();
   }

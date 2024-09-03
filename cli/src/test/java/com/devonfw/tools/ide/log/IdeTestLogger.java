@@ -1,31 +1,31 @@
 package com.devonfw.tools.ide.log;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
+
 /**
- * Implementation of {@link IdeSubLogger} for testing that collects all messages and allows to check if an expected message was logged.
+ * Extends {@link IdeStartContextImpl} for testing.
  */
-public class IdeTestLogger extends IdeSlf4jLogger {
+public class IdeTestLogger extends IdeStartContextImpl {
 
   private final List<IdeLogEntry> entries;
 
-  /**
-   * The constructor.
-   *
-   * @param level the {@link #getLevel() log-level}.
-   */
-  public IdeTestLogger(IdeLogLevel level, List<IdeLogEntry> entries) {
+  public IdeTestLogger() {
 
-    super(level);
-    this.entries = entries;
+    this(IdeLogLevel.DEBUG);
   }
 
-  @Override
-  public String log(Throwable error, String message, Object... args) {
+  public IdeTestLogger(IdeLogLevel minLogLevel) {
 
-    String result = super.log(error, message, args);
-    this.entries.add(new IdeLogEntry(level, result));
-    return result;
+    this(new ArrayList<>(), minLogLevel);
+  }
+
+  private IdeTestLogger(List<IdeLogEntry> entries, IdeLogLevel minLogLevel) {
+
+    super(minLogLevel, level -> new IdeSubLoggerTest(level, entries));
+    this.entries = entries;
   }
 
   /**
@@ -35,11 +35,4 @@ public class IdeTestLogger extends IdeSlf4jLogger {
 
     return this.entries;
   }
-
-  @Override
-  public boolean isEnabled() {
-
-    return true;
-  }
-
 }

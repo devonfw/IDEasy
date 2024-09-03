@@ -12,8 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -34,8 +32,8 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
-import com.devonfw.tools.ide.log.IdeSubLoggerNone;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
@@ -52,6 +50,7 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Abstract base implementation of {@link IdeContext}.
@@ -60,7 +59,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private static final String IDE_URLS_GIT = "https://github.com/devonfw/ide-urls.git";
 
-  private final Map<IdeLogLevel, IdeSubLogger> loggers;
+  private final IdeStartContextImpl startContext;
 
   private Path ideHome;
 
@@ -116,18 +115,6 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private DirectoryMerger workspaceMerger;
 
-  private final Function<IdeLogLevel, IdeSubLogger> loggerFactory;
-
-  private boolean offlineMode;
-
-  private boolean forceMode;
-
-  private boolean batchMode;
-
-  private boolean quietMode;
-
-  private Locale locale;
-
   private UrlMetadata urlMetadata;
 
   private Path defaultExecutionDirectory;
@@ -137,18 +124,15 @@ public abstract class AbstractIdeContext implements IdeContext {
   /**
    * The constructor.
    *
-   * @param minLogLevel the minimum {@link IdeLogLevel} to enable. Should be {@link IdeLogLevel#INFO} by default.
-   * @param factory the {@link Function} to create {@link IdeSubLogger} per {@link IdeLogLevel}.
+   * @param startContext the {@link IdeLogger}.
    * @param userDir the optional {@link Path} to current working directory.
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
    *     be used.
    */
-  public AbstractIdeContext(IdeLogLevel minLogLevel, Function<IdeLogLevel, IdeSubLogger> factory, Path userDir, ToolRepository toolRepository) {
+  public AbstractIdeContext(IdeStartContextImpl startContext, Path userDir, ToolRepository toolRepository) {
 
     super();
-    this.loggerFactory = factory;
-    this.loggers = new HashMap<>();
-    setLogLevel(minLogLevel);
+    this.startContext = startContext;
     this.systemInfo = SystemInfoImpl.INSTANCE;
     this.commandletManager = new CommandletManagerImpl(this);
     this.fileAccess = new FileAccessImpl(this);
@@ -211,27 +195,25 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   private Path findIdeRoot(Path ideHomePath) {
-    final Path ideRoot;
+
     Path ideRootPath = null;
     if (ideHomePath != null) {
       ideRootPath = ideHomePath.getParent();
-    }
-
-    if (!isTest()) {
-      String root = System.getenv("IDE_ROOT");
-      if (root != null) {
-        Path rootPath = Path.of(root);
-        if ((ideRootPath == null)) {
-          if (Files.isDirectory(rootPath)) {
-            ideRootPath = rootPath;
-          }
-        } else if (!ideRootPath.equals(rootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", rootPath,
-              (this.ideHome == null) ? "undefined" : this.ideHome.getFileName(), ideRootPath);
-        }
-      }
+    } else if (!isTest()) {
+      ideRootPath = getIdeRootPathFromEnv();
     }
     return ideRootPath;
+  }
+
+  private static Path getIdeRootPathFromEnv() {
+    String root = System.getenv(IdeVariables.IDE_ROOT.getName());
+    if (root != null) {
+      Path rootPath = Path.of(root);
+      if (Files.isDirectory(rootPath)) {
+        return rootPath;
+      }
+    }
+    return null;
   }
 
   @Override
@@ -308,14 +290,6 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @return {@code true} if this is a test context for JUnits, {@code false} otherwise.
    */
   public boolean isTest() {
-
-    return isMock();
-  }
-
-  /**
-   * @return {@code true} if this is a mock context for JUnits, {@code false} otherwise.
-   */
-  public boolean isMock() {
 
     return false;
   }
@@ -560,57 +534,25 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public boolean isQuietMode() {
 
-    return this.quietMode;
-  }
-
-  /**
-   * @param quietMode new value of {@link #isQuietMode()}.
-   */
-  public void setQuietMode(boolean quietMode) {
-
-    this.quietMode = quietMode;
+    return this.startContext.isQuietMode();
   }
 
   @Override
   public boolean isBatchMode() {
 
-    return this.batchMode;
-  }
-
-  /**
-   * @param batchMode new value of {@link #isBatchMode()}.
-   */
-  public void setBatchMode(boolean batchMode) {
-
-    this.batchMode = batchMode;
+    return this.startContext.isBatchMode();
   }
 
   @Override
   public boolean isForceMode() {
 
-    return this.forceMode;
-  }
-
-  /**
-   * @param forceMode new value of {@link #isForceMode()}.
-   */
-  public void setForceMode(boolean forceMode) {
-
-    this.forceMode = forceMode;
+    return this.startContext.isForceMode();
   }
 
   @Override
   public boolean isOfflineMode() {
 
-    return this.offlineMode;
-  }
-
-  /**
-   * @param offlineMode new value of {@link #isOfflineMode()}.
-   */
-  public void setOfflineMode(boolean offlineMode) {
-
-    this.offlineMode = offlineMode;
+    return this.startContext.isOfflineMode();
   }
 
   @Override
@@ -635,18 +577,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public Locale getLocale() {
 
-    if (this.locale == null) {
-      return Locale.getDefault();
+    Locale locale = this.startContext.getLocale();
+    if (locale == null) {
+      locale = Locale.getDefault();
     }
-    return this.locale;
-  }
-
-  /**
-   * @param locale new value of {@link #getLocale()}.
-   */
-  public void setLocale(Locale locale) {
-
-    this.locale = locale;
+    return locale;
   }
 
   @Override
@@ -708,9 +643,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public IdeSubLogger level(IdeLogLevel level) {
 
-    IdeSubLogger logger = this.loggers.get(level);
-    Objects.requireNonNull(logger);
-    return logger;
+    return this.startContext.level(level);
   }
 
   @Override
@@ -790,24 +723,6 @@ public abstract class AbstractIdeContext implements IdeContext {
     O duplicate = mapping.put(key, option);
     if (duplicate != null) {
       throw new IllegalArgumentException("Duplicated option " + key);
-    }
-  }
-
-  /**
-   * Sets the log level.
-   *
-   * @param logLevel {@link IdeLogLevel}
-   */
-  public void setLogLevel(IdeLogLevel logLevel) {
-
-    for (IdeLogLevel level : IdeLogLevel.values()) {
-      IdeSubLogger logger;
-      if (level.ordinal() < logLevel.ordinal()) {
-        logger = new IdeSubLoggerNone(level);
-      } else {
-        logger = this.loggerFactory.apply(level);
-      }
-      this.loggers.put(level, logger);
     }
   }
 
@@ -918,9 +833,35 @@ public abstract class AbstractIdeContext implements IdeContext {
       } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
         throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
       }
-      if (!cmd.isProcessableOutput()) {
+      if (cmd.isProcessableOutput()) {
+        if (!debug().isEnabled()) {
+          // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
+          for (IdeLogLevel level : IdeLogLevel.values()) {
+            if (level != IdeLogLevel.INFO) {
+              this.startContext.setLogLevel(level, false);
+            }
+          }
+        }
+      } else {
+        if (!isTest()) {
+          if (this.ideRoot == null) {
+            warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");
+          } else if (this.ideHome != null) {
+            Path ideRootPath = getIdeRootPathFromEnv();
+            if (!this.ideRoot.equals(ideRootPath)) {
+              warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPath,
+                  this.ideHome.getFileName(), this.ideRoot);
+            }
+          }
+        }
         if (cmd.isIdeHomeRequired()) {
           debug(getMessageIdeHomeFound());
+        }
+      }
+      if (this.settingsPath != null) {
+        if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
+            (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
+          info("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
         }
       }
       cmd.run();
@@ -954,20 +895,29 @@ public abstract class AbstractIdeContext implements IdeContext {
       Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
       boolean matches = false;
       if (firstCandidate != null) {
-        matches = apply(arguments.copy(), firstCandidate, collector);
+        matches = completeCommandlet(arguments, firstCandidate, collector);
       } else if (current.isCombinedShortOption()) {
         collector.add(keyword, null, null, null);
       }
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
           if (cmd != firstCandidate) {
-            apply(arguments.copy(), cmd, collector);
+            completeCommandlet(arguments, cmd, collector);
           }
         }
       }
     }
     return collector.getSortedCandidates();
   }
+
+  private boolean completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+    if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
+      return false;
+    } else {
+      return apply(arguments.copy(), cmd, collector);
+    }
+  }
+
 
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
@@ -1099,5 +1049,13 @@ public abstract class AbstractIdeContext implements IdeContext {
   public void setPathSyntax(WindowsPathSyntax pathSyntax) {
 
     this.pathSyntax = pathSyntax;
+  }
+
+  /**
+   * @return the {@link IdeStartContextImpl}.
+   */
+  public IdeStartContextImpl getStartContext() {
+
+    return startContext;
   }
 }
