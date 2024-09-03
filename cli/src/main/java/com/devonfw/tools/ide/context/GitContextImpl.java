@@ -62,10 +62,10 @@ public class GitContextImpl implements GitContext {
           try {
             Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
           } catch (IOException e) {
-            this.context.warning().log(e, "Cound not update modification-time of {}", magicFilePath);
+            this.context.warning().log(e, "Could not update modification-time of {}", magicFilePath);
           }
-          return;
         }
+        return;
       } catch (IOException e) {
         this.context.error(e);
       }
@@ -88,13 +88,13 @@ public class GitContextImpl implements GitContext {
     String remoteName = remoteAndBranch[0];
     String branch = remoteAndBranch[1];
 
-    return fetchIfNeeded(remoteName, branch, targetRepository);
+    return fetchIfNeeded(targetRepository, remoteName, branch);
   }
 
   @Override
-  public boolean fetchIfNeeded(String remoteName, String branch, Path targetRepository) {
+  public boolean fetchIfNeeded(Path targetRepository, String remoteName, String branch) {
 
-    if (!context.isOnline()) {
+    if (this.context.isOffline()) {
       return false;
     }
 
