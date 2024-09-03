@@ -116,7 +116,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     pc.run(processMode);
   }
 
-  private ProcessContext getProcessContext(Path binaryPath, String... args) {
+  protected ProcessContext getProcessContext(Path binaryPath, String... args) {
 
     return this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
   }
