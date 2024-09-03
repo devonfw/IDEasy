@@ -75,6 +75,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // get installed version before installInRepo actually may install the software
     VersionIdentifier installedVersion = getInstalledVersion();
     Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
+
     try {
       ToolInstallation installation;
       if (environmentContext == null) {
@@ -113,8 +114,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         step.success(successMessage);
       }
 
-      Path softwarePath = context.getSoftwarePath();
-      Path successFilePath = softwarePath.resolve("success.txt");
+      Path logPath = this.context.getIdeHome().resolve("log");
+      Path successFilePath = logPath.resolve("success.txt");
       if (!Files.exists(successFilePath)) {
         this.context.getFileAccess().mkdirs(successFilePath.getParent());
         try {
@@ -133,11 +134,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       String formattedDateTime = dateTimeNow.format(formatter);
       linesToWrite.add(formattedDateTime + ": " + successMessage);
       try {
-        Files.write(successFilePath, linesToWrite, StandardOpenOption.CREATE);
+        Files.write(successFilePath, linesToWrite, StandardOpenOption.APPEND);
       } catch (IOException e) {
         throw new IllegalStateException("Could not write to text file: " + successFilePath, e);
       }
-
       return true;
     } catch (RuntimeException e) {
       step.error(e, true);
@@ -145,7 +145,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     } finally {
       step.close();
     }
-
   }
 
   /**
