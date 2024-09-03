@@ -110,8 +110,8 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
     List<VariableLine> lines = new ArrayList<>();
 
     // Skip reading if the file does not exist
-    if (Files.exists(newPropertiesFilePath)) {
-      try (BufferedReader reader = Files.newBufferedReader(newPropertiesFilePath)) {
+    if (Files.exists(this.propertiesFilePath)) {
+      try (BufferedReader reader = Files.newBufferedReader(this.propertiesFilePath)) {
         String line;
         do {
           line = reader.readLine();
