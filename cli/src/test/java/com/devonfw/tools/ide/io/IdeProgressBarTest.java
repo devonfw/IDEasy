@@ -64,7 +64,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     impl.download(testUrl, tempDir.resolve("windows_x64_url.tgz"));
 
     //assert
-    assertProgressBar(context, "Downloading", MAX_LENGTH);
+    assertUnknownProgressBar(context, "Downloading", MAX_LENGTH);
     checkLogMessageForDefaultContentLength(context, testUrl);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
