@@ -33,6 +33,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.model.report.UrlUpdaterReport;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
 
@@ -524,6 +525,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
 
       logger.info("For tool {} and version {} the download verification succeeded with status code {} for URL {}.", tool,
           version, code, url);
+      getUrlToolReport().incrementVerificationSuccess();
     } else {
       if (status != null) {
         if (errorStatus == null) {
@@ -549,6 +551,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       }
       logger.warn("For tool {} and version {} the download verification failed with status code {} for URL {}.", tool,
           version, code, url);
+      getUrlToolReport().incrementVerificationFailure();
     }
     if (modified) {
       urlStatusFile.setStatusJson(statusJson); // hack to set modified (better solution welcome)
@@ -602,6 +605,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     UrlTool tool = urlRepository.getOrCreateChild(getTool());
     for (String edition : getEditions()) {
       UrlEdition urlEdition = tool.getOrCreateChild(edition);
+      setUrlToolReport(new UrlUpdaterReport(tool.getName(), urlEdition.getName()));
       updateExistingVersions(urlEdition);
       Set<String> versions = getVersions();
       String toolWithEdition = getToolWithEdition(edition);
@@ -619,11 +623,15 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
             urlVersion = urlEdition.getOrCreateChild(version);
             addVersion(urlVersion);
             urlVersion.save();
+            getUrlToolReport().incrementAddVersionSuccess();
+            logger.info("For tool {} we add version {}.", toolWithEdition, version);
           } catch (Exception e) {
             logger.error("For tool {} we failed to add version {}.", toolWithEdition, version, e);
+            getUrlToolReport().incrementAddVersionFailure();
           }
         }
       }
+      getUrlUpdaterReport().addUrlToolReport(getUrlToolReport());
     }
   }
 

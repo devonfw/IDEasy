@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.url.model.report.UrlUpdaterReport;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -42,10 +43,12 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
         J jsonObj = getJsonObjectFromResponse(response, edition);
         if (jsonObj != null) {
           UrlEdition urlEdition = tool.getOrCreateChild(edition);
+          setUrlToolReport(new UrlUpdaterReport(tool.getName(), urlEdition.getName()));
           updateExistingVersions(urlEdition);
           collectVersionsWithDownloadsFromJson(jsonObj, urlEdition);
         }
       }
+      getUrlUpdaterReport().addUrlToolReport(getUrlToolReport());
     } catch (Exception e) {
       throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
     }

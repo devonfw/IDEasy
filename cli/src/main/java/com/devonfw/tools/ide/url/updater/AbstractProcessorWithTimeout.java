@@ -5,6 +5,9 @@ import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
+import com.devonfw.tools.ide.url.model.report.UrlUpdaterReport;
+
 /**
  * Abstract base class for a processor that has a timeout and should cancel if the timeout is expired.
  */
@@ -14,6 +17,10 @@ public abstract class AbstractProcessorWithTimeout {
 
   /** The {@link Instant} expiration time for the GitHub actions url-update job */
   private Instant expirationTime;
+
+  private UrlFinalReport urlFinalReport;
+
+  private UrlUpdaterReport urlUpdaterReport;
 
   /**
    * @param expirationTime to set for the GitHub actions url-update job
@@ -29,6 +36,26 @@ public abstract class AbstractProcessorWithTimeout {
   public Instant getExpirationTime() {
 
     return this.expirationTime;
+  }
+
+  public UrlFinalReport getUrlUpdaterReport() {
+
+    return urlFinalReport;
+  }
+
+  public void setUrlUpdaterReport(UrlFinalReport urlFinalReport) {
+
+    this.urlFinalReport = urlFinalReport;
+  }
+
+  public UrlUpdaterReport getUrlToolReport() {
+
+    return urlUpdaterReport;
+  }
+
+  public void setUrlToolReport(UrlUpdaterReport urlUpdaterReport) {
+
+    this.urlUpdaterReport = urlUpdaterReport;
   }
 
   /**
