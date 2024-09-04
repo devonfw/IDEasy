@@ -88,8 +88,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
     IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
     IdeProgressBarTestImpl duplicate = this.progressBarMap.put(taskName, progressBar);
-    // If we have multiple downloads, we may have an existing "Downloading" key
-    if (!taskName.equals("Downloading")) {
+    // If we have multiple downloads or unpacking, we may have an existing "Downloading" or "Unpacking" key
+    if ((!taskName.equals("Downloading")) && (!taskName.equals("Unpacking"))) {
       assert duplicate == null;
     }
     return progressBar;
