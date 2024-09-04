@@ -18,8 +18,10 @@ public abstract class AbstractProcessorWithTimeout {
   /** The {@link Instant} expiration time for the GitHub actions url-update job */
   private Instant expirationTime;
 
+  /** The {@link UrlFinalReport} final report of url updates for monitoring */
   private UrlFinalReport urlFinalReport;
 
+  /** The {@link UrlUpdaterReport} report instance to track data for the {@link UrlFinalReport} */
   private UrlUpdaterReport urlUpdaterReport;
 
   /**
@@ -38,24 +40,36 @@ public abstract class AbstractProcessorWithTimeout {
     return this.expirationTime;
   }
 
+  /**
+   * @param urlFinalReport to collect {@link UrlUpdaterReport} instances for final output of reports. The init happens in UpdateInitiator.class.
+   */
+  public void setUrlFinalReport(UrlFinalReport urlFinalReport) {
+
+    this.urlFinalReport = urlFinalReport;
+  }
+
+  /**
+   * @return the {@link UrlFinalReport} representing the final report
+   */
   public UrlFinalReport getUrlUpdaterReport() {
 
     return urlFinalReport;
   }
 
-  public void setUrlUpdaterReport(UrlFinalReport urlFinalReport) {
+  /**
+   * @param urlUpdaterReport to collect information during  url updating process
+   */
+  public void setUrlUpdaterReport(UrlUpdaterReport urlUpdaterReport) {
 
-    this.urlFinalReport = urlFinalReport;
+    this.urlUpdaterReport = urlUpdaterReport;
   }
 
+  /**
+   * @return the {@link UrlUpdaterReport} representing the report instance to collect failures successes
+   */
   public UrlUpdaterReport getUrlToolReport() {
 
     return urlUpdaterReport;
-  }
-
-  public void setUrlToolReport(UrlUpdaterReport urlUpdaterReport) {
-
-    this.urlUpdaterReport = urlUpdaterReport;
   }
 
   /**

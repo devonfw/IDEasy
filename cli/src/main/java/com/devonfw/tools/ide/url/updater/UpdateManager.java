@@ -93,7 +93,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       }
       try {
         updater.setExpirationTime(getExpirationTime());
-        updater.setUrlUpdaterReport(urlFinalReport);
+        updater.setUrlFinalReport(urlFinalReport);
         updater.update(this.urlRepository);
       } catch (Exception e) {
         logger.error("Failed to update {}", updater.getToolWithEdition(), e);

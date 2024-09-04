@@ -605,7 +605,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     UrlTool tool = urlRepository.getOrCreateChild(getTool());
     for (String edition : getEditions()) {
       UrlEdition urlEdition = tool.getOrCreateChild(edition);
-      setUrlToolReport(new UrlUpdaterReport(tool.getName(), urlEdition.getName()));
+      setUrlUpdaterReport(new UrlUpdaterReport(tool.getName(), urlEdition.getName()));
       updateExistingVersions(urlEdition);
       Set<String> versions = getVersions();
       String toolWithEdition = getToolWithEdition(edition);
