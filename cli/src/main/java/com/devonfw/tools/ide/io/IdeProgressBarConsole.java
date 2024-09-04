@@ -26,15 +26,8 @@ public class IdeProgressBarConsole implements IdeProgressBar {
   }
 
   @Override
-  public long getCurrent() {
-    return this.progressBar.getCurrent();
-  }
-
-  @Override
   public void close() {
 
     this.progressBar.close();
   }
-
-
 }
