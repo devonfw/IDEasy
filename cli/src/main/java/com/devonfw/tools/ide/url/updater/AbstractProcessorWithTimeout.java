@@ -51,7 +51,7 @@ public abstract class AbstractProcessorWithTimeout {
   /**
    * @return the {@link UrlFinalReport} representing the final report
    */
-  public UrlFinalReport getUrlUpdaterReport() {
+  public UrlFinalReport getUrlFinalReport() {
 
     return urlFinalReport;
   }
@@ -67,7 +67,7 @@ public abstract class AbstractProcessorWithTimeout {
   /**
    * @return the {@link UrlUpdaterReport} representing the report instance to collect failures successes
    */
-  public UrlUpdaterReport getUrlToolReport() {
+  public UrlUpdaterReport getUrlUpdaterReport() {
 
     return urlUpdaterReport;
   }

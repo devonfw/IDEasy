@@ -8,8 +8,8 @@ import java.util.ArrayList;
 public class UrlFinalReport {
 
   private ArrayList<UrlUpdaterReport> urlUpdaterReports = new ArrayList<UrlUpdaterReport>();
-  
-  public void addUrlToolReport(UrlUpdaterReport urlUpdaterReport) {
+
+  public void addUrlUpdaterReport(UrlUpdaterReport urlUpdaterReport) {
 
     this.urlUpdaterReports.add(urlUpdaterReport);
   }

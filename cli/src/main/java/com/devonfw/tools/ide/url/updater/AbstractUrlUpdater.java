@@ -525,7 +525,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
 
       logger.info("For tool {} and version {} the download verification succeeded with status code {} for URL {}.", tool,
           version, code, url);
-      getUrlToolReport().incrementVerificationSuccess();
+      getUrlUpdaterReport().incrementVerificationSuccess();
     } else {
       if (status != null) {
         if (errorStatus == null) {
@@ -551,7 +551,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       }
       logger.warn("For tool {} and version {} the download verification failed with status code {} for URL {}.", tool,
           version, code, url);
-      getUrlToolReport().incrementVerificationFailure();
+      getUrlUpdaterReport().incrementVerificationFailure();
     }
     if (modified) {
       urlStatusFile.setStatusJson(statusJson); // hack to set modified (better solution welcome)
@@ -623,15 +623,15 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
             urlVersion = urlEdition.getOrCreateChild(version);
             addVersion(urlVersion);
             urlVersion.save();
-            getUrlToolReport().incrementAddVersionSuccess();
+            getUrlUpdaterReport().incrementAddVersionSuccess();
             logger.info("For tool {} we add version {}.", toolWithEdition, version);
           } catch (Exception e) {
             logger.error("For tool {} we failed to add version {}.", toolWithEdition, version, e);
-            getUrlToolReport().incrementAddVersionFailure();
+            getUrlUpdaterReport().incrementAddVersionFailure();
           }
         }
       }
-      getUrlUpdaterReport().addUrlToolReport(getUrlToolReport());
+      getUrlFinalReport().addUrlUpdaterReport(getUrlUpdaterReport());
     }
   }
 

@@ -43,12 +43,12 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
         J jsonObj = getJsonObjectFromResponse(response, edition);
         if (jsonObj != null) {
           UrlEdition urlEdition = tool.getOrCreateChild(edition);
-          setUrlToolReport(new UrlUpdaterReport(tool.getName(), urlEdition.getName()));
+          setUrlUpdaterReport(new UrlUpdaterReport(tool.getName(), urlEdition.getName()));
           updateExistingVersions(urlEdition);
           collectVersionsWithDownloadsFromJson(jsonObj, urlEdition);
         }
       }
-      getUrlUpdaterReport().addUrlToolReport(getUrlToolReport());
+      getUrlFinalReport().addUrlUpdaterReport(getUrlUpdaterReport());
     } catch (Exception e) {
       throw new IllegalStateException("Error while getting versions from JSON API " + doGetVersionUrl(), e);
     }
