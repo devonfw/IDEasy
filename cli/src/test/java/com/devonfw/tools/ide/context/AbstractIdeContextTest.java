@@ -118,16 +118,16 @@ public abstract class AbstractIdeContextTest extends Assertions {
   }
 
   /**
+   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} with unknown file size was implemented correctly and reflects a default behaviour.
+   *
    * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
    * @param taskName name of the task e.g. Downloading.
    * @param maxSize initial maximum value e.g. file size.
    * @param chunkCount amount of chunks.
    */
   protected static void assertUnknownProgressBar(IdeContext context, String taskName, long maxSize, int chunkCount) {
-    AbstractIdeTestContext testContext = (AbstractIdeTestContext) context;
-    IdeProgressBarTestImpl progressBar = testContext.getProgressBarMap().get(taskName);
-    assertThat(progressBar).as(taskName).isNotNull();
-    List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
+    List<IdeProgressBarTestImpl.ProgressEvent> eventList = getProgressEvents((AbstractIdeTestContext) context, taskName,
+        chunkCount);
 
     long expectedProgress = 0;
     for (IdeProgressBarTestImpl.ProgressEvent progressEvent : eventList) {
@@ -137,12 +137,18 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
     // Check if the cumulative progress matches the maxSize
     assertThat(expectedProgress).isEqualTo(maxSize);
+  }
+
+  private static List<IdeProgressBarTestImpl.ProgressEvent> getProgressEvents(AbstractIdeTestContext context, String taskName, int chunkCount) {
+    IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
+    assertThat(progressBar).as(taskName).isNotNull();
+    List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
     assertThat(eventList).hasSize(chunkCount + 1);
+    return eventList;
   }
 
   /**
-   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default behaviour, chunk size is fixed, chunk count
-   * and rest size get automatically calculated.
+   * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} with unknown file size was implemented correctly and reflects a default behaviour.
    *
    * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
    * @param taskName name of the task e.g. Downloading.
@@ -169,10 +175,10 @@ public abstract class AbstractIdeContextTest extends Assertions {
     AbstractIdeTestContext testContext = (AbstractIdeTestContext) context;
     IdeProgressBarTestImpl progressBar = testContext.getProgressBarMap().get(taskName);
     assertThat(progressBar).as(taskName).isNotNull();
-    assertThat(progressBar.getMaxSize()).isEqualTo(maxSize);
     List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
-
     assertThat(eventList).hasSize(chunkCount + 1);
+
+    assertThat(progressBar.getMaxSize()).isEqualTo(maxSize);
     for (int i = 0; i <= chunkCount; i++) {
       IdeProgressBarTestImpl.ProgressEvent progressEvent = eventList.get(i);
       long stepSize = chunkSize;
@@ -183,7 +189,6 @@ public abstract class AbstractIdeContextTest extends Assertions {
     }
 
   }
-
 
   /**
    * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} was implemented correctly and reflects a default behaviour, chunk size is fixed.
