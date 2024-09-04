@@ -117,6 +117,19 @@ public abstract class AbstractIdeContextTest extends Assertions {
     return new IdeTestContextAssertion(context);
   }
 
+  private static List<IdeProgressBarTestImpl.ProgressEvent> assertProgressEventsAndSize(AbstractIdeTestContext context, String taskName, int chunkCount,
+      long maxSize) {
+    IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
+    assertThat(progressBar).as(taskName).isNotNull();
+    List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
+    assertThat(eventList).hasSize(chunkCount + 1);
+    // extra case for unknown file size (indefinite progress bar)
+    if (progressBar.getMaxSize() != -1L) {
+      assertThat(progressBar.getMaxSize()).isEqualTo(maxSize);
+    }
+    return eventList;
+  }
+
   /**
    * Checks if a {@link com.devonfw.tools.ide.io.IdeProgressBar} with unknown file size was implemented correctly and reflects a default behaviour.
    *
@@ -126,8 +139,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param chunkCount amount of chunks.
    */
   protected static void assertUnknownProgressBar(IdeContext context, String taskName, long maxSize, int chunkCount) {
-    List<IdeProgressBarTestImpl.ProgressEvent> eventList = getProgressEvents((AbstractIdeTestContext) context, taskName,
-        chunkCount);
+    List<IdeProgressBarTestImpl.ProgressEvent> eventList = assertProgressEventsAndSize((AbstractIdeTestContext) context, taskName,
+        chunkCount, maxSize);
 
     long expectedProgress = 0;
     for (IdeProgressBarTestImpl.ProgressEvent progressEvent : eventList) {
@@ -137,14 +150,6 @@ public abstract class AbstractIdeContextTest extends Assertions {
 
     // Check if the cumulative progress matches the maxSize
     assertThat(expectedProgress).isEqualTo(maxSize);
-  }
-
-  private static List<IdeProgressBarTestImpl.ProgressEvent> getProgressEvents(AbstractIdeTestContext context, String taskName, int chunkCount) {
-    IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
-    assertThat(progressBar).as(taskName).isNotNull();
-    List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
-    assertThat(eventList).hasSize(chunkCount + 1);
-    return eventList;
   }
 
   /**
@@ -172,13 +177,9 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static void assertProgressBar(IdeContext context, String taskName, long maxSize, long chunkSize, int chunkCount, long restSize) {
 
-    AbstractIdeTestContext testContext = (AbstractIdeTestContext) context;
-    IdeProgressBarTestImpl progressBar = testContext.getProgressBarMap().get(taskName);
-    assertThat(progressBar).as(taskName).isNotNull();
-    List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
-    assertThat(eventList).hasSize(chunkCount + 1);
+    List<IdeProgressBarTestImpl.ProgressEvent> eventList = assertProgressEventsAndSize((AbstractIdeTestContext) context, taskName,
+        chunkCount, maxSize);
 
-    assertThat(progressBar.getMaxSize()).isEqualTo(maxSize);
     for (int i = 0; i <= chunkCount; i++) {
       IdeProgressBarTestImpl.ProgressEvent progressEvent = eventList.get(i);
       long stepSize = chunkSize;

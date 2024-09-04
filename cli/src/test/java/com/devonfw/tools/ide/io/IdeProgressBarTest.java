@@ -46,13 +46,13 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if {@link FileAccess#download(String, Path)} with default value for missing content length is working properly.
+   * Tests if {@link FileAccess#download(String, Path)} with missing content length is working properly.
    *
    * @param tempDir temporary directory to use.
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testProgressBarDownloadWithDefaultValueForMissingContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  public void testProgressBarDownloadWithMissingContentLength(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     //arrange
     String taskName = "Downloading";
@@ -65,26 +65,26 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
 
     //assert
     assertUnknownProgressBar(context, "Downloading", MAX_LENGTH);
-    checkLogMessageForDefaultContentLength(context, testUrl);
+    checkLogMessageForMissingContentLength(context, testUrl);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
 
     assertThat(progressBar.getMaxSize()).isEqualTo(-1);
   }
 
-  private void checkLogMessageForDefaultContentLength(IdeTestContext context, String source) {
+  private void checkLogMessageForMissingContentLength(IdeTestContext context, String source) {
 
     assertThat(context).logAtWarning().hasMessage(
         "Content-Length was not provided by download/copy source: " + source + ".");
   }
 
   /**
-   * Tests if {@link FileAccess#download(String, Path)} with default value for missing content length is working properly.
+   * Tests if {@link FileAccess#download(String, Path)} with missing file size is working properly.
    *
    * @param tempDir temporary directory to use.
    */
   @Test
-  public void testProgressBarCopyWithDefaultValueForMissingContentLength(@TempDir Path tempDir) {
+  public void testProgressBarCopyWithMissingFileSize(@TempDir Path tempDir) {
 
     //arrange
     String taskName = "Copying";
@@ -97,7 +97,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     impl.download(source, tempDir.resolve("windows_x64_url.tgz"));
 
     //assert
-    checkLogMessageForDefaultContentLength(context, source);
+    checkLogMessageForMissingContentLength(context, source);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
     assertThat(progressBar.getMaxSize()).isEqualTo(-1);
