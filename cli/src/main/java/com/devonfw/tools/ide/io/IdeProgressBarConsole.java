@@ -84,11 +84,6 @@ public class IdeProgressBarConsole extends AbstractIdeProgressBar {
 
   @Override
   protected void doStepBy(long stepSize, long currentProgress) {
-    doStepBy(stepSize);
-  }
-
-  @Override
-  protected void doStepBy(long stepSize) {
     this.progressBar.stepBy(stepSize);
   }
 

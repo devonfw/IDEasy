@@ -20,16 +20,9 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
    * Increases the progress bar by given step size.
    *
    * @param stepSize size to step by.
-   * @param currentProgress current progress state.
+   * @param currentProgress current progress state (used for tests only).
    */
   protected abstract void doStepBy(long stepSize, long currentProgress);
-
-  /**
-   * Increases the progress bar by given step size.
-   *
-   * @param stepSize size to step by.
-   */
-  protected abstract void doStepBy(long stepSize);
 
   /**
    * Sets the progress bar to given step position.

@@ -48,11 +48,6 @@ public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
   }
 
   @Override
-  protected void doStepBy(long stepSize) {
-    doStepBy(stepSize, 0);
-  }
-
-  @Override
   protected void doStepTo(long stepPosition) {
     this.total = stepPosition;
   }
