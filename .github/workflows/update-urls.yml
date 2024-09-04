@@ -1,5 +1,8 @@
 name: Update URLS
-on: push
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * *'
 jobs:
   updateURLS:
     runs-on: ubuntu-latest
@@ -11,7 +14,7 @@ jobs:
       - name: Checkout ide-urls
         uses: actions/checkout@v3
         with:
-          repository: alfeilex/ide-urls
+          repository: devonfw/ide-urls
           path: ide-urls
           token: ${{ secrets.ACTION_PUSH_TOKEN }}
       - name: Set up Java
