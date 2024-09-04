@@ -1,8 +1,5 @@
 package com.devonfw.tools.ide.url.model.report;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * An instance of this class represent the result of updating a tool with specific url updater. It counts the number of successful and failed versions and
  * verifications.
@@ -10,12 +7,16 @@ import java.util.List;
 public class UrlUpdaterReport {
 
   private String tool;
+
   private String edition;
+
   private int addVersionSuccess = 0;
+
   private int addVersionFailure = 0;
+
   private int verificationSuccess = 0;
+
   private int verificationFailure = 0;
-  private ArrayList<UrlError> urlErrors = new ArrayList<>();
 
   /**
    * The constructor.
@@ -89,16 +90,6 @@ public class UrlUpdaterReport {
     this.verificationFailure++;
   }
 
-  public List<UrlError> getFailedUrls() {
-
-    return urlErrors;
-  }
-
-  public void addUrlError(UrlError urlError) {
-
-    this.urlErrors.add(urlError);
-  }
-
   public int getTotalAdditions() {
 
     return this.addVersionFailure + this.addVersionSuccess;
@@ -131,6 +122,5 @@ public class UrlUpdaterReport {
       return 0;
     }
   }
-
 
 }
