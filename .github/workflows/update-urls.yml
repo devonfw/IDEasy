@@ -1,6 +1,5 @@
 name: Update URLS
-on:
-  push
+on: push
 jobs:
   updateURLS:
     runs-on: ubuntu-latest
