@@ -84,6 +84,8 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
 
   /**
    * Updates {@code ide-urls} for all tools their editions and all found versions.
+   *
+   * @param urlFinalReport collects the url updater report information
    */
   public void updateAll(UrlFinalReport urlFinalReport) {
 
