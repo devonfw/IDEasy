@@ -21,18 +21,20 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
   /**
    * Test of {@link EnvironmentVariablesPropertiesFile} including legacy support.
    */
+
+  private static final Path ENV_VAR_PATH = Path.of("src/test/resources/com/devonfw/tools/ide/env/var/");
+  private static final EnvironmentVariablesType TYPE = EnvironmentVariablesType.SETTINGS;
+
   @Test
   public void testLoad() {
 
     // arrange
-    AbstractEnvironmentVariables parent = null;
-    Path propertiesFilePath = Path.of("src/test/resources/com/devonfw/tools/ide/env/var/devon.properties");
-    EnvironmentVariablesType type = EnvironmentVariablesType.SETTINGS;
+    Path propertiesFilePath = ENV_VAR_PATH.resolve("devon.properties");
     // act
-    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(parent, type,
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
         propertiesFilePath, IdeTestContextMock.get());
     // assert
-    assertThat(variables.getType()).isSameAs(type);
+    assertThat(variables.getType()).isSameAs(TYPE);
     assertThat(variables.get("MVN_VERSION")).isEqualTo("3.9.0");
     assertThat(variables.get("IDE_TOOLS")).isEqualTo("mvn, npm");
     assertThat(variables.get("CREATE_START_SCRIPTS")).isEqualTo("eclipse");
@@ -67,10 +69,7 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     List<String> lines = Files.readAllLines(propertiesFilePath);
     assertThat(lines).containsExactlyElementsOf(linesToWrite);
 
-    AbstractEnvironmentVariables parent = null;
-    EnvironmentVariablesType type = EnvironmentVariablesType.SETTINGS;
-
-    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(parent, type,
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
         propertiesFilePath, IdeTestContextMock.get());
 
     // act
@@ -109,4 +108,28 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
     lines = Files.readAllLines(propertiesFilePath);
     assertThat(lines).containsExactlyElementsOf(linesAfterSave);
   }
+
+  @Test
+  void testSaveWithMissingParentFilePath() throws Exception {
+    // arrange
+    Path propertiesFilePath = ENV_VAR_PATH.resolve("test.properties");
+
+    EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
+        propertiesFilePath, IdeTestContextMock.get());
+
+    // act
+    variables.set("var1", "1.0", false);
+    variables.set("var2", "2", true);
+
+    variables.save();
+
+    // assert
+    List<String> linesAfterSave = new ArrayList<>();
+    linesAfterSave.add("export var2=2");
+    linesAfterSave.add("var1=1.0");
+
+    List<String> lines = Files.readAllLines(propertiesFilePath);
+    assertThat(lines).containsExactlyElementsOf(linesAfterSave);
+  }
+
 }
