@@ -10,13 +10,13 @@ public class UrlUpdaterReport {
 
   private String edition;
 
-  private int addVersionSuccess = 0;
+  protected int addVersionSuccess = 0;
 
-  private int addVersionFailure = 0;
+  protected int addVersionFailure = 0;
 
-  private int verificationSuccess = 0;
+  protected int verificationSuccess = 0;
 
-  private int verificationFailure = 0;
+  protected int verificationFailure = 0;
 
   /**
    * The constructor.
