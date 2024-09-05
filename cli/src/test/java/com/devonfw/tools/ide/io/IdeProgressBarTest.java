@@ -69,7 +69,7 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
 
-    assertThat(progressBar.getMaxSize()).isEqualTo(-1);
+    assertThat(progressBar.getMaxLength()).isEqualTo(-1);
   }
 
   private void checkLogMessageForMissingContentLength(IdeTestContext context, String source) {
@@ -100,6 +100,6 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     checkLogMessageForMissingContentLength(context, source);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
-    assertThat(progressBar.getMaxSize()).isEqualTo(-1);
+    assertThat(progressBar.getMaxLength()).isEqualTo(-1);
   }
 }

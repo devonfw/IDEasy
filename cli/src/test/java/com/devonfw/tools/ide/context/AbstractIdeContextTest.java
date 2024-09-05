@@ -124,8 +124,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
     List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
     assertThat(eventList).hasSize(chunkCount + 1);
     // extra case for unknown file size (indefinite progress bar)
-    if (progressBar.getMaxSize() != -1L) {
-      assertThat(progressBar.getMaxSize()).isEqualTo(maxSize);
+    if (progressBar.getMaxLength() != -1L) {
+      assertThat(progressBar.getMaxLength()).isEqualTo(maxSize);
     }
     return eventList;
   }

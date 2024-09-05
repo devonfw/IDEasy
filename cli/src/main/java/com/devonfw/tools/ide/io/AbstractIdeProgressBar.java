@@ -6,6 +6,7 @@ package com.devonfw.tools.ide.io;
 public abstract class AbstractIdeProgressBar implements IdeProgressBar {
 
   private long currentProgress;
+
   private final long maxLength;
 
   /**
@@ -14,6 +15,14 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
   public AbstractIdeProgressBar(long maxLength) {
 
     this.maxLength = maxLength;
+  }
+
+  /**
+   * @return the maximum length of a progress bar.
+   */
+  public long getMaxLength() {
+
+    return maxLength;
   }
 
   /**

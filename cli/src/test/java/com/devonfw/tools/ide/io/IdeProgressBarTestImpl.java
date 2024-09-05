@@ -21,9 +21,6 @@ public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
   /** The total span of an {@link IdeProgressBar}. */
   private long total;
 
-  /** The maximum length of an {@link IdeProgressBar}. */
-  private final long max;
-
   /** The list of events of an {@link IdeProgressBar}. */
   private final List<ProgressEvent> eventList;
 
@@ -37,7 +34,6 @@ public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
     super(max);
     this.start = Instant.now();
     this.name = name;
-    this.max = max;
     this.eventList = new ArrayList<>();
   }
 
@@ -59,8 +55,8 @@ public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
       this.end = Instant.now();
     }
 
-    if (this.max != -1) {
-      assert this.total == this.max;
+    if (getMaxLength() != -1) {
+      assert this.total == getMaxLength();
     }
   }
 
@@ -70,13 +66,6 @@ public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
   public List<ProgressEvent> getEventList() {
 
     return this.eventList;
-  }
-
-  /**
-   * @return the maximum length of a bar.
-   */
-  public long getMaxSize() {
-    return this.max;
   }
 
   /**
