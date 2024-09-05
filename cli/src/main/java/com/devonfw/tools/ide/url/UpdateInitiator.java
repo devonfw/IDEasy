@@ -55,8 +55,8 @@ public class UpdateInitiator {
 
     UrlFinalReport urlFinalReport = new UrlFinalReport();
 
-    UpdateManager updateManager = new UpdateManager(repoPath, expirationTime);
-    updateManager.updateAll(urlFinalReport);
+    UpdateManager updateManager = new UpdateManager(repoPath, urlFinalReport, expirationTime);
+    updateManager.updateAll();
 
     logger.info(urlFinalReport.toString());
   }
