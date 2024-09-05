@@ -613,19 +613,8 @@ public class FileAccessImpl implements FileAccess {
   public void extractJar(Path file, Path targetDir) {
 
     this.context.trace("Unpacking JAR {} to {}", file, targetDir);
-    // calculate the size of archive for the progressbar max size
-    long sizeOfArchive = 0;
+   
     try (JarInputStream jis = new JarInputStream(Files.newInputStream(file))) {
-      JarEntry entry;
-      while ((entry = jis.getNextJarEntry()) != null) {
-        sizeOfArchive += entry.getCompressedSize();
-        entry = jis.getNextJarEntry();
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
-    }
-    try (JarInputStream jis = new JarInputStream(Files.newInputStream(file)); IdeProgressBar pb = this.context.prepareProgressBar(
-        "Unpacking", sizeOfArchive)) {
       JarEntry entry;
       while ((entry = jis.getNextJarEntry()) != null) {
         Path entryPath = targetDir.resolve(entry.getName()).toAbsolutePath();
