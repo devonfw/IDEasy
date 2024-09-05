@@ -824,7 +824,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     boolean matches = apply(arguments, cmd, null);
     if (matches) {
-      matches = cmd.validate();
+      matches = cmd.validate().isValid();
     }
     if (matches) {
       debug("Running commandlet {}", cmd);

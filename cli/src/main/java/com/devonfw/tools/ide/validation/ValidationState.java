@@ -4,6 +4,12 @@ public class ValidationState implements ValidationResult {
 
   private StringBuilder errorMessage;
 
+  private String propertyName;
+
+  public ValidationState(String propertyName) {
+    this.propertyName = propertyName;
+  }
+
   public boolean isValid() {
     return (this.errorMessage == null);
   }
@@ -17,7 +23,9 @@ public class ValidationState implements ValidationResult {
 
   public void addErrorMessage(String error) {
     if (this.errorMessage == null) {
-      this.errorMessage = new StringBuilder(error.length());
+      this.errorMessage = new StringBuilder(propertyName.length());
+      this.errorMessage.append(String.format("Error in property %s:", propertyName));
+      this.errorMessage.append('\n');
     } else {
       this.errorMessage.append('\n');
     }
@@ -26,7 +34,12 @@ public class ValidationState implements ValidationResult {
 
   public void add(ValidationResult result) {
     if (!result.isValid()) {
-      addErrorMessage(result.getErrorMessage());
+      if (this.errorMessage == null) {
+        this.errorMessage = new StringBuilder(result.getErrorMessage().length());
+        this.errorMessage.append(result.getErrorMessage());
+      } else {
+        addErrorMessage(result.getErrorMessage());
+      }
     }
   }
 }

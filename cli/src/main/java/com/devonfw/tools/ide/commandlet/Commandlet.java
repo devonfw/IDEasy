@@ -221,22 +221,24 @@ public abstract class Commandlet {
    * @return {@code true} if this {@link Commandlet} is the valid candidate to be {@link #run()}, {@code false} otherwise.
    * @see Property#validate()
    */
-  public boolean validate() {
+  public ValidationResult validate() {
 
     // avoid validation exception if not a candidate to be run.
     for (Property<?> property : this.propertiesList) {
       if (property.isRequired() && (property.getValue() == null)) {
-        return false;
+        ValidationState state = new ValidationState(property.getNameOrAlias());
+        state.addErrorMessage("Required property has no value");
+        return state;
       }
     }
     for (Property<?> property : this.propertiesList) {
       ValidationResult state = property.validate();
       if (!state.isValid()) {
-        context.debug(state.getErrorMessage());
-        return false;
+        context.error(state.getErrorMessage());
+        return state;
       }
     }
-    return true;
+    return new ValidationState(null);
   }
 
   /**

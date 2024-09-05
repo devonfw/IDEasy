@@ -458,7 +458,7 @@ public abstract class Property<V> {
    */
   public ValidationResult validate() {
 
-    ValidationState state = new ValidationState();
+    ValidationState state = new ValidationState(this.getNameOrAlias());
 
     if (this.required && (getValue() == null)) {
       state.addErrorMessage("Property " + this.name + " is required but no value has been set");

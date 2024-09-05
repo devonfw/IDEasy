@@ -61,7 +61,7 @@ public class PathProperty extends Property<Path> {
 
   @Override
   public ValidationResult validate() {
-    ValidationState state = new ValidationState();
+    ValidationState state = new ValidationState(this.getNameOrAlias());
     for (Path path : this.value) {
       if (path != null && Files.exists(path)) {
         if (isPathRequiredToBeFile() && !Files.isRegularFile(path)) {
