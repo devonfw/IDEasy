@@ -613,7 +613,6 @@ public class FileAccessImpl implements FileAccess {
   public void extractJar(Path file, Path targetDir) {
 
     this.context.trace("Unpacking JAR {} to {}", file, targetDir);
-   
     try (JarInputStream jis = new JarInputStream(Files.newInputStream(file))) {
       JarEntry entry;
       while ((entry = jis.getNextJarEntry()) != null) {
