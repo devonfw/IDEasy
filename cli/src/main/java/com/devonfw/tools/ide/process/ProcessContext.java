@@ -7,7 +7,7 @@ import java.util.Objects;
 /**
  * Wrapper for {@link ProcessBuilder} to simplify its usage and avoid common mistakes and pitfalls.
  */
-public interface ProcessContext {
+public interface ProcessContext extends EnvironmentContext {
 
   /**
    * @param handling the desired {@link ProcessErrorHandling}.

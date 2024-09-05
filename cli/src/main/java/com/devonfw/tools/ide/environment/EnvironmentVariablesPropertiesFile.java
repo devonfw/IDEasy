@@ -99,23 +99,34 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
     }
     Path newPropertiesFilePath = this.propertiesFilePath;
     String propertiesFileName = this.propertiesFilePath.getFileName().toString();
+    Path propertiesParentPath = newPropertiesFilePath.getParent();
+
     if (LEGACY_PROPERTIES.equals(propertiesFileName)) {
-      newPropertiesFilePath = this.propertiesFilePath.getParent().resolve(DEFAULT_PROPERTIES);
+      newPropertiesFilePath = propertiesParentPath.resolve(DEFAULT_PROPERTIES);
       this.context.info("Converting legacy properties to {}", newPropertiesFilePath);
     }
+
+    this.context.getFileAccess().mkdirs(propertiesParentPath);
     List<VariableLine> lines = new ArrayList<>();
-    try (BufferedReader reader = Files.newBufferedReader(this.propertiesFilePath)) {
-      String line;
-      do {
-        line = reader.readLine();
-        if (line != null) {
-          VariableLine variableLine = VariableLine.of(line, this.context, getSource());
-          lines.add(variableLine);
-        }
-      } while (line != null);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to load existing properties from " + this.propertiesFilePath, e);
+
+    // Skip reading if the file does not exist
+    if (Files.exists(this.propertiesFilePath)) {
+      try (BufferedReader reader = Files.newBufferedReader(this.propertiesFilePath)) {
+        String line;
+        do {
+          line = reader.readLine();
+          if (line != null) {
+            VariableLine variableLine = VariableLine.of(line, this.context, getSource());
+            lines.add(variableLine);
+          }
+        } while (line != null);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to load existing properties from " + this.propertiesFilePath, e);
+      }
+    } else {
+      this.context.debug("Properties file {} does not exist, skipping read.", newPropertiesFilePath);
     }
+
     try (BufferedWriter writer = Files.newBufferedWriter(newPropertiesFilePath, StandardOpenOption.CREATE,
         StandardOpenOption.TRUNCATE_EXISTING)) {
       // copy and modify original lines from properties file

@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.context;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Locale;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliException;
@@ -13,7 +12,6 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
-import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
@@ -29,7 +27,7 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 /**
  * Interface for interaction with the user allowing to input and output information.
  */
-public interface IdeContext extends IdeLogger {
+public interface IdeContext extends IdeStartContext {
 
   /**
    * The default settings URL.
@@ -136,26 +134,6 @@ public interface IdeContext extends IdeLogger {
 
   /** Legacy folder name used as compatibility fallback if {@link #FOLDER_TEMPLATES} does not exist. */
   String FOLDER_LEGACY_TEMPLATES = "devon";
-
-  /**
-   * @return {@code true} in case of quiet mode (reduced output), {@code false} otherwise.
-   */
-  boolean isQuietMode();
-
-  /**
-   * @return {@code true} in case of batch mode (no {@link #question(String) user-interaction}), {@code false} otherwise.
-   */
-  boolean isBatchMode();
-
-  /**
-   * @return {@code true} in case of force mode, {@code false} otherwise.
-   */
-  boolean isForceMode();
-
-  /**
-   * @return {@code true} if offline mode is activated (-o/--offline), {@code false} otherwise.
-   */
-  boolean isOfflineMode();
 
   /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
@@ -413,11 +391,6 @@ public interface IdeContext extends IdeLogger {
    *     {@link #getSoftwarePath() software path} unless {@link #getIdeHome() IDE_HOME} was not found.
    */
   SystemPath getPath();
-
-  /**
-   * @return the current {@link Locale}. Either configured via command-line option or {@link Locale#getDefault() default}.
-   */
-  Locale getLocale();
 
   /**
    * @return a new {@link ProcessContext} to {@link ProcessContext#run() run} external commands.
