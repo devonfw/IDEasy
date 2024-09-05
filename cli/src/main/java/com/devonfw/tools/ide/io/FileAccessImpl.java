@@ -881,4 +881,37 @@ public class FileAccessImpl implements FileAccess {
     }
     return null;
   }
+
+  @Override
+  public void makeExecutable(Path filePath) {
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      return;
+    }
+
+    if (Files.exists(filePath)) {
+      // Read the current file permissions
+      Set<PosixFilePermission> perms;
+      try {
+        perms = Files.getPosixFilePermissions(filePath);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+
+      if (perms != null) {
+        // Add execute permission for all users
+        perms.add(PosixFilePermission.OWNER_EXECUTE);
+        perms.add(PosixFilePermission.GROUP_EXECUTE);
+        perms.add(PosixFilePermission.OTHERS_EXECUTE);
+
+        // Set the new permissions
+        try {
+          Files.setPosixFilePermissions(filePath, perms);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+      }
+    } else {
+      this.context.warning("Cannot set executable flag on file that does not exist: {}", filePath);
+    }
+  }
 }
