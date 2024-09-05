@@ -883,6 +883,8 @@ public class FileAccessImpl implements FileAccess {
           throw new RuntimeException(e);
         }
       }
+    } else {
+      this.context.warning("Cannot set executable flag on file that does not exist: {}", filePath);
     }
   }
 }
