@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
+import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -229,7 +230,7 @@ public abstract class Commandlet {
       }
     }
     for (Property<?> property : this.propertiesList) {
-      ValidationState state = property.validate();
+      ValidationResult state = property.validate();
       if (!state.isValid()) {
         context.debug(state.getErrorMessage());
         return false;

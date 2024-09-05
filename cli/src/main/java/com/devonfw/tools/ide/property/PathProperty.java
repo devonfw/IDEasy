@@ -9,6 +9,7 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.validation.PropertyValidator;
+import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationState;
 
 /**
@@ -59,8 +60,8 @@ public class PathProperty extends Property<Path> {
   }
 
   @Override
-  public ValidationState validate() {
-    ValidationState state = super.validate();
+  public ValidationResult validate() {
+    ValidationState state = new ValidationState();
     for (Path path : this.value) {
       if (path != null && Files.exists(path)) {
         if (isPathRequiredToBeFile() && !Files.isRegularFile(path)) {
@@ -72,8 +73,8 @@ public class PathProperty extends Property<Path> {
         state.addErrorMessage("Path " + path + " does not exist.");
       }
     }
+    state.add(super.validate());
     return state;
-
   }
 
   /**

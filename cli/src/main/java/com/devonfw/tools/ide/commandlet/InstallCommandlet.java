@@ -31,7 +31,7 @@ public class InstallCommandlet extends Commandlet {
     addKeyword(getName());
     this.tool = add(new ToolProperty("", true, "tool"));
     this.version = add(new VersionProperty("", false, "version",
-        (VersionIdentifier v, ValidationState state) -> {
+        (v, state) -> {
           if (!v.isValid()) {
             state.addErrorMessage("Given version " + v + " is not a valid version");
           }

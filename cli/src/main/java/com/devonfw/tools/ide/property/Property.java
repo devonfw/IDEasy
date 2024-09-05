@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollectorAdapter;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.validation.PropertyValidator;
+import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationState;
 
 /**
@@ -455,7 +456,7 @@ public abstract class Property<V> {
    * @throws RuntimeException if the {@link #getValue() value} is violating given constraints. This is checked by the optional {@link Consumer} function
    *     given at construction time.
    */
-  public ValidationState validate() {
+  public ValidationResult validate() {
 
     ValidationState state = new ValidationState();
 

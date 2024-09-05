@@ -24,4 +24,9 @@ public class ValidationState implements ValidationResult {
     this.errorMessage.append(error);
   }
 
+  public void add(ValidationResult result) {
+    if (!result.isValid()) {
+      addErrorMessage(result.getErrorMessage());
+    }
+  }
 }
