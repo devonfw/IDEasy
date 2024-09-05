@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
+import com.devonfw.tools.ide.url.model.report.UrlUpdaterReport;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
 
 /**
@@ -58,7 +59,9 @@ public class UpdateInitiator {
     UpdateManager updateManager = new UpdateManager(repoPath, expirationTime);
     updateManager.updateAll(urlFinalReport);
 
-    logger.info(urlFinalReport.toString());
-
+    // log the result of collected url updater reports
+    for (UrlUpdaterReport urlUpdaterReport : urlFinalReport.getUrlUpdaterReports()) {
+      logger.info(urlUpdaterReport.toString());
+    }
   }
 }

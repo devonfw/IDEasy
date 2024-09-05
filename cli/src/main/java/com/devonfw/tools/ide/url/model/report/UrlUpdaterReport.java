@@ -113,14 +113,20 @@ public class UrlUpdaterReport {
 
   public double getErrorRateVerificiations() {
 
-    System.out.println(this.verificationFailure + " " + this.verificationSuccess);
-
     if (this.verificationSuccess > 0 && this.verificationFailure > 0) {
       return ((double) this.verificationFailure / getTotalVerificitations()) * 100;
     } else {
 
       return 0;
     }
+  }
+
+  @Override
+  public String toString() {
+    return this.tool + "/" + this.edition + " versions added: " + this.addVersionFailure + " failed, "
+        + this.addVersionSuccess + " succeeded, " + this.getTotalAdditions() + " total, " + String.format("%.2f", this.getErrorRateAdditions())
+        + "% error - versions verified: " + this.verificationFailure + " failed, " + this.verificationSuccess + " succeeded, "
+        + this.getTotalVerificitations() + " total, " + String.format("%.2f", this.getErrorRateVerificiations()) + "% error";
   }
 
 }
