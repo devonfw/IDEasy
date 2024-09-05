@@ -106,17 +106,17 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     ProcessContext pc;
 
     if (existsEnvironmentContext) {
-      pc = getProcessContext(binaryPath, args);
+      pc = createProcessContext(binaryPath, args);
       install(pc, true);
     } else {
       install(true);
-      pc = getProcessContext(binaryPath, args);
+      pc = createProcessContext(binaryPath, args);
     }
 
     pc.run(processMode);
   }
 
-  protected ProcessContext getProcessContext(Path binaryPath, String... args) {
+  protected ProcessContext createProcessContext(Path binaryPath, String... args) {
 
     return this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
   }

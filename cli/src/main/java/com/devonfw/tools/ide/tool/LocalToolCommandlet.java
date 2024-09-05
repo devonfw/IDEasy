@@ -394,7 +394,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier dependencyVersionToInstall = this.dependency.findDependencyVersionToInstall(dependencyInfo);
 
     Path dependencyRepository = getDependencySoftwareRepository(dependencyName, dependencyTool.getConfiguredEdition());
-    String pathVariable = this.tool.toUpperCase(Locale.ROOT) + "_HOME";
+
+    String pathVariable = dependencyTool.tool.toUpperCase(Locale.ROOT) + "_HOME";
 
     if (!Files.exists(dependencyRepository)) {
       installDependencyInRepo(dependencyName, dependencyTool, dependencyVersionToInstall, ec);

@@ -51,7 +51,7 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
     args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
 
     install(true);
-    ProcessContext pc = getProcessContext(Path.of(getBinaryName()), args);
+    ProcessContext pc = createProcessContext(Path.of(getBinaryName()), args);
     this.setEnvironment(pc, "STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties"));
     pc.run(processMode);
 
