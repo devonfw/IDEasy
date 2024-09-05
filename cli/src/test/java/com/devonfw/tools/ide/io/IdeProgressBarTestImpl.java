@@ -46,6 +46,7 @@ public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
   @Override
   protected void doStepTo(long stepPosition) {
     this.total = stepPosition;
+    this.eventList.add(new ProgressEvent(stepPosition));
   }
 
   @Override
