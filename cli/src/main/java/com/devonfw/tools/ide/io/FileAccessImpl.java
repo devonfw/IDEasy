@@ -840,7 +840,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void makeExecutable(Path filePath) throws IOException {
+  public void makeExecutable(Path filePath) {
     if (SystemInfoImpl.INSTANCE.isWindows()) {
       return;
     }

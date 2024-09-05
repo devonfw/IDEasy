@@ -73,6 +73,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         bashFile = Files.createFile(getToolBinPath().resolve(getName()));
         MacOsHelper macOsHelper = new MacOsHelper(context);
         Path appPath = macOsHelper.findAppDir(macOsHelper.findRootToolPath(this, context));
+        this.context.getFileAccess().makeExecutable(getToolPath().resolve(appPath).resolve(IdeContext.FOLDER_CONTENTS).resolve("MacOS").resolve(IDEA));
         Files.writeString(bashFile,
             bashFileContentStart + getToolPath().resolve(appPath).resolve(IdeContext.FOLDER_CONTENTS).resolve("MacOS").resolve(IDEA) + bashFileContentEnd);
       } catch (IOException e) {
@@ -81,6 +82,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     } else if (this.context.getSystemInfo().isWindows()) {
       try {
         bashFile = Files.createFile(getToolBinPath().resolve(getName()));
+        this.context.getFileAccess().makeExecutable(getToolBinPath().resolve(IDEA64_EXE));
         Files.writeString(bashFile,
             bashFileContentStart + getToolBinPath().resolve(IDEA64_EXE) + bashFileContentEnd);
       } catch (IOException e) {
@@ -89,6 +91,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     } else {
       try {
         bashFile = Files.createFile(getToolBinPath().resolve(getName()));
+        this.context.getFileAccess().makeExecutable(getToolBinPath().resolve(IDEA_BASH_SCRIPT));
         Files.writeString(bashFile,
             bashFileContentStart + getToolBinPath().resolve(IDEA_BASH_SCRIPT) + bashFileContentEnd);
       } catch (IOException e) {
@@ -96,11 +99,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
       }
     }
 
-    try {
-      context.getFileAccess().makeExecutable(bashFile);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
+    context.getFileAccess().makeExecutable(bashFile);
   }
 
 }

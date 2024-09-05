@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.io;
 
-import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
@@ -247,7 +246,6 @@ public interface FileAccess {
    * Makes a file executable. Equivalent of using 'chmod a+x'. Adds execute permissions to current file permissions.
    *
    * @param filePath Path to the file.
-   * @throws IOException if an I/O error occurs.
    */
-  void makeExecutable(Path filePath) throws IOException;
+  void makeExecutable(Path filePath);
 }
