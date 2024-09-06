@@ -94,33 +94,46 @@ public class GitContextImpl implements GitContext {
   @Override
   public boolean fetchIfNeeded(Path targetRepository, String remoteName, String branch) {
 
-    if (this.context.isOffline()) {
+    if (isFetchNeeded(targetRepository)) {
+      fetch(targetRepository, remoteName, branch);
+      // TODO: see JavaDoc, implementation incorrect. fetch needs to return boolean if changes have been fetched
+      // and then this result must be returned - or JavaDoc needs to changed
+      return true;
+    } else {
+      this.context.debug("Skipping git fetch on {} since already fetched short time ago to avoid overhead", targetRepository);
       return false;
     }
+  }
 
+  private boolean isFetchNeeded(Path targetRepository) {
+
+    if (this.context.isOffline()) {
+      return false;
+    } else if (this.context.isForceMode()) {
+      return true;
+    }
     Path gitDirectory = targetRepository.resolve(".git");
-    // Check if the .git directory exists
-    if (!this.context.isForceMode() && Files.isDirectory(gitDirectory)) {
-      Path fetchHeadPath = gitDirectory.resolve("FETCH_HEAD");
+    if (!Files.isDirectory(gitDirectory)) {
+      return true; // technically this is an error that will be triggered by fetch method
+    }
+    Path fetchHeadPath = gitDirectory.resolve("FETCH_HEAD");
+    if (Files.exists(fetchHeadPath)) {
       long currentTime = System.currentTimeMillis();
-      // Get the modification time of the FETCH_HEAD file
       try {
         long fileModifiedTime = Files.getLastModifiedTime(fetchHeadPath).toMillis();
         // Check if the file modification time is older than the delta threshold
         if ((currentTime - fileModifiedTime > GIT_FETCH_CACHE_DELAY.toMillis())) {
-          fetch(targetRepository, remoteName, branch);
-          try {
-            Files.setLastModifiedTime(fetchHeadPath, FileTime.fromMillis(currentTime));
-            return true;
-          } catch (IOException e) {
-            this.context.warning().log(e, "Could not update modification-time of {}", fetchHeadPath);
-          }
+          return true;
+        } else {
+          return false;
         }
       } catch (IOException e) {
-        this.context.error(e);
+        this.context.warning().log(e, "Could not update modification-time of {}", fetchHeadPath);
+        return true;
       }
+    } else {
+      return true;
     }
-    return false;
   }
 
   @Override
