@@ -245,7 +245,16 @@ public interface FileAccess {
   /**
    * Makes a file executable. Equivalent of using 'chmod a+x'. Adds execute permissions to current file permissions.
    *
-   * @param filePath Path to the file.
+   * @param filePath {@link Path} to the file.
    */
   void makeExecutable(Path filePath);
+
+  /**
+   * Like the linux touch command this method will update the modification time of the given {@link Path} to the current
+   * {@link System#currentTimeMillis() system time}. In case the file does not exist, it will be created as empty file. If already the
+   * {@link Path#getParent() parent folder} does not exist, the operation will fail.
+   *
+   * @param filePath the {@link Path} to the file or folder.
+   */
+  void touch(Path filePath);
 }
