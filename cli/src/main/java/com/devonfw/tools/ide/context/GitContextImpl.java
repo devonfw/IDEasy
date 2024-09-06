@@ -62,10 +62,10 @@ public class GitContextImpl implements GitContext {
           try {
             Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
           } catch (IOException e) {
-            this.context.warning().log(e, "Cound not update modification-time of {}", magicFilePath);
+            this.context.warning().log(e, "Could not update modification-time of {}", magicFilePath);
           }
-          return;
         }
+        return;
       } catch (IOException e) {
         this.context.error(e);
       }
