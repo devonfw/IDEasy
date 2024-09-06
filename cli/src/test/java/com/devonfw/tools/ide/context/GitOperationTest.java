@@ -191,6 +191,25 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Mockito.verifyNoInteractions(mock);
   }
 
+  @Test
+  public void testPullOrCloneSkippedIfRepoNotInitializedAndOfflineMode(@TempDir Path tempDir) throws Exception {
+
+    // arrange
+    GitOperation operation = GitOperation.PULL_OR_CLONE;
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    context.getStartContext().setOfflineMode(true);
+    GitContext mock = Mockito.mock(GitContext.class);
+    context.setGitContext(mock);
+    Path repo = tempDir.resolve("git-repository");
+    Files.createDirectories(repo);
+
+    // act
+    operation.executeIfNeeded(context, URL, repo, null, BRANCH);
+
+    // assert
+    Mockito.verify(mock).pullOrClone(URL, repo, BRANCH);
+  }
+
   private Path createFakeGitRepo(Path dir, String file) throws Exception {
 
     return createFakeGitRepo(dir, file, false);

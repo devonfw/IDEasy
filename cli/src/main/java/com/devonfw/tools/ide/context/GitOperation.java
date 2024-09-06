@@ -87,6 +87,15 @@ public enum GitOperation {
   }
 
   /**
+   * @return {@code true} if after this operation is always {@link #isNeeded(Path, IdeContext) needed} of the ".git" folder not is present, {@code false}
+   *     otherwise.
+   */
+  public boolean isNeededIfGitFolderNotPresent() {
+
+    return this == PULL_OR_CLONE;
+  }
+
+  /**
    * Executes this {@link GitOperation} physically.
    *
    * @param context the {@link IdeContext}.
@@ -129,6 +138,12 @@ public enum GitOperation {
 
   private boolean isNeeded(Path targetRepository, IdeContext context) {
 
+    Path gitDirectory = targetRepository.resolve(".git");
+    boolean hasGitDirectory = Files.isDirectory(gitDirectory);
+    if (isNeededIfGitFolderNotPresent() && !hasGitDirectory) {
+      logEnforceGitOperationBecauseGitFolderNotPresent(targetRepository, context);
+      return true;
+    }
     if (context.isOffline()) {
       context.info("Skipping git {} on {} because we are offline.", this.name, targetRepository);
       return false;
@@ -136,12 +151,11 @@ public enum GitOperation {
       context.debug("Enforcing git {} on {} because force mode is active.", this.name, targetRepository);
       return true;
     }
-    Path gitDirectory = targetRepository.resolve(".git");
-    if (!Files.isDirectory(gitDirectory)) {
+    if (!hasGitDirectory) {
       if (isRequireGitFolder()) {
         context.warning("Missing .git folder in {}.", targetRepository);
       } else {
-        context.debug("Enforcing git {} on {} because .git folder is not present.", this.name, targetRepository);
+        logEnforceGitOperationBecauseGitFolderNotPresent(targetRepository, context);
       }
       return true; // technically this is an error that will be triggered by fetch method
     }
@@ -170,6 +184,10 @@ public enum GitOperation {
       context.debug("Will need to do git {} on {} because {} is missing.", this.name, targetRepository, timestampFilename);
       return true;
     }
+  }
+
+  private void logEnforceGitOperationBecauseGitFolderNotPresent(Path targetRepository, IdeContext context) {
+    context.debug("Enforcing git {} on {} because .git folder is not present.", this.name, targetRepository);
   }
 
 }
