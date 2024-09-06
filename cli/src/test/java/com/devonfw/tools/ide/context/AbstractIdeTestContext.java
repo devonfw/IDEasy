@@ -45,9 +45,9 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    * @param userDir the optional {@link Path} to current working directory.
    * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
    *     be used.
+   * @param answers the automatic answers simulating a user in test.
    */
-  public AbstractIdeTestContext(IdeStartContextImpl logger, Path userDir,
-      ToolRepository toolRepository) {
+  public AbstractIdeTestContext(IdeStartContextImpl logger, Path userDir, ToolRepository toolRepository, String... answers) {
 
     super(logger, userDir, toolRepository);
     this.answers = new String[0];
