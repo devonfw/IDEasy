@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.io;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
@@ -22,7 +20,7 @@ public interface FileAccess {
    * Downloads a file from an arbitrary location.
    *
    * @param url the location of the binary file to download. May also be a local or remote path to copy from.
-   * @param targetFile the {@link Path} to the target file to download to. Should not already exists. Missing parent directories will be created
+   * @param targetFile the {@link Path} to the target file to download to. Should not already exist. Missing parent directories will be created
    *     automatically.
    */
   void download(String url, Path targetFile);
@@ -245,13 +243,9 @@ public interface FileAccess {
   boolean isEmptyDir(Path dir);
 
   /**
-   * Makes the file executable.
+   * Makes a file executable. Equivalent of using 'chmod a+x'. Adds execute permissions to current file permissions.
    *
-   * @param path Path to the file.
-   * @throws IOException if an I/O error occurs.
+   * @param filePath Path to the file.
    */
-  default void makeExecutable(Path path) throws IOException {
-
-    Files.setPosixFilePermissions(path, RWX_RX_RX);
-  }
+  void makeExecutable(Path filePath);
 }
