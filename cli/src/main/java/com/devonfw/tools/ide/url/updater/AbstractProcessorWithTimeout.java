@@ -19,7 +19,7 @@ public abstract class AbstractProcessorWithTimeout {
   private Instant expirationTime;
 
   /** The {@link UrlFinalReport} final report of url updates for monitoring */
-  private UrlFinalReport urlFinalReport = new UrlFinalReport();
+  private UrlFinalReport urlFinalReport;
 
   /** The {@link UrlUpdaterReport} report instance to track data for the {@link UrlFinalReport} */
   private UrlUpdaterReport urlUpdaterReport;
