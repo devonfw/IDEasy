@@ -109,6 +109,7 @@ public class FileAccessImpl implements FileAccess {
         Path source = Path.of(url);
         if (isFile(source)) {
           // network drive
+
           copyFileWithProgressBar(source, target);
         } else {
           throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
@@ -126,13 +127,10 @@ public class FileAccessImpl implements FileAccess {
    * @param target Path of the target directory.
    * @param response the {@link HttpResponse} to use.
    */
-  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) throws IOException {
+  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
-    long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
-    if (contentLength == 0) {
-      this.context.warning("Content-Length was not provided by download source : {} using fallback for the progress bar which will be inaccurate.", url);
-      contentLength = 10000000;
-    }
+    long contentLength = response.headers().firstValueAsLong("content-length").orElse(-1);
+    informAboutMissingContentLength(contentLength, url, null);
 
     byte[] data = new byte[1024];
     boolean fileComplete = false;
@@ -151,6 +149,7 @@ public class FileAccessImpl implements FileAccess {
           pb.stepBy(count);
         }
       }
+
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -165,19 +164,36 @@ public class FileAccessImpl implements FileAccess {
   private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
     try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
-
-      long size = source.toFile().length();
+      long size;
+      size = getFileSize(source);
+      informAboutMissingContentLength(size, null, source);
       byte[] buf = new byte[1024];
       int readBytes;
 
       try (IdeProgressBar pb = this.context.prepareProgressBar("Copying", size)) {
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
-          pb.stepByOne();
+          if (size > 0) {
+            pb.stepBy(readBytes);
+          }
         }
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+    }
+  }
+
+  private void informAboutMissingContentLength(long contentLength, String url, Path path) {
+
+    String source;
+    if (contentLength < 0) {
+      if (path != null) {
+        source = path.toString();
+      } else {
+        source = url;
+      }
+      this.context.warning("Content-Length was not provided by download/copy source: {}.",
+          source);
     }
   }
 
@@ -837,6 +853,17 @@ public class FileAccessImpl implements FileAccess {
   public boolean isEmptyDir(Path dir) {
 
     return listChildren(dir, f -> true).isEmpty();
+  }
+
+  /**
+   * Gets the file size of a provided file path.
+   *
+   * @param path of the file.
+   * @return the file size.
+   */
+  protected long getFileSize(Path path) {
+
+    return path.toFile().length();
   }
 
   @Override
