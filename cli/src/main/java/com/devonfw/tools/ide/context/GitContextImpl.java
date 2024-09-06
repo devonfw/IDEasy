@@ -1,11 +1,8 @@
 package com.devonfw.tools.ide.context;
 
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
-import java.time.Duration;
 import java.util.AbstractMap;
 import java.util.HashMap;
 import java.util.List;
@@ -23,10 +20,6 @@ import com.devonfw.tools.ide.process.ProcessResult;
  * Implements the {@link GitContext}.
  */
 public class GitContextImpl implements GitContext {
-
-  private static final Duration GIT_PULL_CACHE_DELAY_MILLIS = Duration.ofMinutes(30);
-
-  private static final Duration GIT_FETCH_CACHE_DELAY = Duration.ofMinutes(5);
 
   private final IdeContext context;
 
@@ -47,93 +40,19 @@ public class GitContextImpl implements GitContext {
   @Override
   public void pullOrCloneIfNeeded(String repoUrl, String branch, Path targetRepository) {
 
-    Path gitDirectory = targetRepository.resolve(".git");
-
-    // Check if the .git directory exists
-    if (!this.context.isForceMode() && Files.isDirectory(gitDirectory)) {
-      Path magicFilePath = gitDirectory.resolve("HEAD");
-      long currentTime = System.currentTimeMillis();
-      // Get the modification time of the magic file
-      try {
-        long fileModifiedTime = Files.getLastModifiedTime(magicFilePath).toMillis();
-        // Check if the file modification time is older than the delta threshold
-        if ((currentTime - fileModifiedTime > GIT_PULL_CACHE_DELAY_MILLIS.toMillis())) {
-          pullOrClone(repoUrl, targetRepository);
-          try {
-            Files.setLastModifiedTime(magicFilePath, FileTime.fromMillis(currentTime));
-          } catch (IOException e) {
-            this.context.warning().log(e, "Could not update modification-time of {}", magicFilePath);
-          }
-        }
-        return;
-      } catch (IOException e) {
-        this.context.error(e);
-      }
-    }
-    // If the .git directory does not exist or in case of an error, perform git operation directly
-    pullOrClone(repoUrl, branch, targetRepository);
+    GitOperation.PULL_OR_CLONE.executeIfNeeded(this, repoUrl, targetRepository, null, branch);
   }
 
   @Override
   public boolean fetchIfNeeded(Path targetRepository) {
 
-    Optional<String[]> remoteAndBranchOpt = getLocalRemoteAndBranch(targetRepository);
-
-    if (remoteAndBranchOpt.isEmpty()) {
-      context.warning("Could not determine the remote or branch for the repository at " + targetRepository);
-      return false;
-    }
-
-    String[] remoteAndBranch = remoteAndBranchOpt.get();
-    String remoteName = remoteAndBranch[0];
-    String branch = remoteAndBranch[1];
-
-    return fetchIfNeeded(targetRepository, remoteName, branch);
+    return fetchIfNeeded(targetRepository, null, null);
   }
 
   @Override
-  public boolean fetchIfNeeded(Path targetRepository, String remoteName, String branch) {
+  public boolean fetchIfNeeded(Path targetRepository, String remote, String branch) {
 
-    if (isFetchNeeded(targetRepository)) {
-      fetch(targetRepository, remoteName, branch);
-      // TODO: see JavaDoc, implementation incorrect. fetch needs to return boolean if changes have been fetched
-      // and then this result must be returned - or JavaDoc needs to changed
-      return true;
-    } else {
-      this.context.debug("Skipping git fetch on {} since already fetched short time ago to avoid overhead", targetRepository);
-      return false;
-    }
-  }
-
-  private boolean isFetchNeeded(Path targetRepository) {
-
-    if (this.context.isOffline()) {
-      return false;
-    } else if (this.context.isForceMode()) {
-      return true;
-    }
-    Path gitDirectory = targetRepository.resolve(".git");
-    if (!Files.isDirectory(gitDirectory)) {
-      return true; // technically this is an error that will be triggered by fetch method
-    }
-    Path fetchHeadPath = gitDirectory.resolve("FETCH_HEAD");
-    if (Files.exists(fetchHeadPath)) {
-      long currentTime = System.currentTimeMillis();
-      try {
-        long fileModifiedTime = Files.getLastModifiedTime(fetchHeadPath).toMillis();
-        // Check if the file modification time is older than the delta threshold
-        if ((currentTime - fileModifiedTime > GIT_FETCH_CACHE_DELAY.toMillis())) {
-          return true;
-        } else {
-          return false;
-        }
-      } catch (IOException e) {
-        this.context.warning().log(e, "Could not update modification-time of {}", fetchHeadPath);
-        return true;
-      }
-    } else {
-      return true;
-    }
+    return GitOperation.FETCH.executeIfNeeded(this, null, targetRepository, remote, branch);
   }
 
   @Override
@@ -187,7 +106,7 @@ public class GitContextImpl implements GitContext {
       throw new IllegalArgumentException("Invalid git URL '" + gitRepoUrl + "'!");
     }
 
-    if (Files.isDirectory(targetRepository.resolve(".git"))) {
+    if (Files.isDirectory(targetRepository.resolve(GIT_FOLDER))) {
       // checks for remotes
       this.processContext.directory(targetRepository);
       ProcessResult result = this.processContext.addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
@@ -283,6 +202,21 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public void fetch(Path targetRepository, String remote, String branch) {
+
+    if ((remote == null) || (branch == null)) {
+      Optional<String[]> remoteAndBranchOpt = getLocalRemoteAndBranch(targetRepository);
+      if (remoteAndBranchOpt.isEmpty()) {
+        context.warning("Could not determine the remote or branch for the git repository at {}", targetRepository);
+        return; // false;
+      }
+      String[] remoteAndBranch = remoteAndBranchOpt.get();
+      if (remote == null) {
+        remote = remoteAndBranch[0];
+      }
+      if (branch == null) {
+        branch = remoteAndBranch[1];
+      }
+    }
 
     this.processContext.directory(targetRepository);
     ProcessResult result;
@@ -394,6 +328,10 @@ public class GitContextImpl implements GitContext {
     return null;
   }
 
+  IdeContext getContext() {
+
+    return this.context;
+  }
 }
 
 
