@@ -40,7 +40,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     install(true);
     args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
     ProcessContext pc = createProcessContext(Path.of(getBinaryName()), args);
-    this.setEnvironment(pc, "IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties"));
+    pc.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString());
     pc.run(processMode);
 
   }
