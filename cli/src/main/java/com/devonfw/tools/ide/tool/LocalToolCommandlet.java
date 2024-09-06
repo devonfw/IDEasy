@@ -357,7 +357,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Method to set an environment variable for the process context.
+   * Method to set environment variables for the process context.
    *
    * @param envContext the {@link EnvironmentContext} of the tool.
    * @param value the {@link Path value} of the pathVariable.

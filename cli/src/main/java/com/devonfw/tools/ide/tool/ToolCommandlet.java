@@ -116,6 +116,13 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     pc.run(processMode);
   }
 
+  /**
+   * Creates a new {@link ProcessContext} from the given executable with the provided arguments attached.
+   *
+   * @param binaryPath path to the binary executable for this process
+   * @param args the command-line arguments for this process
+   * @return {@link ProcessContext}
+   */
   protected ProcessContext createProcessContext(Path binaryPath, String... args) {
 
     return this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
