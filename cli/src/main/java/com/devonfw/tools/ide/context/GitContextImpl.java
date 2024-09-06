@@ -105,7 +105,14 @@ public class GitContextImpl implements GitContext {
       long currentTime = System.currentTimeMillis();
       // Get the modification time of the FETCH_HEAD file
       try {
+        if (!Files.exists(fetchHeadPath)) {
+          fetch(targetRepository, remoteName, branch);
+        } else {
+          Files.createFile(fetchHeadPath);
+          System.out.println("FETCH_HEAD file not found after fetch attempt. Created an empty file.");
+        }
         long fileModifiedTime = Files.getLastModifiedTime(fetchHeadPath).toMillis();
+
         // Check if the file modification time is older than the delta threshold
         if ((currentTime - fileModifiedTime > GIT_FETCH_CACHE_DELAY.toMillis())) {
           fetch(targetRepository, remoteName, branch);
