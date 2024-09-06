@@ -53,7 +53,10 @@ public abstract class AbstractProcessorWithTimeout {
    */
   public UrlFinalReport getUrlFinalReport() {
 
-    return urlFinalReport;
+    if (this.urlFinalReport == null) {
+      this.urlFinalReport = new UrlFinalReport();
+    }
+    return this.urlFinalReport;
   }
 
   /**
