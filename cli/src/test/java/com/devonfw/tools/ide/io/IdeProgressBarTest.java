@@ -5,8 +5,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -79,27 +82,32 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if {@link FileAccess#download(String, Path)} with missing file size is working properly.
+   * Tests if {@link FileAccess#download(String, Path)} copy process with known file size is working properly.
    *
    * @param tempDir temporary directory to use.
    */
   @Test
-  public void testProgressBarCopyWithMissingFileSize(@TempDir Path tempDir) {
+  public void testProgressBarCopyWithKnownFileSize(@TempDir Path tempDir) {
 
     //arrange
     String taskName = "Copying";
     IdeTestContext context = newContext(tempDir);
-
+    long maxSize = MAX_LENGTH;
     FileAccessTestImpl impl = new FileAccessTestImpl(context);
-    String source = Path.of("src/test/resources/__files").resolve("testZip").toString();
+    try {
+      FileUtils.writeByteArrayToFile(new File(tempDir.resolve("tempFile").toAbsolutePath().toString()), new byte[MAX_LENGTH]);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    String source = tempDir.resolve("tempFile").toString();
 
     //act
     impl.download(source, tempDir.resolve("windows_x64_url.tgz"));
 
     //assert
-    checkLogMessageForMissingContentLength(context, source);
+    assertProgressBar(context, "Copying", maxSize);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
-    assertThat(progressBar.getMaxLength()).isEqualTo(-1);
+    assertThat(progressBar.getMaxLength()).isEqualTo(maxSize);
   }
 }
