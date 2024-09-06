@@ -14,9 +14,9 @@ public enum GitOperation {
 
   FETCH("fetch", "FETCH_HEAD", Duration.ofMinutes(5)) {
     @Override
-    protected boolean execute(GitContextImpl gitContext, String gitRepoUrl, Path targetRepository, String remote, String branch) {
+    protected boolean execute(IdeContext context, String gitRepoUrl, Path targetRepository, String remote, String branch) {
 
-      gitContext.fetch(targetRepository, remote, branch);
+      context.getGitContext().fetch(targetRepository, remote, branch);
       // TODO: see JavaDoc, implementation incorrect. fetch needs to return boolean if changes have been fetched
       // and then this result must be returned - or JavaDoc needs to changed
       return true;
@@ -25,9 +25,9 @@ public enum GitOperation {
 
   PULL_OR_CLONE("pull/clone", "HEAD", Duration.ofMinutes(30)) {
     @Override
-    protected boolean execute(GitContextImpl gitContext, String gitRepoUrl, Path targetRepository, String remote, String branch) {
+    protected boolean execute(IdeContext context, String gitRepoUrl, Path targetRepository, String remote, String branch) {
 
-      gitContext.pullOrClone(gitRepoUrl, branch, targetRepository);
+      context.getGitContext().pullOrClone(gitRepoUrl, targetRepository, branch);
       return true;
     }
   };
@@ -89,31 +89,29 @@ public enum GitOperation {
   /**
    * Executes this {@link GitOperation} physically.
    *
-   * @param gitContext the {@link GitContextImpl}.
+   * @param context the {@link IdeContext}.
    * @param gitRepoUrl the git repository URL. Maybe {@code null} if not required by the operation.
    * @param targetRepository the {@link Path} to the git repository.
    * @param remote the git remote (e.g. "origin"). Maybe {@code null} if not required by the operation.
    * @param branch the explicit git branch (e.g. "main"). Maybe {@code null} for default branch or if not required by the operation.
    * @return {@code true} if changes were received from git, {@code false} otherwise.
    */
-  protected abstract boolean execute(GitContextImpl gitContext, String gitRepoUrl, Path targetRepository, String remote, String branch);
+  protected abstract boolean execute(IdeContext context, String gitRepoUrl, Path targetRepository, String remote, String branch);
 
   /**
    * Executes this {@link GitOperation} if {@link #isNeeded(Path, IdeContext) needed}.
    *
-   * @param gitContext the {@link GitContextImpl}.
+   * @param context the {@link IdeContext}.
    * @param gitRepoUrl the git repository URL. Maybe {@code null} if not required by the operation.
    * @param targetRepository the {@link Path} to the git repository.
    * @param remote the git remote (e.g. "origin"). Maybe {@code null} if not required by the operation.
    * @param branch the explicit git branch (e.g. "main"). Maybe {@code null} for default branch or if not required by the operation.
    * @return {@code true} if changes were received from git, {@code false} otherwise (e.g. no git operation was invoked at all).
    */
-  boolean executeIfNeeded(GitContextImpl gitContext, String gitRepoUrl, Path targetRepository, String remote, String branch) {
+  boolean executeIfNeeded(IdeContext context, String gitRepoUrl, Path targetRepository, String remote, String branch) {
 
-    IdeContext context = gitContext.getContext();
     if (isNeeded(targetRepository, context)) {
-      boolean result = execute(gitContext, gitRepoUrl, targetRepository, remote, branch);
-      gitContext.fetch(targetRepository, remote, branch);
+      boolean result = execute(context, gitRepoUrl, targetRepository, remote, branch);
       if (isForceUpdateTimestampFile()) {
         Path timestampPath = targetRepository.resolve(GitContext.GIT_FOLDER).resolve(this.timestampFilename);
         try {

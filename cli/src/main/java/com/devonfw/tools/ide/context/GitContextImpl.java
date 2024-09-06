@@ -40,7 +40,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public void pullOrCloneIfNeeded(String repoUrl, String branch, Path targetRepository) {
 
-    GitOperation.PULL_OR_CLONE.executeIfNeeded(this, repoUrl, targetRepository, null, branch);
+    GitOperation.PULL_OR_CLONE.executeIfNeeded(this.context, repoUrl, targetRepository, null, branch);
   }
 
   @Override
@@ -52,7 +52,7 @@ public class GitContextImpl implements GitContext {
   @Override
   public boolean fetchIfNeeded(Path targetRepository, String remote, String branch) {
 
-    return GitOperation.FETCH.executeIfNeeded(this, null, targetRepository, remote, branch);
+    return GitOperation.FETCH.executeIfNeeded(this.context, null, targetRepository, remote, branch);
   }
 
   @Override
@@ -93,11 +93,11 @@ public class GitContextImpl implements GitContext {
   @Override
   public void pullOrClone(String gitRepoUrl, Path targetRepository) {
 
-    pullOrClone(gitRepoUrl, null, targetRepository);
+    pullOrClone(gitRepoUrl, targetRepository, null);
   }
 
   @Override
-  public void pullOrClone(String gitRepoUrl, String branch, Path targetRepository) {
+  public void pullOrClone(String gitRepoUrl, Path targetRepository, String branch) {
 
     Objects.requireNonNull(targetRepository);
     Objects.requireNonNull(gitRepoUrl);
