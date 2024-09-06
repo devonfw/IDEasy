@@ -222,23 +222,12 @@ public abstract class Commandlet {
    * @see Property#validate()
    */
   public ValidationResult validate() {
-
+    ValidationState state = new ValidationState(null);
     // avoid validation exception if not a candidate to be run.
     for (Property<?> property : this.propertiesList) {
-      if (property.isRequired() && (property.getValue() == null)) {
-        ValidationState state = new ValidationState(property.getNameOrAlias());
-        state.addErrorMessage("Required property has no value");
-        return state;
-      }
+      state.add(property.validate());
     }
-    for (Property<?> property : this.propertiesList) {
-      ValidationResult state = property.validate();
-      if (!state.isValid()) {
-        context.error(state.getErrorMessage());
-        return state;
-      }
-    }
-    return new ValidationState(null);
+    return state;
   }
 
   /**

@@ -23,9 +23,14 @@ public class ValidationState implements ValidationResult {
 
   public void addErrorMessage(String error) {
     if (this.errorMessage == null) {
-      this.errorMessage = new StringBuilder(propertyName.length());
-      this.errorMessage.append(String.format("Error in property %s:", propertyName));
-      this.errorMessage.append('\n');
+      if (this.propertyName == null) {
+        this.errorMessage = new StringBuilder(error.length() + 1);
+        this.errorMessage.append('\n');
+      } else {
+        this.errorMessage = new StringBuilder(error.length() + propertyName.length() + 21); // 21 for the static text below
+        this.errorMessage.append(String.format("Error in property %s:", propertyName));
+        this.errorMessage.append('\n');
+      }
     } else {
       this.errorMessage.append('\n');
     }
