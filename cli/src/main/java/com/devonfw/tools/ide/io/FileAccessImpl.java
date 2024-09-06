@@ -156,16 +156,17 @@ public class FileAccessImpl implements FileAccess {
   }
 
   /**
-   * Copies a file while displaying a progress bar
+   * Copies a file while displaying a progress bar.
    *
-   * @param source Path of file to copy
-   * @param target Path of target directory
+   * @param source Path of file to copy.
+   * @param target Path of target directory.
    */
   private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
     try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
       long size;
       size = getFileSize(source);
+
       informAboutMissingContentLength(size, null, source);
       byte[] buf = new byte[1024];
       int readBytes;
