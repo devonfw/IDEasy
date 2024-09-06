@@ -8,6 +8,7 @@ import java.time.format.DateTimeParseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
 
 /**
@@ -18,8 +19,8 @@ public class UpdateInitiator {
   private static final Logger logger = LoggerFactory.getLogger(UpdateInitiator.class.getName());
 
   /**
-   * @param args the command-line arguments. arg[0] points to the {@code ide-urls} repository. arg[1] defines a timeout for GitHub actions in Duration string
-   * format.
+   * @param args the command-line arguments. arg[0] points to the {@code ide-urls} repository. arg[1] defines a timeout for GitHub actions in Duration
+   *     string format.
    */
   public static void main(String[] args) {
 
@@ -52,7 +53,11 @@ public class UpdateInitiator {
       System.exit(1);
     }
 
-    UpdateManager updateManager = new UpdateManager(repoPath, expirationTime);
+    UrlFinalReport urlFinalReport = new UrlFinalReport();
+
+    UpdateManager updateManager = new UpdateManager(repoPath, urlFinalReport, expirationTime);
     updateManager.updateAll();
+
+    logger.info(urlFinalReport.toString());
   }
 }
