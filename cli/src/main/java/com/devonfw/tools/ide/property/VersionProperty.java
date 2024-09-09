@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.property;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Consumer;
 import java.util.stream.IntStream;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -10,6 +9,7 @@ import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.validation.PropertyValidator;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionSegment;
 
@@ -36,9 +36,9 @@ public class VersionProperty extends Property<VersionIdentifier> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
-   * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   * @param validator the {@link PropertyValidator} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public VersionProperty(String name, boolean required, String alias, Consumer<VersionIdentifier> validator) {
+  public VersionProperty(String name, boolean required, String alias, PropertyValidator<VersionIdentifier> validator) {
 
     super(name, required, alias, false, validator);
   }
