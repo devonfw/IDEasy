@@ -60,45 +60,40 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     EnvironmentVariables envVars = this.context.getVariables().getByType(EnvironmentVariablesType.CONF);
     envVars.set("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString(), true);
     envVars.save();
-    createStartupCommandScript();
   }
 
-  private void createStartupCommandScript() {
-    this.context.getFileAccess().mkdirs(getToolPath().resolve("bin"));
-    Path bashFile;
-    String bashFileContentStart = "#!/usr/bin/env bash\n'";
-    String bashFileContentEnd = "' $*";
-    if (this.context.getSystemInfo().isMac()) {
-      try {
-        bashFile = Files.createFile(getToolBinPath().resolve(getName()));
-        MacOsHelper macOsHelper = new MacOsHelper(context);
-        Path appPath = macOsHelper.findAppDir(macOsHelper.findRootToolPath(this, context));
-        this.context.getFileAccess().makeExecutable(getToolPath().resolve(appPath).resolve(IdeContext.FOLDER_CONTENTS).resolve("MacOS").resolve(IDEA));
-        Files.writeString(bashFile,
-            bashFileContentStart + getToolPath().resolve(appPath).resolve(IdeContext.FOLDER_CONTENTS).resolve("MacOS").resolve(IDEA) + bashFileContentEnd);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    } else if (this.context.getSystemInfo().isWindows()) {
-      try {
-        bashFile = Files.createFile(getToolBinPath().resolve(getName()));
-        this.context.getFileAccess().makeExecutable(getToolBinPath().resolve(IDEA64_EXE));
-        Files.writeString(bashFile,
-            bashFileContentStart + getToolBinPath().resolve(IDEA64_EXE) + bashFileContentEnd);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    } else {
-      try {
-        bashFile = Files.createFile(getToolBinPath().resolve(getName()));
-        this.context.getFileAccess().makeExecutable(getToolBinPath().resolve(IDEA_BASH_SCRIPT));
-        Files.writeString(bashFile,
-            bashFileContentStart + getToolBinPath().resolve(IDEA_BASH_SCRIPT) + bashFileContentEnd);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
+  @Override
+  protected void postExtract(Path extractedDir) {
 
+    super.postExtract(extractedDir);
+    Path binFolder = extractedDir.resolve("bin");
+    if (!Files.exists(binFolder)) {
+      if (this.context.getSystemInfo().isMac()) {
+        MacOsHelper macOsHelper = getMacOsHelper();
+        Path appDir = macOsHelper.findAppDir(extractedDir);
+        binFolder = macOsHelper.findLinkDir(appDir, IDEA);
+      } else {
+        binFolder = extractedDir;
+      }
+      assert (Files.exists(binFolder));
+    }
+    Path bashFile = binFolder.resolve(getName());
+    String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname $0)/";
+    String bashFileContentEnd = "\" $*";
+    try {
+      String OsType;
+      if (this.context.getSystemInfo().isWindows()) {
+        OsType = IDEA64_EXE;
+      } else if (this.context.getSystemInfo().isMac()) {
+        OsType = IDEA;
+      } else {
+        OsType = IDEA_BASH_SCRIPT;
+      }
+      Files.writeString(bashFile, bashFileContentStart + OsType + bashFileContentEnd);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    assert (Files.exists(bashFile));
     context.getFileAccess().makeExecutable(bashFile);
   }
 

@@ -534,10 +534,11 @@ public class FileAccessImpl implements FileAccess {
   public void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook, boolean extract) {
 
     if (Files.isDirectory(archiveFile)) {
+      // TODO: check this case
       Path properInstallDir = archiveFile; // getProperInstallationSubDirOf(archiveFile, archiveFile);
       this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
       copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_CONTENT);
-      postExtractHook(postExtractHook, properInstallDir);
+      postExtractHook(postExtractHook, targetDir);
       return;
     } else if (!extract) {
       mkdirs(targetDir);
