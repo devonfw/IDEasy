@@ -66,7 +66,7 @@ public class GitContextImpl implements GitContext {
             this.context.warning().log(e, "Could not update modification-time of {}", magicFilePath);
           }
         }
-        //        return;
+        return;
       } catch (IOException e) {
         this.context.error(e);
       }
