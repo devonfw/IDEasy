@@ -20,6 +20,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
@@ -913,6 +914,24 @@ public class FileAccessImpl implements FileAccess {
       }
     } else {
       this.context.warning("Cannot set executable flag on file that does not exist: {}", filePath);
+    }
+  }
+
+  @Override
+  public void touch(Path filePath) {
+
+    if (Files.exists(filePath)) {
+      try {
+        Files.setLastModifiedTime(filePath, FileTime.fromMillis(System.currentTimeMillis()));
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not update modification-time of " + filePath, e);
+      }
+    } else {
+      try {
+        Files.createFile(filePath);
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not create empty file " + filePath, e);
+      }
     }
   }
 }
