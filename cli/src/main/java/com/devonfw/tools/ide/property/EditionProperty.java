@@ -1,8 +1,7 @@
 package com.devonfw.tools.ide.property;
 
-import java.util.function.Consumer;
-
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.validation.PropertyValidator;
 
 public class EditionProperty extends Property<String> {
 
@@ -24,9 +23,9 @@ public class EditionProperty extends Property<String> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
-   * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   * @param validator the {@link PropertyValidator} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public EditionProperty(String name, boolean required, String alias, Consumer<String> validator) {
+  public EditionProperty(String name, boolean required, String alias, PropertyValidator<String> validator) {
 
     super(name, required, alias, false, validator);
   }

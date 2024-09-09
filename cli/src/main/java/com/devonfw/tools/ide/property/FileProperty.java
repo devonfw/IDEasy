@@ -1,7 +1,8 @@
 package com.devonfw.tools.ide.property;
 
 import java.nio.file.Path;
-import java.util.function.Consumer;
+
+import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
  * {@link PathProperty} for a file.
@@ -28,9 +29,9 @@ public class FileProperty extends PathProperty {
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
    * @param mustExist the {@link #isPathRequiredToExist() required to exist flag}.
-   * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   * @param validator the {@link PropertyValidator} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public FileProperty(String name, boolean required, String alias, boolean mustExist, Consumer<Path> validator) {
+  public FileProperty(String name, boolean required, String alias, boolean mustExist, PropertyValidator<Path> validator) {
 
     super(name, required, alias, mustExist, validator);
   }

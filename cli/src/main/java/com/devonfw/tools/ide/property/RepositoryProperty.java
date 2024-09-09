@@ -3,9 +3,9 @@ package com.devonfw.tools.ide.property;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.function.Consumer;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
  * Extends {@link FileProperty} for repository properties config file with auto-completion.
@@ -30,9 +30,9 @@ public class RepositoryProperty extends FileProperty {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
-   * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   * @param validator the {@link PropertyValidator} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public RepositoryProperty(String name, boolean required, String alias, Consumer<Path> validator) {
+  public RepositoryProperty(String name, boolean required, String alias, PropertyValidator<Path> validator) {
 
     super(name, required, alias, true, validator);
   }

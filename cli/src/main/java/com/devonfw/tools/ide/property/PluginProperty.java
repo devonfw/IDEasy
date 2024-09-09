@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.property;
 
-import java.util.function.Consumer;
-
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -9,6 +7,7 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
 import com.devonfw.tools.ide.tool.plugin.PluginMaps;
+import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
  * {@link Property} representing the plugin of a {@link PluginBasedCommandlet}.
@@ -34,9 +33,9 @@ public class PluginProperty extends Property<String> {
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
    * @param multivalued the boolean flag about multiple arguments
-   * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   * @param validator the {@link PropertyValidator} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public PluginProperty(String name, boolean required, String alias, boolean multivalued, Consumer<String> validator) {
+  public PluginProperty(String name, boolean required, String alias, boolean multivalued, PropertyValidator<String> validator) {
 
     super(name, required, alias, multivalued, validator);
   }

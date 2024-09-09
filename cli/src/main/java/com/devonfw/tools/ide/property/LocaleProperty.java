@@ -2,11 +2,11 @@ package com.devonfw.tools.ide.property;
 
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.function.Consumer;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
  * {@link Property} with {@link Locale} as {@link #getValueType() value type}.
@@ -33,9 +33,9 @@ public class LocaleProperty extends Property<Locale> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
-   * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   * @param validator the {@link PropertyValidator} used to {@link #validate() validate} the {@link #getValue() value}.
    */
-  public LocaleProperty(String name, boolean required, String alias, Consumer<Locale> validator) {
+  public LocaleProperty(String name, boolean required, String alias, PropertyValidator<Locale> validator) {
 
     super(name, required, alias, false, validator);
   }
