@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * Implementation of {@link IdeProgressBar} used for tests.
  */
-public class IdeProgressBarTestImpl implements IdeProgressBar {
+public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
 
   /** Starting time of a {@link IdeProgressBar}. */
   private final Instant start;
@@ -21,9 +21,6 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
   /** The total span of an {@link IdeProgressBar}. */
   private long total;
 
-  /** The maximum length of an {@link IdeProgressBar}. */
-  private final long max;
-
   /** The list of events of an {@link IdeProgressBar}. */
   private final List<ProgressEvent> eventList;
 
@@ -34,27 +31,34 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
    * @param max maximum length of the bar.
    */
   public IdeProgressBarTestImpl(String name, long max) {
-
+    super(max);
     this.start = Instant.now();
     this.name = name;
-    this.max = max;
     this.eventList = new ArrayList<>();
   }
 
   @Override
-  public void stepBy(long stepSize) {
-
-    this.total += stepSize;
+  protected void doStepBy(long stepSize, long currentProgress) {
+    this.total = currentProgress;
     this.eventList.add(new ProgressEvent(stepSize));
   }
 
   @Override
-  public void close() {
+  protected void doStepTo(long stepPosition) {
+    this.total = stepPosition;
+    this.eventList.add(new ProgressEvent(stepPosition));
+  }
 
+  @Override
+  public void close() {
+    super.close();
     if (this.end == null) {
       this.end = Instant.now();
     }
-    assert this.total == this.max;
+
+    if (getMaxLength() != -1) {
+      assert this.total == getMaxLength();
+    }
   }
 
   /**
@@ -63,14 +67,6 @@ public class IdeProgressBarTestImpl implements IdeProgressBar {
   public List<ProgressEvent> getEventList() {
 
     return this.eventList;
-  }
-
-  /**
-   * @return the maximum length of a bar.
-   */
-  public long getMaxSize() {
-
-    return this.max;
   }
 
   /**

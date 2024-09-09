@@ -20,6 +20,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
@@ -109,6 +110,7 @@ public class FileAccessImpl implements FileAccess {
         Path source = Path.of(url);
         if (isFile(source)) {
           // network drive
+
           copyFileWithProgressBar(source, target);
         } else {
           throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
@@ -126,13 +128,10 @@ public class FileAccessImpl implements FileAccess {
    * @param target Path of the target directory.
    * @param response the {@link HttpResponse} to use.
    */
-  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) throws IOException {
+  private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
-    long contentLength = response.headers().firstValueAsLong("content-length").orElse(0);
-    if (contentLength == 0) {
-      this.context.warning("Content-Length was not provided by download source : {} using fallback for the progress bar which will be inaccurate.", url);
-      contentLength = 10000000;
-    }
+    long contentLength = response.headers().firstValueAsLong("content-length").orElse(-1);
+    informAboutMissingContentLength(contentLength, url, null);
 
     byte[] data = new byte[1024];
     boolean fileComplete = false;
@@ -151,33 +150,52 @@ public class FileAccessImpl implements FileAccess {
           pb.stepBy(count);
         }
       }
+
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
   }
 
   /**
-   * Copies a file while displaying a progress bar
+   * Copies a file while displaying a progress bar.
    *
-   * @param source Path of file to copy
-   * @param target Path of target directory
+   * @param source Path of file to copy.
+   * @param target Path of target directory.
    */
   private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
     try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
+      long size;
+      size = getFileSize(source);
 
-      long size = source.toFile().length();
+      informAboutMissingContentLength(size, null, source);
       byte[] buf = new byte[1024];
       int readBytes;
 
       try (IdeProgressBar pb = this.context.prepareProgressBar("Copying", size)) {
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
-          pb.stepByOne();
+          if (size > 0) {
+            pb.stepBy(readBytes);
+          }
         }
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+    }
+  }
+
+  private void informAboutMissingContentLength(long contentLength, String url, Path path) {
+
+    String source;
+    if (contentLength < 0) {
+      if (path != null) {
+        source = path.toString();
+      } else {
+        source = url;
+      }
+      this.context.warning("Content-Length was not provided by download/copy source: {}.",
+          source);
     }
   }
 
@@ -839,6 +857,17 @@ public class FileAccessImpl implements FileAccess {
     return listChildren(dir, f -> true).isEmpty();
   }
 
+  /**
+   * Gets the file size of a provided file path.
+   *
+   * @param path of the file.
+   * @return the file size.
+   */
+  protected long getFileSize(Path path) {
+
+    return path.toFile().length();
+  }
+
   @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {
 
@@ -885,6 +914,24 @@ public class FileAccessImpl implements FileAccess {
       }
     } else {
       this.context.warning("Cannot set executable flag on file that does not exist: {}", filePath);
+    }
+  }
+
+  @Override
+  public void touch(Path filePath) {
+
+    if (Files.exists(filePath)) {
+      try {
+        Files.setLastModifiedTime(filePath, FileTime.fromMillis(System.currentTimeMillis()));
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not update modification-time of " + filePath, e);
+      }
+    } else {
+      try {
+        Files.createFile(filePath);
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not create empty file " + filePath, e);
+      }
     }
   }
 }
