@@ -2,9 +2,18 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
-== 2024.01.001
+== 2024.09.002
 
-This version marks the first fully official release of IDEasy.
-The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/5?closed=1[milestone 2024.01.001].
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/553[#554]: Missmatch of IDE_ROOT
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/13?closed=1[milestone 2024.09.002].
+
+== 2024.09.001
+
+This version marks the first documented release of IDEasy (still beta).
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/12?closed=1[milestone 2024.09.001].
 IDEasy is the successor product of https://github.com/devonfw/ide[devonfw-ide].
+Earlier releases can be found in the https://github.com/devonfw/IDEasy/milestones?state=closed[milestones].
 If you are interested in the legacy history go to https://github.com/devonfw/ide/blob/master/CHANGELOG.asciidoc[devonfw-ide Changelog].
