@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 
@@ -152,12 +153,19 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     } else if (!Files.isDirectory(pluginsInstallationPath)) {
       installPlugins = true;
     }
+    createExtensionFolder();
     if (installPlugins) {
       PluginMaps pluginMaps = getPluginsMap();
       Collection<PluginDescriptor> plugins = pluginMaps.getPlugins();
       installPlugins(plugins);
     }
     return newlyInstalled;
+  }
+
+  private void createExtensionFolder() {
+    Path extensionFolder = this.context.getIdeHome().resolve("plugins").resolve(this.tool);
+    FileAccess fileAccess = new FileAccessImpl(this.context);
+    fileAccess.mkdirs(extensionFolder);
   }
 
   protected void installPlugins(Collection<PluginDescriptor> plugins) {
