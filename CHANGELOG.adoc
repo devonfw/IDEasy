@@ -12,7 +12,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 == 2024.09.001
 
-This version marks the first documented release of IDEasy (still beta).
+This version marks the first more official and usable release of IDEasy (still beta).
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/12?closed=1[milestone 2024.09.001].
 IDEasy is the successor product of https://github.com/devonfw/ide[devonfw-ide].
 Earlier releases can be found in the https://github.com/devonfw/IDEasy/milestones?state=closed[milestones].
