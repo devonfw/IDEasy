@@ -199,6 +199,6 @@ public final class ShellCommandlet extends Commandlet {
       }
       currentArgument = currentArgument.getNext(!endOpts);
     }
-    return commandlet.validate();
+    return commandlet.validate().isValid();
   }
 }
