@@ -33,6 +33,7 @@ public class GitContextImpl implements GitContext {
   private final ProcessContext processContext;
 
   private static final ProcessMode PROCESS_MODE = ProcessMode.DEFAULT;
+
   private static final ProcessMode PROCESS_MODE_FOR_FETCH = ProcessMode.DEFAULT_CAPTURE;
 
   /**
@@ -65,7 +66,7 @@ public class GitContextImpl implements GitContext {
             this.context.warning().log(e, "Could not update modification-time of {}", magicFilePath);
           }
         }
-        return;
+        //        return;
       } catch (IOException e) {
         this.context.error(e);
       }
@@ -262,9 +263,27 @@ public class GitContextImpl implements GitContext {
 
     if (!result.isSuccessful()) {
       Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();
-      this.context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"), remoteAndBranchName.get("branch"),
-          targetRepository);
-      handleErrors(targetRepository, result);
+      if (remoteAndBranchName == null) {
+        ProcessResult branchResult = this.processContext.addArg("branch").addArg("-vv").run(ProcessMode.DEFAULT_CAPTURE);
+        List<String> branches = branchResult.getOut();
+        ProcessResult repoResult = this.processContext.addArg("rev-parse").addArg("--show-toplevel").run(ProcessMode.DEFAULT_CAPTURE);
+        List<String> repoResultOut = repoResult.getOut();
+        String repository = repoResultOut.get(0);
+        repository = repository.substring(repository.lastIndexOf("/") + 1);
+
+        for (String branch : branches) {
+          if (branch.startsWith("*")) {
+            branch = branch.trim().startsWith("*") ? branch.substring(2) : branch;
+            String checkedOutBranch = branch.substring(0, branch.indexOf(" "));
+            context.warning("You are on branch {} of repository {}, which has no upstream configured, skipping pull!", checkedOutBranch, repository);
+          }
+        }
+      } else {
+        this.context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"), remoteAndBranchName.get("branch"),
+            targetRepository);
+        handleErrors(targetRepository, result);
+      }
+
     }
   }
 
@@ -286,6 +305,9 @@ public class GitContextImpl implements GitContext {
     Map<String, String> remoteAndBranchName = new HashMap<>();
     ProcessResult remoteResult = this.processContext.addArg("branch").addArg("-vv").run(PROCESS_MODE);
     List<String> remotes = remoteResult.getOut();
+    if (remotes == null) {
+      return null;
+    }
     if (!remotes.isEmpty()) {
       for (String remote : remotes) {
         if (remote.startsWith("*")) {
