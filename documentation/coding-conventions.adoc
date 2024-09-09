@@ -78,6 +78,69 @@ Most important explicit aspects are:
 
 * Do not push out-commented code (see also https://reconvolution.blogspot.com/2017/12/dont-pollute-codebase-with-commented-out-code.html[rationale] and https://rules.sonarsource.com/java/RSPEC-125/[RSPEC-125] rule from SonarQube)
 
+== Logging
+
+Properly use logging to give feedback for various purposes.
+In general Java code, SLF4J is the way to go.
+However, in our IDEasy project we typically have access to `IdeLogger` via `context`.
+
+Here is a generic example showing logging in action:
+```java
+public class MyClass {
+
+  private static final Logger LOG = LoggerFactory.getLogger(MyClass.class);
+
+  private boolean doSomething(Data data) {
+    LOG.trace("Trying to do something on {}", data);
+
+    boolean success = false;
+    try {
+      something();
+      LOG.info("Successfully did something");
+      success = true;
+    } catch (Exception e) {
+      LOG.error("Failed to do something: {}", e.getMessage(), e);
+    }
+    return success;
+  }
+  // ...
+}
+```
+
+With SLF4J we have to create the logger via `LoggerFactory`.
+In IDEasy for commandlets, etc. we do not need to define `LOG` and can simply use `this.context` instead of `LOG`.
+
+.Usage of Log-Levels
+[options="header"]
+|=======================
+|*Level*|*Type*|*Meaning*
+|`error`|Standard|Only for real errors that should raise the end-users attention. If an error is logged something went wrong and action needs to be taken and usually the operation failed.
+|`warning`|Standard|For warnings when something is not correct and the end-user should have a look. E.g. if something is misconfigured. Unlike error the process can continue and may hopefully success.
+|`interaction`|Proprietary|For interaction with the end-user. Typically for questions the end-user needs to answer (use dedidcated `question` or `askForInput` methods of `context`).
+|`step`|Proprietary|For steps of advanced processing. Allows to divide some processing into logical steps (use `newStep` method of `context`). This increases the user-experience as the end-user sees the progress and can get a report of these steps and see how long they took and if they succeeded or not.
+|`debug`|Standard|Only used for debugging. Disabled by default to avoid "spammming" the end-user. Can be enabled with `-d` or `--debug` option to get more details and analyze what happens in detail.
+|`trace`|Standard|Only used for very fine grained details. Disabled by default to avoid "spammming" the end-user. Can be enabled with `-t` or `--trace` option to get even more details if debug is not enough. 
+|=======================
+
+The Log-Levels with type `Proprietary` only exist in `IdeLogger` for allowing different syntax coloring for these specific use-cases.
+When logging messages (especially on `debug` or `trace`) you should always use `{}` syntax for dynamic values:
+```java
+    LOG.trace("Trying to do something on {}", data); // good
+    /*
+    LOG.trace("Trying to do something on " + data); // bad
+    LOG.trace(String.format("Trying to do something on %s", data)); // bad
+    */
+```
+
+=== No System output
+Always use the logger to output messages and never use `System.out` or `System.err` in your regular code:
+```java
+   LOG.info("Successfully did something"); // good
+   /*
+   System.out.println("Successfully did something"); // bad
+   */
+```
+
 == Catching and handling Exceptions
 
 When catching exceptions always ensure the following:
