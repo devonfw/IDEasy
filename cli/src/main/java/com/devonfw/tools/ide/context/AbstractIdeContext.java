@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.context;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -313,17 +312,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path getParentPath(Path dir) {
 
-    try {
-      Path linkDir = dir.toRealPath();
-      if (!dir.equals(linkDir)) {
-        return linkDir;
-      } else {
-        return dir.getParent();
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-
+    return dir.getParent();
   }
 
   private EnvironmentVariables createVariables() {
