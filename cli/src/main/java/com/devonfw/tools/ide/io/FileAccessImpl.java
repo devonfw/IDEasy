@@ -685,11 +685,10 @@ public class FileAccessImpl implements FileAccess {
         sizeOfArchive += entry.getSize();
         entry = ais.getNextEntry();
       }
-      System.out.println("Size of Archive is: " + sizeOfArchive);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
-    
+
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is); IdeProgressBar pb = this.context.prepareProgressBar(
         "Unpacking", sizeOfArchive)) {
       ArchiveEntry entry = ais.getNextEntry();
