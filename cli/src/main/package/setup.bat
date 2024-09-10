@@ -36,6 +36,7 @@ if "%USER_PATH%" == "" (
 ) else (
   setx PATH "%USER_PATH%;%CD%\bin"
 )
+cd ..
 setx IDE_ROOT "%CD%"
 
 :find_bash
