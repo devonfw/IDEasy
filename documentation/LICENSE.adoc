@@ -49,8 +49,8 @@ The column `inclusion` indicates the way the component is included:
 |https://ant.apache.org/[Apache Ant]|Optional|https://github.com/apache/ant/blob/master/LICENSE[ASL 2.0]
 |https://gradle.org/[Gradle] |Optional|https://github.com/gradle/gradle/blob/master/LICENSE[ASL 2.0]
 |https://jenkins.io/[Jenkins] |Optional|https://github.com/jenkinsci/jenkins/blob/master/LICENSE.txt[MIT]
-|https://github.com/jline/jline3[JLine3] |Optional|https://github.com/jline/jline3/blob/master/LICENSE.txt[BSD-3]
-|https://github.com/fusesource/jansi[jansi] |Optional|https://github.com/fusesource/jansi/blob/master/license.txt[ASL 2.0]
+|https://github.com/jline/jline3[JLine3] |Directly included|https://github.com/jline/jline3/blob/master/LICENSE.txt[BSD-3]
+|https://github.com/fusesource/jansi[jansi] |Directly included|https://github.com/fusesource/jansi/blob/master/license.txt[ASL 2.0]
 |https://www.sonarsource.com/plans-and-pricing/community/[SonarQube (Community Edition)] |Optional|https://github.com/SonarSource/sonarqube/blob/master/LICENSE.txt[LGPL 3.0]
 |https://www.sonarlint.org/eclipse/[SonarLint] |Optional|https://github.com/SonarSource/sonarlint-eclipse/blob/master/LICENSE.txt[LGPL 3+]
 |https://github.com/devonfw/devon4j[devon4j] |Optional|https://github.com/devonfw/devon4j/blob/develop/LICENSE[ASL 2.0]
@@ -78,7 +78,7 @@ The column `inclusion` indicates the way the component is included:
 |https://kotlinlang.org//[kotlin]|Optional|https://github.com/JetBrains/kotlin-web-site/blob/master/LICENSE[ASL 2.0]
 |https://tomcat.apache.org/[tomcat]|Optional|https://www.apache.org/licenses/LICENSE-2.0[ASL 2.0]
 |https://www.oracle.com/java/technologies/jdk-mission-control.html[Java Mission Control]|Optional|https://github.com/openjdk/jmc/blob/master/license/LICENSE.txt[UPL 1.0] and https://github.com/openjdk/jmc/blob/master/license/THIRDPARTYREADME.txt[EPL 2.0]
-|https://github.com/ctongfei/progressbar[Progressbar]|Optional|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
+|https://github.com/ctongfei/progressbar[Progressbar]|Directly included|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
 |https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
 |===
 

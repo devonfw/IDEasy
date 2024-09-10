@@ -46,11 +46,12 @@ import com.devonfw.tools.ide.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.tool.tomcat.TomcatUrlUpdater;
 import com.devonfw.tools.ide.tool.vscode.VsCodeUrlUpdater;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
 
 /**
  * The {@code UpdateManager} class manages the update process for various tools by using a list of {@link AbstractUrlUpdater}s to update the
  * {@link UrlRepository}. The list of {@link AbstractUrlUpdater}s contains crawlers for different tools and services, To use the UpdateManager, simply create an
- * instance with the path to the repository as a parameter and call the {@link #updateAll()} method.
+ * instance with the path to the repository as a parameter and call the {@link #updateAll(UrlFinalReport)} method.
  */
 public class UpdateManager extends AbstractProcessorWithTimeout {
 
@@ -58,8 +59,10 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
 
   private final UrlRepository urlRepository;
 
-  private final List<AbstractUrlUpdater> updaters = Arrays.asList(new AndroidStudioUrlUpdater(), new AwsUrlUpdater(),
-      new AzureUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
+  private UrlFinalReport urlFinalReport;
+
+  private final List<AbstractUrlUpdater> updaters = Arrays.asList(
+      new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
       new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),
@@ -75,9 +78,10 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
    * @param pathToRepository the {@link Path} to the {@code ide-urls} repository to update.
    * @param expirationTime for GitHub actions url-update job
    */
-  public UpdateManager(Path pathToRepository, Instant expirationTime) {
+  public UpdateManager(Path pathToRepository, UrlFinalReport urlFinalReport, Instant expirationTime) {
 
     this.urlRepository = UrlRepository.load(pathToRepository);
+    this.urlFinalReport = urlFinalReport;
     setExpirationTime(expirationTime);
   }
 
@@ -92,6 +96,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       }
       try {
         updater.setExpirationTime(getExpirationTime());
+        updater.setUrlFinalReport(this.urlFinalReport);
         updater.update(this.urlRepository);
       } catch (Exception e) {
         logger.error("Failed to update {}", updater.getToolWithEdition(), e);
