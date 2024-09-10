@@ -50,7 +50,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     //IdeContext context = newGitContext(tempDir, errors, outs, 0, false);
     // act
     CliException e1 = assertThrows(CliException.class, () -> {
-      context.getGitContext().pullOrClone(gitRepoUrl, "", tempDir);
+      context.getGitContext().pullOrClone(gitRepoUrl, tempDir, "");
     });
     // assert
     assertThat(e1).hasMessageContaining(gitRepoUrl).hasMessageContaining(tempDir.toString())

@@ -50,6 +50,8 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
+import com.devonfw.tools.ide.validation.ValidationResult;
+import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -774,10 +776,10 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (!current.isEnd()) {
         String keyword = current.get();
         firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
-        boolean matches;
+        ValidationResult firstResult = null;
         if (firstCandidate != null) {
-          matches = applyAndRun(arguments.copy(), firstCandidate);
-          if (matches) {
+          firstResult = applyAndRun(arguments.copy(), firstCandidate);
+          if (firstResult.isValid()) {
             supressStepSuccess = firstCandidate.isSuppressStepSuccess();
             step.success();
             return ProcessResult.SUCCESS;
@@ -785,13 +787,16 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
           if (cmd != firstCandidate) {
-            matches = applyAndRun(arguments.copy(), cmd);
-            if (matches) {
+            ValidationResult result = applyAndRun(arguments.copy(), cmd);
+            if (result.isValid()) {
               supressStepSuccess = cmd.isSuppressStepSuccess();
               step.success();
               return ProcessResult.SUCCESS;
             }
           }
+        }
+        if (firstResult != null) {
+          throw new CliException(firstResult.getErrorMessage());
         }
         step.error("Invalid arguments: {}", current.getArgs());
       }
@@ -818,15 +823,15 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
    *     {@link Commandlet} did not match and we have to try a different candidate).
    */
-  private boolean applyAndRun(CliArguments arguments, Commandlet cmd) {
+  private ValidationResult applyAndRun(CliArguments arguments, Commandlet cmd) {
 
     cmd.clearProperties();
 
-    boolean matches = apply(arguments, cmd, null);
-    if (matches) {
-      matches = cmd.validate();
+    ValidationResult result = apply(arguments, cmd, null);
+    if (result.isValid()) {
+      result = cmd.validate();
     }
-    if (matches) {
+    if (result.isValid()) {
       debug("Running commandlet {}", cmd);
       if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
         throw new CliException(getMessageIdeHomeNotFound(), ProcessResult.NO_IDE_HOME);
@@ -868,7 +873,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     } else {
       trace("Commandlet did not match");
     }
-    return matches;
+    return result;
   }
 
   /**
@@ -914,7 +919,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
       return false;
     } else {
-      return apply(arguments.copy(), cmd, collector);
+      return apply(arguments.copy(), cmd, collector).isValid();
     }
   }
 
@@ -927,7 +932,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
    *     and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
-  public boolean apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+  public ValidationResult apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
 
     trace("Trying to match arguments to commandlet {}", cmd.getName());
     CliArgument currentArgument = arguments.current();
@@ -952,7 +957,9 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
       if (currentProperty == null) {
         trace("No option or next value found");
-        return false;
+        ValidationState state = new ValidationState(null);
+        state.addErrorMessage("No matching property found");
+        return state;
       }
       trace("Next property candidate to match argument is {}", currentProperty);
       if (currentProperty == property) {
@@ -969,11 +976,13 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
       boolean matches = currentProperty.apply(arguments, this, cmd, collector);
       if (!matches || currentArgument.isCompletion()) {
-        return false;
+        ValidationState state = new ValidationState(null);
+        state.addErrorMessage("No matching property found");
+        return state;
       }
       currentArgument = arguments.current();
     }
-    return true;
+    return new ValidationState(null);
   }
 
   @Override
