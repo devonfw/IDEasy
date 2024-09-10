@@ -163,7 +163,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
       assert (Files.exists(binFolder));
     }
     Path bashFile = binFolder.resolve(getName());
-    String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname $0)/";
+    String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname \"$0\")/";
     String bashFileContentEnd = "\" $*";
     try {
       Files.writeString(bashFile, bashFileContentStart + binaryName + bashFileContentEnd);
