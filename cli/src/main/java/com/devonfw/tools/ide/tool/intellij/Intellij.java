@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.tool.intellij;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
@@ -10,7 +8,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
@@ -66,35 +63,15 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   protected void postExtract(Path extractedDir) {
 
     super.postExtract(extractedDir);
-    Path binFolder = extractedDir.resolve("bin");
-    if (!Files.exists(binFolder)) {
-      if (this.context.getSystemInfo().isMac()) {
-        MacOsHelper macOsHelper = getMacOsHelper();
-        Path appDir = macOsHelper.findAppDir(extractedDir);
-        binFolder = macOsHelper.findLinkDir(appDir, IDEA);
-      } else {
-        binFolder = extractedDir;
-      }
-      assert (Files.exists(binFolder));
+    String binaryName;
+    if (this.context.getSystemInfo().isWindows()) {
+      binaryName = IDEA64_EXE;
+    } else if (this.context.getSystemInfo().isMac()) {
+      binaryName = IDEA;
+    } else {
+      binaryName = IDEA_BASH_SCRIPT;
     }
-    Path bashFile = binFolder.resolve(getName());
-    String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname $0)/";
-    String bashFileContentEnd = "\" $*";
-    try {
-      String OsType;
-      if (this.context.getSystemInfo().isWindows()) {
-        OsType = IDEA64_EXE;
-      } else if (this.context.getSystemInfo().isMac()) {
-        OsType = IDEA;
-      } else {
-        OsType = IDEA_BASH_SCRIPT;
-      }
-      Files.writeString(bashFile, bashFileContentStart + OsType + bashFileContentEnd);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    assert (Files.exists(bashFile));
-    context.getFileAccess().makeExecutable(bashFile);
+    createStartScript(extractedDir, binaryName);
   }
 
 }
