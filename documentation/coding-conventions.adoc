@@ -317,7 +317,7 @@ public interface MavenDownloader {
 So we conclude:
 
 * we want to use constants to define and reuse common immutable values.
-* by giving the constant a reasonable name, we make our code reable
+* by giving the constant a reasonable name, we make our code readable
 * following Java best-practices constants are named in `UPPER_CASE_WITH_UNDERSCORES` syntax
 * by adding JavaDoc to the constant we give additional details what this value is about and good for.
 * In classes we declare the constant with the visibility followed by the keywords `static final`.
