@@ -20,6 +20,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
@@ -156,16 +157,17 @@ public class FileAccessImpl implements FileAccess {
   }
 
   /**
-   * Copies a file while displaying a progress bar
+   * Copies a file while displaying a progress bar.
    *
-   * @param source Path of file to copy
-   * @param target Path of target directory
+   * @param source Path of file to copy.
+   * @param target Path of target directory.
    */
   private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
     try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
       long size;
       size = getFileSize(source);
+
       informAboutMissingContentLength(size, null, source);
       byte[] buf = new byte[1024];
       int readBytes;
@@ -912,6 +914,24 @@ public class FileAccessImpl implements FileAccess {
       }
     } else {
       this.context.warning("Cannot set executable flag on file that does not exist: {}", filePath);
+    }
+  }
+
+  @Override
+  public void touch(Path filePath) {
+
+    if (Files.exists(filePath)) {
+      try {
+        Files.setLastModifiedTime(filePath, FileTime.fromMillis(System.currentTimeMillis()));
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not update modification-time of " + filePath, e);
+      }
+    } else {
+      try {
+        Files.createFile(filePath);
+      } catch (IOException e) {
+        throw new IllegalStateException("Could not create empty file " + filePath, e);
+      }
     }
   }
 }

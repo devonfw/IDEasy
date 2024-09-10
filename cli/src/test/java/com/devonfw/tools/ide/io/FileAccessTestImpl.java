@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.io;
 
-import java.nio.file.Path;
-
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
@@ -19,14 +17,4 @@ public class FileAccessTestImpl extends FileAccessImpl {
     super(context);
   }
 
-  /**
-   * Overrides getFileSize and returns always -1.
-   *
-   * @param path of the file.
-   * @return always -1.
-   */
-  protected long getFileSize(Path path) {
-
-    return -1;
-  }
 }
