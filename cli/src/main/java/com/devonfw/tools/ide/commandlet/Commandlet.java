@@ -13,6 +13,8 @@ import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
+import com.devonfw.tools.ide.validation.ValidationResult;
+import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -219,20 +221,13 @@ public abstract class Commandlet {
    * @return {@code true} if this {@link Commandlet} is the valid candidate to be {@link #run()}, {@code false} otherwise.
    * @see Property#validate()
    */
-  public boolean validate() {
-
+  public ValidationResult validate() {
+    ValidationState state = new ValidationState(null);
     // avoid validation exception if not a candidate to be run.
     for (Property<?> property : this.propertiesList) {
-      if (property.isRequired() && (property.getValue() == null)) {
-        return false;
-      }
+      state.add(property.validate());
     }
-    for (Property<?> property : this.propertiesList) {
-      if (!property.validate()) {
-        return false;
-      }
-    }
-    return true;
+    return state;
   }
 
   /**

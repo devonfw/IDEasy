@@ -1,8 +1,7 @@
 package com.devonfw.tools.ide.property;
 
-import java.util.function.Consumer;
-
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
  * {@link Property} with {@link #getValueType() value type} {@link String}.
@@ -40,10 +39,10 @@ public class StringProperty extends Property<String> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
-   * @param validator the {@link Consumer} used to {@link #validate() validate} the {@link #getValue() value}.
+   * @param validator the {@link PropertyValidator} used to {@link #validate() validate} the {@link #getValue() value}.
    * @param multivalued the boolean flag about multiple arguments
    */
-  public StringProperty(String name, boolean required, String alias, boolean multivalued, Consumer<String> validator) {
+  public StringProperty(String name, boolean required, String alias, boolean multivalued, PropertyValidator<String> validator) {
 
     super(name, required, alias, multivalued, validator);
   }

@@ -15,8 +15,6 @@ To draw diagrams for your project or for blueprints in devonfw, we recommend the
 
 * https://draw.io/[draw.io] is a powerful generic vector painting program (similar to visio).
 You can get a free open-source edition for your desktop from https://github.com/jgraph/drawio-desktop/releases[here].
-* https://www.objectaid.com/[ObjectAid] is a nice and easy to use eclipse plugin that you can use to quickly create UML diagrams from existing code.
-While class-diagrams are supported for free, you need to buy a license if you want to use the other diagram types.
 * https://plantuml.com/[PlantUML] is a great tool that can render UML diagrams from simple markup that can be easily managed in git or other version-control systems together with your code.
 Its simplicity allows branching and merging unlike other greedy binary UML data-formats.
 
