@@ -64,7 +64,7 @@ image::images/WindowsTerminal.png["Shells inside Windows-Terminal"]
 For perfect integration, you should (re-)insall `git` after Windows-Terminal has been installed and check the option `Add a Git Bash Profile to Windows Terminal` or follow the https://www.timschaeps.be/post/adding-git-bash-to-windows-terminal/[manual integration].
 
 .Integration of git-bash into Windows-Terminal
-image::https://i.stack.imgur.com/96Blo.png["Intergate git-bash into Windows-Terminal"]
+image::https://linuxhint.com/wp-content/uploads/2022/09/add-git-bash-windows-terminal-05.png["Intergate git-bash into Windows-Terminal"]
 
 == Windows Helpers
 
