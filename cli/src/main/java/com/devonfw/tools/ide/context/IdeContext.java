@@ -438,11 +438,11 @@ public interface IdeContext extends IdeStartContext {
       return null;
     }
     String settingsPath;
-    WindowsPathSyntax pathSyntax = getPathSyntax();
-    if (pathSyntax == null) {
+    boolean isWindows = getSystemInfo().isWindows();
+    if (!isWindows) {
       settingsPath = mvnSettingsFile.toString();
     } else {
-      settingsPath = pathSyntax.format(mvnSettingsFile);
+      settingsPath = WindowsPathSyntax.WINDOWS.format(mvnSettingsFile);
     }
     return "-s " + settingsPath;
   }
