@@ -5,7 +5,7 @@ toc::[]
 
 == Installing software
 
-The devon IDE already contains a lot of software.
+The IDEasy already supports a lot of software tools.
 But if you need more, here are some ways to get it easily:
 
 === Chocolatey
@@ -16,19 +16,6 @@ https://chocolatey.org/[Chocolatey] is a repository for free and open source sof
 
 Microsoft is also working on a repository for Windows called https://github.com/microsoft/winget-cli[winget].
 It is currently in a pre-release state, but is expected to be integrated in the upcoming Windows versions.
-
-== Integration into Windows-Explorer
-
-After you have link:setup.adoc[set up] your `IDEasy` on a windows machine, you already have windows-explorer integration out-of-the-box.
-Just right-click on the folder you would like to open in a terminal and choose from the context menu:
-
-* Git Bash
-* Open devonfw cmd shell here
-* Open devonfw PowerShell here
-* Open devonfw Cygwin Bash here (only if cygwin was installed during setup)
-* Open devonfw cmd shell in Windows Terminal here (only if Windows Terminal is installed on the system)
-* Open devonfw gitbash in Windows Terminal here (only if Windows Terminal is installed on the system)
-* Open devonfw PowerShell in Windows Terminal here (only if Windows Terminal is installed on the system)
 
 == Tabs everywhere
 
@@ -41,7 +28,7 @@ This nice feature can be added to many other tools.
 
 === Tabs for Windows Explorer
 
-If you want to have tabs for windows explorer simply install http://en.ejie.me/[Clover]
+Since Windows 11 the Windows Exporer supports Tabs.
 
 .Tabs in Windows Explorer
 image::images/tools-tabs-explorer.png["tabs in windows explorer"]
@@ -64,7 +51,9 @@ image::images/WindowsTerminal.png["Shells inside Windows-Terminal"]
 For perfect integration, you should (re-)insall `git` after Windows-Terminal has been installed and check the option `Add a Git Bash Profile to Windows Terminal` or follow the https://www.timschaeps.be/post/adding-git-bash-to-windows-terminal/[manual integration].
 
 .Integration of git-bash into Windows-Terminal
-image::https://i.stack.imgur.com/96Blo.png["Intergate git-bash into Windows-Terminal"]
+image::https://linuxhint.com/wp-content/uploads/2022/09/add-git-bash-windows-terminal-05.png["Intergate git-bash into Windows-Terminal"]
+
+You can even open SSH sessions and WSL distributions from the context menu of `Windows Terminal` in a tab.
 
 == Windows Helpers
 
@@ -107,11 +96,13 @@ Use tcpview to figure out which process is blocking port 8080, etc.
 
 Did you ever fail to delete a file or directory that was locked by some process and you did not even know which one it was?
 Then you might love https://www.iobit.com/en/iobit-unlocker.php[IoBit Unlocker].
+Also `ProcessExplorer` from Sysinternal Tools (see above) allows to find locks via `Find` menu option `Find handle or DLL...`.
+Here you can paste the path to the locked file and click `Search` to find the process owning the lock and can terminate the process.
 See also https://www.howtogeek.com/128680/HOW-TO-DELETE-MOVE-OR-RENAME-LOCKED-FILES-IN-WINDOWS/[this article].
 
 === Create symbolic links
 
-Are you are used to symbolic and hard links in Linux?
+Are you used to symbolic and hard links in Linux?
 Do you have to work with Windows?
 Would you also like to have such links in Windows?
 Why not?
@@ -121,8 +112,17 @@ However, you might want to disable SmartMove in the http://schinagl.priv.at/nt/h
 
 === Linux
 
-Install https://www.cygwin.com/[Cygwin] and get your bash in windows with ssh-agent, awk, sed, tar, and all the tools you love (or hate).
-Windows 10 has already a Linux as an installable feature included: WSL and from Version 2004 on WSL2, which is a native Linux Kernel running on Windows (in a light weight VM).
+Windows contains the Windows Subsystem for Linux (WSL) that allows you to easily run a linux inside your Windows operating system.
+Unlike running a full-fledged VM this is very lightweight and fast.
+Simply go to Windows Store and install Ubunutu with a few clicks.
+You can even run it in a tab in Windows Terminal.
+
+Also get used to use bash. Git for Windows ships with the MINGW based git-bash.
+This supports auto-completion and many useful features.
+Since bash is available for Windows, Linux, and MacOS, it is very convenient to get used to bash and work in the same way on any OS.
+We highly recommend to make this your default in `Windows Terminal` and only use `CMD` or `Power Shell` when really needed.
+In case you need even more Linux features natively into your Windows host, you might want to install https://www.cygwin.com/[Cygwin].
+This allows you to install ssh with ssh-agent and all the Linux tools you love (or hate).
 
 === X11
 
