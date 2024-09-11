@@ -5,13 +5,16 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
+/**
+ * Test of {@link Vscode} class.
+ */
 public class VscodeTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_VSCODE = "vscode";
 
 
   @Test
-  public void testVscode() {
+  public void testVscodeInstall() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
@@ -31,5 +34,8 @@ public class VscodeTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed vscode in version 1.92.1");
+
+    //check Recommendations
+    assertThat(context.getWorkspacePath().resolve(".vscode").resolve("extensions.json")).exists().hasContent("{\"recommendations\":[\"mockedPlugin2\"]}");
   }
 }

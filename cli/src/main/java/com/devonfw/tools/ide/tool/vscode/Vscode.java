@@ -1,7 +1,7 @@
 package com.devonfw.tools.ide.tool.vscode;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -21,7 +21,6 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -86,12 +85,16 @@ public class Vscode extends IdeToolCommandlet {
     ObjectMapper objectMapper = new ObjectMapper();
     Map<String, Object> recommendationsMap;
 
+    try (BufferedReader reader = Files.newBufferedReader(extensionsJsonPath)) {
+      recommendationsMap = objectMapper.readValue(reader, Map.class);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    List<String> existingRecommendations = (List<String>) recommendationsMap.getOrDefault("recommendations", new ArrayList<>());
+
     try {
-      if (Files.exists(extensionsJsonPath) && Files.size(extensionsJsonPath) > 0) {
-        String content = Files.readString(extensionsJsonPath, StandardCharsets.UTF_8);
-        recommendationsMap = objectMapper.readValue(content, new TypeReference<Map<String, Object>>() {
-        });
-        List<String> existingRecommendations = (List<String>) recommendationsMap.getOrDefault("recommendations", new ArrayList<>());
+      if (Files.exists(extensionsJsonPath) && Files.size(extensionsJsonPath) > 0 && existingRecommendations.size() < recommendations.size()) {
 
         for (PluginDescriptor recommendation : recommendations) {
           if (!existingRecommendations.contains(recommendation.getId())) {
@@ -100,13 +103,15 @@ public class Vscode extends IdeToolCommandlet {
         }
 
         recommendationsMap.put("recommendations", existingRecommendations);
-      } else {
+      } else if (existingRecommendations.size() > recommendations.size()) {
         List<String> newRecommendations = new ArrayList<>();
         recommendationsMap = new HashMap<>();
         for (PluginDescriptor recommendation : recommendations) {
           newRecommendations.add(recommendation.getId());
         }
         recommendationsMap.put("recommendations", newRecommendations);
+      } else {
+        this.context.info("All recommendations are already set");
       }
 
       objectMapper.writeValue(extensionsJsonPath.toFile(), recommendationsMap);

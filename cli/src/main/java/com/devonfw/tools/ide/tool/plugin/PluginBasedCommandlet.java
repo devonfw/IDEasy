@@ -10,7 +10,6 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 
@@ -164,10 +163,14 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private void createExtensionFolder() {
     Path extensionFolder = this.context.getIdeHome().resolve("plugins").resolve(this.tool);
-    FileAccess fileAccess = new FileAccessImpl(this.context);
-    fileAccess.mkdirs(extensionFolder);
+    this.context.getFileAccess().mkdirs(extensionFolder);
   }
 
+  /**
+   * Method to install active plugins or to handle install for inactive plugins
+   *
+   * @param plugins as {@link Collection} of plugins to install.
+   */
   protected void installPlugins(Collection<PluginDescriptor> plugins) {
     for (PluginDescriptor plugin : plugins) {
       if (plugin.isActive()) {
