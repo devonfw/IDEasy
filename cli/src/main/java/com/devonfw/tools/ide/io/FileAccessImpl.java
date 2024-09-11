@@ -1,11 +1,9 @@
 package com.devonfw.tools.ide.io;
 
 import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.ProxySelector;
@@ -28,6 +26,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
@@ -37,12 +36,15 @@ import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarFile;
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
+import org.apache.commons.compress.archivers.zip.ZipFile;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -164,7 +166,21 @@ public class FileAccessImpl implements FileAccess {
    */
   private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
-    try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
+    long counter = 0;
+    try (ZipFile zipFile = new ZipFile(source.toFile());) {
+      final Enumeration<? extends ZipEntry> entries = zipFile.getEntries();
+      while (entries.hasMoreElements()) {
+        final ZipEntry entry = entries.nextElement();
+        //use entry input stream:
+        // readInputStream(zipFile.getInputStream(entry));
+        if (!entry.isDirectory()) {
+          counter += entry.getCompressedSize();
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract JAR ", e);
+    }
+    /*try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
       long size;
       size = getFileSize(source);
 
@@ -182,7 +198,7 @@ public class FileAccessImpl implements FileAccess {
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
-    }
+    }*/
   }
 
   private void informAboutMissingContentLength(long contentLength, String url, Path path) {
@@ -618,13 +634,53 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractZip(Path file, Path targetDir) {
 
-    extractArchive(file, targetDir, in -> new ZipArchiveInputStream(in));
+    long counter = 0;
+    try (ZipFile zipFile = new ZipFile(file.toFile());) {
+      final Enumeration<? extends ZipEntry> entries = zipFile.getEntries();
+      while (entries.hasMoreElements()) {
+        final ZipEntry entry = entries.nextElement();
+        System.out.println(entry.getName());
+        //use entry input stream:
+        // readInputStream(zipFile.getInputStream(entry));
+        if (!entry.isDirectory()) {
+          counter += entry.getCompressedSize();
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract JAR " + file + " to " + targetDir, e);
+    }
+    extractArchive(file, targetDir, in -> new ZipArchiveInputStream(in), counter);
+  }
+
+  private static int readInputStream(final InputStream is) throws IOException {
+    final byte[] buf = new byte[8192];
+    int read = 0;
+    int cntRead;
+    while ((cntRead = is.read(buf, 0, buf.length)) >= 0) {
+      read += cntRead;
+    }
+    return read;
   }
 
   @Override
   public void extractTar(Path file, Path targetDir, TarCompression compression) {
 
-    extractArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
+    long counter = 0;
+    try (TarFile tarFile = new TarFile(file.toFile());) {
+      final List<? extends TarArchiveEntry> entries = tarFile.getEntries();
+      while (entries.iterator().hasNext()) {
+        final TarArchiveEntry entry = entries.iterator().next();
+        System.out.println(entry.getName());
+        //use entry input stream:
+        // readInputStream(zipFile.getInputStream(entry));
+        if (!entry.isDirectory()) {
+          counter += entry.getRealSize();
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract JAR " + file + " to " + targetDir, e);
+    }
+    extractArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)), counter);
   }
 
   @Override
@@ -674,20 +730,9 @@ public class FileAccessImpl implements FileAccess {
     return permissionStringBuilder.toString();
   }
 
-  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
+  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker, long sizeOfArchive) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
-    // calculate the size of archive for the progressbar max size
-    long sizeOfArchive = 0;
-    try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
-      ArchiveEntry entry = ais.getNextEntry();
-      while (entry != null) {
-        sizeOfArchive += entry.getSize();
-        entry = ais.getNextEntry();
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
-    }
 
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is); IdeProgressBar pb = this.context.prepareProgressBar(
         "Unpacking", sizeOfArchive)) {
@@ -717,12 +762,14 @@ public class FileAccessImpl implements FileAccess {
           Files.setPosixFilePermissions(entryPath, permissions);
           pb.stepBy(((TarArchiveEntry) entry).getRealSize());
         } else {
-          pb.stepBy(entry.getSize());
+          pb.stepBy(((ZipEntry) entry).getCompressedSize());
         }
         entry = ais.getNextEntry();
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
+    } catch (ClassCastException e) {
+      throw new IllegalStateException("Unknown archive format for " + file, e);
     }
   }
 
