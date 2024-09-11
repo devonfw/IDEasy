@@ -68,7 +68,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
    */
   private String getDownloadUrl(PluginDescriptor plugin) {
     String downloadUrl = plugin.getUrl();
-    String pluginId = plugin.getId();
+    String pluginId = plugin.getId().replace(" ", "%20");
 
     String buildVersion = readBuildVersion();
 
