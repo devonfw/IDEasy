@@ -6,8 +6,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
@@ -40,18 +39,12 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
     args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
 
     install(true);
-    super.runTool(processMode, toolVersion, args);
+    ProcessContext pc = createProcessContext(Path.of(getBinaryName()), args);
+    pc.withEnvVar("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString());
+    pc.run(processMode);
 
   }
 
-  @Override
-  protected void postInstall() {
-
-    super.postInstall();
-    EnvironmentVariables envVars = this.context.getVariables().getByType(EnvironmentVariablesType.CONF);
-    envVars.set("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString(), true);
-    envVars.save();
-  }
 
   @Override
   protected void postExtract(Path extractedDir) {
