@@ -37,12 +37,12 @@ import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
-import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -618,13 +618,13 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractZip(Path file, Path targetDir) {
 
-    extractArchive(file, targetDir, in -> new ZipArchiveInputStream(in));
+    extractZipArchive(file, targetDir);
   }
 
   @Override
   public void extractTar(Path file, Path targetDir, TarCompression compression) {
 
-    extractArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
+    extractTarArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
   }
 
   @Override
@@ -674,18 +674,15 @@ public class FileAccessImpl implements FileAccess {
     return permissionStringBuilder.toString();
   }
 
-  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
+  private void extractTarArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
-      ArchiveEntry entry = ais.getNextEntry();
-      boolean isTar = ais instanceof TarArchiveInputStream;
+      TarArchiveEntry entry = (TarArchiveEntry) ais.getNextEntry();
+      boolean isTar = true;
       while (entry != null) {
-        String permissionStr = null;
-        if (isTar) {
-          int tarMode = ((TarArchiveEntry) entry).getMode();
-          permissionStr = generatePermissionString(tarMode);
-        }
+        int tarMode = entry.getMode();
+        String permissionStr = generatePermissionString(tarMode);
 
         Path entryName = Path.of(entry.getName());
         Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
@@ -699,12 +696,43 @@ public class FileAccessImpl implements FileAccess {
           mkdirs(entryPath.getParent());
           Files.copy(ais, entryPath);
         }
-        if (isTar && !this.context.getSystemInfo().isWindows()) {
+        if (!this.context.getSystemInfo().isWindows()) {
           Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
           Files.setPosixFilePermissions(entryPath, permissions);
         }
-        entry = ais.getNextEntry();
+        entry = (TarArchiveEntry) ais.getNextEntry();
       }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
+    }
+  }
+
+  private void extractZipArchive(Path file, Path targetDir) {
+
+    this.context.trace("Unpacking archive {} to {}", file, targetDir);
+    try {
+      FileInputStream fis = new FileInputStream(file.toFile());
+      ZipInputStream zis = new ZipInputStream(fis);
+      ZipEntry entry = zis.getNextEntry();
+      while (entry != null) {
+        Path entryName = Path.of(entry.getName());
+        Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
+        if (!entryPath.startsWith(targetDir)) {
+          throw new IOException("Preventing path traversal attack from " + entryName + " to " + entryPath);
+        }
+        if (entry.isDirectory()) {
+          mkdirs(entryPath);
+        } else {
+          // ensure the file can also be created if directory entry was missing or out of order...
+          mkdirs(entryPath.getParent());
+          Files.copy(zis, entryPath);
+        }
+        zis.closeEntry();
+        entry = zis.getNextEntry();
+      }
+      zis.closeEntry();
+      zis.close();
+      fis.close();
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
