@@ -710,9 +710,7 @@ public class FileAccessImpl implements FileAccess {
   private void extractZipArchive(Path file, Path targetDir) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
-    try {
-      FileInputStream fis = new FileInputStream(file.toFile());
-      ZipInputStream zis = new ZipInputStream(fis);
+    try (FileInputStream fis = new FileInputStream(file.toFile()); ZipInputStream zis = new ZipInputStream(fis);) {
       ZipEntry entry = zis.getNextEntry();
       while (entry != null) {
         Path entryName = Path.of(entry.getName());
@@ -730,9 +728,6 @@ public class FileAccessImpl implements FileAccess {
         zis.closeEntry();
         entry = zis.getNextEntry();
       }
-      zis.closeEntry();
-      zis.close();
-      fis.close();
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
