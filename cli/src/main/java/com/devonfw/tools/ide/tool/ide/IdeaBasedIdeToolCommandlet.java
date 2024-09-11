@@ -116,7 +116,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   private void extractDownloadedPlugin(FileAccess fileAccess, Path downloadedFile, String pluginId) throws IOException {
     Path targetDir = this.getPluginsInstallationPath().resolve(pluginId);
     if (Files.exists(targetDir)) {
-      context.info("Plugin already installed, target directory already existing: ", targetDir);
+      context.info("Plugin already installed, target directory already existing: {}", targetDir);
     } else {
       fileAccess.extract(downloadedFile, targetDir);
     }
