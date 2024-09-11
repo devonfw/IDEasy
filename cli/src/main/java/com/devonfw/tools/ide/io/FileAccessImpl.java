@@ -631,7 +631,7 @@ public class FileAccessImpl implements FileAccess {
   public void extractJar(Path file, Path targetDir) {
 
     this.context.trace("Unpacking JAR {} to {}", file, targetDir);
-    try (JarInputStream jis = new JarInputStream(Files.newInputStream(file)); IdeProgressBar pb = this.context.prepareProgressBar("Unpacking",
+    try (JarInputStream jis = new JarInputStream(Files.newInputStream(file)); IdeProgressBar pb = getProgressbarForUnpacking(
         getFileSize(file))) {
       JarEntry entry;
       while ((entry = jis.getNextJarEntry()) != null) {
@@ -678,8 +678,8 @@ public class FileAccessImpl implements FileAccess {
   private void extractTarArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
-    try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is); IdeProgressBar pb = this.context.prepareProgressBar(
-        "Unpacking", getFileSize(file))) {
+    try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is); IdeProgressBar pb = getProgressbarForUnpacking(
+        getFileSize(file))) {
       TarArchiveEntry entry = (TarArchiveEntry) ais.getNextEntry();
       boolean isTar = true;
       while (entry != null) {
@@ -713,11 +713,9 @@ public class FileAccessImpl implements FileAccess {
   private void extractZipArchive(Path file, Path targetDir) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
-    try {
-      FileInputStream fis = new FileInputStream(file.toFile());
-      ZipInputStream zis = new ZipInputStream(fis);
+    try (FileInputStream fis = new FileInputStream(file.toFile()); ZipInputStream zis = new ZipInputStream(fis); IdeProgressBar pb = getProgressbarForUnpacking(
+        getFileSize(file))) {
       ZipEntry entry = zis.getNextEntry();
-      IdeProgressBar pb = this.context.prepareProgressBar("Unpacking", getFileSize(file));
       while (entry != null) {
         Path entryName = Path.of(entry.getName());
         Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
@@ -735,10 +733,6 @@ public class FileAccessImpl implements FileAccess {
         pb.stepBy(entry.getCompressedSize());
         entry = zis.getNextEntry();
       }
-      zis.closeEntry();
-      zis.close();
-      fis.close();
-      pb.close();
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
@@ -900,6 +894,15 @@ public class FileAccessImpl implements FileAccess {
   protected long getFileSize(Path path) {
 
     return path.toFile().length();
+  }
+
+  /**
+   * @param sizeFile the size of archive
+   * @return prepared progressbar for unpacking
+   */
+  private IdeProgressBar getProgressbarForUnpacking(long sizeFile) {
+
+    return this.context.prepareProgressBar("Unpacking", sizeFile);
   }
 
   @Override
