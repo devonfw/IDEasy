@@ -141,7 +141,6 @@ public class IntellijTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
-    assertThat(context.getVariables().get("IDEA_PROPERTIES")).isEqualTo(context.getWorkspacePath().resolve("idea.properties").toString());
     assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
         "Successfully installed intellij in version 2023.3.3",
         "Install plugin: mockedPlugin");

@@ -357,16 +357,16 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * Method to set the environment variable for the dependency of the tool.
+   * Method to set environment variables for the process context.
    *
    * @param envContext the {@link EnvironmentContext} of the tool.
-   * @param dependencyPath the {@link Path} of the dependency.
+   * @param value the {@link Path value} of the pathVariable.
    */
-  private void setEnvironment(EnvironmentContext envContext, Path dependencyPath) {
+  protected void setEnvironment(EnvironmentContext envContext, Path value) {
 
     if (envContext != null) {
       String pathVariable = this.tool.toUpperCase(Locale.ROOT) + "_HOME";
-      envContext.withEnvVar(pathVariable, dependencyPath.toString());
+      envContext.withEnvVar(pathVariable, value.toString());
     }
   }
 

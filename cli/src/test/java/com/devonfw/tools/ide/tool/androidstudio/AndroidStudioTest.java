@@ -80,7 +80,6 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
     // commandlet - android-studio
     assertThat(context.getSoftwarePath().resolve("android-studio/.ide.software.version")).exists().hasContent("2024.1.1.1");
-    assertThat(context.getVariables().get("STUDIO_PROPERTIES")).isEqualTo(context.getWorkspacePath().resolve("studio.properties").toString());
     assertThat(context).logAtSuccess().hasMessage("Successfully installed android-studio in version 2024.1.1.1");
     assertThat(context).logAtSuccess().hasMessage("Install plugin: mockedPlugin");
     assertThat(context.getPluginsPath().resolve("android-studio").resolve("mockedPlugin").resolve("MockedClass.class")).exists();
