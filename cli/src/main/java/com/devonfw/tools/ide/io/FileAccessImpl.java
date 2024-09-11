@@ -679,7 +679,6 @@ public class FileAccessImpl implements FileAccess {
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
       TarArchiveEntry entry = (TarArchiveEntry) ais.getNextEntry();
-      boolean isTar = true;
       while (entry != null) {
         int tarMode = entry.getMode();
         String permissionStr = generatePermissionString(tarMode);
