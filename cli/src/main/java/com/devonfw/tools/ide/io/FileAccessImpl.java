@@ -624,7 +624,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractTar(Path file, Path targetDir, TarCompression compression) {
 
-    extractTarArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
+    extractArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
   }
 
   @Override
@@ -674,7 +674,7 @@ public class FileAccessImpl implements FileAccess {
     return permissionStringBuilder.toString();
   }
 
-  private void extractTarArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
+  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
