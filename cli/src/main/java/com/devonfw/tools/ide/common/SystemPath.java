@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -38,6 +39,8 @@ public class SystemPath {
   private final Map<String, Path> tool2pathMap;
 
   private final List<Path> paths;
+
+  private final List<Path> extraPathEntries;
 
   private final IdeContext context;
 
@@ -74,7 +77,7 @@ public class SystemPath {
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath) {
 
-    this(context, envPath, ideRoot, softwarePath, File.pathSeparatorChar);
+    this(context, envPath, ideRoot, softwarePath, File.pathSeparatorChar, Collections.emptyList());
   }
 
   /**
@@ -86,14 +89,9 @@ public class SystemPath {
    * @param softwarePath the {@link IdeContext#getSoftwarePath() software path}.
    * @param pathSeparator the path separator char (';' for Windows and ':' otherwise).
    */
-  public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath, char pathSeparator) {
+  public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath, char pathSeparator, List<Path> extraPathEntries) {
 
-    super();
-    this.context = context;
-    this.envPath = envPath;
-    this.pathSeparator = pathSeparator;
-    this.tool2pathMap = new HashMap<>();
-    this.paths = new ArrayList<>();
+    this(context, envPath, pathSeparator, extraPathEntries, new HashMap<>(), new ArrayList<>());
     String[] envPaths = envPath.split(Character.toString(pathSeparator));
     for (String segment : envPaths) {
       Path path = Path.of(segment);
@@ -103,6 +101,17 @@ public class SystemPath {
       }
     }
     collectToolPath(softwarePath);
+  }
+
+  private SystemPath(IdeContext context, String envPath, char pathSeparator, List<Path> extraPathEntries, Map<String, Path> tool2PathMap, List<Path> paths) {
+
+    super();
+    this.context = context;
+    this.envPath = envPath;
+    this.pathSeparator = pathSeparator;
+    this.extraPathEntries = extraPathEntries;
+    this.tool2pathMap = tool2PathMap;
+    this.paths = paths;
   }
 
   private void collectToolPath(Path softwarePath) {
@@ -230,17 +239,6 @@ public class SystemPath {
    */
   public String toString(WindowsPathSyntax pathSyntax) {
 
-    return toString(pathSyntax, null, null);
-  }
-
-  /**
-   * @param pathSyntax the {@link WindowsPathSyntax} to convert to.
-   * @param overriddenPath the explicit "PATH" to use instead of the values from this {@link SystemPath}.
-   * @param extraPathEntries the extra PATH entries to prepend. See {@link com.devonfw.tools.ide.process.ProcessContext#withPathEntry(Path)}.
-   * @return this {@link SystemPath} as {@link String} for the PATH environment variable.
-   */
-  public String toString(WindowsPathSyntax pathSyntax, String overriddenPath, List<Path> extraPathEntries) {
-
     char separator;
     if (pathSyntax == WindowsPathSyntax.MSYS) {
       separator = ':';
@@ -248,25 +246,25 @@ public class SystemPath {
       separator = this.pathSeparator;
     }
     StringBuilder sb = new StringBuilder(this.envPath.length() + 128);
-    if (extraPathEntries != null) {
-      for (Path path : extraPathEntries) {
-        appendPath(path, sb, separator, pathSyntax);
-      }
+    for (Path path : this.extraPathEntries) {
+      appendPath(path, sb, separator, pathSyntax);
     }
-    if (overriddenPath == null) {
-      for (Path path : this.tool2pathMap.values()) {
-        appendPath(path, sb, separator, pathSyntax);
-      }
-      for (Path path : this.paths) {
-        appendPath(path, sb, separator, pathSyntax);
-      }
-    } else {
-      if (sb.length() > 0) {
-        sb.append(separator);
-      }
-      sb.append(overriddenPath);
+    for (Path path : this.tool2pathMap.values()) {
+      appendPath(path, sb, separator, pathSyntax);
+    }
+    for (Path path : this.paths) {
+      appendPath(path, sb, separator, pathSyntax);
     }
     return sb.toString();
+  }
+
+  public SystemPath withPath(String overriddenPath, List<Path> extraPathEntries) {
+
+    if (overriddenPath == null) {
+      return new SystemPath(this.context, this.envPath, this.pathSeparator, extraPathEntries, this.tool2pathMap, this.paths);
+    } else {
+      return new SystemPath(this.context, overriddenPath, null, null, this.pathSeparator, extraPathEntries);
+    }
   }
 
   private static void appendPath(Path path, StringBuilder sb, char separator, WindowsPathSyntax pathSyntax) {

@@ -96,7 +96,7 @@ public class ProcessContextImpl implements ProcessContext {
       throw new IllegalStateException("Arguments already present - did you forget to call run for previous call?");
     }
 
-    this.executable = this.context.getPath().findBinary(command);
+    this.executable = command;
     return this;
   }
 
@@ -141,8 +141,13 @@ public class ProcessContextImpl implements ProcessContext {
       throw new IllegalStateException("Missing executable to run process!");
     }
 
-    String path = this.context.getPath().toString(null, this.overriddenPath, this.extraPathEntries);
+    SystemPath systemPath = this.context.getPath();
+    if ((this.overriddenPath != null) || !this.extraPathEntries.isEmpty()) {
+      systemPath = systemPath.withPath(this.overriddenPath, this.extraPathEntries);
+    }
+    String path = systemPath.toString();
     this.context.trace("Setting PATH for process execution of {} to {}", this.executable.getFileName(), path);
+    this.executable = systemPath.findBinary(this.executable);
     this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(this.executable.toString(), args);
