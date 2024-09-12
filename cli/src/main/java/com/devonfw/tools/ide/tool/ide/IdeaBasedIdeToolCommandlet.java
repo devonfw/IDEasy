@@ -145,4 +145,34 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
       default -> "";
     };
   }
+
+  /**
+   * Creates a start script for the tool using the tool name.
+   *
+   * @param extractedDir path to extracted tool directory.
+   * @param binaryName name of the binary to add to start script.
+   */
+  protected void createStartScript(Path extractedDir, String binaryName) {
+    Path binFolder = extractedDir.resolve("bin");
+    if (!Files.exists(binFolder)) {
+      if (this.context.getSystemInfo().isMac()) {
+        MacOsHelper macOsHelper = getMacOsHelper();
+        Path appDir = macOsHelper.findAppDir(extractedDir);
+        binFolder = macOsHelper.findLinkDir(appDir, binaryName);
+      } else {
+        binFolder = extractedDir;
+      }
+      assert (Files.exists(binFolder));
+    }
+    Path bashFile = binFolder.resolve(getName());
+    String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname \"$0\")/";
+    String bashFileContentEnd = "\" $*";
+    try {
+      Files.writeString(bashFile, bashFileContentStart + binaryName + bashFileContentEnd);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    assert (Files.exists(bashFile));
+    context.getFileAccess().makeExecutable(bashFile);
+  }
 }
