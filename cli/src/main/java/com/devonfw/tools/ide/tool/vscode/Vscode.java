@@ -68,15 +68,19 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   private void doInstallPlugins(List<PluginDescriptor> pluginsToInstall) {
+
+    List<String> extensionsCommands = new ArrayList<>();
+
     if (pluginsToInstall.isEmpty()) {
       this.context.info("No plugins to be installed");
     } else {
+
       for (PluginDescriptor plugin : pluginsToInstall) {
-        this.arguments.addValue("--install-extension");
-        this.arguments.addValue(plugin.getId());
+        extensionsCommands.add("--install-extension");
+        extensionsCommands.add(plugin.getId());
       }
     }
-    runTool(ProcessMode.DEFAULT, null, this.arguments.asArray());
+    runTool(ProcessMode.DEFAULT, null, extensionsCommands.toArray(new String[0]));
   }
 
   private void doAddRecommendations(List<PluginDescriptor> recommendations) {
