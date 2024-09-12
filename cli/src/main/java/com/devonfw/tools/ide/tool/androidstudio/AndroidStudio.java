@@ -34,18 +34,6 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  protected String getBinaryName() {
-
-    if (this.context.getSystemInfo().isWindows()) {
-      return STUDIO64_EXE;
-    } else if (this.context.getSystemInfo().isLinux()) {
-      return STUDIO_BASH;
-    } else {
-      return STUDIO;
-    }
-  }
-
-  @Override
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
     args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
@@ -57,4 +45,19 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
 
   }
 
+
+  @Override
+  protected void postExtract(Path extractedDir) {
+
+    super.postExtract(extractedDir);
+    String binaryName;
+    if (this.context.getSystemInfo().isWindows()) {
+      binaryName = STUDIO64_EXE;
+    } else if (this.context.getSystemInfo().isMac()) {
+      binaryName = STUDIO;
+    } else {
+      binaryName = STUDIO_BASH;
+    }
+    createStartScript(extractedDir, binaryName);
+  }
 }
