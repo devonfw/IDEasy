@@ -230,6 +230,17 @@ public class SystemPath {
    */
   public String toString(WindowsPathSyntax pathSyntax) {
 
+    return toString(pathSyntax, null, null);
+  }
+
+  /**
+   * @param pathSyntax the {@link WindowsPathSyntax} to convert to.
+   * @param overriddenPath the explicit "PATH" to use instead of the values from this {@link SystemPath}.
+   * @param extraPathEntries the extra PATH entries to prepend. See {@link com.devonfw.tools.ide.process.ProcessContext#withPathEntry(Path)}.
+   * @return this {@link SystemPath} as {@link String} for the PATH environment variable.
+   */
+  public String toString(WindowsPathSyntax pathSyntax, String overriddenPath, List<Path> extraPathEntries) {
+
     char separator;
     if (pathSyntax == WindowsPathSyntax.MSYS) {
       separator = ':';
@@ -237,11 +248,23 @@ public class SystemPath {
       separator = this.pathSeparator;
     }
     StringBuilder sb = new StringBuilder(this.envPath.length() + 128);
-    for (Path path : this.tool2pathMap.values()) {
-      appendPath(path, sb, separator, pathSyntax);
+    if (extraPathEntries != null) {
+      for (Path path : extraPathEntries) {
+        appendPath(path, sb, separator, pathSyntax);
+      }
     }
-    for (Path path : this.paths) {
-      appendPath(path, sb, separator, pathSyntax);
+    if (overriddenPath == null) {
+      for (Path path : this.tool2pathMap.values()) {
+        appendPath(path, sb, separator, pathSyntax);
+      }
+      for (Path path : this.paths) {
+        appendPath(path, sb, separator, pathSyntax);
+      }
+    } else {
+      if (sb.length() > 0) {
+        sb.append(separator);
+      }
+      sb.append(overriddenPath);
     }
     return sb.toString();
   }
