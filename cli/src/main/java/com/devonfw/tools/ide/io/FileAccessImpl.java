@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -624,7 +625,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractTar(Path file, Path targetDir, TarCompression compression) {
 
-    extractTarArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
+    extractArchive(file, targetDir, in -> new TarArchiveInputStream(compression.unpack(in)));
   }
 
   @Override
@@ -675,17 +676,19 @@ public class FileAccessImpl implements FileAccess {
     return permissionStringBuilder.toString();
   }
 
-  private void extractTarArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
+  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is); IdeProgressBar pb = getProgressbarForUnpacking(
         getFileSize(file))) {
-      TarArchiveEntry entry = (TarArchiveEntry) ais.getNextEntry();
-      boolean isTar = true;
+      ArchiveEntry entry = ais.getNextEntry();
+      boolean isTar = ais instanceof TarArchiveInputStream;
       while (entry != null) {
-        int tarMode = entry.getMode();
-        String permissionStr = generatePermissionString(tarMode);
-
+        String permissionStr = null;
+        if (isTar) {
+          int tarMode = ((TarArchiveEntry) entry).getMode();
+          permissionStr = generatePermissionString(tarMode);
+        }
         Path entryName = Path.of(entry.getName());
         Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
         if (!entryPath.startsWith(targetDir)) {
@@ -698,12 +701,12 @@ public class FileAccessImpl implements FileAccess {
           mkdirs(entryPath.getParent());
           Files.copy(ais, entryPath);
         }
-        if (!this.context.getSystemInfo().isWindows()) {
+        if (isTar && !this.context.getSystemInfo().isWindows()) {
           Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
           Files.setPosixFilePermissions(entryPath, permissions);
         }
         pb.stepBy(entry.getSize());
-        entry = (TarArchiveEntry) ais.getNextEntry();
+        entry = ais.getNextEntry();
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
@@ -729,8 +732,8 @@ public class FileAccessImpl implements FileAccess {
           mkdirs(entryPath.getParent());
           Files.copy(zis, entryPath);
         }
-        zis.closeEntry();
         pb.stepBy(entry.getCompressedSize());
+        zis.closeEntry();
         entry = zis.getNextEntry();
       }
     } catch (IOException e) {
@@ -855,6 +858,15 @@ public class FileAccessImpl implements FileAccess {
     return null;
   }
 
+  /**
+   * @param sizeFile the size of archive
+   * @return prepared progressbar for unpacking
+   */
+  private IdeProgressBar getProgressbarForUnpacking(long sizeFile) {
+
+    return this.context.prepareProgressBar("Unpacking", sizeFile);
+  }
+
   @Override
   public List<Path> listChildren(Path dir, Predicate<Path> filter) {
 
@@ -894,15 +906,6 @@ public class FileAccessImpl implements FileAccess {
   protected long getFileSize(Path path) {
 
     return path.toFile().length();
-  }
-
-  /**
-   * @param sizeFile the size of archive
-   * @return prepared progressbar for unpacking
-   */
-  private IdeProgressBar getProgressbarForUnpacking(long sizeFile) {
-
-    return this.context.prepareProgressBar("Unpacking", sizeFile);
   }
 
   @Override
