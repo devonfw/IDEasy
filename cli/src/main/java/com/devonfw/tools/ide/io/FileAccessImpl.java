@@ -40,6 +40,7 @@ import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
@@ -678,11 +679,14 @@ public class FileAccessImpl implements FileAccess {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
     try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
-      TarArchiveEntry entry = (TarArchiveEntry) ais.getNextEntry();
+      ArchiveEntry entry = ais.getNextEntry();
+      boolean isTar = ais instanceof TarArchiveInputStream;
       while (entry != null) {
-        int tarMode = entry.getMode();
-        String permissionStr = generatePermissionString(tarMode);
-
+        String permissionStr = null;
+        if (isTar) {
+          int tarMode = ((TarArchiveEntry) entry).getMode();
+          permissionStr = generatePermissionString(tarMode);
+        }
         Path entryName = Path.of(entry.getName());
         Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
         if (!entryPath.startsWith(targetDir)) {
@@ -695,11 +699,11 @@ public class FileAccessImpl implements FileAccess {
           mkdirs(entryPath.getParent());
           Files.copy(ais, entryPath);
         }
-        if (!this.context.getSystemInfo().isWindows()) {
+        if (isTar && !this.context.getSystemInfo().isWindows()) {
           Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
           Files.setPosixFilePermissions(entryPath, permissions);
         }
-        entry = (TarArchiveEntry) ais.getNextEntry();
+        entry = ais.getNextEntry();
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
