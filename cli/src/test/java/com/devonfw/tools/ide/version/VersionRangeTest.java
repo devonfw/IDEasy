@@ -12,32 +12,30 @@ public class VersionRangeTest extends Assertions {
   @Test
   public void testOf() {
 
-    // arrange
-    String v1String = "1.2,3";
-    String v2String = "1,)";
-    String v3String = "(1.2,3.4]";
+    checkVersionRange("1.2,3", "1.2", "3", BoundaryType.CLOSED);
+    checkVersionRange("[1.2,3]", "1.2", "3", BoundaryType.CLOSED);
+    checkVersionRange("1,)", "1", null, BoundaryType.RIGHT_OPEN);
+    checkVersionRange("[1,)", "1", null, BoundaryType.RIGHT_OPEN);
+    checkVersionRange("(1.2,3.4", "1.2", "3.4", BoundaryType.LEFT_OPEN);
+    checkVersionRange("(1.2,3.4]", "1.2", "3.4", BoundaryType.LEFT_OPEN);
+    checkVersionRange("(,)", null, null, BoundaryType.OPEN);
+    checkVersionRange(",", null, null, BoundaryType.OPEN);
+  }
+
+  // arrange
+  private VersionRange checkVersionRange(String range, String min, String max, BoundaryType boundaryType) {
 
     // act
-    VersionRange v1 = VersionRange.of(v1String);
-    VersionRange v2 = VersionRange.of(v2String);
-    VersionRange v3 = VersionRange.of(v3String);
+    VersionRange versionRange = VersionRange.of(range);
 
     // assert
-    // v1
-    assertThat(v1.getMin()).isEqualTo(VersionIdentifier.of("1.2"));
-    assertThat(v1.getMax()).isEqualTo(VersionIdentifier.of("3"));
-    assertThat(v1.getBoundaryType().isLeftExclusive()).isFalse();
-    assertThat(v1.getBoundaryType().isRightExclusive()).isFalse();
-    // v2
-    assertThat(v2.getMin()).isEqualTo(VersionIdentifier.of("1"));
-    assertThat(v2.getMax()).isEqualTo(null);
-    assertThat(v2.getBoundaryType().isLeftExclusive()).isFalse();
-    assertThat(v2.getBoundaryType().isRightExclusive()).isTrue();
-    // v3
-    assertThat(v3.getMin()).isEqualTo(VersionIdentifier.of("1.2"));
-    assertThat(v3.getMax()).isEqualTo(VersionIdentifier.of("3.4"));
-    assertThat(v3.getBoundaryType().isLeftExclusive()).isTrue();
-    assertThat(v3.getBoundaryType().isRightExclusive()).isFalse();
+    assertThat(versionRange.getMin()).isEqualTo(VersionIdentifier.of(min));
+    assertThat(versionRange.getMax()).isEqualTo(VersionIdentifier.of(max));
+    assertThat(versionRange.getBoundaryType()).isEqualTo(boundaryType);
+    if ((min == null) && (max == null)) {
+      assertThat(versionRange).isSameAs(VersionRange.UNBOUNDED);
+    }
+    return versionRange;
   }
 
   /** Test of {@link VersionRange#toString()}. */

@@ -8,15 +8,6 @@ import java.util.Objects;
  */
 public final class VersionRange implements Comparable<VersionRange> {
 
-  /** Property-name of {@link #getMin()}. */
-  public static final String PROPERTY_MIN = "min";
-
-  /** Property-name of {@link #getMax()}. */
-  public static final String PROPERTY_MAX = "max";
-
-  /** Property-name of {@link #getBoundaryType()}. */
-  public static final String PROPERTY_TYPE = "type";
-
   /** The unbounded {@link VersionRange} instance. */
   public static final VersionRange UNBOUNDED = new VersionRange(null, null, BoundaryType.OPEN);
 
@@ -210,6 +201,9 @@ public final class VersionRange implements Comparable<VersionRange> {
     }
     if (isRightExclusive == null) {
       isRightExclusive = Boolean.valueOf(max == null);
+    }
+    if ((min == null) && (max == null) && isleftExclusive && isRightExclusive) {
+      return UNBOUNDED;
     }
     return new VersionRange(min, max, BoundaryType.of(isleftExclusive.booleanValue(), isRightExclusive.booleanValue()));
   }
