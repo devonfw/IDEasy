@@ -160,7 +160,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (nameCount >= 1) {
         name1 = currentDir.getName(nameCount - 1).toString();
       }
-      currentDir = getParentPath(currentDir);
+      currentDir = currentDir.getParent();
     }
 
     // detection completed, initializing variables
@@ -308,11 +308,6 @@ public abstract class AbstractIdeContext implements IdeContext {
       return false;
     }
     return true;
-  }
-
-  private Path getParentPath(Path dir) {
-
-    return dir.getParent();
   }
 
   private EnvironmentVariables createVariables() {
