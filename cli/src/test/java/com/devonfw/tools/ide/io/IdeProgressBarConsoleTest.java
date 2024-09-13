@@ -1,13 +1,10 @@
 package com.devonfw.tools.ide.io;
 
-import java.nio.file.Path;
-
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
@@ -16,11 +13,10 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
 public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
 
   @Test
-  public void testProgressBarMaxSizeUnknownStepBy(@TempDir Path tempDir) throws Exception {
+  public void testProgressBarMaxSizeUnknownStepBy() throws Exception {
     // arrange
-    IdeTestContext context = newContext(tempDir);
     long stepSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(context.getSystemInfo(), "downloading", -1);
+    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", -1);
 
     // act
     progressBarConsole.stepBy(stepSize);
@@ -32,11 +28,10 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testProgressBarMaxSizeUnknownDoStepTo(@TempDir Path tempDir) throws Exception {
+  public void testProgressBarMaxSizeUnknownDoStepTo() throws Exception {
     // arrange
-    IdeTestContext context = newContext(tempDir);
     long stepSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(context.getSystemInfo(), "downloading", -1);
+    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", -1);
 
     // act
     progressBarConsole.doStepTo(stepSize);
@@ -49,11 +44,10 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
 
 
   @Test
-  public void testProgressBarMaxSizeKnownStepBy(@TempDir Path tempDir) throws Exception {
+  public void testProgressBarMaxSizeKnownStepBy() throws Exception {
     // arrange
-    IdeTestContext context = newContext(tempDir);
     long maxSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(context.getSystemInfo(), "downloading", maxSize);
+    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", maxSize);
 
     //act
     progressBarConsole.stepBy(maxSize);
@@ -65,11 +59,10 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testProgressBarMaxSizeKnownDoStepTo(@TempDir Path tempDir) throws Exception {
+  public void testProgressBarMaxSizeKnownDoStepTo() throws Exception {
     // arrange
-    IdeTestContext context = newContext(tempDir);
     long maxSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(context.getSystemInfo(), "downloading", maxSize);
+    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", maxSize);
 
     //act
     progressBarConsole.doStepTo(maxSize);
@@ -81,11 +74,10 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testProgressBarMaxSizeKnownIncompleteSteps(@TempDir Path tempDir) throws Exception {
+  public void testProgressBarMaxSizeKnownIncompleteSteps() throws Exception {
     // arrange
-    IdeTestContext context = newContext(tempDir);
     long maxSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(context.getSystemInfo(), "downloading", maxSize);
+    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", maxSize);
 
     // act
     progressBarConsole.stepBy(1L);
@@ -96,11 +88,10 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testProgressBarMaxOverflow(@TempDir Path tempDir) throws Exception {
+  public void testProgressBarMaxOverflow() throws Exception {
     // arrange
-    IdeTestContext context = newContext(tempDir);
     long maxSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(context.getSystemInfo(), "downloading", maxSize);
+    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", maxSize);
     // act
     progressBarConsole.stepBy(20000L);
     progressBarConsole.close();
@@ -110,13 +101,11 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testProgressBarStyleSwitchOnNonWindows(@TempDir Path tempDir) throws Exception {
+  public void testProgressBarStyleSwitchOnNonWindows() throws Exception {
     // arrange
-    IdeTestContext context = newContext(tempDir);
-    SystemInfo systemInfo = SystemInfoMock.of("linux");
-    context.setSystemInfo(systemInfo);
+    SystemInfo systemInfo = SystemInfoMock.LINUX_X64;
     long maxSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(context.getSystemInfo(), "downloading", maxSize);
+    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(systemInfo, "downloading", maxSize);
     // act
     progressBarConsole.close();
   }
