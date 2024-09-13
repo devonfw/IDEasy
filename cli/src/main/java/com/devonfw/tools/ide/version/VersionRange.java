@@ -24,17 +24,6 @@ public final class VersionRange implements Comparable<VersionRange> {
    *
    * @param min the {@link #getMin() minimum}.
    * @param max the {@link #getMax() maximum}.
-   */
-  public VersionRange(VersionIdentifier min, VersionIdentifier max) {
-
-    this(min, max, BoundaryType.CLOSED);
-  }
-
-  /**
-   * The constructor.
-   *
-   * @param min the {@link #getMin() minimum}.
-   * @param max the {@link #getMax() maximum}.
    * @param boundaryType the {@link BoundaryType} defining whether the boundaries of the range are inclusive or exclusive.
    */
   private VersionRange(VersionIdentifier min, VersionIdentifier max, BoundaryType boundaryType) {
