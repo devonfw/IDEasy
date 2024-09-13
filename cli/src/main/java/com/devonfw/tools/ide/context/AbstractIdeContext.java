@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.context;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -161,7 +160,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (nameCount >= 1) {
         name1 = currentDir.getName(nameCount - 1).toString();
       }
-      currentDir = getParentPath(currentDir);
+      currentDir = currentDir.getParent();
     }
 
     // detection completed, initializing variables
@@ -309,21 +308,6 @@ public abstract class AbstractIdeContext implements IdeContext {
       return false;
     }
     return true;
-  }
-
-  private Path getParentPath(Path dir) {
-
-    try {
-      Path linkDir = dir.toRealPath();
-      if (!dir.equals(linkDir)) {
-        return linkDir;
-      } else {
-        return dir.getParent();
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-
   }
 
   private EnvironmentVariables createVariables() {
