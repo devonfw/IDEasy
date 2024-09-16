@@ -88,6 +88,7 @@ public class SystemPath {
    * @param ideRoot the {@link IdeContext#getIdeRoot() IDE_ROOT}.
    * @param softwarePath the {@link IdeContext#getSoftwarePath() software path}.
    * @param pathSeparator the path separator char (';' for Windows and ':' otherwise).
+   * @param extraPathEntries the {@link List} of additional {@link Path}s to prepend.
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath, char pathSeparator, List<Path> extraPathEntries) {
 
@@ -258,6 +259,13 @@ public class SystemPath {
     return sb.toString();
   }
 
+  /**
+   * Derive a new {@link SystemPath} from this instance with the given parameters.
+   *
+   * @param overriddenPath the entire PATH to override and replace the current one from this {@link SystemPath} or {@code null} to keep the current PATH.
+   * @param extraPathEntries the {@link List} of additional PATH entries to add to the beginning of the PATH. May be empty to add nothing.
+   * @return the new {@link SystemPath} derived from this instance with the given parameters applied.
+   */
   public SystemPath withPath(String overriddenPath, List<Path> extraPathEntries) {
 
     if (overriddenPath == null) {
