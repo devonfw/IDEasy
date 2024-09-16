@@ -37,12 +37,13 @@ import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 import java.util.stream.Stream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -534,10 +535,11 @@ public class FileAccessImpl implements FileAccess {
   public void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook, boolean extract) {
 
     if (Files.isDirectory(archiveFile)) {
+      // TODO: check this case
       Path properInstallDir = archiveFile; // getProperInstallationSubDirOf(archiveFile, archiveFile);
       this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
       copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_CONTENT);
-      postExtractHook(postExtractHook, properInstallDir);
+      postExtractHook(postExtractHook, targetDir);
       return;
     } else if (!extract) {
       mkdirs(targetDir);
@@ -618,7 +620,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractZip(Path file, Path targetDir) {
 
-    extractArchive(file, targetDir, in -> new ZipArchiveInputStream(in));
+    extractZipArchive(file, targetDir);
   }
 
   @Override
@@ -631,7 +633,8 @@ public class FileAccessImpl implements FileAccess {
   public void extractJar(Path file, Path targetDir) {
 
     this.context.trace("Unpacking JAR {} to {}", file, targetDir);
-    try (JarInputStream jis = new JarInputStream(Files.newInputStream(file))) {
+    try (JarInputStream jis = new JarInputStream(Files.newInputStream(file)); IdeProgressBar pb = getProgressbarForUnpacking(
+        getFileSize(file))) {
       JarEntry entry;
       while ((entry = jis.getNextJarEntry()) != null) {
         Path entryPath = targetDir.resolve(entry.getName()).toAbsolutePath();
@@ -646,7 +649,7 @@ public class FileAccessImpl implements FileAccess {
           Files.createDirectories(entryPath.getParent());
           Files.copy(jis, entryPath);
         }
-
+        pb.stepBy(entry.getCompressedSize());
         jis.closeEntry();
       }
     } catch (IOException e) {
@@ -677,7 +680,8 @@ public class FileAccessImpl implements FileAccess {
   private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
-    try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is)) {
+    try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is); IdeProgressBar pb = getProgressbarForUnpacking(
+        getFileSize(file))) {
       ArchiveEntry entry = ais.getNextEntry();
       boolean isTar = ais instanceof TarArchiveInputStream;
       while (entry != null) {
@@ -686,7 +690,6 @@ public class FileAccessImpl implements FileAccess {
           int tarMode = ((TarArchiveEntry) entry).getMode();
           permissionStr = generatePermissionString(tarMode);
         }
-
         Path entryName = Path.of(entry.getName());
         Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
         if (!entryPath.startsWith(targetDir)) {
@@ -703,7 +706,36 @@ public class FileAccessImpl implements FileAccess {
           Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
           Files.setPosixFilePermissions(entryPath, permissions);
         }
+        pb.stepBy(entry.getSize());
         entry = ais.getNextEntry();
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
+    }
+  }
+
+  private void extractZipArchive(Path file, Path targetDir) {
+
+    this.context.trace("Unpacking archive {} to {}", file, targetDir);
+    try (FileInputStream fis = new FileInputStream(file.toFile()); ZipInputStream zis = new ZipInputStream(fis); IdeProgressBar pb = getProgressbarForUnpacking(
+        getFileSize(file))) {
+      ZipEntry entry = zis.getNextEntry();
+      while (entry != null) {
+        Path entryName = Path.of(entry.getName());
+        Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
+        if (!entryPath.startsWith(targetDir)) {
+          throw new IOException("Preventing path traversal attack from " + entryName + " to " + entryPath);
+        }
+        if (entry.isDirectory()) {
+          mkdirs(entryPath);
+        } else {
+          // ensure the file can also be created if directory entry was missing or out of order...
+          mkdirs(entryPath.getParent());
+          Files.copy(zis, entryPath);
+        }
+        pb.stepBy(entry.getCompressedSize());
+        zis.closeEntry();
+        entry = zis.getNextEntry();
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
@@ -825,6 +857,15 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     return null;
+  }
+
+  /**
+   * @param sizeFile the size of archive
+   * @return prepared progressbar for unpacking
+   */
+  private IdeProgressBar getProgressbarForUnpacking(long sizeFile) {
+
+    return this.context.prepareProgressBar("Unpacking", sizeFile);
   }
 
   @Override
