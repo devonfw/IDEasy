@@ -437,13 +437,7 @@ public interface IdeContext extends IdeStartContext {
     if (!Files.exists(mvnSettingsFile)) {
       return null;
     }
-    String settingsPath;
-    WindowsPathSyntax pathSyntax = getPathSyntax();
-    if (pathSyntax == null) {
-      settingsPath = mvnSettingsFile.toString();
-    } else {
-      settingsPath = pathSyntax.format(mvnSettingsFile);
-    }
+    String settingsPath = mvnSettingsFile.toString();
     return "-s " + settingsPath;
   }
 
