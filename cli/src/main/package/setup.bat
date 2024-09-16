@@ -36,7 +36,9 @@ if "%USER_PATH%" == "" (
 ) else (
   setx PATH "%USER_PATH%;%CD%\bin"
 )
+cd ..
 setx IDE_ROOT "%CD%"
+cd _ide
 
 :find_bash
 REM find bash on your Windows system...
