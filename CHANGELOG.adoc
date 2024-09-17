@@ -8,6 +8,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/553[#554]: Missmatch of IDE_ROOT
 * https://github.com/devonfw/IDEasy/issues/556[#556]: ProcessContext should compute PATH on run and not in constructor
+* https://github.com/devonfw/IDEasy/issues/557[#557]: Failed to update tomcat: Cannot find a (Map) Key deserializer for type VersionRange
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/13?closed=1[milestone 2024.09.002].
 

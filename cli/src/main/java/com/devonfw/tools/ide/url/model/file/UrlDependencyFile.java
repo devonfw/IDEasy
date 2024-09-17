@@ -7,8 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.devonfw.tools.ide.json.mapping.JsonMapping;
-import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
+import com.devonfw.tools.ide.json.JsonMapping;
+import com.devonfw.tools.ide.url.model.file.json.DependencyInfo;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
