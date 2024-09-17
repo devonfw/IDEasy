@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.url.model.file.dependencyJson;
+package com.devonfw.tools.ide.url.model.file.json;
 
 import com.devonfw.tools.ide.version.VersionRange;
 
@@ -9,7 +9,7 @@ public final class DependencyInfo {
 
   private String tool;
 
-  private String versionRange;
+  private VersionRange versionRange;
 
   /**
    * @return the dependency name
@@ -19,12 +19,21 @@ public final class DependencyInfo {
     return this.tool;
   }
 
+  void setTool(String tool) {
+
+    this.tool = tool;
+  }
+
   /**
    * @return the VersionRange of the dependency
    */
   public VersionRange getVersionRange() {
 
-    return VersionRange.of(this.versionRange);
+    return this.versionRange;
   }
 
+  void setVersionRange(VersionRange versionRange) {
+
+    this.versionRange = versionRange;
+  }
 }

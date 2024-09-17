@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.npm;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.devonfw.tools.ide.common.JsonObject;
+import com.devonfw.tools.ide.json.JsonObject;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 
 /**

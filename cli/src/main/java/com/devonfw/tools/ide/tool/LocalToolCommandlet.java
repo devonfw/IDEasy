@@ -16,7 +16,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
+import com.devonfw.tools.ide.url.model.file.json.DependencyInfo;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**

@@ -6,7 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-import com.devonfw.tools.ide.json.mapping.JsonMapping;
+import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.url.model.file.json.StatusJson;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.fasterxml.jackson.databind.ObjectMapper;

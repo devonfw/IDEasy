@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.url.model.file.UrlDependencyFile;
-import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
+import com.devonfw.tools.ide.url.model.file.json.DependencyInfo;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
