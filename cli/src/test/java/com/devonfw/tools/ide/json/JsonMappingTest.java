@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.json.mapping;
+package com.devonfw.tools.ide.json;
 
 import java.time.Instant;
 

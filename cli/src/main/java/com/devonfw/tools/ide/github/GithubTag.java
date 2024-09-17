@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.github;
 
-import com.devonfw.tools.ide.common.JsonVersionItem;
+import com.devonfw.tools.ide.json.JsonVersionItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
