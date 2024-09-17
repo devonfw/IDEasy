@@ -344,7 +344,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Checks if the symlinks are broken. This is used by the tests of {@link FileAccessImpl#symlink(Path, Path, boolean)}.
    *
    * @param dir the {@link Path} to the directory where the symlinks are expected.
-   * @param readLinks - {@code true} if the symbolic link shall be read with {@link Files#readSymbolicLink(Path)}, this does not work for Windows junctions.
+   * @param readLinks - {@code true} if the symbolic link shall be read with {@link Files#readSymbolicLink(Path)}, this does not work for Windows
+   *     junctions.
    */
   private void assertSymlinksAreBroken(Path dir, boolean readLinks) throws IOException {
 
@@ -364,7 +365,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Checks if the symlink is broken. This is used by the tests of {@link FileAccessImpl#symlink(Path, Path, boolean)}.
    *
    * @param link the {@link Path} to the link.
-   * @param readLinks - {@code true} if the symbolic link shall be read with {@link Files#readSymbolicLink(Path)}, this does not work for Windows junctions.
+   * @param readLinks - {@code true} if the symbolic link shall be read with {@link Files#readSymbolicLink(Path)}, this does not work for Windows
+   *     junctions.
    */
   private void assertSymlinkIsBroken(Path link, boolean readLinks) throws IOException {
 
@@ -388,7 +390,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Checks if the symlinks work. This is used by the tests of {@link FileAccessImpl#symlink(Path, Path, boolean)}.
    *
    * @param dir the {@link Path} to the directory where the symlinks are expected.
-   * @param readLinks - {@code true} if the symbolic link shall be read with {@link Files#readSymbolicLink(Path)}, this does not work for Windows junctions.
+   * @param readLinks - {@code true} if the symbolic link shall be read with {@link Files#readSymbolicLink(Path)}, this does not work for Windows
+   *     junctions.
    */
   private void assertSymlinksWork(Path dir, boolean readLinks) {
 
@@ -462,6 +465,25 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
       fail("In method assertSymlinkRead() could not call toRealPath() on link.resolveSibling(readPath) for link " + link
           + " and readPath " + readPath, e);
     }
+  }
+
+  /**
+   * Test of {@link FileAccessImpl#extractZip(Path, Path)}
+   */
+  @Test
+  public void testUnzip(@TempDir Path tempDir) {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+
+    // act
+    context.getFileAccess()
+        .extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io").resolve("executable_and_non_executable.zip"),
+            tempDir);
+
+    // assert
+    assertThat(tempDir.resolve("executableFile.txt")).exists();
+    assertThat(tempDir.resolve("nonExecutableFile.txt")).exists();
   }
 
   /**
