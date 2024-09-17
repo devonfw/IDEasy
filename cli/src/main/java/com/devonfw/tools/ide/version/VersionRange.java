@@ -2,14 +2,14 @@ package com.devonfw.tools.ide.version;
 
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonValue;
-
 /**
  * Container for a range of versions. The lower and upper bounds can be exclusive or inclusive. If a bound is null, it means that this direction is unbounded.
  * The boolean defining whether this bound is inclusive or exclusive is ignored in this case.
  */
 public final class VersionRange implements Comparable<VersionRange> {
+
+  /** The unbounded {@link VersionRange} instance. */
+  public static final VersionRange UNBOUNDED = new VersionRange(null, null, BoundaryType.OPEN);
 
   private final VersionIdentifier min;
 
@@ -24,20 +24,9 @@ public final class VersionRange implements Comparable<VersionRange> {
    *
    * @param min the {@link #getMin() minimum}.
    * @param max the {@link #getMax() maximum}.
-   */
-  public VersionRange(VersionIdentifier min, VersionIdentifier max) {
-
-    this(min, max, BoundaryType.CLOSED);
-  }
-
-  /**
-   * The constructor.
-   *
-   * @param min the {@link #getMin() minimum}.
-   * @param max the {@link #getMax() maximum}.
    * @param boundaryType the {@link BoundaryType} defining whether the boundaries of the range are inclusive or exclusive.
    */
-  public VersionRange(VersionIdentifier min, VersionIdentifier max, BoundaryType boundaryType) {
+  private VersionRange(VersionIdentifier min, VersionIdentifier max, BoundaryType boundaryType) {
 
     super();
     Objects.requireNonNull(boundaryType);
@@ -143,7 +132,6 @@ public final class VersionRange implements Comparable<VersionRange> {
   }
 
   @Override
-  @JsonValue
   public String toString() {
 
     StringBuilder sb = new StringBuilder();
@@ -163,7 +151,6 @@ public final class VersionRange implements Comparable<VersionRange> {
    * @param value the {@link #toString() string representation} of a {@link VersionRange} to parse.
    * @return the parsed {@link VersionRange}.
    */
-  @JsonCreator
   public static VersionRange of(String value) {
 
     Boolean isleftExclusive = null;
@@ -204,7 +191,28 @@ public final class VersionRange implements Comparable<VersionRange> {
     if (isRightExclusive == null) {
       isRightExclusive = Boolean.valueOf(max == null);
     }
+    if ((min == null) && (max == null) && isleftExclusive && isRightExclusive) {
+      return UNBOUNDED;
+    }
     return new VersionRange(min, max, BoundaryType.of(isleftExclusive.booleanValue(), isRightExclusive.booleanValue()));
+  }
+
+  /**
+   * @param min the {@link #getMin() minimum}.
+   * @param max the {@link #getMax() maximum}.
+   * @param type the {@link BoundaryType} defining whether the boundaries of the range are inclusive or exclusive.
+   * @return the {@link VersionRange} created from the given values.
+   */
+  public static VersionRange of(VersionIdentifier min, VersionIdentifier max, BoundaryType type) {
+
+    if (type == null) {
+      type = BoundaryType.of(min == null, max == null);
+    }
+    if ((min == null) && (max == null)) {
+      assert (type == BoundaryType.OPEN);
+      return UNBOUNDED;
+    }
+    return new VersionRange(min, max, type);
   }
 
 }
