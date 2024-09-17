@@ -1,20 +1,31 @@
 package com.devonfw.tools.ide.io;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 
 /**
  * Test of {@link IdeProgressBarConsole}.
  */
+// disabled on Windows - see https://github.com/devonfw/IDEasy/issues/618
+@DisabledOnOs({ OS.WINDOWS })
 public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
+
+  private IdeProgressBarConsole newProgressBar(long maxSize) {
+    SystemInfo systemInfo = SystemInfoImpl.INSTANCE;
+    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(systemInfo, "downloading", maxSize);
+    return progressBarConsole;
+  }
 
   @Test
   public void testProgressBarMaxSizeUnknownStepBy() throws Exception {
     // arrange
     long stepSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", -1);
+    IdeProgressBarConsole progressBarConsole = newProgressBar(-1);
 
     // act
     progressBarConsole.stepBy(stepSize);
@@ -30,7 +41,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   public void testProgressBarMaxSizeUnknownDoStepTo() throws Exception {
     // arrange
     long stepSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", -1);
+    IdeProgressBarConsole progressBarConsole = newProgressBar(-1);
 
     // act
     progressBarConsole.stepBy(100L);
@@ -48,7 +59,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   public void testProgressBarMaxSizeKnownStepBy() throws Exception {
     // arrange
     long maxSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", maxSize);
+    IdeProgressBarConsole progressBarConsole = newProgressBar(maxSize);
 
     //act
     progressBarConsole.stepBy(maxSize);
@@ -64,7 +75,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   public void testProgressBarMaxSizeKnownDoStepTo() throws Exception {
     // arrange
     long maxSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", maxSize);
+    IdeProgressBarConsole progressBarConsole = newProgressBar(maxSize);
 
     //act
     progressBarConsole.doStepTo(maxSize);
@@ -80,7 +91,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   public void testProgressBarMaxSizeKnownIncompleteSteps() throws Exception {
     // arrange
     long maxSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", maxSize);
+    IdeProgressBarConsole progressBarConsole = newProgressBar(maxSize);
 
     // act
     progressBarConsole.stepBy(1L);
@@ -96,7 +107,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
   public void testProgressBarMaxOverflow() throws Exception {
     // arrange
     long maxSize = 10000L;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(SystemInfoImpl.INSTANCE, "downloading", maxSize);
+    IdeProgressBarConsole progressBarConsole = newProgressBar(maxSize);
     // act
     progressBarConsole.stepBy(20000L);
     progressBarConsole.close();
