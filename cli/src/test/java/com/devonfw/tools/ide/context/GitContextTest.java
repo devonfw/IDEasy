@@ -236,4 +236,65 @@ public class GitContextTest extends AbstractIdeContextTest {
     // assert
     assertThat(result).isFalse(); // No updates should be available
   }
+
+  /**
+   * Tests the conversion of a Git URL from HTTPS to SSH protocol.
+   * <p>
+   * Given a Git URL in HTTPS format, this test ensures that it is correctly converted to the SSH format using the
+   * {@link GitUrlSyntax#convertToPreferredProtocol(GitUrl, String)} method.
+   */
+  @Test
+  public void testConvertGitUrlFromHTTPSToSSH() {
+    String url = "https://testgitdomain.com/devonfw/IDEasy.git";
+    GitUrl giturl = new GitUrl(url, null);
+    GitUrl convertedGitUrl = GitUrlSyntax.convertToPreferredProtocol(giturl, "SSH");
+
+    String ssh_url = "git@testgitdomain.com:devonfw/IDEasy.git";
+    assertThat(convertedGitUrl.url()).isEqualTo(ssh_url);
+  }
+
+  /**
+   * Tests the conversion of a Git URL from SSH to HTTPS protocol.
+   * <p>
+   * Given a Git URL in SSH format, this test ensures that it is correctly converted to the HTTPS format using the
+   * {@link GitUrlSyntax#convertToPreferredProtocol(GitUrl, String)} method.
+   */
+  @Test
+  public void testConvertGitUrlFromSSHToHTTPS() {
+    String url = "git@testgitdomain.com:devonfw/IDEasy.git";
+    GitUrl giturl = new GitUrl(url, null);
+    GitUrl convertedGitUrl = GitUrlSyntax.convertToPreferredProtocol(giturl, "HTTPS");
+
+    String https_url = "https://testgitdomain.com/devonfw/IDEasy.git";
+    assertThat(convertedGitUrl.url()).isEqualTo(https_url);
+  }
+
+  /**
+   * Tests that the conversion does not alter the Git URL when no valid protocol is provided.
+   * <p>
+   * Given an SSH Git URL and a null preferred protocol, this test ensures that the original URL remains unchanged.
+   */
+  @Test
+  public void testConvertGitUrlNoValidProtocol() {
+    String url = "git@testgitdomain.com:devonfw/IDEasy.git";
+    GitUrl giturl = new GitUrl(url, null);
+    GitUrl convertedGitUrl = GitUrlSyntax.convertToPreferredProtocol(giturl, null);
+
+    assertThat(convertedGitUrl.url()).isEqualTo(url);
+  }
+
+  /**
+   * Tests that no conversion occurs for domains that should not be converted.
+   * <p>
+   * This test ensures that when a Git URL points to the github.com domain, it remains in the original format, even if a different protocol (HTTPS) is
+   * specified.
+   */
+  @Test
+  public void testConvertGitUrlGitHubDomain() {
+    String url = "git@github.com:devonfw/IDEasy.git";
+    GitUrl giturl = new GitUrl(url, null);
+    GitUrl convertedGitUrl = GitUrlSyntax.convertToPreferredProtocol(giturl, "HTTPS");
+
+    assertThat(convertedGitUrl.url()).isEqualTo(url);
+  }
 }
