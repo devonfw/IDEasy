@@ -3,8 +3,8 @@ package com.devonfw.tools.ide.tool.intellij;
 import java.util.Collection;
 import java.util.List;
 
-import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.devonfw.tools.ide.json.JsonMapping;
+import com.devonfw.tools.ide.json.JsonVersionItem;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;

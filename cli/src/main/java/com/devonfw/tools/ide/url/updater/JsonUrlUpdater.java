@@ -7,9 +7,9 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.common.JsonObject;
-import com.devonfw.tools.ide.common.JsonVersionItem;
 import com.devonfw.tools.ide.json.JsonMapping;
+import com.devonfw.tools.ide.json.JsonObject;
+import com.devonfw.tools.ide.json.JsonVersionItem;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
