@@ -173,7 +173,7 @@ public enum GitOperation {
           return true;
         } else {
           context.debug("Skipping git {} on {} because last fetch was just recently to avoid overhead.", this.name,
-              targetRepository, this.cacheDuration);
+              targetRepository);
           return false;
         }
       } catch (IOException e) {
