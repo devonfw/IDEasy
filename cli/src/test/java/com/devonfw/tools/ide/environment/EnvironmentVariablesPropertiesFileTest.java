@@ -110,9 +110,9 @@ class EnvironmentVariablesPropertiesFileTest extends Assertions {
   }
 
   @Test
-  void testSaveWithMissingParentFilePath() throws Exception {
+  void testSaveWithMissingParentFilePath(@TempDir Path tempDir) throws Exception {
     // arrange
-    Path propertiesFilePath = ENV_VAR_PATH.resolve("test.properties");
+    Path propertiesFilePath = tempDir.resolve("test.properties");
 
     EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
         propertiesFilePath, IdeTestContextMock.get());
