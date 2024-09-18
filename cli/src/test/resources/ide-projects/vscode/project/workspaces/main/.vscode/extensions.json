@@ -1,1 +1,5 @@
-{}
+{
+  "recommendations": [
+    "esbenp.prettier-vscode"
+  ]
+}

@@ -39,6 +39,7 @@ public class VscodeTest extends AbstractIdeContextTest {
     assertThat(context.getIdeHome().resolve("plugins").resolve("vscode")).exists();
 
     //check Recommendations
-    assertThat(context.getWorkspacePath().resolve(".vscode").resolve("extensions.json")).exists().hasContent("{\"recommendations\":[\"mockedPlugin2\"]}");
+    assertThat(context.getWorkspacePath().resolve(".vscode").resolve("extensions.json")).exists()
+        .hasContent("{\"recommendations\":[\"esbenp.prettier-vscode\",\"mockedPlugin2\"]}");
   }
 }

@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,36 +90,33 @@ public class Vscode extends IdeToolCommandlet {
     ObjectMapper objectMapper = new ObjectMapper();
     Map<String, Object> recommendationsMap;
 
-    try (BufferedReader reader = Files.newBufferedReader(extensionsJsonPath)) {
-      recommendationsMap = objectMapper.readValue(reader, Map.class);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
+    if (Files.exists(extensionsJsonPath)) {
+      try (BufferedReader reader = Files.newBufferedReader(extensionsJsonPath)) {
+        recommendationsMap = objectMapper.readValue(reader, Map.class);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    } else {
+      recommendationsMap = new HashMap<>();
     }
 
     List<String> existingRecommendations = (List<String>) recommendationsMap.getOrDefault("recommendations", new ArrayList<>());
 
     try {
-      if (Files.exists(extensionsJsonPath) && Files.size(extensionsJsonPath) > 0 && existingRecommendations.size() < recommendations.size()) {
-
-        for (PluginDescriptor recommendation : recommendations) {
-          if (!existingRecommendations.contains(recommendation.getId())) {
-            existingRecommendations.add(recommendation.getId());
-          }
+      int addedRecommendations = 0;
+      Set<String> existingRecommendationsSet = new HashSet<>(existingRecommendations);
+      for (PluginDescriptor recommendation : recommendations) {
+        String recommendationId = recommendation.getId();
+        if (existingRecommendationsSet.add(recommendationId)) {
+          existingRecommendations.add(recommendationId);
+          addedRecommendations++;
         }
-
-        recommendationsMap.put("recommendations", existingRecommendations);
-      } else if (existingRecommendations.size() > recommendations.size()) {
-        List<String> newRecommendations = new ArrayList<>();
-        recommendationsMap = new HashMap<>();
-        for (PluginDescriptor recommendation : recommendations) {
-          newRecommendations.add(recommendation.getId());
-        }
-        recommendationsMap.put("recommendations", newRecommendations);
-      } else {
-        this.context.info("All recommendations are already set");
       }
 
-      objectMapper.writeValue(extensionsJsonPath.toFile(), recommendationsMap);
+      if (addedRecommendations > 0) {
+        objectMapper.writeValue(extensionsJsonPath.toFile(), recommendationsMap);
+      }
+
     } catch (IOException e) {
       this.context.error(e);
     }
