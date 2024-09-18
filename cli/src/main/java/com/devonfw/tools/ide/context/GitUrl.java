@@ -14,7 +14,7 @@ import java.util.regex.Pattern;
 public record GitUrl(String url, String branch) {
 
   // Regex pattern to match SSH URLs
-  private static final Pattern SSH_URL_PATTERN = Pattern.compile("git@([a-zA-Z0-9._-]+):([a-zA-Z0-9._/-]+)\\.git", Pattern.CASE_INSENSITIVE);
+  private static final Pattern SSH_URL_PATTERN = Pattern.compile("git@([^:]+):([a-zA-Z0-9._/-]+)\\.git", Pattern.CASE_INSENSITIVE);
 
 
   /**
