@@ -3,9 +3,7 @@ package com.devonfw.tools.ide.context;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -187,9 +185,9 @@ public class GitContextImpl implements GitContext {
   @Override
   public void pull(Path targetRepository) {
 
-    Optional<String[]> RemoteAndBranchOptional = getLocalRemoteAndBranch(targetRepository);
+    Optional<GitRemoteAndBranch> remoteAndBranchOptional = getLocalRemoteAndBranch(targetRepository);
 
-    if (RemoteAndBranchOptional.isEmpty()) {
+    if (remoteAndBranchOptional.isEmpty()) {
       this.context.warning("Skipping pull!");
       return;
     }
@@ -199,35 +197,34 @@ public class GitContextImpl implements GitContext {
     result = this.processContext.addArg("--no-pager").addArg("pull").addArg("--quiet").run(PROCESS_MODE);
 
     if (!result.isSuccessful()) {
-      String[] RemoteAndBranch = RemoteAndBranchOptional.get();
-      String remote = RemoteAndBranch[0];
-      String branch = RemoteAndBranch[1];
-      Map<String, String> remoteAndBranchName = new HashMap<>();
-      remoteAndBranchName.put("remote", remote);
-      remoteAndBranchName.put("branch", branch);
-      this.context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"), remoteAndBranchName.get("branch"),
+      GitRemoteAndBranch remoteAndBranch = remoteAndBranchOptional.get();
+      String remote = remoteAndBranch.remote();
+      String branch = remoteAndBranch.branch();
+      this.context.warning("Git pull for {}/{} failed for repository {}.", remote, branch,
           targetRepository);
       handleErrors(targetRepository, result);
-
-
     }
+    GitRemoteAndBranch remoteAndBranch = remoteAndBranchOptional.get();
+    String remote = remoteAndBranch.remote();
+    String branch = remoteAndBranch.branch();
+    this.context.info("Pulled from {}/{}.", remote, branch);
   }
 
   @Override
   public void fetch(Path targetRepository, String remote, String branch) {
 
     if ((remote == null) || (branch == null)) {
-      Optional<String[]> remoteAndBranchOpt = getLocalRemoteAndBranch(targetRepository);
+      Optional<GitRemoteAndBranch> remoteAndBranchOpt = getLocalRemoteAndBranch(targetRepository);
       if (remoteAndBranchOpt.isEmpty()) {
         context.warning("Could not determine the remote or branch for the git repository at {}", targetRepository);
         return; // false;
       }
-      String[] remoteAndBranch = remoteAndBranchOpt.get();
+      GitRemoteAndBranch remoteAndBranch = remoteAndBranchOpt.get();
       if (remote == null) {
-        remote = remoteAndBranch[0];
+        remote = remoteAndBranch.remote();
       }
       if (branch == null) {
-        branch = remoteAndBranch[1];
+        branch = remoteAndBranch.branch();
       }
     }
 
@@ -241,7 +238,7 @@ public class GitContextImpl implements GitContext {
     }
   }
 
-  private Optional<String[]> getLocalRemoteAndBranch(Path repositoryPath) {
+  private Optional<GitRemoteAndBranch> getLocalRemoteAndBranch(Path repositoryPath) {
 
     this.processContext.directory(repositoryPath);
     ProcessResult result = this.processContext.addArg("rev-parse").addArg("--abbrev-ref").addArg("--symbolic-full-name").addArg("@{u}")
@@ -249,23 +246,16 @@ public class GitContextImpl implements GitContext {
     if (result.isSuccessful()) {
       String upstream = result.getOut().stream().findFirst().orElse("");
       if (upstream.contains("/")) {
-        return Optional.of(upstream.split("/", 2)); // Split into remote and branch
+        int indexOfSlash = upstream.indexOf('/');
+        String remote = upstream.substring(0, indexOfSlash);
+        String branch = upstream.substring(indexOfSlash + 1);
+        return Optional.of(new GitRemoteAndBranch(remote, branch));
       }
     } else {
-      ProcessResult branchResult = this.processContext.addArg("branch").addArg("-vv").run(ProcessMode.DEFAULT_CAPTURE);
-      List<String> branches = branchResult.getOut();
-      ProcessResult repoResult = this.processContext.addArg("rev-parse").addArg("--show-toplevel").run(ProcessMode.DEFAULT_CAPTURE);
-      List<String> repoResultOut = repoResult.getOut();
-      String repository = repoResultOut.get(0);
-      repository = repository.substring(repository.lastIndexOf("/") + 1);
-      for (String branch : branches) {
-        branch = branch.trim();
-        if (branch.startsWith("*")) {
-          branch = branch.substring(2);
-          String checkedOutBranch = branch.substring(0, branch.indexOf(" "));
-          context.warning("You are on branch {} of repository {}, which has no upstream configured!", checkedOutBranch, repository);
-        }
-      }
+      ProcessResult branchResult = this.processContext.addArg("branch").addArg("--show-current").run(ProcessMode.DEFAULT_CAPTURE);
+      String branch = branchResult.getOut().toString();
+      branch = branch.substring(1, branch.length() - 1);
+      context.warning("You are on branch {} of repository {}, which has no upstream configured!", branch, repositoryPath);
     }
     return Optional.empty();
   }
