@@ -244,7 +244,7 @@ public class GitContextTest extends AbstractIdeContextTest {
    * {@link GitUrlSyntax#convertToPreferredProtocol(GitUrl, String)} method.
    */
   @Test
-  public void testConvertGitUrlFromHTTPSToSSH() {
+  public void testConvertGitUrlFromHttpsToSsh() {
     String url = "https://testgitdomain.com/devonfw/IDEasy.git";
     GitUrl giturl = new GitUrl(url, null);
     GitUrl convertedGitUrl = GitUrlSyntax.convertToPreferredProtocol(giturl, "SSH");
