@@ -79,7 +79,29 @@ public class MergeElement {
    */
   public String getId() {
 
-    return this.element.getAttributeNS(XmlMerger.MERGE_NS_URI, "id");
+    String id = this.element.getAttributeNS(XmlMerger.MERGE_NS_URI, "id");
+    if (id.isEmpty()) {
+      // handle case where element has no attribute
+      if (getElementAttributes().isEmpty()) {
+        // use name as id
+        id = "name()";
+      } else {
+        // look for id or name attributes
+        String idAttr = this.element.getAttribute("id");
+        if (idAttr.isEmpty()) {
+          idAttr = this.element.getAttribute("name");
+          if (idAttr.isEmpty()) {
+            throw new IllegalStateException(
+                "No merge:id value defined for element " + getXPath() + " in document " + getDocumentPath());
+          } else {
+            id = "@name";
+          }
+        } else {
+          id = "@id";
+        }
+      }
+    }
+    return id;
   }
 
   /**

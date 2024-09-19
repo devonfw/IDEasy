@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.tool.ide;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
@@ -68,7 +70,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
    */
   private String getDownloadUrl(PluginDescriptor plugin) {
     String downloadUrl = plugin.getUrl();
-    String pluginId = plugin.getId();
+    String pluginId = URLEncoder.encode(plugin.getId(), StandardCharsets.UTF_8).replaceAll("\\+", "%20");
 
     String buildVersion = readBuildVersion();
 
@@ -116,7 +118,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   private void extractDownloadedPlugin(FileAccess fileAccess, Path downloadedFile, String pluginId) throws IOException {
     Path targetDir = this.getPluginsInstallationPath().resolve(pluginId);
     if (Files.exists(targetDir)) {
-      context.info("Plugin already installed, target directory already existing: ", targetDir);
+      context.info("Plugin already installed, target directory already existing: {}", targetDir);
     } else {
       fileAccess.extract(downloadedFile, targetDir);
     }

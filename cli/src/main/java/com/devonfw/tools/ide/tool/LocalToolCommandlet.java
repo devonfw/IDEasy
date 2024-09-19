@@ -16,7 +16,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
+import com.devonfw.tools.ide.url.model.file.json.DependencyInfo;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -389,7 +389,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   private void installDependencies(DependencyInfo dependencyInfo, EnvironmentContext ec) {
 
-    String dependencyName = dependencyInfo.getTool();
+    String dependencyName = dependencyInfo.tool();
     LocalToolCommandlet dependencyTool = (LocalToolCommandlet) this.context.getCommandletManager().getToolCommandlet(dependencyName);
     VersionIdentifier dependencyVersionToInstall = this.dependency.findDependencyVersionToInstall(dependencyInfo);
 
@@ -399,7 +399,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       installDependencyInRepo(dependencyName, dependencyTool, dependencyVersionToInstall, ec);
       dependencyTool.setEnvironment(ec, dependencyRepository.resolve(dependencyVersionToInstall.toString()));
     } else {
-      Path versionExistingInRepository = this.dependency.versionExistsInRepository(dependencyRepository, dependencyInfo.getVersionRange());
+      Path versionExistingInRepository = this.dependency.versionExistsInRepository(dependencyRepository, dependencyInfo.versionRange());
       boolean versionExistingInRepositoryIsEmpty = versionExistingInRepository.equals(Path.of(""));
 
       if (versionExistingInRepositoryIsEmpty) {
