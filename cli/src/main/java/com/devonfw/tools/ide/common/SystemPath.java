@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -38,6 +39,8 @@ public class SystemPath {
   private final Map<String, Path> tool2pathMap;
 
   private final List<Path> paths;
+
+  private final List<Path> extraPathEntries;
 
   private final IdeContext context;
 
@@ -74,7 +77,7 @@ public class SystemPath {
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath) {
 
-    this(context, envPath, ideRoot, softwarePath, File.pathSeparatorChar);
+    this(context, envPath, ideRoot, softwarePath, File.pathSeparatorChar, Collections.emptyList());
   }
 
   /**
@@ -85,15 +88,11 @@ public class SystemPath {
    * @param ideRoot the {@link IdeContext#getIdeRoot() IDE_ROOT}.
    * @param softwarePath the {@link IdeContext#getSoftwarePath() software path}.
    * @param pathSeparator the path separator char (';' for Windows and ':' otherwise).
+   * @param extraPathEntries the {@link List} of additional {@link Path}s to prepend.
    */
-  public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath, char pathSeparator) {
+  public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath, char pathSeparator, List<Path> extraPathEntries) {
 
-    super();
-    this.context = context;
-    this.envPath = envPath;
-    this.pathSeparator = pathSeparator;
-    this.tool2pathMap = new HashMap<>();
-    this.paths = new ArrayList<>();
+    this(context, envPath, pathSeparator, extraPathEntries, new HashMap<>(), new ArrayList<>());
     String[] envPaths = envPath.split(Character.toString(pathSeparator));
     for (String segment : envPaths) {
       Path path = Path.of(segment);
@@ -103,6 +102,17 @@ public class SystemPath {
       }
     }
     collectToolPath(softwarePath);
+  }
+
+  private SystemPath(IdeContext context, String envPath, char pathSeparator, List<Path> extraPathEntries, Map<String, Path> tool2PathMap, List<Path> paths) {
+
+    super();
+    this.context = context;
+    this.envPath = envPath;
+    this.pathSeparator = pathSeparator;
+    this.extraPathEntries = extraPathEntries;
+    this.tool2pathMap = tool2PathMap;
+    this.paths = paths;
   }
 
   private void collectToolPath(Path softwarePath) {
@@ -237,6 +247,9 @@ public class SystemPath {
       separator = this.pathSeparator;
     }
     StringBuilder sb = new StringBuilder(this.envPath.length() + 128);
+    for (Path path : this.extraPathEntries) {
+      appendPath(path, sb, separator, pathSyntax);
+    }
     for (Path path : this.tool2pathMap.values()) {
       appendPath(path, sb, separator, pathSyntax);
     }
@@ -244,6 +257,22 @@ public class SystemPath {
       appendPath(path, sb, separator, pathSyntax);
     }
     return sb.toString();
+  }
+
+  /**
+   * Derive a new {@link SystemPath} from this instance with the given parameters.
+   *
+   * @param overriddenPath the entire PATH to override and replace the current one from this {@link SystemPath} or {@code null} to keep the current PATH.
+   * @param extraPathEntries the {@link List} of additional PATH entries to add to the beginning of the PATH. May be empty to add nothing.
+   * @return the new {@link SystemPath} derived from this instance with the given parameters applied.
+   */
+  public SystemPath withPath(String overriddenPath, List<Path> extraPathEntries) {
+
+    if (overriddenPath == null) {
+      return new SystemPath(this.context, this.envPath, this.pathSeparator, extraPathEntries, this.tool2pathMap, this.paths);
+    } else {
+      return new SystemPath(this.context, overriddenPath, null, null, this.pathSeparator, extraPathEntries);
+    }
   }
 
   private static void appendPath(Path path, StringBuilder sb, char separator, WindowsPathSyntax pathSyntax) {

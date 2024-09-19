@@ -53,23 +53,6 @@ public class ElementMatcher {
 
     IdComputer idComputer = this.qNameIdMap.get(qName);
     if (idComputer == null) {
-      if (id.isEmpty()) {
-        // handle case where element has no attribute
-        if (sourceElement.getElementAttributes().isEmpty()) {
-          // use name as id
-          id = sourceElement.getElement().getLocalName();
-        } else {
-          // look for id or name attributes
-          String idAttr = sourceElement.getElement().getAttribute("id");
-          if (idAttr.isEmpty()) {
-            idAttr = sourceElement.getElement().getAttribute("name");
-            if (idAttr.isEmpty()) {
-              throw new IllegalStateException(
-                  "No merge:id value defined for element " + sourceElement.getXPath() + " in document " + sourceElement.getDocumentPath());
-            }
-          }
-        }
-      }
       updateId(qName, id);
       idComputer = this.qNameIdMap.get(qName);
     }

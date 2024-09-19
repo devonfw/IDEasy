@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.tool.androidstudio;
 
-import com.devonfw.tools.ide.common.JsonObject;
+import com.devonfw.tools.ide.json.JsonObject;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
