@@ -31,6 +31,11 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
    */
   protected abstract void doStepBy(long stepSize, long currentProgress);
 
+  /**
+   * Sets the progress bar to given step position while making sure to avoid overflow.
+   *
+   * @param stepPosition position to set to.
+   */
   protected void stepTo(long stepPosition) {
 
     if ((this.maxLength > 0) && (stepPosition > this.maxLength)) {
