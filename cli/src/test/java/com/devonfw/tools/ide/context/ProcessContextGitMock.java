@@ -113,6 +113,12 @@ public class ProcessContextGitMock implements ProcessContext {
   }
 
   @Override
+  public ProcessContext withPathEntry(Path path) {
+
+    return this;
+  }
+
+  @Override
   public ProcessResult run(ProcessMode processMode) {
 
     Path gitFolderPath = this.directory.resolve(".git");

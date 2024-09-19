@@ -109,17 +109,11 @@ public interface ProcessContext extends EnvironmentContext {
     return this;
   }
 
-  /**
-   * Sets or overrides the specified environment variable only for the planned {@link #run() process execution}. Please note that the environment variables are
-   * initialized when the {@link ProcessContext} is created. This method explicitly set an additional or overrides an existing environment and will have effect
-   * for each {@link #run() process execution} invoked from this {@link ProcessContext} instance. Be aware of such side-effects when reusing the same
-   * {@link ProcessContext} to {@link #run() run} multiple commands.
-   *
-   * @param key the name of the environment variable (E.g. "PATH").
-   * @param value the value of the environment variable.
-   * @return this {@link ProcessContext} for fluent API calls.
-   */
+  @Override
   ProcessContext withEnvVar(String key, String value);
+
+  @Override
+  ProcessContext withPathEntry(Path path);
 
   /**
    * Runs the previously configured {@link #executable(Path) command} with the configured {@link #addArgs(String...) arguments}. Will reset the
