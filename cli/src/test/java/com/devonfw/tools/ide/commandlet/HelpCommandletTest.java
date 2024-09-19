@@ -47,7 +47,9 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = IdeTestContext.of();
+    context.getStartContext().setLocale(Locale.ROOT);
     HelpCommandlet help = new HelpCommandlet(context);
+
     // act
     help.run();
     // assert
@@ -68,6 +70,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
+    context.getStartContext().setLocale(Locale.ROOT);
     HelpCommandlet help = context.getCommandletManager().getCommandlet(HelpCommandlet.class);
     help.commandlet.setValueAsString("mvn", context);
     // act
