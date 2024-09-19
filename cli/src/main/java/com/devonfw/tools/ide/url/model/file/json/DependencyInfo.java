@@ -7,8 +7,4 @@ import com.devonfw.tools.ide.version.VersionRange;
  */
 public record DependencyInfo(String tool, VersionRange versionRange) {
 
-  void setVersionRange(VersionRange versionRange) {
-
-    this.versionRange = versionRange;
-  }
 }
