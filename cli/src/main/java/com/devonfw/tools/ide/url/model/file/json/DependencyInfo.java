@@ -3,37 +3,8 @@ package com.devonfw.tools.ide.url.model.file.json;
 import com.devonfw.tools.ide.version.VersionRange;
 
 /**
- * Model to represent the Object of the dependencies inside the Json file.
+ * Model to represent a dependency of a tool (inside a "dependencies.json" file).
  */
-public final class DependencyInfo {
+public record DependencyInfo(String tool, VersionRange versionRange) {
 
-  private String tool;
-
-  private VersionRange versionRange;
-
-  /**
-   * @return the dependency name
-   */
-  public String getTool() {
-
-    return this.tool;
-  }
-
-  void setTool(String tool) {
-
-    this.tool = tool;
-  }
-
-  /**
-   * @return the VersionRange of the dependency
-   */
-  public VersionRange getVersionRange() {
-
-    return this.versionRange;
-  }
-
-  void setVersionRange(VersionRange versionRange) {
-
-    this.versionRange = versionRange;
-  }
 }
