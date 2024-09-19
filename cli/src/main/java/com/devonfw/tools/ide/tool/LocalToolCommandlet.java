@@ -389,7 +389,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   private void installDependencies(DependencyInfo dependencyInfo, EnvironmentContext ec) {
 
-    String dependencyName = dependencyInfo.getTool();
+    String dependencyName = dependencyInfo.tool();
     LocalToolCommandlet dependencyTool = (LocalToolCommandlet) this.context.getCommandletManager().getToolCommandlet(dependencyName);
     VersionIdentifier dependencyVersionToInstall = this.dependency.findDependencyVersionToInstall(dependencyInfo);
 
@@ -399,7 +399,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       installDependencyInRepo(dependencyName, dependencyTool, dependencyVersionToInstall, ec);
       dependencyTool.setEnvironment(ec, dependencyRepository.resolve(dependencyVersionToInstall.toString()));
     } else {
-      Path versionExistingInRepository = this.dependency.versionExistsInRepository(dependencyRepository, dependencyInfo.getVersionRange());
+      Path versionExistingInRepository = this.dependency.versionExistsInRepository(dependencyRepository, dependencyInfo.versionRange());
       boolean versionExistingInRepositoryIsEmpty = versionExistingInRepository.equals(Path.of(""));
 
       if (versionExistingInRepositoryIsEmpty) {
