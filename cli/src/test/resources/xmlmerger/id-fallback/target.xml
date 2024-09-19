@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root>
+  <element attr1="oldValue1" name="name1">Old text1</element>
+  <element attr1="oldValue2" name="name2">Old text2</element>
+  <parent id="parent" attr1="oldSomething">
+    <child>Old Child Text</child>
+  </parent>
+  <parent id="parent2" attr1="oldSomething2">
+    <child>Old Child Text2</child>
+  </parent>
+</root>

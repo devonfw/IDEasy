@@ -10,12 +10,16 @@ import java.util.stream.Stream;
 import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
 
 class XmlMergerTest extends AbstractIdeContextTest {
+
+  private static Logger LOG = LoggerFactory.getLogger(XmlMergerTest.class);
 
   private static final Path TEST_RESOURCES = Path.of("src", "test", "resources", "xmlmerger");
 
@@ -40,6 +44,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
       // arrange
       SoftAssertions softly = new SoftAssertions();
       folders.forEach(folder -> {
+        LOG.info("Testing XML merger for test-case {}", folder.getFileName());
         Path sourcePath = folder.resolve(SOURCE_XML);
         Path targetPath = tempDir.resolve(TARGET_XML);
         Path resultPath = folder.resolve(RESULT_XML);
