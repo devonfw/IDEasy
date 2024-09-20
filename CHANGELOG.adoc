@@ -21,6 +21,8 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/440[#440]: Generalize intellij OS startup command for all OS's
 * https://github.com/devonfw/IDEasy/issues/612[#612]: Automatically generated issue URL is still pointing to ide instead of IDEasy
 * https://github.com/devonfw/IDEasy/issues/52[#52]: Adjusting Intellij settings in ide-settings
+* https://github.com/devonfw/IDEasy/issues/588[#588]: ide create installs wrong Java version
+
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/13?closed=1[milestone 2024.09.002].
 
 == 2024.09.001
