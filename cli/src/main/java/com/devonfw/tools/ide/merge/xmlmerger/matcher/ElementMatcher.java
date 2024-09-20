@@ -27,16 +27,25 @@ public class ElementMatcher {
   /**
    * Updates the ID strategy for a given QName (qualified name) of an XML element.
    *
-   * @param qname the qualified name (ns + local name) of the XML element
    * @param id the ID value (value of merge:id) to be used for matching the element
+   * @param element the {@link MergeElement}.
    */
-  public void updateId(QName qname, String id) {
-
-    IdComputer idComputer = new IdComputer(id);
+  public void updateId(String id, MergeElement element) {
+    QName qname = element.getQName();
+    IdComputer idComputer = createIdComputer(id, qname, element);
     IdComputer duplicate = this.qNameIdMap.put(qname, idComputer);
     if (duplicate != null) {
       this.context.debug("ID replaced for element '{}': old ID '{}' -> new ID '{}'", qname, duplicate.getId(), idComputer.getId());
     }
+  }
+
+  private IdComputer createIdComputer(String id, QName qname, MergeElement sourceElement) {
+
+    if ((id == null) || id.isEmpty()) {
+      throw new IllegalStateException(
+          "No merge:id value defined for element " + sourceElement.getXPath() + " in document " + sourceElement.getDocumentPath());
+    }
+    return new IdComputer(id);
   }
 
   /**
@@ -51,15 +60,7 @@ public class ElementMatcher {
     String id = sourceElement.getId();
     QName qName = sourceElement.getQName();
 
-    IdComputer idComputer = this.qNameIdMap.get(qName);
-    if (idComputer == null) {
-      if ((id == null) || id.isEmpty()) {
-        throw new IllegalStateException(
-            "No merge:id value defined for element " + sourceElement.getXPath() + " in document " + sourceElement.getDocumentPath());
-      }
-      updateId(qName, id);
-      idComputer = this.qNameIdMap.get(qName);
-    }
+    IdComputer idComputer = this.qNameIdMap.computeIfAbsent(qName, k -> createIdComputer(id, qName, sourceElement));
     Element matchedNode = idComputer.evaluateExpression(sourceElement, targetElement);
     if (matchedNode != null) {
       return new MergeElement(matchedNode, targetElement.getDocumentPath());
