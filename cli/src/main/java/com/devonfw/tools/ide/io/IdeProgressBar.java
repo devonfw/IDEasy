@@ -12,6 +12,16 @@ public interface IdeProgressBar extends AutoCloseable {
    */
   void stepBy(long stepSize);
 
+  /**
+   * @return the maximum value when the progress bar has reached its end or {@code -1} if the maximum is undefined.
+   */
+  long getMaxLength();
+
+  /**
+   * @return the total count accumulated with {@link #stepBy(long)} or {@link #getMaxLength()} in case of overflow.
+   */
+  long getCurrentProgress();
+
   @Override
   void close();
 }
