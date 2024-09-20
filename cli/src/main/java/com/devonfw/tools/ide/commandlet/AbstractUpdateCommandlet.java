@@ -166,7 +166,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         try {
           toolCommandlet.install(false);
         } catch (Exception e) {
-          step.error("Installation of " + toolCommandlet.getName() + " failed!", e);
+          step.error(e, "Installation of {} failed!", toolCommandlet.getName());
         }
 
       }
