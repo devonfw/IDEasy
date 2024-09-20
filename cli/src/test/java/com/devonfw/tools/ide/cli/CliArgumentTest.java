@@ -243,17 +243,28 @@ public class CliArgumentTest extends Assertions {
   }
 
   @Test
-  void testJoinArguments() {
+  void testPrepend() {
+    // arrange
     String[] argset1 = { "one", "-t" };
     String[] argset2 = { "--three", "four" };
 
-    String[] combined_with_append = CliArgument.append(argset1, argset2);
+    // act
     String[] combined_with_prepend = CliArgument.prepend(argset1, argset2);
 
-    assertThat(combined_with_append).contains(argset1);
-    assertThat(combined_with_append).contains(argset2);
-    assertThat(combined_with_prepend).contains(argset1);
-    assertThat(combined_with_prepend).contains(argset2);
-    assertThat(combined_with_append).isEqualTo(combined_with_prepend);
+    // assert
+    assertThat(combined_with_prepend).containsExactly("--three", "four", "one", "-t");
+  }
+
+  @Test
+  void testAppend() {
+    // arrange
+    String[] argset1 = { "one", "-t" };
+    String[] argset2 = { "--three", "four" };
+
+    // act
+    String[] combined_with_prepend = CliArgument.append(argset1, argset2);
+
+    // assert
+    assertThat(combined_with_prepend).containsExactly("one", "-t", "--three", "four");
   }
 }

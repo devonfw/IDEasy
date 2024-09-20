@@ -36,7 +36,7 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
   @Override
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
-    args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
+    args = CliArgument.append(args, this.context.getWorkspacePath().toString());
 
     install(true);
     ProcessContext pc = createProcessContext(Path.of(getBinaryName()), args);
