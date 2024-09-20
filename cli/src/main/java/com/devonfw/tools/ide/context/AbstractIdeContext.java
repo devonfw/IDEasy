@@ -92,7 +92,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path downloadPath;
 
-  private Path toolRepository;
+  private Path toolRepositoryPath;
 
   private Path userHome;
 
@@ -169,14 +169,14 @@ public abstract class AbstractIdeContext implements IdeContext {
     setCwd(userDir, workspace, currentDir);
 
     if (this.ideRoot == null) {
-      this.toolRepository = null;
+      this.toolRepositoryPath = null;
       this.urlsPath = null;
       this.tempPath = null;
       this.tempDownloadPath = null;
       this.softwareRepositoryPath = null;
     } else {
       Path ideBase = this.ideRoot.resolve(FOLDER_IDE);
-      this.toolRepository = ideBase.resolve("software");
+      this.toolRepositoryPath = ideBase.resolve("software");
       this.urlsPath = ideBase.resolve("urls");
       this.tempPath = ideBase.resolve("tmp");
       this.tempDownloadPath = this.tempPath.resolve(FOLDER_DOWNLOADS);
@@ -490,7 +490,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public Path getToolRepositoryPath() {
 
-    return this.toolRepository;
+    return this.toolRepositoryPath;
   }
 
   @Override
@@ -1050,5 +1050,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   public IdeStartContextImpl getStartContext() {
 
     return startContext;
+  }
+
+  /**
+   * Reloads this context and re-initializes the {@link #getVariables() variables}.
+   */
+  public void reload() {
+    this.variables = createVariables();
   }
 }
