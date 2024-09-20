@@ -66,12 +66,12 @@ public class Dependency {
    */
   public VersionIdentifier findDependencyVersionToInstall(DependencyInfo dependencyFound) {
 
-    String dependencyEdition = this.context.getVariables().getToolEdition(dependencyFound.getTool());
-
-    List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(dependencyFound.getTool(), dependencyEdition);
-
+    String dependencyTool = dependencyFound.tool();
+    String dependencyEdition = this.context.getVariables().getToolEdition(dependencyTool);
+    List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(dependencyTool, dependencyEdition);
+    VersionRange dependencyVersionRange = dependencyFound.versionRange();
     for (VersionIdentifier vi : versions) {
-      if (dependencyFound.getVersionRange().contains(vi)) {
+      if (dependencyVersionRange.contains(vi)) {
         return vi;
       }
     }
