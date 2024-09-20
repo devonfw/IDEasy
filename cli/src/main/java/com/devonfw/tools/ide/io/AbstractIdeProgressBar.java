@@ -17,9 +17,7 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
     this.maxLength = maxLength;
   }
 
-  /**
-   * @return the maximum length of a progress bar.
-   */
+  @Override
   public long getMaxLength() {
 
     return maxLength;
@@ -32,6 +30,20 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
    * @param currentProgress current progress state (used for tests only).
    */
   protected abstract void doStepBy(long stepSize, long currentProgress);
+
+  /**
+   * Sets the progress bar to given step position while making sure to avoid overflow.
+   *
+   * @param stepPosition position to set to.
+   */
+  protected void stepTo(long stepPosition) {
+
+    if ((this.maxLength > 0) && (stepPosition > this.maxLength)) {
+      stepPosition = this.maxLength; // clip to max avoiding overflow
+    }
+    this.currentProgress = stepPosition;
+    doStepTo(stepPosition);
+  }
 
   /**
    * Sets the progress bar to given step position.
@@ -48,12 +60,18 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
       // check if maximum overflow
       if (this.currentProgress > this.maxLength) {
         this.currentProgress = this.maxLength;
-        doStepTo(this.maxLength);
+        stepTo(this.maxLength);
         return;
       }
     }
 
     doStepBy(stepSize, this.currentProgress);
+  }
+
+  @Override
+  public long getCurrentProgress() {
+
+    return this.currentProgress;
   }
 
   @Override
@@ -63,7 +81,7 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
     }
 
     if (this.currentProgress < this.maxLength) {
-      doStepTo(this.maxLength);
+      stepTo(this.maxLength);
     }
   }
 
