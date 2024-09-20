@@ -53,6 +53,10 @@ public class ElementMatcher {
 
     IdComputer idComputer = this.qNameIdMap.get(qName);
     if (idComputer == null) {
+      if ((id == null) || id.isEmpty()) {
+        throw new IllegalStateException(
+            "No merge:id value defined for element " + sourceElement.getXPath() + " in document " + sourceElement.getDocumentPath());
+      }
       updateId(qName, id);
       idComputer = this.qNameIdMap.get(qName);
     }

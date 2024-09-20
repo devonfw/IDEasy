@@ -90,10 +90,7 @@ public class MergeElement {
         String idAttr = this.element.getAttribute("id");
         if (idAttr.isEmpty()) {
           idAttr = this.element.getAttribute("name");
-          if (idAttr.isEmpty()) {
-            throw new IllegalStateException(
-                "No merge:id value defined for element " + getXPath() + " in document " + getDocumentPath());
-          } else {
+          if (!idAttr.isEmpty()) {
             id = "@name";
           }
         } else {
