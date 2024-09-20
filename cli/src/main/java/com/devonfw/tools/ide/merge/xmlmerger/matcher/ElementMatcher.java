@@ -24,21 +24,6 @@ public class ElementMatcher {
     this.qNameIdMap = new HashMap<>();
   }
 
-  /**
-   * Updates the ID strategy for a given QName (qualified name) of an XML element.
-   *
-   * @param id the ID value (value of merge:id) to be used for matching the element
-   * @param element the {@link MergeElement}.
-   */
-  public void updateId(String id, MergeElement element) {
-    QName qname = element.getQName();
-    IdComputer idComputer = createIdComputer(id, qname, element);
-    IdComputer duplicate = this.qNameIdMap.put(qname, idComputer);
-    if (duplicate != null) {
-      this.context.debug("ID replaced for element '{}': old ID '{}' -> new ID '{}'", qname, duplicate.getId(), idComputer.getId());
-    }
-  }
-
   private IdComputer createIdComputer(String id, QName qname, MergeElement sourceElement) {
 
     if ((id == null) || id.isEmpty()) {

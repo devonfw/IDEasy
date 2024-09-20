@@ -90,9 +90,6 @@ public enum MergeStrategy {
 
     for (MergeAttribute attribute : mergeElement.getElementAttributes()) {
       if (attribute.isMergeNsAttr()) {
-        if (attribute.isMergeNsIdAttr()) {
-          elementMatcher.updateId(attribute.getValue(), mergeElement);
-        }
         mergeElement.getElement().removeAttributeNode(attribute.getAttr());
       }
     }
