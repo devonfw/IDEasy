@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.FlagProperty;
@@ -45,12 +46,18 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     updateSettings();
     updateConf();
+    reloadContext();
 
     if (this.skipTools.isTrue()) {
       this.context.info("Skipping installation/update of tools as specified by the user.");
     } else {
       updateSoftware();
     }
+  }
+
+  private void reloadContext() {
+
+    ((AbstractIdeContext) this.context).reload();
   }
 
   private void updateConf() {
