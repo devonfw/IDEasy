@@ -13,6 +13,8 @@ public class CliArguments implements Iterator<CliArgument> {
 
   private boolean endOptions;
 
+  private boolean splitShortOpts;
+
   /**
    * The constructor.
    *
@@ -30,23 +32,38 @@ public class CliArguments implements Iterator<CliArgument> {
    */
   public CliArguments(CliArgument arg) {
 
-    this(arg, false);
+    this(arg, false, true);
   }
 
-  CliArguments(CliArgument arg, boolean endOpts) {
+  CliArguments(CliArgument arg, boolean endOpts, boolean splitShortOpts) {
 
     super();
     this.initialArgument = arg;
     this.endOptions = endOpts;
+    this.splitShortOpts = splitShortOpts;
     setCurrent(arg);
   }
 
   /**
    * Marks the end of the options so no further {@link CliArgument#getNext(boolean) option splitting} will be performed.
+   *
+   * @see #stopSplitShortOptions()
    */
   public void endOptions() {
 
     this.endOptions = true;
+    this.splitShortOpts = false;
+  }
+
+  /**
+   * Stops splitting of short options.
+   *
+   * @see CliArgument#getNext(boolean)
+   * @see #endOptions()
+   */
+  public void stopSplitShortOptions() {
+
+    this.splitShortOpts = true;
   }
 
   /**
@@ -106,7 +123,7 @@ public class CliArguments implements Iterator<CliArgument> {
   public CliArgument next() {
 
     if (!this.currentArg.isEnd()) {
-      setCurrent(this.currentArg.getNext(!this.endOptions));
+      setCurrent(this.currentArg.getNext(this.splitShortOpts));
     }
     return this.currentArg;
   }
@@ -116,7 +133,7 @@ public class CliArguments implements Iterator<CliArgument> {
    */
   public CliArguments copy() {
 
-    return new CliArguments(this.currentArg, this.endOptions);
+    return new CliArguments(this.currentArg, this.endOptions, this.splitShortOpts);
   }
 
   @Override
