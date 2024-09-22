@@ -63,7 +63,7 @@ public class CliArguments implements Iterator<CliArgument> {
    */
   public void stopSplitShortOptions() {
 
-    this.splitShortOpts = true;
+    this.splitShortOpts = false;
   }
 
   /**
