@@ -187,7 +187,9 @@ public class ProcessContextImpl implements ProcessContext {
       }
 
       ProcessResult result = new ProcessResultImpl(exitCode, out, err);
-      performLogOnError(result, exitCode, interpreter);
+      if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+        performLogOnError(result, exitCode, interpreter);
+      }
 
       return result;
 
@@ -311,6 +313,9 @@ public class ProcessContextImpl implements ProcessContext {
 
     if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
       StringBuilder errorMessage = new StringBuilder(" failed with exit code " + exitCode);
+      if (result.getOut() != null && !result.getOut().isEmpty()) {
+        errorMessage.append(String.join(", ", result.getOut()));
+      }
       if (result.getErr() != null && !result.getErr().isEmpty()) {
         errorMessage.append(" and error messages: ");
         errorMessage.append(String.join(", ", result.getErr()));
