@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.property.FlagProperty;
@@ -45,12 +46,18 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     updateSettings();
     updateConf();
+    reloadContext();
 
     if (this.skipTools.isTrue()) {
       this.context.info("Skipping installation/update of tools as specified by the user.");
     } else {
       updateSoftware();
     }
+  }
+
+  private void reloadContext() {
+
+    ((AbstractIdeContext) this.context).reload();
   }
 
   private void updateConf() {
@@ -66,12 +73,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       }
     }
 
-    Step step = this.context.newStep("Copy configuration templates", templatesFolder);
-    try {
+    try (Step step = this.context.newStep("Copy configuration templates", templatesFolder)) {
       setupConf(templatesFolder, this.context.getIdeHome());
       step.success();
-    } finally {
-      step.close();
     }
   }
 
@@ -137,14 +141,13 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private void updateSoftware() {
 
-    Step step = this.context.newStep("Install or update software");
-    try {
+    try (Step step = this.context.newStep("Install or update software")) {
       Set<ToolCommandlet> toolCommandlets = new HashSet<>();
 
       // installed tools in IDE_HOME/software
-      List<Path> softwares = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
-      for (Path software : softwares) {
-        String toolName = software.getFileName().toString();
+      List<Path> softwarePaths = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
+      for (Path softwarePath : softwarePaths) {
+        String toolName = softwarePath.getFileName().toString();
         ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandletOrNull(toolName);
         if (toolCommandlet != null) {
           toolCommandlets.add(toolCommandlet);
@@ -167,11 +170,14 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
       // update/install the toolCommandlets
       for (ToolCommandlet toolCommandlet : toolCommandlets) {
-        toolCommandlet.install(false);
+        try {
+          toolCommandlet.install(false);
+        } catch (Exception e) {
+          step.error(e, "Installation of {} failed!", toolCommandlet.getName());
+        }
+
       }
       step.success();
-    } finally {
-      step.close();
     }
   }
 
