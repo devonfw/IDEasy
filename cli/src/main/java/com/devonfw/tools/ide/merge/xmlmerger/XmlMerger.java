@@ -99,7 +99,10 @@ public class XmlMerger extends FileMerger {
     MergeElement targetRoot = new MergeElement(targetDocument.getDocumentElement(), target);
 
     if (areRootsCompatible(sourceRoot, targetRoot)) {
-      MergeStrategy strategy = MergeStrategy.of(sourceRoot.getMergingStrategy());
+      MergeStrategy strategy = sourceRoot.getMergingStrategy();
+      if (strategy == null) {
+        strategy = MergeStrategy.KEEP; // default strategy used as fallback
+      }
       strategy.merge(sourceRoot, targetRoot, new ElementMatcher(this.context));
     } else {
       this.context.warning("Root elements do not match. Skipping merge operation.");

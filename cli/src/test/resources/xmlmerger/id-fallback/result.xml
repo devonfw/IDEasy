@@ -8,4 +8,7 @@
   <parent attr1="oldSomething2" id="parent2">
     <child>Old Child Text2</child>
   </parent>
+  <special class="id2">new special2</special>
+  <special class="id3">old special3</special>
+  <special class="id1">new special1</special>
 </root>

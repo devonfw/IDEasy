@@ -90,9 +90,6 @@ public enum MergeStrategy {
 
     for (MergeAttribute attribute : mergeElement.getElementAttributes()) {
       if (attribute.isMergeNsAttr()) {
-        if (attribute.isMergeNsIdAttr()) {
-          elementMatcher.updateId(mergeElement.getQName(), attribute.getValue());
-        }
         mergeElement.getElement().removeAttributeNode(attribute.getAttr());
       }
     }
@@ -154,7 +151,10 @@ public enum MergeStrategy {
           MergeElement sourceChildElement = new MergeElement((Element) updateChild, updateElement.getDocumentPath());
           MergeElement matchedTargetChild = elementMatcher.matchElement(sourceChildElement, targetElement);
           if (matchedTargetChild != null) {
-            MergeStrategy childStrategy = MergeStrategy.of(sourceChildElement.getMergingStrategy());
+            MergeStrategy childStrategy = sourceChildElement.getMergingStrategy();
+            if (childStrategy == null) {
+              childStrategy = this;
+            }
             childStrategy.merge(sourceChildElement, matchedTargetChild, elementMatcher);
           } else {
             appendElement(sourceChildElement, targetElement, elementMatcher);
