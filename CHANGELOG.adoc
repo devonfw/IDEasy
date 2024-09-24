@@ -6,8 +6,22 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/628[#638]: Fixed update fails on first error
 * https://github.com/devonfw/IDEasy/issues/553[#554]: Missmatch of IDE_ROOT
+* https://github.com/devonfw/IDEasy/issues/556[#556]: ProcessContext should compute PATH on run and not in constructor
 * https://github.com/devonfw/IDEasy/issues/557[#557]: Failed to update tomcat: Cannot find a (Map) Key deserializer for type VersionRange
+* https://github.com/devonfw/IDEasy/issues/623[#623]: CliArgument prepand and append methods inconsistent
+* https://github.com/devonfw/IDEasy/issues/621[#621]: Xml merger ID fallback not working
+* https://github.com/devonfw/IDEasy/issues/628[#628]: ide update fails on first error
+* https://github.com/devonfw/IDEasy/issues/552[#552]: ZIP extraction buggy
+* https://github.com/devonfw/IDEasy/issues/604[#604]: Wrong Path Formating of MAVEN_ARGS variable on Windows
+* https://github.com/devonfw/IDEasy/issues/461[#461]: Add progress bar for extraction (unpacking)
+* https://github.com/devonfw/IDEasy/issues/550[#550]: Installation of plugins for IDEs fails when the plugin-id contains a space character
+* https://github.com/devonfw/IDEasy/issues/574[#574]: Mismatch of IDE_ROOT
+* https://github.com/devonfw/IDEasy/issues/440[#440]: Generalize intellij OS startup command for all OS's
+* https://github.com/devonfw/IDEasy/issues/612[#612]: Automatically generated issue URL is still pointing to ide instead of IDEasy
+* https://github.com/devonfw/IDEasy/issues/52[#52]: Adjusting Intellij settings in ide-settings
+* https://github.com/devonfw/IDEasy/issues/588[#588]: ide create installs wrong Java version
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/13?closed=1[milestone 2024.09.002].
 

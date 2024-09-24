@@ -24,19 +24,13 @@ public class ElementMatcher {
     this.qNameIdMap = new HashMap<>();
   }
 
-  /**
-   * Updates the ID strategy for a given QName (qualified name) of an XML element.
-   *
-   * @param qname the qualified name (ns + local name) of the XML element
-   * @param id the ID value (value of merge:id) to be used for matching the element
-   */
-  public void updateId(QName qname, String id) {
+  private IdComputer createIdComputer(String id, QName qname, MergeElement sourceElement) {
 
-    IdComputer idComputer = new IdComputer(id);
-    IdComputer duplicate = this.qNameIdMap.put(qname, idComputer);
-    if (duplicate != null) {
-      this.context.debug("ID replaced for element '{}': old ID '{}' -> new ID '{}'", qname, duplicate.getId(), idComputer.getId());
+    if ((id == null) || id.isEmpty()) {
+      throw new IllegalStateException(
+          "No merge:id value defined for element " + sourceElement.getXPath() + " in document " + sourceElement.getDocumentPath());
     }
+    return new IdComputer(id);
   }
 
   /**
@@ -51,28 +45,7 @@ public class ElementMatcher {
     String id = sourceElement.getId();
     QName qName = sourceElement.getQName();
 
-    IdComputer idComputer = this.qNameIdMap.get(qName);
-    if (idComputer == null) {
-      if (id.isEmpty()) {
-        // handle case where element has no attribute
-        if (sourceElement.getElementAttributes().isEmpty()) {
-          // use name as id
-          id = sourceElement.getElement().getLocalName();
-        } else {
-          // look for id or name attributes
-          String idAttr = sourceElement.getElement().getAttribute("id");
-          if (idAttr.isEmpty()) {
-            idAttr = sourceElement.getElement().getAttribute("name");
-            if (idAttr.isEmpty()) {
-              throw new IllegalStateException(
-                  "No merge:id value defined for element " + sourceElement.getXPath() + " in document " + sourceElement.getDocumentPath());
-            }
-          }
-        }
-      }
-      updateId(qName, id);
-      idComputer = this.qNameIdMap.get(qName);
-    }
+    IdComputer idComputer = this.qNameIdMap.computeIfAbsent(qName, k -> createIdComputer(id, qName, sourceElement));
     Element matchedNode = idComputer.evaluateExpression(sourceElement, targetElement);
     if (matchedNode != null) {
       return new MergeElement(matchedNode, targetElement.getDocumentPath());
