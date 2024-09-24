@@ -3,12 +3,8 @@ package com.devonfw.tools.ide.context;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.AbstractMap;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -34,7 +30,7 @@ public class GitContextImpl implements GitContext {
   public GitContextImpl(IdeContext context) {
 
     this.context = context;
-    this.processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0");
+    this.processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").errorHandling(ProcessErrorHandling.WARNING);
   }
 
   @Override
@@ -56,20 +52,14 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public boolean isRepositoryUpdateAvailable(Path targetRepository) {
+  public boolean isRepositoryUpdateAvailable(Path repository) {
 
-    this.processContext.directory(targetRepository);
-    ProcessResult result;
-
-    // get local commit code
-    result = this.processContext.addArg("rev-parse").addArg("HEAD").run(PROCESS_MODE_FOR_FETCH);
+    ProcessResult result = this.processContext.directory(repository).addArg("rev-parse").addArg("HEAD").run(PROCESS_MODE_FOR_FETCH);
     if (!result.isSuccessful()) {
       this.context.warning("Failed to get the local commit hash.");
       return false;
     }
-
-    String local_commit_code = result.getOut().stream().findFirst().orElse("").trim();
-
+    String localCommitHash = result.getOut().stream().findFirst().orElse("").trim();
     // get remote commit code
     result = this.processContext.addArg("rev-parse").addArg("@{u}").run(PROCESS_MODE_FOR_FETCH);
     if (!result.isSuccessful()) {
@@ -77,53 +67,45 @@ public class GitContextImpl implements GitContext {
       return false;
     }
     String remote_commit_code = result.getOut().stream().findFirst().orElse("").trim();
-    return !local_commit_code.equals(remote_commit_code);
+    return !localCommitHash.equals(remote_commit_code);
   }
 
   @Override
-  public void pullOrCloneAndResetIfNeeded(String repoUrl, Path targetRepository, String branch, String remoteName) {
+  public void pullOrCloneAndResetIfNeeded(String repoUrl, Path repository, String branch, String remoteName) {
 
-    pullOrCloneIfNeeded(repoUrl, branch, targetRepository);
+    pullOrCloneIfNeeded(repoUrl, branch, repository);
 
-    reset(targetRepository, "master", remoteName);
+    reset(repository, "master", remoteName);
 
-    cleanup(targetRepository);
+    cleanup(repository);
   }
 
   @Override
-  public void pullOrClone(String gitRepoUrl, Path targetRepository) {
+  public void pullOrClone(String gitRepoUrl, Path repository) {
 
-    pullOrClone(gitRepoUrl, targetRepository, null);
+    pullOrClone(gitRepoUrl, repository, null);
   }
 
   @Override
-  public void pullOrClone(String gitRepoUrl, Path targetRepository, String branch) {
+  public void pullOrClone(String gitRepoUrl, Path repository, String branch) {
 
-    Objects.requireNonNull(targetRepository);
+    Objects.requireNonNull(repository);
     Objects.requireNonNull(gitRepoUrl);
-
     if (!gitRepoUrl.startsWith("http")) {
       throw new IllegalArgumentException("Invalid git URL '" + gitRepoUrl + "'!");
     }
-
-    if (Files.isDirectory(targetRepository.resolve(GIT_FOLDER))) {
+    if (Files.isDirectory(repository.resolve(GIT_FOLDER))) {
       // checks for remotes
-      this.processContext.directory(targetRepository);
-      ProcessResult result = this.processContext.addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
-      List<String> remotes = result.getOut();
-      if (remotes.isEmpty()) {
-        String message = targetRepository + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
+      String remote = determineRemote(repository);
+      if (remote == null) {
+        String message = repository + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
             + "Do you want to ignore the problem and continue anyhow?";
         this.context.askToContinue(message);
       } else {
-        this.processContext.errorHandling(ProcessErrorHandling.WARNING);
-
-        if (!this.context.isOffline()) {
-          pull(targetRepository);
-        }
+        pull(repository);
       }
     } else {
-      clone(new GitUrl(gitRepoUrl, branch), targetRepository);
+      clone(new GitUrl(gitRepoUrl, branch), repository);
     }
   }
 
@@ -185,89 +167,66 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void pull(Path targetRepository) {
+  public void pull(Path repository) {
 
-    this.processContext.directory(targetRepository);
-    ProcessResult result;
-    // pull from remote
-    result = this.processContext.addArg("--no-pager").addArg("pull").addArg("--quiet").run(PROCESS_MODE);
-
+    if (this.context.isOffline()) {
+      this.context.info("Skipping git pull on {} because offline", repository);
+      return;
+    }
+    ProcessResult result = this.processContext.directory(repository).addArg("--no-pager").addArg("pull").addArg("--quiet").run(PROCESS_MODE);
     if (!result.isSuccessful()) {
-      Map<String, String> remoteAndBranchName = retrieveRemoteAndBranchName();
-      this.context.warning("Git pull for {}/{} failed for repository {}.", remoteAndBranchName.get("remote"), remoteAndBranchName.get("branch"),
-          targetRepository);
-      handleErrors(targetRepository, result);
+      String branchName = determineCurrentBranch(repository);
+      this.context.warning("Git pull on branch {} failed for repository {}.", branchName, repository);
+      handleErrors(repository, result);
     }
   }
 
   @Override
   public void fetch(Path targetRepository, String remote, String branch) {
 
-    if ((remote == null) || (branch == null)) {
-      Optional<String[]> remoteAndBranchOpt = getLocalRemoteAndBranch(targetRepository);
-      if (remoteAndBranchOpt.isEmpty()) {
-        context.warning("Could not determine the remote or branch for the git repository at {}", targetRepository);
-        return; // false;
-      }
-      String[] remoteAndBranch = remoteAndBranchOpt.get();
-      if (remote == null) {
-        remote = remoteAndBranch[0];
-      }
-      if (branch == null) {
-        branch = remoteAndBranch[1];
-      }
+    if (branch == null) {
+      branch = determineCurrentBranch(targetRepository);
     }
-
-    this.processContext.directory(targetRepository);
-    ProcessResult result;
-
-    result = this.processContext.addArg("fetch").addArg(remote).addArg(branch).run(PROCESS_MODE_FOR_FETCH);
+    if (remote == null) {
+      remote = determineRemote(targetRepository);
+    }
+    ProcessResult result = this.processContext.directory(targetRepository).addArg("fetch").addArg(remote).addArg(branch).run(PROCESS_MODE_FOR_FETCH);
 
     if (!result.isSuccessful()) {
       this.context.warning("Git fetch for '{}/{} failed.'.", remote, branch);
     }
   }
 
-  private Map<String, String> retrieveRemoteAndBranchName() {
+  @Override
+  public String determineCurrentBranch(Path repository) {
 
-    Map<String, String> remoteAndBranchName = new HashMap<>();
-    ProcessResult remoteResult = this.processContext.addArg("branch").addArg("-vv").run(PROCESS_MODE);
-    List<String> remotes = remoteResult.getOut();
-    if (!remotes.isEmpty()) {
-      for (String remote : remotes) {
-        if (remote.startsWith("*")) {
-          String checkedOutBranch = remote.substring(remote.indexOf("[") + 1, remote.indexOf("]"));
-          remoteAndBranchName.put("remote", checkedOutBranch.substring(0, checkedOutBranch.indexOf("/")));
-          // check if current repo is behind remote and omit message
-          if (checkedOutBranch.contains(":")) {
-            remoteAndBranchName.put("branch", checkedOutBranch.substring(checkedOutBranch.indexOf("/") + 1, checkedOutBranch.indexOf(":")));
-          } else {
-            remoteAndBranchName.put("branch", checkedOutBranch.substring(checkedOutBranch.indexOf("/") + 1));
-          }
-
-        }
+    ProcessResult remoteResult = this.processContext.directory(repository).addArg("branch").addArg("--show-current").run(ProcessMode.DEFAULT_CAPTURE);
+    if (remoteResult.isSuccessful()) {
+      List<String> remotes = remoteResult.getOut();
+      if (!remotes.isEmpty()) {
+        assert (remotes.size() == 1);
+        return remotes.get(0);
       }
     } else {
-      return Map.ofEntries(new AbstractMap.SimpleEntry<>("remote", "unknown"), new AbstractMap.SimpleEntry<>("branch", "unknown"));
+      this.context.warning("Failed to determine current branch of git repository {}", repository);
     }
-
-    return remoteAndBranchName;
+    return null;
   }
 
-  private Optional<String[]> getLocalRemoteAndBranch(Path repositoryPath) {
+  @Override
+  public String determineRemote(Path repository) {
 
-    this.processContext.directory(repositoryPath);
-    ProcessResult result = this.processContext.addArg("rev-parse").addArg("--abbrev-ref").addArg("--symbolic-full-name").addArg("@{u}")
-        .run(PROCESS_MODE_FOR_FETCH);
-    if (result.isSuccessful()) {
-      String upstream = result.getOut().stream().findFirst().orElse("");
-      if (upstream.contains("/")) {
-        return Optional.of(upstream.split("/", 2)); // Split into remote and branch
+    ProcessResult remoteResult = this.processContext.directory(repository).addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
+    if (remoteResult.isSuccessful()) {
+      List<String> remotes = remoteResult.getOut();
+      if (!remotes.isEmpty()) {
+        assert (remotes.size() == 1);
+        return remotes.get(0);
       }
     } else {
-      this.context.warning("Failed to determine the remote tracking branch.");
+      this.context.warning("Failed to determine current origin of git repository {}", repository);
     }
-    return Optional.empty();
+    return null;
   }
 
   @Override

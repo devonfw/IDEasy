@@ -168,8 +168,8 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
     verify(this.processMock, never()).waitFor();
 
-    assertThat(result.getOut()).isNull();
-    assertThat(result.getErr()).isNull();
+    assertThat(result.getOut()).isEmpty();
+    assertThat(result.getErr()).isEmpty();
 
   }
 

@@ -81,7 +81,7 @@ public class AndroidStudioTest extends AbstractIdeContextTest {
     // commandlet - android-studio
     assertThat(context.getSoftwarePath().resolve("android-studio/.ide.software.version")).exists().hasContent("2024.1.1.1");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed android-studio in version 2024.1.1.1");
-    assertThat(context).logAtSuccess().hasMessage("Install plugin: mockedPlugin");
+    assertThat(context).logAtSuccess().hasMessageContaining("Install plugin: mockedPlugin");
     assertThat(context.getPluginsPath().resolve("android-studio").resolve("mockedPlugin").resolve("MockedClass.class")).exists();
   }
 

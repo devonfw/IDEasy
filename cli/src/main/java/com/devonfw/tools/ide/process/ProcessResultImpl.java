@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.process;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -24,8 +25,16 @@ public class ProcessResultImpl implements ProcessResult {
 
     super();
     this.exitCode = exitCode;
-    this.out = out;
-    this.err = err;
+    if (out == null) {
+      this.out = Collections.emptyList();
+    } else {
+      this.out = out;
+    }
+    if (err == null) {
+      this.err = Collections.emptyList();
+    } else {
+      this.err = err;
+    }
   }
 
   @Override

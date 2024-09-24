@@ -77,4 +77,16 @@ public class GitContextMock implements GitContext {
 
     return false;
   }
+
+  @Override
+  public String determineCurrentBranch(Path repository) {
+
+    return "main";
+  }
+
+  @Override
+  public String determineRemote(Path repository) {
+
+    return "origin";
+  }
 }

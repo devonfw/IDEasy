@@ -156,7 +156,7 @@ public final class StepImpl implements Step {
       if (message != null) {
         this.context.success(message, args);
       } else if (!this.silent) {
-        this.context.success(this.name);
+        this.context.success("Successfully ended step '{}'.", this.name);
       }
       this.context.debug("Step '{}' ended successfully.", this.name);
     } else {
