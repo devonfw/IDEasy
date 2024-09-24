@@ -204,10 +204,6 @@ public class GitContextImpl implements GitContext {
           targetRepository);
       handleErrors(targetRepository, result);
     }
-    GitRemoteAndBranch remoteAndBranch = remoteAndBranchOptional.get();
-    String remote = remoteAndBranch.remote();
-    String branch = remoteAndBranch.branch();
-    this.context.info("Pulled from {}/{}.", remote, branch);
   }
 
   @Override
