@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/647[#648]: Fixed intellij script freezing shell
 * https://github.com/devonfw/IDEasy/issues/628[#638]: Fixed update fails on first error
 * https://github.com/devonfw/IDEasy/issues/553[#554]: Missmatch of IDE_ROOT
 * https://github.com/devonfw/IDEasy/issues/556[#556]: ProcessContext should compute PATH on run and not in constructor
