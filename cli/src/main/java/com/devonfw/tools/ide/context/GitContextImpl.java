@@ -197,6 +197,7 @@ public class GitContextImpl implements GitContext {
     }
   }
 
+  @Override
   public String determineCurrentBranch(Path repository) {
 
     ProcessResult remoteResult = this.processContext.directory(repository).addArg("branch").addArg("--show-current").run(ProcessMode.DEFAULT_CAPTURE);
@@ -212,6 +213,7 @@ public class GitContextImpl implements GitContext {
     return null;
   }
 
+  @Override
   public String determineRemote(Path repository) {
 
     ProcessResult remoteResult = this.processContext.directory(repository).addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
