@@ -7,7 +7,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/628[#638]: Fixed update fails on first error
-* https://github.com/devonfw/IDEasy/issues/553[#554]: Missmatch of IDE_ROOT
+* https://github.com/devonfw/IDEasy/issues/37[#37]: Added Visual Studio Code (vscode) with plugin installation and plugin recommendation support
+* https://github.com/devonfw/IDEasy/issues/553[#553]: Mismatch of IDE_ROOT
 * https://github.com/devonfw/IDEasy/issues/556[#556]: ProcessContext should compute PATH on run and not in constructor
 * https://github.com/devonfw/IDEasy/issues/557[#557]: Failed to update tomcat: Cannot find a (Map) Key deserializer for type VersionRange
 * https://github.com/devonfw/IDEasy/issues/623[#623]: CliArgument prepand and append methods inconsistent
