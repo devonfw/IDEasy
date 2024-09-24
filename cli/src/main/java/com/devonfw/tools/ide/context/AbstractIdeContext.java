@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.context;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -93,7 +92,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path downloadPath;
 
-  private Path toolRepository;
+  private Path toolRepositoryPath;
 
   private Path userHome;
 
@@ -161,7 +160,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (nameCount >= 1) {
         name1 = currentDir.getName(nameCount - 1).toString();
       }
-      currentDir = getParentPath(currentDir);
+      currentDir = currentDir.getParent();
     }
 
     // detection completed, initializing variables
@@ -170,14 +169,14 @@ public abstract class AbstractIdeContext implements IdeContext {
     setCwd(userDir, workspace, currentDir);
 
     if (this.ideRoot == null) {
-      this.toolRepository = null;
+      this.toolRepositoryPath = null;
       this.urlsPath = null;
       this.tempPath = null;
       this.tempDownloadPath = null;
       this.softwareRepositoryPath = null;
     } else {
       Path ideBase = this.ideRoot.resolve(FOLDER_IDE);
-      this.toolRepository = ideBase.resolve("software");
+      this.toolRepositoryPath = ideBase.resolve("software");
       this.urlsPath = ideBase.resolve("urls");
       this.tempPath = ideBase.resolve("tmp");
       this.tempDownloadPath = this.tempPath.resolve(FOLDER_DOWNLOADS);
@@ -309,21 +308,6 @@ public abstract class AbstractIdeContext implements IdeContext {
       return false;
     }
     return true;
-  }
-
-  private Path getParentPath(Path dir) {
-
-    try {
-      Path linkDir = dir.toRealPath();
-      if (!dir.equals(linkDir)) {
-        return linkDir;
-      } else {
-        return dir.getParent();
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException(e);
-    }
-
   }
 
   private EnvironmentVariables createVariables() {
@@ -506,7 +490,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public Path getToolRepositoryPath() {
 
-    return this.toolRepository;
+    return this.toolRepositoryPath;
   }
 
   @Override
@@ -1066,5 +1050,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   public IdeStartContextImpl getStartContext() {
 
     return startContext;
+  }
+
+  /**
+   * Reloads this context and re-initializes the {@link #getVariables() variables}.
+   */
+  public void reload() {
+    this.variables = createVariables();
   }
 }

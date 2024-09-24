@@ -38,7 +38,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
 
     install(true);
-    args = CliArgument.prepend(args, this.context.getWorkspacePath().toString());
+    args = CliArgument.append(args, this.context.getWorkspacePath().toString());
     ProcessContext pc = createProcessContext(Path.of(getBinaryName()), args);
     pc.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString());
     pc.run(processMode);
@@ -46,22 +46,25 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  protected String getBinaryName() {
-
-    if (this.context.getSystemInfo().isWindows()) {
-      return IDEA64_EXE;
-    } else if (this.context.getSystemInfo().isLinux()) {
-      return IDEA_BASH_SCRIPT;
-    } else {
-      return IDEA;
-    }
-  }
-
-  @Override
   public boolean install(boolean silent) {
 
     getCommandlet(Java.class).install();
     return super.install(silent);
+  }
+
+  @Override
+  protected void postExtract(Path extractedDir) {
+
+    super.postExtract(extractedDir);
+    String binaryName;
+    if (this.context.getSystemInfo().isWindows()) {
+      binaryName = IDEA64_EXE;
+    } else if (this.context.getSystemInfo().isMac()) {
+      binaryName = IDEA;
+    } else {
+      binaryName = IDEA_BASH_SCRIPT;
+    }
+    createStartScript(extractedDir, binaryName);
   }
 
 }

@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.tool.intellij;
 
 import java.util.Map;
 
-import com.devonfw.tools.ide.common.JsonVersionItem;
+import com.devonfw.tools.ide.json.JsonVersionItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**

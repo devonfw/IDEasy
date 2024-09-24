@@ -1,10 +1,14 @@
-package com.devonfw.tools.ide.json.mapping;
+package com.devonfw.tools.ide.json;
 
 import java.time.Instant;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.url.model.file.json.DependencyInfo;
+import com.devonfw.tools.ide.version.BoundaryType;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -26,12 +30,12 @@ public class JsonMappingTest extends Assertions {
   @Test
   public void testReadInstant() throws Exception {
 
-    // given
+    // arrange
     String value = INSTANT_VALUE_JSON;
-    // when
+    // act
     ObjectMapper mapper = JsonMapping.create();
     Instant instant = mapper.readValue(value, Instant.class);
-    // then
+    // assert
     assertThat(instant).isEqualTo(INSTANT_VALUE);
   }
 
@@ -43,13 +47,27 @@ public class JsonMappingTest extends Assertions {
   @Test
   public void testWriteInstant() throws Exception {
 
-    // given
+    // arrange
     Instant value = INSTANT_VALUE;
-    // when
+    // act
     ObjectMapper mapper = JsonMapping.create();
     String json = mapper.writeValueAsString(value);
-    // then
+    // assert
     assertThat(json).isEqualTo(INSTANT_VALUE_JSON);
+  }
+
+  @Test
+  public void testReadDependencies() throws Exception {
+
+    // arrange
+    String json = "{\"tool\": \"java\",\"versionRange\": \"[11,21_35]\"}";
+    VersionRange expectedVersionRange = VersionRange.of(VersionIdentifier.of("11"), VersionIdentifier.of("21_35"), BoundaryType.CLOSED);
+    // act
+    ObjectMapper mapper = JsonMapping.create();
+    DependencyInfo dependencyInfo = mapper.readValue(json, DependencyInfo.class);
+    // assert
+    assertThat(dependencyInfo.tool()).isEqualTo("java");
+    assertThat(dependencyInfo.versionRange()).isEqualTo(expectedVersionRange);
   }
 
 }

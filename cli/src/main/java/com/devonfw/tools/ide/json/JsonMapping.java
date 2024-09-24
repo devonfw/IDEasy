@@ -1,9 +1,13 @@
-package com.devonfw.tools.ide.json.mapping;
+package com.devonfw.tools.ide.json;
 
+import com.devonfw.tools.ide.url.model.file.json.DependencyInfo;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
@@ -22,6 +26,12 @@ public class JsonMapping {
     mapper = mapper.enable(SerializationFeature.INDENT_OUTPUT);
     mapper = mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     mapper = mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    SimpleModule customModule = new SimpleModule();
+    customModule.addDeserializer(VersionIdentifier.class, new VersionIdentifierDeserializer());
+    customModule.addDeserializer(VersionRange.class, new VersionRangeDeserializer());
+    customModule.addDeserializer(DependencyInfo.class, new DependencyInfoDeserializer());
+    customModule.addKeyDeserializer(VersionRange.class, new VersionRangeKeyDeserializer());
+    mapper = mapper.registerModule(customModule);
     return mapper;
   }
 

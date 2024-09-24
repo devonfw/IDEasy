@@ -10,7 +10,7 @@ import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.url.model.file.UrlDependencyFile;
-import com.devonfw.tools.ide.url.model.file.dependencyJson.DependencyInfo;
+import com.devonfw.tools.ide.url.model.file.json.DependencyInfo;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
@@ -66,12 +66,12 @@ public class Dependency {
    */
   public VersionIdentifier findDependencyVersionToInstall(DependencyInfo dependencyFound) {
 
-    String dependencyEdition = this.context.getVariables().getToolEdition(dependencyFound.getTool());
-
-    List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(dependencyFound.getTool(), dependencyEdition);
-
+    String dependencyTool = dependencyFound.tool();
+    String dependencyEdition = this.context.getVariables().getToolEdition(dependencyTool);
+    List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(dependencyTool, dependencyEdition);
+    VersionRange dependencyVersionRange = dependencyFound.versionRange();
     for (VersionIdentifier vi : versions) {
-      if (dependencyFound.getVersionRange().contains(vi)) {
+      if (dependencyVersionRange.contains(vi)) {
         return vi;
       }
     }
