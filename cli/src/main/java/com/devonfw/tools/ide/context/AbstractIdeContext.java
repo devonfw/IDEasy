@@ -122,6 +122,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private StepImpl currentStep;
 
+  private Boolean online;
+
   /**
    * The constructor.
    *
@@ -544,20 +546,22 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public boolean isOnline() {
 
-    boolean online = false;
-    try {
-      int timeout = 1000;
-      //open a connection to github.com and try to retrieve data
-      //getContent fails if there is no connection
-      URLConnection connection = new URL("https://www.github.com").openConnection();
-      connection.setConnectTimeout(timeout);
-      connection.getContent();
-      online = true;
-
-    } catch (Exception ignored) {
-
+    if (this.online == null) {
+      // we currently assume we have only a CLI process that runs shortly
+      // therefore we run this check only once to save resources when this method is called many times
+      try {
+        int timeout = 1000;
+        //open a connection to github.com and try to retrieve data
+        //getContent fails if there is no connection
+        URLConnection connection = new URL("https://www.github.com").openConnection();
+        connection.setConnectTimeout(timeout);
+        connection.getContent();
+        this.online = Boolean.TRUE;
+      } catch (Exception ignored) {
+        this.online = Boolean.FALSE;
+      }
     }
-    return online;
+    return this.online.booleanValue();
   }
 
   @Override
