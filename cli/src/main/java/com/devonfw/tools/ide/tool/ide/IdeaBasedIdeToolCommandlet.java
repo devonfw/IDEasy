@@ -42,16 +42,14 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin) {
+  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
     String downloadUrl = getDownloadUrl(plugin);
 
     String pluginId = plugin.id();
 
     Path tmpDir = null;
 
-    Step step = this.context.newStep("Install plugin: " + pluginId);
     try {
-
       Path installationPath = this.getPluginsInstallationPath();
       ensureInstallationPathExists(installationPath);
 
@@ -62,7 +60,6 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
       extractDownloadedPlugin(fileAccess, downloadedFile, pluginId);
 
       step.success();
-
     } catch (IOException e) {
       step.error(e);
       throw new IllegalStateException("Failed to process installation of plugin: " + pluginId, e);
@@ -70,7 +67,6 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
       if (tmpDir != null) {
         context.getFileAccess().delete(tmpDir);
       }
-      step.close();
     }
   }
 

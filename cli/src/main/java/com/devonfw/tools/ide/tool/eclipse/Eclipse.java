@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
@@ -38,10 +39,11 @@ public class Eclipse extends IdeToolCommandlet {
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
 
-    if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-
+    if ((processMode == ProcessMode.DEFAULT_CAPTURE) && this.context.getSystemInfo().isWindows()) {
+      pc.executable(Path.of("eclipsec"));
+    } else {
+      super.configureToolBinary(pc, processMode, errorHandling);
     }
-    super.configureToolBinary(pc, processMode, errorHandling);
   }
 
   @Override
@@ -71,44 +73,11 @@ public class Eclipse extends IdeToolCommandlet {
     getCommandlet(Java.class).install();
   }
 
-  /**
-   * Runs eclipse application.
-   *
-   * @param processMode - the {@link ProcessMode}.
-   * @param args the individual arguments to pass to eclipse.
-   * @return the {@link ProcessResult}.
-   */
-  protected ProcessResult runEclipse(ProcessMode processMode, String... args) {
-
-    Path toolPath = Path.of(getBinaryName());
-    ProcessContext pc = this.context.newProcess();
-    if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-      pc.errorHandling(ProcessErrorHandling.LOG_ERROR);
-    }
-    pc.executable(toolPath);
-    Path configurationPath = getPluginsInstallationPath().resolve("configuration");
-    this.context.getFileAccess().mkdirs(configurationPath);
-    pc.addArg("-data").addArg(this.context.getWorkspacePath());
-    pc.addArg("-clean");
-    pc.addArg("-keyring").addArg(this.context.getUserHome().resolve(".eclipse").resolve(".keyring"));
-    pc.addArg("-configuration").addArg(configurationPath);
-    if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-      pc.addArg("-consoleLog").addArg("-nosplash");
-    }
-    // TODO ability to use different Java version
-    Path javaPath = getCommandlet(Java.class).getToolBinPath();
-    pc.addArg("-vm").addArg(javaPath);
-    pc.addArgs(args);
-
-    return pc.run(processMode);
-
-  }
-
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin) {
+  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
 
-    ProcessResult result = runEclipse(ProcessMode.DEFAULT_CAPTURE, "-application", "org.eclipse.equinox.p2.director", "-repository", plugin.url(),
-        "-installIU", plugin.id());
+    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, null, ProcessErrorHandling.LOG_WARNING, "-application", "org.eclipse.equinox.p2.director",
+        "-repository", plugin.url(), "-installIU", plugin.id());
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
@@ -117,7 +86,7 @@ public class Eclipse extends IdeToolCommandlet {
       }
     }
     this.context.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
-    log(IdeLogLevel.WARNING, result.getOut());
+    log(IdeLogLevel.DEBUG, result.getOut());
     log(IdeLogLevel.ERROR, result.getErr());
   }
 

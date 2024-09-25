@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 
@@ -113,7 +114,9 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins) {
     for (ToolPluginDescriptor plugin : plugins) {
       if (plugin.active()) {
-        installPlugin(plugin);
+        try (Step step = this.context.newStep("Install plugin " + plugin.name())) {
+          installPlugin(plugin, step);
+        }
       } else {
         handleInstall4InactivePlugin(plugin);
       }
@@ -122,8 +125,9 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   /**
    * @param plugin the {@link ToolPluginDescriptor} to install.
+   * @param step the {@link Step} for the plugin installation.
    */
-  public abstract void installPlugin(ToolPluginDescriptor plugin);
+  public abstract void installPlugin(ToolPluginDescriptor plugin, Step step);
 
   /**
    * @param plugin the {@link ToolPluginDescriptor} to uninstall.

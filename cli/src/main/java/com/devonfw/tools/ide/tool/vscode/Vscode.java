@@ -17,6 +17,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
@@ -44,8 +45,10 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin) {
-    throw new IllegalStateException(); // method not used
+  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
+
+    doInstallPlugins(List.of(plugin));
+    step.success();
   }
 
   @Override
