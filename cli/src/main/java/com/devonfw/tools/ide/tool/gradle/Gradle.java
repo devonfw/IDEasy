@@ -24,10 +24,10 @@ public class Gradle extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  protected void installDependencies() {
 
+    // TODO create gradle/gralde/dependencies.json file in ide-urls and delete this method
     getCommandlet(Java.class).install();
-    return super.install(silent);
   }
 
   @Override
