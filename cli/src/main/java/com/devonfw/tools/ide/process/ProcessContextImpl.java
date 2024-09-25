@@ -312,12 +312,15 @@ public class ProcessContextImpl implements ProcessContext {
   private void performLogOnError(ProcessResult result, int exitCode, String interpreter) {
 
     if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
-      StringBuilder errorMessage = new StringBuilder(" failed with exit code " + exitCode);
+      StringBuilder errorMessage = new StringBuilder("\nfailed with exit code " + exitCode);
       if (result.getOut() != null && !result.getOut().isEmpty()) {
+        errorMessage.append("\n");
+        errorMessage.append("and output: ");
         errorMessage.append(String.join(", ", result.getOut()));
       }
       if (result.getErr() != null && !result.getErr().isEmpty()) {
-        errorMessage.append(" and error messages: ");
+        errorMessage.append("\n");
+        errorMessage.append("and error messages: ");
         errorMessage.append(String.join(", ", result.getErr()));
       }
       errorMessage.append("!");

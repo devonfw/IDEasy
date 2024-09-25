@@ -206,20 +206,18 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
   @Test
   public void enablingCaptureShouldRedirectAndCaptureStreamsWithErrorsCorrectly() throws Exception {
-
     // arrange
-    when(this.processMock.waitFor()).thenReturn(ProcessResult.TOOL_NOT_INSTALLED);
-    String errorText = "error";
-    try (InputStream errorStream = new ByteArrayInputStream(errorText.getBytes())) {
+    IdeTestContext context = newContext("processcontext");
 
-      // act & assert
-      Exception thrown = assertThrows(IllegalStateException.class, () -> {
-        when(this.processMock.getErrorStream()).thenReturn(errorStream);
-        this.processConttextUnderTest.run(ProcessMode.DEFAULT_CAPTURE);
-      });
-      assertThat(errorText).isEqualTo(thrown.toString());
+    // act
+    IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> context.getCommandletManager().getCommandlet("dotnet").run());
 
-    }
+    // assert
+    assertThat(thrown.getMessage()).contains("failed with exit code 2");
+    assertThat(thrown.getMessage()).contains("content to stdout");
+    assertThat(thrown.getMessage()).contains("more content to stdout");
+    assertThat(thrown.getMessage()).contains("error message to stderr");
+    assertThat(thrown.getMessage()).contains("another error message to stderr");
   }
 
   private IdeLogLevel convertToIdeLogLevel(ProcessErrorHandling processErrorHandling) {
