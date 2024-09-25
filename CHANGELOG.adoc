@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/627[#649]: Fix info-log message that broke processable context output
 * https://github.com/devonfw/IDEasy/issues/628[#638]: Fixed update fails on first error
 * https://github.com/devonfw/IDEasy/issues/37[#37]: Added Visual Studio Code (vscode) with plugin installation and plugin recommendation support
 * https://github.com/devonfw/IDEasy/issues/553[#553]: Mismatch of IDE_ROOT
