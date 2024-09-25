@@ -23,7 +23,7 @@ public class ExamplePluginBasedCommandlet extends PluginBasedCommandlet {
   }
 
   @Override
-  public void installPlugin(PluginDescriptor plugin) {
+  public void installPlugin(ToolPluginDescriptor plugin) {
 
   }
 }

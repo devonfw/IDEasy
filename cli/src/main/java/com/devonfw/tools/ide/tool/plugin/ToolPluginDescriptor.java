@@ -9,65 +9,20 @@ import java.util.Properties;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogger;
 
 /**
- * Implementation of {@link PluginDescriptor}.
+ * Implementation of {@link ToolPluginDescriptor}.
+ *
+ * @param id the unique identifier of the plugin.
+ * @param name the name of the plugin properties file excluding the extension.
+ * @param url the optional plugin URL (download/update site).
+ * @param active {@code true} if the plugin is active and shall be installed automatically, {@code false} otherwise.
+ * @param tags the {@link #tags () tags}.
  */
-public class PluginDescriptorImpl implements PluginDescriptor {
-
-  private final String id;
-  private final String name;
-
-  private final String url;
-
-  private final boolean active;
-
-  private final Set<Tag> tags;
-
-  /**
-   * The constructor.
-   *
-   * @param id the {@link #getId() ID}.
-   * @param name the {@link #getName() name}.
-   * @param url the {@link #getUrl() URL}.
-   * @param active the {@link #isActive() active flag}.
-   * @param tags the {@link #getTags() tags}.
-   */
-  public PluginDescriptorImpl(String id, String name, String url, boolean active, Set<Tag> tags) {
-
-    super();
-    this.id = id;
-    this.name = name;
-    this.url = url;
-    this.active = active;
-    this.tags = tags;
-  }
-
-  @Override
-  public String getId() {
-
-    return this.id;
-  }
-
-  @Override
-  public String getName() {
-
-    return this.name;
-  }
-
-  @Override
-  public String getUrl() {
-
-    return this.url;
-  }
-
-  @Override
-  public boolean isActive() {
-
-    return this.active;
-  }
+public record ToolPluginDescriptor(String id, String name, String url, boolean active, Set<Tag> tags) implements Tags {
 
   @Override
   public Set<Tag> getTags() {
@@ -78,11 +33,11 @@ public class PluginDescriptorImpl implements PluginDescriptor {
   /**
    * @param propertiesFile the {@link Path} to the plugin {@link Properties} file.
    * @param logger the {@link IdeLogger}.
-   * @param needUrl - {@code true} if {@link PluginDescriptor#getUrl() URL} needs to be present and a warning shall be logged if missing, {@code false}
-   * otherwise.
-   * @return the loaded {@link PluginDescriptor}.
+   * @param needUrl - {@code true} if {@link ToolPluginDescriptor#url () URL} needs to be present and a warning shall be logged if missing, {@code false}
+   *     otherwise.
+   * @return the loaded {@link ToolPluginDescriptor}.
    */
-  public static PluginDescriptor of(Path propertiesFile, IdeLogger logger, boolean needUrl) {
+  public static ToolPluginDescriptor of(Path propertiesFile, IdeLogger logger, boolean needUrl) {
 
     Properties properties = new Properties();
     String name = propertiesFile.getFileName().toString();
@@ -100,7 +55,7 @@ public class PluginDescriptorImpl implements PluginDescriptor {
     boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile, logger);
     String tagsCsv = getString(properties, "tags", "plugin_tags");
     Set<Tag> tags = Tag.parseCsv(tagsCsv);
-    return new PluginDescriptorImpl(id, name, url, active, tags);
+    return new ToolPluginDescriptor(id, name, url, active, tags);
   }
 
   private static boolean getBoolean(Properties properties, String key, String legacyKey, Path propertiesFile,

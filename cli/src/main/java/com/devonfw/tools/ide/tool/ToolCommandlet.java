@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -17,7 +18,9 @@ import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
+import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -83,68 +86,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return this.tags;
   }
 
-  @Override
-  public void run() {
-
-    runTool(ProcessMode.DEFAULT, null, this.arguments.asArray());
-  }
-
   /**
-   * Ensures the tool is installed and then runs this tool with the given arguments.
-   *
-   * @param processMode see {@link ProcessMode}
-   * @param toolVersion the explicit version (pattern) to run. Typically {@code null} to ensure the configured version is installed and use that one.
-   *     Otherwise, the specified version will be installed in the software repository without touching and IDE installation and used to run.
-   * @param existsEnvironmentContext the {@link Boolean} that checks if an environment context exits. If true, then the process context is passed to the
-   *     installation method as an argument.
-   * @param args the command-line arguments to run the tool.
+   * @return the {@link EnvironmentVariables#getToolVersion(String) tool version}.
    */
-  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, boolean existsEnvironmentContext, String... args) {
+  public VersionIdentifier getConfiguredVersion() {
 
-    Path binaryPath;
-    binaryPath = Path.of(getBinaryName());
-    ProcessContext pc = createProcessContext(binaryPath, args);
-
-    if (existsEnvironmentContext) {
-      install(pc, true);
-    } else {
-      install(true);
-    }
-
-    pc.run(processMode);
-  }
-
-  /**
-   * Creates a new {@link ProcessContext} from the given executable with the provided arguments attached.
-   *
-   * @param binaryPath path to the binary executable for this process
-   * @param args the command-line arguments for this process
-   * @return {@link ProcessContext}
-   */
-  protected ProcessContext createProcessContext(Path binaryPath, String... args) {
-
-    return this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(args);
-  }
-
-  /**
-   * @param processMode see {@link ProcessMode}
-   * @param toolVersion the explicit {@link VersionIdentifier} of the tool to run.
-   * @param args the command-line arguments to run the tool.
-   * @see ToolCommandlet#runTool(ProcessMode, VersionIdentifier, boolean, String...)
-   */
-  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
-
-    runTool(processMode, toolVersion, false, args);
-  }
-
-  /**
-   * @param toolVersion the explicit {@link VersionIdentifier} of the tool to run.
-   * @param args the command-line arguments to run the tool.
-   * @see ToolCommandlet#runTool(ProcessMode, VersionIdentifier, String...)
-   */
-  public void runTool(VersionIdentifier toolVersion, String... args) {
-
-    runTool(ProcessMode.DEFAULT, toolVersion, args);
+    return this.context.getVariables().getToolVersion(getName());
   }
 
   /**
@@ -177,47 +124,92 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return tool + "/" + edition;
   }
 
-  /**
-   * @return the {@link EnvironmentVariables#getToolVersion(String) tool version}.
-   */
-  public VersionIdentifier getConfiguredVersion() {
+  @Override
+  public void run() {
 
-    return this.context.getVariables().getToolVersion(getName());
+    runTool(this.arguments.asArray());
   }
 
   /**
-   * Method to be called for {@link #install(boolean)} from dependent {@link com.devonfw.tools.ide.commandlet.Commandlet}s. Additionally, contains the
-   * environmentContext of the tool
+   * @param args the command-line arguments to run the tool.
+   * @see ToolCommandlet#runTool(ProcessMode, GenericVersionRange, String...)
+   */
+  public void runTool(String... args) {
+
+    runTool(ProcessMode.DEFAULT, null, args);
+  }
+
+  /**
+   * Ensures the tool is installed and then runs this tool with the given arguments.
    *
-   * @param environmentContext - the environment context that can be used for the dependencies
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
+   * @param processMode the {@link ProcessMode}. Should typically be {@link ProcessMode#DEFAULT} or {@link ProcessMode#BACKGROUND}.
+   * @param toolVersion the explicit {@link GenericVersionRange version} to run. Typically {@code null} to run the
+   *     {@link #getConfiguredVersion() configured version}. Otherwise, the specified version will be used (from the software repository, if not compatible).
+   * @param args the command-line arguments to run the tool.
    */
-  public boolean install(EnvironmentContext environmentContext) {
+  public final void runTool(ProcessMode processMode, GenericVersionRange toolVersion, String... args) {
 
-    return install(environmentContext, true);
+    runTool(processMode, toolVersion, ProcessErrorHandling.THROW_CLI, args);
   }
 
   /**
-   * Method to be called for {@link #install(boolean)} from dependent {@link com.devonfw.tools.ide.commandlet.Commandlet}s.
+   * Ensures the tool is installed and then runs this tool with the given arguments.
+   *
+   * @param processMode the {@link ProcessMode}. Should typically be {@link ProcessMode#DEFAULT} or {@link ProcessMode#BACKGROUND}.
+   * @param toolVersion the explicit {@link GenericVersionRange version} to run. Typically {@code null} to run the
+   *     {@link #getConfiguredVersion() configured version}. Otherwise, the specified version will be used (from the software repository, if not compatible).
+   * @param args the command-line arguments to run the tool.
+   */
+  public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
+
+    ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
+    install(true, pc);
+    configureToolBinary(pc, processMode, errorHandling);
+    configureToolArgs(pc, processMode, errorHandling, args);
+    return pc.run(processMode);
+  }
+
+  /**
+   * @param pc the {@link ProcessContext}.
+   * @param processMode the {@link ProcessMode}.
+   * @param errorHandling the {@link ProcessErrorHandling}.
+   */
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
+
+    pc.executable(Path.of(getBinaryName()));
+  }
+
+  /**
+   * @param pc the {@link ProcessContext}.
+   * @param processMode the {@link ProcessMode}.
+   * @param errorHandling the {@link ProcessErrorHandling}.
+   * @param args the command-line arguments to {@link ProcessContext#addArgs(Object...) add}.
+   */
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
+
+    pc.addArgs(args);
+  }
+
+  /**
+   * Creates a new {@link ProcessContext} from the given executable with the provided arguments attached.
+   *
+   * @param binaryPath path to the binary executable for this process
+   * @param args the command-line arguments for this process
+   * @return {@link ProcessContext}
+   */
+  protected ProcessContext createProcessContext(Path binaryPath, String... args) {
+
+    return this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_ERR).executable(binaryPath).addArgs(args);
+  }
+
+  /**
+   * Installs or updates the managed {@link #getName() tool}.
    *
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
   public boolean install() {
 
     return install(true);
-  }
-
-  /**
-   * Performs the installation of the {@link #getName() tool} managed by this {@link com.devonfw.tools.ide.commandlet.Commandlet}. Additionally, contains the
-   * environmentContext of the tool
-   *
-   * @param environmentContext - the environment context that can be used for the dependencies
-   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
-   */
-  public boolean install(EnvironmentContext environmentContext, boolean silent) {
-
-    return doInstall(environmentContext, silent);
   }
 
   /**
@@ -228,26 +220,31 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public boolean install(boolean silent) {
 
-    return doInstall(silent);
+    return install(silent, EnvironmentContext.getEmpty());
   }
-
-
-  /**
-   * Installs or updates the managed {@link #getName() tool}. Additionally works with the environment context of the tool.
-   *
-   * @param environmentContext - the environment context that can be used for the dependencies
-   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
-   */
-  protected abstract boolean doInstall(EnvironmentContext environmentContext, boolean silent);
 
   /**
    * Installs or updates the managed {@link #getName() tool}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param environmentContext the {@link EnvironmentContext} used to
+   *     {@link LocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation) configure environment variables}.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
-  protected abstract boolean doInstall(boolean silent);
+  public abstract boolean install(boolean silent, EnvironmentContext environmentContext);
+
+  /**
+   * This method is called after a tool was requested to be installed or updated.
+   *
+   * @param newlyInstalled {@code true} if the tool was installed or updated (at least link to software folder was created/updated), {@code false} otherwise
+   *     (configured version was already installed and nothing changed).
+   */
+  protected void postInstall(boolean newlyInstalled) {
+
+    if (newlyInstalled) {
+      postInstall();
+    }
+  }
 
   /**
    * This method is called after the tool has been newly installed or updated to a new version.
@@ -448,7 +445,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     super.printHelp(bundle);
     String toolHelpArgs = getToolHelpArguments();
     if (toolHelpArgs != null && getInstalledVersion() != null) {
-      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING)
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING)
           .executable(Path.of(getBinaryName())).addArgs(toolHelpArgs);
       pc.run(ProcessMode.DEFAULT);
     }
@@ -460,5 +457,36 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public String getToolHelpArguments() {
 
     return null;
+  }
+
+
+  /**
+   * Creates a start script for the tool using the tool name.
+   *
+   * @param extractedDir path to extracted tool directory.
+   * @param binaryName name of the binary to add to start script.
+   */
+  protected void createStartScript(Path extractedDir, String binaryName) {
+    Path binFolder = extractedDir.resolve("bin");
+    if (!Files.exists(binFolder)) {
+      if (this.context.getSystemInfo().isMac()) {
+        MacOsHelper macOsHelper = getMacOsHelper();
+        Path appDir = macOsHelper.findAppDir(extractedDir);
+        binFolder = macOsHelper.findLinkDir(appDir, binaryName);
+      } else {
+        binFolder = extractedDir;
+      }
+      assert (Files.exists(binFolder));
+    }
+    Path bashFile = binFolder.resolve(getName());
+    String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname \"$0\")/";
+    String bashFileContentEnd = "\" $*";
+    try {
+      Files.writeString(bashFile, bashFileContentStart + binaryName + bashFileContentEnd);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+    assert (Files.exists(bashFile));
+    context.getFileAccess().makeExecutable(bashFile);
   }
 }

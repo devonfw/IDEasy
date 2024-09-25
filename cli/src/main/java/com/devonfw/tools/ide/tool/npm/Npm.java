@@ -26,10 +26,10 @@ public class Npm extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  protected void installDependencies() {
 
+    // TODO create npm/npm/dependencies.json file in ide-urls and delete this method
     getCommandlet(Node.class).install();
-    return super.doInstall(silent);
   }
 
   @Override

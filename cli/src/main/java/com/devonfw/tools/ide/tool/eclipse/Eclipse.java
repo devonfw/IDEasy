@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -19,7 +18,7 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
-import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
+import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
@@ -37,17 +36,39 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected void runIde(String... args) {
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
 
-    install(true);
-    runEclipse(ProcessMode.BACKGROUND, CliArgument.prepend(args, "gui", "-showlocation", this.context.getIdeHome().getFileName().toString()));
+    if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+
+    }
+    super.configureToolBinary(pc, processMode, errorHandling);
   }
 
   @Override
-  public boolean install(boolean silent) {
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
 
+    // configure workspace location
+    pc.addArg("-data").addArg(this.context.getWorkspacePath());
+    // use keyring from user home to keep secrets and share across projects and workspaces
+    pc.addArg("-keyring").addArg(this.context.getUserHome().resolve(".eclipse").resolve(".keyring"));
+    // use isolated plugins folder from project instead of modifying eclipse installation in software repo on plugin installation
+    pc.addArg("-configuration").addArg(getPluginsInstallationPath().resolve("configuration"));
+    if (processMode == ProcessMode.BACKGROUND) {
+      // to start eclipse as GUI
+      pc.addArg("gui").addArg("-showlocation").addArg(this.context.getIdeHome().getFileName());
+    } else if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+      pc.addArg("-consoleLog").addArg("-nosplash");
+    }
+    // Path javaPath = getCommandlet(Java.class).getToolBinPath();
+    // pc.addArg("-vm").addArg(javaPath);
+    super.configureToolArgs(pc, processMode, errorHandling, args);
+  }
+
+  @Override
+  protected void installDependencies() {
+
+    // TODO create eclipse/eclipse/dependencies.json file in ide-urls and delete this method
     getCommandlet(Java.class).install();
-    return super.install(silent);
   }
 
   /**
@@ -62,7 +83,7 @@ public class Eclipse extends IdeToolCommandlet {
     Path toolPath = Path.of(getBinaryName());
     ProcessContext pc = this.context.newProcess();
     if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-      pc.errorHandling(ProcessErrorHandling.ERROR);
+      pc.errorHandling(ProcessErrorHandling.LOG_ERROR);
     }
     pc.executable(toolPath);
     Path configurationPath = getPluginsInstallationPath().resolve("configuration");
@@ -84,10 +105,10 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(PluginDescriptor plugin) {
+  public void installPlugin(ToolPluginDescriptor plugin) {
 
-    ProcessResult result = runEclipse(ProcessMode.DEFAULT_CAPTURE, "-application", "org.eclipse.equinox.p2.director", "-repository", plugin.getUrl(),
-        "-installIU", plugin.getId());
+    ProcessResult result = runEclipse(ProcessMode.DEFAULT_CAPTURE, "-application", "org.eclipse.equinox.p2.director", "-repository", plugin.url(),
+        "-installIU", plugin.id());
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
@@ -95,7 +116,7 @@ public class Eclipse extends IdeToolCommandlet {
         }
       }
     }
-    this.context.error("Failed to install plugin {} ({}): exit code was {}", plugin.getName(), plugin.getId(), result.getExitCode());
+    this.context.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
     log(IdeLogLevel.WARNING, result.getOut());
     log(IdeLogLevel.ERROR, result.getErr());
   }

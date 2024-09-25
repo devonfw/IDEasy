@@ -19,7 +19,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
-import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
+import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.variable.VariableSyntax;
 
 /**
@@ -66,10 +66,10 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent) {
+  protected void installDependencies() {
 
+    // TODO create mvn/mvn/dependencies.json file in ide-urls and delete this method
     getCommandlet(Java.class).install();
-    return super.install(silent);
   }
 
   @Override
@@ -183,13 +183,13 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   @Override
-  public void installPlugin(PluginDescriptor plugin) {
+  public void installPlugin(ToolPluginDescriptor plugin) {
 
-    Path mavenPlugin = this.getToolPath().resolve("lib/ext/" + plugin.getName() + ".jar");
-    this.context.getFileAccess().download(plugin.getUrl(), mavenPlugin);
+    Path mavenPlugin = this.getToolPath().resolve("lib/ext/" + plugin.name() + ".jar");
+    this.context.getFileAccess().download(plugin.url(), mavenPlugin);
 
     if (Files.exists(mavenPlugin)) {
-      this.context.success("Successfully added {} to {}", plugin.getName(), mavenPlugin.toString());
+      this.context.success("Successfully added {} to {}", plugin.name(), mavenPlugin.toString());
     } else {
       this.context.warning("Plugin {} has wrong properties\n" //
           + "Please check the plugin properties file in {}", mavenPlugin.getFileName(), mavenPlugin.toAbsolutePath());

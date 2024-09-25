@@ -13,8 +13,11 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.os.MacOsHelper;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
+import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
 
@@ -32,10 +35,17 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(PluginDescriptor plugin) {
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
+
+    super.configureToolArgs(pc, processMode, errorHandling, args);
+    pc.addArg(this.context.getWorkspacePath());
+  }
+
+  @Override
+  public void installPlugin(ToolPluginDescriptor plugin) {
     String downloadUrl = getDownloadUrl(plugin);
 
-    String pluginId = plugin.getId();
+    String pluginId = plugin.id();
 
     Path tmpDir = null;
 
@@ -65,12 +75,12 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   }
 
   /**
-   * @param plugin the {@link PluginDescriptor} to be installer
+   * @param plugin the {@link ToolPluginDescriptor} to be installer
    * @return a {@link String} representing the download URL.
    */
-  private String getDownloadUrl(PluginDescriptor plugin) {
-    String downloadUrl = plugin.getUrl();
-    String pluginId = URLEncoder.encode(plugin.getId(), StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+  private String getDownloadUrl(ToolPluginDescriptor plugin) {
+    String downloadUrl = plugin.url();
+    String pluginId = URLEncoder.encode(plugin.id(), StandardCharsets.UTF_8).replaceAll("\\+", "%20");
 
     String buildVersion = readBuildVersion();
 
@@ -146,33 +156,4 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     };
   }
 
-  /**
-   * Creates a start script for the tool using the tool name.
-   *
-   * @param extractedDir path to extracted tool directory.
-   * @param binaryName name of the binary to add to start script.
-   */
-  protected void createStartScript(Path extractedDir, String binaryName) {
-    Path binFolder = extractedDir.resolve("bin");
-    if (!Files.exists(binFolder)) {
-      if (this.context.getSystemInfo().isMac()) {
-        MacOsHelper macOsHelper = getMacOsHelper();
-        Path appDir = macOsHelper.findAppDir(extractedDir);
-        binFolder = macOsHelper.findLinkDir(appDir, binaryName);
-      } else {
-        binFolder = extractedDir;
-      }
-      assert (Files.exists(binFolder));
-    }
-    Path bashFile = binFolder.resolve(getName());
-    String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname \"$0\")/";
-    String bashFileContentEnd = "\" $*";
-    try {
-      Files.writeString(bashFile, bashFileContentStart + binaryName + bashFileContentEnd);
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    assert (Files.exists(bashFile));
-    context.getFileAccess().makeExecutable(bashFile);
-  }
 }

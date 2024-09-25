@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.json;
 
-import com.devonfw.tools.ide.url.model.file.json.DependencyInfo;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -29,7 +29,7 @@ public class JsonMapping {
     SimpleModule customModule = new SimpleModule();
     customModule.addDeserializer(VersionIdentifier.class, new VersionIdentifierDeserializer());
     customModule.addDeserializer(VersionRange.class, new VersionRangeDeserializer());
-    customModule.addDeserializer(DependencyInfo.class, new DependencyInfoDeserializer());
+    customModule.addDeserializer(ToolDependency.class, new ToolDependencyDeserializer());
     customModule.addKeyDeserializer(VersionRange.class, new VersionRangeKeyDeserializer());
     mapper = mapper.registerModule(customModule);
     return mapper;

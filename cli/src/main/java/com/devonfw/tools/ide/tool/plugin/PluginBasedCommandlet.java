@@ -18,7 +18,7 @@ import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
  */
 public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
-  private PluginMaps pluginsMap;
+  private ToolPlugins plugins;
 
   /**
    * The constructor.
@@ -32,38 +32,38 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     super(context, tool, tags);
   }
 
-  public PluginMaps getPluginsMap() {
+  public ToolPlugins getPlugins() {
 
-    if (this.pluginsMap == null) {
-      PluginMaps map = new PluginMaps(this.context);
+    if (this.plugins == null) {
+      ToolPlugins toolPlugins = new ToolPlugins(this.context);
 
       // Load project-specific plugins
       Path pluginsPath = getPluginsConfigPath();
-      loadPluginsFromDirectory(map, pluginsPath);
+      loadPluginsFromDirectory(toolPlugins, pluginsPath);
 
       // Load user-specific plugins, this is done after loading the project-specific plugins so the user can potentially
       // override plugins (e.g. change active flag).
       Path userPluginsPath = getUserHomePluginsConfigPath();
-      loadPluginsFromDirectory(map, userPluginsPath);
+      loadPluginsFromDirectory(toolPlugins, userPluginsPath);
 
-      this.pluginsMap = map;
+      this.plugins = toolPlugins;
     }
 
-    return this.pluginsMap;
+    return this.plugins;
   }
 
-  private void loadPluginsFromDirectory(PluginMaps map, Path pluginsPath) {
+  private void loadPluginsFromDirectory(ToolPlugins map, Path pluginsPath) {
 
     List<Path> children = this.context.getFileAccess()
         .listChildren(pluginsPath, p -> p.getFileName().toString().endsWith(IdeContext.EXT_PROPERTIES));
     for (Path child : children) {
-      PluginDescriptor descriptor = PluginDescriptorImpl.of(child, this.context, isPluginUrlNeeded());
+      ToolPluginDescriptor descriptor = ToolPluginDescriptor.of(child, this.context, isPluginUrlNeeded());
       map.add(descriptor);
     }
   }
 
   /**
-   * @return {@code true} if {@link PluginDescriptor#getUrl() plugin URL} property is needed, {@code false} otherwise.
+   * @return {@code true} if {@link ToolPluginDescriptor#url() plugin URL} property is needed, {@code false} otherwise.
    */
   protected boolean isPluginUrlNeeded() {
 
@@ -91,79 +91,18 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     return this.context.getPluginsPath().resolve(this.tool);
   }
 
-  /**
-   * @param plugin the {@link PluginDescriptor} to install.
-   */
-  public abstract void installPlugin(PluginDescriptor plugin);
-
-  /**
-   * @param plugin the {@link PluginDescriptor} to uninstall.
-   */
-  public void uninstallPlugin(PluginDescriptor plugin) {
-
-    Path pluginsPath = getPluginsInstallationPath();
-    if (!Files.isDirectory(pluginsPath)) {
-      this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not exist at {}",
-          plugin.getName(), plugin.getId(), pluginsPath);
-      return;
-    }
-    FileAccess fileAccess = this.context.getFileAccess();
-    Path match = fileAccess.findFirst(pluginsPath, p -> p.getFileName().toString().startsWith(plugin.getId()), false);
-    if (match == null) {
-      this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not contain a match at {}",
-          plugin.getName(), plugin.getId(), pluginsPath);
-      return;
-    }
-    fileAccess.delete(match);
-  }
-
-  /**
-   * @param key the filename of the properties file configuring the requested plugin (typically excluding the ".properties" extension).
-   * @return the {@link PluginDescriptor} for the given {@code key}.
-   */
-  public PluginDescriptor getPlugin(String key) {
-
-    if (key == null) {
-      return null;
-    }
-    if (key.endsWith(IdeContext.EXT_PROPERTIES)) {
-      key = key.substring(0, key.length() - IdeContext.EXT_PROPERTIES.length());
-    }
-
-    PluginMaps pluginMaps = getPluginsMap();
-    PluginDescriptor pluginDescriptor = pluginMaps.getByName(key);
-    if (pluginDescriptor == null) {
-      throw new CliException(
-          "Could not find plugin " + key + " at " + getPluginsConfigPath().resolve(key) + ".properties");
-    }
-    return pluginDescriptor;
-  }
-
-
   @Override
-  protected boolean doInstall(boolean silent) {
+  protected void postInstall(boolean newlyInstalled) {
 
-    boolean newlyInstalled = super.doInstall(silent);
-    // post installation...
-    boolean installPlugins = newlyInstalled;
-    Path pluginsInstallationPath = getPluginsInstallationPath();
+    super.postInstall(newlyInstalled);
     if (newlyInstalled) {
-      this.context.getFileAccess().delete(pluginsInstallationPath);
-    } else if (!Files.isDirectory(pluginsInstallationPath)) {
-      installPlugins = true;
+      Path pluginsInstallationPath = getPluginsInstallationPath();
+      FileAccess fileAccess = this.context.getFileAccess();
+      fileAccess.delete(pluginsInstallationPath);
+      fileAccess.mkdirs(pluginsInstallationPath);
+      installPlugins(getPlugins().getPlugins());
     }
-    createExtensionFolder();
-    if (installPlugins) {
-      PluginMaps pluginMaps = getPluginsMap();
-      Collection<PluginDescriptor> plugins = pluginMaps.getPlugins();
-      installPlugins(plugins);
-    }
-    return newlyInstalled;
-  }
-
-  private void createExtensionFolder() {
-    Path extensionFolder = this.context.getIdeHome().resolve("plugins").resolve(this.tool);
-    this.context.getFileAccess().mkdirs(extensionFolder);
+    // else ? check all plugins are installed, retry failed plugin installations ?
   }
 
   /**
@@ -171,9 +110,9 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    *
    * @param plugins as {@link Collection} of plugins to install.
    */
-  protected void installPlugins(Collection<PluginDescriptor> plugins) {
-    for (PluginDescriptor plugin : plugins) {
-      if (plugin.isActive()) {
+  protected void installPlugins(Collection<ToolPluginDescriptor> plugins) {
+    for (ToolPluginDescriptor plugin : plugins) {
+      if (plugin.active()) {
         installPlugin(plugin);
       } else {
         handleInstall4InactivePlugin(plugin);
@@ -182,10 +121,58 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * @param plugin the in{@link PluginDescriptor#isActive() active} {@link PluginDescriptor} that is skipped for regular plugin installation.
+   * @param plugin the {@link ToolPluginDescriptor} to install.
    */
-  protected void handleInstall4InactivePlugin(PluginDescriptor plugin) {
+  public abstract void installPlugin(ToolPluginDescriptor plugin);
 
-    this.context.debug("Omitting installation of inactive plugin {} ({}).", plugin.getName(), plugin.getId());
+  /**
+   * @param plugin the {@link ToolPluginDescriptor} to uninstall.
+   */
+  public void uninstallPlugin(ToolPluginDescriptor plugin) {
+
+    Path pluginsPath = getPluginsInstallationPath();
+    if (!Files.isDirectory(pluginsPath)) {
+      this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not exist at {}",
+          plugin.name(), plugin.id(), pluginsPath);
+      return;
+    }
+    FileAccess fileAccess = this.context.getFileAccess();
+    Path match = fileAccess.findFirst(pluginsPath, p -> p.getFileName().toString().startsWith(plugin.id()), false);
+    if (match == null) {
+      this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not contain a match at {}",
+          plugin.name(), plugin.id(), pluginsPath);
+      return;
+    }
+    fileAccess.delete(match);
+  }
+
+  /**
+   * @param key the filename of the properties file configuring the requested plugin (typically excluding the ".properties" extension).
+   * @return the {@link ToolPluginDescriptor} for the given {@code key}.
+   */
+  public ToolPluginDescriptor getPlugin(String key) {
+
+    if (key == null) {
+      return null;
+    }
+    if (key.endsWith(IdeContext.EXT_PROPERTIES)) {
+      key = key.substring(0, key.length() - IdeContext.EXT_PROPERTIES.length());
+    }
+
+    ToolPlugins toolPlugins = getPlugins();
+    ToolPluginDescriptor pluginDescriptor = toolPlugins.getByName(key);
+    if (pluginDescriptor == null) {
+      throw new CliException(
+          "Could not find plugin " + key + " at " + getPluginsConfigPath().resolve(key) + ".properties");
+    }
+    return pluginDescriptor;
+  }
+
+  /**
+   * @param plugin the in{@link ToolPluginDescriptor#active() active} {@link ToolPluginDescriptor} that is skipped for regular plugin installation.
+   */
+  protected void handleInstall4InactivePlugin(ToolPluginDescriptor plugin) {
+
+    this.context.debug("Omitting installation of inactive plugin {} ({}).", plugin.name(), plugin.id());
   }
 }
