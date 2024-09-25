@@ -143,7 +143,7 @@ public class IntellijTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
     assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
         "Successfully installed intellij in version 2023.3.3",
-        "Install plugin: mockedPlugin");
+        "Successfully ended step 'Install plugin: mockedPlugin'.");
     assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).exists();
   }
 
