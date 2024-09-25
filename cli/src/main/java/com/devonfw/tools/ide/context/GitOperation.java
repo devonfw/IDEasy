@@ -174,7 +174,7 @@ public enum GitOperation {
         } else {
           context.debug("Skipping git {} on {} because last fetch was just recently to avoid overhead.", this.name,
               targetRepository);
-          return true;
+          return false;
         }
       } catch (IOException e) {
         context.warning().log(e, "Could not update modification-time of {}. Will have to do git {}.", timestampFilePath, this.name);
