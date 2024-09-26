@@ -26,6 +26,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/52[#52]: Adjusting Intellij settings in ide-settings
 * https://github.com/devonfw/IDEasy/issues/588[#588]: ide create installs wrong Java version
 * https://github.com/devonfw/IDEasy/issues/650[#650]: Improve default success message of step
+* https://github.com/devonfw/IDEasy/issues/655[#655]: CVE-2024-26308 and library updates
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/13?closed=1[milestone 2024.09.002].
 
