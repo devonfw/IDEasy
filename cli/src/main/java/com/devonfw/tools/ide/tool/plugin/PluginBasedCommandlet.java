@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.plugin;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -151,17 +152,33 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     } else if (!Files.isDirectory(pluginsInstallationPath)) {
       installPlugins = true;
     }
+    createExtensionFolder();
     if (installPlugins) {
       PluginMaps pluginMaps = getPluginsMap();
-      for (PluginDescriptor plugin : pluginMaps.getPlugins()) {
-        if (plugin.isActive()) {
-          installPlugin(plugin);
-        } else {
-          handleInstall4InactivePlugin(plugin);
-        }
-      }
+      Collection<PluginDescriptor> plugins = pluginMaps.getPlugins();
+      installPlugins(plugins);
     }
     return newlyInstalled;
+  }
+
+  private void createExtensionFolder() {
+    Path extensionFolder = this.context.getIdeHome().resolve("plugins").resolve(this.tool);
+    this.context.getFileAccess().mkdirs(extensionFolder);
+  }
+
+  /**
+   * Method to install active plugins or to handle install for inactive plugins
+   *
+   * @param plugins as {@link Collection} of plugins to install.
+   */
+  protected void installPlugins(Collection<PluginDescriptor> plugins) {
+    for (PluginDescriptor plugin : plugins) {
+      if (plugin.isActive()) {
+        installPlugin(plugin);
+      } else {
+        handleInstall4InactivePlugin(plugin);
+      }
+    }
   }
 
   /**
