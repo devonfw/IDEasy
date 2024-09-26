@@ -203,4 +203,16 @@ public interface GitContext {
    */
   String retrieveGitUrl(Path repository);
 
+  /**
+   * @param repository the {@link Path} to the folder where the git repository is located.
+   * @return the name of the current branch.
+   */
+  String determineCurrentBranch(Path repository);
+
+  /**
+   * @param repository the {@link Path} to the folder where the git repository is located.
+   * @return the name of the default origin.
+   */
+  String determineRemote(Path repository);
+
 }
