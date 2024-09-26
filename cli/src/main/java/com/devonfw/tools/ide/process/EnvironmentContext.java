@@ -27,4 +27,12 @@ public interface EnvironmentContext {
    */
   EnvironmentContext withPathEntry(Path path);
 
+  /**
+   * @return an empty instance of {@link EnvironmentContext} to prevent {@link NullPointerException}s.
+   */
+  static EnvironmentContext getEmpty() {
+
+    return EnvironmentContextEmpty.INSTANCE;
+  }
+
 }

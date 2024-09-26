@@ -81,7 +81,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
     String bashPath = this.context.findBashRequired();
     for (String command : pmCommand.commands()) {
-      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(bashPath)
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(bashPath)
           .addArgs("-c", command);
       int exitCode = pc.run();
       if (exitCode != 0) {
@@ -105,13 +105,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  protected boolean doInstall(boolean silent) {
-
-    return doInstall(null, silent);
-  }
-
-  @Override
-  protected boolean doInstall(EnvironmentContext environmentContext, boolean silent) {
+  public boolean install(boolean silent, EnvironmentContext environmentContext) {
 
     Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
     // if force mode is enabled, go through with the installation even if the tool is already installed
@@ -136,7 +130,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       fileAccess.extract(target, downloadBinaryPath);
       executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(executable);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
     int exitCode = pc.run();
     if (tmpDir != null) {
       fileAccess.delete(tmpDir);

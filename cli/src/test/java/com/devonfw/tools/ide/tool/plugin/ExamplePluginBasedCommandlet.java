@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.step.Step;
 
 /**
  * Example implementation of {@link PluginBasedCommandlet} for testing.
@@ -23,7 +24,7 @@ public class ExamplePluginBasedCommandlet extends PluginBasedCommandlet {
   }
 
   @Override
-  public void installPlugin(PluginDescriptor plugin) {
+  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
 
   }
 }

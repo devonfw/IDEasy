@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,10 +17,10 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
-import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
-import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -46,18 +45,20 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(PluginDescriptor plugin) {
+  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
 
+    doInstallPlugins(List.of(plugin));
+    step.success();
   }
 
   @Override
-  protected void installPlugins(Collection<PluginDescriptor> plugins) {
+  protected void installPlugins(Collection<ToolPluginDescriptor> plugins) {
 
-    List<PluginDescriptor> pluginsToInstall = new ArrayList<>();
-    List<PluginDescriptor> pluginsToRecommend = new ArrayList<>();
+    List<ToolPluginDescriptor> pluginsToInstall = new ArrayList<>();
+    List<ToolPluginDescriptor> pluginsToRecommend = new ArrayList<>();
 
-    for (PluginDescriptor plugin : plugins) {
-      if (plugin.isActive()) {
+    for (ToolPluginDescriptor plugin : plugins) {
+      if (plugin.active()) {
         pluginsToInstall.add(plugin);
       } else {
         pluginsToRecommend.add(plugin);
@@ -68,7 +69,7 @@ public class Vscode extends IdeToolCommandlet {
 
   }
 
-  private void doInstallPlugins(List<PluginDescriptor> pluginsToInstall) {
+  private void doInstallPlugins(List<ToolPluginDescriptor> pluginsToInstall) {
 
     List<String> extensionsCommands = new ArrayList<>();
 
@@ -76,15 +77,15 @@ public class Vscode extends IdeToolCommandlet {
       this.context.info("No plugins to be installed");
     } else {
 
-      for (PluginDescriptor plugin : pluginsToInstall) {
+      for (ToolPluginDescriptor plugin : pluginsToInstall) {
         extensionsCommands.add("--install-extension");
-        extensionsCommands.add(plugin.getId());
+        extensionsCommands.add(plugin.id());
       }
     }
     runTool(ProcessMode.DEFAULT, null, extensionsCommands.toArray(new String[0]));
   }
 
-  private void doAddRecommendations(List<PluginDescriptor> recommendations) {
+  private void doAddRecommendations(List<ToolPluginDescriptor> recommendations) {
     Path extensionsJsonPath = this.context.getWorkspacePath().resolve(".vscode/extensions.json");
 
     ObjectMapper objectMapper = new ObjectMapper();
@@ -105,8 +106,8 @@ public class Vscode extends IdeToolCommandlet {
     try {
       int addedRecommendations = 0;
       Set<String> existingRecommendationsSet = new HashSet<>(existingRecommendations);
-      for (PluginDescriptor recommendation : recommendations) {
-        String recommendationId = recommendation.getId();
+      for (ToolPluginDescriptor recommendation : recommendations) {
+        String recommendationId = recommendation.id();
         if (existingRecommendationsSet.add(recommendationId)) {
           existingRecommendations.add(recommendationId);
           addedRecommendations++;
@@ -123,24 +124,14 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
-
-    install(true);
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
 
     Path vsCodeConf = this.context.getWorkspacePath().resolve(".vscode/.userdata");
+    pc.addArg("--new-window");
+    pc.addArg("--user-data-dir=" + vsCodeConf);
     Path vsCodeExtensionFolder = this.context.getIdeHome().resolve("plugins/vscode");
-
-    List<String> command = new ArrayList<>();
-    command.add("--new-window");
-    command.add("--user-data-dir=" + vsCodeConf);
-    command.add("--extensions-dir=" + vsCodeExtensionFolder);
-
-    command.addAll(Arrays.asList(args));
-
-    Path binaryPath;
-    binaryPath = Path.of(getBinaryName());
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW).executable(binaryPath).addArgs(command.toArray());
-    pc.run(processMode);
+    pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
+    super.configureToolArgs(pc, processMode, errorHandling, args);
   }
 
 }

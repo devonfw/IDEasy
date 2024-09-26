@@ -5,8 +5,8 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
-import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
-import com.devonfw.tools.ide.tool.plugin.PluginMaps;
+import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
+import com.devonfw.tools.ide.tool.plugin.ToolPlugins;
 import com.devonfw.tools.ide.validation.PropertyValidator;
 
 /**
@@ -56,11 +56,11 @@ public class PluginProperty extends Property<String> {
   protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
     ToolCommandlet cmd = commandlet.getToolForCompletion();
-    if (cmd instanceof PluginBasedCommandlet) {
-      PluginMaps pluginMap = ((PluginBasedCommandlet) cmd).getPluginsMap();
-      for (PluginDescriptor pluginDescriptor : pluginMap.getPlugins()) {
-        if (pluginDescriptor.getName().toLowerCase().startsWith(arg.toLowerCase())) {
-          collector.add(pluginDescriptor.getName(), null, null, commandlet);
+    if (cmd instanceof PluginBasedCommandlet pbc) {
+      ToolPlugins plugins = pbc.getPlugins();
+      for (ToolPluginDescriptor pluginDescriptor : plugins.getPlugins()) {
+        if (pluginDescriptor.name().toLowerCase().startsWith(arg.toLowerCase())) {
+          collector.add(pluginDescriptor.name(), null, null, commandlet);
         }
       }
     }

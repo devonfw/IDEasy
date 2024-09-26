@@ -8,7 +8,6 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
-import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -17,9 +16,10 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
-import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
+import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
@@ -37,57 +37,45 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected void runIde(String... args) {
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
 
-    install(true);
-    runEclipse(ProcessMode.BACKGROUND, CliArgument.prepend(args, "gui", "-showlocation", this.context.getIdeHome().getFileName().toString()));
+    if ((processMode == ProcessMode.DEFAULT_CAPTURE) && this.context.getSystemInfo().isWindows()) {
+      pc.executable(Path.of("eclipsec"));
+    } else {
+      super.configureToolBinary(pc, processMode, errorHandling);
+    }
   }
 
   @Override
-  public boolean install(boolean silent) {
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
 
-    getCommandlet(Java.class).install();
-    return super.install(silent);
-  }
-
-  /**
-   * Runs eclipse application.
-   *
-   * @param processMode - the {@link ProcessMode}.
-   * @param args the individual arguments to pass to eclipse.
-   * @return the {@link ProcessResult}.
-   */
-  protected ProcessResult runEclipse(ProcessMode processMode, String... args) {
-
-    Path toolPath = Path.of(getBinaryName());
-    ProcessContext pc = this.context.newProcess();
-    if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-      pc.errorHandling(ProcessErrorHandling.ERROR);
-    }
-    pc.executable(toolPath);
-    Path configurationPath = getPluginsInstallationPath().resolve("configuration");
-    this.context.getFileAccess().mkdirs(configurationPath);
+    // configure workspace location
     pc.addArg("-data").addArg(this.context.getWorkspacePath());
-    pc.addArg("-clean");
+    // use keyring from user home to keep secrets and share across projects and workspaces
     pc.addArg("-keyring").addArg(this.context.getUserHome().resolve(".eclipse").resolve(".keyring"));
-    pc.addArg("-configuration").addArg(configurationPath);
-    if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+    // use isolated plugins folder from project instead of modifying eclipse installation in software repo on plugin installation
+    pc.addArg("-configuration").addArg(getPluginsInstallationPath().resolve("configuration"));
+    if (processMode == ProcessMode.BACKGROUND) {
+      // to start eclipse as GUI
+      pc.addArg("gui").addArg("-showlocation").addArg(this.context.getIdeHome().getFileName());
+    } else if (processMode == ProcessMode.DEFAULT_CAPTURE) {
       pc.addArg("-consoleLog").addArg("-nosplash");
     }
-    // TODO ability to use different Java version
-    Path javaPath = getCommandlet(Java.class).getToolBinPath();
-    pc.addArg("-vm").addArg(javaPath);
-    pc.addArgs(args);
-
-    return pc.run(processMode);
-
+    super.configureToolArgs(pc, processMode, errorHandling, args);
   }
 
   @Override
-  public void installPlugin(PluginDescriptor plugin) {
+  protected void installDependencies() {
 
-    ProcessResult result = runEclipse(ProcessMode.DEFAULT_CAPTURE, "-application", "org.eclipse.equinox.p2.director", "-repository", plugin.getUrl(),
-        "-installIU", plugin.getId());
+    // TODO create eclipse/eclipse/dependencies.json file in ide-urls and delete this method
+    getCommandlet(Java.class).install();
+  }
+
+  @Override
+  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
+
+    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, null, ProcessErrorHandling.LOG_WARNING, "-application", "org.eclipse.equinox.p2.director",
+        "-repository", plugin.url(), "-installIU", plugin.id());
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
@@ -95,8 +83,8 @@ public class Eclipse extends IdeToolCommandlet {
         }
       }
     }
-    this.context.error("Failed to install plugin {} ({}): exit code was {}", plugin.getName(), plugin.getId(), result.getExitCode());
-    log(IdeLogLevel.WARNING, result.getOut());
+    this.context.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
+    log(IdeLogLevel.DEBUG, result.getOut());
     log(IdeLogLevel.ERROR, result.getErr());
   }
 

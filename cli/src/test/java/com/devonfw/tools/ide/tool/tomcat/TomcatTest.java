@@ -1,10 +1,14 @@
 package com.devonfw.tools.ide.tool.tomcat;
 
+import java.nio.file.Path;
+
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.tool.java.Java;
 
 public class TomcatTest extends AbstractIdeContextTest {
 
@@ -13,37 +17,46 @@ public class TomcatTest extends AbstractIdeContextTest {
   @Test
   public void testTomcat() {
 
-    // arrange
-    IdeTestContext context = newContext(PROJECT_TOMCAT);
-    Tomcat tomcatCommandlet = new Tomcat(context);
+    // in the tomcat project we have JAVA_VERSION=8u402b06 and TOMCAT_VERSION=10.1.14
+    // that tomcat version requires Java but in version range [11,21_35] what is incompatible
+    // so we test that Java 8u402b06 gets installed in the project but for tomcat
+    // additionally Java version 21_35 gets installed in the software repository and is used by tomcat
+    // instead of the project Java version 8u402b06
 
-    // run
-    tomcatCommandlet.runTool(ProcessMode.DEFAULT, null, true);
+    // arrange
+    String javaVersionProject = "8u402b06";
+    String tomcatVersion = "10.1.14";
+    String javaVersionTomcat = "21_35";
+    String tomcatPort = "8088";
+    IdeTestContext context = newContext(PROJECT_TOMCAT);
+    Java javaCommandlet = context.getCommandletManager().getCommandlet(Java.class);
+    Tomcat tomcatCommandlet = context.getCommandletManager().getCommandlet(Tomcat.class);
+    Path javaTomcatPath = context.getToolRepositoryPath().resolve("default").resolve("java").resolve("java").resolve(javaVersionTomcat);
+
+    // act
+    javaCommandlet.arguments.addValue("--version");
+    javaCommandlet.run();
+    tomcatCommandlet.run();
 
     // assert
-    checkInstallation(context);
-    checkDependencyInstallation(context);
-    checkRunningTomcat(context);
-  }
-
-  private void checkDependencyInstallation(IdeTestContext context) {
-
-    assertThat(context).logAtInfo().hasEntries("The version 17.0.10_7 of the dependency java is being installed",
-        "The version 17.0.10_7 of the dependency java was successfully installed");
-  }
-
-  private void checkRunningTomcat(IdeTestContext context) {
-
-    assertThat(context).logAtInfo().hasEntries("Tomcat is running at localhost on the following port (default 8080):", "8080");
-  }
-
-  private void checkInstallation(IdeTestContext context) {
-
-    assertThat(context.getSoftwarePath().resolve("tomcat/bin/catalina.bat")).exists().hasContent("@echo test for windows");
-    assertThat(context.getSoftwarePath().resolve("tomcat/bin/catalina.sh")).exists().hasContent("#!/bin/bash\n" + "echo \"Test for linux and Mac\"");
-
-    assertThat(context.getSoftwarePath().resolve("tomcat/.ide.software.version")).exists().hasContent("10.1.14");
-    assertThat(context).logAtSuccess().hasMessage("Successfully installed tomcat in version 10.1.14");
+    assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(javaVersionProject);
+    assertThat(context.getSoftwarePath().resolve("tomcat/bin/catalina.bat")).exists();
+    assertThat(context.getSoftwarePath().resolve("tomcat/bin/catalina.sh")).exists();
+    assertThat(context.getSoftwarePath().resolve("tomcat/.ide.software.version")).exists().hasContent(tomcatVersion);
+    assertThat(javaTomcatPath.resolve(".ide.software.version")).exists().hasContent(javaVersionTomcat);
+    assertThat(context).log().hasEntries(
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version " + javaVersionProject), //
+        new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionProject), //
+        new IdeLogEntry(IdeLogLevel.INFO,
+            "Configured version is 8u402b06 but does not match version to install [11,21_35] - need to use different version from software repository."), //
+        new IdeLogEntry(IdeLogLevel.DEBUG, "Installed java in version " + javaVersionTomcat + " at ", true),
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed tomcat in version " + tomcatVersion), //
+        new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionTomcat), //
+        new IdeLogEntry(IdeLogLevel.INFO, "JAVA_HOME=" + javaTomcatPath), //
+        new IdeLogEntry(IdeLogLevel.INFO, "tomcat start"), //
+        new IdeLogEntry(IdeLogLevel.INFO, "Tomcat is running at localhost on HTTP port " + tomcatPort + ":"), //
+        new IdeLogEntry(IdeLogLevel.INFO, "http://localhost:" + tomcatPort) //
+    );
   }
 
 }

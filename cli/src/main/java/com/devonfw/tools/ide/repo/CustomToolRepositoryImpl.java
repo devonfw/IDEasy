@@ -25,6 +25,8 @@ import javax.json.JsonValue.ValueType;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
+import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -109,10 +111,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   @Override
   protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version) {
 
-    CustomTool customTool = this.toolsMap.get(tool);
-    if (customTool == null) {
-      throw new IllegalArgumentException("Undefined custom tool '" + tool + "'!");
-    }
+    CustomTool customTool = getCustomTool(tool);
     if (!version.equals(customTool.getVersion())) {
       throw new IllegalArgumentException("Undefined version '" + version + "' for custom tool '" + tool
           + "' - expected version '" + customTool.getVersion() + "'!");
@@ -123,16 +122,35 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
     return customTool;
   }
 
-  @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, VersionIdentifier version) {
+  private CustomTool getCustomTool(String tool) {
+    CustomTool customTool = this.toolsMap.get(tool);
+    if (customTool == null) {
+      throw new IllegalArgumentException("Undefined custom tool '" + tool + "'!");
+    }
+    return customTool;
+  }
 
-    return getMetadata(tool, edition, version).getVersion();
+  @Override
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version) {
+
+    CustomTool customTool = getCustomTool(tool);
+    VersionIdentifier customToolVerstion = customTool.getVersion();
+    if (!version.contains(customToolVerstion)) {
+      throw new IllegalStateException(customTool + " does not satisfy version to install " + version);
+    }
+    return customToolVerstion;
   }
 
   @Override
   public Collection<CustomTool> getTools() {
 
     return this.tools;
+  }
+
+  @Override
+  public Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version) {
+    
+    return Collections.emptyList();
   }
 
   /**

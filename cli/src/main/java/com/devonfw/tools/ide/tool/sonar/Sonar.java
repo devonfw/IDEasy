@@ -54,7 +54,7 @@ public class Sonar extends LocalToolCommandlet {
 
     switch (command) {
       case ANALYZE:
-        getCommandlet(Mvn.class).runTool(null, "sonar:sonar");
+        getCommandlet(Mvn.class).runTool("sonar:sonar");
         break;
       case START:
         printSonarWebPort();

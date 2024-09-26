@@ -5,6 +5,6 @@ import com.devonfw.tools.ide.version.VersionRange;
 /**
  * Model to represent a dependency of a tool (inside a "dependencies.json" file).
  */
-public record DependencyInfo(String tool, VersionRange versionRange) {
+public record ToolDependency(String tool, VersionRange versionRange) {
 
 }

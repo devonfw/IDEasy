@@ -3,15 +3,13 @@ package com.devonfw.tools.ide.tool.intellij;
 import java.nio.file.Path;
 import java.util.Set;
 
-import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
@@ -35,21 +33,18 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
+  protected void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
-    install(true);
-    args = CliArgument.append(args, this.context.getWorkspacePath().toString());
-    ProcessContext pc = createProcessContext(Path.of(getBinaryName()), args);
-    pc.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString());
-    pc.run(processMode);
-
+    super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
+    environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString());
   }
 
   @Override
-  public boolean install(boolean silent) {
+  protected void installDependencies() {
 
+    // TODO create intellij/intellij/dependencies.json file in ide-urls and delete this method
+    // TODO create intellij/ultimate/dependencies.json file in ide-urls and delete this method
     getCommandlet(Java.class).install();
-    return super.install(silent);
   }
 
   @Override
@@ -64,7 +59,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     } else {
       binaryName = IDEA_BASH_SCRIPT;
     }
-    createStartScript(extractedDir, binaryName);
+    createStartScript(extractedDir, binaryName, true);
   }
 
 }

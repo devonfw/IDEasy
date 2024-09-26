@@ -2,21 +2,20 @@ package com.devonfw.tools.ide.json;
 
 import java.io.IOException;
 
-import com.devonfw.tools.ide.url.model.file.json.DependencyInfo;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.VersionRange;
-import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonToken;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 
 /**
- * {@link JsonDeserializer} for {@link DependencyInfo}.
+ * {@link JsonDeserializer} for {@link ToolDependency}.
  */
-public class DependencyInfoDeserializer extends JsonDeserializer<DependencyInfo> {
+public class ToolDependencyDeserializer extends JsonDeserializer<ToolDependency> {
 
   @Override
-  public DependencyInfo deserialize(JsonParser p, DeserializationContext context) throws IOException, JacksonException {
+  public ToolDependency deserialize(JsonParser p, DeserializationContext context) throws IOException {
 
     JsonToken token = p.getCurrentToken();
     if (token == JsonToken.START_OBJECT) {
@@ -40,7 +39,7 @@ public class DependencyInfoDeserializer extends JsonDeserializer<DependencyInfo>
         token = p.nextToken();
       }
       if ((tool != null) && (versionRange != null)) {
-        return new DependencyInfo(tool, versionRange);
+        return new ToolDependency(tool, versionRange);
       }
     }
     throw new IllegalArgumentException("Invalid JSON for DependencyInfo!");

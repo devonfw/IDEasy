@@ -23,21 +23,21 @@ public class PluginBasedCommandletTest extends AbstractIdeContextTest {
     Set<Tag> tags = null;
     ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, tool, tags);
 
-    PluginMaps pluginsMap = pluginBasedCommandlet.getPluginsMap();
+    ToolPlugins pluginsMap = pluginBasedCommandlet.getPlugins();
     assertThat(pluginsMap).isNotNull();
 
     assertThat(pluginsMap.getByName("checkstyle")).isNotNull();
     assertThat(pluginsMap.getByName("anyedit")).isNotNull();
 
-    PluginDescriptor plugin1 = pluginsMap.getByName("checkstyle");
+    ToolPluginDescriptor plugin1 = pluginsMap.getByName("checkstyle");
     assertNotNull(plugin1);
-    assertThat(plugin1.getName()).isEqualTo("checkstyle");
+    assertThat(plugin1.name()).isEqualTo("checkstyle");
 
-    PluginDescriptor plugin2 = pluginsMap.getByName("anyedit");
+    ToolPluginDescriptor plugin2 = pluginsMap.getByName("anyedit");
     assertNotNull(plugin2);
-    assertThat(plugin2.getName()).isEqualTo("anyedit");
+    assertThat(plugin2.name()).isEqualTo("anyedit");
 
     // Check if anyedit plugin has value "false" --> value from user directory
-    assertThat(plugin2.isActive()).isFalse();
+    assertThat(plugin2.active()).isFalse();
   }
 }

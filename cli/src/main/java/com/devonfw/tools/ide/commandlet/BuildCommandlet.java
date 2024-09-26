@@ -77,7 +77,7 @@ public class BuildCommandlet extends Commandlet {
     }
 
     if (commandlet != null) {
-      commandlet.runTool(null, defaultToolOptions);
+      commandlet.runTool(defaultToolOptions);
     }
 
   }

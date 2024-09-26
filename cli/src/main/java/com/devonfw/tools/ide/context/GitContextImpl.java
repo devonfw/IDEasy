@@ -30,7 +30,7 @@ public class GitContextImpl implements GitContext {
   public GitContextImpl(IdeContext context) {
 
     this.context = context;
-    this.processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").errorHandling(ProcessErrorHandling.WARNING);
+    this.processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").errorHandling(ProcessErrorHandling.LOG_WARNING);
   }
 
   @Override

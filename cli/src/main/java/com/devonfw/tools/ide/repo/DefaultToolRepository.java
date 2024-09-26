@@ -1,11 +1,16 @@
 package com.devonfw.tools.ide.repo;
 
+import java.util.Collection;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
+import com.devonfw.tools.ide.url.model.file.UrlDependencyFile;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -30,7 +35,7 @@ public class DefaultToolRepository extends AbstractToolRepository {
   }
 
   @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, VersionIdentifier version) {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version) {
 
     UrlMetadata metadata = this.context.getUrls();
     UrlVersion urlVersion = metadata.getVersionFolder(tool, edition, version);
@@ -47,4 +52,10 @@ public class DefaultToolRepository extends AbstractToolRepository {
     return urls;
   }
 
+  @Override
+  public Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version) {
+
+    UrlDependencyFile dependencyFile = this.context.getUrls().getEdition(tool, edition).getDependencyFile();
+    return dependencyFile.getDependencies().findDependencies(version);
+  }
 }

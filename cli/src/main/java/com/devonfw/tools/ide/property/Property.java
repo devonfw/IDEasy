@@ -220,6 +220,14 @@ public abstract class Property<V> {
   }
 
   /**
+   * @return a {@link List} containing all {@link #getValue(int) values}. This method only makes sense for {@link #isMultiValued() multi valued} properties.
+   */
+  public List<V> asList() {
+
+    return new ArrayList<>(this.value);
+  }
+
+  /**
    * @param valueToFormat the value to format.
    * @return the given {@code value} formatted as {@link String}.
    */

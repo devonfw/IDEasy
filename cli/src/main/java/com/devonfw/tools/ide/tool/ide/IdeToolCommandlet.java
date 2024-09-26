@@ -42,20 +42,16 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   }
 
   @Override
-  public void run() {
+  public final void run() {
 
     configureWorkspace();
-    runIde(this.arguments.asArray());
+    super.run();
   }
 
-  /**
-   * Run the actual IDE.
-   *
-   * @param args the additional arguments to pass to the IDE.
-   */
-  protected void runIde(String... args) {
+  @Override
+  public void runTool(String... args) {
 
-    runTool(ProcessMode.DEFAULT, null, args);
+    runTool(ProcessMode.BACKGROUND, null, args);
   }
 
   /**
