@@ -31,6 +31,7 @@ public class ToolPlugins {
   }
 
   /**
+   * @param id the {@link ToolPluginDescriptor#id() ID} of the requested {@link ToolPluginDescriptor}.
    * @return the {@link ToolPluginDescriptor} for the given {@link ToolPluginDescriptor#id() ID} or {@code null} if not found.
    */
   public ToolPluginDescriptor getById(String id) {
@@ -38,6 +39,7 @@ public class ToolPlugins {
   }
 
   /**
+   * @param name the {@link ToolPluginDescriptor#name() name} of the requested {@link ToolPluginDescriptor}.
    * @return the {@link ToolPluginDescriptor} for the given {@link ToolPluginDescriptor#name() name} or {@code null} if not found.
    */
   public ToolPluginDescriptor getByName(String name) {
@@ -57,7 +59,7 @@ public class ToolPlugins {
   }
 
   /**
-   * Registers a {@link ToolPluginDescriptor} to this map.
+   * @param descriptor the {@link ToolPluginDescriptor} to add.
    */
   protected void add(ToolPluginDescriptor descriptor) {
     put(descriptor.name(), descriptor, this.mapByName);
@@ -67,7 +69,7 @@ public class ToolPlugins {
     }
   }
 
-  public void put(String key, ToolPluginDescriptor descriptor, Map<String, ToolPluginDescriptor> map) {
+  private void put(String key, ToolPluginDescriptor descriptor, Map<String, ToolPluginDescriptor> map) {
     ToolPluginDescriptor duplicate = map.put(key, descriptor);
     if (duplicate != null) {
       this.context.info("Plugin with key {} was {} but got overridden by {}", key, duplicate, descriptor);
