@@ -173,6 +173,6 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
       throw new RuntimeException(e);
     }
     assert (Files.exists(bashFile));
-    context.getFileAccess().makeExecutable(bashFile);
+    this.context.getFileAccess().makeExecutable(bashFile);
   }
 }
