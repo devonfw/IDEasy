@@ -228,7 +228,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @param environmentContext the {@link EnvironmentContext} used to
-   *     {@link LocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation) configure environment variables}.
+   *     {@link LocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
   public abstract boolean install(boolean silent, EnvironmentContext environmentContext);
@@ -459,34 +459,52 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     return null;
   }
 
+  /**
+   * Creates a start script for the tool using the tool name.
+   *
+   * @param targetDir the {@link Path} of the installation where to create the script. If a "bin" sub-folder is present, the script will be created there
+   *     instead.
+   * @param binary name of the binary to execute from the start script.
+   */
+  protected void createStartScript(Path targetDir, String binary) {
+
+    createStartScript(targetDir, binary, false);
+  }
 
   /**
    * Creates a start script for the tool using the tool name.
    *
-   * @param extractedDir path to extracted tool directory.
-   * @param binaryName name of the binary to add to start script.
+   * @param targetDir the {@link Path} of the installation where to create the script. If a "bin" sub-folder is present, the script will be created there
+   *     instead.
+   * @param binary name of the binary to execute from the start script.
+   * @param background {@code true} to run the {@code binary} in background, {@code false} otherwise (foreground).
    */
-  protected void createStartScript(Path extractedDir, String binaryName) {
-    Path binFolder = extractedDir.resolve("bin");
+  protected void createStartScript(Path targetDir, String binary, boolean background) {
+
+    Path binFolder = targetDir.resolve("bin");
     if (!Files.exists(binFolder)) {
       if (this.context.getSystemInfo().isMac()) {
         MacOsHelper macOsHelper = getMacOsHelper();
-        Path appDir = macOsHelper.findAppDir(extractedDir);
-        binFolder = macOsHelper.findLinkDir(appDir, binaryName);
+        Path appDir = macOsHelper.findAppDir(targetDir);
+        binFolder = macOsHelper.findLinkDir(appDir, binary);
       } else {
-        binFolder = extractedDir;
+        binFolder = targetDir;
       }
       assert (Files.exists(binFolder));
     }
     Path bashFile = binFolder.resolve(getName());
     String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname \"$0\")/";
     String bashFileContentEnd = "\" $*";
+    if (background) {
+      bashFileContentEnd += " &";
+    }
     try {
-      Files.writeString(bashFile, bashFileContentStart + binaryName + bashFileContentEnd);
+      Files.writeString(bashFile, bashFileContentStart + binary + bashFileContentEnd);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
     assert (Files.exists(bashFile));
     context.getFileAccess().makeExecutable(bashFile);
   }
+
 }

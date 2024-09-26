@@ -44,6 +44,6 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
     } else {
       binaryName = "studio.sh";
     }
-    createStartScript(extractedDir, binaryName);
+    createStartScript(extractedDir, binaryName, true);
   }
 }

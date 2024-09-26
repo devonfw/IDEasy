@@ -59,7 +59,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     } else {
       binaryName = IDEA_BASH_SCRIPT;
     }
-    createStartScript(extractedDir, binaryName);
+    createStartScript(extractedDir, binaryName, true);
   }
 
 }
