@@ -148,7 +148,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       List<Path> softwarePaths = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
       for (Path softwarePath : softwarePaths) {
         String toolName = softwarePath.getFileName().toString();
-        ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandletOrNull(toolName);
+        ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandlet(toolName);
         if (toolCommandlet != null) {
           toolCommandlets.add(toolCommandlet);
         }
@@ -158,7 +158,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       List<String> regularTools = IdeVariables.IDE_TOOLS.get(this.context);
       if (regularTools != null) {
         for (String regularTool : regularTools) {
-          toolCommandlets.add(this.context.getCommandletManager().getToolCommandlet(regularTool));
+          toolCommandlets.add(this.context.getCommandletManager().getRequiredToolCommandlet(regularTool));
         }
       }
 

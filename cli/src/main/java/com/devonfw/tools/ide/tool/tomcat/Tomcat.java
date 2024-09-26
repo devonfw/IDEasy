@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.tomcat;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 import javax.xml.parsers.DocumentBuilder;
@@ -14,12 +15,14 @@ import org.xml.sax.SAXException;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.devonfw.tools.ide.tool.ToolInstallation;
+import com.devonfw.tools.ide.version.GenericVersionRange;
 
 /**
  * {@link ToolCommandlet} for <a href="https://tomcat.apache.org/">tomcat</a>.
@@ -34,40 +37,26 @@ public class Tomcat extends LocalToolCommandlet {
   public Tomcat(IdeContext context) {
 
     super(context, "tomcat", Set.of(Tag.JAVA));
-    add(this.arguments);
   }
 
   @Override
-  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
+  public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
 
-    runTool(processMode, toolVersion, true, args);
-  }
-
-  @Override
-  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, boolean existsEnvironmentContext, String... args) {
-
-    Path binaryPath;
-    binaryPath = Path.of(getBinaryName());
-
-    if (existsEnvironmentContext) {
-      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.WARNING).executable(binaryPath).addArgs(args);
-
-      if (toolVersion == null) {
-        install(pc, true);
-      } else {
-        throw new UnsupportedOperationException("Not yet implemented!");
-      }
-
-      pc.withEnvVar("CATALINA_HOME", getToolPath().toString());
-      pc.run(processMode);
+    if (args.length == 0) {
+      args = new String[] { "start" };
     }
-    printTomcatPort();
+    ProcessResult processResult = super.runTool(processMode, toolVersion, errorHandling, args);
+    if (processResult.isSuccessful() && (args[0].equals("start") || args[0].equals("run"))) {
+      printTomcatPort();
+    }
+    return processResult;
   }
 
   @Override
-  protected void initProperties() {
+  protected void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
-    // Empty on purpose, because no initial properties are added to the tool
+    super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
+    environmentContext.withEnvVar("CATALINA_HOME", toolInstallation.linkDir().toString());
   }
 
   @Override
@@ -78,26 +67,37 @@ public class Tomcat extends LocalToolCommandlet {
 
   private void printTomcatPort() {
 
-    this.context.info("Tomcat is running at localhost on the following port (default 8080):");
-    Path tomcatPropertiesPath = getToolPath().resolve("conf/server.xml");
-
-    try {
-      DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-      DocumentBuilder builder = factory.newDocumentBuilder();
-      Document document = builder.parse(tomcatPropertiesPath.toString());
-
-      NodeList connectorNodes = document.getElementsByTagName("Connector");
-      if (connectorNodes.getLength() > 0) {
-        Element ConnectorElement = (Element) connectorNodes.item(0);
-        String portNumber = ConnectorElement.getAttribute("port");
-        this.context.info(portNumber);
-      } else {
-        this.context.warning("Port element not found in server.xml");
-      }
-
-    } catch (ParserConfigurationException | IOException | SAXException e) {
-      this.context.error(e);
+    String portNumber = findTomcatPort();
+    if (!portNumber.isEmpty()) {
+      this.context.info("Tomcat is running at localhost on HTTP port {}:", portNumber);
+      this.context.info("http://localhost:{}", portNumber);
     }
+  }
+
+  private String findTomcatPort() {
+
+    String portNumber = "";
+    Path tomcatPropertiesPath = getToolPath().resolve("conf/server.xml");
+    if (Files.exists(tomcatPropertiesPath)) {
+      try {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder builder = factory.newDocumentBuilder();
+        Document document = builder.parse(tomcatPropertiesPath.toFile());
+        NodeList connectorNodes = document.getElementsByTagName("Connector");
+        if (connectorNodes.getLength() > 0) {
+          Element ConnectorElement = (Element) connectorNodes.item(0);
+          portNumber = ConnectorElement.getAttribute("port");
+        } else {
+          this.context.warning("Port element not found in server.xml");
+        }
+      } catch (ParserConfigurationException | IOException | SAXException e) {
+        this.context.error(e);
+      }
+    }
+    if (portNumber.isEmpty()) {
+      this.context.warning("Could not find HTTP port in {}", tomcatPropertiesPath);
+    }
+    return portNumber;
   }
 
 }

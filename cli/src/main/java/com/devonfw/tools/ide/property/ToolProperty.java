@@ -65,7 +65,7 @@ public class ToolProperty extends Property<ToolCommandlet> {
   @Override
   public ToolCommandlet parse(String valueAsString, IdeContext context) {
 
-    return context.getCommandletManager().getToolCommandlet(valueAsString);
+    return context.getCommandletManager().getRequiredToolCommandlet(valueAsString);
   }
 
   @Override

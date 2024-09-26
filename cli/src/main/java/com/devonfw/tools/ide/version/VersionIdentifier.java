@@ -6,7 +6,7 @@ import java.util.Objects;
  * Data-type to represent a {@link VersionIdentifier} in a structured way and allowing {@link #compareVersion(VersionIdentifier) comparison} of
  * {@link VersionIdentifier}s.
  */
-public final class VersionIdentifier implements VersionObject<VersionIdentifier> {
+public final class VersionIdentifier implements VersionObject<VersionIdentifier>, GenericVersionRange {
 
   /** {@link VersionIdentifier} "*" that will resolve to the latest stable version. */
   public static final VersionIdentifier LATEST = VersionIdentifier.of("*");
@@ -78,12 +78,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
     return this.valid;
   }
 
-  /**
-   * Determines if this {@link VersionIdentifier} is a pattern (e.g. "17*" or "17.*").
-   *
-   * @return {@code true} if this {@link VersionIdentifier} is a pattern and not a normal version or in other words if it {@link #getStart() has} a
-   *     {@link VersionSegment segment} that {@link VersionSegment#isPattern() is a pattern}, {@code false} otherwise.
-   */
+  @Override
   public boolean isPattern() {
 
     VersionSegment segment = this.start;
@@ -149,8 +144,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
     }
     VersionSegment thisSegment = this.start;
     VersionSegment otherSegment = other.start;
-    boolean todo = true;
-    do {
+    while (true) {
       VersionMatchResult matchResult = thisSegment.matches(otherSegment);
       if (matchResult == VersionMatchResult.MATCH) {
         return true;
@@ -159,8 +153,25 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
       }
       thisSegment = thisSegment.getNextOrEmpty();
       otherSegment = otherSegment.getNextOrEmpty();
-    } while (todo);
-    return true;
+    }
+  }
+
+  @Override
+  public VersionIdentifier getMin() {
+
+    return this;
+  }
+
+  @Override
+  public VersionIdentifier getMax() {
+
+    return this;
+  }
+
+  @Override
+  public boolean contains(VersionIdentifier version) {
+
+    return matches(version);
   }
 
   @Override
