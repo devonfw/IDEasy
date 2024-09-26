@@ -61,8 +61,6 @@ public class Eclipse extends IdeToolCommandlet {
     } else if (processMode == ProcessMode.DEFAULT_CAPTURE) {
       pc.addArg("-consoleLog").addArg("-nosplash");
     }
-    // Path javaPath = getCommandlet(Java.class).getToolBinPath();
-    // pc.addArg("-vm").addArg(javaPath);
     super.configureToolArgs(pc, processMode, errorHandling, args);
   }
 

@@ -245,23 +245,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
       this.context.info("Configured version is {} but does not match version to install {} - need to use different version from software repository.",
           configuredVersion, version);
-        /*
-        VersionIdentifier candidate = null;
-        if (Files.isDirectory(softwareRepoPath)) {
-          for (Path availableVersionFolder : this.context.getFileAccess().listChildren(softwareRepoPath, Files::isDirectory)) {
-            VersionIdentifier availableVersion = VersionIdentifier.of(availableVersionFolder.getFileName().toString());
-            if (range.contains(availableVersion)) {
-              if (candidate == null) {
-                candidate = availableVersion;
-              } else if (candidate.isLess(availableVersion)) {
-                candidate = availableVersion;
-              }
-            }
-          }
-        }
-        resolvedVersion = candidate;
-        if (resolvedVersion == null) {
-         */
     }
     ToolInstallation toolInstallation = installTool(version, environmentContext);
     return toolInstallation.newInstallation();
@@ -397,7 +380,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *     this tool.
    * @param toolInstallation the {@link ToolInstallation}.
    * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
-   *     {@link #getConfiguredVersion() configured version} dues to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
    */
   protected void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 

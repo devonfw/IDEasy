@@ -192,6 +192,7 @@ public class ProcessContextImpl implements ProcessContext {
       return result;
 
     } catch (CliProcessException | IllegalStateException e) {
+      // these exceptions are thrown from performLogOnError and we do not want to wrap them (see #593)
       throw e;
     } catch (Exception e) {
       String msg = e.getMessage();

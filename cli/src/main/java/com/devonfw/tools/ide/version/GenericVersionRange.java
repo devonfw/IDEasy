@@ -1,5 +1,9 @@
 package com.devonfw.tools.ide.version;
 
+/**
+ * Interface for a generic version range that is either a real {@link VersionRange} or just a {@link VersionIdentifier}. Since both implement this interface
+ * they share a common API that allows more generic code.
+ */
 public interface GenericVersionRange {
 
   /**
