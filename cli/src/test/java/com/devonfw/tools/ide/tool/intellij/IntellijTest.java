@@ -133,8 +133,8 @@ public class IntellijTest extends AbstractIdeContextTest {
     // assert
     SystemInfo currentSystemInfo = this.context.getSystemInfo();
     Path workspacePath = this.context.getWorkspacePath();
-
-    assertThat(this.context).logAtInfo().hasMessage("intellij " + currentSystemInfo.getOs() + " " + workspacePath);
+    assertThat(commandlet.getToolBinPath().resolve("intellijtest")).hasContent(
+        "intellij " + currentSystemInfo.getOs() + " " + workspacePath);
     checkInstallation(this.context);
   }
 
