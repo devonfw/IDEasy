@@ -1,7 +1,10 @@
 package com.devonfw.tools.ide.repo;
 
 import java.nio.file.Path;
+import java.util.Collection;
 
+import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
+import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -25,24 +28,32 @@ public interface ToolRepository {
   String getId();
 
   /**
-   * @param tool the name of the tool to download.
-   * @param edition the edition of the tool to download.
-   * @param version the {@link VersionIdentifier} to download.
+   * @param tool the name of the tool.
+   * @param edition the edition of the tool.
+   * @param version the {@link VersionIdentifier} to resolve.
    * @return the resolved {@link VersionIdentifier}. If the given {@link VersionIdentifier} is NOT a {@link VersionIdentifier#isPattern() pattern} this method
    *     will always just return the given {@link VersionIdentifier}.
    */
-  VersionIdentifier resolveVersion(String tool, String edition, VersionIdentifier version);
+  VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version);
 
   /**
    * Will download the requested software specified by the given arguments. If that software is already available in the download-cache it will be returned
    * right away. Otherwise it will be downloaded and put into the download-cache. Additionally the checksum of the file is verified according to the
    * possibilities and strategy of the {@link ToolRepository}.
    *
-   * @param tool the name of the tool to download.
-   * @param edition the edition of the tool to download.
-   * @param version the {@link #resolveVersion(String, String, VersionIdentifier) resolved} {@link VersionIdentifier} to download.
+   * @param tool the name of the tool.
+   * @param edition the edition of the tool.
+   * @param version the {@link #resolveVersion(String, String, GenericVersionRange) resolved} {@link VersionIdentifier}.
    * @return the {@link Path} to the downloaded software package.
    */
   Path download(String tool, String edition, VersionIdentifier version);
+
+  /**
+   * @param tool the name of the tool.
+   * @param edition the edition of the tool.
+   * @param version the {@link #resolveVersion(String, String, GenericVersionRange) resolved} {@link VersionIdentifier}.
+   * @return the {@link Collection} of {@link ToolDependency tool dependencies}.
+   */
+  Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version);
 
 }
