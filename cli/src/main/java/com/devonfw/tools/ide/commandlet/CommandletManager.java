@@ -4,6 +4,7 @@ import java.util.Collection;
 
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
@@ -37,29 +38,58 @@ public interface CommandletManager {
   Collection<Commandlet> getCommandlets();
 
   /**
-   * @param name the {@link Commandlet#getName() name} of the requested {@link ToolCommandlet}.
-   * @return the requested {@link ToolCommandlet} if found.
-   * @throws IllegalArgumentException if the commandlet with the given name is not a {@link ToolCommandlet}
+   * @param name the {@link Commandlet#getName() name} of the requested {@link Commandlet}.
+   * @return the requested {@link Commandlet}.
+   * @throws IllegalArgumentException if not found.
    */
-  default ToolCommandlet getToolCommandlet(String name) {
+  default Commandlet getRequiredCommandlet(String name) {
 
     Commandlet commandlet = getCommandlet(name);
-    if (commandlet instanceof ToolCommandlet) {
-      return (ToolCommandlet) commandlet;
+    if (commandlet == null) {
+      throw new IllegalArgumentException("The commandlet " + name + " could not be found!");
     }
-    throw new IllegalArgumentException("The commandlet " + name + " is not a ToolCommandlet!");
+    return commandlet;
   }
 
   /**
    * @param name the {@link Commandlet#getName() name} of the requested {@link ToolCommandlet}.
    * @return the requested {@link ToolCommandlet} or {@code null} if not found.
    */
-  default ToolCommandlet getToolCommandletOrNull(String name) {
+  default ToolCommandlet getToolCommandlet(String name) {
 
     Commandlet commandlet = getCommandlet(name);
-    if (commandlet instanceof ToolCommandlet) {
-      return (ToolCommandlet) commandlet;
+    if (commandlet instanceof ToolCommandlet tc) {
+      return tc;
     }
     return null;
   }
+
+  /**
+   * @param name the {@link Commandlet#getName() name} of the requested {@link ToolCommandlet}.
+   * @return the requested {@link ToolCommandlet}.
+   * @throws IllegalArgumentException if no {@link ToolCommandlet} exists with the given {@code name}.
+   */
+  default ToolCommandlet getRequiredToolCommandlet(String name) {
+
+    Commandlet commandlet = getRequiredCommandlet(name);
+    if (commandlet instanceof ToolCommandlet tc) {
+      return tc;
+    }
+    throw new IllegalArgumentException("The commandlet " + name + " is not a ToolCommandlet!");
+  }
+
+  /**
+   * @param name the {@link Commandlet#getName() name} of the requested {@link LocalToolCommandlet}.
+   * @return the requested {@link LocalToolCommandlet}.
+   * @throws IllegalArgumentException if no {@link LocalToolCommandlet} exists with the given {@code name}.
+   */
+  default LocalToolCommandlet getRequiredLocalToolCommandlet(String name) {
+
+    Commandlet commandlet = getRequiredCommandlet(name);
+    if (commandlet instanceof LocalToolCommandlet ltc) {
+      return ltc;
+    }
+    throw new IllegalArgumentException("The commandlet " + name + " is not a LocalToolCommandlet!");
+  }
+
 }

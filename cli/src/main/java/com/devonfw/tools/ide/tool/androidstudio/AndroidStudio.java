@@ -3,25 +3,17 @@ package com.devonfw.tools.ide.tool.androidstudio;
 import java.nio.file.Path;
 import java.util.Set;
 
-import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://developer.android.com/studio">AndroidStudio</a>.
  */
 public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
-
-  private static final String STUDIO = "studio";
-
-  private static final String STUDIO64_EXE = STUDIO + "64.exe";
-
-  private static final String STUDIO_BASH = STUDIO + ".sh";
 
   /**
    * The constructor.
@@ -34,17 +26,11 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  public void runTool(ProcessMode processMode, VersionIdentifier toolVersion, String... args) {
+  protected void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
-    args = CliArgument.append(args, this.context.getWorkspacePath().toString());
-
-    install(true);
-    ProcessContext pc = createProcessContext(Path.of(getBinaryName()), args);
-    pc.withEnvVar("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString());
-    pc.run(processMode);
-
+    super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
+    environmentContext.withEnvVar("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString());
   }
-
 
   @Override
   protected void postExtract(Path extractedDir) {
@@ -52,12 +38,12 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
     super.postExtract(extractedDir);
     String binaryName;
     if (this.context.getSystemInfo().isWindows()) {
-      binaryName = STUDIO64_EXE;
+      binaryName = "studio64.exe";
     } else if (this.context.getSystemInfo().isMac()) {
-      binaryName = STUDIO;
+      binaryName = "studio";
     } else {
-      binaryName = STUDIO_BASH;
+      binaryName = "studio.sh";
     }
-    createStartScript(extractedDir, binaryName);
+    createStartScript(extractedDir, binaryName, true);
   }
 }

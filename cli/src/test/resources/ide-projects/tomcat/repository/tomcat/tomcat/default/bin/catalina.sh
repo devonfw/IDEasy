@@ -1,2 +1,4 @@
 #!/bin/bash
-echo "Test for linux and Mac"
+java --version
+echo "JAVA_HOME=$JAVA_HOME"
+echo "tomcat $*"

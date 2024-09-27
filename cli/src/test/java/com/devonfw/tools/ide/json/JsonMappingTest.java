@@ -5,7 +5,7 @@ import java.time.Instant;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.url.model.file.json.DependencyInfo;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.BoundaryType;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
@@ -64,7 +64,7 @@ public class JsonMappingTest extends Assertions {
     VersionRange expectedVersionRange = VersionRange.of(VersionIdentifier.of("11"), VersionIdentifier.of("21_35"), BoundaryType.CLOSED);
     // act
     ObjectMapper mapper = JsonMapping.create();
-    DependencyInfo dependencyInfo = mapper.readValue(json, DependencyInfo.class);
+    ToolDependency dependencyInfo = mapper.readValue(json, ToolDependency.class);
     // assert
     assertThat(dependencyInfo.tool()).isEqualTo("java");
     assertThat(dependencyInfo.versionRange()).isEqualTo(expectedVersionRange);

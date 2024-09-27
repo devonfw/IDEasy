@@ -55,11 +55,10 @@ public class Jasypt extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean doInstall(boolean silent) {
+  protected void installDependencies() {
 
+    // TODO create jasypt/jasypt/dependencies.json file in ide-urls and delete this method
     getCommandlet(Java.class).install();
-
-    return super.doInstall(silent);
   }
 
   @Override
@@ -103,7 +102,7 @@ public class Jasypt extends LocalToolCommandlet {
     }
 
     Java java = getCommandlet(Java.class);
-    java.runTool(null, arguments.toArray(new String[0]));
+    java.runTool(arguments.toArray(i -> new String[i]));
   }
 
   private Path resolveJasyptJarPath() {
