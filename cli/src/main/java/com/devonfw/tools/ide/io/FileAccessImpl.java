@@ -97,8 +97,8 @@ public class FileAccessImpl implements FileAccess {
     this.context.info("Trying to download {} from {}", target.getFileName(), url);
     mkdirs(target.getParent());
     try {
-      if (context.isOffline()) {
-        throw new CliOfflineException("Not able to download because we are offline");
+      if (this.context.isOffline()) {
+        throw CliOfflineException.ofDownloadViaUrl(url);
       }
       if (url.startsWith("http")) {
 

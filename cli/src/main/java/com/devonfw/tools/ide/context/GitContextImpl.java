@@ -162,7 +162,7 @@ public class GitContextImpl implements GitContext {
         }
       }
     } else {
-      throw new CliOfflineException("Could not clone " + parsedUrl + " to " + targetRepository + " because you are offline.");
+      throw CliOfflineException.ofClone(parsedUrl, targetRepository);
     }
   }
 

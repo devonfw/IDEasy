@@ -51,7 +51,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
     VersionIdentifier resolvedVersion = metadata.getVersion();
     Set<String> urlCollection = metadata.getUrls();
     if (context.isOffline()) {
-      throw new CliOfflineException("Not able to download " + tool + " because we are offline");
+      throw CliOfflineException.ofDownloadOfTool(tool, edition, version);
     }
     if (urlCollection.isEmpty()) {
       throw new IllegalStateException("Invalid download metadata with empty urls file for " + metadata);
