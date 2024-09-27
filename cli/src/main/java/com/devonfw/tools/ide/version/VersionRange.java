@@ -6,7 +6,7 @@ import java.util.Objects;
  * Container for a range of versions. The lower and upper bounds can be exclusive or inclusive. If a bound is null, it means that this direction is unbounded.
  * The boolean defining whether this bound is inclusive or exclusive is ignored in this case.
  */
-public final class VersionRange implements Comparable<VersionRange> {
+public final class VersionRange implements Comparable<VersionRange>, GenericVersionRange {
 
   /** The unbounded {@link VersionRange} instance. */
   public static final VersionRange UNBOUNDED = new VersionRange(null, null, BoundaryType.OPEN);
@@ -43,41 +43,38 @@ public final class VersionRange implements Comparable<VersionRange> {
 
   }
 
-  /**
-   * @return the minimum {@link VersionIdentifier} or {@code null} for no lower bound.
-   */
+  @Override
   public VersionIdentifier getMin() {
 
     return this.min;
   }
 
-  /**
-   * @return the maximum {@link VersionIdentifier} or {@code null} for no upper bound.
-   */
+  @Override
   public VersionIdentifier getMax() {
 
     return this.max;
   }
 
-  /**
-   * @return the {@link BoundaryType} defining whether the boundaries of the range are inclusive or exclusive.
-   */
+  @Override
   public BoundaryType getBoundaryType() {
 
     return this.boundaryType;
   }
 
-  /**
-   * @param version the {@link VersionIdentifier} to check.
-   * @return {@code true} if the given {@link VersionIdentifier} is contained in this {@link VersionRange}, {@code false} otherwise.
-   */
+  @Override
+  public boolean isPattern() {
+
+    return true;
+  }
+
+  @Override
   public boolean contains(VersionIdentifier version) {
 
     if (this.min != null) {
       VersionComparisonResult compareMin = version.compareVersion(this.min);
       if (compareMin.isLess()) {
         return false;
-      } else if (compareMin.isEqual() && this.boundaryType.isLeftExclusive()) {
+      } else if (compareMin.isEqual() && this.boundaryType.isLeftExclusive() && !version.isPattern()) {
         return false;
       }
     }
@@ -85,7 +82,7 @@ public final class VersionRange implements Comparable<VersionRange> {
       VersionComparisonResult compareMax = version.compareVersion(this.max);
       if (compareMax.isGreater()) {
         return false;
-      } else if (compareMax.isEqual() && this.boundaryType.isRightExclusive()) {
+      } else if (compareMax.isEqual() && this.boundaryType.isRightExclusive() && !version.isPattern()) {
         return false;
       }
     }

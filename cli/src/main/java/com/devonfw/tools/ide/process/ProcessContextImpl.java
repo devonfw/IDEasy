@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
@@ -57,7 +57,7 @@ public class ProcessContextImpl implements ProcessContext {
     super();
     this.context = context;
     this.processBuilder = new ProcessBuilder();
-    this.errorHandling = ProcessErrorHandling.THROW;
+    this.errorHandling = ProcessErrorHandling.THROW_ERR;
     Map<String, String> environment = this.processBuilder.environment();
     for (VariableLine var : this.context.getVariables().collectExportedVariables()) {
       if (var.isExport()) {
@@ -193,6 +193,9 @@ public class ProcessContextImpl implements ProcessContext {
 
       return result;
 
+    } catch (CliProcessException | IllegalStateException e) {
+      // these exceptions are thrown from performLogOnError and we do not want to wrap them (see #593)
+      throw e;
     } catch (Exception e) {
       String msg = e.getMessage();
       if ((msg == null) || msg.isEmpty()) {
@@ -325,13 +328,15 @@ public class ProcessContextImpl implements ProcessContext {
       }
       errorMessage.append("!");
       String message = createCommandMessage(interpreter, errorMessage.toString());
-      if (this.errorHandling == ProcessErrorHandling.THROW) {
-        throw new CliException(message, exitCode);
+      if (this.errorHandling == ProcessErrorHandling.THROW_CLI) {
+        throw new CliProcessException(message, result);
+      } else if (this.errorHandling == ProcessErrorHandling.THROW_ERR) {
+        throw new IllegalStateException(message);
       }
       IdeSubLogger level;
-      if (this.errorHandling == ProcessErrorHandling.ERROR) {
+      if (this.errorHandling == ProcessErrorHandling.LOG_ERROR) {
         level = this.context.error();
-      } else if (this.errorHandling == ProcessErrorHandling.WARNING) {
+      } else if (this.errorHandling == ProcessErrorHandling.LOG_WARNING) {
         level = this.context.warning();
       } else {
         level = this.context.error();

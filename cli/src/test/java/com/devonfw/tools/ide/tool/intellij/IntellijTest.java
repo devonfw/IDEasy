@@ -76,7 +76,7 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     // act
     commandlet.install();
-    commandlet.installPlugin(commandlet.getPluginsMap().getById("mockedPlugin"));
+    commandlet.installPlugin(commandlet.getPlugins().getById("mockedPlugin"), this.context.newStep("Install plugin MockedPlugin"));
 
     // assert
     checkInstallation(this.context);
@@ -105,7 +105,7 @@ public class IntellijTest extends AbstractIdeContextTest {
     checkInstallation(this.context);
 
     // act
-    commandlet.uninstallPlugin(commandlet.getPluginsMap().getById("mockedPlugin"));
+    commandlet.uninstallPlugin(commandlet.getPlugins().getById("mockedPlugin"));
 
     //assert
     assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).doesNotExist();
@@ -142,8 +142,8 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
     assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
-        "Successfully installed intellij in version 2023.3.3",
-        "Successfully ended step 'Install plugin: mockedPlugin'.");
+        "Successfully installed intellij in version 2023.3.3");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin MockedPlugin'.");
     assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).exists();
   }
 

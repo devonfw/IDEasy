@@ -32,10 +32,10 @@ public class Jmc extends LocalToolCommandlet {
   }
 
   @Override
-  public boolean doInstall(boolean silent) {
+  protected void installDependencies() {
 
+    // TODO create jmc/jmc/dependencies.json file in ide-urls and delete this method
     getCommandlet(Java.class).install();
-    return super.doInstall(silent);
   }
 
   @Override

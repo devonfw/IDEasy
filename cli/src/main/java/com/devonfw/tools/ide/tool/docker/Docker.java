@@ -8,6 +8,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManager;
@@ -42,12 +43,12 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
-  protected boolean doInstall(boolean silent) {
+  public boolean install(boolean silent, EnvironmentContext environmentContext) {
 
     if (this.context.getSystemInfo().isLinux()) {
       return runWithPackageManager(silent, getPackageManagerCommandsInstall());
     } else {
-      return super.doInstall(silent);
+      return super.install(silent, environmentContext);
     }
   }
 
