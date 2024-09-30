@@ -1,2 +1,3 @@
 #!/bin/bash
-echo "android-studio windows $*"
+cd "$(dirname "$0")"
+echo "android-studio windows $*" > android-studio-test
