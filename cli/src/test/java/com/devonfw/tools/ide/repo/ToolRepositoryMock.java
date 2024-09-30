@@ -21,6 +21,7 @@ public class ToolRepositoryMock extends DefaultToolRepository {
   /**
    * The constructor.
    *
+   * @param context the {@link IdeContext}.
    * @param repositoryFolder the {@link Path} to the mock repository.
    */
   public ToolRepositoryMock(IdeContext context, Path repositoryFolder) {
