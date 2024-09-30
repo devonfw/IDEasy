@@ -15,7 +15,6 @@ import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.repo.DefaultToolRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -43,13 +42,11 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    *
    * @param logger the {@link IdeLogger}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
-   *     be used.
    * @param answers the automatic answers simulating a user in test.
    */
-  public AbstractIdeTestContext(IdeStartContextImpl logger, Path userDir, ToolRepository toolRepository, String... answers) {
+  public AbstractIdeTestContext(IdeStartContextImpl logger, Path userDir, String... answers) {
 
-    super(logger, userDir, toolRepository);
+    super(logger, userDir);
     this.answers = new String[0];
     this.progressBarMap = new HashMap<>();
     this.systemInfo = super.getSystemInfo();
@@ -185,5 +182,11 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       return this.dummyUserHome;
     }
     return super.getUserHome();
+  }
+
+  @Override
+  public void setDefaultToolRepository(ToolRepository defaultToolRepository) {
+
+    super.setDefaultToolRepository(defaultToolRepository);
   }
 }
