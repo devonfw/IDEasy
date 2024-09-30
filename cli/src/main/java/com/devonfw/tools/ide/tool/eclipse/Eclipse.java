@@ -79,6 +79,7 @@ public class Eclipse extends IdeToolCommandlet {
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
+          step.success();
           return;
         }
       }
