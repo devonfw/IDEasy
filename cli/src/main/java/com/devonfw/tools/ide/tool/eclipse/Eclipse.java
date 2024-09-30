@@ -83,9 +83,9 @@ public class Eclipse extends IdeToolCommandlet {
         }
       }
     }
-    this.context.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
     log(IdeLogLevel.DEBUG, result.getOut());
     log(IdeLogLevel.ERROR, result.getErr());
+    step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
   }
 
   private void log(IdeLogLevel level, List<String> lines) {
