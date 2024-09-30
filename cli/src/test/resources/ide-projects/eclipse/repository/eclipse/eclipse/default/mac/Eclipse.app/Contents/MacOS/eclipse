@@ -1,0 +1,28 @@
+#!/bin/bash
+if [ "$1" = "-data" ]; then
+  dataDir=$2
+fi
+if [ "$3" = "-keyring" ]; then
+  keyringDir=$4
+fi
+if [ "$5" = "-configuration" ]; then
+  pluginDir=$6
+fi
+if [ "$9" = "-application" ]; then
+  app=${10}
+fi
+if [ "${11}" = "-repository" ]; then
+  pluginUrl=${12}
+fi
+if [ "${13}" = "-installIU" ]; then
+  pluginId=${14}
+fi
+if [ "$app" = "org.eclipse.equinox.p2.director" ] && [ -n "$pluginId" ] && [ -n "$pluginUrl" ]; then
+  mkdir -p $pluginDir/$pluginId
+  echo $pluginUrl > $pluginDir/$pluginId/pluginUrl
+  echo "Installing plugin ${pluginId} from ${pluginUrl}"
+  echo "Overall install request is satisfiable"
+else
+  cd "$(dirname $0)"
+  echo "eclipse mac $*" > eclipsetest
+fi

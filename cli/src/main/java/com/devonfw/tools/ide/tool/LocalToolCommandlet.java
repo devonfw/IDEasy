@@ -192,13 +192,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     if (Files.isDirectory(installationPath)) {
       if (Files.exists(toolVersionFile)) {
-        if (this.context.isForceMode()) {
-          fileAccess.delete(installationPath);
-        } else {
-          if (!ignoreSoftwareRepo || resolvedVersion.equals(getInstalledVersion())) {
-            this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
-            return createToolInstallation(installationPath, resolvedVersion, toolVersionFile, false, environmentContext, extraInstallation);
-          }
+        if (!ignoreSoftwareRepo || resolvedVersion.equals(getInstalledVersion())) {
+          this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
+          return createToolInstallation(installationPath, resolvedVersion, toolVersionFile, false, environmentContext, extraInstallation);
         }
       } else {
         this.context.warning("Deleting corrupted installation at {}", installationPath);

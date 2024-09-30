@@ -10,6 +10,9 @@ import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.java.Java;
 
+/**
+ * Test of {@link Tomcat}.
+ */
 public class TomcatTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_TOMCAT = "tomcat";
@@ -48,7 +51,7 @@ public class TomcatTest extends AbstractIdeContextTest {
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version " + javaVersionProject), //
         new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionProject), //
         new IdeLogEntry(IdeLogLevel.INFO,
-            "Configured version is 8u402b06 but does not match version to install [11,21_35] - need to use different version from software repository."), //
+            "Configured version is 8u402b06 but does not match version to install [11,22) - need to use different version from software repository."), //
         new IdeLogEntry(IdeLogLevel.DEBUG, "Installed java in version " + javaVersionTomcat + " at ", true),
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed tomcat in version " + tomcatVersion), //
         new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionTomcat), //

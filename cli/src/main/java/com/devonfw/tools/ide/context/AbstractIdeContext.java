@@ -110,7 +110,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final CommandletManager commandletManager;
 
-  private final ToolRepository defaultToolRepository;
+  private ToolRepository defaultToolRepository;
 
   private CustomToolRepository customToolRepository;
 
@@ -129,10 +129,8 @@ public abstract class AbstractIdeContext implements IdeContext {
    *
    * @param startContext the {@link IdeLogger}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
-   *     be used.
    */
-  public AbstractIdeContext(IdeStartContextImpl startContext, Path userDir, ToolRepository toolRepository) {
+  public AbstractIdeContext(IdeStartContextImpl startContext, Path userDir) {
 
     super();
     this.startContext = startContext;
@@ -190,11 +188,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
 
-    if (toolRepository == null) {
-      this.defaultToolRepository = new DefaultToolRepository(this);
-    } else {
-      this.defaultToolRepository = toolRepository;
-    }
+    this.defaultToolRepository = new DefaultToolRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -370,6 +364,14 @@ public abstract class AbstractIdeContext implements IdeContext {
   public ToolRepository getDefaultToolRepository() {
 
     return this.defaultToolRepository;
+  }
+
+  /**
+   * @param defaultToolRepository the new value of {@link #getDefaultToolRepository()}.
+   */
+  protected void setDefaultToolRepository(ToolRepository defaultToolRepository) {
+
+    this.defaultToolRepository = defaultToolRepository;
   }
 
   @Override

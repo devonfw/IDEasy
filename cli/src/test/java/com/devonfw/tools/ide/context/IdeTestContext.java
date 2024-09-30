@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.repo.ToolRepository;
 
 /**
  * Implementation of {@link IdeContext} for testing.
@@ -23,37 +22,23 @@ public class IdeTestContext extends AbstractIdeTestContext {
    */
   public IdeTestContext(Path userDir) {
 
-    this(userDir, null);
+    this(userDir, IdeLogLevel.TRACE);
   }
 
   /**
    * The constructor.
    *
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} *
-   *     {@link com.devonfw.tools.ide.repo.DefaultToolRepository} will be used.
-   */
-  public IdeTestContext(Path userDir, ToolRepository toolRepository) {
-
-    this(userDir, toolRepository, IdeLogLevel.TRACE);
-  }
-
-  /**
-   * The constructor.
-   *
-   * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} *
-   *     {@link com.devonfw.tools.ide.repo.DefaultToolRepository} will be used.
    * @param logLevel the {@link IdeLogLevel} used as threshold for logging.
    */
-  public IdeTestContext(Path userDir, ToolRepository toolRepository, IdeLogLevel logLevel) {
+  public IdeTestContext(Path userDir, IdeLogLevel logLevel) {
 
-    this(new IdeTestLogger(logLevel), userDir, toolRepository);
+    this(new IdeTestLogger(logLevel), userDir);
   }
 
-  private IdeTestContext(IdeTestLogger logger, Path userDir, ToolRepository toolRepository) {
+  private IdeTestContext(IdeTestLogger logger, Path userDir) {
 
-    super(logger, userDir, toolRepository);
+    super(logger, userDir);
     this.logger = logger;
     this.gitContext = new GitContextMock();
   }
