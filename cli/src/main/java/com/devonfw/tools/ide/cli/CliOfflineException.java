@@ -47,7 +47,7 @@ public final class CliOfflineException extends CliException {
    * @return A {@link CliOfflineException} with an informative message.
    */
   public static CliOfflineException ofDownloadOfTool(String tool, String edition, VersionIdentifier version) {
-    return new CliOfflineException("Not able to download " + tool + " " + edition + " " + version + " because we are offline");
+    return new CliOfflineException("Not able to download tool " + tool + " in edition " + edition + " with version " + version + " because we are offline");
   }
 
   /**
