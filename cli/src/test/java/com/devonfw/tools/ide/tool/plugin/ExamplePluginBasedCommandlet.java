@@ -26,5 +26,6 @@ public class ExamplePluginBasedCommandlet extends PluginBasedCommandlet {
   @Override
   public void installPlugin(ToolPluginDescriptor plugin, Step step) {
 
+    step.success();
   }
 }

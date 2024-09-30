@@ -190,8 +190,9 @@ public class Mvn extends PluginBasedCommandlet {
 
     if (Files.exists(mavenPlugin)) {
       this.context.success("Successfully added {} to {}", plugin.name(), mavenPlugin.toString());
+      step.success();
     } else {
-      this.context.warning("Plugin {} has wrong properties\n" //
+      step.error("Plugin {} has wrong properties\n" //
           + "Please check the plugin properties file in {}", mavenPlugin.getFileName(), mavenPlugin.toAbsolutePath());
     }
   }
