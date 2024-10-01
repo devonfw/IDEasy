@@ -51,8 +51,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
         TEST_ARGS8=settings8
         TEST_ARGS9=settings9
         TEST_ARGSb=${TEST_ARGS10} settingsb ${TEST_ARGSa} ${TEST_ARGSb}
-        TEST_ARGSc=${TEST_ARGSc} settingsc
-        PREFERRED_GIT_PROTOCOL=SSH""");
+        TEST_ARGSc=${TEST_ARGSc} settingsc""");
   }
 
   /**
