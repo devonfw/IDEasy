@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/627[#627]: Fix info-log message that broke processable context output
 * https://github.com/devonfw/IDEasy/issues/647[#647]: Fixed intellij script freezing shell
 * https://github.com/devonfw/IDEasy/issues/628[#628]: Fixed update fails on first error
 * https://github.com/devonfw/IDEasy/issues/520[#520]: Fixed NullpointerException when pulling from branch without upstream
