@@ -3,7 +3,7 @@ toc::[]
 
 = Lombok
 
-Even though not officially recommended by `devonfw` some projects want to use https://projectlombok.org/[lombok] to avoid boiler-plate code.
+Your project maybe wants to use https://projectlombok.org/[lombok] to avoid boiler-plate code.
 As this requires some tweaks for IDEs we do support you with this guide in case you want to use it.
 
 == Lombok in Eclipse
