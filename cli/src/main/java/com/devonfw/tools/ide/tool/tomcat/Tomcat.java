@@ -43,10 +43,14 @@ public class Tomcat extends LocalToolCommandlet {
   public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
 
     if (args.length == 0) {
-      args = new String[] { "start" };
+      args = new String[] { "run" };
+    }
+    boolean startup = args[0].equals("start") || args[0].equals("run");
+    if (startup) {
+      processMode = ProcessMode.BACKGROUND;
     }
     ProcessResult processResult = super.runTool(processMode, toolVersion, errorHandling, args);
-    if (processResult.isSuccessful() && (args[0].equals("start") || args[0].equals("run"))) {
+    if (processResult.isSuccessful() && startup) {
       printTomcatPort();
     }
     return processResult;
@@ -60,9 +64,16 @@ public class Tomcat extends LocalToolCommandlet {
   }
 
   @Override
-  public String getBinaryName() {
+  protected void postExtract(Path extractedDir) {
 
-    return "catalina.sh";
+    super.postExtract(extractedDir);
+    String binaryName;
+    if (this.context.getSystemInfo().isWindows()) {
+      binaryName = "catalina.bat";
+    } else {
+      binaryName = "catalina.sh";
+    }
+    createStartScript(extractedDir, binaryName, false);
   }
 
   private void printTomcatPort() {
