@@ -12,19 +12,17 @@ GRAALVM_EDITION=community
 
 This is necessary as the community edition of graalvm is delivered with a pre-installed native image.
 
-* Open a command-line interface inside a devon installation e.g. C\Projects\IDEasy\workspaces\main
+* Open a command-line interface inside your IDEasy installation e.g. C\Projects\IDEasy\workspaces\main
 
-* Install Graalvm using the devonfw-ide with
+* Install Graalvm using the IDEasy with
 
 [width="100%",cols="100%",options="header",]
 |===
 a|
-devon graalvm setup
+ide install graalvm
 |===
 
 When the installation is complete, the GRAALVM_HOME environment variable is automatically set to the graalvm installation path e.g. C/Projects/IDEasy/software/extra/graalvm
-
-* Restart your cli
 
 * Add *$GRAALVM_HOME/bin* to your *PATH* environment variable
 
