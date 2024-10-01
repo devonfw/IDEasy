@@ -101,7 +101,7 @@ public class RepositoryCommandlet extends Commandlet {
     this.context.debug("Building repository with ide command: {}", buildCmd);
     if (buildCmd != null && !buildCmd.isEmpty()) {
       String[] command = buildCmd.split("\\s+");
-      ToolCommandlet commandlet = this.context.getCommandletManager().getToolCommandlet(command[0]);
+      ToolCommandlet commandlet = this.context.getCommandletManager().getRequiredToolCommandlet(command[0]);
 
       for (int i = 1; i < command.length; i++) {
         commandlet.arguments.addValue(command[i]);

@@ -6,49 +6,39 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Implementation of {@link ToolRepository} for testing.
  */
-public class ToolRepositoryMock implements ToolRepository {
-
-  private static final Path PROJECTS_TARGET_PATH = Path.of("target/test-projects");
-
-  private static final String MOCK_DOWNLOAD_FOLDER = "repository";
+public class ToolRepositoryMock extends DefaultToolRepository {
 
   private final Path repositoryFolder;
-
-  private IdeContext context;
 
   /**
    * The constructor.
    *
+   * @param context the {@link IdeContext}.
    * @param repositoryFolder the {@link Path} to the mock repository.
    */
-  public ToolRepositoryMock(Path repositoryFolder) {
+  public ToolRepositoryMock(IdeContext context, Path repositoryFolder) {
 
-    super();
+    super(context);
     this.repositoryFolder = repositoryFolder;
   }
 
-  public void setContext(IdeContext context) {
-
-    this.context = context;
-
-  }
-
   @Override
-  public String getId() {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version) {
 
-    return ID_DEFAULT;
-  }
-
-  @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, VersionIdentifier version) {
-
-    return version;
+    try {
+      return super.resolveVersion(tool, edition, version);
+    } catch (CliException e) {
+      this.context.error(e, "Invalid test project using version {} that cannot be resolved in urls folder", version);
+      return version.getMax();
+    }
   }
 
   @Override
@@ -93,4 +83,5 @@ public class ToolRepositoryMock implements ToolRepository {
     }
     return archiveFolder;
   }
+
 }

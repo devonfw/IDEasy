@@ -7,16 +7,18 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/627[#627]: Fix info-log message that broke processable context output
-* https://github.com/devonfw/IDEasy/issues/628[#638]: Fixed update fails on first error
+* https://github.com/devonfw/IDEasy/issues/647[#647]: Fixed intellij script freezing shell
+* https://github.com/devonfw/IDEasy/issues/628[#628]: Fixed update fails on first error
+* https://github.com/devonfw/IDEasy/issues/520[#520]: Fixed NullpointerException when pulling from branch without upstream
 * https://github.com/devonfw/IDEasy/issues/37[#37]: Added Visual Studio Code (vscode) with plugin installation and plugin recommendation support
 * https://github.com/devonfw/IDEasy/issues/553[#553]: Mismatch of IDE_ROOT
 * https://github.com/devonfw/IDEasy/issues/556[#556]: ProcessContext should compute PATH on run and not in constructor
 * https://github.com/devonfw/IDEasy/issues/557[#557]: Failed to update tomcat: Cannot find a (Map) Key deserializer for type VersionRange
-* https://github.com/devonfw/IDEasy/issues/623[#623]: CliArgument prepand and append methods inconsistent
+* https://github.com/devonfw/IDEasy/issues/623[#623]: CliArgument prepend and append methods inconsistent
 * https://github.com/devonfw/IDEasy/issues/621[#621]: Xml merger ID fallback not working
 * https://github.com/devonfw/IDEasy/issues/628[#628]: ide update fails on first error
 * https://github.com/devonfw/IDEasy/issues/552[#552]: ZIP extraction buggy
-* https://github.com/devonfw/IDEasy/issues/604[#604]: Wrong Path Formating of MAVEN_ARGS variable on Windows
+* https://github.com/devonfw/IDEasy/issues/604[#604]: Wrong Path Formatting of MAVEN_ARGS variable on Windows
 * https://github.com/devonfw/IDEasy/issues/461[#461]: Add progress bar for extraction (unpacking)
 * https://github.com/devonfw/IDEasy/issues/550[#550]: Installation of plugins for IDEs fails when the plugin-id contains a space character
 * https://github.com/devonfw/IDEasy/issues/574[#574]: Mismatch of IDE_ROOT
@@ -25,6 +27,14 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/52[#52]: Adjusting Intellij settings in ide-settings
 * https://github.com/devonfw/IDEasy/issues/588[#588]: ide create installs wrong Java version
 * https://github.com/devonfw/IDEasy/issues/650[#650]: Improve default success message of step
+* https://github.com/devonfw/IDEasy/issues/593[#593]: Tool error reporting still buggy 
+* https://github.com/devonfw/IDEasy/issues/651[#651]: IDE not started in background anymore
+* https://github.com/devonfw/IDEasy/issues/439[#439]: Refactor and improve tool-dependencies and tomcat
+* https://github.com/devonfw/IDEasy/issues/356[#356]: Eclipse plugin installation opens an Eclipse window for each plugin installed
+* https://github.com/devonfw/IDEasy/issues/655[#655]: CVE-2024-26308 and library updates
+* https://github.com/devonfw/IDEasy/issues/627[#627]: Still log messages break processable command output
+* https://github.com/devonfw/IDEasy/issues/663[#663]: Endless loop when installing Eclipse in force mode
+* https://github.com/devonfw/IDEasy/issues/657[#657]: Cannot install Java 8
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/13?closed=1[milestone 2024.09.002].
 
