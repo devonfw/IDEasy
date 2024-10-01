@@ -19,7 +19,7 @@ public class GitUrlSyntaxTest extends AbstractIdeContextTest {
     // Act: Read the PREFERRED_GIT_PROTOCOL from the config file
     IdeTestContext context = newContext("git");
     IdeTestLogger log = context.getLogger();
-    log.info("context: " + context.getPath());
+    log.info("context: " + context.getSettingsPath());
     GitUrlSyntax preferredProtocol = IdeVariables.PREFERRED_GIT_PROTOCOL.get(context);
     log.info("prefprotocol:" + preferredProtocol);
     // Assert: Check if the configuration value is correctly set to SSH
