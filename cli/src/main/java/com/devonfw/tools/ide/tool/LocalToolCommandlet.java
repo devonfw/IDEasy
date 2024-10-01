@@ -76,7 +76,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier installedVersion = getInstalledVersion();
     Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
     try {
-      // https://github.com/devonfw/IDEasy/issues/664
+      // TODO https://github.com/devonfw/IDEasy/issues/664
       boolean enableOptimization = false;
       // performance: avoid calling installTool if already up-to-date
       if (enableOptimization & configuredVersion.equals(installedVersion)) { // here we can add https://github.com/devonfw/IDEasy/issues/637
