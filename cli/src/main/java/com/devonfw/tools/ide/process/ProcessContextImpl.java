@@ -15,7 +15,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
-import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
@@ -23,6 +23,7 @@ import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.util.FilenameUtil;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Implementation of {@link ProcessContext}.
@@ -40,6 +41,10 @@ public class ProcessContextImpl implements ProcessContext {
 
   private Path executable;
 
+  private String overriddenPath;
+
+  private final List<Path> extraPathEntries;
+
   private ProcessErrorHandling errorHandling;
 
   /**
@@ -52,7 +57,7 @@ public class ProcessContextImpl implements ProcessContext {
     super();
     this.context = context;
     this.processBuilder = new ProcessBuilder();
-    this.errorHandling = ProcessErrorHandling.THROW;
+    this.errorHandling = ProcessErrorHandling.THROW_ERR;
     Map<String, String> environment = this.processBuilder.environment();
     for (VariableLine var : this.context.getVariables().collectExportedVariables()) {
       if (var.isExport()) {
@@ -60,6 +65,7 @@ public class ProcessContextImpl implements ProcessContext {
       }
     }
     this.arguments = new ArrayList<>();
+    this.extraPathEntries = new ArrayList<>();
   }
 
   @Override
@@ -90,7 +96,7 @@ public class ProcessContextImpl implements ProcessContext {
       throw new IllegalStateException("Arguments already present - did you forget to call run for previous call?");
     }
 
-    this.executable = this.context.getPath().findBinary(command);
+    this.executable = command;
     return this;
   }
 
@@ -104,14 +110,25 @@ public class ProcessContextImpl implements ProcessContext {
   @Override
   public ProcessContext withEnvVar(String key, String value) {
 
-    this.processBuilder.environment().put(key, value);
+    if (IdeVariables.PATH.getName().equals(key)) {
+      this.overriddenPath = value;
+    } else {
+      this.context.trace("Setting process environment variable {}={}", key, value);
+      this.processBuilder.environment().put(key, value);
+    }
+    return this;
+  }
+
+  @Override
+  public ProcessContext withPathEntry(Path path) {
+
+    this.extraPathEntries.add(path);
     return this;
   }
 
   @Override
   public ProcessResult run(ProcessMode processMode) {
 
-    // TODO ProcessMode needs to be configurable for GUI
     if (processMode == ProcessMode.DEFAULT) {
       this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
     }
@@ -123,6 +140,15 @@ public class ProcessContextImpl implements ProcessContext {
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");
     }
+
+    SystemPath systemPath = this.context.getPath();
+    if ((this.overriddenPath != null) || !this.extraPathEntries.isEmpty()) {
+      systemPath = systemPath.withPath(this.overriddenPath, this.extraPathEntries);
+    }
+    String path = systemPath.toString();
+    this.context.trace("Setting PATH for process execution of {} to {}", this.executable.getFileName(), path);
+    this.executable = systemPath.findBinary(this.executable);
+    this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(this.executable.toString(), args);
     args.addAll(this.arguments);
@@ -165,6 +191,9 @@ public class ProcessContextImpl implements ProcessContext {
 
       return result;
 
+    } catch (CliProcessException | IllegalStateException e) {
+      // these exceptions are thrown from performLogOnError and we do not want to wrap them (see #593)
+      throw e;
     } catch (Exception e) {
       String msg = e.getMessage();
       if ((msg == null) || msg.isEmpty()) {
@@ -285,13 +314,15 @@ public class ProcessContextImpl implements ProcessContext {
 
     if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
       String message = createCommandMessage(interpreter, " failed with exit code " + exitCode + "!");
-      if (this.errorHandling == ProcessErrorHandling.THROW) {
-        throw new CliException(message, exitCode);
+      if (this.errorHandling == ProcessErrorHandling.THROW_CLI) {
+        throw new CliProcessException(message, result);
+      } else if (this.errorHandling == ProcessErrorHandling.THROW_ERR) {
+        throw new IllegalStateException(message);
       }
       IdeSubLogger level;
-      if (this.errorHandling == ProcessErrorHandling.ERROR) {
+      if (this.errorHandling == ProcessErrorHandling.LOG_ERROR) {
         level = this.context.error();
-      } else if (this.errorHandling == ProcessErrorHandling.WARNING) {
+      } else if (this.errorHandling == ProcessErrorHandling.LOG_WARNING) {
         level = this.context.warning();
       } else {
         level = this.context.error();

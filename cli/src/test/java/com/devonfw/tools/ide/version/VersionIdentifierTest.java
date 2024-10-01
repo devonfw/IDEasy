@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Test of {@link VersionIdentifier}.
@@ -56,31 +58,35 @@ public class VersionIdentifierTest extends Assertions {
   /**
    * Test of {@link VersionIdentifier#isValid() valid} versions.
    */
-  @Test
-  public void testValid() {
+  @ParameterizedTest
+  // arrange
+  @ValueSource(strings = { "1.0", "0.1", "2023.08.001", "2023-06-M1", "11.0.4_11.4", "5.2.23.RELEASE" })
+  public void testValid(String version) {
 
-    String[] validVersions = { "1.0", "0.1", "2023.08.001", "2023-06-M1", "11.0.4_11.4", "5.2.23.RELEASE" };
-    for (String version : validVersions) {
-      VersionIdentifier vid = VersionIdentifier.of(version);
-      assertThat(vid.isValid()).as(version).isTrue();
-      assertThat(vid.isPattern()).isFalse();
-      assertThat(vid).hasToString(version);
-    }
+    // act
+    VersionIdentifier vid = VersionIdentifier.of(version);
+
+    // assert
+    assertThat(vid.isValid()).as(version).isTrue();
+    assertThat(vid.isPattern()).isFalse();
+    assertThat(vid).hasToString(version);
   }
 
   /**
    * Test of in{@link VersionIdentifier#isValid() valid} versions.
    */
-  @Test
-  public void testInvalid() {
+  @ParameterizedTest
+  // arrange
+  @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "8u412b08" })
+  public void testInvalid(String version) {
 
-    String[] invalidVersions = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut" };
-    for (String version : invalidVersions) {
-      VersionIdentifier vid = VersionIdentifier.of(version);
-      assertThat(vid.isValid()).as(version).isFalse();
-      assertThat(vid.isPattern()).isFalse();
-      assertThat(vid).hasToString(version);
-    }
+    // act
+    VersionIdentifier vid = VersionIdentifier.of(version);
+
+    // assert
+    assertThat(vid.isValid()).as(version).isFalse();
+    assertThat(vid.isPattern()).isFalse();
+    assertThat(vid).hasToString(version);
   }
 
   /**

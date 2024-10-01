@@ -26,7 +26,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
-      <version>1.23.0</version>
+      <version>1.26.0</version>
     </dependency>
     <!-- JSON and XML support -->
     <dependency>
@@ -95,6 +95,17 @@
       <artifactId>byte-buddy</artifactId>
       <version>1.14.15</version>
       <scope>test</scope>
+    </dependency>
+    <!-- required for XML assertion (XmlMergerTest) -->
+    <dependency>
+      <groupId>org.xmlunit</groupId>
+      <artifactId>xmlunit-core</artifactId>
+      <version>2.10.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xmlunit</groupId>
+      <artifactId>xmlunit-assertj3</artifactId>
+      <version>2.9.1</version>
     </dependency>
   </dependencies>
 
@@ -198,7 +209,7 @@
               <buildArgs>
                 <arg>--enable-url-protocols=http,https</arg>
                 <arg>-H:IncludeResources="nls/.*"</arg>
-                <arg>--initialize-at-build-time=org.apache.commons.compress</arg>
+                <arg>--initialize-at-build-time=org.apache.commons</arg>
               </buildArgs>
             </configuration>
           </plugin>

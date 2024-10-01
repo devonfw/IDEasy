@@ -53,23 +53,15 @@ public class MergeElement {
   }
 
   /**
-   * Retrieves the merge strategy associated with this MergeElement.
-   *
-   * @return the merge strategy
+   * @return the {@link MergeStrategy} of this element or {@code null} if undefined.
    */
-  public String getMergingStrategy() {
+  public MergeStrategy getMergingStrategy() {
 
     String strategy = this.element.getAttributeNS(XmlMerger.MERGE_NS_URI, "strategy").toLowerCase();
     if (!strategy.isEmpty()) {
-      return strategy;
+      return MergeStrategy.of(strategy);
     }
-
-    // Inherit merging strategy from parent
-    Element parent = getParentElement();
-    if (parent != null) {
-      return new MergeElement(parent, this.documentPath).getMergingStrategy();
-    }
-    return MergeStrategy.KEEP.name(); // should the default be keep?
+    return null;
   }
 
   /**
@@ -79,7 +71,26 @@ public class MergeElement {
    */
   public String getId() {
 
-    return this.element.getAttributeNS(XmlMerger.MERGE_NS_URI, "id");
+    String id = this.element.getAttributeNS(XmlMerger.MERGE_NS_URI, "id");
+    if (id.isEmpty()) {
+      // handle case where element has no attribute
+      if (getElementAttributes().isEmpty()) {
+        // use name as id
+        id = "name()";
+      } else {
+        // look for id or name attributes
+        String idAttr = this.element.getAttribute("id");
+        if (idAttr.isEmpty()) {
+          idAttr = this.element.getAttribute("name");
+          if (!idAttr.isEmpty()) {
+            id = "@name";
+          }
+        } else {
+          id = "@id";
+        }
+      }
+    }
+    return id;
   }
 
   /**

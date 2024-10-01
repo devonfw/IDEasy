@@ -34,7 +34,7 @@ You can even add link:software.adoc#custom[custom tools] on your own to integrat
 It supports and works on all major platforms: Windows, Mac and Linux.
 * *Multi-tenancy* +
 You can have any number of projects "link:setup.adoc[installed]" with `IDEasy` on your machine with different tools, tool versions and configurations.
-Such project "installations" do not interfere with each other nor with other software installed on your operating-system.
+Such project "installations" do not interfere with each other nor with other software installed on your operating-system (see link:sandbox.adoc[sandbox]).
 * *Multiple Workspaces* +
 It supports working with different link:workspaces.adoc[workspaces].
 You can create and update new workspaces with a few clicks e.g. for different sub-projects or branches.
@@ -62,17 +62,19 @@ Here are some examples with `IDEasy`:
 --------
 [~]$ ide
 You are not inside an IDEasy project: /home
-[~]$ cd projects/devonfw
+[~]$ ide create cool-project
+...
+[~]$ cd projects/cool-project
 [devonfw]$ mvn
 command not found: mvn
 [devonfw]$ ide
-Environment variables have been set for ~/projects/devonfw in workspace main
+Environment variables have been set for ~/projects/cool-project in workspace main
 [devonfw]$ mvn -v
-Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T20:41:47+02:00)
-Maven home: ~/projects/devonfw/software/mvn
-Java version: 1.8.0_191, vendor: Oracle Corporation, runtime: ~/projects/devonfw/software/java
-Default locale: en_DE, platform encoding: UTF-8
-OS name: "mac os x", version: "10.14.3", arch: "x86_64", family: "mac"
+Apache Maven 3.9.9 (8e8579a9e76f7d015ee5ec7bfcdc97d260186937)
+Maven home: ~/projects/cool-project/software/mvn
+Java version: 21.0.4, vendor: Eclipse Adoptium, runtime: ~/projects/cool-project/software/java
+Default locale: de_DE, platform encoding: UTF-8
+OS name: "mac os x", version: "21.0.4", arch: "x86_64", family: "mac"
 [devonfw]$ cd ../ide-test/workspaces/test/my-project
 [my-project]$ ide
 Environment variables have been set for ~/projects/ide-test in workspace test
@@ -81,7 +83,7 @@ Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T20:41:4
 Maven home: ~/projects/ide-test/software/mvn
 Java version: 11.0.2, vendor: Oracle Corporation, runtime: ~/projects/ide-test/software/java
 Default locale: en_DE, platform encoding: UTF-8
-OS name: "mac os x", version: "10.14.3", arch: "x86_64", family: "mac"
+OS name: "mac os x", version: "11.0.2", arch: "x86_64", family: "mac"
 [my-project]$ ide eclipse
 launching Eclipse for workspace test...
 [my-project]$ ide build
@@ -96,9 +98,8 @@ For further details have a look at our link:cli.adoc[CLI documentation].
 Now you might ask:
 
 * But I use Windows/Linux/MacOS/… - it works on all platforms!
-* But I want to use Windows CMD or Power-Shell - it works!
-* But I use cygwin or git-bash on Windows - it works!
-* But I run this inside Windows-Terminal and want tight integration - it works!
+* But I want to use Windows CMD - dont do it but if you insist it also works!
+* But I run this inside Windows-Terminal and want tight integration - this is the recommended way and it works!
 * But I am on MacOS want to use Terminal or iTerm2 with tight integration? - it works!
 * But I use (OhMy)Zsh - it works!
 * But ...? - it works!

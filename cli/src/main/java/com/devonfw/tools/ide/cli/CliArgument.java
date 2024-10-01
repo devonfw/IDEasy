@@ -307,36 +307,30 @@ public class CliArgument {
   }
 
   /**
-   * @param firstArgs the first arguments.
-   * @param nextArgs the additional arguments to append after {@code args}.
-   * @return a {@link String} array with the values from {@code firstArgs} followed by the values from {@code nextArgs}.
+   * @param currentArgs the current arguments to extend.
+   * @param firstArgs the additional arguments to prepend before {@code currentArgs}.
+   * @return a {@link String} array with the values from {@code firstArgs} followed by the values from {@code currentArgs}.
    */
-  public static String[] append(String[] firstArgs, String... nextArgs) {
+  public static String[] prepend(String[] currentArgs, String... firstArgs) {
 
-    return join(firstArgs, false, nextArgs);
+    return join(firstArgs, currentArgs);
   }
 
   /**
-   * @param nextArgs the arguments to append after {@code firstArgs}.
-   * @param firstArgs the first arguments.
-   * @return a {@link String} array with the values from {@code firstArgs} followed by the values from {@code nextArgs}.
+   * @param currentArgs the current arguments to extend.
+   * @param lastArgs the additional arguments to append after {@code currentArgs}.
+   * @return a {@link String} array with the values from {@code currentArgs} followed by the values from {@code lastArgs}.
    */
-  public static String[] prepend(String[] nextArgs, String... firstArgs) {
+  public static String[] append(String[] currentArgs, String... lastArgs) {
 
-    return join(nextArgs, false, firstArgs);
+    return join(currentArgs, lastArgs);
   }
 
-  private static String[] join(String[] args, boolean prefix, String... extraArgs) {
+  private static String[] join(String[] args, String... extraArgs) {
 
     String[] result = new String[args.length + extraArgs.length];
-    int argsStart = 0;
-    int extraArgsStart = args.length;
-    if (prefix) {
-      argsStart = extraArgs.length;
-      extraArgsStart = 0;
-    }
-    System.arraycopy(args, 0, result, argsStart, args.length);
-    System.arraycopy(extraArgs, 0, result, extraArgsStart, extraArgs.length);
+    System.arraycopy(args, 0, result, 0, args.length);
+    System.arraycopy(extraArgs, 0, result, args.length, extraArgs.length);
     return result;
   }
 }

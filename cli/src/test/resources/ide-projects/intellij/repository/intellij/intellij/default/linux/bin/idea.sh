@@ -1,2 +1,3 @@
 #!/bin/bash
-echo "intellij linux $*"
+cd "$(dirname "$0")"
+echo "intellij linux $*" > intellijtest

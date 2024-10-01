@@ -92,7 +92,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path downloadPath;
 
-  private Path toolRepository;
+  private Path toolRepositoryPath;
 
   private Path userHome;
 
@@ -110,7 +110,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final CommandletManager commandletManager;
 
-  private final ToolRepository defaultToolRepository;
+  private ToolRepository defaultToolRepository;
 
   private CustomToolRepository customToolRepository;
 
@@ -122,15 +122,15 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private StepImpl currentStep;
 
+  private Boolean online;
+
   /**
    * The constructor.
    *
    * @param startContext the {@link IdeLogger}.
    * @param userDir the optional {@link Path} to current working directory.
-   * @param toolRepository @param toolRepository the {@link ToolRepository} of the context. If it is set to {@code null} {@link DefaultToolRepository} will
-   *     be used.
    */
-  public AbstractIdeContext(IdeStartContextImpl startContext, Path userDir, ToolRepository toolRepository) {
+  public AbstractIdeContext(IdeStartContextImpl startContext, Path userDir) {
 
     super();
     this.startContext = startContext;
@@ -169,14 +169,14 @@ public abstract class AbstractIdeContext implements IdeContext {
     setCwd(userDir, workspace, currentDir);
 
     if (this.ideRoot == null) {
-      this.toolRepository = null;
+      this.toolRepositoryPath = null;
       this.urlsPath = null;
       this.tempPath = null;
       this.tempDownloadPath = null;
       this.softwareRepositoryPath = null;
     } else {
       Path ideBase = this.ideRoot.resolve(FOLDER_IDE);
-      this.toolRepository = ideBase.resolve("software");
+      this.toolRepositoryPath = ideBase.resolve("software");
       this.urlsPath = ideBase.resolve("urls");
       this.tempPath = ideBase.resolve("tmp");
       this.tempDownloadPath = this.tempPath.resolve(FOLDER_DOWNLOADS);
@@ -188,11 +188,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
 
-    if (toolRepository == null) {
-      this.defaultToolRepository = new DefaultToolRepository(this);
-    } else {
-      this.defaultToolRepository = toolRepository;
-    }
+    this.defaultToolRepository = new DefaultToolRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -370,6 +366,14 @@ public abstract class AbstractIdeContext implements IdeContext {
     return this.defaultToolRepository;
   }
 
+  /**
+   * @param defaultToolRepository the new value of {@link #getDefaultToolRepository()}.
+   */
+  protected void setDefaultToolRepository(ToolRepository defaultToolRepository) {
+
+    this.defaultToolRepository = defaultToolRepository;
+  }
+
   @Override
   public CustomToolRepository getCustomToolRepository() {
 
@@ -490,7 +494,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public Path getToolRepositoryPath() {
 
-    return this.toolRepository;
+    return this.toolRepositoryPath;
   }
 
   @Override
@@ -544,20 +548,22 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public boolean isOnline() {
 
-    boolean online = false;
-    try {
-      int timeout = 1000;
-      //open a connection to github.com and try to retrieve data
-      //getContent fails if there is no connection
-      URLConnection connection = new URL("https://www.github.com").openConnection();
-      connection.setConnectTimeout(timeout);
-      connection.getContent();
-      online = true;
-
-    } catch (Exception ignored) {
-
+    if (this.online == null) {
+      // we currently assume we have only a CLI process that runs shortly
+      // therefore we run this check only once to save resources when this method is called many times
+      try {
+        int timeout = 1000;
+        //open a connection to github.com and try to retrieve data
+        //getContent fails if there is no connection
+        URLConnection connection = new URL("https://www.github.com").openConnection();
+        connection.setConnectTimeout(timeout);
+        connection.getContent();
+        this.online = Boolean.TRUE;
+      } catch (Exception ignored) {
+        this.online = Boolean.FALSE;
+      }
     }
-    return online;
+    return this.online.booleanValue();
   }
 
   @Override
@@ -850,7 +856,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (this.settingsPath != null) {
         if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
             (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
-          info("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+          interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
         }
       }
       cmd.run();
@@ -1050,5 +1056,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   public IdeStartContextImpl getStartContext() {
 
     return startContext;
+  }
+
+  /**
+   * Reloads this context and re-initializes the {@link #getVariables() variables}.
+   */
+  public void reload() {
+    this.variables = createVariables();
   }
 }
