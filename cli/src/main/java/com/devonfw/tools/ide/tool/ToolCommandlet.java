@@ -494,7 +494,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
     Path bashFile = binFolder.resolve(getName());
     String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname \"$0\")/";
-    String bashFileContentEnd = "\" $*";
+    String bashFileContentEnd = "\" $@";
     if (background) {
       bashFileContentEnd += " &";
     }
