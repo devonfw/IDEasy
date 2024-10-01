@@ -36,7 +36,7 @@
       ],
       "dist": {
         "shasum": "",
-        "tarball": "http://localhost:8080/npm/-/npm-1.1.25.tgz",
+        "tarball": "${testbaseurl}/npm/-/npm-1.1.25.tgz",
         "integrity": "",
         "signatures": [
           {
@@ -126,7 +126,7 @@
       ],
       "dist": {
         "shasum": "",
-        "tarball": "http://localhost:8080/npm/-/npm-1.2.32.tgz",
+        "tarball": "${testbaseurl}/npm/-/npm-1.2.32.tgz",
         "integrity": "",
         "signatures": [
           {
@@ -214,7 +214,7 @@
       ],
       "dist": {
         "shasum": "",
-        "tarball": "http://localhost:8080/npm/-/npm-2.0.0-beta.0.tgz",
+        "tarball": "${testbaseurl}/npm/-/npm-2.0.0-beta.0.tgz",
         "integrity": "",
         "signatures": [
           {

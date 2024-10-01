@@ -17,12 +17,13 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.tools.ide.tool.npm.NpmUrlUpdater;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test class for integrations of the {@link NpmUrlUpdater}
  */
-@WireMockTest(httpPort = 8080)
+@WireMockTest
 public class JavaUrlUpdaterTest extends Assertions {
 
   /**
@@ -37,10 +38,11 @@ public class JavaUrlUpdaterTest extends Assertions {
    * Test of {@link JsonUrlUpdater} for the creation of {@link JavaUrlUpdater} download URLs and checksums.
    *
    * @param tempDir Path to a temporary directory
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo}.
    * @throws IOException test fails
    */
   @Test
-  public void testJavaUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir) throws IOException {
+  public void testJavaUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // given
     stubFor(get(urlMatching("/versions/")).willReturn(aResponse().withStatus(200)
@@ -49,8 +51,7 @@ public class JavaUrlUpdaterTest extends Assertions {
     stubFor(any(urlMatching("/downloads/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    JavaUrlUpdaterMock updater = new JavaUrlUpdaterMock();
-
+    JavaUrlUpdaterMock updater = new JavaUrlUpdaterMock(wmRuntimeInfo);
     // when
     updater.update(urlRepository);
 

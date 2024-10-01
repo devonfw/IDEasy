@@ -1,21 +1,29 @@
 package com.devonfw.tools.ide.tool.java;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+
 /**
  * Mock of {@link JavaUrlUpdater} to allow integration testing with wiremock.
  */
 public class JavaUrlUpdaterMock extends JavaUrlUpdater {
 
-  private final static String TEST_URL = "http://localhost:8080/";
+  private final String baseUrl;
+
+  JavaUrlUpdaterMock(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    super();
+    this.baseUrl = wireMockRuntimeInfo.getHttpBaseUrl();
+  }
 
   @Override
   protected String getMirror() {
 
-    return TEST_URL + "downloads/";
+    return this.baseUrl + "/downloads/";
   }
 
   @Override
   protected String doGetVersionUrl() {
 
-    return TEST_URL + "versions/";
+    return this.baseUrl + "/versions/";
   }
 }

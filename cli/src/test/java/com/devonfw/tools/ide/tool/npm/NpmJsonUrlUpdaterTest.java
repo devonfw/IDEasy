@@ -7,6 +7,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -16,12 +17,13 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test class for integrations of the {@link NpmUrlUpdater}
  */
-@WireMockTest(httpPort = 8080)
+@WireMockTest
 public class NpmJsonUrlUpdaterTest extends Assertions {
 
   /**
@@ -36,50 +38,57 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
    * Test of {@link JsonUrlUpdater} for the creation of {@link NpmUrlUpdater} download URLs and checksums.
    *
    * @param tempDir Path to a temporary directory
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo}.
    * @throws IOException test fails
    */
   @Test
-  public void testNpmJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir) throws IOException {
+  public void testNpmJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // given
     stubFor(get(urlMatching("/npm")).willReturn(
-        aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
+        aResponse().withStatus(200).withBody(getJsonBody(wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock();
+    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock(wmRuntimeInfo);
 
     // when
     updater.update(urlRepository);
 
-    Path NpmVersionsPath = tempDir.resolve("npm").resolve("npm").resolve("1.2.32");
+    Path npmVersionsPath = tempDir.resolve("npm").resolve("npm").resolve("1.2.32");
 
     // then
-    assertThat(NpmVersionsPath.resolve("status.json")).exists();
-    assertThat(NpmVersionsPath.resolve("urls")).exists();
-    assertThat(NpmVersionsPath.resolve("urls.sha256")).exists();
+    assertThat(npmVersionsPath.resolve("status.json")).exists();
+    assertThat(npmVersionsPath.resolve("urls")).exists();
+    assertThat(npmVersionsPath.resolve("urls.sha256")).exists();
 
+  }
+
+  private static byte[] getJsonBody(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+    Path jsonFile = Path.of(TEST_DATA_ROOT).resolve("npm-version.json");
+    return Files.readString(jsonFile).replace("${testbaseurl}", wmRuntimeInfo.getHttpBaseUrl()).getBytes(StandardCharsets.UTF_8);
   }
 
   /**
    * Test if the {@link JsonUrlUpdater} for {@link NpmUrlUpdater} for a non-existent version does successfully not create a download folder.
    *
    * @param tempDir Path to a temporary directory
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo}.
    * @throws IOException test fails
    */
   @Test
-  public void testNpmJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir)
+  public void testNpmJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo)
       throws IOException {
 
     // given
     stubFor(get(urlMatching("/npm")).willReturn(
-        aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
+        aResponse().withStatus(200).withBody(getJsonBody(wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock();
+    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock(wmRuntimeInfo);
 
     // when
     updater.update(urlRepository);
@@ -95,19 +104,20 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
    * Test if the {@link JsonUrlUpdater} for {@link NpmUrlUpdater} can handle filtering of versions.
    *
    * @param tempDir Path to a temporary directory
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo}.
    * @throws IOException test fails
    */
   @Test
-  public void testNpmJsonUrlUpdaterFilteredVersionCreateVersionFolder(@TempDir Path tempDir) throws IOException {
+  public void testNpmJsonUrlUpdaterFilteredVersionCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // given
     stubFor(get(urlMatching("/npm")).willReturn(
-        aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
+        aResponse().withStatus(200).withBody(getJsonBody(wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock();
+    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock(wmRuntimeInfo);
 
     // when
     updater.update(urlRepository);
@@ -124,19 +134,20 @@ public class NpmJsonUrlUpdaterTest extends Assertions {
    * checksum was provided)
    *
    * @param tempDir Path to a temporary directory
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo}.
    * @throws IOException test fails
    */
   @Test
-  public void testNpmJsonUrlUpdaterGeneratesChecksum(@TempDir Path tempDir) throws IOException {
+  public void testNpmJsonUrlUpdaterGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
     // given
     stubFor(get(urlMatching("/npm")).willReturn(
-        aResponse().withStatus(200).withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("npm-version.json")))));
+        aResponse().withStatus(200).withBody(getJsonBody(wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/npm/-/npm-[1-9.]*.tgz")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock();
+    NpmUrlUpdaterMock updater = new NpmUrlUpdaterMock(wmRuntimeInfo);
 
     // when
     updater.update(urlRepository);
