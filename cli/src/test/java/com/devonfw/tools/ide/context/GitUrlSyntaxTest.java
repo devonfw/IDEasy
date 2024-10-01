@@ -13,11 +13,17 @@ public class GitUrlSyntaxTest extends AbstractIdeContextTest {
 
   private IdeTestContext context;
 
+  /**
+   * Creating test context for git test project
+   */
   @BeforeEach
   public void setUp() {
-    context = newContext(PROJECT_BASIC);
+    context = newContext("git");
   }
 
+  /**
+   * Tests the reading of property PREFERRED_GIT_PROTOCOL from ide.properties is done successfully
+   */
   @Test
   public void testPreferredGitProtocolIsReadAsSsh() {
     // Act: Read the PREFERRED_GIT_PROTOCOL from the config file
