@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.OperatingSystem;
@@ -49,6 +50,9 @@ public abstract class AbstractToolRepository implements ToolRepository {
     UrlDownloadFileMetadata metadata = getMetadata(tool, edition, version);
     VersionIdentifier resolvedVersion = metadata.getVersion();
     Set<String> urlCollection = metadata.getUrls();
+    if (context.isOffline()) {
+      throw CliOfflineException.ofDownloadOfTool(tool, edition, version);
+    }
     if (urlCollection.isEmpty()) {
       throw new IllegalStateException("Invalid download metadata with empty urls file for " + metadata);
     }

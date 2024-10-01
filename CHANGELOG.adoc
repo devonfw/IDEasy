@@ -27,12 +27,13 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/52[#52]: Adjusting Intellij settings in ide-settings
 * https://github.com/devonfw/IDEasy/issues/588[#588]: ide create installs wrong Java version
 * https://github.com/devonfw/IDEasy/issues/650[#650]: Improve default success message of step
-* https://github.com/devonfw/IDEasy/issues/593[#593]: Tool error reporting still buggy 
+* https://github.com/devonfw/IDEasy/issues/593[#593]: Tool error reporting still buggy
 * https://github.com/devonfw/IDEasy/issues/651[#651]: IDE not started in background anymore
 * https://github.com/devonfw/IDEasy/issues/439[#439]: Refactor and improve tool-dependencies and tomcat
 * https://github.com/devonfw/IDEasy/issues/356[#356]: Eclipse plugin installation opens an Eclipse window for each plugin installed
 * https://github.com/devonfw/IDEasy/issues/655[#655]: CVE-2024-26308 and library updates
 * https://github.com/devonfw/IDEasy/issues/627[#627]: Still log messages break processable command output
+* https://github.com/devonfw/IDEasy/issues/525[#525]: Added online state check before downloading
 * https://github.com/devonfw/IDEasy/issues/663[#663]: Endless loop when installing Eclipse in force mode
 * https://github.com/devonfw/IDEasy/issues/657[#657]: Cannot install Java 8
 

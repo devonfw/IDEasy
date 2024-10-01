@@ -210,7 +210,7 @@ public interface IdeContext extends IdeStartContext {
   default void requireOnline(String purpose) {
 
     if (isOfflineMode()) {
-      throw new CliOfflineException("You are offline but Internet access is required for " + purpose);
+      throw CliOfflineException.ofPurpose(purpose);
     }
   }
 
