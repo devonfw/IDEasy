@@ -76,7 +76,6 @@ public class Tomcat extends LocalToolCommandlet {
     createStartScript(extractedDir, binaryName, false);
   }
 
-
   private void printTomcatPort() {
 
     String portNumber = findTomcatPort();
