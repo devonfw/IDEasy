@@ -62,7 +62,7 @@ if exist "%BASH_HOME%\bin\bash.exe" (
 echo:
 echo %_fBYellow%*** ATTENTION ***%_RESET%
 echo %_fBRed%ERROR: Could not find bash. It seems git for windows is not installed on your machine%_RESET%
-echo %_fBRed%Please download and install git for windows from the following URL and after that rerun devonfw-ide setup:%_RESET%
+echo %_fBRed%Please download and install git for windows from the following URL and after that rerun IDEasy setup:%_RESET%
 echo %_fBRed%https://git-scm.com/download/win%_RESET%
 exit /b 5
 
