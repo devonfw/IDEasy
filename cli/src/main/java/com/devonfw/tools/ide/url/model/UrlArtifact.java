@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 
 /**
- * An {@link UrlArtifact} represents a file or folder in the directory structure of a devonfw-ide urls repository.
+ * An {@link UrlArtifact} represents a file or folder in the directory structure of the ide-urls repository.
  *
  * @see UrlRepository
  * @see UrlTool
