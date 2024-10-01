@@ -1,10 +1,7 @@
-:toc:
-toc::[]
-
 = Repositories
 
-IDEasy supports to automatically clone and import required git repositories into your IDE during link:setup.asciidoc[setup].
-To configure this you put a `.properties` file for each desired repository into the `repositories` sub-folder in your link:settings.asciidoc[settings].
+IDEasy supports to automatically clone and import required git repositories into your IDE during link:setup.adoc[setup].
+To configure this you put a `.properties` file for each desired repository into the `repositories` sub-folder in your link:settings.adoc[settings].
 Each `.properties` file describes one (git) "repository" which you would like to clone and (potentially) import:
 
 [source,properties]
@@ -20,10 +17,10 @@ import=eclipse,intellij
 active=true
 ----
 
- .Variables of project import
-[options="header"]
-
-|=== |*Variable*|*Value*|*Meaning*
+.Variables of project import
+[options="header",cols="3"]
+|===
+|*Variable*|*Value*|*Meaning*
 |`path`|e.g. `myproject`, will clone into `${WORKSPACE_PATH}/myproject`|(required) Path into which the projects is cloned.
 This path is relative to the workspace.
 |`working sets`|e.g. `ws1,ws2`|(optional) This will create working sets (in eclipse).
@@ -42,6 +39,5 @@ For a regular project use `.` to build top-level project.
 If omitted no build is triggered.
 |`import`|e.g. `intellij`|(optional) IDEs where to automatically import the project.
 Currently only maven projects are supported.
-|`active`|`true`|(optional) If set to `false` the project is skipped during the link:setup.asciidoc[setup].
-
+|`active`|`true`|(optional) If set to `false` the project is skipped during the link:setup.adoc[setup].
 |===
