@@ -7,7 +7,6 @@ toc::[]
 
 There are tons of helpful browser plugins out there and it might be a matter of personal taste what you like to have installed.
 However, as we are heavily using github we want to promote https://github.com/buunguyen/octotree#octotree[octotree].
-In case you also work with ZenHub you might want to install the https://www.zenhub.com/extension[Zenhub Browser Extension].
 
 == Draw Diagrams
 
