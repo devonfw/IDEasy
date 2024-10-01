@@ -27,22 +27,12 @@ IDEasy environment variables have been set for /projects/my-project in workspace
 
 == Commandlets
 
-The `ide` command supports a pluggable set of _commandlets_.
-Such commandlet is provided as first argument to the ide command and may take additional arguments:
+The `ide` command supports a large set of _commandlets_ (sub-commands).
+Such commandlet is typically provided as first argument to the ide command and may take additional arguments:
 
 `ide «commandlet» [«arg»]*`
 
-Technically, a commandlet is a bash script located in `$IDE_HOME/.ide/scripts/command`.
-So if you want to integrate another tool with `IDEasy` we are awaiting your pull-request.
-Every commandlet takes the following generic arguments:
-
-.Generic arguments of every commandlet
-[options="header"]
-|=======================
-|*Argument(s)*     |*Meaning*
-|`-b` or `--batch` |run in non-interactive mode (do not ask any questions).
-|`-q` or `--quiet` |be quiet and avoid output.
-|=======================
+For more details simply call `ide help`.
 
 === Command-wrapper
 
@@ -50,6 +40,7 @@ For many commandlets the `ide` command acts as a wrapper.
 Similar to `mvnw` or `gradlew` you can use it as a proxy command.
 Therefore `ide mvn clean install` will be the same as `mvn clean install`.
 The benefit when using `ide` as wrapper is that it will even work when the command (`mvn`, `node`, `npm`, etc.) is not on your `PATH` variable or even not yet installed.
+Further, it will ensure that the actual command is called with the proper configuration of your project (e.g. in case of `mvn` with the `settings.xml` for your project).
 We see the main benefit in this for writing portable scripts that you may commit to your git repository and that will then run everywhere and will lazily install the required tools on the fly.
-In your daily usage you can and surely should avoid to always type `ide` as prefix to every command.
-However, when you automate and want to avoid "command not found" errors, you can simply prefix the command with `ide`.
+In your daily usage there is no need to always type `ide` as prefix to every command.
+Simply assure that you have called `ide` to setup your environment before calling the actual tool.

@@ -1,15 +1,22 @@
 package com.devonfw.tools.ide.tool.npm;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+
 /**
  * Mock of {@link NpmUrlUpdater} to allow integration testing with wiremock.
  */
 public class NpmUrlUpdaterMock extends NpmUrlUpdater {
 
-  private final static String TEST_URL = "http://localhost:8080/";
+  private final String baseUrl;
+
+  NpmUrlUpdaterMock(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    super();
+    this.baseUrl = wireMockRuntimeInfo.getHttpBaseUrl() + "/";
+  }
 
   @Override
   protected String getBaseUrl() {
 
-    return TEST_URL;
+    return this.baseUrl;
   }
 }
