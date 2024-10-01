@@ -8,20 +8,19 @@ This folder contains configurations for your IDE:
 [source]
 ----
 / conf
-├──/ .m2
+├──/ mvn
 │  ├──/ repository
 │  │  ├──/ ant
 │  │  ├──/ ...
 │  │  └──/ zw
 │  ├── settings-security.xml
 │  └── settings.xml
-├──/ .sonar
-├──/ ...
-└── variables
+├──/ npm
+└──/ ...
 ----
 
-The `.m2` folder is used for configurations of https://maven.apache.org/[maven].
-It contains the local `repository` folder used as cache for artifacts downloaded and installed by maven (see also https://maven.apache.org/guides/introduction/introduction-to-repositories.html[maven repositories]).
+The `mvn` folder is used for configurations of https://maven.apache.org/[maven].
+It may contain the local `repository` folder used as cache for artifacts downloaded and installed by maven (see also https://maven.apache.org/guides/introduction/introduction-to-repositories.html[maven repositories]).
 Further, there are two configuration files for maven:
 
 * https://maven.apache.org/settings.html[settings.xml] initialized from a template from your `IDEasy` link:settings.adoc[settings].
@@ -32,5 +31,3 @@ To make use of this feature simply fork or copy the settings to your own git rep
 In case your credentials have changed or you made a typo, you can simply redo this step by first moving your `${IDE_HOME}/conf/.m2/settings.xml` file to a temporary folder and then calling `ide install mvn`.
 * https://maven.apache.org/guides/mini/guide-encryption.html[settings-security.xml] is auto-generated for you by `IDEasy` with a random password.
 This should make it easier for `IDEasy` users to use https://maven.apache.org/guides/mini/guide-encryption.html[password encryption] and never add passwords in plain text for better security.
-
-Finally, there is a file `variables` for the user-specific link:configuration.adoc[configuration] of `IDEasy`.
