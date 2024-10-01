@@ -11,12 +11,11 @@ import java.util.Objects;
 import java.util.Optional;
 
 import com.devonfw.tools.ide.cli.CliOfflineException;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Implements the {@link GitContext}.
@@ -332,23 +331,21 @@ public class GitContextImpl implements GitContext {
   }
 
   /**
-   * Converts the given Git URL to the preferred protocol if a preferred protocol is set. If no protocol is set (null or empty) or the protocol is invalid, the
-   * original URL is returned.
+   * Converts the given Git URL to the preferred protocol if a preferred protocol is set. If no protocol is set or the protocol is invalid, the original URL is
+   * returned.
    *
    * @param gitUrl the original {@link GitUrl} object.
    * @return the converted {@link GitUrl} with the preferred protocol, or the original if no conversion is needed.
    */
   private GitUrl convertGitUrlToPreferredProtocol(GitUrl gitUrl) {
-    EnvironmentVariables envVars = this.context.getVariables().getByType(EnvironmentVariablesType.CONF);
-    String preferredProtocol = envVars.get("PREFERRED_GIT_PROTOCOL");
+    GitUrlSyntax preferredProtocol = IdeVariables.PREFERRED_GIT_PROTOCOL.get(context);
 
-    // If the preferred protocol is null, empty, or invalid, return the original GitUrl
-    if (preferredProtocol == null || preferredProtocol.trim().isEmpty()) {
-      return gitUrl; // No conversion, return the original GitUrl as is
+    // If the preferred protocol is null or empty, return the original GitUrl
+    if (preferredProtocol == null) {
+      return gitUrl;
     }
 
-    // Convert the Git URL to the preferred protocol if valid
-    return GitUrlSyntax.convertToPreferredProtocol(gitUrl, preferredProtocol);
+    return gitUrl.convert(preferredProtocol);
   }
 }
 

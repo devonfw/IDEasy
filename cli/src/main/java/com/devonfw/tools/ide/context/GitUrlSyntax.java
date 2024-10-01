@@ -18,6 +18,7 @@ public enum GitUrlSyntax {
   HTTPS("https://");
 
   private final String prefix;
+
   private static final List<String> DOMAINS_WITH_NO_CONVERSION = Arrays.asList("github.com");
 
   GitUrlSyntax(String prefix) {
@@ -36,6 +37,11 @@ public enum GitUrlSyntax {
    */
   public GitUrl format(GitUrl gitUrl) {
     String url = gitUrl.url();
+
+    // Prevent conversion for domains in the no-conversion list
+    if (isDomainWithNoConversion(url.toLowerCase())) {
+      return gitUrl;
+    }
 
     switch (this) {
       case SSH:
@@ -61,39 +67,22 @@ public enum GitUrlSyntax {
     return new GitUrl(url, gitUrl.branch());
   }
 
-  /**
-   * Converts the given {@link GitUrl} to the preferred protocol (either "ssh" or "https").
-   * <p>
-   * If the preferred protocol is not valid or the domain should not be converted, the original URL is returned.
-   * </p>
-   *
-   * @param gitUrl the original {@link GitUrl} to be converted.
-   * @param preferredProtocol the preferred protocol as a {@link String}, either "ssh" or "https".
-   * @return the converted {@link GitUrl} or the original {@link GitUrl} if no conversion is required.
-   * @throws IllegalArgumentException if the protocol is not supported.
-   */
-  public static GitUrl convertToPreferredProtocol(GitUrl gitUrl, String preferredProtocol) {
-    if (preferredProtocol == null || preferredProtocol.isEmpty()) {
-      return gitUrl; // No conversion, return the original GitUrl
+  private boolean isDomainWithNoConversion(String url) {
+
+    for (String domain : DOMAINS_WITH_NO_CONVERSION) {
+      // Check if it's an HTTPS URL for the domain
+      if (url.startsWith("https://" + domain + "/")) {
+        return true;
+      }
+
+      // Check if it's an SSH URL for the domain
+      if (url.startsWith("git@" + domain + ":")) {
+        return true;
+      }
     }
 
-    String host = gitUrl.getHost();
-    if (DOMAINS_WITH_NO_CONVERSION.contains(host.toLowerCase())) {
-      return gitUrl;
-    }
-
-    GitUrlSyntax syntax;
-    switch (preferredProtocol.toLowerCase()) {
-      case "ssh":
-        syntax = SSH;
-        break;
-      case "https":
-        syntax = HTTPS;
-        break;
-      default:
-        return gitUrl; // Unrecognized protocol, return the original GitUrl
-    }
-
-    return syntax.format(gitUrl);
+    return false;
   }
+
+
 }
