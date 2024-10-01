@@ -3,7 +3,7 @@ toc::[]
 
 = Definition of Done
 
-Before a pull request (PR) for devonfw-ide is ready for review, this _definition of done_ (DoD) should be satisfied.
+Before a pull request (PR) for IDEasy is ready for review, this _definition of done_ (DoD) should be satisfied.
 Please note that external contributors are not strictly required to address all of these points as we love to get contributions and do not want to scare people from contributing with too much constraints.
 However, chances to get your change merged quickly are higher if you address all the following points.
 
