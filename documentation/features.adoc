@@ -34,7 +34,7 @@ You can even add link:software.adoc#custom[custom tools] on your own to integrat
 It supports and works on all major platforms: Windows, Mac and Linux.
 * *Multi-tenancy* +
 You can have any number of projects "link:setup.adoc[installed]" with `IDEasy` on your machine with different tools, tool versions and configurations.
-Such project "installations" do not interfere with each other nor with other software installed on your operating-system.
+Such project "installations" do not interfere with each other nor with other software installed on your operating-system (see link:sandbox.adoc[sandbox]).
 * *Multiple Workspaces* +
 It supports working with different link:workspaces.adoc[workspaces].
 You can create and update new workspaces with a few clicks e.g. for different sub-projects or branches.
