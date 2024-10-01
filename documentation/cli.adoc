@@ -27,22 +27,12 @@ IDEasy environment variables have been set for /projects/my-project in workspace
 
 == Commandlets
 
-The `ide` command supports a pluggable set of _commandlets_.
-Such commandlet is provided as first argument to the ide command and may take additional arguments:
+The `ide` command supports a large set of _commandlets_ (sub-commands).
+Such commandlet is typically provided as first argument to the ide command and may take additional arguments:
 
 `ide «commandlet» [«arg»]*`
 
-Technically, a commandlet is a bash script located in `$IDE_HOME/.ide/scripts/command`.
-So if you want to integrate another tool with `IDEasy` we are awaiting your pull-request.
-Every commandlet takes the following generic arguments:
-
-.Generic arguments of every commandlet
-[options="header"]
-|=======================
-|*Argument(s)*     |*Meaning*
-|`-b` or `--batch` |run in non-interactive mode (do not ask any questions).
-|`-q` or `--quiet` |be quiet and avoid output.
-|=======================
+For more details simply call `ide help`.
 
 === Command-wrapper
 
