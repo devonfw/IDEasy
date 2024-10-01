@@ -21,7 +21,7 @@ active=true
 [options="header",cols="3"]
 |===
 |*Variable*|*Value*|*Meaning*
-|`path`|e.g. `myproject`, will clone into `${WORKSPACE_PATH}/myproject`|(required) Path into which the projects is cloned.
+|`path`|e.g. `myproject`, will clone into `${WORKSPACE_PATH}/myproject`|(required) Path into which the projects are cloned.
 This path is relative to the workspace.
 |`working sets`|e.g. `ws1,ws2`|(optional) This will create working sets (in eclipse).
 Each module (eclipse project) of this project will be part of all these working sets.
