@@ -46,6 +46,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -96,6 +97,9 @@ public class FileAccessImpl implements FileAccess {
     this.context.info("Trying to download {} from {}", target.getFileName(), url);
     mkdirs(target.getParent());
     try {
+      if (this.context.isOffline()) {
+        throw CliOfflineException.ofDownloadViaUrl(url);
+      }
       if (url.startsWith("http")) {
 
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
