@@ -14,7 +14,7 @@ We follow these additional naming rules:
 * Always use short but speaking names (for types, methods, fields, parameters, variables, constants, etc.).
 * Avoid using existing type names from JDK (from `java.lang.*`, `java.util.*`, etc.) - so e.g. never name your own Java type `List`, `Error`, etc.
 * Strictly avoid special characters in technical names (for files, types, fields, methods, properties, variables, database tables, columns, constraints, etc.).
-In other words only use Latin alpahnumeric ASCII characters with the common allowed technical separators for the accordign context (e.g. underscore) for technical names (even excluding whitespaces).
+In other words only use Latin alphanumeric ASCII characters with the common allowed technical separators for the according context (e.g. underscore) for technical names (even excluding whitespaces).
 * For package segments and type names prefer singular forms (`CustomerEntity` instead of [line-through]`CustomersEntity`).
 Only use plural forms when there is no singular or it is really semantically required (e.g. for a container that contains multiple of such objects).
 * Avoid having duplicate type names.
@@ -116,10 +116,10 @@ In IDEasy for commandlets, etc. we do not need to define `LOG` and can simply us
 |*Level*|*Type*|*Meaning*
 |`error`|Standard|Only for real errors that should raise the end-users attention. If an error is logged something went wrong and action needs to be taken and usually the operation failed.
 |`warning`|Standard|For warnings when something is not correct and the end-user should have a look. E.g. if something is misconfigured. Unlike error the process can continue and may hopefully success.
-|`interaction`|Proprietary|For interaction with the end-user. Typically for questions the end-user needs to answer (use dedidcated `question` or `askForInput` methods of `context`).
+|`interaction`|Proprietary|For interaction with the end-user. Typically for questions the end-user needs to answer (use dedicated `question` or `askForInput` methods of `context`).
 |`step`|Proprietary|For steps of advanced processing. Allows to divide some processing into logical steps (use `newStep` method of `context`). This increases the user-experience as the end-user sees the progress and can get a report of these steps and see how long they took and if they succeeded or not.
-|`debug`|Standard|Only used for debugging. Disabled by default to avoid "spammming" the end-user. Can be enabled with `-d` or `--debug` option to get more details and analyze what happens in detail.
-|`trace`|Standard|Only used for very fine grained details. Disabled by default to avoid "spammming" the end-user. Can be enabled with `-t` or `--trace` option to get even more details if debug is not enough. 
+|`debug`|Standard|Only used for debugging. Disabled by default to avoid "spamming" the end-user. Can be enabled with `-d` or `--debug` option to get more details and analyze what happens in detail.
+|`trace`|Standard|Only used for very fine grained details. Disabled by default to avoid "spamming" the end-user. Can be enabled with `-t` or `--trace` option to get even more details if debug is not enough.
 |=======================
 
 The Log-Levels with type `Proprietary` only exist in `IdeLogger` for allowing different syntax coloring for these specific use-cases.
@@ -146,10 +146,10 @@ Always use the logger to output messages and never use `System.out` or `System.e
 When catching exceptions always ensure the following:
 
 * Never call `printStackTrace()` method on an exception
-* Either log or wrap and re-throw the entire catched exception.
+* Either log or wrap and re-throw the entire catch exception.
 Be aware that the cause(s) of an exception is very valuable information.
 If you loose such information by improper exception-handling you may be unable to properly analyse production problems what can cause severe issues.
-** If you wrap and re-throw an exception ensure that the catched exception is passed as cause to the newly created and thrown exception.
+** If you wrap and re-throw an exception ensure that the catch exception is passed as cause to the newly created and thrown exception.
 ** If you log an exception ensure that the entire exception is passed as argument to the logger (and not only the result of `getMessage()` or `toString()` on the exception).
 
 [source,java]
@@ -170,7 +170,7 @@ Exception in thread "main" java.lang.IllegalStateException: Something failed
 	at com.devonfw.tools.ide.ExceptionHandling.main(ExceptionHandling.java:14)
 ----
 
-As you can see we have no information and clue what the catched `Exception` was and what really went wrong in `doSomething()`.
+As you can see we have no information and clue what the catch `Exception` was and what really went wrong in `doSomething()`.
 
 Instead always rethrow with the original exception:
 
@@ -180,7 +180,7 @@ try {
   doSomething();
 } catch (Exception e) {
   // fine
-  throw new IllegalStateExeception("Something failed", e);
+  throw new IllegalStateException("Something failed", e);
 }
 ----
 
@@ -331,7 +331,7 @@ Do refactorings with care and follow these best-practices:
 Otherwise your diff may show that a file has been deleted somewhere and another file has been added but you cannot see that this file was moved/renamed and what changed inside the file.
 * do not change Java signatures like in a text editor but use refactoring capabilities of your IDE.
 So e.g. when changing a method name, adding or removing a parameter, always use refactoring as otherwise you easily break references (and JavaDoc references will not give you compile errors so you break things without noticing).
-* when adding paramaters to methods, please always consider to keep the existing signature and just create a new variant of the method with an additional parameter.
+* when adding parameters to methods, please always consider to keep the existing signature and just create a new variant of the method with an additional parameter.
 
 Lets assume we have this method:
 
@@ -416,10 +416,10 @@ if (foo == null) {
 ----
 
 Please note that the term `Exception` is used for something exceptional.
-Further creating an instance of an `Exception` or `Throable` in Java is expensive as the entire Strack has to be collected and copied into arrays, etc. causing significant overhead.
+Further creating an instance of an `Exception` or `Throwable` in Java is expensive as the entire Struck has to be collected and copied into arrays, etc. causing significant overhead.
 This should always be avoided in situations we can easily avoid with a simple `if` check.
 
-== Consider extractig local variable for multiple method calls
+== Consider extracting local variable for multiple method calls
 
 Calling the same method (cascades) multiple times is redundant and reduces readability and performance:
 
@@ -484,7 +484,7 @@ Instead this applies to things like `IdeContext` and all its related child-objec
 Such classes shall never be modified after initialization.
 Methods called at runtime (after initialization) do not assign fields (member variables of your class) or mutate the object stored in a field.
 This allows your component or bean to be stateless and thread-safe.
-Therefore it can be initialized as a singleton so only one instance is created and shared accross all threads of the application.
+Therefore it can be initialized as a singleton so only one instance is created and shared across all threads of the application.
 Ideally all fields are declared `final` otherwise be careful not to change them dynamically (except for lazy-initializations).
 Here is an example:
 
@@ -495,7 +495,7 @@ public class GitHelperImpl implements GitHelper {
   // bad
   private boolean force;
 
-  @Overide
+  @Override
   public void gitPullOrClone(boolean force, Path target, String gitUrl) {
     this.force = force;
     if (Files.isDirectory(target.resolve(".git"))) {
@@ -512,7 +512,7 @@ public class GitHelperImpl implements GitHelper {
 ----
 
 As you can see in the `bad` code fields of the class are assigned at runtime.
-Since IDEasy is not implementing a concurremt multi-user application this is not really critical.
+Since IDEasy is not implementing a concurrent multi-user application this is not really critical.
 However, it is best-practice to avoid this pattern and generally follow thread-safe programming as best-practice:
 
 [source,java]
@@ -520,7 +520,7 @@ However, it is best-practice to avoid this pattern and generally follow thread-s
 public class GitHelperImpl implements GitHelper {
 
   // fine
-  @Overide
+  @Override
   public void gitPullOrClone(boolean force, Path target, String gitUrl) {
     if (Files.isDirectory(target.resolve(".git"))) {
       gitPull(force, target);
@@ -616,7 +616,7 @@ if (condition()) {
 //System.err.println("that");
 ----
 
-== Field Initializion
+== Field Initialization
 
 Non-static fields should never been initialized outside of the constructor call.
 
@@ -683,7 +683,7 @@ John Doe
 Hi John Doe
 ``` 
 
-One could assume this since during the constructor call the overridden `computeMessage` method is invoked that assignes the `name` variable to `John Doe`.
+One could assume this since during the constructor call the overridden `computeMessage` method is invoked that assigns the `name` variable to `John Doe`.
 
 However, the output of this program is actually this:
 
