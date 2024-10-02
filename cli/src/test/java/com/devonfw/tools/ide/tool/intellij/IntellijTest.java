@@ -126,16 +126,15 @@ public class IntellijTest extends AbstractIdeContextTest {
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
+    this.context.info("Starting testIntellijRun on {}", os);
 
     // act
     commandlet.run();
 
     // assert
-    SystemInfo currentSystemInfo = this.context.getSystemInfo();
-    Path workspacePath = this.context.getWorkspacePath();
-    assertThat(commandlet.getToolBinPath().resolve("intellijtest")).hasContent(
-        "intellij " + currentSystemInfo.getOs() + " " + workspacePath);
     checkInstallation(this.context);
+    assertThat(commandlet.getToolBinPath().resolve("intellijtest")).hasContent(
+        "intellij " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
   }
 
   private void checkInstallation(IdeTestContext context) {

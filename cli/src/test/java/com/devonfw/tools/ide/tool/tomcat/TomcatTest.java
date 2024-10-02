@@ -51,12 +51,13 @@ public class TomcatTest extends AbstractIdeContextTest {
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version " + javaVersionProject), //
         new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionProject), //
         new IdeLogEntry(IdeLogLevel.INFO,
-            "Configured version is 8u402b06 but does not match version to install [11,22) - need to use different version from software repository."), //
+            "Configured version of tool java is 8u402b06 but does not match version to install [11,22) - need to use different version from software repository."),
+        //
         new IdeLogEntry(IdeLogLevel.DEBUG, "Installed java in version " + javaVersionTomcat + " at ", true),
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed tomcat in version " + tomcatVersion), //
         new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionTomcat), //
         new IdeLogEntry(IdeLogLevel.INFO, "JAVA_HOME=" + javaTomcatPath), //
-        new IdeLogEntry(IdeLogLevel.INFO, "tomcat start"), //
+        new IdeLogEntry(IdeLogLevel.INFO, "tomcat run"), //
         new IdeLogEntry(IdeLogLevel.INFO, "Tomcat is running at localhost on HTTP port " + tomcatPort + ":"), //
         new IdeLogEntry(IdeLogLevel.INFO, "http://localhost:" + tomcatPort) //
     );
