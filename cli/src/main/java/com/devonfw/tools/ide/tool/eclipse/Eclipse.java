@@ -78,13 +78,14 @@ public class Eclipse extends IdeToolCommandlet {
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
+          step.success();
           return;
         }
       }
     }
-    this.context.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
     result.log(IdeLogLevel.DEBUG, context);
     result.log(IdeLogLevel.ERROR, context);
+    step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
   }
 
   @Override

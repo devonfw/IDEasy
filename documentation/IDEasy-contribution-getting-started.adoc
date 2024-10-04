@@ -55,42 +55,6 @@ For further development and testing, it is recommended to xref:symbolic-links[sy
 Alternatively, the scripts can be adapted in the installation folder and then committed to the project.
 For creating a contribution also check the link:DoD.adoc[Definition of Done] (DoD).
 
-=== ShellCheck
-
-To improve the code quality the https://github.com/koalaman/shellcheck/[ShellCheck] is used for IDEasy.
-There is a GitHub action _CI build PR_ for this.
-If this fails at the PR, you can find the error messages in the big logfile under _Build project with Maven_.
-For example, these look like this:
-
-```
-Running test #2: test-shellcheck
-
-In scripts/functions line 659:
-    doUnzip ${1} ${target_dir}
-            ^--^ SC2086: Double quote to prevent globbing and word splitting.
-                 ^-----------^ SC2086: Double quote to prevent globbing and word splitting.
-
-Did you mean: 
-    doUnzip "${1}" "${target_dir}"
-
-For more information:
-  https://www.shellcheck.net/wiki/SC2086 -- Double quote to prevent globbing ...
-
-```
-
-Further explanations for ShellCheck errors can be found in the https://www.shellcheck.net/wiki/[ShellCheck Wiki].
-Own code can also be tested with the https://www.shellcheck.net/[Online ShellCheck].
-ShellCheck can also be run on the local development environment.
-To do this, ShellCheck (https://github.com/koalaman/shellcheck/releases/download/stable/shellcheck-stable.zip[win], https://github.com/koalaman/shellcheck/releases/download/stable/shellcheck-stable.darwin.x86_64.tar.xz[mac]) can be extracted to the program directory.
-For windows the path to the executable (`C:\Program Files\shellcheck-stable`) has to be added to the `PATH` environment variable (https://medium.com/@kevinmarkvi/how-to-add-executables-to-your-path-in-windows-5ffa4ce61a53[instruction]).
-In the resource folder of the project (`scripts/src/main/resources`) the following command can now be executed in the git-bash:
-
-```
-shellcheck -x -e SC2181 setup scripts/devon scripts/environment-project scripts/functions scripts/command/*
-```
-
-For Mac and Linux, ShellCheck is automatically called during the build process (`mvn install`).
-
 == Create a new commandlet
 
 === Urls
@@ -121,19 +85,14 @@ Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions a
 
 === Commandlet
 
-Use an existing commandlet like https://github.com/devonfw/ide/blob/master/scripts/src/main/resources/scripts/command/helm[HELM] as a reference.
-Create a file with the name of the tool and put it in the folder https://github.com/devonfw/ide/tree/master/scripts/src/main/resources/scripts/command[scripts/command].
-The first part of the script contains the autocompletion, which should return the available parameters.
-Functions like setup or run or other additional functions follow.
-Finally, it defines which function should be executed depending on the parameter.
+Use an existing commandlet like https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/tool/java/Java.java[Java] as a reference.
+Create a sub-package and a class with the name of the tool.
 
-Use the `doInstall` method for the installation, which downloads the tool based on the mirrors, unpacks it if necessary and puts it in the software folder in the `IDEasy` installation:
-
-```
-doInstall "-" "«installation-folder»" "«tool-name»" "«tool-version»"
-```
-
-For standard installations omit `"«installation-folder»"` (use the empty string arg `""`) what will install to `${IDE_HOME}/software/«tool-name»`.
+TODO explain:
+* Properties
+* run Method
+* Dependencies
+* Commandlet class hierarchy
 
 === LICENSE
 
@@ -217,4 +176,4 @@ There are also some basic exercises related to our project that are not official
 
 == Documentation
 
-Scroll down on https://github.com/devonfw/ideasy[this site] to get an overview of the documentation sections for the IDEasy, e.g. Home, Features, Download & Setup or have a look at https://github.com/devonfw/ideasy/tree/main/documentation[the documentation files folder].
+Scroll down on https://github.com/devonfw/IDEasy[this site] to get an overview of the documentation sections for the IDEasy, e.g. Home, Features, Download & Setup or have a look at https://github.com/devonfw/ideasy/tree/main/documentation[the documentation files folder].

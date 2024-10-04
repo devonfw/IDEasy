@@ -76,8 +76,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier installedVersion = getInstalledVersion();
     Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
     try {
+      // TODO https://github.com/devonfw/IDEasy/issues/664
+      boolean enableOptimization = false;
       // performance: avoid calling installTool if already up-to-date
-      if (configuredVersion.equals(installedVersion)) { // here we can add https://github.com/devonfw/IDEasy/issues/637
+      if (enableOptimization & configuredVersion.equals(installedVersion)) { // here we can add https://github.com/devonfw/IDEasy/issues/637
         return toolAlreadyInstalled(silent, installedVersion, step);
       }
       // install configured version of our tool in the software repository if not already installed
@@ -192,13 +194,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     if (Files.isDirectory(installationPath)) {
       if (Files.exists(toolVersionFile)) {
-        if (this.context.isForceMode()) {
-          fileAccess.delete(installationPath);
-        } else {
-          if (!ignoreSoftwareRepo || resolvedVersion.equals(getInstalledVersion())) {
-            this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
-            return createToolInstallation(installationPath, resolvedVersion, toolVersionFile, false, environmentContext, extraInstallation);
-          }
+        if (!ignoreSoftwareRepo || resolvedVersion.equals(getInstalledVersion())) {
+          this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
+          return createToolInstallation(installationPath, resolvedVersion, toolVersionFile, false, environmentContext, extraInstallation);
         }
       } else {
         this.context.warning("Deleting corrupted installation at {}", installationPath);
@@ -243,8 +241,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
             "Cannot satisfy dependency to " + this.tool + " in version " + version + " since it is conflicting with configured version " + configuredVersion
                 + " and this tool does not support the software repository.");
       }
-      this.context.info("Configured version is {} but does not match version to install {} - need to use different version from software repository.",
-          configuredVersion, version);
+      this.context.info(
+          "Configured version of tool {} is {} but does not match version to install {} - need to use different version from software repository.",
+          this.tool, configuredVersion, version);
     }
     ToolInstallation toolInstallation = installTool(version, environmentContext);
     return toolInstallation.newInstallation();
