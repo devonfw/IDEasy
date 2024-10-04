@@ -416,7 +416,7 @@ if (foo == null) {
 ----
 
 Please note that the term `Exception` is used for something exceptional.
-Further creating an instance of an `Exception` or `Throwable` in Java is expensive as the entire Struck has to be collected and copied into arrays, etc. causing significant overhead.
+Further creating an instance of an `Exception` or `Throwable` in Java is expensive as the entire stack has to be collected and copied into arrays, etc. causing significant overhead.
 This should always be avoided in situations we can easily avoid with a simple `if` check.
 
 == Consider extracting local variable for multiple method calls
