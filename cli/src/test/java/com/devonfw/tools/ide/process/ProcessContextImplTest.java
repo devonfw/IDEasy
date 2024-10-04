@@ -21,6 +21,8 @@ import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 
 /**
@@ -210,6 +212,8 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   public void enablingCaptureShouldRedirectAndCaptureStreamsWithErrorsCorrectly() throws Exception {
     // arrange
     IdeTestContext context = newContext("processcontext");
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    context.setSystemInfo(systemInfo);
 
     // act
     CliProcessException thrown = assertThrows(CliProcessException.class, () -> context.getCommandletManager().getCommandlet(DotNet.class).run());
