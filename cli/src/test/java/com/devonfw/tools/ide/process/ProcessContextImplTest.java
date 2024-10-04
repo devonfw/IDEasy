@@ -17,9 +17,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.platform.commons.util.ReflectionUtils;
 
+import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.tool.dotnet.DotNet;
 
 /**
  * Unit tests of {@link ProcessContextImpl}.
@@ -183,7 +185,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
     // act & assert
     assertThrows(IllegalStateException.class, () -> {
-      this.processConttextUnderTest.run(ProcessMode.DEFAULT);
+      this.processConttextUnderTest.run(ProcessMode.DEFAULT_CAPTURE);
     });
 
   }
@@ -210,14 +212,14 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext("processcontext");
 
     // act
-    IllegalStateException thrown = assertThrows(IllegalStateException.class, () -> context.getCommandletManager().getCommandlet("dotnet").run());
+    CliProcessException thrown = assertThrows(CliProcessException.class, () -> context.getCommandletManager().getCommandlet(DotNet.class).run());
 
     // assert
     assertThat(thrown.getMessage()).contains("failed with exit code 2");
-    assertThat(thrown.getMessage()).contains("content to stdout");
-    assertThat(thrown.getMessage()).contains("more content to stdout");
-    assertThat(thrown.getMessage()).contains("error message to stderr");
-    assertThat(thrown.getMessage()).contains("another error message to stderr");
+    assertThat(context).log(IdeLogLevel.INFO).hasMessageContaining("content to stdout");
+    assertThat(context).log(IdeLogLevel.INFO).hasMessageContaining("more content to stdout");
+    assertThat(context).log(IdeLogLevel.ERROR).hasMessageContaining("error message to stderr");
+    assertThat(context).log(IdeLogLevel.ERROR).hasMessageContaining("another error message to stderr");
   }
 
   private IdeLogLevel convertToIdeLogLevel(ProcessErrorHandling processErrorHandling) {

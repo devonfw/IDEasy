@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -180,6 +181,7 @@ public class ProcessContextImpl implements ProcessContext {
       }
 
       int exitCode;
+
       if (processMode.isBackground()) {
         exitCode = ProcessResult.SUCCESS;
       } else {
@@ -187,9 +189,8 @@ public class ProcessContextImpl implements ProcessContext {
       }
 
       ProcessResult result = new ProcessResultImpl(exitCode, out, err);
-      if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        performLogOnError(result, exitCode, interpreter);
-      }
+
+      performLogOnError(result, exitCode, interpreter);
 
       return result;
 
@@ -315,34 +316,34 @@ public class ProcessContextImpl implements ProcessContext {
   private void performLogOnError(ProcessResult result, int exitCode, String interpreter) {
 
     if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
-      StringBuilder errorMessage = new StringBuilder("\nfailed with exit code " + exitCode);
-      if (result.getOut() != null && !result.getOut().isEmpty()) {
-        errorMessage.append("\n");
-        errorMessage.append("and output: ");
-        errorMessage.append(String.join(", ", result.getOut()));
-      }
-      if (result.getErr() != null && !result.getErr().isEmpty()) {
-        errorMessage.append("\n");
-        errorMessage.append("and error messages: ");
-        errorMessage.append(String.join(", ", result.getErr()));
-      }
-      errorMessage.append("!");
-      String message = createCommandMessage(interpreter, errorMessage.toString());
+      IdeSubLogger subLogger = this.context.error();
+      IdeLogLevel ideLogLevel;
+      String message = createCommandMessage(interpreter, "\nfailed with exit code " + exitCode + "!");
+
       if (this.errorHandling == ProcessErrorHandling.THROW_CLI) {
+        subLogger.log(message);
+        result.log(IdeLogLevel.ERROR, context);
         throw new CliProcessException(message, result);
       } else if (this.errorHandling == ProcessErrorHandling.THROW_ERR) {
+        subLogger.log(message);
+        result.log(IdeLogLevel.ERROR, context);
         throw new IllegalStateException(message);
       }
-      IdeSubLogger level;
+
       if (this.errorHandling == ProcessErrorHandling.LOG_ERROR) {
-        level = this.context.error();
+        ideLogLevel = IdeLogLevel.ERROR;
+        subLogger = this.context.error();
       } else if (this.errorHandling == ProcessErrorHandling.LOG_WARNING) {
-        level = this.context.warning();
+        ideLogLevel = IdeLogLevel.WARNING;
+        subLogger = this.context.warning();
       } else {
-        level = this.context.error();
+        ideLogLevel = IdeLogLevel.ERROR;
+        subLogger = this.context.error();
         this.context.error("Internal error: Undefined error handling {}", this.errorHandling);
       }
-      level.log(message);
+
+      subLogger.log(message);
+      result.log(ideLogLevel, context);
     }
   }
 

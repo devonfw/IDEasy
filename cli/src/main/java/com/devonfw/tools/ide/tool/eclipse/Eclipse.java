@@ -5,7 +5,6 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -84,18 +83,8 @@ public class Eclipse extends IdeToolCommandlet {
       }
     }
     this.context.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
-    log(IdeLogLevel.DEBUG, result.getOut());
-    log(IdeLogLevel.ERROR, result.getErr());
-  }
-
-  private void log(IdeLogLevel level, List<String> lines) {
-
-    for (String line : lines) {
-      if (line.startsWith("!MESSAGE ")) {
-        line = line.substring(9);
-      }
-      this.context.level(level).log(line);
-    }
+    result.log(IdeLogLevel.DEBUG, context);
+    result.log(IdeLogLevel.ERROR, context);
   }
 
   @Override
