@@ -170,7 +170,7 @@ Exception in thread "main" java.lang.IllegalStateException: Something failed
 	at com.devonfw.tools.ide.ExceptionHandling.main(ExceptionHandling.java:14)
 ----
 
-As you can see we have no information and clue what the catch `Exception` was and what really went wrong in `doSomething()`.
+As you can see we have no information and clue what the catched `Exception` was and what really went wrong in `doSomething()`.
 
 Instead always rethrow with the original exception:
 
