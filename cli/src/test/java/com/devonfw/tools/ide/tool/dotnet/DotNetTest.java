@@ -10,6 +10,9 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
+/**
+ * Integration test of {@link DotNet}.
+ */
 public class DotNetTest extends AbstractIdeContextTest {
 
   private static final Path PROJECTS_TARGET_PATH = Path.of("target/test-projects");

@@ -209,10 +209,10 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void enablingCaptureShouldRedirectAndCaptureStreamsWithErrorsCorrectly() throws Exception {
+  public void enablingCaptureShouldRedirectAndCaptureStreamsWithErrorsCorrectly() {
     // arrange
     IdeTestContext context = newContext("processcontext");
-    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    SystemInfo systemInfo = SystemInfoMock.of("linux");
     context.setSystemInfo(systemInfo);
 
     // act
