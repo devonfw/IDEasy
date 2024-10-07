@@ -770,10 +770,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     }
   }
 
-  private void cleanupStatus(UrlVersion urlVersion, UrlStatusFile urlStatusFile) {
-
-  }
-
   private boolean shouldVerifyDownloadUrl(String url, StatusJson statusJson, String toolWithEdition, Instant now) {
 
     UrlStatus urlStatus = statusJson.getOrCreateUrlStatus(url);
