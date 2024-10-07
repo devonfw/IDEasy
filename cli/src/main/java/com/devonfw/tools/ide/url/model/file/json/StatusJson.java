@@ -1,7 +1,9 @@
 package com.devonfw.tools.ide.url.model.file.json;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
 
@@ -27,7 +29,7 @@ public class StatusJson {
 
   /**
    * @return {@code true} if this file has been created manually and the containing version folder shall be ignored by the automatic update process,
-   * {@code false} otherwise.
+   *     {@code false} otherwise.
    */
   public boolean isManual() {
 
@@ -64,7 +66,37 @@ public class StatusJson {
    */
   public UrlStatus getOrCreateUrlStatus(String url) {
 
+    UrlStatus urlStatus = this.urls.computeIfAbsent(computeKey(url), hash -> new UrlStatus());
+    urlStatus.markSillUsed();
+    return urlStatus;
+  }
+
+  static Integer computeKey(String url) {
     Integer key = Integer.valueOf(url.hashCode());
-    return this.urls.computeIfAbsent(key, hash -> new UrlStatus());
+    return key;
+  }
+
+  public void remove(String url) {
+
+    this.urls.remove(computeKey(url));
+  }
+
+  /**
+   * Performs a cleanup and removes all unused entries.
+   *
+   * @return {@code true} if something changed during cleanup, {@code false} otherwise.
+   */
+  public boolean cleanup() {
+
+    boolean changed = false;
+    Iterator<Entry<Integer, UrlStatus>> entryIterator = this.urls.entrySet().iterator();
+    while (entryIterator.hasNext()) {
+      Entry<Integer, UrlStatus> entry = entryIterator.next();
+      if (!entry.getValue().checkStillUsed()) {
+        entryIterator.remove();
+        changed = true;
+      }
+    }
+    return changed;
   }
 }

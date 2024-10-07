@@ -6,9 +6,13 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.url.model.AbstractUrlArtifact;
 import com.devonfw.tools.ide.url.model.UrlArtifactWithParent;
@@ -20,6 +24,8 @@ import com.devonfw.tools.ide.url.model.UrlArtifactWithParent;
  */
 public abstract class AbstractUrlFolder<C extends UrlArtifactWithParent<?>> extends AbstractUrlArtifact
     implements UrlFolder<C> {
+
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractUrlFolder.class);
 
   private final Map<String, C> childMap;
 
@@ -62,6 +68,45 @@ public abstract class AbstractUrlFolder<C extends UrlArtifactWithParent<?>> exte
   }
 
   @Override
+  public void deleteChild(String name) {
+
+    C child = this.childMap.remove(name);
+    if (child != null) {
+      delete(child.getPath());
+    }
+  }
+
+  private static void delete(Path path) {
+
+    LOG.debug("Deleting {}", path);
+    if (Files.exists(path)) {
+      try {
+        deleteRecursive(path);
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to delete " + path);
+      }
+    } else {
+      LOG.warn("Could not delete file {} because it does not exist.", path);
+    }
+  }
+
+  private static void deleteRecursive(Path path) throws IOException {
+
+    if (Files.isDirectory(path)) {
+      try (Stream<Path> childStream = Files.list(path)) {
+        Iterator<Path> iterator = childStream.iterator();
+        while (iterator.hasNext()) {
+          Path child = iterator.next();
+          deleteRecursive(child);
+        }
+      }
+    }
+    LOG.trace("Deleting {}", path);
+    Files.delete(path);
+
+  }
+
+  @Override
   public Collection<C> getChildren() {
 
     load(false);
@@ -72,7 +117,7 @@ public abstract class AbstractUrlFolder<C extends UrlArtifactWithParent<?>> exte
    * @param name the plain filename (excluding any path).
    * @param folder - {@code true} in case of a folder, {@code false} otherwise (plain data file).
    * @return {@code true} if the existing file from the file-system should be {@link #getOrCreateChild(String) created as child}, {@code false} otherwise
-   * (ignore the file).
+   *     (ignore the file).
    */
   protected boolean isAllowedChild(String name, boolean folder) {
 
@@ -85,6 +130,18 @@ public abstract class AbstractUrlFolder<C extends UrlArtifactWithParent<?>> exte
   public Set<String> getChildNames() {
 
     return this.childNames;
+  }
+
+  /**
+   * Will discard all children and reload from the disc.<br>
+   * <br>
+   * <b>ATTENTION:</b> This method is only for a very specific use-case and should only be called when you know exactly what you are doing.
+   */
+  public void reload() {
+
+    this.loaded = false;
+    this.childMap.clear();
+    load(true);
   }
 
   @Override
@@ -128,7 +185,7 @@ public abstract class AbstractUrlFolder<C extends UrlArtifactWithParent<?>> exte
   public void save() {
 
     for (C child : this.childMap.values()) {
-      ((AbstractUrlArtifact) child).save();
+      child.save();
     }
   }
 }

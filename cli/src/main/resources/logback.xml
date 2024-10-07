@@ -8,7 +8,7 @@
     </encoder>
   </appender>
 
-  <root level="INFO">
+  <root>
     <appender-ref ref="STDOUT"/>
   </root>
   <logger name="com.devonfw.tools.ide" level="DEBUG"/>
