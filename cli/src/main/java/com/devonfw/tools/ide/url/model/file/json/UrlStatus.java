@@ -59,20 +59,23 @@ public class UrlStatus {
     return (this.error == null) && (this.success == null);
   }
 
+  /**
+   * ATTENTION: This is not a standard getter (isStillUsed()) since otherwise Jackson will write it to JSON.
+   *
+   * @return {@code true} if still {@link StatusJson#getOrCreateUrlStatus(String) used}, {@code false} otherwise (if the entire version has been processed, it
+   *     will be removed via {@link StatusJson#cleanup()}.
+   */
   public boolean checkStillUsed() {
 
     return this.stillUsed;
   }
 
+  /**
+   * Sets {@link #checkStillUsed()} to {@code true}.
+   */
   void markSillUsed() {
 
     this.stillUsed = true;
   }
 
-  public static UrlStatus ofSuccess() {
-
-    UrlStatus result = new UrlStatus();
-    result.success = new UrlStatusState();
-    return result;
-  }
 }
