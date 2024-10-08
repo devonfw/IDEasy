@@ -39,7 +39,7 @@ public class DotNetTest extends AbstractIdeContextTest {
     assertThat(this.context.getSoftwarePath().resolve("dotnet")).exists();
 
     if (this.context.getSystemInfo().isWindows()) {
-      assertThat(this.context.getSoftwarePath().resolve("dotnet/dotnet.cmd")).exists();
+      assertThat(this.context.getSoftwarePath().resolve("dotnet/dotnet.exe")).exists();
     }
 
     if (this.context.getSystemInfo().isLinux() || this.context.getSystemInfo().isMac()) {

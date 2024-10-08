@@ -37,6 +37,28 @@ public class NpmTest extends AbstractIdeContextTest {
     checkInstallation(context);
   }
 
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  public void testNpmRun(String os) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_NPM);
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    context.setSystemInfo(systemInfo);
+    Npm commandlet = new Npm(context);
+
+    // act
+    commandlet.run();
+
+    // assert
+    if (context.getSystemInfo().isWindows()) {
+      assertThat(context).logAtInfo().hasMessage("npmcmdbin ");
+    } else {
+      assertThat(context).logAtInfo().hasMessage("npmcmd ");
+    }
+
+  }
+
   private void checkInstallation(IdeTestContext context) {
 
     if (context.getSystemInfo().isWindows()) {
