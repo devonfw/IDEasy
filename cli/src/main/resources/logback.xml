@@ -8,7 +8,8 @@
     </encoder>
   </appender>
 
-  <root>
+  <!-- Setting the default threshold to INFO to avoid logspam. Please ignore IntelliJ lies that the attribute level is undefined. -->
+  <root level="INFO">
     <appender-ref ref="STDOUT"/>
   </root>
   <logger name="com.devonfw.tools.ide" level="DEBUG"/>
