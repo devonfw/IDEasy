@@ -87,7 +87,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
    * Test report on first (initial) run when urls for mac_x64 and mac_arm64 are failing
    */
   @Test
-  public void testReportOnFirstRunWithFailedUrlsForMac() {
+  public void testReportOnInitialRunWithFailedUrlsForMac() {
 
     // assign
     UrlFinalReport urlFinalReport = new UrlFinalReport();
