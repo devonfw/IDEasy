@@ -29,25 +29,29 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
 
   private UrlRepository urlRepository;
   private UrlUpdaterMock updater;
-  private UrlFinalReport urlFinalReport;
 
+  /**
+   * Configure {@link UrlRepository} and {@link UrlUpdaterMock} before each test
+   *
+   * @param tempDir temporary directory to use
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
   @BeforeEach
-  public void setup(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void setup(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     urlRepository = UrlRepository.load(tempDir);
     updater = new UrlUpdaterMock(wmRuntimeInfo);
-    urlFinalReport = new UrlFinalReport();
-    updater.setUrlFinalReport(urlFinalReport);
   }
 
   /**
-   * Test report when all urls are successful and repo is empty.
+   * Test report on the first (initial) run when all URLs are successful
    */
   @Test
-  public void testReportWithSuccessfulUrlsAndInit() {
+  public void testReportOnInitialRunWithAllUrlsSuccessful() {
 
     // arrange
     UrlFinalReport urlFinalReport = new UrlFinalReport();
+    updater.setUrlFinalReport(urlFinalReport);
     stubSuccessfulUrlRequest();
     // 3 versions x 4 urls --> 3 additions and 12 verifications
     UrlUpdaterReport expectedReport = createReport(3, 0, 12, 0);
@@ -60,33 +64,17 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Test report when all urls are failing and repo is empty
+   * Test report on the first (initial) run when all URLs are failing
    */
   @Test
-  public void testReportIfAllUrlsFailingAndInit() {
+  public void testReportOnInitialRunWithAllUrlsFailing() {
 
     // assign
+    UrlFinalReport urlFinalReport = new UrlFinalReport();
+    updater.setUrlFinalReport(urlFinalReport);
     stubFailedUrlRequest();
     updater.update(urlRepository);
-    UrlUpdaterReport expectedReport = createReport(0, 3, 0, 12);
-
-    // act
-    updater.update(urlRepository);
-
-    // assert
-    assertThat(urlFinalReport.getUrlUpdaterReports().contains(expectedReport));
-  }
-
-  /**
-   * Test when there are existing versions which are already verified in timeframe
-   */
-  @Test
-  public void testReportWithExistVersionsInTime() {
-
-    // arrange
-    stubSuccessfulUrlRequest();
-    updater.update(urlRepository); // init successful update
-    UrlUpdaterReport expectedReport = createReport(0, 0, 0, 0);
+    UrlUpdaterReport expectedReport = createReport(3, 0, 0, 12);
 
     // act
     updater.update(urlRepository);
@@ -96,56 +84,84 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Test when there are existing versions which are already verified but after time
+   * Test report on first (initial) run when urls for mac_x64 and mac_arm64 are failing
    */
   @Test
-  public void testReportWithExistVersionsAndFailedDownloadsAfterTime() {
-
-    // arrange
-    stubSuccessfulUrlRequest();
-    updater.update(urlRepository); // init successful update
-    stubFailedUrlRequest("/os/mac.*");
-    UrlUpdaterReport expectedReport = createReport(0, 0, 0, 0);
-
-    // act
-    updater.update(urlRepository);
-
-    // assert
-    assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);
-  }
-
-  /**
-   * Test report when an url is removed from one version
-   */
-  @Test
-  public void testReportAfterVersionForOsRemoved() throws IOException {
+  public void testReportOnFirstRunWithFailedUrlsForMac() {
 
     // assign
-    stubSuccessfulUrlRequest();
-    updater.update(urlRepository); // init successful update
-    UrlUpdaterReport expectedReport = createReport(0, 4, 0, 0);
-    Path urlPath = urlRepository.getPath().resolve("mocked").resolve("mocked").resolve("1.0");
-    // act
-    Files.deleteIfExists(urlPath.resolve("windows_x64.urls"));
-    Files.deleteIfExists(urlPath.resolve("windows_x64.urls.sha256"));
-    urlRepository = UrlRepository.load(urlRepository.getPath());
-    updater.update(urlRepository);
-
-    // assert
-    assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);
-  }
-
-  /**
-   * Test report when two urls (mac_x64 and mac_arm64) are failing and repo is empty
-   */
-  @Test
-  public void testReportWithFailedUrlsAndInit() {
-
-    // assign
+    UrlFinalReport urlFinalReport = new UrlFinalReport();
+    updater.setUrlFinalReport(urlFinalReport);
     stubSuccessfulUrlRequest();
     stubFailedUrlRequest("/os/mac.*");
     updater.update(urlRepository);
     UrlUpdaterReport expectedReport = createReport(3, 0, 6, 6);
+
+    // act
+    updater.update(urlRepository);
+
+    // assert
+    assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);
+  }
+
+  /**
+   * Test report on second run with existing versions already verified within the timeframe
+   */
+  @Test
+  public void testReportOnSecondRunWithExistVersionsAlreadyVerifiedInTime() {
+
+    // arrange
+    UrlFinalReport urlFinalReport = new UrlFinalReport();
+    updater.setUrlFinalReport(urlFinalReport);
+    stubSuccessfulUrlRequest();
+    updater.update(urlRepository); // init successful update
+    UrlUpdaterReport expectedReport = createReport(0, 0, 0, 0);
+
+    // act
+    updater.update(urlRepository);
+
+    // assert
+    assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);
+  }
+
+  /**
+   * Test report on second run when existing versions re-verified after timeframe
+   */
+  @Test
+  public void testReportOnSecondRunWithExistVersionsReVerifiedAfterTime() {
+
+    // arrange
+    UrlFinalReport urlFinalReport = new UrlFinalReport();
+    updater.setUrlFinalReport(urlFinalReport);
+    stubSuccessfulUrlRequest();
+    updater.update(urlRepository); // init successful update
+    UrlUpdaterReport expectedReport = createReport(0, 0, 0, 0);
+
+    // act
+    updater.update(urlRepository);
+
+    // assert
+    assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);
+  }
+
+  /**
+   * Test report on second run when an url is removed from one version
+   *
+   * @throws IOException
+   */
+  @Test
+  public void testReportOnSecondRunAfterOneVersionIsRemoved() throws IOException {
+
+    // assign
+    UrlFinalReport urlFinalReport = new UrlFinalReport();
+    updater.setUrlFinalReport(urlFinalReport);
+    stubSuccessfulUrlRequest();
+    updater.update(urlRepository); // init successful update
+    UrlUpdaterReport expectedReport = createReport(1, 0, 4, 0);
+    Path urlPath = urlRepository.getPath().resolve("mocked").resolve("mocked").resolve("1.0");
+    Files.deleteIfExists(urlPath.resolve("windows_x64.urls"));
+    Files.deleteIfExists(urlPath.resolve("windows_x64.urls.sha256"));
+    urlRepository = UrlRepository.load(urlRepository.getPath());
 
     // act
     updater.update(urlRepository);
@@ -160,14 +176,14 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     stubFor(any(urlMatching("/os.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
   }
 
-  private void stubFailedUrlRequest() {
-
-    stubFor(any(urlMatching("/os.*")).willReturn(aResponse().withStatus(400).withBody("aBody")));
-  }
-
   private void stubFailedUrlRequest(String urlPattern) {
 
     stubFor(any(urlMatching(urlPattern)).willReturn(aResponse().withStatus(400).withBody("aBody")));
+  }
+
+  private void stubFailedUrlRequest() {
+
+    stubFor(any(urlMatching("/os.*")).willReturn(aResponse().withStatus(400).withBody("aBody")));
   }
 
   private UrlUpdaterReport createReport(int addSucc, int addFail, int verSucc, int verFail) {
