@@ -742,7 +742,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
             logger.warn("Finally deleting broken or disappeared version {}", urlVersion.getPath());
             urlVersion.delete();
           } else {
-            urlVersion.save(); // why do we call this here?
+            urlVersion.save();
           }
         }
       }

@@ -132,18 +132,6 @@ public abstract class AbstractUrlFolder<C extends UrlArtifactWithParent<?>> exte
     return this.childNames;
   }
 
-  /**
-   * Will discard all children and reload from the disc.<br>
-   * <br>
-   * <b>ATTENTION:</b> This method is only for a very specific use-case and should only be called when you know exactly what you are doing.
-   */
-  public void reload() {
-
-    this.loaded = false;
-    this.childMap.clear();
-    load(true);
-  }
-
   @Override
   public void load(boolean recursive) {
 

@@ -98,6 +98,11 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
     }
   }
 
+  /**
+   * Update only a single tool. Mainly used in local development only to test updater only for a tool where changes have been made.
+   *
+   * @param tool the name of the tool to update.
+   */
   public void update(String tool) {
 
     for (AbstractUrlUpdater updater : this.updaters) {

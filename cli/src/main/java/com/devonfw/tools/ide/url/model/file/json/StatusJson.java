@@ -93,7 +93,7 @@ public class StatusJson {
       urlStatus = this.urls.get(key);
     }
     if (urlStatus != null) {
-      urlStatus.markSillUsed();
+      urlStatus.markStillUsed();
     }
     return urlStatus;
   }

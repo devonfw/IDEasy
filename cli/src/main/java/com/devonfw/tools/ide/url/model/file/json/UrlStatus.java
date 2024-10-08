@@ -73,7 +73,7 @@ public class UrlStatus {
   /**
    * Sets {@link #checkStillUsed()} to {@code true}.
    */
-  void markSillUsed() {
+  void markStillUsed() {
 
     this.stillUsed = true;
   }
