@@ -27,19 +27,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
 
   /**
-   * Function to test the equality of two {@link UrlUpdaterReport} instances
-   *
-   * @param report1 first report
-   * @param report2 second report
-   * @return true if equal otherwise false
-   */
-  public boolean equalsReport(UrlUpdaterReport report1, UrlUpdaterReport report2) {
-
-    return (report1.getAddVersionSuccess() == report2.getAddVersionSuccess()) && (report1.getAddVersionFailure() == report2.getAddVersionFailure())
-        && (report1.getVerificationSuccess() == report2.getVerificationSuccess()) && (report1.getVerificationFailure() == report2.getVerificationFailure());
-  }
-
-  /**
    * Tests for {@link UrlUpdaterReport} if information of updaters is collected correctly
    *
    * @param tempDir Temporary directory
@@ -56,11 +43,11 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
 
     // assign
     stubFor(any(urlMatching("/os.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
-    UrlUpdaterTestReport expectedReport = new UrlUpdaterTestReport("mocked", "mocked", 3, 0, 12, 0);
+    UrlUpdaterReport expectedReport = new UrlUpdaterReport("mocked", "mocked", 3, 0, 12, 0);
     // act
     updater.update(urlRepository);
     // assert
-    assertThat(equalsReport(urlFinalReport.getUrlUpdaterReports().get(0), expectedReport)).isEqualTo(true);
+    assertThat(urlFinalReport.getUrlUpdaterReports().get(0)).isEqualTo(expectedReport);
 
   }
 
@@ -81,11 +68,11 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     updater.update(urlRepository);
     // assign
     stubFor(any(urlMatching("/os/mac.*")).willReturn(aResponse().withStatus(400).withBody("aBody")));
-    UrlUpdaterTestReport expectedReport = new UrlUpdaterTestReport("mocked", "mocked", 0, 0, 6, 6);
+    UrlUpdaterReport expectedReport = new UrlUpdaterReport("mocked", "mocked", 0, 0, 6, 6);
     // act
     updater.update(urlRepository);
     // assert
-    assertThat(equalsReport(urlFinalReport.getUrlUpdaterReports().get(1), expectedReport)).isEqualTo(true);
+    assertThat(urlFinalReport.getUrlUpdaterReports().get(1)).isEqualTo(expectedReport);
   }
 
   /**
@@ -107,14 +94,14 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     updater.update(urlRepository);
     // assign
     stubFor(any(urlMatching("/os/mac.*")).willReturn(aResponse().withStatus(400).withBody("aBody")));
-    UrlUpdaterReport expectedReport = new UrlUpdaterTestReport("mocked", "mocked", 1, 0, 7, 8);
+    UrlUpdaterReport expectedReport = new UrlUpdaterReport("mocked", "mocked", 1, 0, 7, 8);
     // act
     Files.deleteIfExists(versionsPath.resolve("windows_x64.urls"));
     Files.deleteIfExists(versionsPath.resolve("windows_x64.urls.sha256"));
     UrlRepository urlRepositoryWithError = UrlRepository.load(tempDir);
     updater.update(urlRepositoryWithError);
     // assert
-    assertThat(equalsReport(urlFinalReport.getUrlUpdaterReports().get(2), expectedReport)).isEqualTo(true);
+    assertThat(urlFinalReport.getUrlUpdaterReports().get(2)).isEqualTo(expectedReport);
   }
 
   /**
@@ -138,7 +125,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     // assign
     stubFor(any(urlMatching("/os.*")).willReturn(aResponse().withStatus(400).withBody("aBody")));
     stubFor(any(urlMatching("/os/mac.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
-    UrlUpdaterReport expectedReport = new UrlUpdaterTestReport("mocked", "mocked", 1, 0, 6, 6);
+    UrlUpdaterReport expectedReport = new UrlUpdaterReport("mocked", "mocked", 1, 0, 6, 6);
     // act
     Files.deleteIfExists(versionsPath.resolve("windows_x64.urls"));
     Files.deleteIfExists(versionsPath.resolve("windows_x64.urls.sha256"));
@@ -153,7 +140,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepositoryWithError = UrlRepository.load(tempDir);
     updater.update(urlRepositoryWithError);
     // assert
-    assertThat(equalsReport(urlFinalReport.getUrlUpdaterReports().get(3), expectedReport)).isEqualTo(true);
+    assertThat(urlFinalReport.getUrlUpdaterReports().get(3)).isEqualTo(expectedReport);
 
   }
 
