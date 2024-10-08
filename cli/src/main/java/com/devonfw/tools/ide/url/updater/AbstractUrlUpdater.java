@@ -23,6 +23,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.devonfw.tools.ide.io.HttpErrorResponse;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
@@ -474,18 +475,21 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * Checks if a download URL works and if the file is available for download.
    *
    * @param url the URL to check.
-   * @return a URLRequestResult object representing the success or failure of the URL check.
+   * @return the {@link HttpResponse} to the HEAD request.
    */
   protected HttpResponse<?> doCheckDownloadViaHeadRequest(String url) {
 
+    URI uri = null;
+    HttpRequest request = null;
     try {
-      HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url))
+      uri = URI.create(url);
+      request = HttpRequest.newBuilder().uri(uri)
           .method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
 
       return this.client.send(request, HttpResponse.BodyHandlers.ofString());
     } catch (Exception e) {
       logger.error("Failed to perform HEAD request of URL {}", url, e);
-      return null;
+      return new HttpErrorResponse(e, request, uri);
     }
   }
 
