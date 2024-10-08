@@ -146,8 +146,6 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
 
   /**
    * Test report on second run when an url is removed from one version
-   *
-   * @throws IOException
    */
   @Test
   public void testReportOnSecondRunAfterOneVersionIsRemoved() throws IOException {
