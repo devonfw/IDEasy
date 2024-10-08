@@ -327,7 +327,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
 
     String existingChecksum = urlChecksum.getChecksum();
 
-    if (!Objects.equals(existingChecksum, checksum)) {
+    if ((existingChecksum != null) && !existingChecksum.equals(checksum)) {
       logger.error("For tool {} and version {} the download URL {} results in checksum {} but expected {}.",
           toolWithEdition, version, url, checksum, existingChecksum);
       return false;
@@ -423,11 +423,12 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
       success = isChecksumStillValid(checksum, urlChecksum, toolWithEdition, version, url);
       if (success) {
         urlDownloadFile.addUrl(url);
-        urlVersion.save();
       }
     }
 
     doUpdateStatusJson(success, statusCode, edition, urlVersion, url, urlDownloadFile, update);
+
+    urlVersion.save();
 
     return success;
   }
@@ -502,24 +503,29 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   private void doUpdateStatusJson(boolean success, int statusCode, String edition, UrlVersion urlVersion, String url, UrlDownloadFile downloadFile,
       boolean update) {
 
-    UrlStatusFile urlStatusFile = null;
+    UrlStatusFile urlStatusFile = urlVersion.getStatus();
+    boolean forceCreation = (success || update);
+    if ((urlStatusFile == null) && forceCreation) {
+      urlStatusFile = urlVersion.getOrCreateStatus();
+    }
     StatusJson statusJson = null;
     UrlStatus status = null;
     UrlStatusState errorStatus = null;
     Instant errorTimestamp = null;
     UrlStatusState successStatus = null;
     Instant successTimestamp = null;
-    if (success || update) {
-      urlStatusFile = urlVersion.getOrCreateStatus();
+    if (urlStatusFile != null) {
       statusJson = urlStatusFile.getStatusJson();
-      status = statusJson.getOrCreateUrlStatus(url);
-      errorStatus = status.getError();
-      if (errorStatus != null) {
-        errorTimestamp = errorStatus.getTimestamp();
-      }
-      successStatus = status.getSuccess();
-      if (successStatus != null) {
-        successTimestamp = successStatus.getTimestamp();
+      status = statusJson.getStatus(url, forceCreation);
+      if (status != null) {
+        errorStatus = status.getError();
+        if (errorStatus != null) {
+          errorTimestamp = errorStatus.getTimestamp();
+        }
+        successStatus = status.getSuccess();
+        if (successStatus != null) {
+          successTimestamp = successStatus.getTimestamp();
+        }
       }
     }
     Integer code = Integer.valueOf(statusCode);

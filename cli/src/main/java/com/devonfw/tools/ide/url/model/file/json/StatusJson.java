@@ -61,13 +61,40 @@ public class StatusJson {
   }
 
   /**
+   * @param url the URL to get the {@link UrlStatus} for.
+   * @return the existing {@link UrlStatus} for the given URL or a {@code null} if not found.
+   */
+  public UrlStatus getStatus(String url) {
+
+    return getStatus(url, false);
+  }
+
+  /**
    * @param url the URL to get or create the {@link UrlStatus} for.
    * @return the existing {@link UrlStatus} for the given URL or a new {@link UrlStatus} associated with the given URL.
    */
   public UrlStatus getOrCreateUrlStatus(String url) {
 
-    UrlStatus urlStatus = this.urls.computeIfAbsent(computeKey(url), hash -> new UrlStatus());
-    urlStatus.markSillUsed();
+    return getStatus(url, true);
+  }
+
+  /**
+   * @param url the URL to get or create the {@link UrlStatus} for.
+   * @param create {@code true} for {@link #getOrCreateUrlStatus(String)} and {@code false} for {@link #getStatus(String)}.
+   * @return the existing {@link UrlStatus} for the given URL or {@code null} or created status according to {@code create} flag.
+   */
+  public UrlStatus getStatus(String url, boolean create) {
+
+    UrlStatus urlStatus;
+    Integer key = computeKey(url);
+    if (create) {
+      urlStatus = this.urls.computeIfAbsent(key, hash -> new UrlStatus());
+    } else {
+      urlStatus = this.urls.get(key);
+    }
+    if (urlStatus != null) {
+      urlStatus.markSillUsed();
+    }
     return urlStatus;
   }
 
