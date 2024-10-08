@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.context;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 
@@ -16,13 +15,11 @@ public class GitUrlSyntaxTest extends AbstractIdeContextTest {
    */
   @Test
   public void testPreferredGitProtocolIsReadAsSsh() {
-    // Act: Read the PREFERRED_GIT_PROTOCOL from the config file
+    // Read the PREFERRED_GIT_PROTOCOL from the config file
     IdeTestContext context = newContext("git");
-    IdeTestLogger log = context.getLogger();
-    log.info("context: " + context.getSettingsPath());
     GitUrlSyntax preferredProtocol = IdeVariables.PREFERRED_GIT_PROTOCOL.get(context);
-    log.info("prefprotocol:" + preferredProtocol);
-    // Assert: Check if the configuration value is correctly set to SSH
+
+    // Check if the configuration value is correctly set to SSH
     assertThat(GitUrlSyntax.SSH).isEqualTo(preferredProtocol);
   }
 
