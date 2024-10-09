@@ -8,7 +8,7 @@ Binaries of this product have been made available to you by https://devonfw.com[
 
 The documentation of this product is licensed under the terms of the http://creativecommons.org/licenses/by-nd/4.0/[Creative Commons License (Attribution-No Derivatives 4.0 International)].
 
-The source code for this product is available under free and open-source licenses.
+The source code of this product is available under free and open-source licenses.
 
 More specifically, most of the source code is available under the Apache License 2.0. The remainder of the software which is not under the Apache License is available under one of a variety of other free and open source licenses.
 Those that require reproduction of the license text in the distribution are given below.
