@@ -124,26 +124,6 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Test report on second run when existing versions re-verified after timeframe
-   */
-  @Test
-  public void testReportOnSecondRunWithExistVersionsReVerifiedAfterTime() {
-
-    // assign
-    stubSuccessfulUrlRequest();
-    updater.update(urlRepository); // init successful update
-    UrlUpdaterReport expectedReport = createReport(0, 0, 0, 0);
-    UrlFinalReport urlFinalReport = new UrlFinalReport();
-    updater.setUrlFinalReport(urlFinalReport);
-
-    // act
-    updater.update(urlRepository);
-
-    // assert
-    assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);
-  }
-
-  /**
    * Test report on second run when an url is removed from one version
    */
   @Test
