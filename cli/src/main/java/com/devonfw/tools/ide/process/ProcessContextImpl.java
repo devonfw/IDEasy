@@ -304,6 +304,7 @@ public class ProcessContextImpl implements ProcessContext {
     }
     if ("msi".equalsIgnoreCase(fileExtension)) {
       args.add(0, "/i");
+      args.add(0, "/qb");
       args.add(0, "msiexec");
     }
     args.add(exec);
