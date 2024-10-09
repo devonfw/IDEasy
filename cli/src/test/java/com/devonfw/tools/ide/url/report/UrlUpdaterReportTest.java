@@ -167,6 +167,81 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     assertThat(urlFinalReport.getUrlUpdaterReports()).contains(expectedReport);
   }
 
+  /**
+   * Test report total additions and verifications operations
+   */
+  @Test
+  public void testReportTotalAdditionsAndVerificationsOperations() {
+
+    // assign
+    int addVersionSuccess = 5;
+    int addVersionFailure = 0;
+    int addVerificationSuccess = 10;
+    int addVerificationFailure = 10;
+    UrlUpdaterReport report = createReport(addVersionSuccess, addVersionFailure, addVerificationSuccess, addVerificationFailure);
+
+    // assert
+    assertThat(report.getTotalAdditions()).isEqualTo(report.getAddVersionSuccess() + report.getAddVersionFailure());
+    assertThat(report.getTotalVerificitations()).isEqualTo(report.getVerificationSuccess() + report.getVerificationFailure());
+  }
+
+  /**
+   * Test report increment operations for additions and verifications
+   */
+  @Test
+  public void testReportIncrementOperations() {
+
+    // assign
+    int addVersionSuccess = 5;
+    int addVersionFailure = 0;
+    int addVerificationSuccess = 10;
+    int addVerificationFailure = 10;
+    UrlUpdaterReport report = createReport(addVersionSuccess, addVersionFailure, addVerificationSuccess, addVerificationFailure);
+
+    // act
+    report.incrementAddVersionSuccess();
+    report.incrementAddVersionFailure();
+    report.incrementVerificationSuccess();
+    report.incrementVerificationFailure();
+
+    // assert
+    assertThat(report.getAddVersionSuccess()).isEqualTo(addVersionSuccess + 1);
+    assertThat(report.getAddVersionFailure()).isEqualTo(addVersionFailure + 1);
+    assertThat(report.getVerificationSuccess()).isEqualTo(addVerificationSuccess + 1);
+    assertThat(report.getVerificationFailure()).isEqualTo(addVerificationFailure + 1);
+  }
+
+  /**
+   * Test report error rate operations for additions and verifications
+   */
+  @Test
+  public void testReportErrorRateOperations() {
+
+    // assign
+    int addVersionSuccess = 20;
+    int addVersionFailureNull = 0;
+    int addVerificationSuccessNull = 0;
+    int addVerificationFailure = 10;
+    int addVersionFailureIncremented = 5; // for testing without null
+    int addVerificationSuccessIncremented = 10; // for testing without null
+    UrlUpdaterReport reportWithNull = createReport(addVersionSuccess, addVersionFailureNull, addVerificationSuccessNull, addVerificationFailure);
+    UrlUpdaterReport reportWithoutNull = createReport(addVersionSuccess, addVersionFailureIncremented, addVerificationSuccessIncremented,
+        addVerificationFailure);
+
+    // act
+    double errorRateWithNullAdd = reportWithNull.getErrorRateAdditions();
+    double errorRateWithNullVer = reportWithNull.getErrorRateVerificiations();
+    double errorRateWithoutNullAdd = reportWithoutNull.getErrorRateAdditions();
+    double errorRateWithoutNullVer = reportWithoutNull.getErrorRateVerificiations();
+
+    // assert (failures / total) * 100
+    assertThat(errorRateWithNullAdd).isEqualTo(0.00);
+    assertThat(errorRateWithNullVer).isEqualTo(0.00);
+    assertThat(errorRateWithoutNullAdd).isEqualTo(20.0);
+    assertThat(errorRateWithoutNullVer).isEqualTo(50.0);
+  }
+
+
   // some utils
   private void stubSuccessfulUrlRequest() {
 
