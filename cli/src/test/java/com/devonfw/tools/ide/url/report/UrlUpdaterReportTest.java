@@ -49,12 +49,12 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
   @Test
   public void testReportOnInitialRunWithAllUrlsSuccessful() {
 
-    // arrange
-    UrlFinalReport urlFinalReport = new UrlFinalReport();
-    updater.setUrlFinalReport(urlFinalReport);
+    // assign
     stubSuccessfulUrlRequest();
     // 3 versions x 4 urls --> 3 additions and 12 verifications
     UrlUpdaterReport expectedReport = createReport(3, 0, 12, 0);
+    UrlFinalReport urlFinalReport = new UrlFinalReport();
+    updater.setUrlFinalReport(urlFinalReport);
 
     // act
     updater.update(urlRepository);
@@ -70,11 +70,10 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
   public void testReportOnInitialRunWithAllUrlsFailing() {
 
     // assign
+    stubFailedUrlRequest();
+    UrlUpdaterReport expectedReport = createReport(3, 0, 0, 12);
     UrlFinalReport urlFinalReport = new UrlFinalReport();
     updater.setUrlFinalReport(urlFinalReport);
-    stubFailedUrlRequest();
-    updater.update(urlRepository);
-    UrlUpdaterReport expectedReport = createReport(3, 0, 0, 12);
 
     // act
     updater.update(urlRepository);
@@ -90,12 +89,12 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
   public void testReportOnInitialRunWithFailedUrlsForMac() {
 
     // assign
-    UrlFinalReport urlFinalReport = new UrlFinalReport();
-    updater.setUrlFinalReport(urlFinalReport);
     stubSuccessfulUrlRequest();
     stubFailedUrlRequest("/os/mac.*");
-    updater.update(urlRepository);
+    updater.update(urlRepository); // init successful update
     UrlUpdaterReport expectedReport = createReport(3, 0, 6, 6);
+    UrlFinalReport urlFinalReport = new UrlFinalReport();
+    updater.setUrlFinalReport(urlFinalReport);
 
     // act
     updater.update(urlRepository);
@@ -110,12 +109,12 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
   @Test
   public void testReportOnSecondRunWithExistVersionsAlreadyVerifiedInTime() {
 
-    // arrange
-    UrlFinalReport urlFinalReport = new UrlFinalReport();
-    updater.setUrlFinalReport(urlFinalReport);
+    // assign
     stubSuccessfulUrlRequest();
     updater.update(urlRepository); // init successful update
     UrlUpdaterReport expectedReport = createReport(0, 0, 0, 0);
+    UrlFinalReport urlFinalReport = new UrlFinalReport();
+    updater.setUrlFinalReport(urlFinalReport);
 
     // act
     updater.update(urlRepository);
@@ -130,12 +129,12 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
   @Test
   public void testReportOnSecondRunWithExistVersionsReVerifiedAfterTime() {
 
-    // arrange
-    UrlFinalReport urlFinalReport = new UrlFinalReport();
-    updater.setUrlFinalReport(urlFinalReport);
+    // assign
     stubSuccessfulUrlRequest();
     updater.update(urlRepository); // init successful update
     UrlUpdaterReport expectedReport = createReport(0, 0, 0, 0);
+    UrlFinalReport urlFinalReport = new UrlFinalReport();
+    updater.setUrlFinalReport(urlFinalReport);
 
     // act
     updater.update(urlRepository);
@@ -151,8 +150,6 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
   public void testReportOnSecondRunAfterOneVersionIsRemoved() throws IOException {
 
     // assign
-    UrlFinalReport urlFinalReport = new UrlFinalReport();
-    updater.setUrlFinalReport(urlFinalReport);
     stubSuccessfulUrlRequest();
     updater.update(urlRepository); // init successful update
     UrlUpdaterReport expectedReport = createReport(1, 0, 4, 0);
@@ -160,6 +157,8 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     Files.deleteIfExists(urlPath.resolve("windows_x64.urls"));
     Files.deleteIfExists(urlPath.resolve("windows_x64.urls.sha256"));
     urlRepository = UrlRepository.load(urlRepository.getPath());
+    UrlFinalReport urlFinalReport = new UrlFinalReport();
+    updater.setUrlFinalReport(urlFinalReport);
 
     // act
     updater.update(urlRepository);
