@@ -1,10 +1,14 @@
 :toc:
 toc::[]
 
-= Project import
+= Repository
 
-`IDEasy` supports to automatically check out and import required git repositories into your IDE during link:setupadoc[setup].
-To configure this you put a `.properties` file for each desired project into the `repository` sub-folder in your link:settingsadoc[settings].
+`IDEasy` supports to automatically check out and import required git repositories into your IDE during link:project.adoc[project] creation.
+
+NOTE: Please do not mix this feature with the link:settings.adoc[settings repository] that contains the configuration for your IDE.
+Here we are talking about git repositories for development in your project that typically contain code.
+
+To configure this you put a `.properties` file for each desired project into the `repository` sub-folder in your link:settings.adoc[settings].
 Each `.properties` file describes one "project" which you would like to check out and (potentially) import:
 
 [source,properties]
