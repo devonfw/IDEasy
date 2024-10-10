@@ -12,7 +12,7 @@ The source code of this product is available under free and open-source licenses
 
 More specifically, most of the source code is available under the Apache License 2.0.
 Only code that is directly included into the product IDEasy is part of what you download as our product and therefore considered as derivative work.
-Such code included in this product is either also unter Apache License 2.0 or another free and open source licenses that is listed below.
+Such code included in this product is either also unter Apache License 2.0 or another free and open-source licenses that is listed below.
 
 However, our product allows to install and run other software.
 All of this is optional and can be configured as needed.
