@@ -17,7 +17,7 @@ During the project creation you will be asked for the URL of the git repository 
 
 NOTE: You may just hit return here to use the default settings.
 However, this is only for demo purposes.
-A real project needs its own dedicated setting repository to share changes to the link:settings.adoc[settings] with the team.
+A real project needs its own dedicated settings repository to share changes to the link:settings.adoc[settings] with the team.
 The most basic but fundamental mistake developers do with IDEasy is to use the default settings for a real world project.
 So carefully read the instructions from your project and have a look for the appropriate settings URL.
 
@@ -41,7 +41,8 @@ ide update
 
 If you want to test some suggested changes to your settings repository before rolling it out to the (large) team, you can use feature branches.
 In order to create a new project directly from such branch, you can specify the branch-name after appending a '#' sign to the repository URL.
-For testing purposes it may be handy that we also provide `--skip-repositories` option in case you have large link:repository.adoc[repositories] configured:
+For testing purposes it may be handy that we also provide the `--skip-repositories` option.
+In case you have large link:repository.adoc[repositories] configured, this option omits their cloning when testing a configuration change:
 
 ```
 ide create «new-project-name» --skip-repositories «settings-git-url»#«branch-name»
