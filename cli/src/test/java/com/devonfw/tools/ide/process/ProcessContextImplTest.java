@@ -17,9 +17,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.platform.commons.util.ReflectionUtils;
 
+import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.devonfw.tools.ide.tool.dotnet.DotNet;
 
 /**
  * Unit tests of {@link ProcessContextImpl}.
@@ -183,7 +187,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
     // act & assert
     assertThrows(IllegalStateException.class, () -> {
-      this.processConttextUnderTest.run(ProcessMode.DEFAULT);
+      this.processConttextUnderTest.run(ProcessMode.DEFAULT_CAPTURE);
     });
 
   }
@@ -202,6 +206,24 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     // assert
     IdeLogLevel level = convertToIdeLogLevel(processErrorHandling);
     assertThat(this.context).log(level).hasMessageContaining(expectedMessage);
+  }
+
+  @Test
+  public void enablingCaptureShouldRedirectAndCaptureStreamsWithErrorsCorrectly() {
+    // arrange
+    IdeTestContext context = newContext("processcontext");
+    SystemInfo systemInfo = SystemInfoMock.of("linux");
+    context.setSystemInfo(systemInfo);
+
+    // act
+    CliProcessException thrown = assertThrows(CliProcessException.class, () -> context.getCommandletManager().getCommandlet(DotNet.class).run());
+
+    // assert
+    assertThat(thrown.getMessage()).contains("failed with exit code 2");
+    assertThat(context).log(IdeLogLevel.INFO).hasMessageContaining("content to stdout");
+    assertThat(context).log(IdeLogLevel.INFO).hasMessageContaining("more content to stdout");
+    assertThat(context).log(IdeLogLevel.ERROR).hasMessageContaining("error message to stderr");
+    assertThat(context).log(IdeLogLevel.ERROR).hasMessageContaining("another error message to stderr");
   }
 
   private IdeLogLevel convertToIdeLogLevel(ProcessErrorHandling processErrorHandling) {
