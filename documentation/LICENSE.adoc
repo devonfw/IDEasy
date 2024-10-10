@@ -1,7 +1,6 @@
+= License
 :toc:
 toc::[]
-
-= License
 
 The product `IDEasy` is licensed under the following terms.
 
@@ -9,7 +8,7 @@ Binaries of this product have been made available to you by https://devonfw.com[
 
 The documentation of this product is licensed under the terms of the http://creativecommons.org/licenses/by-nd/4.0/[Creative Commons License (Attribution-No Derivatives 4.0 International)].
 
-All of the source code to this product is available under licenses which are both free and open source.
+The source code of this product is available under free and open-source licenses.
 
 More specifically, most of the source code is available under the Apache License 2.0. The remainder of the software which is not under the Apache License is available under one of a variety of other free and open source licenses.
 Those that require reproduction of the license text in the distribution are given below.
@@ -19,7 +18,7 @@ The following table shows the components that may be used.
 The column `inclusion` indicates the way the component is included:
 
 * `directly included` means the component is directly contained in the download package of `IDEasy` we provide
-* `default setup` means the component is not initially included but will be downloaded during the link:setup.asciidoc[`setup`] by default
+* `default setup` means the component is not initially included but will be downloaded during the link:setup.adoc[`setup`] by default
 * `optional` means the component is neither initially included nor downloaded by default, but only gets downloaded and installed if explicitly triggered by you when invoking additional commands or if explicitly configured by your project.
 
 .Third party components
