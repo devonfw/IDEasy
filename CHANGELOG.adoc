@@ -6,7 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/315[#315]: #315: Fix frozen process after MSI installation
+* https://github.com/devonfw/IDEasy/issues/315[#315]: Fix frozen process after MSI installation
 
 == 2024.09.002
 
