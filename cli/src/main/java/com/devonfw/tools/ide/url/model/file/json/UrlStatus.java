@@ -9,6 +9,8 @@ public class UrlStatus {
 
   private UrlStatusState error;
 
+  private transient boolean stillUsed;
+
   /**
    * The constructor.
    */
@@ -48,4 +50,32 @@ public class UrlStatus {
 
     this.error = error;
   }
+
+  /**
+   * @return {@code true} if entirely empty, {@code false} otherwise.
+   */
+  public boolean checkEmpty() {
+
+    return (this.error == null) && (this.success == null);
+  }
+
+  /**
+   * ATTENTION: This is not a standard getter (isStillUsed()) since otherwise Jackson will write it to JSON.
+   *
+   * @return {@code true} if still {@link StatusJson#getOrCreateUrlStatus(String) used}, {@code false} otherwise (if the entire version has been processed, it
+   *     will be removed via {@link StatusJson#cleanup()}.
+   */
+  public boolean checkStillUsed() {
+
+    return this.stillUsed;
+  }
+
+  /**
+   * Sets {@link #checkStillUsed()} to {@code true}.
+   */
+  void markStillUsed() {
+
+    this.stillUsed = true;
+  }
+
 }
