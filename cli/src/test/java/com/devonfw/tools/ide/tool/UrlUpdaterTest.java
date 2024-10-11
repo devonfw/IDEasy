@@ -8,14 +8,25 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.devonfw.tools.ide.os.OperatingSystem;
+import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.url.model.file.UrlChecksum;
+import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
+import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
 import com.devonfw.tools.ide.url.model.file.json.StatusJson;
 import com.devonfw.tools.ide.url.model.file.json.UrlStatus;
+import com.devonfw.tools.ide.url.model.file.json.UrlStatusState;
+import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.url.model.folder.UrlTool;
+import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -93,9 +104,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Tests if the timestamps of the status.json get updated properly. Creates an initial status.json with a success timestamp. Updates the status.json with an
-   * error timestamp and compares it with the success timestamp. Updates the status.json with a final success timestamp and compares it with the error
-   * timestamp.
+   * Tests if the timestamps of the status.json get updated properly if a first error is detected.
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
@@ -103,70 +112,145 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
    * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testUrlUpdaterStatusJsonRefreshBugStillExisting(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+  public void testStatusJsonUpdateOnFirstError(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
-    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
-
-    UrlRepository urlRepository = UrlRepository.load(tempDir);
-    UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
-
-    String statusUrl = wmRuntimeInfo.getHttpBaseUrl() + "/os/windows_x64_url.tgz";
     String toolName = "mocked";
     String editionName = "mocked";
     String versionName = "1.0";
+    String url = wmRuntimeInfo.getHttpBaseUrl() + "/os/windows_x64_url.tgz";
+    Instant now = Instant.now();
+    Instant lastMonth = now.minus(31, ChronoUnit.DAYS);
+    UrlRepository urlRepository = UrlRepository.load(tempDir);
+    UrlTool urlTool = urlRepository.getOrCreateChild(toolName);
+    UrlEdition urlEdition = urlTool.getOrCreateChild(editionName);
+    UrlVersion urlVersion = urlEdition.getOrCreateChild(versionName);
+    // we create the structure of our tool version and URL to simulate it was valid last moth
+    UrlStatusFile statusFile = urlVersion.getOrCreateStatus();
+    UrlStatus status = statusFile.getStatusJson().getOrCreateUrlStatus(url);
+    UrlStatusState successState = new UrlStatusState(lastMonth); // ensure that we trigger a recheck of the URL
+    status.setSuccess(successState);
+    UrlDownloadFile urlDownloadFile = urlVersion.getOrCreateUrls(OperatingSystem.WINDOWS, SystemArchitecture.X64);
+    urlDownloadFile.addUrl(url);
+    UrlChecksum urlChecksum = urlVersion.getOrCreateChecksum(urlDownloadFile.getName());
+    urlChecksum.setChecksum("1234567890");
+    urlVersion.save();
+    UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
+    // now we want to simulate that the url got broken (404) and the updater is properly handling this
+    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(404)));
 
     // act
     updater.update(urlRepository);
 
-    Path versionsPath = tempDir.resolve(toolName).resolve(editionName).resolve(versionName);
-
     // assert
-    assertThat(versionsPath.resolve("status.json")).exists();
-
     StatusJson statusJson = retrieveStatusJson(urlRepository, toolName, editionName, versionName);
+    status = statusJson.getStatus(url);
+    successState = status.getSuccess();
+    assertThat(successState).isNotNull();
+    assertThat(successState.getTimestamp()).isEqualTo(lastMonth);
+    UrlStatusState errorState = status.getError();
+    assertThat(errorState).isNotNull();
+    assertThat(errorState.getCode()).isEqualTo(404);
+    assertThat(Duration.between(errorState.getTimestamp(), now)).isLessThan(Duration.ofSeconds(5));
+  }
 
-    UrlStatus urlStatus = statusJson.getOrCreateUrlStatus(statusUrl);
+  /**
+   * Tests if the timestamps of the status.json get updated properly on success after an error.
+   * <p>
+   * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
+   *
+   * @param tempDir Temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  public void testSuccessStateUpdatedAfterError(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    Instant successTimestamp = urlStatus.getSuccess().getTimestamp();
-
-    assertThat(successTimestamp).isNotNull();
-
-    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(404)));
-
-    // re-initialize UrlRepository for error timestamp
-    UrlRepository urlRepositoryWithError = UrlRepository.load(tempDir);
-    updater.update(urlRepositoryWithError);
-
-    statusJson = retrieveStatusJson(urlRepositoryWithError, toolName, editionName, versionName);
-
-    urlStatus = statusJson.getOrCreateUrlStatus(statusUrl);
-    successTimestamp = urlStatus.getSuccess().getTimestamp();
-    Instant errorTimestamp = urlStatus.getError().getTimestamp();
-    Integer errorCode = urlStatus.getError().getCode();
-
-    assertThat(errorCode).isEqualTo(404);
-    assertThat(errorTimestamp).isAfter(successTimestamp);
-
+    // arrange
+    String toolName = "mocked";
+    String editionName = "mocked";
+    String versionName = "1.0";
+    String url = wmRuntimeInfo.getHttpBaseUrl() + "/os/windows_x64_url.tgz";
+    Instant now = Instant.now();
+    Instant lastMonth = now.minus(31, ChronoUnit.DAYS);
+    Instant lastSuccess = lastMonth.minus(1, ChronoUnit.DAYS);
+    UrlRepository urlRepository = UrlRepository.load(tempDir);
+    UrlTool urlTool = urlRepository.getOrCreateChild(toolName);
+    UrlEdition urlEdition = urlTool.getOrCreateChild(editionName);
+    UrlVersion urlVersion = urlEdition.getOrCreateChild(versionName);
+    // we create the structure of our tool version and URL to simulate it was valid last moth
+    UrlStatusFile statusFile = urlVersion.getOrCreateStatus();
+    UrlStatus status = statusFile.getStatusJson().getOrCreateUrlStatus(url);
+    UrlStatusState successState = new UrlStatusState(lastSuccess);
+    status.setSuccess(successState);
+    UrlStatusState errorState = new UrlStatusState(lastMonth);
+    errorState.setCode(404);
+    status.setError(errorState);
+    UrlDownloadFile urlDownloadFile = urlVersion.getOrCreateUrls(OperatingSystem.WINDOWS, SystemArchitecture.X64);
+    urlDownloadFile.addUrl(url);
+    UrlChecksum urlChecksum = urlVersion.getOrCreateChecksum(urlDownloadFile.getName());
+    urlChecksum.setChecksum("1234567890");
+    urlVersion.save();
+    UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
+    // now we want to simulate that the broken url is working again
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain")));
 
-    // re-initialize UrlRepository for error timestamp
-    UrlRepository urlRepositoryWithSuccess = UrlRepository.load(tempDir);
-    updater.update(urlRepositoryWithSuccess);
+    // act
+    updater.update(urlRepository);
 
-    assertThat(versionsPath.resolve("status.json")).exists();
+    // assert
+    status = retrieveStatusJson(urlRepository, toolName, editionName, versionName).getStatus(url);
+    successState = status.getSuccess();
+    assertThat(successState).isNotNull();
+    assertThat(Duration.between(successState.getTimestamp(), now)).isLessThan(Duration.ofSeconds(5));
+    errorState = status.getError();
+    assertThat(errorState).isNotNull();
+    assertThat(errorState.getCode()).isEqualTo(404);
+    assertThat(errorState.getTimestamp()).isEqualTo(lastMonth);
+  }
 
-    statusJson = retrieveStatusJson(urlRepositoryWithSuccess, toolName, editionName, versionName);
+  /**
+   * Tests if the the tool version gets entirely removed if all versions are broken for a long time.
+   *
+   * @param tempDir Temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  public void testVersionRemovedIfErrorPersists(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    urlStatus = statusJson.getOrCreateUrlStatus(statusUrl);
+    // arrange
+    String toolName = "mocked";
+    String editionName = "mocked";
+    String versionName = "1.0";
+    String url = wmRuntimeInfo.getHttpBaseUrl() + "/os/windows_x64_url.tgz";
+    Instant now = Instant.now();
+    Instant lastMonth = now.minus(31, ChronoUnit.DAYS);
+    Instant lastSuccess = lastMonth.minus(1, ChronoUnit.DAYS);
+    UrlRepository urlRepository = UrlRepository.load(tempDir);
+    UrlTool urlTool = urlRepository.getOrCreateChild(toolName);
+    UrlEdition urlEdition = urlTool.getOrCreateChild(editionName);
+    UrlVersion urlVersion = urlEdition.getOrCreateChild(versionName);
+    // we create the structure of our tool version and URL to simulate it was valid last moth
+    UrlStatusFile statusFile = urlVersion.getOrCreateStatus();
+    UrlStatus status = statusFile.getStatusJson().getOrCreateUrlStatus(url);
+    UrlStatusState successState = new UrlStatusState(lastSuccess);
+    status.setSuccess(successState);
+    UrlStatusState errorState = new UrlStatusState(lastMonth);
+    errorState.setCode(404);
+    status.setError(errorState);
+    UrlDownloadFile urlDownloadFile = urlVersion.getOrCreateUrls(OperatingSystem.WINDOWS, SystemArchitecture.X64);
+    urlDownloadFile.addUrl(url);
+    UrlChecksum urlChecksum = urlVersion.getOrCreateChecksum(urlDownloadFile.getName());
+    urlChecksum.setChecksum("1234567890");
+    urlVersion.save();
+    UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
+    // now we want to simulate that the url got broken (404) and the updater is properly handling this
+    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(404)));
 
-    successTimestamp = urlStatus.getSuccess().getTimestamp();
-    errorTimestamp = urlStatus.getError().getTimestamp();
-    errorCode = urlStatus.getError().getCode();
+    // act
+    updater.update(urlRepository);
 
-    assertThat(errorCode).isEqualTo(200);
-    assertThat(errorTimestamp).isAfter(successTimestamp);
-
+    // assert
+    assertThat(urlVersion.getPath()).doesNotExist();
   }
 
   /**
