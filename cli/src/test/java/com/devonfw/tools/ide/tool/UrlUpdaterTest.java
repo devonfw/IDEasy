@@ -105,6 +105,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   public void testUrlUpdaterStatusJsonRefreshBugStillExisting(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
+    // arrange
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
@@ -115,12 +116,12 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     String editionName = "mocked";
     String versionName = "1.0";
 
-    // when
+    // act
     updater.update(urlRepository);
 
     Path versionsPath = tempDir.resolve(toolName).resolve(editionName).resolve(versionName);
 
-    // then
+    // assert
     assertThat(versionsPath.resolve("status.json")).exists();
 
     StatusJson statusJson = retrieveStatusJson(urlRepository, toolName, editionName, versionName);

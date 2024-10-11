@@ -32,6 +32,7 @@ public class UpdateInitiator {
 
     String pathToRepo = args[0];
     Instant expirationTime = null;
+    String selectedTool = null;
 
     if (args.length < 2) {
       logger.warn("Timeout was not set, setting timeout to infinite instead.");
@@ -43,6 +44,9 @@ public class UpdateInitiator {
       } catch (DateTimeParseException e) {
         logger.error("Error: Provided timeout format is not valid.", e);
         System.exit(1);
+      }
+      if (args.length > 2) {
+        selectedTool = args[2];
       }
     }
 
@@ -56,7 +60,11 @@ public class UpdateInitiator {
     UrlFinalReport urlFinalReport = new UrlFinalReport();
 
     UpdateManager updateManager = new UpdateManager(repoPath, urlFinalReport, expirationTime);
-    updateManager.updateAll();
+    if (selectedTool == null) {
+      updateManager.updateAll();
+    } else {
+      updateManager.update(selectedTool);
+    }
 
     logger.info(urlFinalReport.toString());
   }

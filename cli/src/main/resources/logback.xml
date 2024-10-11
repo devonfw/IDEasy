@@ -8,6 +8,7 @@
     </encoder>
   </appender>
 
+  <!-- Setting the default threshold to INFO to avoid logspam. Please ignore IntelliJ lies that the attribute level is undefined. -->
   <root level="INFO">
     <appender-ref ref="STDOUT"/>
   </root>
