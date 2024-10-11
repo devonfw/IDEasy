@@ -119,9 +119,8 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     // act
     updater.update(urlRepository);
 
-    Path versionsPath = tempDir.resolve(toolName).resolve(editionName).resolve(versionName);
-
     // assert
+    Path versionsPath = tempDir.resolve(toolName).resolve(editionName).resolve(versionName);
     assertThat(versionsPath.resolve("status.json")).exists();
 
     StatusJson statusJson = retrieveStatusJson(urlRepository, toolName, editionName, versionName);
@@ -132,12 +131,18 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     assertThat(successTimestamp).isNotNull();
 
+    // Test part 2
+
+    // arrange
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(404)));
 
     // re-initialize UrlRepository for error timestamp
     UrlRepository urlRepositoryWithError = UrlRepository.load(tempDir);
+
+    // act
     updater.update(urlRepositoryWithError);
 
+    // assert
     statusJson = retrieveStatusJson(urlRepositoryWithError, toolName, editionName, versionName);
 
     urlStatus = statusJson.getOrCreateUrlStatus(statusUrl);
