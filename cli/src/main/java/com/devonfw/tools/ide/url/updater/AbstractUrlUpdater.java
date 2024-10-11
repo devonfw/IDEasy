@@ -298,7 +298,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     url = url.replace("${edition}", edition);
 
     return doAddVersionUrlIfNewAndValid(edition, url, urlVersion, os, architecture, checksum);
-
   }
 
   /**

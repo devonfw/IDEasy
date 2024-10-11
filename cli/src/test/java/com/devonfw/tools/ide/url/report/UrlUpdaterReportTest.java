@@ -92,7 +92,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     stubSuccessfulUrlRequest();
     stubFailedUrlRequest("/os/mac.*");
     updater.update(urlRepository); // init successful update
-    UrlUpdaterReport expectedReport = createReport(3, 0, 6, 6);
+    UrlUpdaterReport expectedReport = createReport(3, 0, 0, 6);
     UrlFinalReport urlFinalReport = new UrlFinalReport();
     updater.setUrlFinalReport(urlFinalReport);
 
@@ -132,7 +132,7 @@ public class UrlUpdaterReportTest extends AbstractUrlUpdaterTest {
     // assign
     stubSuccessfulUrlRequest();
     updater.update(urlRepository); // init successful update
-    UrlUpdaterReport expectedReport = createReport(1, 0, 4, 0);
+    UrlUpdaterReport expectedReport = createReport(1, 0, 1, 0);
     Path urlPath = urlRepository.getPath().resolve("mocked").resolve("mocked").resolve("1.0");
     Files.deleteIfExists(urlPath.resolve("windows_x64.urls"));
     Files.deleteIfExists(urlPath.resolve("windows_x64.urls.sha256"));
