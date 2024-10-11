@@ -29,11 +29,10 @@ public final class DateTimeUtil {
    */
   public static boolean isAfter(Instant start, Instant end) {
 
-    Integer delta = compareDuration(start, end, Duration.ZERO);
-    if (delta == null) {
+    if ((start == null) || (end == null)) {
       return false;
     }
-    return delta.intValue() < 0;
+    return start.isAfter(end);
   }
 
   /**
@@ -43,11 +42,10 @@ public final class DateTimeUtil {
    */
   public static boolean isBefore(Instant start, Instant end) {
 
-    Integer delta = compareDuration(start, end, Duration.ZERO);
-    if (delta == null) {
+    if ((start == null) || (end == null)) {
       return false;
     }
-    return delta.intValue() > 0;
+    return start.isBefore(end);
   }
 
   /**
@@ -55,7 +53,7 @@ public final class DateTimeUtil {
    * @param end the end {@link Instant}.
    * @param duration the {@link Duration} to compare to.
    * @return {@code 0} if the {@link Duration} from {@code start} to {@code end} is equal to the given {@link Duration}, negative value if less, positive value
-   * is greater and {@code null} if one of the given values was {@code null}.
+   *     is greater and {@code null} if one of the given values was {@code null}.
    */
   public static Integer compareDuration(Instant start, Instant end, Duration duration) {
 
