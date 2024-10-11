@@ -173,7 +173,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    *
    * @param urlVersion the {@link UrlVersion} with the {@link UrlVersion#getName() version-number} to process.
    * @param downloadUrl the URL of the download for the tool.
-   * @return true if the version was successfully updated, false otherwise.
+   * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
   protected boolean doAddVersion(UrlVersion urlVersion, String downloadUrl) {
 
@@ -186,7 +186,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param edition the edition of the tool.
    * @param urlVersion the {@link UrlVersion} with the {@link UrlVersion#getName() version-number} to process.
    * @param downloadUrl the URL of the download for the tool.
-   * @return true if the version was successfully updated, false otherwise.
+   * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
   protected boolean doAddVersion(String edition, UrlVersion urlVersion, String downloadUrl) {
 
@@ -200,7 +200,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param urlVersion the {@link UrlVersion} with the {@link UrlVersion#getName() version-number} to process.
    * @param downloadUrl the URL of the download for the tool.
    * @param os the {@link OperatingSystem} for the tool (can be null).
-   * @return true if the version was successfully updated, false otherwise.
+   * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
   protected boolean doAddVersion(UrlVersion urlVersion, String downloadUrl, OperatingSystem os) {
 
@@ -214,7 +214,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param urlVersion the {@link UrlVersion} with the {@link UrlVersion#getName() version-number} to process.
    * @param downloadUrl the URL of the download for the tool.
    * @param os the {@link OperatingSystem} for the tool (can be null).
-   * @return true if the version was successfully updated, false otherwise.
+   * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
   protected boolean doAddVersion(String edition, UrlVersion urlVersion, String downloadUrl, OperatingSystem os) {
 
@@ -228,7 +228,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param downloadUrl the URL of the download for the tool.
    * @param os the {@link OperatingSystem} for the tool (can be null).
    * @param architecture the optional {@link SystemArchitecture}.
-   * @return true if the version was successfully updated, false otherwise.
+   * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
   protected boolean doAddVersion(UrlVersion urlVersion, String downloadUrl, OperatingSystem os,
       SystemArchitecture architecture) {
@@ -244,7 +244,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param downloadUrl the URL of the download for the tool.
    * @param os the {@link OperatingSystem} for the tool (can be null).
    * @param architecture the optional {@link SystemArchitecture}.
-   * @return true if the version was successfully updated, false otherwise.
+   * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
   protected boolean doAddVersion(String edition, UrlVersion urlVersion, String downloadUrl, OperatingSystem os,
       SystemArchitecture architecture) {
@@ -261,7 +261,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param os the optional {@link OperatingSystem}.
    * @param architecture the optional {@link SystemArchitecture}.
    * @param checksum the existing checksum (e.g. from JSON metadata) or the empty {@link String} if not available and computation needed.
-   * @return {@code true} if the version was successfully updated, {@code false} otherwise.
+   * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
   protected boolean doAddVersion(UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture, String checksum) {
     return doAddVersion(getEdition(), urlVersion, url, os, architecture, checksum);
@@ -276,7 +276,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param os the optional {@link OperatingSystem}.
    * @param architecture the optional {@link SystemArchitecture}.
    * @param checksum the existing checksum (e.g. from JSON metadata) or the empty {@link String} if not available and computation needed.
-   * @return {@code true} if the version was successfully updated, {@code false} otherwise.
+   * @return {@code true} if the version was successfully added, {@code false} otherwise.
    */
   protected boolean doAddVersion(String edition, UrlVersion urlVersion, String url, OperatingSystem os, SystemArchitecture architecture,
       String checksum) {
@@ -667,7 +667,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * Checks if we are dependent on OS URL file names, can be overridden to disable OS dependency
    *
-   * @return true if we want to check for missing OS URL file names, false if not
+   * @return {@code true} if we want to check for missing OS URL file names, {@code false} if not.
    */
   protected boolean isOsDependent() {
 
@@ -678,7 +678,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * Checks if an OS URL file name was missing in {@link UrlVersion}
    *
    * @param urlVersion the {@link UrlVersion} to check
-   * @return true if an OS type was missing, false if not
+   * @return {@code true} if an OS type was missing, {@code false} if not.
    */
   public boolean isMissingOs(UrlVersion urlVersion) {
 
