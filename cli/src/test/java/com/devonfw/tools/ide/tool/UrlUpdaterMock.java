@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import com.devonfw.tools.ide.url.updater.UrlUpdater;
@@ -33,11 +32,6 @@ public class UrlUpdaterMock extends AbstractUrlUpdater {
   protected String getTool() {
 
     return "mocked";
-  }
-
-  @Override
-  public void update(UrlRepository urlRepository) {
-    super.update(urlRepository);
   }
 
   @Override

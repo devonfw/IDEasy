@@ -21,7 +21,17 @@ public final class UrlStatusState {
    */
   public UrlStatusState() {
 
-    this.timestamp = Instant.now();
+    this(Instant.now());
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param timestamp the {@link #getTimestamp() timestamp}.
+   */
+  public UrlStatusState(Instant timestamp) {
+
+    this.timestamp = timestamp;
   }
 
   /**
