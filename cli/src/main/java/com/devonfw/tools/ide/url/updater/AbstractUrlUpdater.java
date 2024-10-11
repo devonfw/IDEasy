@@ -297,7 +297,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     }
     url = url.replace("${edition}", edition);
 
-    return checkDownloadUrl(edition, url, urlVersion, os, architecture, checksum);
+    return doAddVersionUrlIfNewAndValid(edition, url, urlVersion, os, architecture, checksum);
 
   }
 
@@ -388,9 +388,16 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @param checksum the existing checksum (e.g. from JSON metadata) or the empty {@link String} if not available and computation needed.
    * @return {@code true} if the download was checked successfully, {@code false} otherwise.
    */
-  private boolean checkDownloadUrl(String edition, String url, UrlVersion urlVersion, OperatingSystem os,
+  private boolean doAddVersionUrlIfNewAndValid(String edition, String url, UrlVersion urlVersion, OperatingSystem os,
       SystemArchitecture architecture, String checksum) {
 
+    UrlDownloadFile urlDownloadFile = urlVersion.getUrls(os, architecture);
+    if (urlDownloadFile != null) {
+      if (urlDownloadFile.getUrls().contains(url)) {
+        logger.debug("Skipping add of already existing URL {}", url);
+        return false;
+      }
+    }
     HttpResponse<?> response = doCheckDownloadViaHeadRequest(url);
     int statusCode = response.statusCode();
     String toolWithEdition = getToolWithEdition(edition);
@@ -400,7 +407,6 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
 
     boolean update = false;
 
-    UrlDownloadFile urlDownloadFile = urlVersion.getUrls(os, architecture);
     if (success) {
       UrlChecksum urlChecksum = null;
       if (urlDownloadFile != null) {
