@@ -13,4 +13,12 @@ public interface UrlArtifactWithParent<P extends UrlFolder<?>> extends UrlArtifa
    * @return the parent {@link UrlFolder} owning this artifact as child.
    */
   P getParent();
+
+
+  /**
+   * Physically deletes this artifact with all its potential children from the disc. Will also remove it from its {@link #getParent() parent}.
+   */
+  default void delete() {
+    getParent().deleteChild(getName());
+  }
 }
