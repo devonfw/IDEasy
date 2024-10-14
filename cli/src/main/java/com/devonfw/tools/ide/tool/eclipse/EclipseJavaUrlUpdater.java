@@ -6,12 +6,7 @@ package com.devonfw.tools.ide.tool.eclipse;
 public class EclipseJavaUrlUpdater extends EclipseUrlUpdater {
 
   @Override
-  protected String getEdition() {
-
-    return "eclipse";
-  }
-
-  @Override
+  // getEdition() must still return "eclipse"
   protected String getEclipseEdition() {
 
     return "java";

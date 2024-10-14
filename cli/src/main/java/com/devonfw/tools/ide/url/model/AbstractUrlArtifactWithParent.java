@@ -31,4 +31,8 @@ public abstract class AbstractUrlArtifactWithParent<P extends AbstractUrlFolder<
     return this.parent;
   }
 
+  @Override
+  public void delete() {
+    getParent().deleteChild(getName());
+  }
 }

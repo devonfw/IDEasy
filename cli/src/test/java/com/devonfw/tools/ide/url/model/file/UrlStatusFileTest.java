@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.url.model;
+package com.devonfw.tools.ide.url.model.file;
 
 import java.nio.file.Path;
 import java.time.Instant;
@@ -6,7 +6,6 @@ import java.time.Instant;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
 import com.devonfw.tools.ide.url.model.file.json.StatusJson;
 import com.devonfw.tools.ide.url.model.file.json.UrlStatus;
 import com.devonfw.tools.ide.url.model.file.json.UrlStatusState;
