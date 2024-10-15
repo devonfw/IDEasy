@@ -40,9 +40,7 @@ public class DotNetTest extends AbstractIdeContextTest {
 
     if (this.context.getSystemInfo().isWindows()) {
       assertThat(this.context.getSoftwarePath().resolve("dotnet/dotnet.exe")).exists();
-    }
-
-    if (this.context.getSystemInfo().isLinux() || this.context.getSystemInfo().isMac()) {
+    } else {
       assertThat(this.context.getSoftwarePath().resolve("dotnet/dotnet")).exists();
     }
 
@@ -79,7 +77,7 @@ public class DotNetTest extends AbstractIdeContextTest {
 
     SystemInfo systemInfo = SystemInfoMock.of(operatingSystem);
     this.context.setSystemInfo(systemInfo);
-
+    this.context.info("Running dotnet binary from: {}", this.commandlet.getToolBinPath());
     this.commandlet.run();
   }
 
