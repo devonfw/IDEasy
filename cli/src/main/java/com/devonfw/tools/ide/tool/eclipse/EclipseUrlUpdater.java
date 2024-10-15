@@ -13,9 +13,9 @@ import com.devonfw.tools.ide.version.VersionSegment;
  */
 public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
 
-  private static final String[] MIRRORS = { "https://ftp.snt.utwente.nl/pub/software/eclipse/technology/epp/downloads",
-      "https://ftp.osuosl.org/pub/eclipse/technology/epp/downloads",
-      "https://archive.eclipse.org/technology/epp/downloads" };
+  private static final String[] MIRRORS = {
+      "https://archive.eclipse.org/technology/epp/downloads",
+      "https://ftp.osuosl.org/pub/eclipse/technology/epp/downloads" };
 
   @Override
   protected String getTool() {
@@ -24,7 +24,7 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
   }
 
   /**
-   * @return the eclipse edition name.
+   * @return the eclipse edition name. May be different from {@link #getEdition()} allowing a different edition name (e.g. eclipse) for IDEasy.
    */
   protected String getEclipseEdition() {
 
@@ -79,7 +79,6 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected Pattern getVersionPattern() {
 
-    // return Pattern.compile("\\d{4}-\\d{2}(\\s\\w{2})?");
     return Pattern.compile("\\d{4}-\\d{2}");
   }
 
