@@ -94,13 +94,35 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       if (isTimeoutExpired()) {
         break;
       }
-      try {
-        updater.setExpirationTime(getExpirationTime());
-        updater.setUrlFinalReport(this.urlFinalReport);
-        updater.update(this.urlRepository);
-      } catch (Exception e) {
-        logger.error("Failed to update {}", updater.getToolWithEdition(), e);
+      update(updater);
+    }
+  }
+
+  /**
+   * Update only a single tool. Mainly used in local development only to test updater only for a tool where changes have been made.
+   *
+   * @param tool the name of the tool to update.
+   */
+  public void update(String tool) {
+
+    for (AbstractUrlUpdater updater : this.updaters) {
+      if (updater.getTool().equals(tool)) {
+        update(updater);
       }
+    }
+  }
+
+  private void update(AbstractUrlUpdater updater) {
+    try {
+      updater.setExpirationTime(getExpirationTime());
+      updater.setUrlFinalReport(this.urlFinalReport);
+      String updaterName = updater.getClass().getSimpleName();
+      String toolName = updater.getTool();
+      logger.debug("Starting {} for tool {}", updaterName, toolName);
+      updater.update(this.urlRepository);
+      logger.debug("Ended {} for tool {}", updaterName, updater.getTool());
+    } catch (Exception e) {
+      logger.error("Failed to update {}", updater.getToolWithEdition(), e);
     }
   }
 
