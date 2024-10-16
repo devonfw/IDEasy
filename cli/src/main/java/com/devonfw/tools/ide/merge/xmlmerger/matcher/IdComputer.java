@@ -113,7 +113,11 @@ public class IdComputer {
       String attributeValue = element.getAttribute(attributeName);
       xpathBuilder.append(String.format("[@%s='%s']", attributeName, attributeValue));
     } else if (this.id.equals("name()")) {
-      xpathBuilder.append(String.format("[local-name()='%s']", localName));
+      String attributeName = "name";
+      String attributeValue = element.getAttribute(attributeName);
+      if (attributeValue != null && !attributeValue.isEmpty()) {
+        xpathBuilder.append(String.format("[@%s='%s']", attributeName, attributeValue));
+      }
       if (namespaceURI != null && !namespaceURI.isEmpty()) {
         xpathBuilder.append(String.format(" and namespace-uri()='%s'", namespaceURI));
       }
