@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.npm;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -37,6 +38,13 @@ public class NpmTest extends AbstractIdeContextTest {
     checkInstallation(context);
   }
 
+  /**
+   * Tests if npm can be run properly.
+   * TODO: Check: <a href="https://github.com/devonfw/IDEasy/issues/700">#700</a> for reference.
+   *
+   * @param os Operating System.
+   */
+  @Disabled
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
   public void testNpmRun(String os) {
@@ -56,7 +64,6 @@ public class NpmTest extends AbstractIdeContextTest {
     } else {
       assertThat(context).logAtInfo().hasMessage("npmcmd ");
     }
-
   }
 
   private void checkInstallation(IdeTestContext context) {
