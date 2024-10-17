@@ -4,7 +4,7 @@ skinparam classAttributeIconSize 0
 
 '''' Attributes and methods '''
 
-class Ide {
+class Ideasy {
   {static} +main(String [])
 }
 
@@ -44,10 +44,10 @@ interface UrlUpdater
 
 '''' Relations '''
 
-Ide ..> CliArgument
-Ide ..> Property
-Ide ..> Commandlet
-Ide ..> IdeContext
+Ideasy ..> CliArgument
+Ideasy ..> Property
+Ideasy ..> Commandlet
+Ideasy ..> IdeContext
 
 IdeLogger <|-- IdeContext : extends
 
