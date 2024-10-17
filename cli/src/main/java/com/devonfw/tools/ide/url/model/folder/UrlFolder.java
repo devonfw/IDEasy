@@ -34,4 +34,11 @@ public interface UrlFolder<C extends UrlArtifactWithParent<?>> extends UrlArtifa
    * @return the {@link Collection} of all children of this folder.
    */
   Collection<C> getChildren();
+
+  /**
+   * Physically deletes the {@link #getChild(String) child} with the given name from the disc and removes it from this {@link AbstractUrlFolder}.
+   *
+   * @param name the {@link #getName() name} of the child to delete.
+   */
+  void deleteChild(String name);
 }

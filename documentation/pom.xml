@@ -21,5 +21,23 @@
     <revision>dev-SNAPSHOT</revision>
   </properties>
 
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.asciidoctor</groupId>
+        <artifactId>asciidoctor-maven-plugin</artifactId>
+        <version>${asciidoctor.maven.plugin.version}</version>
+        <configuration>
+          <logHandler>
+            <outputToConsole>false</outputToConsole>
+            <failIf>
+              <severity>ERROR</severity>
+            </failIf>
+          </logHandler>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
   <!-- run "mvn package" and get the PDF result in target/generated-docs/*.pdf -->
 </project>
