@@ -27,7 +27,8 @@ active=true
  .Variables of repository import
 [options="header"]
 
-|=== |*Variable*|*Value*|*Meaning*
+|===
+|*Variable*|*Value*|*Meaning*
 |`path`|e.g. `myproject`, will clone into `${WORKSPACE_PATH}/myproject`|(required) Path into which the projects is cloned.
 This path is relative to the workspace.
 |`working sets`|e.g. `ws1,ws2`|(optional) This will create working sets (in eclipse).
@@ -46,5 +47,4 @@ For a regular project use `.` to build top-level project.
 If omitted no build is triggered.
 |`import`|e.g. `eclipse`|(optional) Comma separated list of IDEs to import the repository into.
 |`active`|`true`|(optional) If set to `false` the repository is skipped during the link:setup.adoc[setup].
-
 |===

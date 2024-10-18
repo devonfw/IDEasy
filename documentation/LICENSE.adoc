@@ -34,6 +34,7 @@ The column `inclusion` indicates the way the component is included:
 
 .Third party components
 [options="header"]
+
 |===
 |*Component*|*Inclusion*|*License*
 |https://github.com/devonfw/IDEasy[IDEasy]|Directly included|https://github.com/devonfw/IDEasy/blob/master/LICENSE[Apache 2.0]
