@@ -17,7 +17,7 @@ See also https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contri
 ** [ ] Milestones are typically assigned by PO (Jörg) but have to be set before issues and PRs get closed.
 In case your issue is only addressed by a change in `ide-mirrors`/`ide-urls` or in `ide-settings` repository, please already assign the according milestone (switch to `closed` tab under `Milestone`).
 * [ ] All checks have passed.
-Otherwise if a check failed (red cross) you need to click the `Details` link, read the logs and fix the problem.
+Otherwise, if a check failed (red cross) you need to click the `Details` link, read the logs and fix the problem.
 ** [ ] The build and all automated tests succeeded.
 If failed and you clicked on `Details` add read the logs to find the error.
 ** [ ] The contributors license agreement (CLA) is signed by all contributors of the PR.

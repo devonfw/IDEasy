@@ -1,0 +1,50 @@
+:toc:
+toc::[]
+
+= Project
+
+`IDEasy` allows you to create any number of independent software development `projects` on your computer as isolated link:sandbox.adoc[sandbox].
+In order to create a new project, all you need to do is run the following command:
+
+```
+ide create «new-project-name»
+```
+
+This will create a new project named `«new-project-name»` in your `${IDE_ROOT}` folder so you should use a reasonable project name as argument (instead of `«new-project-name»`).
+Please only use Latin letters, Arabic digits (0-9), hyphens (-), or underscores (_) for your project name and strictly avoid special characters like whitespaces.
+
+During the project creation you will be asked for the URL of the git repository for the link:settings.adoc[settings].
+
+NOTE: You may just hit return here to use the default settings.
+However, this is only for demo purposes.
+A real project needs its own dedicated settings repository to share changes to the link:settings.adoc[settings] with the team.
+The most basic but fundamental mistake developers do with IDEasy is to use the default settings for a real world project.
+So carefully read the instructions from your project and have a look for the appropriate settings URL.
+
+In order to prevent the question, you may also add the settings URL as additional argument to the `ide create` command.
+If you really want to create a demo project without being asked for the settings URL you may also use `-` as settings URL to prevent repeating the default:
+
+```
+ide create «new-project-name» -
+```
+
+== Update
+
+If someone in your team has pushed changes to your settings repository, IDEasy will notify you.
+You can then pull and apply these changes to your project using the following command:
+
+```
+ide update
+```
+
+== Testing and Feature-Branches
+
+If you want to test some suggested changes to your settings repository before rolling it out to the (large) team, you can use feature branches.
+In order to create a new project directly from such branch, you can specify the branch-name after appending a '#' sign to the repository URL.
+For testing purposes it may be handy that we also provide the `--skip-repositories` option.
+In case you have large link:repository.adoc[repositories] configured, this option omits their cloning when testing a configuration change:
+
+```
+ide create «new-project-name» --skip-repositories «settings-git-url»#«branch-name»
+```
+

@@ -14,14 +14,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.json.Json;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
-import javax.json.JsonString;
-import javax.json.JsonStructure;
-import javax.json.JsonValue;
-import javax.json.JsonValue.ValueType;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonReader;
+import jakarta.json.JsonString;
+import jakarta.json.JsonStructure;
+import jakarta.json.JsonValue;
+import jakarta.json.JsonValue.ValueType;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
@@ -149,7 +149,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
 
   @Override
   public Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version) {
-    
+
     return Collections.emptyList();
   }
 

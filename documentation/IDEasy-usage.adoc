@@ -34,4 +34,4 @@ include::updates.adoc[leveloffset=3]
 
 include::workspaces.adoc[leveloffset=3]
 
-include::projects.adoc[leveloffset=3]
+include::repository.adoc[leveloffset=3]
