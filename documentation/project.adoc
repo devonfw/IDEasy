@@ -11,7 +11,7 @@ ide create «new-project-name»
 ```
 
 This will create a new project named `«new-project-name»` in your `${IDE_ROOT}` folder so you should use a reasonable project name as argument (instead of `«new-project-name»`).
-Please only use Latin letters, Arabic digits (0-9), hypens (-), or underscores (_) for your project name and strictly avoid special characters like whitespaces.
+Please only use Latin letters, Arabic digits (0-9), hyphens (-), or underscores (_) for your project name and strictly avoid special characters like whitespaces.
 
 During the project creation you will be asked for the URL of the git repository for the link:settings.adoc[settings].
 
