@@ -30,8 +30,6 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
   private static final String RESULT_XML = "result.xml";
 
-  private static final String TEST_XML = "trusted-paths.xml";
-
   private IdeContext context = newContext(PROJECT_BASIC, null, false);
 
   private XmlMerger merger = new XmlMerger(this.context);
