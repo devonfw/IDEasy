@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.process;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -28,16 +29,8 @@ public class ProcessResultImpl implements ProcessResult {
 
     super();
     this.exitCode = exitCode;
-    if (out == null) {
-      this.out = Collections.emptyList();
-    } else {
-      this.out = out;
-    }
-    if (err == null) {
-      this.err = Collections.emptyList();
-    } else {
-      this.err = err;
-    }
+    this.out = Objects.requireNonNullElse(out, Collections.emptyList());
+    this.err = Objects.requireNonNullElse(err, Collections.emptyList());
   }
 
   @Override
@@ -61,10 +54,10 @@ public class ProcessResultImpl implements ProcessResult {
   @Override
   public void log(IdeLogLevel level, IdeContext context) {
 
-    if (this.out != null && !this.out.isEmpty() && level == IdeLogLevel.INFO) {
+    if (!this.out.isEmpty()) {
       doLog(level, this.out, context);
     }
-    if (this.err != null && !this.err.isEmpty() && level == IdeLogLevel.ERROR) {
+    if (!this.err.isEmpty()) {
       doLog(level, this.err, context);
     }
   }
