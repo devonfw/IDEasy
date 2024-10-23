@@ -17,7 +17,7 @@ public class KubeCtl extends GlobalToolCommandlet {
    */
   public KubeCtl(IdeContext context) {
 
-    super(context, "kubectl", Set.of(Tag.DOCKER));
+    super(context, "kubectl", Set.of(Tag.KUBERNETES));
   }
 
   @Override
