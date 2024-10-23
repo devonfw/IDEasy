@@ -163,6 +163,7 @@ public class Mvn extends PluginBasedCommandlet {
 
     ProcessContext pc = this.context.newProcess().executable("mvn");
     pc.addArgs("--encrypt-password", input);
+    pc.addArg("-Dsettings.security=" + this.context.getMavenRepository().getParent().resolve(SETTINGS_SECURITY_FILE).toString().replace("\\", "\\\\"));
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
 
     String encryptedPassword = result.getOut().get(0);
