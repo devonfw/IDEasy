@@ -75,6 +75,7 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() PROJECT_NAME}. */
   VariableDefinitionString PROJECT_NAME = new VariableDefinitionString("PROJECT_NAME", null, c -> c.getProjectName());
 
+  /** Preferred Git protocol (HTTPS/SSH) as defined by {@link GitUrlSyntax}. */
   VariableDefinitionEnum<GitUrlSyntax> PREFERRED_GIT_PROTOCOL = new VariableDefinitionEnum<>("PREFERRED_GIT_PROTOCOL", GitUrlSyntax.class);
 
 
