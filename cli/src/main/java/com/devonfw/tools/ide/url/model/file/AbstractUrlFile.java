@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.url.model.file;
 
 import java.nio.file.Files;
 
+import org.jline.utils.Log;
+
 import com.devonfw.tools.ide.url.model.AbstractUrlArtifactWithParent;
 import com.devonfw.tools.ide.url.model.folder.AbstractUrlFolder;
 import com.devonfw.tools.ide.url.model.folder.UrlFolder;
@@ -54,6 +56,7 @@ public abstract class AbstractUrlFile<P extends AbstractUrlFolder<?>> extends Ab
   public void save() {
 
     if (this.modified) {
+      Log.debug("Saving {}", getPath());
       doSave();
       this.modified = false;
     }
