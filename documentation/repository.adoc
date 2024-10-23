@@ -1,10 +1,14 @@
 :toc:
 toc::[]
 
-= Project import
+= Repository
 
-`IDEasy` supports to automatically check out and import required git repositories into your IDE during link:setupadoc[setup].
-To configure this you put a `.properties` file for each desired project into the `repository` sub-folder in your link:settingsadoc[settings].
+`IDEasy` supports to automatically check out and import required git repositories into your IDE during link:project.adoc[project] creation.
+
+NOTE: Please do not mix this feature with the link:settings.adoc[settings repository] that contains the configuration for your IDE.
+Here we are talking about git repositories for development in your project that typically contain code.
+
+To configure this you put a `.properties` file for each desired project into the `repository` sub-folder in your link:settings.adoc[settings].
 Each `.properties` file describes one "project" which you would like to check out and (potentially) import:
 
 [source,properties]
@@ -23,7 +27,8 @@ active=true
  .Variables of repository import
 [options="header"]
 
-|=== |*Variable*|*Value*|*Meaning*
+|===
+|*Variable*|*Value*|*Meaning*
 |`path`|e.g. `myproject`, will clone into `${WORKSPACE_PATH}/myproject`|(required) Path into which the projects is cloned.
 This path is relative to the workspace.
 |`working sets`|e.g. `ws1,ws2`|(optional) This will create working sets (in eclipse).
@@ -42,5 +47,4 @@ For a regular project use `.` to build top-level project.
 If omitted no build is triggered.
 |`import`|e.g. `eclipse`|(optional) Comma separated list of IDEs to import the repository into.
 |`active`|`true`|(optional) If set to `false` the repository is skipped during the link:setup.adoc[setup].
-
 |===
