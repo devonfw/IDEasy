@@ -64,6 +64,6 @@ public class VariableDefinitionEnum<E extends Enum<E>> extends AbstractVariableD
    */
   @Override
   public E fromString(String value, IdeContext context) {
-    return Enum.valueOf(enumType, value.toUpperCase());
+    return Enum.valueOf(enumType, value.toUpperCase(java.util.Locale.ROOT));
   }
 }
