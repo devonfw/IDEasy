@@ -10,28 +10,46 @@ The documentation of this product is licensed under the terms of the http://crea
 
 The source code of this product is available under free and open-source licenses.
 
-More specifically, most of the source code is available under the Apache License 2.0. The remainder of the software which is not under the Apache License is available under one of a variety of other free and open source licenses.
-Those that require reproduction of the license text in the distribution are given below.
-(Note: your copy of this product may not contain code covered by one or more of the licenses listed here, depending on the exact product and version you choose.)
+More specifically, most of the source code is available under the Apache License 2.0.
+Only code that is directly included into the product IDEasy is part of what you download as our product and therefore considered as derivative work.
+Such code included in this product is either also unter Apache License 2.0 or another free and open-source licenses that is listed below.
+
+However, our product allows to install and run other software.
+All of this is optional and can be configured as needed.
+Since such software is executed as a seperated process and is fully optional, it is not to be considered as derivative work.
+Without IDEasy you just install such software manually and the only difference is that we automate this for you.
+However, due to automation you may not explicitly decide and notice what the license of such software is.
+Therefore, we list such software with their licenses explicitly below esp. those that require reproduction of the license text in the distribution.
+Before using our product and installig additional software with it you need to agree to such licenses and be aware of this.
+
+NOTE: Please be aware that it is even possible to configure and automatically install some commercial software that is NOT open-source and requires a license to be used (e.g. IntelliJ ultimate edition).
+Hence, only configure and use such software if you have an according license.
 
 The following table shows the components that may be used.
 The column `inclusion` indicates the way the component is included:
 
-* `directly included` means the component is directly contained in the download package of `IDEasy` we provide
-* `default setup` means the component is not initially included but will be downloaded during the link:setup.adoc[`setup`] by default
+* `directly included` means the component is directly contained in the download package of `IDEasy` we provide (derivative work)
+* `default setup` means the component is not initially included but will be downloaded during creation of a link:project.adoc[`project`] by default
 * `optional` means the component is neither initially included nor downloaded by default, but only gets downloaded and installed if explicitly triggered by you when invoking additional commands or if explicitly configured by your project.
 
 .Third party components
 [options="header"]
+
 |===
 |*Component*|*Inclusion*|*License*
-|https://github.com/devonfw/IDEasy[IDEasy] | Directly included |https://github.com/devonfw/IDEasy/blob/master/LICENSE[ASL 2.0]
-|https://github.com/eclipse-ee4j/jsonp[JSON-P] API | Directly included |https://github.com/eclipse-ee4j/jsonp/blob/master/LICENSE.md[EPL 2.0]
-|https://github.com/eclipse-ee4j/jsonp[JSON-P] Implementation | Directly included |https://github.com/eclipse-ee4j/jsonp/blob/master/LICENSE.md[EPL 2.0]
-|https://openjdk.java.net/[OpenJDK] / https://adoptopenjdk.net/[AdoptOpenJDK] (Java) |Default Setup| https://openjdk.java.net/legal/gplv2+ce.html[GPLv2]
-|https://maven.apache.org/[Maven] | Default Setup|https://www.apache.org/licenses/LICENSE-2.0[ASL 2.0]
-|https://code.visualstudio.com/[VS Code] |Optional| https://github.com/Microsoft/vscode/blob/master/LICENSE.txt[MIT] (https://code.visualstudio.com/License/[Terms])
-|https://github.com/devonfw/extension-pack-vscode[extension-pack-vscode] |Optional|https://github.com/devonfw/extension-pack-vscode/blob/master/LICENSE[ASL 2.0]
+|https://github.com/devonfw/IDEasy[IDEasy]|Directly included|https://github.com/devonfw/IDEasy/blob/master/LICENSE[Apache 2.0]
+|https://github.com/eclipse-ee4j/jsonp[JSON-P] API|Directly included|https://github.com/eclipse-ee4j/jsonp/blob/master/LICENSE.md[EPL 2.0]
+|https://github.com/eclipse-ee4j/jsonp[JSON-P] Implementation|Directly included|https://github.com/eclipse-ee4j/jsonp/blob/master/LICENSE.md[EPL 2.0]
+|https://commons.apache.org/proper/commons-compress/[Apache Commons Compress]|Directly included|https://github.com/apache/commons-compress/blob/master/LICENSE.txt[Apache 2.0]
+|https://github.com/FasterXML/jackson-databind[jackson-databind]|Directly included|https://github.com/FasterXML/jackson-databind/blob/2.19/LICENSE[Apache 2.0]
+|https://github.com/FasterXML/jackson-modules-java8/tree/master/datetime[jackson-datatype-jsr310]|Directly included|https://github.com/FasterXML/jackson-modules-java8/blob/2.19/LICENSE[Apache 2.0]
+|https://github.com/FasterXML/jackson-dataformat-xml[jackson-dataformat-xml]|Directly included|https://github.com/FasterXML/jackson-databind/blob/2.19/LICENSE[Apache 2.0]
+|https://www.slf4j.org/[slf4j]|Directly included|https://www.slf4j.org/license.html[MIT]
+|https://logback.qos.ch/[logback-classic]|Directly included|https://logback.qos.ch/license.html[LGPL 2.1]
+|https://openjdk.java.net/[OpenJDK] / https://adoptopenjdk.net/[AdoptOpenJDK] (Java)|Default Setup|https://openjdk.java.net/legal/gplv2+ce.html[GPLv2]
+|https://maven.apache.org/[Maven]|Default Setup|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
+|https://code.visualstudio.com/[VS Code]|Optional|https://github.com/Microsoft/vscode/blob/master/LICENSE.txt[MIT] (https://code.visualstudio.com/License/[Terms])
+|https://github.com/devonfw/extension-pack-vscode[extension-pack-vscode] |Optional|https://github.com/devonfw/extension-pack-vscode/blob/master/LICENSE[Apache 2.0]
 |https://www.eclipse.org/[Eclipse] |Optional|https://www.eclipse.org/legal/epl-2.0/[EPL 2.0]
 |https://marketplace.eclipse.org/content/tm-terminal[TM Terminal] |Optional|https://www.eclipse.org/legal/epl-2.0/[EPL 2.0] (see https://marketplace.eclipse.org/content/tm-terminal[here])
 |https://github.com/iloveeclipse/anyedittools/[AnyEdit] |Optional|https://github.com/iloveeclipse/anyedittools/blob/master/LICENSE.md[EPL 1.0]
@@ -40,42 +58,42 @@ The column `inclusion` indicates the way the component is included:
 |https://www.eclemma.org/[EclEmma] |Optional|https://www.eclemma.org/license.html[EPL 1.0]
 |https://basti1302.github.io/startexplorer/[StartExplorer] |Optional|http://www.wtfpl.net/txt/copying/[WTFPL 2]
 |http://myregexp.com/eclipsePlugin.html[regex tester] |Optional|http://www.gnu.org/licenses/gpl-2.0.html[GPL 2.0] (see https://sourceforge.net/projects/regex-util/[here])
-|https://github.com/m-m-m/eclipse-templatevariables/[eclipse-templatevariables] |Optional|https://github.com/m-m-m/eclipse-templatevariables/blob/master/LICENSE.txt[ASL 2.0]
+|https://github.com/m-m-m/eclipse-templatevariables/[eclipse-templatevariables] |Optional|https://github.com/m-m-m/eclipse-templatevariables/blob/master/LICENSE.txt[Apache 2.0]
 |https://nodejs.org/[Node.js] |Default Setup|https://raw.githubusercontent.com/nodejs/node/master/LICENSE[License]
 |https://www.npmjs.com/[NPM] |Default Setup|https://github.com/npm/cli/blob/latest/LICENSE[Artistic License 2.0] (https://www.npmjs.com/policies/terms[Terms])
 |https://cli.angular.io/[Angular CLI] (ng) |Optional|https://cli.angular.io/license.html[MIT]
-|http://groovy-lang.org/[Groovy]|Optional|https://github.com/apache/groovy/blob/master/LICENSE[ASL 2.0]
-|https://ant.apache.org/[Apache Ant]|Optional|https://github.com/apache/ant/blob/master/LICENSE[ASL 2.0]
-|https://gradle.org/[Gradle] |Optional|https://github.com/gradle/gradle/blob/master/LICENSE[ASL 2.0]
+|http://groovy-lang.org/[Groovy]|Optional|https://github.com/apache/groovy/blob/master/LICENSE[Apache 2.0]
+|https://ant.apache.org/[Apache Ant]|Optional|https://github.com/apache/ant/blob/master/LICENSE[Apache 2.0]
+|https://gradle.org/[Gradle] |Optional|https://github.com/gradle/gradle/blob/master/LICENSE[Apache 2.0]
 |https://jenkins.io/[Jenkins] |Optional|https://github.com/jenkinsci/jenkins/blob/master/LICENSE.txt[MIT]
 |https://github.com/jline/jline3[JLine3] |Directly included|https://github.com/jline/jline3/blob/master/LICENSE.txt[BSD-3]
-|https://github.com/fusesource/jansi[jansi] |Directly included|https://github.com/fusesource/jansi/blob/master/license.txt[ASL 2.0]
+|https://github.com/fusesource/jansi[jansi] |Directly included|https://github.com/fusesource/jansi/blob/master/license.txt[Apache 2.0]
 |https://www.sonarsource.com/plans-and-pricing/community/[SonarQube (Community Edition)] |Optional|https://github.com/SonarSource/sonarqube/blob/master/LICENSE.txt[LGPL 3.0]
 |https://www.sonarlint.org/eclipse/[SonarLint] |Optional|https://github.com/SonarSource/sonarlint-eclipse/blob/master/LICENSE.txt[LGPL 3+]
-|https://github.com/devonfw/devon4j[devon4j] |Optional|https://github.com/devonfw/devon4j/blob/develop/LICENSE[ASL 2.0]
-|https://github.com/devonfw/devon4ng[devon4ng] |Optional|https://github.com/devonfw/devon4ng/blob/master/LICENSE.txt[ASL 2.0]
-|https://github.com/devonfw/devon4node[devon4node] |Optional|https://github.com/devonfw/devon4node/blob/develop/LICENSE.txt[ASL 2.0]
-|https://www.jetbrains.com/idea/[IntelliJ IDEA] |Optional|https://www.jetbrains.com/opensource/idea/[ASL 2.0]
-|https://developer.android.com/studio[Android Studio] |Optional|https://developer.android.com/license[ASL 2.0]
-|http://www.jasypt.org/[jasypt] |Optional|http://www.jasypt.org/license.html[ASL 2.0]
-|https://www.docker.com/[docker]|Optional|https://docs.docker.com/engine/#licensing[ASL 2.0] and https://www.docker.com/legal/docker-software-end-user-license-agreement[EULA]
-|https://kubernetes.io/[kubernetes]|Optional|https://github.com/kubernetes/kubernetes/blob/master/LICENSE[ASL 2.0]
-|https://helm.sh/[helm]|Optional|https://github.com/devonfw/ide/blob/master/LICENSE[ASL 2.0]
+|https://github.com/devonfw/devon4j[devon4j] |Optional|https://github.com/devonfw/devon4j/blob/develop/LICENSE[Apache 2.0]
+|https://github.com/devonfw/devon4ng[devon4ng] |Optional|https://github.com/devonfw/devon4ng/blob/master/LICENSE.txt[Apache 2.0]
+|https://github.com/devonfw/devon4node[devon4node] |Optional|https://github.com/devonfw/devon4node/blob/develop/LICENSE.txt[Apache 2.0]
+|https://www.jetbrains.com/idea/[IntelliJ IDEA] |Optional|https://www.jetbrains.com/opensource/idea/[Apache 2.0]
+|https://developer.android.com/studio[Android Studio] |Optional|https://developer.android.com/license[Apache 2.0]
+|http://www.jasypt.org/[jasypt] |Optional|http://www.jasypt.org/license.html[Apache 2.0]
+|https://www.docker.com/[docker]|Optional|https://docs.docker.com/engine/#licensing[Apache 2.0] and https://www.docker.com/legal/docker-software-end-user-license-agreement[EULA]
+|https://kubernetes.io/[kubernetes]|Optional|https://github.com/kubernetes/kubernetes/blob/master/LICENSE[Apache 2.0]
+|https://helm.sh/[helm]|Optional|https://github.com/devonfw/ide/blob/master/LICENSE[Apache 2.0]
 |https://terraform.io/[terraform]|Optional|https://github.com/hashicorp/terraform/blob/main/LICENSE[Mozilla Public License 2.0]
 |https://www.graalvm.org/[GraalVM] |Optional|https://github.com/oracle/graal/blob/master/LICENSE[GPLv2] (with the “Classpath” Exception)
-|https://rancherdesktop.io/[Rancher Desktop]|Optional|https://github.com/rancher-sandbox/rancher-desktop/blob/main/LICENSE[ASL 2.0]
+|https://rancherdesktop.io/[Rancher Desktop]|Optional|https://github.com/rancher-sandbox/rancher-desktop/blob/main/LICENSE[Apache 2.0]
 |https://github.com/Azure/azure-cli[AzureCLI] |Optional| https://github.com/Azure/azure-cli/blob/dev/LICENSE[MIT]
-|https://aws.amazon.com/cli/[AWS cli] |Optional|https://github.com/aws/aws-cli/blob/develop/LICENSE.txt[ASL 2.0]
+|https://aws.amazon.com/cli/[AWS cli] |Optional|https://github.com/aws/aws-cli/blob/develop/LICENSE.txt[Apache 2.0]
 |https://github.com/jesseduffield/lazydocker/releases/tag/v0.18.1/[lazydocker] |Optional|https://github.com/jesseduffield/lazydocker/blob/master/LICENSE[MIT]
 |https://dotnet.microsoft.com/[Dotnet]|Optional|https://github.com/dotnet/core/blob/master/LICENSE.TXT[MIT] (https://www.microsoft.com/en-us/legal/intellectualproperty/copyright/default.aspx[Terms])
 |https://github.com/pypa/pip/[Pip] |Optional|https://github.com/pypa/pip/blob/main/LICENSE.txt[MIT]
-|https://github.com/openshift/oc[OpenShiftCLI]|Optional|https://github.com/openshift/oc/blob/master/LICENSE[ASL 2.0]
+|https://github.com/openshift/oc[OpenShiftCLI]|Optional|https://github.com/openshift/oc/blob/master/LICENSE[Apache 2.0]
 |https://github.com/cli/cli/[GitHubCLI]|Optional|https://github.com/cli/cli/blob/trunk/LICENSE[MIT]
-|https://quarkus.io/guides/cli-tooling[QuarkusCLI]|Optional|https://github.com/quarkusio/quarkus/blob/main/LICENSE.txt[ASL 2.0]
-|https://cloud.google.com/sdk/gcloud[GCloudCLI]|Optional|https://github.com/twistedpair/google-cloud-sdk/blob/master/google-cloud-sdk/LICENSE[ASL 2.0]
-|https://github.com/openrewrite/rewrite-maven-plugin[Openrewrite]|Optional|https://github.com/openrewrite/rewrite-maven-plugin/blob/main/LICENSE[ASL 2.0]
-|https://kotlinlang.org//[kotlin]|Optional|https://github.com/JetBrains/kotlin-web-site/blob/master/LICENSE[ASL 2.0]
-|https://tomcat.apache.org/[tomcat]|Optional|https://www.apache.org/licenses/LICENSE-2.0[ASL 2.0]
+|https://quarkus.io/guides/cli-tooling[QuarkusCLI]|Optional|https://github.com/quarkusio/quarkus/blob/main/LICENSE.txt[Apache 2.0]
+|https://cloud.google.com/sdk/gcloud[GCloudCLI]|Optional|https://github.com/twistedpair/google-cloud-sdk/blob/master/google-cloud-sdk/LICENSE[Apache 2.0]
+|https://github.com/openrewrite/rewrite-maven-plugin[Openrewrite]|Optional|https://github.com/openrewrite/rewrite-maven-plugin/blob/main/LICENSE[Apache 2.0]
+|https://kotlinlang.org//[kotlin]|Optional|https://github.com/JetBrains/kotlin-web-site/blob/master/LICENSE[Apache 2.0]
+|https://tomcat.apache.org/[tomcat]|Optional|https://www.apache.org/licenses/LICENSE-2.0[Apache 2.0]
 |https://www.oracle.com/java/technologies/jdk-mission-control.html[Java Mission Control]|Optional|https://github.com/openjdk/jmc/blob/master/license/LICENSE.txt[UPL 1.0] and https://github.com/openjdk/jmc/blob/master/license/THIRDPARTYREADME.txt[EPL 2.0]
 |https://github.com/ctongfei/progressbar[Progressbar]|Directly included|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
 |https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
