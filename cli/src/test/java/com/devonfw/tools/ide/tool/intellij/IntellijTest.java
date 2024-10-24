@@ -76,7 +76,7 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     // act
     commandlet.install();
-    commandlet.installPlugin(commandlet.getPluginsMap().getById("mockedPlugin"));
+    commandlet.installPlugin(commandlet.getPlugins().getById("mockedPlugin"), this.context.newStep("Install plugin MockedPlugin"));
 
     // assert
     checkInstallation(this.context);
@@ -105,7 +105,7 @@ public class IntellijTest extends AbstractIdeContextTest {
     checkInstallation(this.context);
 
     // act
-    commandlet.uninstallPlugin(commandlet.getPluginsMap().getById("mockedPlugin"));
+    commandlet.uninstallPlugin(commandlet.getPlugins().getById("mockedPlugin"));
 
     //assert
     assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).doesNotExist();
@@ -126,24 +126,23 @@ public class IntellijTest extends AbstractIdeContextTest {
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
+    this.context.info("Starting testIntellijRun on {}", os);
 
     // act
     commandlet.run();
 
     // assert
-    SystemInfo currentSystemInfo = this.context.getSystemInfo();
-    Path workspacePath = this.context.getWorkspacePath();
-
-    assertThat(this.context).logAtInfo().hasMessage("intellij " + currentSystemInfo.getOs() + " " + workspacePath);
     checkInstallation(this.context);
+    assertThat(commandlet.getToolBinPath().resolve("intellijtest")).hasContent(
+        "intellij " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
   }
 
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
     assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
-        "Successfully installed intellij in version 2023.3.3",
-        "Install plugin: mockedPlugin");
+        "Successfully installed intellij in version 2023.3.3");
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin MockedPlugin'.");
     assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).exists();
   }
 

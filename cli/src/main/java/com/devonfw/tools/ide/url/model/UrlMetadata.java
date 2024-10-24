@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -97,21 +98,21 @@ public class UrlMetadata {
   /**
    * @param tool the name of the {@link UrlTool}.
    * @param edition the name of the {@link UrlEdition}.
-   * @param version the {@link VersionIdentifier} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for
+   * @param version the {@link GenericVersionRange} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for
    *     the latest version.
    * @return the latest matching {@link VersionIdentifier} for the given {@code tool} and {@code edition}.
    */
-  public VersionIdentifier getVersion(String tool, String edition, VersionIdentifier version) {
+  public VersionIdentifier getVersion(String tool, String edition, GenericVersionRange version) {
 
     if (version == null) {
       version = VersionIdentifier.LATEST;
     }
     if (!version.isPattern()) {
-      return version;
+      return (VersionIdentifier) version;
     }
     List<VersionIdentifier> versions = getSortedVersions(tool, edition);
     for (VersionIdentifier vi : versions) {
-      if (version.matches(vi)) {
+      if (version.contains(vi)) {
         this.context.debug("Resolved version pattern {} to version {}", version, vi);
         return vi;
       }
@@ -124,11 +125,11 @@ public class UrlMetadata {
   /**
    * @param tool the name of the {@link UrlTool}.
    * @param edition the name of the {@link UrlEdition}.
-   * @param version the {@link VersionIdentifier} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for
+   * @param version the {@link GenericVersionRange} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for
    *     the latest version.
    * @return the latest matching {@link UrlVersion} for the given {@code tool} and {@code edition}.
    */
-  public UrlVersion getVersionFolder(String tool, String edition, VersionIdentifier version) {
+  public UrlVersion getVersionFolder(String tool, String edition, GenericVersionRange version) {
 
     VersionIdentifier resolvedVersion = getVersion(tool, edition, version);
     UrlVersion urlVersion = getEdition(tool, edition).getChild(resolvedVersion.toString());

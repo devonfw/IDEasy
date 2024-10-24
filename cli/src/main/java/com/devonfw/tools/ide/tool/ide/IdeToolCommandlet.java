@@ -53,24 +53,16 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   }
 
   @Override
-  public void run() {
+  public final void run() {
 
-    if (this.skipWorkspaceUpdate.isTrue()) {
-      this.context.info("Skipping update of IDE settings in workspace as requested via CLI option.");
-    } else {
-      configureWorkspace();
-    }
-    runIde(this.arguments.asArray());
+    configureWorkspace();
+    super.run();
   }
 
-  /**
-   * Run the actual IDE.
-   *
-   * @param args the additional arguments to pass to the IDE.
-   */
-  protected void runIde(String... args) {
+  @Override
+  public void runTool(String... args) {
 
-    runTool(ProcessMode.DEFAULT, null, args);
+    runTool(ProcessMode.BACKGROUND, null, args);
   }
 
   /**

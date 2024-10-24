@@ -1,8 +1,8 @@
-:toc:
-toc::[]
-
 [[proxy-support.adoc]]
 = Proxy support
+
+:toc:
+toc::[]
 
 IDEasy provides built-in support for automatic HTTP and HTTPS proxy recognition.
 

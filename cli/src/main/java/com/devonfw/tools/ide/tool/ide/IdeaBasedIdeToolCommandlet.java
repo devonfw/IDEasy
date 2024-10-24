@@ -13,8 +13,11 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.os.MacOsHelper;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.step.Step;
-import com.devonfw.tools.ide.tool.plugin.PluginDescriptor;
+import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
 
@@ -32,16 +35,21 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(PluginDescriptor plugin) {
+  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
+
+    super.configureToolArgs(pc, processMode, errorHandling, args);
+    pc.addArg(this.context.getWorkspacePath());
+  }
+
+  @Override
+  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
     String downloadUrl = getDownloadUrl(plugin);
 
-    String pluginId = plugin.getId();
+    String pluginId = plugin.id();
 
     Path tmpDir = null;
 
-    Step step = this.context.newStep("Install plugin: " + pluginId);
     try {
-
       Path installationPath = this.getPluginsInstallationPath();
       ensureInstallationPathExists(installationPath);
 
@@ -52,7 +60,6 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
       extractDownloadedPlugin(fileAccess, downloadedFile, pluginId);
 
       step.success();
-
     } catch (IOException e) {
       step.error(e);
       throw new IllegalStateException("Failed to process installation of plugin: " + pluginId, e);
@@ -60,17 +67,16 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
       if (tmpDir != null) {
         context.getFileAccess().delete(tmpDir);
       }
-      step.close();
     }
   }
 
   /**
-   * @param plugin the {@link PluginDescriptor} to be installer
+   * @param plugin the {@link ToolPluginDescriptor} to be installer
    * @return a {@link String} representing the download URL.
    */
-  private String getDownloadUrl(PluginDescriptor plugin) {
-    String downloadUrl = plugin.getUrl();
-    String pluginId = URLEncoder.encode(plugin.getId(), StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+  private String getDownloadUrl(ToolPluginDescriptor plugin) {
+    String downloadUrl = plugin.url();
+    String pluginId = URLEncoder.encode(plugin.id(), StandardCharsets.UTF_8).replaceAll("\\+", "%20");
 
     String buildVersion = readBuildVersion();
 

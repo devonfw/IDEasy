@@ -11,15 +11,21 @@ public enum ProcessErrorHandling {
   NONE,
 
   /** Log a warning if the status code was not successful. */
-  WARNING,
+  LOG_WARNING,
 
   /** Log an error if the status code was not successful. */
-  ERROR,
+  LOG_ERROR,
+
+  /**
+   * Throw a {@link com.devonfw.tools.ide.cli.CliException} if the status code was not successful. In this case the {@link ProcessContext#run() run} method will
+   * never return an exit code other than {@link ProcessResult#SUCCESS} as otherwise an exception is thrown preventing the method to return.
+   */
+  THROW_CLI,
 
   /**
    * Throw an exception if the status code was not successful. In this case the {@link ProcessContext#run() run} method will never return an exit code other
    * than {@link ProcessResult#SUCCESS} as otherwise an exception is thrown preventing the method to return.
    */
-  THROW
+  THROW_ERR
 
 }

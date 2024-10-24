@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.url.model.file.json.StatusJson;
@@ -23,7 +22,7 @@ public class UrlStatusFile extends AbstractUrlFile<UrlVersion> {
 
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
-  private StatusJson statusJson = new StatusJson();
+  private StatusJson statusJson;
 
   /**
    * The constructor.
@@ -33,6 +32,7 @@ public class UrlStatusFile extends AbstractUrlFile<UrlVersion> {
   public UrlStatusFile(UrlVersion parent) {
 
     super(parent, STATUS_JSON);
+    this.statusJson = new StatusJson();
   }
 
   /**
@@ -70,11 +70,23 @@ public class UrlStatusFile extends AbstractUrlFile<UrlVersion> {
   @Override
   protected void doSave() {
 
-    try (BufferedWriter writer = Files.newBufferedWriter(getPath(), StandardOpenOption.CREATE)) {
+    try (BufferedWriter writer = Files.newBufferedWriter(getPath())) {
       MAPPER.writeValue(writer, this.statusJson);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to save file " + getPath(), e);
     }
   }
 
+  /**
+   * Performs a cleanup and removes all unused entries.
+   *
+   * @see StatusJson#cleanup()
+   */
+  public void cleanup() {
+
+    boolean changed = this.statusJson.cleanup();
+    if (changed) {
+      this.modified = true;
+    }
+  }
 }

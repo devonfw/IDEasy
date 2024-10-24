@@ -168,8 +168,8 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
     verify(this.processMock, never()).waitFor();
 
-    assertThat(result.getOut()).isNull();
-    assertThat(result.getErr()).isNull();
+    assertThat(result.getOut()).isEmpty();
+    assertThat(result.getErr()).isEmpty();
 
   }
 
@@ -179,7 +179,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     // arrange
     when(this.processMock.waitFor()).thenReturn(ProcessResult.TOOL_NOT_INSTALLED);
 
-    this.processConttextUnderTest.errorHandling(ProcessErrorHandling.THROW);
+    this.processConttextUnderTest.errorHandling(ProcessErrorHandling.THROW_ERR);
 
     // act & assert
     assertThrows(IllegalStateException.class, () -> {
@@ -189,7 +189,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   }
 
   @ParameterizedTest
-  @EnumSource(value = ProcessErrorHandling.class, names = { "WARNING", "ERROR" })
+  @EnumSource(value = ProcessErrorHandling.class, names = { "LOG_WARNING", "LOG_ERROR" })
   public void processWarningAndErrorShouldBeLogged(ProcessErrorHandling processErrorHandling) throws Exception {
 
     // arrange
@@ -207,9 +207,9 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   private IdeLogLevel convertToIdeLogLevel(ProcessErrorHandling processErrorHandling) {
 
     return switch (processErrorHandling) {
-      case NONE, THROW -> null;
-      case WARNING -> IdeLogLevel.WARNING;
-      case ERROR -> IdeLogLevel.ERROR;
+      case NONE, THROW_ERR, THROW_CLI -> null;
+      case LOG_WARNING -> IdeLogLevel.WARNING;
+      case LOG_ERROR -> IdeLogLevel.ERROR;
     };
   }
 

@@ -1,11 +1,8 @@
-:toc:
-toc::[]
+= Repositories
 
-= Project import
-
-The `devonfw-ide` supports to automatically check out and import required projects into your IDE during link:setup.asciidoc[setup].
-To configure this you put a `.properties` file for each desired project into the `projects` sub-folder in your link:settings.asciidoc[settings].
-Each `.properties` file describes one "project" which you would like to check out and (potentially) import:
+IDEasy supports to automatically clone and import required git repositories into your IDE during link:setup.adoc[setup].
+To configure this you put a `.properties` file for each desired repository into the `repositories` sub-folder in your link:settings.adoc[settings].
+Each `.properties` file describes one (git) "repository" which you would like to clone and (potentially) import:
 
 [source,properties]
 ----
@@ -16,15 +13,15 @@ git_url=http://github.com/someorg/someproject
 git_branch=develop
 build_path=.
 build_cmd=mvn -DskipTests=true -Darchetype.test.skip=true clean install
-eclipse=import
+import=eclipse,intellij
 active=true
 ----
 
- .Variables of project import
-[options="header"]
-
-|=== |*Variable*|*Value*|*Meaning*
-|`path`|e.g. `myproject`, will clone into `${WORKSPACE_PATH}/myproject`|(required) Path into which the projects is cloned.
+.Variables of project import
+[options="header",cols="3"]
+|===
+|*Variable*|*Value*|*Meaning*
+|`path`|e.g. `myproject`, will clone into `${WORKSPACE_PATH}/myproject`|(required) Path into which the projects are cloned.
 This path is relative to the workspace.
 |`working sets`|e.g. `ws1,ws2`|(optional) This will create working sets (in eclipse).
 Each module (eclipse project) of this project will be part of all these working sets.
@@ -38,13 +35,9 @@ Git default branch is default.
 For a regular project use `.` to build top-level project.
 |`build_cmd`
 |e.g. `mvn -D skip Tests=true -Darchetype.test.skip=true clean install`
-|(optional) The _devonfw_ command to invoke to build the project after clone or pull.
+|(optional) The IDEasy command to invoke (excluding the `ide` CLI command itself) to build the project after clone or pull.
 If omitted no build is triggered.
-|`eclipse`|e.g. `import`|(optional) Desired action for eclipse IDE.
-If you put `import` here all modules (eclipse projects) in the current project will be imported into eclipse.
-If you leave this out or put any other value for this parameter, no change in eclipse is done.
-|`active`|`true`|(optional) If set to `false` the project is skipped during the link:setup.asciidoc[setup].
-
+|`import`|e.g. `intellij`|(optional) IDEs where to automatically import the project.
+Currently only maven projects are supported.
+|`active`|`true`|(optional) If set to `false` the project is skipped during the link:setup.adoc[setup].
 |===
-
-Please note that the `.properties` file is parsed via shell and not via java. So be careful with "advanced" features `.properties` files normally support.
