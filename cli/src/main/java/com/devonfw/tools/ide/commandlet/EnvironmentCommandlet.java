@@ -29,7 +29,7 @@ public final class EnvironmentCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.bash = add(new FlagProperty("--bash", false, null));
+    this.bash = add(new FlagProperty("--bash"));
   }
 
   @Override
