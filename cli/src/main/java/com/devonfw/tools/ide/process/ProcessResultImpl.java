@@ -53,12 +53,16 @@ public class ProcessResultImpl implements ProcessResult {
 
   @Override
   public void log(IdeLogLevel level, IdeContext context) {
+    log(level, context, level);
+  }
+
+  public void log(IdeLogLevel outLevel, IdeContext context, IdeLogLevel errorLevel) {
 
     if (!this.out.isEmpty()) {
-      doLog(level, this.out, context);
+      doLog(outLevel, this.out, context);
     }
     if (!this.err.isEmpty()) {
-      doLog(level, this.err, context);
+      doLog(errorLevel, this.err, context);
     }
   }
 

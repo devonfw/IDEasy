@@ -320,16 +320,14 @@ public class ProcessContextImpl implements ProcessContext {
 
       if (this.errorHandling == ProcessErrorHandling.LOG_ERROR) {
         ideLogLevel = IdeLogLevel.ERROR;
-        context.error(message);
       } else if (this.errorHandling == ProcessErrorHandling.LOG_WARNING) {
         ideLogLevel = IdeLogLevel.WARNING;
-        context.warning(message);
       } else {
         ideLogLevel = IdeLogLevel.ERROR;
-        context.error(message);
         this.context.error("Internal error: Undefined error handling {}", this.errorHandling);
       }
 
+      context.level(ideLogLevel).log(message);
       result.log(ideLogLevel, context);
 
       if (this.errorHandling == ProcessErrorHandling.THROW_CLI) {

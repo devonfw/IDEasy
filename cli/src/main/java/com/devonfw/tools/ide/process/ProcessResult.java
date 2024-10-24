@@ -68,4 +68,13 @@ public interface ProcessResult {
    * @param context the {@link IdeContext} to use.
    */
   void log(IdeLogLevel level, IdeContext context);
+
+  /**
+   * Logs output and error messages on the provided log level.
+   *
+   * @param outLevel the {@link IdeLogLevel} to use for {@link #getOut()}.
+   * @param context the {@link IdeContext} to use.
+   * @param errorLevel the {@link IdeLogLevel} to use for {@link #getErr()}.
+   */
+  void log(IdeLogLevel outLevel, IdeContext context, IdeLogLevel errorLevel);
 }
