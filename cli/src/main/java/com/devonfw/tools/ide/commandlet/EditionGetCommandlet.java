@@ -32,8 +32,8 @@ public class EditionGetCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     this.tool = add(new ToolProperty("", true, "tool"));
-    this.configured = add(new FlagProperty("--configured", false, null));
-    this.installed = add(new FlagProperty("--installed", false, null));
+    this.configured = add(new FlagProperty("--configured"));
+    this.installed = add(new FlagProperty("--installed"));
   }
 
   @Override
