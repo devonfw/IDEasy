@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/608[#608]: Enhanced error messages. Now logs missing command output and error messages
 * https://github.com/devonfw/IDEasy/issues/685[#685]: Upgrades and cleanup of dependencies and according license and doc
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/14?closed=1[milestone 2024.10.001].
