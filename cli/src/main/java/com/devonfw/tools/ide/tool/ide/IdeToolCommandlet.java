@@ -29,13 +29,6 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
     super(context, tool, tags);
     assert (hasIde(tags));
-    add(this.arguments);
-  }
-
-  @Override
-  protected void initProperties() {
-
-    // skipWorkspaceUpdate option needs to be added before arguments
   }
 
   private boolean hasIde(Set<Tag> tags) {
