@@ -7,7 +7,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
@@ -18,8 +17,6 @@ import com.devonfw.tools.ide.tool.vscode.Vscode;
  * {@link ToolCommandlet} for an IDE (integrated development environment) such as {@link Eclipse}, {@link Vscode}, or {@link Intellij}.
  */
 public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
-
-  public final FlagProperty skipWorkspaceUpdate;
 
   /**
    * The constructor.
@@ -32,7 +29,6 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
     super(context, tool, tags);
     assert (hasIde(tags));
-    this.skipWorkspaceUpdate = add(new FlagProperty("--skip-workspace-update", false, "--skip-update-workspace"));
     add(this.arguments);
   }
 
