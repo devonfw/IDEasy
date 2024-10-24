@@ -131,6 +131,7 @@ public class Vscode extends IdeToolCommandlet {
     pc.addArg("--user-data-dir=" + vsCodeConf);
     Path vsCodeExtensionFolder = this.context.getIdeHome().resolve("plugins/vscode");
     pc.addArg("--extensions-dir=" + vsCodeExtensionFolder);
+    pc.addArg(this.context.getWorkspacePath());
     super.configureToolArgs(pc, processMode, errorHandling, args);
   }
 
