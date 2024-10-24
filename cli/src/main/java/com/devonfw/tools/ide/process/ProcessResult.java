@@ -2,6 +2,9 @@ package com.devonfw.tools.ide.process;
 
 import java.util.List;
 
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+
 /**
  * Result of a {@link Process} execution.
  *
@@ -58,4 +61,20 @@ public interface ProcessResult {
    */
   List<String> getErr();
 
+  /**
+   * Logs output and error messages on the provided log level.
+   *
+   * @param level the {@link IdeLogLevel} to use e.g. IdeLogLevel.ERROR.
+   * @param context the {@link IdeContext} to use.
+   */
+  void log(IdeLogLevel level, IdeContext context);
+
+  /**
+   * Logs output and error messages on the provided log level.
+   *
+   * @param outLevel the {@link IdeLogLevel} to use for {@link #getOut()}.
+   * @param context the {@link IdeContext} to use.
+   * @param errorLevel the {@link IdeLogLevel} to use for {@link #getErr()}.
+   */
+  void log(IdeLogLevel outLevel, IdeContext context, IdeLogLevel errorLevel);
 }

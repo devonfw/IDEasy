@@ -26,7 +26,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
  */
 public class ProcessContextImplTest extends AbstractIdeContextTest {
 
-  private ProcessContextImpl processConttextUnderTest;
+  private ProcessContextImpl processContextUnderTest;
 
   private Process processMock;
 
@@ -39,20 +39,20 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
     this.mockProcessBuilder = mock(ProcessBuilder.class);
     this.context = newContext(PROJECT_BASIC, null, false);
-    this.processConttextUnderTest = new ProcessContextImpl(this.context);
+    this.processContextUnderTest = new ProcessContextImpl(this.context);
 
     Field field = ReflectionUtils.findFields(ProcessContextImpl.class, f -> f.getName().equals("processBuilder"),
         ReflectionUtils.HierarchyTraversalMode.TOP_DOWN).get(0);
 
     field.setAccessible(true);
-    field.set(this.processConttextUnderTest, this.mockProcessBuilder);
+    field.set(this.processContextUnderTest, this.mockProcessBuilder);
     field.setAccessible(false);
 
     // underTest needs executable
     Field underTestExecutable = ReflectionUtils.findFields(ProcessContextImpl.class,
         f -> f.getName().equals("executable"), ReflectionUtils.HierarchyTraversalMode.TOP_DOWN).get(0);
     underTestExecutable.setAccessible(true);
-    underTestExecutable.set(this.processConttextUnderTest,
+    underTestExecutable.set(this.processContextUnderTest,
         TEST_PROJECTS.resolve("_ide/software/nonExistingBinaryForTesting"));
     underTestExecutable.setAccessible(false);
 
@@ -77,12 +77,12 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     Field underTestExecutable = ReflectionUtils.findFields(ProcessContextImpl.class,
         f -> f.getName().equals("executable"), ReflectionUtils.HierarchyTraversalMode.TOP_DOWN).get(0);
     underTestExecutable.setAccessible(true);
-    underTestExecutable.set(this.processConttextUnderTest, null);
+    underTestExecutable.set(this.processContextUnderTest, null);
     underTestExecutable.setAccessible(false);
 
     // act & assert
     Exception exception = assertThrows(IllegalStateException.class, () -> {
-      this.processConttextUnderTest.run(ProcessMode.DEFAULT);
+      this.processContextUnderTest.run(ProcessMode.DEFAULT);
     });
 
     String actualMessage = exception.getMessage();
@@ -98,7 +98,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     when(this.processMock.waitFor()).thenReturn(ProcessResult.SUCCESS);
 
     // act
-    ProcessResult result = this.processConttextUnderTest.run(ProcessMode.DEFAULT);
+    ProcessResult result = this.processContextUnderTest.run(ProcessMode.DEFAULT);
 
     // assert
     verify(this.mockProcessBuilder).redirectOutput(
@@ -126,7 +126,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
       when(this.processMock.getErrorStream()).thenReturn(errorStream);
 
       // act
-      ProcessResult result = this.processConttextUnderTest.run(ProcessMode.DEFAULT_CAPTURE);
+      ProcessResult result = this.processContextUnderTest.run(ProcessMode.DEFAULT_CAPTURE);
 
       // assert
       verify(this.mockProcessBuilder).redirectOutput(
@@ -149,7 +149,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     when(this.processMock.waitFor()).thenReturn(ProcessResult.SUCCESS);
 
     // act
-    ProcessResult result = this.processConttextUnderTest.run(processMode);
+    ProcessResult result = this.processContextUnderTest.run(processMode);
 
     // assert
     if (processMode == ProcessMode.BACKGROUND) {
@@ -179,11 +179,11 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     // arrange
     when(this.processMock.waitFor()).thenReturn(ProcessResult.TOOL_NOT_INSTALLED);
 
-    this.processConttextUnderTest.errorHandling(ProcessErrorHandling.THROW_ERR);
+    this.processContextUnderTest.errorHandling(ProcessErrorHandling.THROW_ERR);
 
     // act & assert
     assertThrows(IllegalStateException.class, () -> {
-      this.processConttextUnderTest.run(ProcessMode.DEFAULT);
+      this.processContextUnderTest.run(ProcessMode.DEFAULT_CAPTURE);
     });
 
   }
@@ -194,14 +194,31 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
     // arrange
     when(this.processMock.waitFor()).thenReturn(ProcessResult.TOOL_NOT_INSTALLED);
-    this.processConttextUnderTest.errorHandling(processErrorHandling);
+    this.processContextUnderTest.errorHandling(processErrorHandling);
     String expectedMessage = "failed with exit code 4!";
     // act
-    this.processConttextUnderTest.run(ProcessMode.DEFAULT);
+    this.processContextUnderTest.run(ProcessMode.DEFAULT);
 
     // assert
     IdeLogLevel level = convertToIdeLogLevel(processErrorHandling);
     assertThat(this.context).log(level).hasMessageContaining(expectedMessage);
+  }
+
+  @Test
+  public void enablingCaptureShouldRedirectAndCaptureStreamsWithErrorsCorrectly() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+
+    // act
+    IllegalStateException thrown = assertThrows(IllegalStateException.class,
+        () -> context.newProcess().executable(TEST_RESOURCES.resolve("process-context").resolve("dotnet.sh")).run());
+
+    // assert
+    assertThat(thrown.getMessage()).contains("failed with exit code 2");
+    assertThat(context).log(IdeLogLevel.ERROR).hasMessageContaining("content to stdout");
+    assertThat(context).log(IdeLogLevel.ERROR).hasMessageContaining("more content to stdout");
+    assertThat(context).log(IdeLogLevel.ERROR).hasMessageContaining("error message to stderr");
+    assertThat(context).log(IdeLogLevel.ERROR).hasMessageContaining("another error message to stderr");
   }
 
   private IdeLogLevel convertToIdeLogLevel(ProcessErrorHandling processErrorHandling) {
