@@ -5,10 +5,11 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
+import com.devonfw.tools.ide.tool.ProxyToolCommandlet;
 import com.devonfw.tools.ide.tool.docker.Docker;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
-public class KubeCtl extends GlobalToolCommandlet {
+public class KubeCtl extends ProxyToolCommandlet {
 
   /**
    * The constructor.
@@ -21,8 +22,25 @@ public class KubeCtl extends GlobalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent, EnvironmentContext environmentContext) {
+  public boolean callInstaller(boolean silent, EnvironmentContext environmentContext) {
     // TODO create kubectl/kubectl/dependencies.json file in ide-urls and delete this method
     return getCommandlet(Docker.class).install(silent, environmentContext);
+  }
+
+  @Override
+  public VersionIdentifier getInstalledVersion() {
+
+    return null;
+  }
+
+  @Override
+  public String getInstalledEdition() {
+
+    return null;
+  }
+
+  @Override
+  public void uninstall() {
+
   }
 }
