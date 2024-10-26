@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Iterator;
 
 import org.fusesource.jansi.AnsiConsole;
+import org.jline.reader.Completer;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
@@ -11,6 +12,8 @@ import org.jline.reader.MaskingCallback;
 import org.jline.reader.Parser;
 import org.jline.reader.UserInterruptException;
 import org.jline.reader.impl.DefaultParser;
+import org.jline.reader.impl.completer.AggregateCompleter;
+import org.jline.reader.impl.completer.StringsCompleter;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.TerminalBuilder;
 import org.jline.widget.AutosuggestionWidgets;
@@ -65,8 +68,9 @@ public final class ShellCommandlet extends Commandlet {
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
 
-        // initialize our own completer here
-        IdeCompleter completer = new IdeCompleter((AbstractIdeContext) this.context);
+        // initialize our own completer here and add exit as an autocompletion option
+        Completer completer = new AggregateCompleter(
+            new StringsCompleter("exit"), new IdeCompleter((AbstractIdeContext) this.context));
 
         LineReader reader = LineReaderBuilder.builder().terminal(terminal).completer(completer).parser(parser)
             .variable(LineReader.LIST_MAX, AUTOCOMPLETER_MAX_RESULTS).build();
@@ -86,6 +90,10 @@ public final class ShellCommandlet extends Commandlet {
         while (true) {
           try {
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
+            line = line.trim();
+            if (line.equals("exit")) {
+              return;
+            }
             reader.getHistory().add(line);
             int rc = runCommand(line);
             if (rc == RC_EXIT) {
