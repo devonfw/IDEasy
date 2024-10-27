@@ -77,7 +77,8 @@ Just install http://www.7-zip.org/[7zip] and forget about windows build-in ZIP s
 === Smarter clipboard
 
 Do you want to paste something from the clipboard but meanwhile you had to copy something else?
-Just, one of the many things you can easily do with http://ditto-cp.sourceforge.net/[ditto].
+On Windows 11 just press [Win][v] to open a popup with the history of your clipboard.
+I you still want more you might try http://ditto-cp.sourceforge.net/[ditto].
 
 === PowerToys
 

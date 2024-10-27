@@ -27,7 +27,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     super(context);
     this.newProject = add(new StringProperty("", true, "project"));
-    this.skipRepositories = add(new FlagProperty("--skip-repositories", false, null));
+    this.skipRepositories = add(new FlagProperty("--skip-repositories"));
     add(this.settingsRepo);
   }
 
