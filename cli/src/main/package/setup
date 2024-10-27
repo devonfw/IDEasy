@@ -9,19 +9,22 @@ if ! grep -q "${AUTOCOMPLETION}" ~/.bashrc; then
   echo -e "${AUTOCOMPLETION}" >> ~/.bashrc
 fi
 if ! grep -q "alias ide=" ~/.bashrc; then
-  echo -e "alias ide=\"${PWD}/bin/ide\"" >> ~/.bashrc
+  echo -e "alias ide=\"source ${PWD}/bin/ide\"" >> ~/.bashrc
   echo -e "ide" >> ~/.bashrc
 fi
 
-if ! grep -q "IDE_ROOT" ~/.bashrc
-then
-	echo -e 'export IDE_ROOT="$(pwd)"' >> ~/.bashrc
+if [ "${OSTYPE}" != "cygwin" ] && [ "${OSTYPE}" != "msys" ]; then
+  if ! grep -q "IDE_ROOT" ~/.bashrc
+  then
+	  echo -e 'export IDE_ROOT="$(pwd)"' >> ~/.bashrc
+  fi
+
+  if ! grep -q "IDE_ROOT" ~/.zshrc
+  then
+	  echo -e 'export IDE_ROOT="$(pwd)"' >> ~/.zshrc
+  fi
 fi
 
-if ! grep -q "IDE_ROOT" ~/.zshrc
-then
-	echo -e 'export IDE_ROOT="$(pwd)"' >> ~/.zshrc
-fi
 
 if [ -f ~/.zshrc ]; then
   if ! grep -q "compinit" ~/.zshrc
@@ -37,7 +40,7 @@ if [ -f ~/.zshrc ]; then
     echo -e "${AUTOCOMPLETION}" >> ~/.zshrc
   fi
   if ! grep -q "alias ide=" ~/.zshrc; then
-    echo -e "alias ide=\"${PWD}/bin/ide\"" >> ~/.zshrc
+    echo -e "alias ide=\"source ${PWD}/bin/ide\"" >> ~/.zshrc
     echo -e "ide" >> ~/.zshrc
   fi
 fi
