@@ -45,10 +45,9 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
    * @throws Exception on error.
    */
   @Test
-  // arrange
   public void testConfigurator(@TempDir Path workspaceDir) throws Exception {
 
-    // act
+    // arrange
     IdeContext context = newContext(PROJECT_BASIC, null, false);
     DirectoryMerger merger = context.getWorkspaceMerger();
     Path templates = Path.of("src/test/resources/templates");
@@ -57,6 +56,8 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     Path namePath = workspaceDir.resolve(".name");
     // to check overwrite for Text files
     Files.createFile(namePath);
+
+    // act
     merger.merge(setup, update, context.getVariables(), workspaceDir);
 
     // assert
@@ -66,7 +67,6 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     Path jsonFolder = workspaceDir.resolve("json");
     assertThat(jsonFolder).isDirectory();
     assertThat(jsonFolder.resolve("settings.json")).hasContent("""
-
         {
             "java.home": "${IDE_HOME}/software/java",
             "tslint.autoFixOnSave": true,
@@ -82,7 +82,6 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
         }
         """.replace("${IDE_HOME}", IDE_HOME));
     assertThat(jsonFolder.resolve("update.json")).hasContent("""
-
         {
             "key": "value"
         }
