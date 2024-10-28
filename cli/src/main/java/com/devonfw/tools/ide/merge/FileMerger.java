@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -39,4 +40,24 @@ public abstract class FileMerger extends AbstractWorkspaceMerger {
     }
   }
 
+  @Override
+  public final int merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
+    try {
+      doMerge(setup, update, variables, workspace);
+    } catch (Exception e) {
+      this.context.error(e, "Failed to merge workspace file {}", workspace);
+      return 1;
+    }
+    return 0;
+  }
+
+  /**
+   * Same as {@link #merge(Path, Path, EnvironmentVariables, Path)} but without error handling.
+   *
+   * @param setup the setup {@link Path} for creation.
+   * @param update the update {@link Path} for creation and update.
+   * @param variables the {@link EnvironmentVariables} to {@link EnvironmentVariables#resolve(String, Object) resolve variables}.
+   * @param workspace the workspace {@link Path} to create or update.
+   */
+  protected abstract void doMerge(Path setup, Path update, EnvironmentVariables variables, Path workspace);
 }

@@ -24,7 +24,7 @@ public class FallbackMerger extends FileMerger {
   }
 
   @Override
-  public void merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
+  protected void doMerge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
 
     if (Files.exists(update)) {
       copy(update, workspace);

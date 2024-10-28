@@ -30,7 +30,7 @@ public class PropertiesMerger extends FileMerger {
   }
 
   @Override
-  public void merge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
+  protected void doMerge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
 
     SortedProperties properties = new SortedProperties();
     boolean updateFileExists = Files.exists(update);

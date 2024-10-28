@@ -211,7 +211,11 @@ public final class StepImpl implements Step {
     boolean failure = isFailure();
     summary.add(failure);
     if (failure) {
-      this.context.error("{}Step '{}' failed: {}", getIndent(depth), getNameWithParams(), this.errorMessage);
+      String error = this.errorMessage;
+      if (error == null) {
+        error = "unexpected error";
+      }
+      this.context.error("{}Step '{}' failed: {}", getIndent(depth), getNameWithParams(), error);
     }
     depth++;
     for (StepImpl child : this.children) {

@@ -54,21 +54,23 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
   }
 
   @Override
-  public void merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
+  public int merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
 
+    int errors = 0;
     Set<String> children = null;
     children = addChildren(setup, children);
     children = addChildren(update, children);
     if (children == null) {
       // file merge
       FileMerger merger = getMerger(workspace);
-      merger.merge(setup, update, variables, workspace);
+      errors += merger.merge(setup, update, variables, workspace);
     } else {
       // directory scan
       for (String filename : children) {
-        merge(setup.resolve(filename), update.resolve(filename), variables, workspace.resolve(filename));
+        errors += merge(setup.resolve(filename), update.resolve(filename), variables, workspace.resolve(filename));
       }
     }
+    return errors;
   }
 
   private FileMerger getMerger(Path file) {
