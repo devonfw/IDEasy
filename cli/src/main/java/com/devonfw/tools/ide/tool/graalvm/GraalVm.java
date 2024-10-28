@@ -61,19 +61,19 @@ public class GraalVm extends PluginBasedCommandlet {
 
   @Override
   public void installPlugin(ToolPluginDescriptor plugin, Step step) {
-    String[] args = { "install", plugin.name() };
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
     pc.executable(getToolPath() + "\\bin\\gu");
-    configureToolArgs(pc, ProcessMode.DEFAULT, ProcessErrorHandling.THROW_CLI, args);
+    pc.addArgs("install", plugin.name());
+    configureToolArgs(pc, ProcessMode.DEFAULT, ProcessErrorHandling.THROW_CLI);
     pc.run(ProcessMode.DEFAULT);
   }
 
   @Override
   public void uninstallPlugin(ToolPluginDescriptor plugin) {
-    String[] args = { "remove", plugin.name() };
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
     pc.executable(getToolPath() + "\\bin\\gu");
-    configureToolArgs(pc, ProcessMode.DEFAULT, ProcessErrorHandling.THROW_CLI, args);
+    pc.addArgs("remove", plugin.name());
+    configureToolArgs(pc, ProcessMode.DEFAULT, ProcessErrorHandling.THROW_CLI);
     pc.run(ProcessMode.DEFAULT);
   }
 
