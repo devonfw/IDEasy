@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.context;
 
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -21,7 +22,11 @@ public class ProcessContextTestImpl extends ProcessContextImpl {
 
   @Override
   public ProcessResult run(ProcessMode processMode) {
-
-    return super.run(ProcessMode.DEFAULT_CAPTURE);
+    ProcessResult result = super.run(ProcessMode.DEFAULT_CAPTURE);
+    // this hack is still required to capture test script output
+    if (processMode == ProcessMode.DEFAULT || processMode == ProcessMode.BACKGROUND) {
+      result.log(IdeLogLevel.INFO, context);
+    }
+    return result;
   }
 }

@@ -189,7 +189,7 @@ public class ProcessContextImpl implements ProcessContext {
 
       ProcessResult result = new ProcessResultImpl(exitCode, out, err);
 
-      performLogOnError(result, exitCode, interpreter);
+      performLogging(result, exitCode, interpreter);
 
       return result;
 
@@ -312,7 +312,7 @@ public class ProcessContextImpl implements ProcessContext {
     return interpreter;
   }
 
-  private void performLogOnError(ProcessResult result, int exitCode, String interpreter) {
+  private void performLogging(ProcessResult result, int exitCode, String interpreter) {
 
     if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
       IdeLogLevel ideLogLevel;
