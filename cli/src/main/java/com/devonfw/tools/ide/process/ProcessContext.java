@@ -101,7 +101,7 @@ public interface ProcessContext extends EnvironmentContext {
    * @param args the {@link List} of arguments for {@link #executable(Path) command} to be added.
    * @return this {@link ProcessContext} for fluent API calls.
    */
-  default ProcessContext addArgs(List<?>... args) {
+  default ProcessContext addArgs(List<?> args) {
 
     for (Object arg : args) {
       addArg(arg);
