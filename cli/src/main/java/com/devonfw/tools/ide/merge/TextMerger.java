@@ -24,7 +24,7 @@ public class TextMerger extends FileMerger {
   }
 
   @Override
-  public void merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
+  protected void doMerge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
 
     Path template = update;
     if (!Files.exists(template)) {
