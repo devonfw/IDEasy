@@ -72,6 +72,12 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
+  protected boolean isPluginUrlNeeded() {
+
+    return true;
+  }
+
+  @Override
   public void installPlugin(ToolPluginDescriptor plugin, Step step) {
 
     ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, null, ProcessErrorHandling.LOG_WARNING, "-application", "org.eclipse.equinox.p2.director",
