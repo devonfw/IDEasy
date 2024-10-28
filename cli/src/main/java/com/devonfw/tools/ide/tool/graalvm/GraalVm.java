@@ -26,7 +26,6 @@ public class GraalVm extends PluginBasedCommandlet {
    *
    * @param context the {@link IdeContext}.
    */
-
   public GraalVm(IdeContext context) {
 
     super(context, "graalvm", Set.of(Tag.JAVA, Tag.RUNTIME));
