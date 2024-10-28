@@ -163,7 +163,7 @@ public class Mvn extends PluginBasedCommandlet {
 
     ProcessContext pc = this.context.newProcess().executable("mvn");
     pc.addArgs("--encrypt-password", input);
-    pc.addArg("-Dsettings.security=" + this.context.getMavenRepository().getParent().resolve(SETTINGS_SECURITY_FILE).toString().replace("\\", "\\\\"));
+    pc.addArg(getDsettingsSecurityProperty());
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
 
     String encryptedPassword = result.getOut().get(0);
@@ -240,5 +240,19 @@ public class Mvn extends PluginBasedCommandlet {
       }
     }
     return mvnConfigFolder;
+  }
+
+  public String getMavenArgs() {
+    Path mavenConfFolder = getMavenConfFolder(false);
+    Path mvnSettingsFile = mavenConfFolder.resolve(Mvn.SETTINGS_FILE);
+    if (!Files.exists(mvnSettingsFile)) {
+      return null;
+    }
+    String settingsPath = mvnSettingsFile.toString();
+    return "-s " + settingsPath + getDsettingsSecurityProperty();
+  }
+
+  private String getDsettingsSecurityProperty() {
+    return "-Dsettings.security=" + this.context.getMavenRepository().getParent().resolve(SETTINGS_SECURITY_FILE).toString().replace("\\", "\\\\");
   }
 }
