@@ -13,6 +13,19 @@ if ! grep -q "alias ide=" ~/.bashrc; then
   echo -e "ide" >> ~/.bashrc
 fi
 
+if [ "${OSTYPE}" != "cygwin" ] && [ "${OSTYPE}" != "msys" ]; then
+  if ! grep -q "IDE_ROOT" ~/.bashrc
+  then
+	  echo -e 'export IDE_ROOT="$(pwd)"' >> ~/.bashrc
+  fi
+
+  if ! grep -q "IDE_ROOT" ~/.zshrc
+  then
+	  echo -e 'export IDE_ROOT="$(pwd)"' >> ~/.zshrc
+  fi
+fi
+
+
 if [ -f ~/.zshrc ]; then
   if ! grep -q "compinit" ~/.zshrc
   then
