@@ -432,13 +432,7 @@ public interface IdeContext extends IdeStartContext {
       return null;
     }
     Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
-    Path mavenConfFolder = mvn.getMavenConfFolder(false);
-    Path mvnSettingsFile = mavenConfFolder.resolve(Mvn.SETTINGS_FILE);
-    if (!Files.exists(mvnSettingsFile)) {
-      return null;
-    }
-    String settingsPath = mvnSettingsFile.toString();
-    return "-s " + settingsPath;
+    return mvn.getMavenArgs();
   }
 
   /**
