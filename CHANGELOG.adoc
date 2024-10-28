@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/685[#685]: Upgrades and cleanup of dependencies and according license and doc
+* https://github.com/devonfw/IDEasy/pull/693[#693]: Setup not working on Mac
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/14?closed=1[milestone 2024.10.001].
 
