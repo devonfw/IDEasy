@@ -56,6 +56,6 @@ public class DefaultToolRepository extends AbstractToolRepository {
   public Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version) {
 
     UrlDependencyFile dependencyFile = this.context.getUrls().getEdition(tool, edition).getDependencyFile();
-    return dependencyFile.getDependencies().findDependencies(version);
+    return dependencyFile.getDependencies().findDependencies(version, this.context);
   }
 }
