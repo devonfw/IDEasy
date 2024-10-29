@@ -143,7 +143,7 @@ Let's get to the practical part of the Bash-usage.
 **If you are using Windows**, make sure that you have git-bash installed, so you can execute the Bash commands mentioned in this introduction. (https://git-scm.com/download/win[Here you can find git for windows]).
 In some cases later on you may want or need to use WSL.
 Our project teams standard way is to install WSL via Rancher Desktop, which is easily installable with the IDEasy by using the command `ide install docker`.
-If you don't have the IDEasy yet, then you can follow [this guide](https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc)
+If you don't have the IDEasy yet, then you can follow (https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc[this guide])
 
 The https://www.youtube.com/watch?v=oxuRxtrO2Ag[following video] gives you some important and helpful basics, still you don't need to know all of these commands directly by heart.
 Instead under the video you'll find a list with the commands mentioned in the video to make a command return to your mind.
