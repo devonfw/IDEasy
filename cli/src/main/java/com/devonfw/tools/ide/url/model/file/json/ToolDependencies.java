@@ -4,11 +4,12 @@ import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import com.devonfw.tools.ide.json.JsonMapping;
+import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -23,26 +24,33 @@ public class ToolDependencies {
 
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
-  private static final ToolDependencies EMPTY = new ToolDependencies(Collections.emptyMap());
+  private static final ToolDependencies EMPTY = new ToolDependencies(Collections.emptyMap(), Path.of("empty"));
   private final Map<VersionRange, List<ToolDependency>> dependencies;
 
-  private ToolDependencies(Map<VersionRange, List<ToolDependency>> dependencies) {
+  private final Path path;
+
+  private ToolDependencies(Map<VersionRange, List<ToolDependency>> dependencies, Path path) {
 
     super();
     this.dependencies = dependencies;
+    this.path = path;
   }
 
   /**
    * @param version the {@link VersionIdentifier} of the tool to install.
    * @return The {@link List} of {@link ToolDependency}s for the given tool version.
    */
-  public List<ToolDependency> findDependencies(VersionIdentifier version) {
+  public List<ToolDependency> findDependencies(VersionIdentifier version, IdeLogger logger) {
 
-    for (Map.Entry<VersionRange, List<ToolDependency>> map : this.dependencies.entrySet()) {
-      VersionRange versionRange = map.getKey();
+    for (Map.Entry<VersionRange, List<ToolDependency>> entry : this.dependencies.entrySet()) {
+      VersionRange versionRange = entry.getKey();
       if (versionRange.contains(version)) {
-        return map.getValue();
+        return entry.getValue();
       }
+    }
+    int size = dependencies.size();
+    if (size > 0) {
+      logger.warning("No match for version {} while {} version ranges are configured in {} - configuration error?!", version, size, this.path);
     }
     return Collections.emptyList();
   }
@@ -55,10 +63,10 @@ public class ToolDependencies {
 
     if (Files.exists(file)) {
       try (BufferedReader reader = Files.newBufferedReader(file)) {
-        TypeReference<HashMap<VersionRange, List<ToolDependency>>> typeRef = new TypeReference<>() {
+        TypeReference<TreeMap<VersionRange, List<ToolDependency>>> typeRef = new TypeReference<>() {
         };
         Map<VersionRange, List<ToolDependency>> dependencies = MAPPER.readValue(reader, typeRef);
-        return new ToolDependencies(dependencies);
+        return new ToolDependencies(dependencies, file);
       } catch (Exception e) {
         throw new IllegalStateException("Failed to load " + file, e);
       }
