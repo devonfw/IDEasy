@@ -234,7 +234,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     if (version.contains(configuredVersion)) {
       // prefer configured version if contained in version range
-      return install();
+      return install(false, environmentContext);
     } else {
       if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
