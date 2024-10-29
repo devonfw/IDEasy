@@ -12,6 +12,16 @@ import java.net.URL;
 public record GitUrl(String url, String branch) {
 
   /**
+   * Converts the Git URL based on the specified {@link GitUrlSyntax}.
+   *
+   * @param syntax the preferred {@link GitUrlSyntax} (SSH or HTTPS).
+   * @return the converted {@link GitUrl} or the original if no conversion is required.
+   */
+  public GitUrl convert(GitUrlSyntax syntax) {
+    return syntax.format(this);
+  }
+
+  /**
    * Parses a git URL and omits the branch name if not provided.
    *
    * @return parsed URL.
