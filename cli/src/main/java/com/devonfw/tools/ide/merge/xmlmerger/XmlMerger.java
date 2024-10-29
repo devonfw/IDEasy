@@ -54,7 +54,7 @@ public class XmlMerger extends FileMerger {
   }
 
   @Override
-  public void merge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
+  protected void doMerge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
 
     Document document = null;
     Path template = setup;
@@ -82,6 +82,7 @@ public class XmlMerger extends FileMerger {
       resolve(document, resolver, false, template);
       save(document, workspace);
     }
+    return;
   }
 
   /**

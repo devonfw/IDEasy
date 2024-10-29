@@ -14,8 +14,9 @@ public interface WorkspaceMerger {
    * @param update the update {@link Path} for creation and update.
    * @param variables the {@link EnvironmentVariables} to {@link EnvironmentVariables#resolve(String, Object) resolve variables}.
    * @param workspace the workspace {@link Path} to create or update.
+   * @return the number of errors that occurred. Should be {@code 0} for success.
    */
-  void merge(Path setup, Path update, EnvironmentVariables variables, Path workspace);
+  int merge(Path setup, Path update, EnvironmentVariables variables, Path workspace);
 
   /**
    * @param workspace the workspace {@link Path} where to get the changes from.
