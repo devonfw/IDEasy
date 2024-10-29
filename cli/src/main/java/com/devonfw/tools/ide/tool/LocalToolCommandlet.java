@@ -251,7 +251,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   private void installToolDependencies(VersionIdentifier version, String edition, EnvironmentContext environmentContext, ToolRepository toolRepository) {
     Collection<ToolDependency> dependencies = toolRepository.findDependencies(this.tool, edition, version);
+    String toolWithEdition = getToolWithEdition(this.tool, edition);
+    int size = dependencies.size();
+    this.context.debug("Tool {} has {} other tool(s) as dependency", toolWithEdition, size);
     for (ToolDependency dependency : dependencies) {
+      this.context.trace("Ensuring dependency {} for tool {}", dependency.tool(), toolWithEdition);
       LocalToolCommandlet dependencyTool = this.context.getCommandletManager().getRequiredLocalToolCommandlet(dependency.tool());
       dependencyTool.installAsDependency(dependency.versionRange(), environmentContext);
     }
