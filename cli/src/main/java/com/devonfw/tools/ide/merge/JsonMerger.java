@@ -40,7 +40,7 @@ public class JsonMerger extends FileMerger {
   }
 
   @Override
-  public void merge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
+  protected void doMerge(Path setup, Path update, EnvironmentVariables variables, Path workspace) {
 
     JsonStructure json = null;
     Path template = setup;
