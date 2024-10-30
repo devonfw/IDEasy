@@ -55,6 +55,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    */
   protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
 
+    logPackageManagerCommands(pmCommands);
+
     for (PackageManagerCommand pmCommand : pmCommands) {
       PackageManager packageManager = pmCommand.packageManager();
       Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
@@ -68,6 +70,19 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       }
     }
     return false; // None of the package manager commands were successful
+  }
+
+  private void logPackageManagerCommands(List<PackageManagerCommand> pmCommands) {
+    StringBuilder commandLog = new StringBuilder("We need to run the following privileged command(s):\n");
+
+    for (PackageManagerCommand pmCommand : pmCommands) {
+      for (String command : pmCommand.commands()) {
+        commandLog.append(command).append("\n");
+      }
+    }
+    commandLog.append("This will require root permissions!");
+
+    this.context.info(commandLog.toString());
   }
 
   /**
