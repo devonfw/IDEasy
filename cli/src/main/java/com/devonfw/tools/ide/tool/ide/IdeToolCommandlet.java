@@ -52,7 +52,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   @Override
   public void runTool(String... args) {
 
-    runTool(ProcessMode.DEFAULT, null, args);
+    runTool(ProcessMode.BACKGROUND, null, args);
   }
 
   /**
