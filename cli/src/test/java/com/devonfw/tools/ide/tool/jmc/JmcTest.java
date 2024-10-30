@@ -11,7 +11,6 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
-import com.devonfw.tools.ide.process.ProcessMode;
 
 /**
  * Integration test of {@link Jmc}.
@@ -59,9 +58,10 @@ public class JmcTest extends AbstractIdeContextTest {
     context.setSystemInfo(systemInfo);
     Jmc commandlet = new Jmc(context);
 
+    commandlet.arguments.addValue("foo");
+    commandlet.arguments.addValue("bar");
     // act
-    // hack to log output of test script execution. Original processMode was BACKGROUND.
-    commandlet.runTool(ProcessMode.DEFAULT, null, "foo", "bar");
+    commandlet.run();
 
     // assert
     assertThat(context).logAtInfo().hasEntries("java jmc", "jmc " + os + " foo bar");

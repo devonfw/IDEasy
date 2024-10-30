@@ -8,7 +8,6 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.java.Java;
 
 /**
@@ -38,9 +37,9 @@ public class TomcatTest extends AbstractIdeContextTest {
     Path javaTomcatPath = context.getToolRepositoryPath().resolve("default").resolve("java").resolve("java").resolve(javaVersionTomcat);
 
     // act
-    // hack to capture output of test script. Original processMode was BACKGROUND.
-    javaCommandlet.runTool(ProcessMode.DEFAULT, null, "--version");
-    tomcatCommandlet.runTool(ProcessMode.DEFAULT, null);
+    javaCommandlet.arguments.addValue("--version");
+    javaCommandlet.run();
+    tomcatCommandlet.run();
 
     // assert
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent(javaVersionProject);
