@@ -32,7 +32,7 @@ public interface IdeVariables {
   VariableDefinitionStringList IDE_TOOLS = new VariableDefinitionStringList("IDE_TOOLS", "DEVON_IDE_TOOLS", c -> List.of("mvn", "npm"));
 
   /** {@link VariableDefinition} for enabling logs of ides. */
-  VariableDefinitionBoolean IDE_ENABLE_LOG = new VariableDefinitionBoolean("IDE_DISABLE_LOG", null, c -> false);
+  VariableDefinitionBoolean IDE_ENABLE_LOG = new VariableDefinitionBoolean("IDE_ENABLE_LOG", null, c -> true);
 
   /** {@link VariableDefinition} for list of IDE tools to create start scripts for. */
   VariableDefinitionStringList CREATE_START_SCRIPTS = new VariableDefinitionStringList("CREATE_START_SCRIPTS", "DEVON_CREATE_START_SCRIPTS");
