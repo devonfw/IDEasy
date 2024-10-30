@@ -7,6 +7,11 @@ import java.util.List;
  * Enum representing the syntax of Git URLs, either SSH or HTTPS. Provides methods to format and convert Git URLs based on the syntax.
  */
 public enum GitUrlSyntax {
+
+  /**
+   * The DEFAULT Git URL syntax
+   */
+  DEFAULT(""),
   /**
    * The SSH Git URL syntax (e.g., git@github.com:user/repo.git).
    */
@@ -44,6 +49,8 @@ public enum GitUrlSyntax {
     }
 
     switch (this) {
+      case DEFAULT:
+        break;
       case SSH:
         if (url.startsWith(HTTPS.prefix)) {
           int index = url.indexOf("/", HTTPS.prefix.length());

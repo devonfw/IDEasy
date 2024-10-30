@@ -76,7 +76,8 @@ public interface IdeVariables {
   VariableDefinitionString PROJECT_NAME = new VariableDefinitionString("PROJECT_NAME", null, c -> c.getProjectName());
 
   /** Preferred Git protocol (HTTPS/SSH) as defined by {@link GitUrlSyntax}. */
-  VariableDefinitionEnum<GitUrlSyntax> PREFERRED_GIT_PROTOCOL = new VariableDefinitionEnum<>("PREFERRED_GIT_PROTOCOL", null, GitUrlSyntax.class);
+  VariableDefinitionEnum<GitUrlSyntax> PREFERRED_GIT_PROTOCOL = new VariableDefinitionEnum<>("PREFERRED_GIT_PROTOCOL", null, GitUrlSyntax.class,
+      c -> GitUrlSyntax.DEFAULT);
 
   /**
    * {@link VariableDefinition} for support of legacy variable syntax when

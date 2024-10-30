@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Implements the {@link GitContext}.
@@ -138,7 +139,8 @@ public class GitContextImpl implements GitContext {
   @Override
   public void clone(GitUrl gitRepoUrl, Path targetRepository) {
 
-    URL parsedUrl = gitRepoUrl.parseUrl();
+    GitUrlSyntax gitUrlSyntax = IdeVariables.PREFERRED_GIT_PROTOCOL.get(getContext());
+    URL parsedUrl = gitRepoUrl.convert(gitUrlSyntax).parseUrl();
     this.processContext.directory(targetRepository);
     ProcessResult result;
     if (!this.context.isOffline()) {
