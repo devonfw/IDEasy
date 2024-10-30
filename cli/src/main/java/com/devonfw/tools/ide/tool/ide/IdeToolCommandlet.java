@@ -1,6 +1,9 @@
 package com.devonfw.tools.ide.tool.ide;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -61,20 +64,32 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
     Path settingsWorkspaceFolder = this.context.getSettingsPath().resolve(this.tool)
         .resolve(IdeContext.FOLDER_WORKSPACE);
+    Path editorSettingsWorkspaceFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_WORKSPACE);
     FileAccess fileAccess = this.context.getFileAccess();
-    if (!fileAccess.isExpectedFolder(settingsWorkspaceFolder)) {
+    if (!fileAccess.isExpectedFolder(settingsWorkspaceFolder) || !fileAccess.isExpectedFolder(
+        editorSettingsWorkspaceFolder)) {
       return;
     }
     Path setupFolder = settingsWorkspaceFolder.resolve(IdeContext.FOLDER_SETUP);
     Path updateFolder = settingsWorkspaceFolder.resolve(IdeContext.FOLDER_UPDATE);
-    if (!fileAccess.isExpectedFolder(setupFolder) && !fileAccess.isExpectedFolder(updateFolder)) {
+    Path editorConfigPath = editorSettingsWorkspaceFolder.resolve(IdeContext.FOLDER_UPDATE).resolve(".editorconfig");
+    if (!fileAccess.isExpectedFolder(setupFolder) && !fileAccess.isExpectedFolder(updateFolder)
+        || !fileAccess.isExpectedFolder(
+        editorSettingsWorkspaceFolder)) {
       return;
     }
     Path ideWorkspacePath = this.context.getWorkspacePath();
     if (!fileAccess.isExpectedFolder(ideWorkspacePath)) {
       return; // should actually never happen...
     }
+
     this.context.step("Configuring workspace {} for IDE {}", ideWorkspacePath.getFileName(), this.tool);
+    try {
+      Files.copy(editorConfigPath, ideWorkspacePath.resolve(".editorconfig"),
+          StandardCopyOption.REPLACE_EXISTING);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to Copy " + editorConfigPath + " to " + ideWorkspacePath, e);
+    }
     this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), ideWorkspacePath);
   }
 }
