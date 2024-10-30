@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
@@ -82,14 +83,25 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     if (!fileAccess.isExpectedFolder(ideWorkspacePath)) {
       return; // should actually never happen...
     }
-
-    this.context.step("Configuring workspace {} for IDE {}", ideWorkspacePath.getFileName(), this.tool);
-    try {
-      Files.copy(editorConfigPath, ideWorkspacePath.resolve(".editorconfig"),
-          StandardCopyOption.REPLACE_EXISTING);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to Copy " + editorConfigPath + " to " + ideWorkspacePath, e);
+    try (Step step = this.context.newStep("Configuring workspace " + ideWorkspacePath.getFileName() + " for IDE " + this.tool)) {
+      int errors = this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), ideWorkspacePath);
+      try {
+        Files.copy(editorConfigPath, ideWorkspacePath.resolve(".editorconfig"),
+            StandardCopyOption.REPLACE_EXISTING);
+      } catch (IOException e) {
+        step.error("Failed to copy the .editorconfig file into the current workspace. \n"
+            + "Failing at this step may lead to a missing or outdated .editorconfig file which normally would configure the formatting of your code");
+        errors++;
+      }
+      if (errors == 0) {
+        step.success();
+      } else {
+        step.error("Your workspace configuration failed with {} error(s) - see log above.\n"
+            + "This is either a configuration error in your settings git repository or a bug in IDEasy.\n"
+            + "Please analyze the above errors with your team or IDE-admin and try to fix the problem.", errors);
+        this.context.askToContinue(
+            "In order to prevent you from being blocked, you can start your IDE anyhow but some configuration may not be in sync.");
+      }
     }
-    this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), ideWorkspacePath);
   }
 }
