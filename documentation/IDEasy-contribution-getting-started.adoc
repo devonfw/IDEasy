@@ -12,7 +12,7 @@ This will be addressed under xref:Contribution[Contribution].
 
 == Contribution
 
-To begin, read through the https://github.com/devonfw/.github/blob/master/CONTRIBUTING.asciidoc[Contribution Guidelines], which you should be sure to follow.
+To begin, read through the https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines], which you should be sure to follow.
 First steps regarding forks or cloning of repos and creating branches, as well as some git commands, can be found in the https://github.com/firstcontributions/first-contributions[first contributions guideline].
 To contribute code or documentation regarding IDEasy at first you need to fork the https://github.com/devonfw/ideasy[IDEasy] repository and then you can clone your fork into the folder `workspaces/main` in your IDEasy installation.
 Open git-bash in the cloned fork at `workspaces/main/IDEasy` and run the following command:
@@ -78,9 +78,9 @@ They mainly differentiate in the way, available versions are detected.
 
 Note: The `WebsiteUrlUpdater` should not be used if other viable options are available.
 
-The updaters use the function `doAddVersion()`, where the downloadUrl, OS and architecture can be specified for each version. https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/oc/OcUrlUpdater.java#L22C1-L24[Example]
+The updaters use the function `doAddVersion()`, where the downloadUrl, OS and architecture can be specified for each version. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/oc/OcUrlUpdater.java#L20[Example]
 
-`VersionIdentifiers` can also be used if e.g. the downloadUrl changed after a specific version, or certain version are not indented to be available. https://github.com/devonfw/IDEasy/blob/main/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/helm/HelmUrlUpdater.java#L12[Example]
+`VersionIdentifiers` can also be used if e.g. the downloadUrl changed after a specific version, or certain version are not indented to be available. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/helm/HelmUrlUpdater.java#L12[Example]
 
 Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions and fill the https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
 
