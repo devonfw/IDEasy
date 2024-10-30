@@ -80,7 +80,7 @@ Note: The `WebsiteUrlUpdater` should not be used if other viable options are ava
 
 The updaters use the function `doAddVersion()`, where the downloadUrl, OS and architecture can be specified for each version. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/oc/OcUrlUpdater.java#L20[Example]
 
-`VersionIdentifiers` can also be used if e.g. the downloadUrl changed after a specific version, or certain version are not indented to be available. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/helm/HelmUrlUpdater.java#L12[Example]
+`VersionIdentifiers` can also be used if e.g. the downloadUrl changed after a specific version, or certain versions are not intended to be available. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/helm/HelmUrlUpdater.java#L12[Example]
 
 Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions and fill the https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
 
