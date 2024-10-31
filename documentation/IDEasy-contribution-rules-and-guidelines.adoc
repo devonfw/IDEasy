@@ -72,7 +72,7 @@ Added unit tests for TableManagement class
 * Example:
 
 [source]
-devonfw/IDEasy/#5: added REST service for tablemanagement
+devonfw/IDEasy#5: added REST service for tablemanagement
 
 == Issue
 
