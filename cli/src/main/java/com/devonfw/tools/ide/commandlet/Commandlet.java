@@ -231,6 +231,8 @@ public abstract class Commandlet {
 
   /**
    * Provide additional usage help of this {@link Commandlet} to the user.
+   *
+   * @param bundle the {@link NlsBundle} to get I18N messages from.
    */
   public void printHelp(NlsBundle bundle) {
 
