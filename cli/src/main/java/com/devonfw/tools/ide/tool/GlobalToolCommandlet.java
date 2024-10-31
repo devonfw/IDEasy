@@ -54,9 +54,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands, {@code false} otherwise.
    */
   protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
-
-    logPackageManagerCommands(pmCommands);
-
+    
     for (PackageManagerCommand pmCommand : pmCommands) {
       PackageManager packageManager = pmCommand.packageManager();
       Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
@@ -72,17 +70,13 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return false; // None of the package manager commands were successful
   }
 
-  private void logPackageManagerCommands(List<PackageManagerCommand> pmCommands) {
-    StringBuilder commandLog = new StringBuilder("We need to run the following privileged command(s):\n");
+  private void logPackageManagerCommands(PackageManagerCommand pmCommand) {
 
-    for (PackageManagerCommand pmCommand : pmCommands) {
-      for (String command : pmCommand.commands()) {
-        commandLog.append(command).append("\n");
-      }
+    this.context.info("We need to run the following privileged command(s):");
+    for (String command : pmCommand.commands()) {
+      this.context.info(command);
     }
-    commandLog.append("This will require root permissions!");
-
-    this.context.info(commandLog.toString());
+    this.context.info("This will require root permissions!");
   }
 
   /**
@@ -95,6 +89,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent) {
 
     String bashPath = this.context.findBashRequired();
+    logPackageManagerCommands(pmCommand);
     for (String command : pmCommand.commands()) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(bashPath)
           .addArgs("-c", command);
