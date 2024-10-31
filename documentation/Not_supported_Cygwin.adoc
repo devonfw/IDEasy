@@ -1,0 +1,21 @@
+:toc:
+toc::[]
+
+= Not supported: Cygwin
+
+Currently, the Cygwin terminal is not supported by IDEasy. The suggested way of using IDEasy is with the git-bash terminal.
+If you, for whatever reason, still intend to use IDEasy with Cygwin, you can find a few caveats and suggestions below.
+Be warned that setting Cygwin up for IDEasy could potentially be very time-consuming.
+
+== Caveats
+
+* Not working with Cygwin are the following (note: this list is non-exhaustive):
+** Some IDEs are not working as expected. Examples:
+*** `ide Intellij` does not open intellij
+
+== Suggestions
+
+* When you installed Cygwin, you might have set your home variable where IDEasy isn't expecting it.
+** Do `echo $HOME` to check that it points to path '/cygdrive/c/Users/<your-user-name>'
+** If not, change the home variable in your system settings accordingly or load the `.bashrc` file of IDEasy from within the `.bashrc` file of Cygwin: `source /cygdrive/c/Users/<your-user-name>/.bashrc && echo "IDEasy's bashrc loaded"`.
+

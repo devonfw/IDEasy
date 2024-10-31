@@ -18,6 +18,15 @@ if [ $? = 0 ]; then
     echo "IDE environment variables have been set for ${IDE_HOME} in workspace ${WORKSPACE}"
   fi
 fi
+
+if [ "${OSTYPE}" = "cygwin" ]; then
+    echo -e "\n--- WARNING: CYGWIN IS NOT SUPPORTED ---"
+    echo "Cygwin console is not supported by IDEasy. Consider using the git-bash terminal"
+    echo "instead. If you want to use Cygwin with IDEasy, you will have to configure it"
+    echo "yourself. A few suggestions and caveats can be found here:"
+    echo -e "https://github.com/devonfw/IDEasy/blob/main/documentation/Not_supported_Cygwin.adoc\n"
+fi
+
 unset _IDEASY
 unset ide_env
 unset return_code
