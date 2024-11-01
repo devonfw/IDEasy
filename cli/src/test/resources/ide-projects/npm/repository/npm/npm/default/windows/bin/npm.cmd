@@ -1,3 +1,3 @@
-@echo off
-call node npm
-echo npm windows %*
+#!/bin/bash
+node "npm"
+echo "npm windows $*"
