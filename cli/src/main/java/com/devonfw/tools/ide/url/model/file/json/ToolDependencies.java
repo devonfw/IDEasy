@@ -55,6 +55,15 @@ public class ToolDependencies {
     return Collections.emptyList();
   }
 
+  @Override
+  public String toString() {
+
+    if (this == EMPTY) {
+      return "[empty]";
+    }
+    return this.path.toString();
+  }
+
   /**
    * @param file the {@link Path} to the JSON file to load.
    * @return the loaded {@link ToolDependencies} or the {@link #getEmpty() empty instance} if given {@link Path} does not exist.

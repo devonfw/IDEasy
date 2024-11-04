@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.ToolRepository;
+import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -30,10 +31,6 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   private final Map<String, IdeProgressBarTestImpl> progressBarMap;
 
   private SystemInfo systemInfo;
-
-  private Path dummyUserHome;
-
-  private Boolean online;
 
   private ProcessContext mockContext;
 
@@ -58,6 +55,22 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     return true;
   }
 
+  /**
+   * @return {@code true} if mutable, {@code false} otherwise.
+   * @see IdeTestContextMock
+   */
+  protected boolean isMutable() {
+
+    return true;
+  }
+
+  private void requireMutable() {
+
+    if (!isMutable()) {
+      throw new IllegalStateException(getClass().getSimpleName() + " is immutable!");
+    }
+  }
+
   @Override
   protected String readLine() {
 
@@ -68,6 +81,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   public void setAnswers(String... answers) {
+    requireMutable();
     this.answers = answers;
     this.answerIndex = 0;
   }
@@ -114,20 +128,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     return new SystemPath(this, envPath);
   }
 
-  @Override
-  public boolean isOnline() {
-
-    if (this.online != null) {
-      return this.online.booleanValue();
-    }
-    return super.isOnline();
-  }
-
   /**
    * @param online the mocked {@link #isOnline()} result.
    */
   public void setOnline(Boolean online) {
 
+    requireMutable();
     this.online = online;
   }
 
@@ -145,6 +151,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    */
   public void setProcessContext(ProcessContext mockContext) {
 
+    requireMutable();
     this.mockContext = mockContext;
   }
 
@@ -160,6 +167,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    */
   public void setSystemInfo(SystemInfo systemInfo) {
 
+    requireMutable();
     this.systemInfo = systemInfo;
   }
 
@@ -168,25 +176,24 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    */
   public void setUserHome(Path dummyUserHome) {
 
-    this.dummyUserHome = dummyUserHome;
+    requireMutable();
+    this.userHome = dummyUserHome;
   }
 
   /**
-   * @return a dummy UserHome path to avoid global path access in a commandlet test. The defined {@link #dummyUserHome} will be returned if it is not
-   *     {@code null}, else see implementation {@link #AbstractIdeContext}.
+   * @param urlsPath the mocked {@link #getUrlsPath() urls path}.
    */
-  @Override
-  public Path getUserHome() {
+  public void setUrlsPath(Path urlsPath) {
 
-    if (this.dummyUserHome != null) {
-      return this.dummyUserHome;
-    }
-    return super.getUserHome();
+    this.urlsPath = urlsPath;
+    this.urlMetadata = new UrlMetadata(this);
   }
 
-  @Override
+  /**
+   * @param defaultToolRepository the new value of {@link #getDefaultToolRepository()}.
+   */
   public void setDefaultToolRepository(ToolRepository defaultToolRepository) {
 
-    super.setDefaultToolRepository(defaultToolRepository);
+    this.defaultToolRepository = defaultToolRepository;
   }
 }

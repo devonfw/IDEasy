@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.context;
 
-import java.nio.file.Path;
-
 /**
  * Mock instance of {@link com.devonfw.tools.ide.context.IdeContext}.
  *
@@ -13,7 +11,13 @@ public class IdeTestContextMock extends IdeSlf4jContext {
 
   private IdeTestContextMock() {
 
-    super(Path.of("/"));
+    super();
+  }
+
+  @Override
+  protected boolean isMutable() {
+
+    return false;
   }
 
   /**

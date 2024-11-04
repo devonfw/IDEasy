@@ -55,7 +55,7 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     //if tool already installed
     commandlet.install();
-    assertThat(this.context).logAtDebug().hasMessage("Version 2023.3.3 of tool intellij is already installed");
+    assertThat(this.context).logAtDebug().hasMessageContaining("Version 2023.3.3 of tool intellij is already installed");
   }
 
   /**
