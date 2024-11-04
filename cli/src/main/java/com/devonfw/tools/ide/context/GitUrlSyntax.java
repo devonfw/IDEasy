@@ -41,6 +41,9 @@ public enum GitUrlSyntax {
    * @throws IllegalArgumentException if the protocol is not supported.
    */
   public GitUrl format(GitUrl gitUrl) {
+    if (this == DEFAULT) {
+      return gitUrl;
+    }
     String url = gitUrl.url();
 
     // Prevent conversion for domains in the no-conversion list
