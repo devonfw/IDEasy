@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
@@ -118,8 +117,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   private boolean toolAlreadyInstalled(boolean silent, VersionIdentifier installedVersion, Step step) {
-    IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
-    this.context.level(level).log("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
+    if (!silent) {
+      this.context.info("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
+    }
     postInstall(false);
     step.success();
     return false;
