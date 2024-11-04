@@ -82,7 +82,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private String workspaceName;
 
-  private Path urlsPath;
+  protected Path urlsPath;
 
   private Path tempPath;
 
@@ -94,7 +94,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path toolRepositoryPath;
 
-  private Path userHome;
+  protected Path userHome;
 
   private Path userHomeIde;
 
@@ -110,19 +110,19 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final CommandletManager commandletManager;
 
-  private ToolRepository defaultToolRepository;
+  protected ToolRepository defaultToolRepository;
 
   private CustomToolRepository customToolRepository;
 
   private DirectoryMerger workspaceMerger;
 
-  private UrlMetadata urlMetadata;
+  protected UrlMetadata urlMetadata;
 
-  private Path defaultExecutionDirectory;
+  protected Path defaultExecutionDirectory;
 
   private StepImpl currentStep;
 
-  private Boolean online;
+  protected Boolean online;
 
   /**
    * The constructor.
@@ -364,14 +364,6 @@ public abstract class AbstractIdeContext implements IdeContext {
   public ToolRepository getDefaultToolRepository() {
 
     return this.defaultToolRepository;
-  }
-
-  /**
-   * @param defaultToolRepository the new value of {@link #getDefaultToolRepository()}.
-   */
-  protected void setDefaultToolRepository(ToolRepository defaultToolRepository) {
-
-    this.defaultToolRepository = defaultToolRepository;
   }
 
   @Override
@@ -961,7 +953,7 @@ public abstract class AbstractIdeContext implements IdeContext {
           }
         }
         if ((property != null) && property.isValue() && property.isMultiValued()) {
-          arguments.endOptions();
+          arguments.stopSplitShortOptions();
         }
       }
       boolean matches = currentProperty.apply(arguments, this, cmd, collector);

@@ -12,7 +12,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
-import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
@@ -118,8 +117,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   private boolean toolAlreadyInstalled(boolean silent, VersionIdentifier installedVersion, Step step) {
-    IdeLogLevel level = silent ? IdeLogLevel.DEBUG : IdeLogLevel.INFO;
-    this.context.level(level).log("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
+    if (!silent) {
+      this.context.info("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
+    }
     postInstall(false);
     step.success();
     return false;
@@ -234,7 +234,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     if (version.contains(configuredVersion)) {
       // prefer configured version if contained in version range
-      return install();
+      return install(false, environmentContext);
     } else {
       if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
@@ -251,7 +251,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   private void installToolDependencies(VersionIdentifier version, String edition, EnvironmentContext environmentContext, ToolRepository toolRepository) {
     Collection<ToolDependency> dependencies = toolRepository.findDependencies(this.tool, edition, version);
+    String toolWithEdition = getToolWithEdition(this.tool, edition);
+    int size = dependencies.size();
+    this.context.debug("Tool {} has {} other tool(s) as dependency", toolWithEdition, size);
     for (ToolDependency dependency : dependencies) {
+      this.context.trace("Ensuring dependency {} for tool {}", dependency.tool(), toolWithEdition);
       LocalToolCommandlet dependencyTool = this.context.getCommandletManager().getRequiredLocalToolCommandlet(dependency.tool());
       dependencyTool.installAsDependency(dependency.versionRange(), environmentContext);
     }

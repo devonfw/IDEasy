@@ -2,11 +2,25 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2024.11.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/708[#708]: Open vscode in workspace path
+* https://github.com/devonfw/IDEasy/issues/608[#608]: Enhanced error messages. Now logs missing command output and error messages
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/15?closed=1[milestone 2024.11.001].
+
 == 2024.10.001
 
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/685[#685]: Upgrades and cleanup of dependencies and according license and doc
+* https://github.com/devonfw/IDEasy/pull/693[#693]: Setup not working on Mac
+* https://github.com/devonfw/IDEasy/issues/704[#704]: settings-security.xml not found
+* https://github.com/devonfw/IDEasy/issues/302[#302]: Add plugin support for GraalVM
+* https://github.com/devonfw/IDEasy/issues/710[#710]: Make IDE workspace configuration robust
+* https://github.com/devonfw/IDEasy/issues/673[#673]: Tomcat still not working (JAVA_HOME not set)
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/14?closed=1[milestone 2024.10.001].
 
@@ -44,6 +58,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/525[#525]: Added online state check before downloading
 * https://github.com/devonfw/IDEasy/issues/663[#663]: Endless loop when installing Eclipse in force mode
 * https://github.com/devonfw/IDEasy/issues/657[#657]: Cannot install Java 8
+* https://github.com/devonfw/IDEasy/issues/533[#533]: Added autocompletion of exit in ide shell
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/13?closed=1[milestone 2024.09.002].
 

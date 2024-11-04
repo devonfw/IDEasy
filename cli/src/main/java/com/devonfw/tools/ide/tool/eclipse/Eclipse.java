@@ -5,7 +5,6 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileLock;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -72,6 +71,12 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
+  protected boolean isPluginUrlNeeded() {
+
+    return true;
+  }
+
+  @Override
   public void installPlugin(ToolPluginDescriptor plugin, Step step) {
 
     ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, null, ProcessErrorHandling.LOG_WARNING, "-application", "org.eclipse.equinox.p2.director",
@@ -84,19 +89,9 @@ public class Eclipse extends IdeToolCommandlet {
         }
       }
     }
-    log(IdeLogLevel.DEBUG, result.getOut());
-    log(IdeLogLevel.ERROR, result.getErr());
+
+    result.log(IdeLogLevel.DEBUG, context, IdeLogLevel.ERROR);
     step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
-  }
-
-  private void log(IdeLogLevel level, List<String> lines) {
-
-    for (String line : lines) {
-      if (line.startsWith("!MESSAGE ")) {
-        line = line.substring(9);
-      }
-      this.context.level(level).log(line);
-    }
   }
 
   @Override

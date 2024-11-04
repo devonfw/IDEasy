@@ -5,10 +5,12 @@ import java.util.Collection;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
-import com.devonfw.tools.ide.url.model.file.UrlDependencyFile;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependencies;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
+import com.devonfw.tools.ide.url.model.folder.UrlEdition;
+import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -55,7 +57,15 @@ public class DefaultToolRepository extends AbstractToolRepository {
   @Override
   public Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version) {
 
-    UrlDependencyFile dependencyFile = this.context.getUrls().getEdition(tool, edition).getDependencyFile();
-    return dependencyFile.getDependencies().findDependencies(version);
+    UrlEdition urlEdition = this.context.getUrls().getEdition(tool, edition);
+    ToolDependencies dependencies = urlEdition.getDependencyFile().getDependencies();
+    if (dependencies == ToolDependencies.getEmpty()) {
+      UrlTool urlTool = urlEdition.getParent();
+      dependencies = urlTool.getDependencyFile().getDependencies();
+    }
+    if (dependencies != ToolDependencies.getEmpty()) {
+      this.context.trace("Found dependencies in {}", dependencies);
+    }
+    return dependencies.findDependencies(version, this.context);
   }
 }
