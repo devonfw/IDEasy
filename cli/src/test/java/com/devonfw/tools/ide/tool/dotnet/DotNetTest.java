@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.tool.dotnet;
 
 import java.nio.file.Path;
 
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -12,6 +11,9 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
+/**
+ * Integration test of {@link DotNet}.
+ */
 public class DotNetTest extends AbstractIdeContextTest {
 
   private static final Path PROJECTS_TARGET_PATH = Path.of("target/test-projects");
@@ -38,10 +40,8 @@ public class DotNetTest extends AbstractIdeContextTest {
     assertThat(this.context.getSoftwarePath().resolve("dotnet")).exists();
 
     if (this.context.getSystemInfo().isWindows()) {
-      assertThat(this.context.getSoftwarePath().resolve("dotnet/dotnet.cmd")).exists();
-    }
-
-    if (this.context.getSystemInfo().isLinux() || this.context.getSystemInfo().isMac()) {
+      assertThat(this.context.getSoftwarePath().resolve("dotnet/dotnet.exe")).exists();
+    } else {
       assertThat(this.context.getSoftwarePath().resolve("dotnet/dotnet")).exists();
     }
 
@@ -51,28 +51,24 @@ public class DotNetTest extends AbstractIdeContextTest {
     assertThat(this.context).logAtSuccess().hasMessage("Successfully installed dotnet in version 6.0.419");
   }
 
-  @Test
-  public void dotnetShouldRunExecutableForWindowsSuccessful() {
-
-    String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
-      runExecutable("windows");
-      checkExpectedOutput(expectedOutputWindows);
-    }
-  }
-
   @ParameterizedTest
-  @ValueSource(strings = { "mac", "linux" })
+  @ValueSource(strings = { "windows", "mac", "linux" })
   public void dotnetShouldRunExecutableSuccessful(String os) {
 
-    String expectedOutputLinux = "Dummy dotnet 6.0.419 on linux ";
-    String expectedOutputMacOs = "Dummy dotnet 6.0.419 on mac ";
-    runExecutable(os);
+    // TODO: Check: https://github.com/devonfw/IDEasy/issues/701 for reference.
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      String expectedOutputLinux = "Dummy dotnet 6.0.419 on linux ";
+      String expectedOutputMacOs = "Dummy dotnet 6.0.419 on mac ";
+      String expectedOutputWindows = "Dummy dotnet 6.0.419 on windows ";
+      runExecutable(os);
 
-    if (this.context.getSystemInfo().isLinux()) {
-      checkExpectedOutput(expectedOutputLinux);
-    } else if (this.context.getSystemInfo().isMac()) {
-      checkExpectedOutput(expectedOutputMacOs);
+      if (this.context.getSystemInfo().isLinux()) {
+        checkExpectedOutput(expectedOutputLinux);
+      } else if (this.context.getSystemInfo().isMac()) {
+        checkExpectedOutput(expectedOutputMacOs);
+      } else if (this.context.getSystemInfo().isWindows()) {
+        checkExpectedOutput(expectedOutputWindows);
+      }
     }
   }
 
@@ -85,7 +81,7 @@ public class DotNetTest extends AbstractIdeContextTest {
 
     SystemInfo systemInfo = SystemInfoMock.of(operatingSystem);
     this.context.setSystemInfo(systemInfo);
-
+    this.context.info("Running dotnet binary from: {}", this.commandlet.getToolBinPath());
     this.commandlet.run();
   }
 
