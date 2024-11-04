@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.context;
 
-import com.devonfw.tools.ide.cli.CliProcessException;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -22,24 +22,11 @@ public class ProcessContextTestImpl extends ProcessContextImpl {
 
   @Override
   public ProcessResult run(ProcessMode processMode) {
-
-    ProcessResult result;
-    try {
-      result = super.run(ProcessMode.DEFAULT_CAPTURE);
-      logOutput(result);
-      return result;
-    } catch (CliProcessException e) {
-      logOutput(e.getProcessResult());
-      throw e;
+    ProcessResult result = super.run(ProcessMode.DEFAULT_CAPTURE);
+    // this hack is still required to capture test script output
+    if (result.isSuccessful() && (processMode == ProcessMode.DEFAULT || processMode == ProcessMode.BACKGROUND)) {
+      result.log(IdeLogLevel.INFO, context);
     }
-  }
-
-  private void logOutput(ProcessResult result) {
-    for (String out : result.getOut()) {
-      this.context.info(out);
-    }
-    for (String err : result.getErr()) {
-      this.context.error(err);
-    }
+    return result;
   }
 }

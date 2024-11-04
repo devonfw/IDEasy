@@ -19,7 +19,7 @@ import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.VariableLine;
-import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.util.FilenameUtil;
@@ -180,6 +180,7 @@ public class ProcessContextImpl implements ProcessContext {
       }
 
       int exitCode;
+
       if (processMode.isBackground()) {
         exitCode = ProcessResult.SUCCESS;
       } else {
@@ -187,7 +188,8 @@ public class ProcessContextImpl implements ProcessContext {
       }
 
       ProcessResult result = new ProcessResultImpl(exitCode, out, err);
-      performLogOnError(result, exitCode, interpreter);
+
+      performLogging(result, exitCode, interpreter);
 
       return result;
 
@@ -310,25 +312,29 @@ public class ProcessContextImpl implements ProcessContext {
     return interpreter;
   }
 
-  private void performLogOnError(ProcessResult result, int exitCode, String interpreter) {
+  private void performLogging(ProcessResult result, int exitCode, String interpreter) {
 
     if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
-      String message = createCommandMessage(interpreter, " failed with exit code " + exitCode + "!");
+      IdeLogLevel ideLogLevel;
+      String message = createCommandMessage(interpreter, "\nfailed with exit code " + exitCode + "!");
+
+      if (this.errorHandling == ProcessErrorHandling.LOG_ERROR) {
+        ideLogLevel = IdeLogLevel.ERROR;
+      } else if (this.errorHandling == ProcessErrorHandling.LOG_WARNING) {
+        ideLogLevel = IdeLogLevel.WARNING;
+      } else {
+        ideLogLevel = IdeLogLevel.ERROR;
+        this.context.error("Internal error: Undefined error handling {}", this.errorHandling);
+      }
+
+      context.level(ideLogLevel).log(message);
+      result.log(ideLogLevel, context);
+
       if (this.errorHandling == ProcessErrorHandling.THROW_CLI) {
         throw new CliProcessException(message, result);
       } else if (this.errorHandling == ProcessErrorHandling.THROW_ERR) {
         throw new IllegalStateException(message);
       }
-      IdeSubLogger level;
-      if (this.errorHandling == ProcessErrorHandling.LOG_ERROR) {
-        level = this.context.error();
-      } else if (this.errorHandling == ProcessErrorHandling.LOG_WARNING) {
-        level = this.context.warning();
-      } else {
-        level = this.context.error();
-        this.context.error("Internal error: Undefined error handling {}", this.errorHandling);
-      }
-      level.log(message);
     }
   }
 
