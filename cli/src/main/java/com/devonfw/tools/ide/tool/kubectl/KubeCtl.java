@@ -4,12 +4,15 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.tool.DelegatingToolCommandlet;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+/**
+ * {@link DelegatingToolCommandlet} for <a href="https://kubernetes.io/de/docs/tasks/tools/install-kubectl/">Kubectl</a>.
+ */
 public class KubeCtl extends DelegatingToolCommandlet {
+
 
   /**
    * The constructor.
@@ -18,13 +21,7 @@ public class KubeCtl extends DelegatingToolCommandlet {
    */
   public KubeCtl(IdeContext context) {
 
-    super(context, "kubectl", Set.of(Tag.KUBERNETES));
-  }
-
-  @Override
-  protected boolean delegate(boolean silent, EnvironmentContext environmentContext) {
-    // TODO create kubectl/kubectl/dependencies.json file in ide-urls and delete this method
-    return getCommandlet(Docker.class).install(silent, environmentContext);
+    super(context, "kubectl", Set.of(Tag.KUBERNETES), Docker.class);
   }
 
   @Override
