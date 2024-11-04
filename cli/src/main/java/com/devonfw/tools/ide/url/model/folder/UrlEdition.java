@@ -1,18 +1,14 @@
 package com.devonfw.tools.ide.url.model.folder;
 
-import com.devonfw.tools.ide.url.model.AbstractUrlFolderWithParent;
-import com.devonfw.tools.ide.url.model.file.UrlDependencyFile;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
 
 /**
  * An {@link UrlFolder} representing the actual edition of a {@link UrlTool}. The default edition may have the same {@link #getName() name} as the
  * {@link UrlTool} itself. However, tools like "intellij" may have editions like "community" or "ultimate".
  */
-public class UrlEdition extends AbstractUrlFolderWithParent<UrlTool, UrlVersion> {
+public class UrlEdition extends AbstractUrlToolOrEdition<UrlTool, UrlVersion> {
 
   private UrlSecurityFile securityFile;
-
-  private UrlDependencyFile dependencyFile;
 
   /**
    * The constructor.
@@ -47,19 +43,6 @@ public class UrlEdition extends AbstractUrlFolderWithParent<UrlTool, UrlVersion>
       this.securityFile.load(false);
     }
     return this.securityFile;
-  }
-
-  /**
-   * @return the {@link UrlDependencyFile} of this {@link UrlEdition}. Will be lazily initialized on the first call of this method. If the file exists, it will
-   *     be loaded, otherwise it will be empty and only created on save if data was added.
-   */
-  public UrlDependencyFile getDependencyFile() {
-
-    if (this.dependencyFile == null) {
-      this.dependencyFile = new UrlDependencyFile(this);
-      this.dependencyFile.load(false);
-    }
-    return dependencyFile;
   }
 
   @Override
