@@ -140,7 +140,8 @@ public class GitContextImpl implements GitContext {
   public void clone(GitUrl gitRepoUrl, Path targetRepository) {
 
     GitUrlSyntax gitUrlSyntax = IdeVariables.PREFERRED_GIT_PROTOCOL.get(getContext());
-    URL parsedUrl = gitRepoUrl.convert(gitUrlSyntax).parseUrl();
+    gitRepoUrl = gitUrlSyntax.format(gitUrlSyntax);
+    URL parsedUrl = gitRepoUrl.parseUrl();
     this.processContext.directory(targetRepository);
     ProcessResult result;
     if (!this.context.isOffline()) {
