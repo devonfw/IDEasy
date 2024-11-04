@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.context;
 
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -140,13 +139,12 @@ public class GitContextImpl implements GitContext {
   public void clone(GitUrl gitRepoUrl, Path targetRepository) {
 
     GitUrlSyntax gitUrlSyntax = IdeVariables.PREFERRED_GIT_PROTOCOL.get(getContext());
-    gitRepoUrl = gitUrlSyntax.format(gitUrlSyntax);
-    URL parsedUrl = gitRepoUrl.parseUrl();
+    gitRepoUrl = gitUrlSyntax.format(gitRepoUrl);
     this.processContext.directory(targetRepository);
     ProcessResult result;
     if (!this.context.isOffline()) {
       this.context.getFileAccess().mkdirs(targetRepository);
-      this.context.requireOnline("git clone of " + parsedUrl);
+      this.context.requireOnline("git clone of " + gitRepoUrl.url());
       this.processContext.addArg("clone");
       if (this.context.isQuietMode()) {
         this.processContext.addArg("-q");
@@ -154,7 +152,7 @@ public class GitContextImpl implements GitContext {
       this.processContext.addArgs("--recursive", gitRepoUrl.url(), "--config", "core.autocrlf=false", ".");
       result = this.processContext.run(PROCESS_MODE);
       if (!result.isSuccessful()) {
-        this.context.warning("Git failed to clone {} into {}.", parsedUrl, targetRepository);
+        this.context.warning("Git failed to clone {} into {}.", gitRepoUrl.url(), targetRepository);
       }
       String branch = gitRepoUrl.branch();
       if (branch != null) {
@@ -165,7 +163,7 @@ public class GitContextImpl implements GitContext {
         }
       }
     } else {
-      throw CliOfflineException.ofClone(parsedUrl, targetRepository);
+      throw CliOfflineException.ofClone(gitRepoUrl.parseUrl(), targetRepository);
     }
   }
 
