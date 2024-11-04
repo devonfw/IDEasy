@@ -20,11 +20,7 @@ if [ $? = 0 ]; then
 fi
 
 if [ "${OSTYPE}" = "cygwin" ]; then
-    echo -e "\n--- WARNING: CYGWIN IS NOT SUPPORTED ---"
-    echo "Cygwin console is not supported by IDEasy. Consider using the git-bash terminal"
-    echo "instead. If you want to use Cygwin with IDEasy, you will have to configure it"
-    echo "yourself. A few suggestions and caveats can be found here:"
-    echo -e "https://github.com/devonfw/IDEasy/blob/main/documentation/Not_supported_Cygwin.adoc\n"
+    echo -e "\033[93m--- WARNING: CYGWIN IS NOT SUPPORTED ---\nCygwin console is not supported by IDEasy.\nConsider using the git terminal instead.\nIf you want to use Cygwin with IDEasy, you will have to configure it yourself.\nA few suggestions and caveats can be found here:\nhttps://github.com/devonfw/IDEasy/blob/main/documentation/cygwin.adoc\n\033[39m"
 fi
 
 unset _IDEASY

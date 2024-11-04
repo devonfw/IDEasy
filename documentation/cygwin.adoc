@@ -1,7 +1,7 @@
 :toc:
 toc::[]
 
-= Not supported: Cygwin
+= Cygwin not supported
 
 Currently, the Cygwin terminal is not supported by IDEasy. The suggested way of using IDEasy is with the git-bash terminal.
 If you, for whatever reason, still intend to use IDEasy with Cygwin, you can find a few caveats and suggestions below.
