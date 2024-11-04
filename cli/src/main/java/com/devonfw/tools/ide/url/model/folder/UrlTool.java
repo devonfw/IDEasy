@@ -1,11 +1,9 @@
 package com.devonfw.tools.ide.url.model.folder;
 
-import com.devonfw.tools.ide.url.model.AbstractUrlFolderWithParent;
-
 /**
  * An {@link UrlFolder} representing the actual software tool like "docker" or "vscode".
  */
-public class UrlTool extends AbstractUrlFolderWithParent<UrlRepository, UrlEdition> {
+public class UrlTool extends AbstractUrlToolOrEdition<UrlRepository, UrlEdition> {
 
   /**
    * The constructor.
