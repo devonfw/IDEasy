@@ -52,26 +52,23 @@ public enum GitUrlSyntax {
     }
 
     switch (this) {
-      case DEFAULT:
-        break;
-      case SSH:
+      case SSH -> {
         if (url.startsWith(HTTPS.prefix)) {
           int index = url.indexOf("/", HTTPS.prefix.length());
           if (index > 0) {
             url = SSH.prefix + url.substring(HTTPS.prefix.length(), index) + ":" + url.substring(index + 1);
           }
         }
-        break;
-      case HTTPS:
+      }
+      case HTTPS -> {
         if (url.startsWith(SSH.prefix)) {
           int index = url.indexOf(":");
           if (index > 0) {
             url = HTTPS.prefix + url.substring(SSH.prefix.length(), index) + "/" + url.substring(index + 1);
           }
         }
-        break;
-      default:
-        throw new IllegalArgumentException("Unsupported protocol: " + this);
+      }
+      default -> throw new IllegalArgumentException("Unsupported protocol: " + this);
     }
 
     return new GitUrl(url, gitUrl.branch());
