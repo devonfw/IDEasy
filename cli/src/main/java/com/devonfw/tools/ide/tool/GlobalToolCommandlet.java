@@ -54,7 +54,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
    * @return {@code true} if installation or uninstallation succeeds with any of the package manager commands, {@code false} otherwise.
    */
   protected boolean runWithPackageManager(boolean silent, List<PackageManagerCommand> pmCommands) {
-    
+
     for (PackageManagerCommand pmCommand : pmCommands) {
       PackageManager packageManager = pmCommand.packageManager();
       Path packageManagerPath = this.context.getPath().findBinary(Path.of(packageManager.getBinaryName()));
@@ -72,11 +72,11 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
 
   private void logPackageManagerCommands(PackageManagerCommand pmCommand) {
 
-    this.context.info("We need to run the following privileged command(s):");
+    this.context.interaction("We need to run the following privileged command(s):");
     for (String command : pmCommand.commands()) {
-      this.context.info(command);
+      this.context.interaction(command);
     }
-    this.context.info("This will require root permissions!");
+    this.context.interaction("This will require root permissions!");
   }
 
   /**
