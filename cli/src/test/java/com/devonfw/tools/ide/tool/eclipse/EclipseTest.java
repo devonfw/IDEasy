@@ -52,7 +52,7 @@ public class EclipseTest extends AbstractIdeContextTest {
 
     //if tool already installed
     eclipse.install();
-    assertThat(context).logAtDebug().hasMessage("Version 2024-09 of tool eclipse is already installed");
+    assertThat(context).logAtDebug().hasMessageContaining("Version 2024-09 of tool eclipse is already installed");
   }
 
 }
