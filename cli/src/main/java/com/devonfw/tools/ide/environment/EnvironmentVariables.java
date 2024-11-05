@@ -87,15 +87,7 @@ public interface EnvironmentVariables {
    * @return the {@link VersionIdentifier} with the version of the tool to use. May also be a {@link VersionIdentifier#isPattern() version pattern}. Will be
    *     {@link VersionIdentifier#LATEST} if undefined.
    */
-  default VersionIdentifier getToolVersion(String tool) {
-
-    String variable = getToolVersionVariable(tool);
-    String value = get(variable);
-    if (value == null) {
-      return VersionIdentifier.LATEST;
-    }
-    return VersionIdentifier.of(value);
-  }
+  VersionIdentifier getToolVersion(String tool);
 
   /**
    * @return the {@link EnvironmentVariablesType type} of this {@link EnvironmentVariables}.
@@ -204,7 +196,7 @@ public interface EnvironmentVariables {
    *     their {@link #get(String) value}.
    * @param source the source where the {@link String} to resolve originates from. Should have a reasonable {@link Object#toString() string representation}
    *     that will be used in error or log messages if a variable could not be resolved.
-   * @param legacySupport
+   * @param legacySupport - {@code true} for legacy support with {@link VariableSyntax#CURLY} as fallback, {@code false} otherwise.
    * @return the given {@link String} with the variables resolved.
    * @see com.devonfw.tools.ide.tool.ide.IdeToolCommandlet
    */
