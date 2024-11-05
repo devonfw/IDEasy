@@ -18,6 +18,7 @@ Please note that we are trying to minimize any potential side-effect from `IDEas
 |`PATH`|`$IDE_HOME/software/java:...:$PATH`|You system path is adjusted by `ide` link:cli.adoc[command].
 |`HOME_DIR`|`~`|The platform independent home directory of the current user. In some edge-cases (e.g. in cygwin) this differs from `~` to ensure a central home directory for the user on a single machine in any context or environment.
 |`IDE_TOOLS`|`(java mvn node npm)`|List of tools that should be installed by default on project creation.
+|`IDE_ENABLE_CONSOLE_LOG`|`true`|Toggle to enable or disable whether the log output of IDEs is printed into the console.
 |`CREATE_START_SCRIPTS`|`(eclipse vscode)`|List of IDEs that shall be used by developers in the project and therefore start-scripts are created on setup.
 |*`WORKSPACE`*|`main`|The link:workspaces.adoc[workspace] you are currently in. Defaults to `main` if you are not inside a link:workspaces.adoc[workspace]. Never set this variable in any `ide.properties` file.
 |`WORKSPACE_PATH`|`$IDE_HOME/workspaces/$WORKSPACE`|Absolute path to current link:workspaces.adoc[workspace]. Never set this variable in any `ide.properties` file.

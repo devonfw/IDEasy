@@ -32,7 +32,7 @@ public interface IdeVariables {
   VariableDefinitionStringList IDE_TOOLS = new VariableDefinitionStringList("IDE_TOOLS", "DEVON_IDE_TOOLS", c -> List.of("mvn", "npm"));
 
   /** {@link VariableDefinition} for enabling logs of ides. */
-  VariableDefinitionBoolean IDE_ENABLE_LOG = new VariableDefinitionBoolean("IDE_ENABLE_LOG", null, c -> true);
+  VariableDefinitionBoolean IDE_ENABLE_CONSOLE_LOG = new VariableDefinitionBoolean("IDE_ENABLE_CONSOLE_LOG", null, c -> true);
 
   /** {@link VariableDefinition} for list of IDE tools to create start scripts for. */
   VariableDefinitionStringList CREATE_START_SCRIPTS = new VariableDefinitionStringList("CREATE_START_SCRIPTS", "DEVON_CREATE_START_SCRIPTS");
@@ -84,7 +84,7 @@ public interface IdeVariables {
       c -> Boolean.TRUE);
 
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
-  Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, IDE_ENABLE_LOG,
+  Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, IDE_ENABLE_CONSOLE_LOG,
       CREATE_START_SCRIPTS,
       IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, GRADLE_BUILD_OPTS, YARN_BUILD_OPTS, JASYPT_OPTS, MAVEN_ARGS,
       PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED);
