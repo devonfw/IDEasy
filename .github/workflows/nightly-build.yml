@@ -86,7 +86,7 @@ jobs:
       - name: Upload project
         uses: actions/upload-artifact@v4
         with:
-          path: ./cli/target/*.tgz
+          path: ./cli/target/*.tar.gz
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
