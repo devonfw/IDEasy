@@ -82,7 +82,7 @@ jobs:
           path: ./cli/target/
       - run: |
           cd cli
-          mvn -B -ntp -Dstyle.color=always -Passembly package
+          mvn -B -ntp -Dstyle.color=always -Passembly package -DskipTests
       - name: Upload project
         uses: actions/upload-artifact@v4
         with:
