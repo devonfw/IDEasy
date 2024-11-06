@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.url.model.file;
 
 import com.devonfw.tools.ide.url.model.file.json.ToolDependencies;
-import com.devonfw.tools.ide.url.model.folder.UrlEdition;
+import com.devonfw.tools.ide.url.model.folder.AbstractUrlToolOrEdition;
 
 /**
  * {@link UrlFile} for the "dependency.json" file.
  */
-public class UrlDependencyFile extends AbstractUrlFile<UrlEdition> {
+public class UrlDependencyFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?, ?>> {
 
   public static final String DEPENDENCY_JSON = "dependencies.json";
 
@@ -18,7 +18,7 @@ public class UrlDependencyFile extends AbstractUrlFile<UrlEdition> {
    *
    * @param parent the {@link #getParent() parent folder}.
    */
-  public UrlDependencyFile(UrlEdition parent) {
+  public UrlDependencyFile(AbstractUrlToolOrEdition<?, ?> parent) {
 
     super(parent, DEPENDENCY_JSON);
   }

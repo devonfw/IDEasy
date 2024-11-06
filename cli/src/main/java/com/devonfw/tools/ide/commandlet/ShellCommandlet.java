@@ -66,8 +66,6 @@ public final class ShellCommandlet extends Commandlet {
   public void run() {
 
     try {
-      // TODO: add BuiltIns here, see: https://github.com/devonfw/IDEasy/issues/168
-
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
 

@@ -1,0 +1,8 @@
+{
+  "[1.0,99.0)": [
+    {
+      "tool": "this-is-the-wrong-file-only-for-testing",
+      "versionRange": "[1.0,2.0]"
+    }
+  ]
+}
