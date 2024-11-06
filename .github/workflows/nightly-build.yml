@@ -81,7 +81,8 @@ jobs:
           pattern: natives-*
           path: ./cli/target/
       - run: |
-          mvn -B -ntp -Dstyle.color=always -Passembly install
+          cd cli
+          mvn -B -ntp -Dstyle.color=always -Passembly package
       - name: Upload project
         uses: actions/upload-artifact@v4
         with:
