@@ -11,7 +11,7 @@
       <directory>${project.build.directory}</directory>
       <outputDirectory>./bin</outputDirectory>
       <includes>
-        <include>${imageName}.exe</include>
+        <include>natives-windows-latest/${imageName}.exe</include>
       </includes>
     </fileSet>
     <fileSet>

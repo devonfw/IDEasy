@@ -11,7 +11,7 @@
       <directory>${project.build.directory}</directory>
       <outputDirectory>./bin</outputDirectory>
       <includes>
-        <include>${imageName}</include>
+        <include>natives-ubuntu-latest/${imageName}</include>
       </includes>
     </fileSet>
     <fileSet>
