@@ -53,7 +53,7 @@ jobs:
       - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
-          name: images
+          name: natives-${{ matrix.os }}
           path: cli/target/ideasy*
 
   # Downloads all native image artifacts to cli/target and builds the project for deployment to OSSRH Nexus
@@ -78,8 +78,9 @@ jobs:
       - name: Download natives and build project
         uses: actions/download-artifact@v4
         with:
-          name: images
+          pattern: natives-*
           path: ./cli/target/
+          merge-multiple: true
       - run: |
           mvn -B -ntp -Dstyle.color=always install
       - name: Deploy to OSSRH nexus
