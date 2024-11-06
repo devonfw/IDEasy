@@ -8,10 +8,10 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${project.build.directory}</directory>
+      <directory>${project.build.directory}/natives-windows-latest</directory>
       <outputDirectory>./bin</outputDirectory>
       <includes>
-        <include>natives-windows-latest/${imageName}.exe</include>
+        <include>${imageName}.exe</include>
       </includes>
     </fileSet>
     <fileSet>

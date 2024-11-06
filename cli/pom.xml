@@ -175,6 +175,33 @@
   <profiles>
     <!-- Builds the native image and archives it with the documentation from the github artifact -->
     <profile>
+      <id>assembly</id>
+      <build>
+        <plugins>
+          <!-- Assembly Plugin -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>${assembly.maven.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>create-distribution</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <finalName>${project.artifactId}-${revision}</finalName>
+                  <appendAssemblyId>true</appendAssemblyId>
+                  <descriptorSourceDirectory>src/main/assembly</descriptorSourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>native</id>
       <build>
         <plugins>
@@ -213,26 +240,6 @@
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
               </buildArgs>
             </configuration>
-          </plugin>
-          <!-- Assembly Plugin -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>${assembly.maven.plugin.version}</version>
-            <executions>
-              <execution>
-                <id>create-distribution</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <finalName>${project.artifactId}-${revision}</finalName>
-                  <appendAssemblyId>true</appendAssemblyId>
-                  <descriptorSourceDirectory>/src/main/assembly</descriptorSourceDirectory>
-                </configuration>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>

@@ -8,10 +8,10 @@
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
     <fileSet>
-      <directory>${project.build.directory}</directory>
+      <directory>${project.build.directory}/natives-ubuntu-latest</directory>
       <outputDirectory>./bin</outputDirectory>
       <includes>
-        <include>natives-ubuntu-latest/${imageName}</include>
+        <include>${imageName}</include>
       </includes>
     </fileSet>
     <fileSet>
