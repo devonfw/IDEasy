@@ -82,7 +82,7 @@ jobs:
           path: ./cli/target/
       - name: Create assemblies
         run: |
-          mvn -B -ntp -Dstyle.color=always -Passembly install -DskipTests
+          mvn -B -ntp -Dstyle.color=always -Passembly install
       - name: Upload project (for tests only)
         uses: actions/upload-artifact@v4
         with:
