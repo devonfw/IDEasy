@@ -3,33 +3,9 @@ on:
   workflow_dispatch
 
 jobs:
-  # Builds documentation pdf file in cli/target/package and uploads artifact to docs
-  build-documentation:
-    name: Build documentation
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-      - name: Set up JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: '17'
-      - name: Make documentation available
-        run: |
-          cd documentation
-          mvn -B -ntp -Dstyle.color=always -DskipTests=true package
-      - name: Upload documentation
-        uses: actions/upload-artifact@v4
-        with:
-          name: docs
-          path: documentation/target/generated-docs/*.pdf
-
-  # Builds all native images and uploads artifacts to images
+  # Builds all native images and uploads each image as a separate artifact
   build-natives:
     name: Build native images
-    needs: build-documentation
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -56,10 +32,10 @@ jobs:
           name: natives-${{ matrix.os }}
           path: cli/target/ideasy*
 
-  # Downloads all native image artifacts to cli/target and builds the project for deployment to OSSRH Nexus
+  # Downloads all native image artifacts to cli/target and builds the project for final deployment to OSSRH Nexus
   deploy:
     name: Build Project and Deploy
-    needs: [ build-documentation, build-natives ]
+    needs: [ build-natives ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -70,11 +46,6 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '17'
-      - name: Download documentation
-        uses: actions/download-artifact@v4
-        with:
-          name: docs
-          path: ./cli/target/package
       - name: Download natives and build project
         uses: actions/download-artifact@v4
         with:
@@ -82,7 +53,7 @@ jobs:
           path: ./cli/target/
       - name: Create assemblies
         run: |
-          mvn -B -ntp -Dstyle.color=always -Passembly install
+          mvn -B -ntp -Dstyle.color=always -DskipTests=true -Passembly package
       - name: Upload project (for tests only)
         uses: actions/upload-artifact@v4
         with:
