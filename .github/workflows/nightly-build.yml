@@ -59,7 +59,7 @@ jobs:
           cp target/generated-docs/*.pdf ../cli/target/package
       - name: Create assemblies
         run: |
-          cd ../cli
+          cd cli
           mvn -B -ntp -Dstyle.color=always -DskipTests=true -Passembly package
       - name: Upload project (for tests only)
         uses: actions/upload-artifact@v4
