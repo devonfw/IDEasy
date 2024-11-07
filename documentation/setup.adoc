@@ -22,11 +22,12 @@ The latest release of `IDEasy` can be downloaded from https://github.com/devonfw
 
 == Install
 
-Create a central folder `projects` folder (on Windows use `C:\projects` or `D:\projects`, on Linux or Mac use `/projects` or if you do not have such permissions you create it in your home directory as `~/projects`).
-Inside this folder, create a sub-folder for your new project such as `my-project` and extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to this new folder.
+Create a central folder `projects` folder (on Windows use `C:\projects` or `D:\projects`, on Linux or Mac use `~/projects` but ensure your home path does not contain space or other special characters).
+Inside this folder, create a sub-folder named `_ide` and extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to this new folder (e.g. `C:\projects\_ide`).
 Run the command `setup` in this folder (on windows double clicking on `setup.bat`).
-That's all.
 To get started read the link:usage.adoc[usage].
+
+NOTE: We are planning to create a installer that will guide users through the installation process but this is not yet released.
 
 == Uninstall
 

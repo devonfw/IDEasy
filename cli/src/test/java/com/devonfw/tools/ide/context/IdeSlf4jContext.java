@@ -10,6 +10,15 @@ import com.devonfw.tools.ide.log.IdeSubLoggerSlf4j;
  */
 public class IdeSlf4jContext extends AbstractIdeTestContext {
 
+  private static final Path PATH_MOCK = Path.of("/");
+
+  /**
+   * The constructor.
+   */
+  public IdeSlf4jContext() {
+    this(PATH_MOCK);
+  }
+
   /**
    * The constructor.
    *
