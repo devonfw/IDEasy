@@ -57,6 +57,7 @@ jobs:
         run: |
           cd documentation
           mvn -B -ntp -Dstyle.color=always -DskipTests=true package
+          mkdir -p ../cli/target/package
           cp target/generated-docs/*.pdf ../cli/target/package
       - name: Create assemblies
         run: |
