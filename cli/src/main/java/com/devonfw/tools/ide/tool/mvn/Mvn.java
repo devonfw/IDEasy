@@ -249,7 +249,7 @@ public class Mvn extends PluginBasedCommandlet {
       return null;
     }
     String settingsPath = mvnSettingsFile.toString();
-    return "-s " + settingsPath + getDsettingsSecurityProperty();
+    return "-s " + settingsPath + " " + getDsettingsSecurityProperty();
   }
 
   private String getDsettingsSecurityProperty() {
