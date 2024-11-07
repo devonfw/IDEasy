@@ -3,13 +3,14 @@ on:
   workflow_dispatch
 
 jobs:
-  # Builds all native images and uploads each image as a separate artifact
+  # Builds all native images and uploads each binary as a separate artifact
   build-natives:
     name: Build native images
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
+        os: [ windows-latest ]
+        #os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -32,7 +33,7 @@ jobs:
           name: natives-${{ matrix.os }}
           path: cli/target/ideasy*
 
-  # Downloads all native image artifacts to cli/target and builds the project for final deployment to OSSRH Nexus
+  # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to OSSRH Nexus
   deploy:
     name: Build Project and Deploy
     needs: [ build-natives ]
@@ -51,8 +52,14 @@ jobs:
         with:
           pattern: natives-*
           path: ./cli/target/
+      - name: Build documentation
+        run: |
+          cd documentation
+          mvn -B -ntp -Dstyle.color=always -DskipTests=true package
+          cp target/generated-docs/*.pdf ../cli/target/package
       - name: Create assemblies
         run: |
+          cd ../cli
           mvn -B -ntp -Dstyle.color=always -DskipTests=true -Passembly package
       - name: Upload project (for tests only)
         uses: actions/upload-artifact@v4
