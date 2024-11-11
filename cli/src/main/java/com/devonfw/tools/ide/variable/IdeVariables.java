@@ -102,4 +102,15 @@ public interface IdeVariables {
     return IdeVariablesList.get(name);
   }
 
+  /**
+   * @param name the name of the variable.
+   * @return {@code true} if a {@link VariableDefinition#getLegacyName() legacy variable}, {@code false} otherwise.
+   */
+  static boolean isLegacyVariable(String name) {
+    VariableDefinition<?> variableDefinition = IdeVariablesList.get(name);
+    if (variableDefinition != null) {
+      return name.equals(variableDefinition.getLegacyName());
+    }
+    return false;
+  }
 }

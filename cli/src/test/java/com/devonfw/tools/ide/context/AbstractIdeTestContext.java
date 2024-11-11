@@ -24,6 +24,9 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public class AbstractIdeTestContext extends AbstractIdeContext {
 
+  /** {@link Path} to use as workingDirectory for mocking. */
+  protected static final Path PATH_MOCK = Path.of("/");
+
   private String[] answers;
 
   private int answerIndex;
@@ -38,12 +41,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    * The constructor.
    *
    * @param logger the {@link IdeLogger}.
-   * @param userDir the optional {@link Path} to current working directory.
+   * @param workingDirectory the optional {@link Path} to current working directory.
    * @param answers the automatic answers simulating a user in test.
    */
-  public AbstractIdeTestContext(IdeStartContextImpl logger, Path userDir, String... answers) {
+  public AbstractIdeTestContext(IdeStartContextImpl logger, Path workingDirectory, String... answers) {
 
-    super(logger, userDir);
+    super(logger, workingDirectory);
     this.answers = new String[0];
     this.progressBarMap = new HashMap<>();
     this.systemInfo = super.getSystemInfo();

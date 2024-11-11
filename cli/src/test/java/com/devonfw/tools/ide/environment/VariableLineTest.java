@@ -74,7 +74,7 @@ public class VariableLineTest extends Assertions {
     checkVariable("TOOL_VERSION=\"47.11\"", false, "TOOL_VERSION", "47.11");
     checkVariable("TOOL_VERSION = \"47.11\" ", false, "TOOL_VERSION", "47.11");
     checkVariable("export MAVEN_OPTS=-Xmx2g -Pdev", true, "MAVEN_OPTS", "-Xmx2g -Pdev");
-    checkVariable("vaR_namE=", false, "vaR_namE", null);
+    checkVariable("vaR_namE=", false, "vaR_namE", "");
     // edge-cases
     checkVariable("  export  MAVEN_OPTS = -Xmx2g -Pdev", true, "MAVEN_OPTS", "-Xmx2g -Pdev");
     checkVariable("export=value", false, "export", "value");

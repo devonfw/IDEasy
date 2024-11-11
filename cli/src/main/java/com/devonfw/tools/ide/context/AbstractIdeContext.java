@@ -128,9 +128,9 @@ public abstract class AbstractIdeContext implements IdeContext {
    * The constructor.
    *
    * @param startContext the {@link IdeLogger}.
-   * @param userDir the optional {@link Path} to current working directory.
+   * @param workingDirectory the optional {@link Path} to current working directory.
    */
-  public AbstractIdeContext(IdeStartContextImpl startContext, Path userDir) {
+  public AbstractIdeContext(IdeStartContextImpl startContext, Path workingDirectory) {
 
     super();
     this.startContext = startContext;
@@ -138,13 +138,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.commandletManager = new CommandletManagerImpl(this);
     this.fileAccess = new FileAccessImpl(this);
     String workspace = WORKSPACE_MAIN;
-    if (userDir == null) {
-      userDir = Path.of(System.getProperty("user.dir"));
+    if (workingDirectory == null) {
+      workingDirectory = Path.of(System.getProperty("user.dir"));
     } else {
-      userDir = userDir.toAbsolutePath();
+      workingDirectory = workingDirectory.toAbsolutePath();
     }
     // detect IDE_HOME and WORKSPACE
-    Path currentDir = userDir;
+    Path currentDir = workingDirectory;
     String name1 = "";
     String name2 = "";
     while (currentDir != null) {
@@ -166,7 +166,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     // detection completed, initializing variables
     this.ideRoot = findIdeRoot(currentDir);
 
-    setCwd(userDir, workspace, currentDir);
+    setCwd(workingDirectory, workspace, currentDir);
 
     if (this.ideRoot == null) {
       this.toolRepositoryPath = null;

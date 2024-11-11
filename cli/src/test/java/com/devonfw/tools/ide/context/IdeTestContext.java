@@ -17,28 +17,36 @@ public class IdeTestContext extends AbstractIdeTestContext {
 
   /**
    * The constructor.
-   *
-   * @param userDir the optional {@link Path} to current working directory.
    */
-  public IdeTestContext(Path userDir) {
+  public IdeTestContext() {
 
-    this(userDir, IdeLogLevel.TRACE);
+    this(PATH_MOCK);
   }
 
   /**
    * The constructor.
    *
-   * @param userDir the optional {@link Path} to current working directory.
-   * @param logLevel the {@link IdeLogLevel} used as threshold for logging.
+   * @param workingDirectory the optional {@link Path} to current working directory.
    */
-  public IdeTestContext(Path userDir, IdeLogLevel logLevel) {
+  public IdeTestContext(Path workingDirectory) {
 
-    this(new IdeTestLogger(logLevel), userDir);
+    this(workingDirectory, IdeLogLevel.TRACE);
   }
 
-  private IdeTestContext(IdeTestLogger logger, Path userDir) {
+  /**
+   * The constructor.
+   *
+   * @param workingDirectory the optional {@link Path} to current working directory.
+   * @param logLevel the {@link IdeLogLevel} used as threshold for logging.
+   */
+  public IdeTestContext(Path workingDirectory, IdeLogLevel logLevel) {
 
-    super(logger, userDir);
+    this(new IdeTestLogger(logLevel), workingDirectory);
+  }
+
+  private IdeTestContext(IdeTestLogger logger, Path workingDirectory) {
+
+    super(logger, workingDirectory);
     this.logger = logger;
     this.gitContext = new GitContextMock();
   }
