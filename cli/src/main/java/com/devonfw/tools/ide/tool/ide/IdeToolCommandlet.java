@@ -79,8 +79,8 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
       return; // should actually never happen...
     }
     try (Step step = this.context.newStep("Configuring workspace " + ideWorkspacePath.getFileName() + " for IDE " + this.tool)) {
-      int errors += this.context.getWorkspaceMerger().merge(workspaceSetupFolder, workspaceUpdateFolder, this.context.getVariables(), ideWorkspacePath);
-      errors = this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), ideWorkspacePath);
+      int errors = this.context.getWorkspaceMerger().merge(workspaceSetupFolder, workspaceUpdateFolder, this.context.getVariables(), ideWorkspacePath);
+      errors += this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), ideWorkspacePath);
       if (errors == 0) {
         step.success();
       } else {
