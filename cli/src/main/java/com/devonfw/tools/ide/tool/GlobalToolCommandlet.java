@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -70,6 +71,15 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     return false; // None of the package manager commands were successful
   }
 
+  private void logPackageManagerCommands(PackageManagerCommand pmCommand) {
+
+    this.context.interaction("We need to run the following privileged command(s):");
+    for (String command : pmCommand.commands()) {
+      this.context.interaction(command);
+    }
+    this.context.interaction("This will require root permissions!");
+  }
+
   /**
    * Executes the provided package manager command.
    *
@@ -80,6 +90,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   private boolean executePackageManagerCommand(PackageManagerCommand pmCommand, boolean silent) {
 
     String bashPath = this.context.findBashRequired();
+    logPackageManagerCommands(pmCommand);
     for (String command : pmCommand.commands()) {
       ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(bashPath)
           .addArgs("-c", command);
@@ -131,7 +142,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
-    int exitCode = pc.run();
+    int exitCode = pc.run(ProcessMode.BACKGROUND).getExitCode();
     if (tmpDir != null) {
       fileAccess.delete(tmpDir);
     }
