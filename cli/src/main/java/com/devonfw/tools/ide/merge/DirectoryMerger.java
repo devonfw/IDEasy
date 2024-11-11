@@ -52,7 +52,6 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     this.extension2mergerMap.put("name", textMerger); // intellij specific
     this.extension2mergerMap.put("editorconfig", textMerger);
     this.fallbackMerger = new FallbackMerger(context);
-
   }
 
   @Override
