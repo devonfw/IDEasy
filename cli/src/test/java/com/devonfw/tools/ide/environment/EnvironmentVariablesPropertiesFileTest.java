@@ -21,13 +21,12 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 @SuppressWarnings("javadoc")
 class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
 
-  /**
-   * Test of {@link EnvironmentVariablesPropertiesFile} including legacy support.
-   */
-
   private static final Path ENV_VAR_PATH = Path.of("src/test/resources/com/devonfw/tools/ide/environment/var/");
   private static final EnvironmentVariablesType TYPE = EnvironmentVariablesType.SETTINGS;
 
+  /**
+   * Test of {@link EnvironmentVariablesPropertiesFile} including legacy support.
+   */
   @Test
   public void testLoad() {
 
@@ -44,7 +43,6 @@ class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
     assertThat(variables.get("CREATE_START_SCRIPTS")).isEqualTo("eclipse");
     assertThat(variables.get("KEY")).isEqualTo("value");
     assertThat(variables.get("IDE_MIN_VERSION")).isEqualTo("2024.11.001");
-    //assertThat(variables.get("JAVA_VERSION")).isEqualTo("illegal");
     assertThat(variables.getToolVersion("java")).isEqualTo(VersionIdentifier.LATEST);
     assertThat(variables.getVariables()).hasSize(6);
     assertThat(context).log(IdeLogLevel.WARNING)
