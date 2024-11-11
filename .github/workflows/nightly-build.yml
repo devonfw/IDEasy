@@ -26,8 +26,7 @@ jobs:
         shell: bash
         run: |
           cd cli
-          mvn -B -ntp -DskipTests=true compile
-        # mvn -B -ntp -Pnative -DskipTests=true compile
+          mvn -B -ntp -Pnative -DskipTests=true compile
       - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
