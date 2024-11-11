@@ -1,9 +1,6 @@
 package com.devonfw.tools.ide.tool.ide;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -65,18 +62,15 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
     Path settingsWorkspaceFolder = this.context.getSettingsPath().resolve(this.tool)
         .resolve(IdeContext.FOLDER_WORKSPACE);
-    Path editorSettingsWorkspaceFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_WORKSPACE);
+    Path workspaceUpdateFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_WORKSPACE).resolve(IdeContext.FOLDER_UPDATE);
+    Path workspaceSetupFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_WORKSPACE).resolve(IdeContext.FOLDER_SETUP);
     FileAccess fileAccess = this.context.getFileAccess();
-    if (!fileAccess.isExpectedFolder(settingsWorkspaceFolder) || !fileAccess.isExpectedFolder(
-        editorSettingsWorkspaceFolder)) {
+    if (!fileAccess.isExpectedFolder(settingsWorkspaceFolder)) {
       return;
     }
     Path setupFolder = settingsWorkspaceFolder.resolve(IdeContext.FOLDER_SETUP);
     Path updateFolder = settingsWorkspaceFolder.resolve(IdeContext.FOLDER_UPDATE);
-    Path editorConfigPath = editorSettingsWorkspaceFolder.resolve(IdeContext.FOLDER_UPDATE).resolve(".editorconfig");
-    if (!fileAccess.isExpectedFolder(setupFolder) && !fileAccess.isExpectedFolder(updateFolder)
-        || !fileAccess.isExpectedFolder(
-        editorSettingsWorkspaceFolder)) {
+    if (!fileAccess.isExpectedFolder(setupFolder) && !fileAccess.isExpectedFolder(updateFolder)) {
       return;
     }
     Path ideWorkspacePath = this.context.getWorkspacePath();
@@ -85,14 +79,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     }
     try (Step step = this.context.newStep("Configuring workspace " + ideWorkspacePath.getFileName() + " for IDE " + this.tool)) {
       int errors = this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), ideWorkspacePath);
-      try {
-        Files.copy(editorConfigPath, ideWorkspacePath.resolve(".editorconfig"),
-            StandardCopyOption.REPLACE_EXISTING);
-      } catch (IOException e) {
-        step.error("Failed to copy the .editorconfig file into the current workspace. \n"
-            + "Failing at this step may lead to a missing or outdated .editorconfig file which normally would configure the formatting of your code");
-        errors++;
-      }
+      errors += this.context.getWorkspaceMerger().merge(workspaceSetupFolder, workspaceUpdateFolder, this.context.getVariables(), ideWorkspacePath);
       if (errors == 0) {
         step.success();
       } else {

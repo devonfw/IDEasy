@@ -65,7 +65,6 @@ public final class ShellCommandlet extends Commandlet {
     try {
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
-        
         // initialize our own completer here and add exit as an autocompletion option
         Completer completer = new AggregateCompleter(
             new StringsCompleter("exit"), new IdeCompleter((AbstractIdeContext) this.context));
