@@ -20,7 +20,6 @@ jobs:
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
-
       - name: Build native image
         shell: bash
         run: |
@@ -54,10 +53,6 @@ jobs:
       - name: Create assemblies
         run: |
           mvn -B -ntp -Dstyle.color=always -DskipTests=true -Passembly install
-      - name: Upload project (for tests only)
-        uses: actions/upload-artifact@v4
-        with:
-          path: ./cli/target/*.tar.gz
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
