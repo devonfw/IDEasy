@@ -62,8 +62,9 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
     Path settingsWorkspaceFolder = this.context.getSettingsPath().resolve(this.tool)
         .resolve(IdeContext.FOLDER_WORKSPACE);
-    Path workspaceUpdateFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_WORKSPACE).resolve(IdeContext.FOLDER_UPDATE);
-    Path workspaceSetupFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_WORKSPACE).resolve(IdeContext.FOLDER_SETUP);
+    Path genericWorkspaceFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_WORKSPACE); 
+    Path workspaceUpdateFolder = genericWorkspaceFolder.resolve(IdeContext.FOLDER_UPDATE);
+    Path workspaceSetupFolder = genericWorkspaceFolder.resolve(IdeContext.FOLDER_SETUP);
     FileAccess fileAccess = this.context.getFileAccess();
     if (!fileAccess.isExpectedFolder(settingsWorkspaceFolder)) {
       return;
