@@ -51,16 +51,9 @@ jobs:
         with:
           pattern: natives-*
           path: ./cli/target/
-      - name: Build documentation
-        run: |
-          cd documentation
-          mvn -B -ntp -Dstyle.color=always -DskipTests=true package
-          mkdir -p ../cli/target/package
-          cp target/generated-docs/*.pdf ../cli/target/package
       - name: Create assemblies
         run: |
-          cd cli
-          mvn -B -ntp -Dstyle.color=always -DskipTests=true -Passembly package
+          mvn -B -ntp -Dstyle.color=always -DskipTests=true -Passembly install
       - name: Upload project (for tests only)
         uses: actions/upload-artifact@v4
         with:

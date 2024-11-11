@@ -6,6 +6,12 @@
     <format>tar.gz</format>
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
+  <files>
+	<file>
+		<source>${settings.localRepository}/com/devonfw/tools/IDEasy/ide-doc/${project.version}/ide-doc-${project.version}.pdf</source>
+		<destName>IDEasy.pdf</destName>
+	</file>
+  </files>
   <fileSets>
     <fileSet>
       <directory>${project.build.directory}/natives-windows-latest</directory>
