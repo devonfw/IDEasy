@@ -9,6 +9,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/415[#415]: Added a message that will inform the user for what process he will need to enter his sudo- password
 * https://github.com/devonfw/IDEasy/issues/708[#708]: Open vscode in workspace path
 * https://github.com/devonfw/IDEasy/issues/608[#608]: Enhanced error messages. Now logs missing command output and error messages
+* https://github.com/devonfw/IDEasy/issues/715[#715]: Show "cygwin is not supported" message for cygwin users
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/15?closed=1[milestone 2024.11.001].
 
