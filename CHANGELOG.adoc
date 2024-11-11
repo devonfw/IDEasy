@@ -18,6 +18,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/315[#315]: Fix frozen process after MSI installation
 * https://github.com/devonfw/IDEasy/issues/312[#312]: Add ability to prefer git (ssh) protocol instead of https for cloning repo
 * https://github.com/devonfw/IDEasy/issues/685[#685]: Upgrades and cleanup of dependencies and according license and doc
 * https://github.com/devonfw/IDEasy/pull/693[#693]: Setup not working on Mac

@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -141,7 +142,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       executable = fileAccess.findFirst(downloadBinaryPath, Files::isExecutable, false);
     }
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(executable);
-    int exitCode = pc.run();
+    int exitCode = pc.run(ProcessMode.BACKGROUND).getExitCode();
     if (tmpDir != null) {
       fileAccess.delete(tmpDir);
     }
