@@ -1,0 +1,47 @@
+:toc:
+toc::[]
+
+== GitHub Actions workflow reference
+
+Currently, the GitHub action workflow is a combination of iterating over several GitHub runners for the creation of OS/architecture specific native images and the usage of the Maven Assembly Plugin to pack the documentation and binaries into their respective release archives.
+
+We have two main workflow files:
+
+== nightly-build.yml
+
+For the creation of SNAPSHOT releases on our OSS Nexus using two steps:
+
+=== build-natives
+
+The nightly build iterates over each OS/architecture runner e.g. `windows-latest` (Windows x64), `macos-latest` (Mac ARM) etc. and builds a binary image.
+Then the job uploads the binaries to GitHub as an artifact using the GitHub `actions-upload` tool.
+Each artifact archive is then named by taking a prefix `natives-` and the runner name taken from the `matrix:os` e.g. `natives-windows-latest`.
+
+=== deploy
+
+The `deploy` job downloads the image artifacts from GitHub into the `cli/target` directory.
+Then it builds the documentation PDF file and creates release archives by packing the downloaded binaries and the `IDEasy.pdf` file into a separate archive file for each OS/architecture e.g. `bin/ideasy.exe` for Windows.
+This behaviour is controlled by the Maven Assembly Plugin which is being described later.
+
+== release.yml
+
+The release workflow is doing the same steps as the nightly-build workflow with the addition of an automatic increase of the project version and a deployment to the Maven Central Repository.
+
+== The cli/pom.xml
+
+We use two build profiles:
+
+=== native
+
+For building the native images using graalvm.
+
+=== assembly
+
+For the creation of release archives (SNAPSHOT releases for SonarType and official releases for Maven Central).
+The Maven Assembly Plugin uses specific assembly configuration files located in `cli/src/main/assembly`.
+These assembly files are specify the name of the respective archive to create by its `id`.
+They attach the documentation to the archive and place the OS specific binary files into the `bin` folder of the archive.
+Each assembly file also makes sure that OS specific files are being excluded e.g. for windows releases we want to exclude `system/mac` or `system/linux` folders.
+To be able to distinct the correct binary file for each release the `fileSet/directory` name is connected to the GitHub Actions download artifact name e.g. `natives-windows-latest` or `natives-macos-latest`.
+
+
