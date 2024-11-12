@@ -29,7 +29,7 @@ public abstract class DelegatingToolCommandlet<D extends ToolCommandlet> extends
 
   @Override
   public final boolean install(boolean silent, EnvironmentContext environmentContext) {
-    return getCommandlet(delegateClass).install(silent, environmentContext);
+    return getCommandlet(this.delegateClass).install(silent, environmentContext);
   }
 
 }
