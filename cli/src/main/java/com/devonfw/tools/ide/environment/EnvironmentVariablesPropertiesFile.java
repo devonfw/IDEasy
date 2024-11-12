@@ -67,6 +67,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
       return;
     }
     this.context.trace("Loading properties from {}", this.propertiesFilePath);
+    boolean legacyProperties = this.propertiesFilePath.getFileName().toString().equals(LEGACY_PROPERTIES);
     try (BufferedReader reader = Files.newBufferedReader(this.propertiesFilePath)) {
       String line;
       do {
@@ -75,12 +76,35 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
           VariableLine variableLine = VariableLine.of(line, this.context, getSource());
           String name = variableLine.getName();
           if (name != null) {
-            variableLine = migrateLine(variableLine, false);
-            name = variableLine.getName();
-            String value = variableLine.getValue();
-            this.variables.put(name, value);
+            VariableLine migratedVariableLine = migrateLine(variableLine, false);
+            if (migratedVariableLine == null) {
+              this.context.warning("Illegal variable definition: {}", variableLine);
+              continue;
+            }
+            String migratedName = migratedVariableLine.getName();
+            String migratedValue = migratedVariableLine.getValue();
+            boolean legacyVariable = IdeVariables.isLegacyVariable(name);
+            if (legacyVariable && !legacyProperties) {
+              this.context.warning("Legacy variable name is used to define variable {} in {} - please cleanup your configuration.", variableLine,
+                  this.propertiesFilePath);
+            }
+            String oldValue = this.variables.get(migratedName);
+            if (oldValue != null) {
+              VariableDefinition<?> variableDefinition = IdeVariables.get(name);
+              if (legacyVariable) {
+                // if the legacy name was configured we do not want to override the official variable!
+                this.context.warning("Both legacy variable {} and official variable {} are configured in {} - ignoring legacy variable declaration!",
+                    variableDefinition.getLegacyName(), variableDefinition.getName(), this.propertiesFilePath);
+              } else {
+                this.context.warning("Duplicate variable definition {} with old value '{}' and new value '{}' in {}", name, oldValue, migratedValue,
+                    this.propertiesFilePath);
+                this.variables.put(migratedName, migratedValue);
+              }
+            } else {
+              this.variables.put(migratedName, migratedValue);
+            }
             if (variableLine.isExport()) {
-              this.exportedVariables.add(name);
+              this.exportedVariables.add(migratedName);
             }
           }
         }
