@@ -258,11 +258,6 @@ public abstract class AbstractIdeContext implements IdeContext {
     return "IDE environment variables have been set for " + this.ideHome + " in workspace " + this.workspaceName;
   }
 
-  private String getMessageIdeHomeNotFound() {
-
-    return "You are not inside an IDE installation: " + this.cwd;
-  }
-
   private static String getMessageIdeRootNotFound() {
     String root = System.getenv("IDE_ROOT");
     if (root == null) {
@@ -277,10 +272,10 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public String getMessageIdeHome() {
 
-    if (this.ideHome == null) {
-      return getMessageIdeHomeNotFound();
+    if (this.ideHome != null) {
+      return getMessageIdeHomeFound();
     }
-    return getMessageIdeHomeFound();
+    return null;
   }
 
   /**
@@ -823,9 +818,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     if (result.isValid()) {
       debug("Running commandlet {}", cmd);
-      if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
-        throw new CliException(getMessageIdeHomeNotFound(), ProcessResult.NO_IDE_HOME);
-      } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
+      if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
         throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
       }
       if (cmd.isProcessableOutput()) {
