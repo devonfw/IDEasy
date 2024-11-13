@@ -6,40 +6,51 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link EnvironmentVariablesPropertiesFile}.
  */
 @SuppressWarnings("javadoc")
-class EnvironmentVariablesPropertiesFileTest extends Assertions {
+class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
+
+  private static final Path ENV_VAR_PATH = Path.of("src/test/resources/com/devonfw/tools/ide/environment/var/");
+  private static final EnvironmentVariablesType TYPE = EnvironmentVariablesType.SETTINGS;
 
   /**
    * Test of {@link EnvironmentVariablesPropertiesFile} including legacy support.
    */
-
-  private static final Path ENV_VAR_PATH = Path.of("src/test/resources/com/devonfw/tools/ide/env/var/");
-  private static final EnvironmentVariablesType TYPE = EnvironmentVariablesType.SETTINGS;
-
   @Test
   public void testLoad() {
 
     // arrange
     Path propertiesFilePath = ENV_VAR_PATH.resolve("devon.properties");
+    IdeTestContext context = new IdeTestContext();
     // act
     EnvironmentVariablesPropertiesFile variables = new EnvironmentVariablesPropertiesFile(null, TYPE,
-        propertiesFilePath, IdeTestContextMock.get());
+        propertiesFilePath, context);
     // assert
     assertThat(variables.getType()).isSameAs(TYPE);
     assertThat(variables.get("MVN_VERSION")).isEqualTo("3.9.0");
     assertThat(variables.get("IDE_TOOLS")).isEqualTo("mvn, npm");
     assertThat(variables.get("CREATE_START_SCRIPTS")).isEqualTo("eclipse");
     assertThat(variables.get("KEY")).isEqualTo("value");
-    assertThat(variables.getVariables()).hasSize(4);
+    assertThat(variables.get("IDE_MIN_VERSION")).isEqualTo("2024.11.001");
+    assertThat(variables.getToolVersion("java")).isEqualTo(VersionIdentifier.LATEST);
+    assertThat(variables.getVariables()).hasSize(6);
+    assertThat(context).log(IdeLogLevel.WARNING)
+        .hasEntries("Duplicate variable definition MVN_VERSION with old value 'undefined' and new value '3.9.0' in " + propertiesFilePath,
+            "Both legacy variable MAVEN_VERSION and official variable MVN_VERSION are configured in " + propertiesFilePath
+                + " - ignoring legacy variable declaration!",
+            "Duplicate variable definition IDE_MIN_VERSION with old value '2023.07.003' and new value '2024.11.001' in " + propertiesFilePath,
+            "Variable JAVA_VERSION is configured with empty value, please fix your configuration.");
   }
 
   @Test
