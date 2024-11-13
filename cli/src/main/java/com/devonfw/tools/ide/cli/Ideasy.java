@@ -3,6 +3,9 @@ package com.devonfw.tools.ide.cli;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -24,6 +27,8 @@ public final class Ideasy {
    *
    * @param args the command-line arguments.
    */
+  private static final Logger logger = LoggerFactory.getLogger(Ideasy.class);
+
   public static void main(String... args) {
 
     int exitStatus = new Ideasy().run(args);

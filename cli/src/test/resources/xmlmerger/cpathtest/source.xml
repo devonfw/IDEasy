@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:merge="https://github.com/devonfw/IDEasy/merge" merge:strategy="combine" version="4">
+  <component name="MavenProjectSettings" merge:id="@name">
+    <option name="testRunningSettings" merge:id="@name">
+      <MavenTestRunningSettings merge:id="name()">
+        <option name="passArgLine" value="false"/>
+      </MavenTestRunningSettings>
+    </option>
+  </component>
+</project>
