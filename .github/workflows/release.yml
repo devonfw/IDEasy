@@ -78,7 +78,7 @@ jobs:
           git tag -a "release/${next_version}" -m "tagged version ${next_version}"
           export GPG_TTY=$TTY
           mkdir -p ./cli/target/
-          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,deploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -DskipTests=true
+          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,deploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
