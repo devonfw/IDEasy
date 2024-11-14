@@ -11,7 +11,7 @@ The following list shows these configuration files in the order they are loaded 
 2. `~/.ide/ide.properties` - user specific global defaults (on Windows in `%USERPROFILE%/.ide/ide.properties`)
 3. `https://github.com/devonfw/ide-settings/blob/main/ide.properties[settings/ide.properties]` (`settings/ide.properties`) - project specific configurations from link:settings.adoc[settings].
 4. `workspaces/${WORKSPACE}/ide.properties` - optional workspace specific configurations (especially helpful in projects using docker).
-5. `https://github.com/devonfw/ide-settings/blob/main/template/conf/ide.properties[conf/ide.properties]` - user specific configurations (e.g. `M2_REPO=~/.m2/repository`).
+5. `https://github.com/devonfw/ide-settings/blob/main/templates/conf/ide.properties[conf/ide.properties]` - user specific configurations (e.g. `M2_REPO=~/.m2/repository`).
 During setup this file is created by copying a template from `settings/template/conf/ide.properties`.
 
 == ide.properties
