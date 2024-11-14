@@ -87,10 +87,10 @@ This way you will take over control of the tools and their versions for every de
 . In case you have very restrictive policies about downloading tools from the internet, you can create and configure a link:software.adoc#repository[software repository] for your project or company.
 . Some of the tools (especially the actual IDEs) allow extensions via plugins.
 You can customize them to your needs for https://github.com/devonfw/ide-settings/tree/main/eclipse/plugins[eclipse], https://github.com/devonfw/ide-settings/tree/main/vscode/plugins[VS code], or https://github.com/devonfw/ide-settings/tree/main/intellij/plugins[intelliJ].
-. In your `settings` git repository you will find a `projects` folder.
-Here you will find configurations files for every git project relevant for your actual project.
-Feel free to create new projects for your needs and delete the `devonfw` specific default projects.
-The link:projects.adoc[projects] documentation will explain you how to do this.
+. In your `settings` git repository you will find a `repositories` folder.
+Here you will find configurations files for every git repository relevant for your actual development project (with your source-code).
+Feel free to create new repositories for your needs and delete the included default repositories.
+The link:repository.adoc[repository] documentation will explain you how to do this.
 . For every IDE you will also find an according folder in your `settings` git repository.
 Here are the individual configuration settings for that IDE.
 You can change them by directly editing the according configuration files directly with a text-editor in your `settings` git repository.
