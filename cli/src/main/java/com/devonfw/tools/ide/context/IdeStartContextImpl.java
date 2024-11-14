@@ -17,6 +17,8 @@ public class IdeStartContextImpl implements IdeStartContext {
 
   private final IdeSubLogger[] loggers;
 
+  private boolean skipUpdatesMode;
+
   private boolean offlineMode;
 
   private boolean forceMode;
@@ -129,6 +131,20 @@ public class IdeStartContextImpl implements IdeStartContext {
   public void setOfflineMode(boolean offlineMode) {
 
     this.offlineMode = offlineMode;
+  }
+
+  @Override
+  public boolean isSkipUpdatesMode() {
+
+    return this.skipUpdatesMode;
+  }
+
+  /**
+   * @param skipUpdatesMode new value of {@link #isSkipUpdatesMode()} ()}.
+   */
+  public void setSkipUpdatesMode(boolean skipUpdatesMode) {
+
+    this.skipUpdatesMode = skipUpdatesMode;
   }
 
   @Override

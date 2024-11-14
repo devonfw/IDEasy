@@ -25,6 +25,8 @@ public class ContextCommandlet extends Commandlet {
 
   private final FlagProperty offline;
 
+  private final FlagProperty skipUpdates;
+
   private final LocaleProperty locale;
 
   private IdeStartContextImpl startContext;
@@ -41,6 +43,7 @@ public class ContextCommandlet extends Commandlet {
     this.debug = add(new FlagProperty("--debug", false, "-d"));
     this.quiet = add(new FlagProperty("--quiet", false, "-q"));
     this.offline = add(new FlagProperty("--offline", false, "-o"));
+    this.skipUpdates = add(new FlagProperty("--skipUpdates", false, "-s"));
     this.locale = add(new LocaleProperty("--locale", false, null));
   }
 
@@ -71,6 +74,7 @@ public class ContextCommandlet extends Commandlet {
     this.startContext.setForceMode(this.force.isTrue());
     this.startContext.setQuietMode(this.quiet.isTrue());
     this.startContext.setOfflineMode(this.offline.isTrue());
+    this.startContext.setSkipUpdatesMode(this.skipUpdates.isTrue());
     this.startContext.setLocale(this.locale.getValue());
   }
 

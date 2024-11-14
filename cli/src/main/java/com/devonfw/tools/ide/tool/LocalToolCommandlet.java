@@ -78,7 +78,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       // TODO https://github.com/devonfw/IDEasy/issues/664
       boolean enableOptimization = false;
       // performance: avoid calling installTool if already up-to-date
-      if (enableOptimization & configuredVersion.equals(installedVersion)) { // here we can add https://github.com/devonfw/IDEasy/issues/637
+      if (enableOptimization & configuredVersion.equals(installedVersion)
+          || configuredVersion.matches(installedVersion) & context.isSkipUpdatesMode()) {
         return toolAlreadyInstalled(silent, installedVersion, step);
       }
       // install configured version of our tool in the software repository if not already installed

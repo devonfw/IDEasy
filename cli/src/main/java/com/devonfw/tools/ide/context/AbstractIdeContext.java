@@ -538,6 +538,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public boolean isSkipUpdatesMode() {
+    return this.startContext.isSkipUpdatesMode();
+  }
+
+  @Override
   public boolean isOnline() {
 
     if (this.online == null) {
