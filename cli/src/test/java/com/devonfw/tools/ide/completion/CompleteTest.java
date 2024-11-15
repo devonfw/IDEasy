@@ -75,7 +75,7 @@ public class CompleteTest extends IdeContextTest {
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-f", "-fb", "-fd", "-fo", "-fq",
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-f", "-fb", "-fd", "-fo", "-fq", "-fs",
         "-ft", "-fv");
   }
 
@@ -85,11 +85,11 @@ public class CompleteTest extends IdeContextTest {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("-fbdoqt");
+    CliArguments args = CliArguments.ofCompletion("-fbdoqts");
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdoqt", "-fbdoqtv");
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdoqts", "-fbdoqtsv");
   }
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
