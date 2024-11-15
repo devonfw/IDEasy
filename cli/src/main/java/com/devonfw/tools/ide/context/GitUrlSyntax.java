@@ -24,6 +24,9 @@ public enum GitUrlSyntax {
     @Override
     public GitUrl format(GitUrl gitUrl) {
       String url = gitUrl.url();
+      if (isDomainWithNoConversion(url.toLowerCase())) {
+        return gitUrl;
+      }
       if (url.startsWith(HTTPS.prefix)) {
         int index = url.indexOf("/", HTTPS.prefix.length());
         if (index > 0) {
@@ -41,6 +44,9 @@ public enum GitUrlSyntax {
     @Override
     public GitUrl format(GitUrl gitUrl) {
       String url = gitUrl.url();
+      if (isDomainWithNoConversion(url.toLowerCase())) {
+        return gitUrl;
+      }
       if (url.startsWith(SSH.prefix)) {
         int index = url.indexOf(":");
         if (index > 0) {
@@ -71,7 +77,7 @@ public enum GitUrlSyntax {
    */
   public abstract GitUrl format(GitUrl gitUrl);
 
-  private boolean isDomainWithNoConversion(String url) {
+  private static boolean isDomainWithNoConversion(String url) {
 
     for (String domain : DOMAINS_WITH_NO_CONVERSION) {
       // Check if it's an HTTPS URL for the domain
