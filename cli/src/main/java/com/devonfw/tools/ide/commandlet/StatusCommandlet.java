@@ -15,7 +15,7 @@ public class StatusCommandlet extends Commandlet {
   public StatusCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(new FlagProperty(getName(), true, "-s"));
+    addKeyword(new FlagProperty(getName()));
   }
 
   @Override
