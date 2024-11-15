@@ -1,48 +1,71 @@
 #!/bin/bash
+#set -x
+#set -e errexit
 
+WORK_DIR_INTEG_TEST="/c/tmp/ideasy-integration-test-debug/IDEasy_snapshot"
+IDEASY_COMPRESSED_NAME="ideasy_latest.tar.gz"
+IDEASY_COMPRESSED_FILE="${WORK_DIR_INTEG_TEST}/${IDEASY_COMPRESSED_NAME}"
 test_project_name="tmp-integ-test"
 
 function doIdeCreate () {
-    #TODO: determine the name of the currently executed script
-#    local project-name="$(dirname "${BASH_SOURCE:-$0}")" 
-#    local project_name="$(basename "${BASH_SOURCE:-$0}")"
-#    local test_project_name="tmp-integ-test"
-    local settings_url=${1:--}
-    echo ide create ${test_project_name} ${settings_url}
+  #TODO: determine the name of the currently executed script
+#  local project-name="$(dirname "${BASH_SOURCE:-$0}")" 
+#  local project_name="$(basename "${BASH_SOURCE:-$0}")"
+  #  local test_project_name="tmp-integ-test"
+  # If first argument is given, then it is the url for the ide create command (default is '-').
+  local settings_url=${1:--}
+  $IDE create ${test_project_name} ${settings_url}
+  echo ide create ${test_project_name} ${settings_url}
+  #TODO: IDE_ROOT ?
+  # mkdir ${IDE_ROOT}/${test_project_name}
+  cd "${IDE_ROOT}/${test_project_name}"
 
-    #TODO: IDE_ROOT ?
-    mkdir ${IDE_ROOT}/${test_project_name}
-    cd ${IDE_ROOT}/${test_project_name}
-
-    # TODO: Remove logs
-    echo "END OF doIdeCreate"
-    echo "My IDE_ROOT is: ${IDE_ROOT}"
-    echo "My PWD is: $PWD"
-    echo "settings-url : ${settings_url}"
-    echo "project-name : ${project_name}"
+  echo "${IDE_ROOT}/${test_project_name}"
+  echo "${test_project_name}"
+  # TODO: Remove logs
+  echo "My IDE_ROOT is: ${IDE_ROOT}"
+  echo "My PWD is: $PWD"
+  echo "settings-url : ${settings_url}"
 }
 
 function doIdeCreateCleanup () {
     rm -rf ${IDE_ROOT}/${test_project_name}
 }
 
-
-function doCommandTest()  {
-#  CLI="${PWD}/scripts/devon"
-#  "${CLI}" "${1}" --batch setup
-  #TODO
-  log_setup=">>LOG_COMMAND_TEST.log"
-  ide "${@}" "${log_setup}"
-  result="${?}"
-  exit $result
+function doDownloadSnapshot () {
+    mkdir -p $WORK_DIR_INTEG_TEST
+    if [ $1 ]
+    then
+	if [ -f "${1}" ] && [[ $1 == *.tar.gz ]];
+	then
+	    echo "Local snapshot given. Copy to directory ${WORK_DIR_INTEG_TEST}"
+	    cp "$1" "${IDEASY_COMPRESSED_FILE}" 
+	else
+	    echo "Expected a file ending with tar.gz - Given: ${1}"
+	    exit 1
+	fi
+    else
+	echo "Will try to download latest IDEasy release..."
+	local URL_IDEASY_LATEST="https://github.com/devonfw/IDEasy/releases/latest"
+	local PAGE_HTML_LOCAL="${WORK_DIR_INTEG_TEST}/integ_test_gh_latest.html"
+	
+	curl -L $URL_IDEASY_LATEST  > $PAGE_HTML_LOCAL
+	# TODO: A bit of a workaround. But works for the time being...
+	# Note: Explanation for cryptic argument "\"" of 'cut': delimiting char after url link from href is char '"'
+	local URL=$(cat $PAGE_HTML_LOCAL | grep "href=\"https://.*windows-x64.tar.gz" | grep -o https://.*windows-x64.tar.gz | cut -f1 -d"\"")
+	curl -o "${IDEASY_COMPRESSED_FILE}" $URL
+	rm $PAGE_HTML_LOCAL
+    fi
 }
 
+
 function doExtract() {
-  if [ -f "${1}" ]
+  echo "${IDE_ROOT}/_ide"
+  if [ -f "${IDEASY_COMPRESSED_FILE}" ]
   then
-    tar xfz "${1}" || exit 1
+    tar xfz "${IDEASY_COMPRESSED_FILE}" --directory "${IDE_ROOT}/_ide" || exit 1
   else
-    echo "Could not find and extract release ${1}"
+    echo "Could not find and extract release ${IDEASY_COMPRESSED_FILE}"
     exit 1
   fi
 }

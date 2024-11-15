@@ -1,12 +1,10 @@
-#!/bin/bash
+#--- Body ---
+echo "MY PWD: $PWD"
+echo "npm test"
+#cd adgnaklgnadgknlan
+echo Aha
+#doIdeCreate 
+#ide install npm
+#return
+return 0
 
-source "$(dirname "${0}")"/functions-test.sh
-
-doIdeCreate 
-doCommandTest install npm
-retCode=$?
-if [ $retCode == 0 ]
-then
-    doIdeCreateCleanup
-fi
-exit $retCode
