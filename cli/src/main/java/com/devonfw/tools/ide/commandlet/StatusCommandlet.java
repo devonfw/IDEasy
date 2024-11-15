@@ -1,11 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.FlagProperty;
+import com.devonfw.tools.ide.property.CommandletProperty;
 
 
 public class StatusCommandlet extends Commandlet {
 
+  public final CommandletProperty commandlet;
 
   /**
    * The constructor.
@@ -15,7 +16,8 @@ public class StatusCommandlet extends Commandlet {
   public StatusCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(new FlagProperty(getName()));
+    addKeyword(getName());
+    this.commandlet = add(new CommandletProperty("", false, "commandlet"));
   }
 
   @Override
