@@ -145,13 +145,14 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
   private void assertOptionLogMessages(IdeTestContext context) {
 
     assertThat(context).logAtInfo().hasEntries(
-        "--locale        the locale (e.g. '--locale=de' for German language).",
-        "-b | --batch    enable batch mode (non-interactive).",
-        "-d | --debug    enable debug logging.",
-        "-f | --force    enable force mode.",
-        "-o | --offline  enable offline mode (skip updates or git pull, fail downloads or git clone).",
-        "-q | --quiet    disable info logging (only log success, warning or error).",
-        "-t | --trace    enable trace logging.");
+        "--locale            the locale (e.g. '--locale=de' for German language).",
+        "-b | --batch        enable batch mode (non-interactive).",
+        "-d | --debug        enable debug logging.",
+        "-f | --force        enable force mode.",
+        "-o | --offline      enable offline mode (skip updates or git pull, fail downloads or git clone).",
+        "-q | --quiet        disable info logging (only log success, warning or error).",
+        "-s | --skipUpdates  disables updates for tool if the configured version matches the installed version.",
+        "-t | --trace        enable trace logging.");
   }
 
   /**
