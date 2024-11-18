@@ -106,7 +106,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       } else {
         step.success("Successfully installed {} in version {} replacing previous version {}", this.tool, resolvedVersion, installedVersion);
       }
-      postInstall();
       return true;
     } catch (RuntimeException e) {
       step.error(e, true);
