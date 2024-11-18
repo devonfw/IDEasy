@@ -1,12 +1,11 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.CommandletProperty;
 
-
+/**
+ * {@link Commandlet} to print a status report about IDEasy.
+ */
 public class StatusCommandlet extends Commandlet {
-
-  public final CommandletProperty commandlet;
 
   /**
    * The constructor.
@@ -17,7 +16,6 @@ public class StatusCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.commandlet = add(new CommandletProperty("", false, "commandlet"));
   }
 
   @Override
