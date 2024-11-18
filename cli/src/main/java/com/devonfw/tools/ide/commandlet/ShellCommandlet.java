@@ -63,11 +63,8 @@ public final class ShellCommandlet extends Commandlet {
   public void run() {
 
     try {
-      // TODO: add BuiltIns here, see: https://github.com/devonfw/IDEasy/issues/168
-
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
-
         // initialize our own completer here and add exit as an autocompletion option
         Completer completer = new AggregateCompleter(
             new StringsCompleter("exit"), new IdeCompleter((AbstractIdeContext) this.context));

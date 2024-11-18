@@ -10,14 +10,23 @@ import com.devonfw.tools.ide.log.IdeSubLoggerSlf4j;
  */
 public class IdeSlf4jContext extends AbstractIdeTestContext {
 
+  private static final Path PATH_MOCK = Path.of("/");
+
+  /**
+   * The constructor.
+   */
+  public IdeSlf4jContext() {
+    this(PATH_MOCK);
+  }
+
   /**
    * The constructor.
    *
-   * @param userDir the optional {@link Path} to current working directory.
+   * @param workingDirectory the optional {@link Path} to current working directory.
    */
-  public IdeSlf4jContext(Path userDir) {
+  public IdeSlf4jContext(Path workingDirectory) {
 
-    super(new IdeStartContextImpl(IdeLogLevel.TRACE, level -> new IdeSubLoggerSlf4j(level)), userDir);
+    super(new IdeStartContextImpl(IdeLogLevel.TRACE, IdeSubLoggerSlf4j::new), workingDirectory);
   }
 
 }

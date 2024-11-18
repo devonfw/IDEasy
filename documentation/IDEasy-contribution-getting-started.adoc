@@ -12,7 +12,7 @@ This will be addressed under xref:Contribution[Contribution].
 
 == Contribution
 
-To begin, read through the https://github.com/devonfw/.github/blob/master/CONTRIBUTING.adoc[Contribution Guidelines], which you should be sure to follow.
+To begin, read through the https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[Contribution Guidelines], which you should be sure to follow.
 First steps regarding forks or cloning of repos and creating branches, as well as some git commands, can be found in the https://github.com/firstcontributions/first-contributions[first contributions guideline].
 To contribute code or documentation regarding IDEasy at first you need to fork the https://github.com/devonfw/ideasy[IDEasy] repository and then you can clone your fork into the folder `workspaces/main` in your IDEasy installation.
 Open git-bash in the cloned fork at `workspaces/main/IDEasy` and run the following command:
@@ -25,8 +25,8 @@ git fetch upstream
 Whenever you want to implement a new change first do the following things:
 
 ```
-git checkout master
-git pull upstream master
+git checkout main
+git pull upstream main
 git push
 git checkout -b feature/«issue-id»-«brief-feature-description»
 ```
@@ -36,7 +36,7 @@ Once they are tested and seem to work, you can commit them (`git commit -m "#«i
 If some days have passed meanwhile you should merge changes that meanwhile happened on the official `IDEasy` repo:
 
 ```
-git pull upstream master
+git pull upstream main
 ```
 
 Once you are complete and everything is merged and comitted, you can push your local feature branch and make it a remote branch of your fork on github:
@@ -49,7 +49,7 @@ Now you can go to https://github.com/devonfw/ideasy/pulls and create the pull-re
 Therefore, please click on the right down arrow of the green button and choose `Create draft pull request` and then click on `Draft pull request`.
 When the checks have completed you can check the link:DoD.adoc[Definition-of-Done] (DoD).
 Once, all checks of the DoD are addressed, you can go the the very bottom of the PR and click on `Ready for review` what will take the PR out of the draft mode.
-FYI: If you forgot the upstream merge (`git pull upstream/master`) or the upstream changed again while your PR is still open, you will see `This branch is out-of-date with the base branch` at the bottom of your PR and can click on `Update branch`.
+FYI: If you forgot the upstream merge (`git pull upstream/main`) or the upstream changed again while your PR is still open, you will see `This branch is out-of-date with the base branch` at the bottom of your PR and can click on `Update branch`.
 
 For further development and testing, it is recommended to xref:symbolic-links[symlink] the modified scripts into your IDEasy installation.
 Alternatively, the scripts can be adapted in the installation folder and then committed to the project.
@@ -61,25 +61,26 @@ For creating a contribution also check the link:DoD.adoc[Definition of Done] (Do
 
 Many programs have a download link that depends on the operating system.
 
-For a new tool, create an url-updater in the https://github.com/devonfw/ide/tree/master/url-updater/src/main/java/com/devonfw/tools/ide/url/updater[updater] folder in the current repository.
+For a new tool, create an url-updater in the https://github.com/devonfw/IDEasy/tree/main/cli/src/main/java/com/devonfw/tools/ide/url/updater[updater] folder in the current repository.
 The Name needs to be equal to the one of both the tool and the commandlet.
 
 There are four available parent classes of url-updaters, that can be used.
 They mainly differentiate in the way, available versions are detected.
 
-* https://github.com/devonfw/ide/blob/master/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/GithubUrlUpdater.java[`GithubUrlUpdater`]
+  
+* https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/GithubUrlUpdater.java[`GithubUrlUpdater`]
 
-* https://github.com/devonfw/ide/blob/master/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/JsonUrlUpdater.java[`JsonUrlUpdater`]
+* https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/JsonUrlUpdater.java[`JsonUrlUpdater`]
 
-* https://github.com/devonfw/ide/blob/master/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/MavenBasedUrlUpdater.java[`MavenBasedUrlUpdater`]
+* https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/MavenBasedUrlUpdater.java[`MavenBasedUrlUpdater`]
 
-* https://github.com/devonfw/ide/blob/master/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/WebsiteUrlUpdater.java[`WebsiteUrlUpdater`]
+* https://github.com/devonfw/IDEasy/blob/main/cli/src/main/java/com/devonfw/tools/ide/url/updater/WebsiteUrlUpdater.java[`WebsiteUrlUpdater`]
 
 Note: The `WebsiteUrlUpdater` should not be used if other viable options are available.
 
-The updaters use the function `doAddVersion()`, where the downloadUrl, OS and architecture can be specified for each version. https://github.com/devonfw/ide/blob/master/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/oc/OcUrlUpdater.java#L22C1-L24[Example]
+The updaters use the function `doAddVersion()`, where the downloadUrl, OS and architecture can be specified for each version. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/oc/OcUrlUpdater.java#L20[Example]
 
-`VersionIdentifiers` can also be used if e.g. the downloadUrl changed after a specific version, or certain version are not indented to be available. https://github.com/devonfw/ide/blob/master/url-updater/src/main/java/com/devonfw/tools/ide/url/updater/helm/HelmUrlUpdater.java#L12[Example]
+`VersionIdentifiers` can also be used if e.g. the downloadUrl changed after a specific version, or certain versions are not intended to be available. https://github.com/devonfw/IDEasy/blob/071e732e6c74aed7b12ccc1d522faf1c4a015dad/cli/src/main/java/com/devonfw/tools/ide/tool/helm/HelmUrlUpdater.java#L12[Example]
 
 Once a day, the `UpdateInitiator` will run the updaters through GitHub Actions and fill the https://github.com/devonfw/ide-urls[ide-URL] repository with new version/tools that are identified by the Updaters.
 
@@ -125,7 +126,7 @@ Now changes you make in the first mentioned file will directly be available in y
 
 === developer tools
 
-Have a look at https://github.com/devonfw/ide/blob/master/documentation/advanced-tooling-generic.adoc[advanced-tooling-generic.adoc] for some helpful developer tools.
+Have a look at https://github.com/devonfw/IDEasy/blob/main/documentation/advanced-tooling-generic.adoc[advanced-tooling-generic.adoc] for some helpful developer tools.
 
 === Bash (Linux's Borne Again Shell)
 
@@ -139,10 +140,10 @@ That's why it is often enough to implement code for Mac or Linux (at least to so
 
 Let's get to the practical part of the Bash-usage.
 
-**If you are using Windows**, make sure that you have git-bash installed, so you can execute the Bash commands mentioned in this introduction. [Here you can find git for windows](https://git-scm.com/download/win).
+**If you are using Windows**, make sure that you have git-bash installed, so you can execute the Bash commands mentioned in this introduction. (https://git-scm.com/download/win[Here you can find git for windows]).
 In some cases later on you may want or need to use WSL.
 Our project teams standard way is to install WSL via Rancher Desktop, which is easily installable with the IDEasy by using the command `ide install docker`.
-If you don't have the IDEasy yet, then you can follow [this guide](https://github.com/devonfw/ide/blob/master/documentation/setup.adoc)
+If you don't have the IDEasy yet, then you can follow (https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc[this guide])
 
 The https://www.youtube.com/watch?v=oxuRxtrO2Ag[following video] gives you some important and helpful basics, still you don't need to know all of these commands directly by heart.
 Instead under the video you'll find a list with the commands mentioned in the video to make a command return to your mind.
@@ -160,7 +161,7 @@ On the other side, especially at the beginning, it is better to get an overview 
 
 The meaning of a tag or a sign combination (like `$*`, `$#`, or `$()`) can be hard to guess and also less easy to find during a google-search, because google won't directly search for signs.
 Then a syntax cheatsheet https://www.pcwdld.com/bash-cheat-sheet[like this] or https://devhints.io/bash[like that one] can spare you some searching time.
-If you don't know what a positional parameter like `$1` is in Bash, then have a look at https://wiki.bash-hackers.org/scripting/posparams[this introduction] and play around with the tools mentioned to get a better understanding of how they work.
+If you don't know what a positional parameter like `$1` is in Bash, then have a look at https://www.gnu.org/software/bash/manual/html_node/Shell-Parameters.html[the documentation for bash].
 It's definitively worth knowing the basics about positional parameters if you want to make some more advanced Bash-scripts.
 There are a few more topics that I want to mention to you as you may come across them regularly in Bash-scripting.
 The first one concerns regular expressions, which you will find during various coding situations.
@@ -171,7 +172,6 @@ Finally, to possibly increase your knowledge while scripting bash-files, try out
 
 **Directly regarding our project:**
 
-In case you want to get your hands dirty with code that is already in use and comes from our ide-project, then you can try out the functions written in our https://github.com/devonfw/ide/blob/master/scripts/src/main/resources/scripts/functions[functions-file].
 There are also some basic exercises related to our project that are not official yet, but you can ask for if you want to try some of them out to learn and challenge yourself a bit.
 
 == Documentation

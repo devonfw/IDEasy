@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableDefinition;
 import com.devonfw.tools.ide.variable.VariableSyntax;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Abstract base implementation of {@link EnvironmentVariables}.
@@ -318,6 +319,25 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
       this.context.trace("Inverse resolved '{}' to '{}' from {}.", string, result, src);
     }
     return result;
+  }
+
+  @Override
+  public VersionIdentifier getToolVersion(String tool) {
+
+    String variable = EnvironmentVariables.getToolVersionVariable(tool);
+    String value = get(variable);
+    if (value == null) {
+      return VersionIdentifier.LATEST;
+    } else if (value.isEmpty()) {
+      this.context.warning("Variable {} is configured with empty value, please fix your configuration.", variable);
+      return VersionIdentifier.LATEST;
+    }
+    VersionIdentifier version = VersionIdentifier.of(value);
+    if (version == null) {
+      // can actually never happen, but for robustness
+      version = VersionIdentifier.LATEST;
+    }
+    return version;
   }
 
   @Override
