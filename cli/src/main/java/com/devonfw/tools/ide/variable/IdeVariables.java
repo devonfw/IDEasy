@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.variable;
 import java.util.Collection;
 import java.util.List;
 
+import com.devonfw.tools.ide.context.GitUrlSyntax;
+
 /**
  * Interface (mis)used to define all the available variables.
  */
@@ -76,6 +78,10 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() PROJECT_NAME}. */
   VariableDefinitionString PROJECT_NAME = new VariableDefinitionString("PROJECT_NAME", null, c -> c.getProjectName());
 
+  /** Preferred Git protocol (HTTPS/SSH) as defined by {@link GitUrlSyntax}. */
+  VariableDefinitionEnum<GitUrlSyntax> PREFERRED_GIT_PROTOCOL = new VariableDefinitionEnum<>("PREFERRED_GIT_PROTOCOL", null, GitUrlSyntax.class,
+      c -> GitUrlSyntax.DEFAULT);
+
   /**
    * {@link VariableDefinition} for support of legacy variable syntax when
    * {@link com.devonfw.tools.ide.environment.EnvironmentVariables#resolve(String, Object, boolean) resolving variables} in configuration templates.
@@ -87,7 +93,7 @@ public interface IdeVariables {
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, IDE_ENABLE_CONSOLE_LOG,
       CREATE_START_SCRIPTS,
       IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, GRADLE_BUILD_OPTS, YARN_BUILD_OPTS, JASYPT_OPTS, MAVEN_ARGS,
-      PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED);
+      PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
 
   /**
    * @param name the name of the requested {@link VariableDefinition}.
@@ -100,4 +106,15 @@ public interface IdeVariables {
     return IdeVariablesList.get(name);
   }
 
+  /**
+   * @param name the name of the variable.
+   * @return {@code true} if a {@link VariableDefinition#getLegacyName() legacy variable}, {@code false} otherwise.
+   */
+  static boolean isLegacyVariable(String name) {
+    VariableDefinition<?> variableDefinition = IdeVariablesList.get(name);
+    if (variableDefinition != null) {
+      return name.equals(variableDefinition.getLegacyName());
+    }
+    return false;
+  }
 }

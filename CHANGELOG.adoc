@@ -2,14 +2,24 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2024.12.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/646[#646]: Add variable for intellij to disable log output
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/16?closed=1[milestone 2024.12.001].
+
 == 2024.11.001
 
 Release with new features and bugfixes:
 
-
-* https://github.com/devonfw/IDEasy/issues/646[#646]: Add variable for intellij to disable log output
+* https://github.com/devonfw/IDEasy/issues/632[#632]: Add .editorconfig to settings workspaces
+* https://github.com/devonfw/IDEasy/issues/415[#415]: Added a message that will inform the user for what process he will need to enter his sudo-password
 * https://github.com/devonfw/IDEasy/issues/708[#708]: Open vscode in workspace path
 * https://github.com/devonfw/IDEasy/issues/608[#608]: Enhanced error messages. Now logs missing command output and error messages
+* https://github.com/devonfw/IDEasy/issues/715[#715]: Show "cygwin is not supported" message for cygwin users
+* https://github.com/devonfw/IDEasy/issues/745[#745]: Maven install fails with NPE
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/15?closed=1[milestone 2024.11.001].
 
@@ -17,6 +27,8 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/315[#315]: Fix frozen process after MSI installation
+* https://github.com/devonfw/IDEasy/issues/312[#312]: Add ability to prefer git (ssh) protocol instead of https for cloning repo
 * https://github.com/devonfw/IDEasy/issues/685[#685]: Upgrades and cleanup of dependencies and according license and doc
 * https://github.com/devonfw/IDEasy/pull/693[#693]: Setup not working on Mac
 * https://github.com/devonfw/IDEasy/issues/704[#704]: settings-security.xml not found
