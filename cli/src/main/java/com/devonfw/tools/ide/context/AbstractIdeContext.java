@@ -128,9 +128,9 @@ public abstract class AbstractIdeContext implements IdeContext {
    * The constructor.
    *
    * @param startContext the {@link IdeLogger}.
-   * @param userDir the optional {@link Path} to current working directory.
+   * @param workingDirectory the optional {@link Path} to current working directory.
    */
-  public AbstractIdeContext(IdeStartContextImpl startContext, Path userDir) {
+  public AbstractIdeContext(IdeStartContextImpl startContext, Path workingDirectory) {
 
     super();
     this.startContext = startContext;
@@ -138,13 +138,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.commandletManager = new CommandletManagerImpl(this);
     this.fileAccess = new FileAccessImpl(this);
     String workspace = WORKSPACE_MAIN;
-    if (userDir == null) {
-      userDir = Path.of(System.getProperty("user.dir"));
+    if (workingDirectory == null) {
+      workingDirectory = Path.of(System.getProperty("user.dir"));
     } else {
-      userDir = userDir.toAbsolutePath();
+      workingDirectory = workingDirectory.toAbsolutePath();
     }
     // detect IDE_HOME and WORKSPACE
-    Path currentDir = userDir;
+    Path currentDir = workingDirectory;
     String name1 = "";
     String name2 = "";
     while (currentDir != null) {
@@ -166,7 +166,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     // detection completed, initializing variables
     this.ideRoot = findIdeRoot(currentDir);
 
-    setCwd(userDir, workspace, currentDir);
+    setCwd(workingDirectory, workspace, currentDir);
 
     if (this.ideRoot == null) {
       this.toolRepositoryPath = null;
@@ -247,10 +247,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.userHomeIde = this.userHome.resolve(".ide");
     this.downloadPath = this.userHome.resolve("Downloads/ide");
 
-    this.variables = createVariables();
     this.path = computeSystemPath();
     this.customToolRepository = CustomToolRepositoryImpl.of(this);
-    this.workspaceMerger = new DirectoryMerger(this);
   }
 
   private String getMessageIdeHomeFound() {
@@ -498,6 +496,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public EnvironmentVariables getVariables() {
 
+    if (this.variables == null) {
+      this.variables = createVariables();
+    }
     return this.variables;
   }
 
@@ -571,6 +572,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public DirectoryMerger getWorkspaceMerger() {
 
+    if (this.workspaceMerger == null) {
+      this.workspaceMerger = new DirectoryMerger(this);
+    }
     return this.workspaceMerger;
   }
 
@@ -1054,6 +1058,6 @@ public abstract class AbstractIdeContext implements IdeContext {
    * Reloads this context and re-initializes the {@link #getVariables() variables}.
    */
   public void reload() {
-    this.variables = createVariables();
+    this.variables = null;
   }
 }
