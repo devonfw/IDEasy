@@ -43,7 +43,7 @@ public class ContextCommandlet extends Commandlet {
     this.debug = add(new FlagProperty("--debug", false, "-d"));
     this.quiet = add(new FlagProperty("--quiet", false, "-q"));
     this.offline = add(new FlagProperty("--offline", false, "-o"));
-    this.skipUpdates = add(new FlagProperty("--skipUpdates", false, "-s"));
+    this.skipUpdates = add(new FlagProperty("--skip-updates", false, "-s"));
     this.locale = add(new LocaleProperty("--locale", false, null));
   }
 
