@@ -151,7 +151,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
         "-f | --force        enable force mode.",
         "-o | --offline      enable offline mode (skip updates or git pull, fail downloads or git clone).",
         "-q | --quiet        disable info logging (only log success, warning or error).",
-        "-s | --skipUpdates  disables updates for tool if the configured version matches the installed version.",
+        "-s | --skip-updates  disables tool updates if the configured versions match the installed versions.",
         "-t | --trace        enable trace logging.");
   }
 
