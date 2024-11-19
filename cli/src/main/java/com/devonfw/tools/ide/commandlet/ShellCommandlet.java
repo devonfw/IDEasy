@@ -151,7 +151,7 @@ public final class ShellCommandlet extends Commandlet {
 
     // If the given path is relative, resolve it relative to the current directory
     if (!path.isAbsolute()) {
-      path = Paths.get(System.getProperty("user.dir")).resolve(path).normalize();
+      path = context.getCwd();
     }
 
     // Check if the path exists and is a directory
