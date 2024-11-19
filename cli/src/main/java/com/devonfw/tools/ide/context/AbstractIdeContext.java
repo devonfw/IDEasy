@@ -68,7 +68,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path confPath;
 
-  private Path settingsPath;
+  protected Path settingsPath;
 
   private Path softwarePath;
 
@@ -76,7 +76,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path softwareRepositoryPath;
 
-  private Path pluginsPath;
+  protected Path pluginsPath;
 
   private Path workspacePath;
 
@@ -108,7 +108,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final FileAccess fileAccess;
 
-  private final CommandletManager commandletManager;
+  protected CommandletManager commandletManager;
 
   protected ToolRepository defaultToolRepository;
 
