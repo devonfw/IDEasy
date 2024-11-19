@@ -26,6 +26,8 @@ Create a central folder `projects` folder (on Windows use `C:\projects` or `D:\p
 Inside this folder, create a sub-folder named `_ide` and extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to this new folder (e.g. `C:\projects\_ide`).
 Run the command `setup` in this folder (on windows double clicking on `setup.bat`).
 To get started read the link:usage.adoc[usage].
+After the installation process, you can create a new project by typing: `ide create <project>`, replace `<project>` with your project name.
+Switch to the project folder e.g. `cd <project>` and install or configure tools for your project as needed.
 
 NOTE: We are planning to create a installer that will guide users through the installation process but this is not yet released.
 
@@ -45,10 +47,10 @@ Instead you just create a folder and extract the xref:download[downloaded] archi
 All the other softwares remain locally in your IDEasy folder.
 However, there are the following excuses (what is reverted by `ide uninstall`):
 
-* The `ide` command is copied to your home directory (`~/.ide/scripts/ide`)
-* The `ide` alias is added to your shell config (`~/.bashrc` and `~/.zshrc`, search for `alias ide="source ~/.ide/scripts/ide"`).
-* On Windows the `ide.bat` command is copied to your home directory (`%USERPROFILE%\.ide\scripts\ide.bat`)
-* On Windows this `%USERPROFILE%\.ide\scripts` directory is added to the `PATH` of your user.
+* The `ide` alias is added to your shell config (`~/.bashrc` and `~/.zshrc`, search for: `alias ide="source /c/projects/_ide/bin/ide"`).
+* The `completion` is added to your shell config (`~/.bashrc` and `~/.zshrc`, search for: `source /c/projects/_ide/completion`).
+* The `IDE_ROOT` environment variable pointing to `c/projects` is added to your environment variables.
+* The `/c/projects/_ide/bin` folder is added to your `PATH` environment variable.
 * `IDEasy` will download all third party software to your `~/Downloads/ide` folder to reduce redundant storage.
 You have to delete this folder manually as we do not want to be responsible for data-loss in case users manually put files here.
 
