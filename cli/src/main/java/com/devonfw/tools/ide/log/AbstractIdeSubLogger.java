@@ -131,8 +131,8 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
   @Override
   public String log(Throwable error, String message, Object... args) {
 
-    this.count++;
     if (!this.enabled) {
+      this.count++;
       // performance optimization: do not fill in arguments if disabled
       return message;
     }
@@ -148,10 +148,11 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
     }
     boolean accept = this.listener.onLog(this.level, actualMessage, message, args, error);
     if (accept) {
+      this.count++;
       // actualMessage = this.exceptionDetails.format(actualMessage, error);
       doLog(actualMessage, error);
     }
-    return message;
+    return actualMessage;
   }
 
   /**
