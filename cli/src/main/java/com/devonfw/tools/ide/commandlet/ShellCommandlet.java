@@ -157,7 +157,7 @@ public final class ShellCommandlet extends Commandlet {
     // Check if the path exists and is a directory
     if (Files.exists(path) && Files.isDirectory(path)) {
       // Set the current working directory to the new path
-      System.setProperty("user.dir", path.toAbsolutePath().toString());
+      context.setCwd(path, context.getWorkspaceName(), context.getIdeHome());
       this.context.info("Changed directory to: " + path.toAbsolutePath());
       return 0;
     } else {
