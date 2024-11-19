@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Iterator;
@@ -82,13 +81,13 @@ public final class ShellCommandlet extends Commandlet {
 
         // TODO: implement TailTipWidgets, see: https://github.com/devonfw/IDEasy/issues/169
 
-        String prompt = "ide> ";
         String rightPrompt = null;
         String line;
 
         AnsiConsole.systemInstall();
         while (true) {
           try {
+            String prompt = "ide " + context.getCwd() + " > ";
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
             line = line.trim();
             if (line.equals("exit")) {
@@ -143,7 +142,7 @@ public final class ShellCommandlet extends Commandlet {
   private int changeDirectory(CliArguments cliArgs) {
     if (!cliArgs.hasNext()) {
       this.context.error("Error: 'cd' requires a directory argument.");
-      return -1;
+      return 1;
     }
 
     String targetDir = String.valueOf(cliArgs.next());
@@ -151,21 +150,20 @@ public final class ShellCommandlet extends Commandlet {
 
     // If the given path is relative, resolve it relative to the current directory
     if (!path.isAbsolute()) {
-      path = context.getCwd();
+      path = context.getCwd().resolve(targetDir).normalize();
     }
 
     // Check if the path exists and is a directory
-    if (Files.exists(path) && Files.isDirectory(path)) {
+
+    if (context.getFileAccess().isExpectedFolder(path)) {
       // Set the current working directory to the new path
       context.setCwd(path, context.getWorkspaceName(), context.getIdeHome());
-      this.context.info("Changed directory to: " + path.toAbsolutePath());
       return 0;
     } else {
-      this.context.error("Error: Directory not found: " + targetDir);
-      return -1;
+      return 1;
     }
   }
-  
+
   /**
    * @param argument the current {@link CliArgument} (position) to match.
    * @param commandlet the potential {@link Commandlet} to match.
