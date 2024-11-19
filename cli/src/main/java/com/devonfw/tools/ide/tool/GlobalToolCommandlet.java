@@ -147,12 +147,11 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       fileAccess.delete(tmpDir);
     }
     if (exitCode == 0) {
-      this.context.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
+      this.context.success("Installation process for {} in version {} has started", this.tool, resolvedVersion);
     } else {
       this.context.warning("{} in version {} was not successfully installed", this.tool, resolvedVersion);
       return false;
     }
-    postInstall();
     return true;
   }
 

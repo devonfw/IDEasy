@@ -116,6 +116,27 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   }
 
+  /**
+   * This method is called after a tool was requested to be installed or updated.
+   *
+   * @param newlyInstalled {@code true} if the tool was installed or updated (at least link to software folder was created/updated), {@code false} otherwise
+   *     (configured version was already installed and nothing changed).
+   */
+  protected void postInstall(boolean newlyInstalled) {
+
+    if (newlyInstalled) {
+      postInstall();
+    }
+  }
+
+  /**
+   * This method is called after the tool has been newly installed or updated to a new version.
+   */
+  protected void postInstall() {
+
+    // nothing to do by default
+  }
+
   private boolean toolAlreadyInstalled(boolean silent, VersionIdentifier installedVersion, Step step) {
     if (!silent) {
       this.context.info("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
