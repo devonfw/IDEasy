@@ -87,7 +87,7 @@ public final class ShellCommandlet extends Commandlet {
         AnsiConsole.systemInstall();
         while (true) {
           try {
-            String prompt = "ide " + context.getCwd() + " > ";
+            String prompt = "ide " + context.getCwd() + "> ";
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
             line = line.trim();
             if (line.equals("exit")) {
