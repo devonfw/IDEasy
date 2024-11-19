@@ -264,18 +264,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       return "The environment variable IDE_ROOT is pointing to an invalid path " + root + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     }
   }
-
-  /**
-   * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable initialization.
-   */
-  public String getMessageIdeHome() {
-
-    if (this.ideHome != null) {
-      return getMessageIdeHomeFound();
-    }
-    return null;
-  }
-
+  
   /**
    * @return {@code true} if this is a test context for JUnits, {@code false} otherwise.
    */
