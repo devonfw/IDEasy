@@ -247,10 +247,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.userHomeIde = this.userHome.resolve(".ide");
     this.downloadPath = this.userHome.resolve("Downloads/ide");
 
-    this.variables = createVariables();
     this.path = computeSystemPath();
     this.customToolRepository = CustomToolRepositoryImpl.of(this);
-    this.workspaceMerger = new DirectoryMerger(this);
   }
 
   private String getMessageIdeHomeFound() {
@@ -498,6 +496,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public EnvironmentVariables getVariables() {
 
+    if (this.variables == null) {
+      this.variables = createVariables();
+    }
     return this.variables;
   }
 
@@ -571,6 +572,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public DirectoryMerger getWorkspaceMerger() {
 
+    if (this.workspaceMerger == null) {
+      this.workspaceMerger = new DirectoryMerger(this);
+    }
     return this.workspaceMerger;
   }
 
@@ -1054,6 +1058,6 @@ public abstract class AbstractIdeContext implements IdeContext {
    * Reloads this context and re-initializes the {@link #getVariables() variables}.
    */
   public void reload() {
-    this.variables = createVariables();
+    this.variables = null;
   }
 }
