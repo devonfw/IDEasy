@@ -129,6 +129,9 @@ public class ProcessContextImpl implements ProcessContext {
   @Override
   public ProcessResult run(ProcessMode processMode) {
 
+    final String ERROR_PREFIX = "ERROR: ";
+    final String OUTPUT_PREFIX = "OUTPUT: ";
+
     if (processMode == ProcessMode.DEFAULT) {
       this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
     }
@@ -167,16 +170,16 @@ public class ProcessContextImpl implements ProcessContext {
 
       this.processBuilder.command(args);
 
-      List<String> out = null;
+      List<String> logs = new ArrayList<>();
       List<String> err = null;
 
       Process process = this.processBuilder.start();
 
       if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
-        CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
-        out = outFut.get();
-        err = errFut.get();
+        CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream(), false, logs);
+        CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream(), true, logs);
+        outFut.get();
+        errFut.get();
       }
 
       int exitCode;
@@ -187,10 +190,9 @@ public class ProcessContextImpl implements ProcessContext {
         exitCode = process.waitFor();
       }
 
-      ProcessResult result = new ProcessResultImpl(exitCode, out, err);
+      ProcessResult result = new ProcessResultImpl(exitCode, logs, null);
 
       performLogging(result, exitCode, interpreter);
-
       return result;
 
     } catch (CliProcessException | IllegalStateException e) {
@@ -214,11 +216,19 @@ public class ProcessContextImpl implements ProcessContext {
    * @param is {@link InputStream}.
    * @return {@link CompletableFuture}.
    */
-  private static CompletableFuture<List<String>> readInputStream(InputStream is) {
+  private static CompletableFuture<List<String>> readInputStream(InputStream is, boolean errorStream, List<String> logs) {
 
     return CompletableFuture.supplyAsync(() -> {
 
       try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr)) {
+
+        String prefix = errorStream ? "- " : "+ ";
+        String line;
+        while ((line = br.readLine()) != null) {
+          synchronized (logs) {
+            logs.add(prefix + line);
+          }
+        }
         return br.lines().toList();
       } catch (Throwable e) {
         throw new RuntimeException("There was a problem while executing the program", e);
