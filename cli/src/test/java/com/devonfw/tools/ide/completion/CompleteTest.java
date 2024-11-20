@@ -89,7 +89,7 @@ public class CompleteTest extends IdeContextTest {
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdoqts", "-fbdoqtsv");
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdoqt", "-fbdoqtv");
   }
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
