@@ -85,7 +85,7 @@ public class CompleteTest extends IdeContextTest {
 
     // arrange
     AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
-    CliArguments args = CliArguments.ofCompletion("-fbdoqts");
+    CliArguments args = CliArguments.ofCompletion("-fbdoqt");
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
