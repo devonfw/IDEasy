@@ -33,7 +33,11 @@ public class UpdateSettingsCommandlet extends Commandlet {
     for (Path file_path : test) {
 
       if (context.getFileAccess().findFirst(file_path.getParent(), path -> path.getFileName().toString().equals("ide.properties"), false) != null) {
-
+        try {
+          Files.delete(file_path);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
       } else {
         Path target = file_path.getParent().resolve("ide.properties");
         try {
