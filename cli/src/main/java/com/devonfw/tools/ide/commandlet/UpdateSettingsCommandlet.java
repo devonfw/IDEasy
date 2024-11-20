@@ -32,13 +32,16 @@ public class UpdateSettingsCommandlet extends Commandlet {
     List<Path> test = context.getFileAccess().listChildrenRecursive(source, path -> path.getFileName().toString().equals("devon.properties"));
     for (Path file_path : test) {
 
-      Path target = file_path.getParent().resolve("ide.properties");
+      if (context.getFileAccess().findFirst(file_path.getParent(), path -> path.getFileName().toString().equals("ide.properties"), false) != null) {
 
-      try {
-        Files.move(file_path, target);
-        this.context.success("updated file name: " + file_path + "\n-> " + target);
-      } catch (IOException e) {
-        this.context.error("Error updating file name: " + file_path);
+      } else {
+        Path target = file_path.getParent().resolve("ide.properties");
+        try {
+          Files.move(file_path, target);
+          this.context.success("updated file name: " + file_path + "\n-> " + target);
+        } catch (IOException e) {
+          this.context.error("Error updating file name: " + file_path);
+        }
       }
     }
   }
