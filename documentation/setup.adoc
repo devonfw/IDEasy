@@ -50,7 +50,7 @@ However, there are the following excuses (what is reverted by `ide uninstall`):
 * The `ide` alias is added to your shell config (`~/.bashrc` and `~/.zshrc`, search for: `alias ide=`).
 * The `completion` is added to your shell config (`~/.bashrc` and `~/.zshrc`, search for: `_ide/completion`).
 * The `IDE_ROOT` environment variable is added to your environment variables.
-* The `../_ide/bin` folder is added to your `PATH` environment variable.
+* The `$IDE_ROOT/_ide/bin` folder is added to your `PATH` environment variable.
 * `IDEasy` will download all third party software to your `~/Downloads/ide` folder to reduce redundant storage.
 You have to delete this folder manually as we do not want to be responsible for data-loss in case users manually put files here.
 
