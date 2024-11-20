@@ -225,6 +225,8 @@ public interface FileAccess {
    */
   List<Path> listChildren(Path dir, Predicate<Path> filter);
 
+  List<Path> listChildrenRecursive(Path dir, Predicate<Path> filter);
+
   /**
    * Finds the existing file with the specified name in the given list of directories.
    *

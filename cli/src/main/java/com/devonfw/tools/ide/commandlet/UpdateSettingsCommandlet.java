@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
+import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
 
@@ -26,10 +27,7 @@ public class UpdateSettingsCommandlet extends Commandlet {
   @Override
   public void run() {
     Path source = context.getIdeHome();
-    if (null != context.getFileAccess().findFirst(source, path -> path.getFileName().toString().equals("devon.properties"), true)) {
-      this.context.info("hi");
-    } else {
-      this.context.info("nein");
-    }
+    List<Path> test = context.getFileAccess().listChildrenRecursive(source, path -> path.toString().equals("devon.properties"));
+    System.out.println(test);
   }
 }
