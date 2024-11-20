@@ -209,7 +209,6 @@
               <imageName>${imageName}</imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=http,https</arg>
-                <arg>-H:IncludeResources="nls/.*"</arg>
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
               </buildArgs>
             </configuration>
