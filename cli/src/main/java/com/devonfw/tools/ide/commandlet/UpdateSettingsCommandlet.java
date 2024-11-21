@@ -53,7 +53,7 @@ public class UpdateSettingsCommandlet extends Commandlet {
 
           // Separate comments from the actual properties in ide.properties
           int i = 0;
-          while (i < ideLines.size() && ideLines.get(i).startsWith("#")) {
+          while (i < ideLines.size() && ideLines.get(i).startsWith("#") && ideLines.get(i).startsWith(" ")) {
             comments.add(ideLines.get(i));  // Add comment lines to the list
             i++;
           }
