@@ -471,11 +471,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       assert (Files.exists(binFolder));
     }
-    Path bashFile = binFolder.resolve(getName());
-    String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname \"$0\")/";
-    String bashFileContentEnd = "\" $@";
+    Path bashFile = binFolder.resolve(getName() + ".bat");
+    String bashFileContentStart = "@echo off\nsetlocal\nset SCRIPT_DIR=%~dp0\nstart \"\" \"%SCRIPT_DIR%";
+    String bashFileContentEnd = "\" ";
     if (background) {
-      bashFileContentEnd += " &";
+      bashFileContentEnd += " %*";
     }
     try {
       Files.writeString(bashFile, bashFileContentStart + binary + bashFileContentEnd);
