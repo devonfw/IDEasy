@@ -10,10 +10,6 @@ public class IdeSubLoggerOut extends AbstractIdeSubLogger {
 
   private final Appendable out;
 
-  private final boolean colored;
-
-  private final IdeLogExceptionDetails exceptionDetails;
-
   /**
    * The constructor.
    *
@@ -22,9 +18,9 @@ public class IdeSubLoggerOut extends AbstractIdeSubLogger {
    * @param colored - {@code true} for colored output according to {@link IdeLogLevel}, {@code false} otherwise.
    * @param minLogLevel the minimum log level (threshold).
    */
-  public IdeSubLoggerOut(IdeLogLevel level, Appendable out, boolean colored, IdeLogLevel minLogLevel) {
+  public IdeSubLoggerOut(IdeLogLevel level, Appendable out, boolean colored, IdeLogLevel minLogLevel, IdeLogListener listener) {
 
-    super(level);
+    super(level, colored, IdeLogExceptionDetails.of(level, minLogLevel), listener);
     if (out == null) {
       // this is on of the very rare excuses where System.out or System.err is allowed to be used!
       if (level == IdeLogLevel.ERROR) {
@@ -35,24 +31,10 @@ public class IdeSubLoggerOut extends AbstractIdeSubLogger {
     } else {
       this.out = out;
     }
-    this.colored = colored;
-    this.exceptionDetails = IdeLogExceptionDetails.of(level, minLogLevel);
   }
 
   @Override
-  public boolean isEnabled() {
-
-    return true;
-  }
-
-  @Override
-  protected boolean isColored() {
-
-    return this.colored;
-  }
-
-  @Override
-  public void log(String message) {
+  public void doLog(String message, Throwable error) {
 
     try {
       String startColor = null;
@@ -61,6 +43,9 @@ public class IdeSubLoggerOut extends AbstractIdeSubLogger {
         if (startColor != null) {
           this.out.append(startColor);
         }
+      }
+      if (error != null) {
+        message = this.exceptionDetails.format(message, error);
       }
       this.out.append(message);
       if (startColor != null) {
@@ -71,23 +56,4 @@ public class IdeSubLoggerOut extends AbstractIdeSubLogger {
       throw new IllegalStateException("Failed to log message: " + message, e);
     }
   }
-
-  @Override
-  public String log(Throwable error, String message, Object... args) {
-
-    if (args != null) {
-      message = compose(message, args);
-    }
-    log(this.exceptionDetails.format(message, error));
-    if (message == null) {
-      if (error == null) {
-        return null;
-      } else {
-        return error.toString();
-      }
-    } else {
-      return message;
-    }
-  }
-
 }

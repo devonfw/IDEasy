@@ -10,9 +10,8 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
   <groupId>com.devonfw.tools.IDEasy</groupId>
-  <artifactId>gui</artifactId>
+  <artifactId>ide-gui</artifactId>
   <version>${revision}</version>
-  <name>gui</name>
 
   <properties>
     <mainClass>com.devonfw.ide.gui.AppLauncher</mainClass>

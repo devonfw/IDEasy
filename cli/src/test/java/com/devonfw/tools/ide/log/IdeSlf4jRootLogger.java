@@ -20,7 +20,7 @@ public class IdeSlf4jRootLogger implements IdeLogger {
     super();
     this.loggers = new HashMap<>();
     for (IdeLogLevel level : IdeLogLevel.values()) {
-      this.loggers.put(level, new IdeSubLoggerSlf4j(level));
+      this.loggers.put(level, new IdeSubLoggerSlf4j(level, null));
     }
   }
 

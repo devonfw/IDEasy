@@ -34,10 +34,23 @@ enum IdeLogExceptionDetails {
     void format(Throwable error, StringWriter sw) {
 
       String errorMessage = error.getMessage();
-      if (isBlank(errorMessage)) {
+      if ((errorMessage == null) || errorMessage.isBlank()) {
         errorMessage = error.getClass().getName();
       }
       sw.append(errorMessage);
+    }
+  },
+
+  /** Ignore error and only log explicit message. */
+  NONE(0) {
+    @Override
+    String format(String message, Throwable error) {
+      return message;
+    }
+
+    @Override
+    void format(Throwable error, StringWriter sw) {
+
     }
   };
 
@@ -54,20 +67,12 @@ enum IdeLogExceptionDetails {
    */
   String format(String message, Throwable error) {
 
-    boolean hasMessage = !isBlank(message);
-    if (error == null) {
-      if (hasMessage) {
-        return message;
-      } else {
-        return "Internal error: Both message and error is null - nothing to log!";
-      }
-    }
     int capacity = this.capacityOffset;
-    if (hasMessage) {
+    if (message != null) {
       capacity = capacity + message.length() + 1;
     }
     StringWriter sw = new StringWriter(capacity);
-    if (hasMessage) {
+    if (message != null) {
       sw.append(message);
       sw.append('\n');
     }
@@ -76,14 +81,6 @@ enum IdeLogExceptionDetails {
   }
 
   abstract void format(Throwable error, StringWriter sw);
-
-  private static boolean isBlank(String string) {
-
-    if ((string == null) || (string.isBlank())) {
-      return true;
-    }
-    return false;
-  }
 
   /**
    * @param level the {@link IdeLogLevel} of the {@link IdeSubLogger}.
@@ -95,14 +92,11 @@ enum IdeLogExceptionDetails {
     if ((minLogLevel == IdeLogLevel.TRACE) || (minLogLevel == IdeLogLevel.DEBUG)) {
       return STACKTRACE;
     }
-    switch (level) {
-      case ERROR:
-        return STACKTRACE;
-      case WARNING:
-        return TO_STRING;
-      default:
-        return MESSAGE;
-    }
+    return switch (level) {
+      case ERROR -> STACKTRACE;
+      case WARNING -> TO_STRING;
+      default -> MESSAGE;
+    };
   }
 
 }

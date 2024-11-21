@@ -99,7 +99,7 @@ public class StepTest extends AbstractIdeContextTest {
     assertThat(context).log().hasEntries(IdeLogEntry.ofTrace("Starting step Test-Step..."),
         IdeLogEntry.ofStep("Start: Test-Step"),
         IdeLogEntry.ofWarning("Step 'Test-Step' already ended with true and now ended again with false."),
-        IdeLogEntry.ofError("unexpected situation!"),
+        IdeLogEntry.ofError("java.lang.IllegalStateException: unexpected situation!"),
         IdeLogEntry.ofDebug("Step 'Test-Step' ended with failure."));
   }
 
