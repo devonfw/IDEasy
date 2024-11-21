@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.stream.Stream;
 
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -33,12 +32,8 @@ public class ToolRepositoryMock extends DefaultToolRepository {
   @Override
   public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version) {
 
-    try {
-      return super.resolveVersion(tool, edition, version);
-    } catch (CliException e) {
-      this.context.error(e, "Invalid test project using version {} that cannot be resolved in urls folder", version);
-      return version.getMax();
-    }
+    return super.resolveVersion(tool, edition, version);
+
   }
 
   @Override
