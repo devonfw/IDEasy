@@ -41,7 +41,7 @@ public final class EnvironmentCommandlet extends Commandlet {
   @Override
   public boolean isIdeHomeRequired() {
 
-    return true;
+    return false;
   }
 
   @Override
