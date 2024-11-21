@@ -35,7 +35,10 @@ public enum IdeLogLevel {
   /**
    * {@link IdeLogLevel} for an error (something failed and we cannot proceed or the user has to continue with extreme care).
    */
-  ERROR("\033[91m");
+  ERROR("\033[91m"),
+
+  /** {@link IdeLogLevel} for {@link com.devonfw.tools.ide.commandlet.Commandlet#isProcessableOutput() processable output} */
+  PROCESSABLE(null);
 
   private final String color;
 
@@ -61,6 +64,14 @@ public enum IdeLogLevel {
   public String getEndColor() {
 
     return "\033[0m"; // reset color
+  }
+
+  /**
+   * @return {@code true} in case of a custom log-level, {@code false} otherwise (standard log-level supported by SLF4J and all reasonable loggers).
+   */
+  public boolean isCustom() {
+
+    return (this == STEP) || (this == INTERACTION) || (this == SUCCESS) || (this == PROCESSABLE);
   }
 
 }
