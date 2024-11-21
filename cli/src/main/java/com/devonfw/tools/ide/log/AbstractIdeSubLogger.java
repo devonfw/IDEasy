@@ -149,7 +149,6 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
     boolean accept = this.listener.onLog(this.level, actualMessage, message, args, error);
     if (accept) {
       this.count++;
-      // actualMessage = this.exceptionDetails.format(actualMessage, error);
       doLog(actualMessage, error);
     }
     return actualMessage;
