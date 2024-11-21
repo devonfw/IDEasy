@@ -471,19 +471,34 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       assert (Files.exists(binFolder));
     }
-    Path batchFile = binFolder.resolve(getName() + ".bat");
-    String batchFileContentStart = "@echo off\nsetlocal\nset SCRIPT_DIR=%~dp0\nstart \"\" \"%SCRIPT_DIR%";
-    String batchFileContentEnd = "\" ";
+    if (this.context.getSystemInfo().isWindows()) {
+      Path batchFile = binFolder.resolve(getName() + ".bat");
+      String batchFileContentStart = "@echo off\nsetlocal\nset SCRIPT_DIR=%~dp0\nstart \"\" \"%SCRIPT_DIR%";
+      String batchFileContentEnd = "\" ";
+      if (background) {
+        batchFileContentEnd += " %*";
+      }
+      try {
+        Files.writeString(batchFile, batchFileContentStart + binary + batchFileContentEnd);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      assert (Files.exists(batchFile));
+      context.getFileAccess().makeExecutable(batchFile);
+    }
+    Path bashFile = binFolder.resolve(getName());
+    String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname \"$0\")/";
+    String bashFileContentEnd = "\" $@";
     if (background) {
-      batchFileContentEnd += " %*";
+      bashFileContentEnd += " &";
     }
     try {
-      Files.writeString(batchFile, batchFileContentStart + binary + batchFileContentEnd);
+      Files.writeString(bashFile, bashFileContentStart + binary + bashFileContentEnd);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    assert (Files.exists(batchFile));
-    context.getFileAccess().makeExecutable(batchFile);
+    assert (Files.exists(bashFile));
+    context.getFileAccess().makeExecutable(bashFile);
   }
 
 }
