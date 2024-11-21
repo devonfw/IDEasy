@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/589[#589]: Fix NLS Bundles for Linux and MacOS
 * https://github.com/devonfw/IDEasy/issues/764[#764]: IDEasy not working properly in CMD
 * https://github.com/devonfw/IDEasy/issues/754[#754]: Again messages break processable command output
 
