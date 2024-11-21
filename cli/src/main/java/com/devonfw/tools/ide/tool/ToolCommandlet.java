@@ -471,19 +471,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       assert (Files.exists(binFolder));
     }
-    Path bashFile = binFolder.resolve(getName() + ".bat");
-    String bashFileContentStart = "@echo off\nsetlocal\nset SCRIPT_DIR=%~dp0\nstart \"\" \"%SCRIPT_DIR%";
-    String bashFileContentEnd = "\" ";
+    Path batchFile = binFolder.resolve(getName() + ".bat");
+    String batchFileContentStart = "@echo off\nsetlocal\nset SCRIPT_DIR=%~dp0\nstart \"\" \"%SCRIPT_DIR%";
+    String batchFileContentEnd = "\" ";
     if (background) {
-      bashFileContentEnd += " %*";
+      batchFileContentEnd += " %*";
     }
     try {
-      Files.writeString(bashFile, bashFileContentStart + binary + bashFileContentEnd);
+      Files.writeString(batchFile, batchFileContentStart + binary + batchFileContentEnd);
     } catch (IOException e) {
       throw new RuntimeException(e);
     }
-    assert (Files.exists(bashFile));
-    context.getFileAccess().makeExecutable(bashFile);
+    assert (Files.exists(batchFile));
+    context.getFileAccess().makeExecutable(batchFile);
   }
 
 }
