@@ -13,6 +13,8 @@ import com.devonfw.tools.ide.log.IdeSubLogger;
  */
 public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContext {
 
+  private boolean skipUpdatesMode;
+
   private boolean offlineMode;
 
   private boolean forceMode;
@@ -86,6 +88,20 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
   public void setOfflineMode(boolean offlineMode) {
 
     this.offlineMode = offlineMode;
+  }
+
+  @Override
+  public boolean isSkipUpdatesMode() {
+
+    return this.skipUpdatesMode;
+  }
+
+  /**
+   * @param skipUpdatesMode new value of {@link #isSkipUpdatesMode()} ()}.
+   */
+  public void setSkipUpdatesMode(boolean skipUpdatesMode) {
+
+    this.skipUpdatesMode = skipUpdatesMode;
   }
 
   @Override
