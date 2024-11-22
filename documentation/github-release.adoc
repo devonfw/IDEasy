@@ -39,7 +39,7 @@ Here we consider fundamental things such as https://www.java.com[Java], https://
 
 * As a preparation we have requested https://central.sonatype.org/publish/publish-guide/[OSSRH] (Open Source Repository Hosting) for our project.
 * We have created according account and registered PGP key
-* We have added PGP key and account credentials to our github secrets.
+* We have added PGP key and account credentials to our github secrets (see also our https://github.com/devonfw/IDEasy/blob/main/.mvn/settings.xml[settings.xml] that is referenced from maven calls in github actions).
 * In our parent POM we have configured a https://github.com/devonfw/maven-parent/blob/9d31509d5f25c96fa1ec8b4f8cd2c341349b4df2/pom.xml#L290-L342[deploy profile] with additional steps for deploying via OSSRH
 
 === Native Images
