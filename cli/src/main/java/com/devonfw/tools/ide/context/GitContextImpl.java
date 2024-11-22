@@ -53,7 +53,7 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public boolean isRepositoryUpdateAvailable(Path repository) {
-    isGitInstalled();
+    verifyGitInstalled();
     ProcessResult result = this.processContext.directory(repository).addArg("rev-parse").addArg("HEAD").run(PROCESS_MODE_FOR_FETCH);
     if (!result.isSuccessful()) {
       this.context.warning("Failed to get the local commit hash.");
@@ -137,7 +137,7 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public void clone(GitUrl gitRepoUrl, Path targetRepository) {
-    isGitInstalled();
+    verifyGitInstalled();
     GitUrlSyntax gitUrlSyntax = IdeVariables.PREFERRED_GIT_PROTOCOL.get(getContext());
     gitRepoUrl = gitUrlSyntax.format(gitRepoUrl);
     this.processContext.directory(targetRepository);
@@ -169,7 +169,7 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public void pull(Path repository) {
-    isGitInstalled();
+    verifyGitInstalled();
     if (this.context.isOffline()) {
       this.context.info("Skipping git pull on {} because offline", repository);
       return;
@@ -184,7 +184,7 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public void fetch(Path targetRepository, String remote, String branch) {
-    isGitInstalled();
+    verifyGitInstalled();
     if (branch == null) {
       branch = determineCurrentBranch(targetRepository);
     }
@@ -200,7 +200,7 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public String determineCurrentBranch(Path repository) {
-    isGitInstalled();
+    verifyGitInstalled();
     ProcessResult remoteResult = this.processContext.directory(repository).addArg("branch").addArg("--show-current").run(ProcessMode.DEFAULT_CAPTURE);
     if (remoteResult.isSuccessful()) {
       List<String> remotes = remoteResult.getOut();
@@ -216,7 +216,7 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public String determineRemote(Path repository) {
-    isGitInstalled();
+    verifyGitInstalled();
     ProcessResult remoteResult = this.processContext.directory(repository).addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
     if (remoteResult.isSuccessful()) {
       List<String> remotes = remoteResult.getOut();
@@ -232,7 +232,7 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public void reset(Path targetRepository, String branchName, String remoteName) {
-    isGitInstalled();
+    verifyGitInstalled();
     if ((remoteName == null) || remoteName.isEmpty()) {
       remoteName = DEFAULT_REMOTE;
     }
@@ -255,7 +255,7 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public void cleanup(Path targetRepository) {
-    isGitInstalled();
+    verifyGitInstalled();
     this.processContext.directory(targetRepository);
     ProcessResult result;
     // check for untracked files
@@ -274,7 +274,7 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public String retrieveGitUrl(Path repository) {
-    isGitInstalled();
+    verifyGitInstalled();
     this.processContext.directory(repository);
     ProcessResult result;
     result = this.processContext.addArgs("-C", repository, "remote", "-v").run(ProcessMode.DEFAULT_CAPTURE);
@@ -296,8 +296,11 @@ public class GitContextImpl implements GitContext {
   /**
    * Checks if there is a git installation and throws an exception if there is none
    */
-  private void isGitInstalled() {
-    if (this.context.findBash() == null) {
+  private void verifyGitInstalled() {
+    String requiredBash = this.context.findBashRequired();
+    Path git = Path.of("git");
+    String binaryGitPath = this.context.getPath().findBinary(git).toString();
+    if (requiredBash == binaryGitPath) {
       String message = "Could not find a git installation. We highly recommend installing git since most of our actions require git to work properly!";
       throw new IllegalStateException(message);
     }

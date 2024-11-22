@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/587[#587]: Checks for git installation before performing git operations
 * https://github.com/devonfw/IDEasy/issues/589[#589]: Fix NLS Bundles for Linux and MacOS
 * https://github.com/devonfw/IDEasy/issues/637[#637]: Added option to disable updates
 * https://github.com/devonfw/IDEasy/issues/764[#764]: IDEasy not working properly in CMD
@@ -16,7 +17,6 @@ The full list of changes for this release can be found in https://github.com/dev
 == 2024.11.001
 
 Release with new features and bugfixes:
-* https://github.com/devonfw/IDEasy/issues/587[#587]: Checks for git installation before performing git operations
 * https://github.com/devonfw/IDEasy/issues/632[#632]: Add .editorconfig to settings workspaces
 * https://github.com/devonfw/IDEasy/issues/415[#415]: Added a message that will inform the user for what process he will need to enter his sudo-password
 * https://github.com/devonfw/IDEasy/issues/708[#708]: Open vscode in workspace path
