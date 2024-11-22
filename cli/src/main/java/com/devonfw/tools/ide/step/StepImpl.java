@@ -169,6 +169,9 @@ public final class StepImpl implements Step {
             this.errorMessage = message;
           }
         } else {
+          if (message == null) {
+            message = error.toString();
+          }
           this.errorMessage = this.context.error().log(error, message, args);
         }
         logger = this.context.debug();

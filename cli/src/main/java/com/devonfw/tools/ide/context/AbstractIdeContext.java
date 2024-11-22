@@ -833,12 +833,14 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (!debug().isEnabled()) {
           // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
           for (IdeLogLevel level : IdeLogLevel.values()) {
-            if (level != IdeLogLevel.INFO) {
+            if (level != IdeLogLevel.PROCESSABLE) {
               this.startContext.setLogLevel(level, false);
             }
           }
         }
+        this.startContext.activateLogging();
       } else {
+        this.startContext.activateLogging();
         if (!isTest()) {
           if (this.ideRoot == null) {
             warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");
