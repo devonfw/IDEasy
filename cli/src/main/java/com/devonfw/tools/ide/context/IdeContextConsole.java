@@ -23,7 +23,7 @@ public class IdeContextConsole extends AbstractIdeContext {
    */
   public IdeContextConsole(IdeLogLevel minLogLevel, Appendable out, boolean colored) {
 
-    super(new IdeStartContextImpl(minLogLevel, level -> new IdeSubLoggerOut(level, out, colored, minLogLevel)), null);
+    super(new IdeStartContextImpl(minLogLevel, level -> new IdeSubLoggerOut(level, out, colored, minLogLevel, null)), null);
     if (System.console() == null) {
       debug("System console not available - using System.in as fallback");
       this.scanner = new Scanner(System.in);
