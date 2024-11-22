@@ -6,38 +6,13 @@ on:
 
 jobs:
 
-  # Builds documentation pdf file in cli/target/package and uploads artifact to docs
-  build-documentation:
-    name: Build documentation
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          submodules: recursive
-      - name: Set up JDK
-        uses: actions/setup-java@v1
-        with:
-          java-version: '17'
-      - name: Make documentation available
-        run: |
-          cd documentation
-          mvn -B -ntp -Dstyle.color=always -DskipTests=true package
-      - name: Upload documentation
-        uses: actions/upload-artifact@v4
-        with:
-          name: docs
-          path: documentation/target/generated-docs/*.pdf
-
-  # Downloads documentation docs artifact, builds all native images, archives native image for each os with documentation pdf file and uploads artifacts to f.e. natives-windows-latest
+  # Adjusts the revision to the latest version, builds images for each OS type/architecture using matrix:os and uploads each binary as a separate artifact
   build-natives:
     name: Build native images
-    needs: build-documentation
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
-
     steps:
       - uses: actions/checkout@v3
         with:
@@ -48,11 +23,6 @@ jobs:
           distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
-      - name: Download documentation
-        uses: actions/download-artifact@v4
-        with:
-          name: docs
-          path: ./cli/target/package
       - name: Build native image
         shell: bash
         run: |
@@ -61,17 +31,20 @@ jobs:
           current_version="${current_version/ */}"
           next_version="${current_version/-SNAPSHOT/}"
           cd cli
-          mvn -B -ntp -Drevision=${next_version} -Dideasy.assembly.id=${{ matrix.os }} -Pnative -DskipTests=true package
+          mvn -B -ntp -Drevision=${next_version} -Pnative -DskipTests=true compile
       - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
           name: natives-${{ matrix.os }}
-          path: cli/target/*.tar.gz
+          path: cli/target/ideasy*
 
+  # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
+  # The version number for the next build will be incremented automatically.
+  # A GitHub release and download URLs pointing to the respective OS/architecture archives on Maven Central will be created.
   release:
     name: Release on Sonatype OSS
     runs-on: ubuntu-latest
-    needs: [ build-documentation, build-natives ]
+    needs: build-natives
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -91,8 +64,7 @@ jobs:
         with:
           pattern: natives-*
           path: ./cli/target/
-          merge-multiple: true
-      - name: Publish to Apache Maven Central
+      - name: Create assemblies and publish to Apache Maven Central
         run: |
           maven_config="$(cat .mvn/maven.config)"
           current_version="${maven_config/#*-Drevision=}"
@@ -106,7 +78,7 @@ jobs:
           git tag -a "release/${next_version}" -m "tagged version ${next_version}"
           export GPG_TTY=$TTY
           mkdir -p ./cli/target/
-          mvn --settings .mvn/settings.xml -B -ntp deploy -Pdeploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
+          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,deploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
