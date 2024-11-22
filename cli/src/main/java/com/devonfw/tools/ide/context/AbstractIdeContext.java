@@ -868,7 +868,6 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
   public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
-
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
     if (arguments.current().isStart()) {
       arguments.next();
@@ -937,6 +936,9 @@ public abstract class AbstractIdeContext implements IdeContext {
       Property<?> currentProperty = property;
       if (!arguments.isEndOptions()) {
         Property<?> option = cmd.getOption(currentArgument.getKey());
+        //TODO:Hier Erkennung options von einem Commandlet einfügen
+        CliArguments cliArguments = new CliArguments(currentArgument.getNext());
+        ValidationResult mystate = apply(cliArguments, cmd, collector);
         if (option != null) {
           currentProperty = option;
         }
@@ -969,6 +971,17 @@ public abstract class AbstractIdeContext implements IdeContext {
       currentArgument = arguments.current();
     }
     return new ValidationState(null);
+  }
+
+  public List<String> optionMatch(CliArgument argument, Commandlet cmd) {
+    List<Property<?>> properties = cmd.getProperties();
+    for (Property<?> property : properties) {
+      if (property.isOption()) {
+        if (/*argument ist am anfang von property enthalten*/ true) {
+          //zu liste adden, die am Ende zurückgegeben wird
+        }
+      }
+    }
   }
 
   @Override

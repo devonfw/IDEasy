@@ -119,6 +119,16 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
     assertBuffer("get-version mvn ", new TestBuffer("get-version mv").tab().tab());
   }
 
+  /**
+   * Test of completion of options after commandlets.
+   */
+  @Test
+  public void testIdeCompleterWithOptionAfterCommandletWorks() {
+
+    this.reader.setCompleter(newCompleter());
+    assertBuffer("env --bash", new TestBuffer("env --ba").tab().tab());
+  }
+
   private IdeCompleter newCompleter() {
 
     return new IdeCompleter(newTestContext());
