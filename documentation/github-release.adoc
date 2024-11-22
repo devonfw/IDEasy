@@ -18,7 +18,17 @@ With according permissions, you will see a gray `Run workflow` button that opens
 That is all you need to create a new release.
 It will automatically appear on https://github.com/devonfw/IDEasy/releases[github releases].
 Please note that the staging process of the release to maven central has some delay so the download links may only work ~1h after the release job completed.
-The only remaining manual step to do is closing the release milestone on github.
+
+After an official release has been published the following manual steps need to be performed:
+
+* Close the release milestone that has just been released on github (see https://github.com/devonfw/IDEasy/milestones[milestones] and pay attention to the links `Edit`, `Close`, and `Delete`).
+* Verify and potentially edit/update the new `SNAPSHOT` version in https://github.com/devonfw/IDEasy/blob/main/.mvn/maven.config[maven.config].
+The release workflow will always increase the last digit (micro-version) and often we instead want to increase the month segment.
+Example: the version was `2025.01.001-SNAPSHOT` and therefore the release `2025.01.001` has been build and deployed.
+Then the new version was set to `2025.01.002-SNAPSHOT`.
+In case that the January is almost over and the next release is planned for Februrary, you instead want to change the version to `2025.02.001-SNAPSHOT`.
+* Finally, you edit our https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc[CHANGELOG] and add the next planned version at the top.
+Include the header and footer lines but leave the content in between as a blank line (where the issues will be added as bullet-list).
 
 == How it works
 
