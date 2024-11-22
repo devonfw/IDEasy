@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /** Integration test of {@link EditionGetCommandlet}. */
 
@@ -56,7 +58,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     // act
     editionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasMessage("java");
+    assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("java");
   }
 
   /** Test of {@link EditionGetCommandlet} run, when tool is not installed. */
@@ -70,10 +72,10 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     editionGet.tool.setValueAsString("az", context);
     editionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasEntries("No installation of tool az was found.",
-        "The configured edition for tool az is az",
-        "To install that edition call the following command:",
-        "ide install az");
+    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("No installation of tool az was found."),
+        IdeLogEntry.ofInfo("The configured edition for tool az is az"),
+        IdeLogEntry.ofInfo("To install that edition call the following command:"),
+        IdeLogEntry.ofInfo("ide install az"));
   }
 
   /** Test of {@link EditionGetCommandlet} run, with --installed flag, when Installed Version is null. */
@@ -88,10 +90,10 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     // act
     editionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasEntries("No installation of tool java was found.",
-        "The configured edition for tool java is java",
-        "To install that edition call the following command:",
-        "ide install java");
+    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("No installation of tool java was found."),
+        IdeLogEntry.ofInfo("The configured edition for tool java is java"),
+        IdeLogEntry.ofInfo("To install that edition call the following command:"),
+        IdeLogEntry.ofInfo("ide install java"));
   }
 
 
@@ -107,6 +109,6 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     editionGet.installed.setValue(true);
     editionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasMessage("mvn");
+    assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("mvn");
   }
 }
