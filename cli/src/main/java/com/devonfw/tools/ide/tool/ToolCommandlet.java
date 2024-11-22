@@ -234,27 +234,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public abstract boolean install(boolean silent, EnvironmentContext environmentContext);
 
   /**
-   * This method is called after a tool was requested to be installed or updated.
-   *
-   * @param newlyInstalled {@code true} if the tool was installed or updated (at least link to software folder was created/updated), {@code false} otherwise
-   *     (configured version was already installed and nothing changed).
-   */
-  protected void postInstall(boolean newlyInstalled) {
-
-    if (newlyInstalled) {
-      postInstall();
-    }
-  }
-
-  /**
-   * This method is called after the tool has been newly installed or updated to a new version.
-   */
-  protected void postInstall() {
-
-    // nothing to do by default
-  }
-
-  /**
    * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.
    */
   protected boolean isExtract() {
@@ -491,6 +470,21 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
         binFolder = targetDir;
       }
       assert (Files.exists(binFolder));
+    }
+    if (this.context.getSystemInfo().isWindows()) {
+      Path batchFile = binFolder.resolve(getName() + ".bat");
+      String batchFileContentStart = "@echo off\nsetlocal\nset SCRIPT_DIR=%~dp0\nstart \"\" \"%SCRIPT_DIR%";
+      String batchFileContentEnd = "\" ";
+      if (background) {
+        batchFileContentEnd += " %*";
+      }
+      try {
+        Files.writeString(batchFile, batchFileContentStart + binary + batchFileContentEnd);
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+      assert (Files.exists(batchFile));
+      context.getFileAccess().makeExecutable(batchFile);
     }
     Path bashFile = binFolder.resolve(getName());
     String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname \"$0\")/";
