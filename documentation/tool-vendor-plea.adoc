@@ -60,6 +60,14 @@ That is great!
 But please follow best-practices and common sense and publish them as a new release with a new unique and increased version.
 * Tools that have been published and then after some time the download disappeared leading to errors like 404
 
+=== Proper file format
+
+On Linux and Mac binaries and scripts need executable permission to be run (`chmod a+x «binary»`).
+Since ZIP files are unable to store such metainformation you should be smart and not use ZIP as file format at least for all other platforms than windows.
+As a best practice never use ZIP but instead something like `*.tar.gz`.
+
+Unfortunately many famous tools violate this principle.
+
 === Comparable versions
 
 We really do not want to dicatate anything regarding your versioning scheme.
