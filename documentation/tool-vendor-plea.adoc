@@ -156,7 +156,7 @@ Also a good convention is the end options argument (`--`) that e.g. allows you t
 
 Every tool should have the CLI option to print its version via `-v` or `--version`.
 Please note that Java used to have `-version` instead of `--version` but later added support also for the latter (thanks guys!).
-Further, invoking this feature should *printing the version number and nothing else*.
+Further, invoking this feature should *print the version number and nothing else*.
 Please consider that often you need to make a choice on a version in a shell script and tool vendors make life for this use-case unneccesary hard if they print lots of other information alongside.
 If you want to do this add an extra option (e.g. `--verbose --version`) for this but *never* print it when `-v` was given as only argument.
 
