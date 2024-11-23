@@ -63,10 +63,14 @@ But please follow best-practices and common sense and publish them as a new rele
 === Proper file format
 
 On Linux and Mac binaries and scripts need executable permission to be run (`chmod a+x «binary»`).
-Since ZIP files are unable to store such metainformation you should be smart and not use ZIP as file format at least for all other platforms than windows.
+Since ZIP files are unable to store such metainformation you should be smart and not use ZIP as file format at least for all other platforms than Windows.
 As a best practice never use ZIP but instead something like `*.tar.gz`.
 
-Unfortunately many famous tools violate this principle.
+Unfortunately many famous tools violate this principle and provide ZIP files for Linux and Mac.
+As a result users unzip the package and then get a warm welcome when running the tool:
+```
+bash: «binary»: Permission denied
+```
 
 === Comparable versions
 
