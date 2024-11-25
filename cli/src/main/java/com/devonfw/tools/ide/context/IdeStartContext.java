@@ -32,6 +32,11 @@ public interface IdeStartContext extends IdeLogger {
   boolean isOfflineMode();
 
   /**
+   * @return {@code true} if quickStart mode is activated (-s/--quickStart), {@code false} otherwise.
+   */
+  boolean isSkipUpdatesMode();
+
+  /**
    * @return the current {@link Locale}. Either configured via command-line option or {@link Locale#getDefault() default}.
    */
   Locale getLocale();

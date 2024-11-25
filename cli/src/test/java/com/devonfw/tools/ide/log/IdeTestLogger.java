@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.context.IdeStartContextImpl;
  */
 public class IdeTestLogger extends IdeStartContextImpl {
 
-  private final List<IdeLogEntry> entries;
+  private final IdeLogListenerCollector collector;
 
   public IdeTestLogger() {
 
@@ -19,13 +19,13 @@ public class IdeTestLogger extends IdeStartContextImpl {
 
   public IdeTestLogger(IdeLogLevel minLogLevel) {
 
-    this(new ArrayList<>(), minLogLevel);
+    this(new ArrayList<>(), minLogLevel, new IdeLogListenerCollector());
   }
 
-  private IdeTestLogger(List<IdeLogEntry> entries, IdeLogLevel minLogLevel) {
+  private IdeTestLogger(List<IdeLogEntry> entries, IdeLogLevel minLogLevel, IdeLogListenerCollector collector) {
 
-    super(minLogLevel, level -> new IdeSubLoggerTest(level, entries));
-    this.entries = entries;
+    super(minLogLevel, level -> new IdeSubLoggerSlf4j(level, collector));
+    this.collector = collector;
   }
 
   /**
@@ -33,6 +33,6 @@ public class IdeTestLogger extends IdeStartContextImpl {
    */
   public List<IdeLogEntry> getEntries() {
 
-    return this.entries;
+    return this.collector.getEntries();
   }
 }

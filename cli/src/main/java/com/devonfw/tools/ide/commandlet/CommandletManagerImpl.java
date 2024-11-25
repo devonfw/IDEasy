@@ -26,6 +26,7 @@ import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.jmc.Jmc;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
+import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.node.Node;
@@ -97,6 +98,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Quarkus(context));
     add(new Kotlinc(context));
     add(new KotlincNative(context));
+    add(new KubeCtl(context));
     add(new Tomcat(context));
     add(new Vscode(context));
     add(new Azure(context));

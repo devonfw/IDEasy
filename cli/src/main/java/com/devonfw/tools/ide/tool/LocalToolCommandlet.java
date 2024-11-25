@@ -75,18 +75,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier installedVersion = getInstalledVersion();
     Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
     try {
-      // TODO https://github.com/devonfw/IDEasy/issues/664
-      boolean enableOptimization = false;
-      // performance: avoid calling installTool if already up-to-date
-      if (enableOptimization & configuredVersion.equals(installedVersion)) { // here we can add https://github.com/devonfw/IDEasy/issues/637
-        return toolAlreadyInstalled(silent, installedVersion, step);
-      }
       // install configured version of our tool in the software repository if not already installed
       ToolInstallation installation = installTool(configuredVersion, environmentContext);
 
       // check if we already have this version installed (linked) locally in IDE_HOME/software
       VersionIdentifier resolvedVersion = installation.resolvedVersion();
-      if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
+      if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation())
+          || (configuredVersion.matches(installedVersion) && context.isSkipUpdatesMode())) {
         return toolAlreadyInstalled(silent, installedVersion, step);
       }
       if (!isIgnoreSoftwareRepo()) {
@@ -114,6 +109,27 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       step.close();
     }
 
+  }
+
+  /**
+   * This method is called after a tool was requested to be installed or updated.
+   *
+   * @param newlyInstalled {@code true} if the tool was installed or updated (at least link to software folder was created/updated), {@code false} otherwise
+   *     (configured version was already installed and nothing changed).
+   */
+  protected void postInstall(boolean newlyInstalled) {
+
+    if (newlyInstalled) {
+      postInstall();
+    }
+  }
+
+  /**
+   * This method is called after the tool has been newly installed or updated to a new version.
+   */
+  protected void postInstall() {
+
+    // nothing to do by default
   }
 
   private boolean toolAlreadyInstalled(boolean silent, VersionIdentifier installedVersion, Step step) {

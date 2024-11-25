@@ -1,0 +1,109 @@
+:toc:
+toc::[]
+
+= Building IDEasy Releases
+
+We have spent quite some effort to fully automate our release processes with github actions.
+This documentation aims to explain how it works.
+
+== Usage
+
+Usage is very simple:
+
+* Every night a SNAPSHOT release is build and deployed for internal developers and retesting of bugfixes.
+This process if fully automated.
+See link:setup.adoc#testing-snapshot-releases[testing-snapshot-releases] for details.
+* When all is prepared for the next release, we run the https://github.com/devonfw/IDEasy/actions/workflows/release.yml[release] workflow.
+With according permissions, you will see a gray `Run workflow` button that opens an overlay with a green `Run workflow` button that you need to press (correct branch `main` is preselected).
+That is all you need to create a new release.
+It will automatically appear on https://github.com/devonfw/IDEasy/releases[github releases].
+Please note that the staging process of the release to maven central has some delay so the download links may only work ~1h after the release job completed.
+
+After an official release has been published the following manual steps need to be performed:
+
+* Close the release milestone that has just been released on github (see https://github.com/devonfw/IDEasy/milestones[milestones] and pay attention to the links `Edit`, `Close`, and `Delete`).
+* Verify and potentially edit/update the new `SNAPSHOT` version in https://github.com/devonfw/IDEasy/blob/main/.mvn/maven.config[maven.config].
+The release workflow will always increase the last digit (micro-version) and often we instead want to increase the month segment.
+Example: the version was `2025.01.001-SNAPSHOT` and therefore the release `2025.01.001` has been build and deployed.
+Then the new version was set to `2025.01.002-SNAPSHOT`.
+In case that the January is almost over and the next release is planned for Februrary, you instead want to change the version to `2025.02.001-SNAPSHOT`.
+* Finally, you edit our https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc[CHANGELOG] and add the next planned version at the top.
+Include the header and footer lines but leave the content in between as a blank line (where the issues will be added as bullet-list).
+
+== How it works
+
+To make all this work a lot of different technical aspects work together.
+Here we consider fundamental things such as https://www.java.com[Java], https://maven.apache.org/[Maven], and https://docs.github.com/en/actions/writing-workflows/workflow-syntax-for-github-actions[Github Actions] as given. 
+
+=== OSSRH
+
+* As a preparation we have requested https://central.sonatype.org/publish/publish-guide/[OSSRH] (Open Source Repository Hosting) for our project.
+* We have created according account and registered PGP key
+* We have added PGP key and account credentials to our github secrets (see also our https://github.com/devonfw/IDEasy/blob/main/.mvn/settings.xml[settings.xml] that is referenced from maven calls in github actions).
+* In our parent POM we have configured a https://github.com/devonfw/maven-parent/blob/9d31509d5f25c96fa1ec8b4f8cd2c341349b4df2/pom.xml#L290-L342[deploy profile] with additional steps for deploying via OSSRH
+
+=== Native Images
+
+* In order to make our CLI tool work fast and without having Java installed as a pre-requisite, we use https://www.graalvm.org/latest/reference-manual/native-image/[GraalVM native image] technology to compile our Java code to a platform specific binary.
+* To build such a binary, we have configured a https://github.com/devonfw/IDEasy/blob/10fc17b42ad4d465ee96fe5af7739d99a5132f51/cli/pom.xml#L204-L245[native profile].
+* This uses the https://graalvm.github.io/native-build-tools/latest/maven-plugin.html[native-maven-plugin] to actually build the native binary.
+* Since GraalVM does not support cross-platform compilation, we need to run such build on a (virtual) machine operated by the according OS.
+* The awesome github platform supports arbitrary operating systems and architectures to run builds on from github actions.
+* Therefore we run a job (`build-natives`) using a `strategy` with `matrix.os` configured to all the operating systems and architectures we support.
+The configured values are container image names that match to a specific platform but are a little cryptic.
+You can find a list of these container images https://github.com/actions/runner-images?tab=readme-ov-file#available-images[here].
+* This will spawn a build for each configured OS in a container on the according OS and architecture.
+All these builds will run in parallel.
+* We use the `setup-graalvm` action to make GraalVM available in the build container.
+* To build the actual native image, we simply invoke `compile` goal via maven but only in the `cli` module (`cd cli`).
+Here we need to activate the `native` profile (`-Pnative`).
+Also we can skip the tests since they are done in the main build anyway (`-DskipTests`).
+Since we want to build the native image for a specific version, we compute that version (e.g. by removing the `-SNAPSHOT` suffix in case of an official release) and override it via `revision` variable (`-Drevision=${...}`).
+* Only after all these spawned builds have completed successfully the main build continues with the next job (`release` or `deploy`) what we call the "Main Build".
+* In order to use the native image(s) that have been build on different machines, we use the https://github.com/actions/upload-artifact[upload-artifact] action to upload them to an github exchange store and https://github.com/actions/download-artifact[download-artifact] action to get them all into the main build.
+
+=== Main Build
+
+* Like with any maven project, we use the `deploy` goal via maven to compile, test, package, install and finally deploy our project.
+* Here, we build the entire project with all modules including the documentation that gets generated as PDF (see https://github.com/devonfw/docgen/[docgen] and https://github.com/devonfw/IDEasy/blob/main/documentation/pom.xml[documentation/pom.xml] for details).
+* Since the documentation PDF gets attached as artifact it is installed and deployed to the maven repository.
+* In the `cli` module the build we compile our code again with `javac` and run the automated tests.
+* However, the real compilation to the native image has already happened before (see above section).
+* Content that is rather static like script files can be found in https://github.com/devonfw/IDEasy/tree/main/cli/src/main/package[src/main/package].
+* We use a https://github.com/devonfw/IDEasy/blob/10fc17b42ad4d465ee96fe5af7739d99a5132f51/cli/pom.xml#L130-L170[specific resource configuration] to filter and copy such files to `target/package`.
+* Therefore, the main step here is the `Assembly` creating an release for every target platform (called by maven with `-Passembly,deploy`).
+* Finally, all artifacts are signed, installed and deployed to OSSRH nexus.
+* In case of an official release they are automatically staged to maven central and also published to our https://github.com/devonfw/IDEasy/releases[github releases] using the GitHub CLI (`gh release create`).
+* Also only for official releases, we also write changes to our version (see https://github.com/devonfw/IDEasy/blob/main/.mvn/maven.config[maven.config]) and commit them.
+* The bumped release version also is stored as annotated tag via git.
+* Also the next `SNAPSHOT` version is set and committed.
+* After all was successful we push our commits and the tag - in case the build failed, nothing will be pushed and commits will be lost.
+
+=== Assembly
+
+* In order to build a `.tar.gz` archive with all the content needed in a release, we have configured a https://github.com/devonfw/IDEasy/blob/10fc17b42ad4d465ee96fe5af7739d99a5132f51/cli/pom.xml#L177-L203[assembly profile].
+* This uses the https://maven.apache.org/plugins/maven-assembly-plugin/[maven-assembly-plugin] to build such compressed archive.
+* For each platform (OS and architecture), we have an according configuration file in https://github.com/devonfw/IDEasy/tree/main/cli/src/main/assembly[src/main/assembly].
+* The assembly descriptor file format is described https://maven.apache.org/plugins/maven-assembly-plugin/assembly.html[here].
+* Each such file includes the according native image.
+Therefore, the proper container image name from the `matrix.os` (see above) has to be referenced (see https://github.com/devonfw/IDEasy/blob/10fc17b42ad4d465ee96fe5af7739d99a5132f51/cli/src/main/assembly/release-linux-x64.xml#L17[here] for an example).
+* Additionally we reference the https://github.com/devonfw/IDEasy/blob/10fc17b42ad4d465ee96fe5af7739d99a5132f51/cli/src/main/assembly/release-linux-x64.xml#L24[package content] (see above) and configure exclusions to ensure that only content relevant for the according platform gets included (e.g. `*.bat` files are only included in Windows releases but not for Linux or Mac).
+* Also the configuration includes the documentation as PDF (see https://github.com/devonfw/IDEasy/blob/10fc17b42ad4d465ee96fe5af7739d99a5132f51/cli/src/main/assembly/release-linux-x64.xml#L10-L13[here]).
+
+=== Workflows
+
+And finally we put it all togehter as github action workflow:
+
+* https://github.com/devonfw/IDEasy/blob/main/.github/workflows/release.yml[release.yml] is the workflow for an official release.
+* https://github.com/devonfw/IDEasy/blob/main/.github/workflows/nightly-build.yml[nightly-build.yml] is the workflow for a SNAPSHOT release.
+* For the nightly-build we use a trick to skip the build if no changes happened to our git in the last 24h to avoid waste:
+We created another https://github.com/devonfw/IDEasy/blob/main/.github/workflows/check-for-updates.yml[check-for-updates.yml] workflow that runs every night and checks for such updates.
+Only if recent changes where pushed to git on `main`, the `nightly-build` job is triggered and otherwise the build ends without any further action.
+
+Both `release` and `nightly-build` workflow use the `workflow_dispatch` trigger allowing them to be run manually as described above.
+However, the `nightly-build` is typically only triggered from `check-for-updates` workflow automatically.
+But for testing some change with GraalVM specific behaviour during the day, we sometimes also trigger the `nightly-build` workflow manually.
+
+
+
+

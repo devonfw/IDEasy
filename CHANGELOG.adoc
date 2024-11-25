@@ -6,6 +6,11 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/589[#589]: Fix NLS Bundles for Linux and MacOS
+* https://github.com/devonfw/IDEasy/issues/637[#637]: Added option to disable updates
+* https://github.com/devonfw/IDEasy/issues/764[#764]: IDEasy not working properly in CMD
+* https://github.com/devonfw/IDEasy/issues/81[#81]: Implement Toolcommandlet for Kubernetes
+* https://github.com/devonfw/IDEasy/issues/754[#754]: Again messages break processable command output
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/16?closed=1[milestone 2024.12.001].
 
