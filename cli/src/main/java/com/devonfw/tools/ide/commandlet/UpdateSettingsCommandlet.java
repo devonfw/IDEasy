@@ -2,13 +2,13 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
+import java.nio.file.StandardOpenOption;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.context.IdeContext;
 
@@ -19,6 +19,9 @@ public class UpdateSettingsCommandlet extends Commandlet {
    *
    * @param context the {@link IdeContext}.
    */
+
+  private Map<String, String> legacyToNew;
+
   public UpdateSettingsCommandlet(IdeContext context) {
 
     super(context);
@@ -38,69 +41,71 @@ public class UpdateSettingsCommandlet extends Commandlet {
     List<Path> test = context.getFileAccess().listChildrenRecursive(source, path -> path.getFileName().toString().equals("devon.properties"));
     for (Path file_path : test) {
 
+      Path target = file_path.getParent().resolve("ide.properties");
+      Properties devonProperties = new Properties();
+      try (InputStream devonInputStream = Files.newInputStream(file_path)) {
+        devonProperties.load(devonInputStream);
+
+        for (String name : devonProperties.stringPropertyNames()) {
+          if (name.contains("DEVON_")) {
+            devonProperties.put(name.replace("DEVON_", ""), devonProperties.get(name));
+            devonProperties.remove(name);
+          }
+        }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+
       if (context.getFileAccess().findFirst(file_path.getParent(), path -> path.getFileName().toString().equals("ide.properties"), false) != null) {
         try {
-          Path target = file_path.getParent().resolve("ide.properties");
-
-          // Load the devon.properties file (only properties, no comment merging)
-          Properties devonProperties = new Properties();
-          try (InputStream devonInputStream = Files.newInputStream(file_path)) {
-            devonProperties.load(devonInputStream); // Load properties from devon.properties
-          }
-
-          // Load the ide.properties file and preserve its comments
           Properties ideProperties = new Properties();
-          List<String> ideLines = Files.readAllLines(target, StandardCharsets.UTF_8);
-          List<String> comments = new ArrayList<>();
-
-          // Separate comments from the actual properties in ide.properties
-          int i = 0;
-          while (i < ideLines.size() && ideLines.get(i).startsWith("#") && ideLines.get(i).startsWith(" ")) {
-            comments.add(ideLines.get(i));  // Add comment lines to the list
-            i++;
-          }
-
-          // Now load the properties from ide.properties
           try (InputStream ideInputStream = Files.newInputStream(target)) {
-            ideProperties.load(ideInputStream); // Load properties from ide.properties
+            ideProperties.load(ideInputStream);
           }
 
-          // Merge the properties from devon.properties into ide.properties
-          for (String key : devonProperties.stringPropertyNames()) {
-            // Overwrite existing properties or add new ones from devon.properties
-            ideProperties.setProperty(key, devonProperties.getProperty(key));
+          Properties mergedProperties = new Properties();
+          mergedProperties.putAll(ideProperties.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().toString())));
+          mergedProperties.putAll(devonProperties.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().toString())));
+          for (String name : ideProperties.stringPropertyNames()) {
+            mergedProperties.remove(name);
           }
 
-          // Prepare the content to write back to ide.properties
-          StringBuilder newContent = new StringBuilder();
+          Files.write(target, mergedProperties.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.toList()),
+              StandardOpenOption.APPEND);
 
-          // Add all the comments from ide.properties to the top (preserving them)
-          for (String comment : comments) {
-            newContent.append(comment).append("\n");
-          }
-
-          // Write the merged properties (with no timestamp comment)
-          for (String key : ideProperties.stringPropertyNames()) {
-            newContent.append(key).append("=").append(ideProperties.getProperty(key)).append("\n");
-          }
-
-          // Write the new content back to ide.properties
-          Files.writeString(target, newContent.toString());
           this.context.success("Successfully merged and updated ide.properties: " + file_path);
 
-          // Delete the devon.properties file after merging
           Files.delete(file_path);
 
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
       } else {
-        Path target = file_path.getParent().resolve("ide.properties");
         try {
+          String comment = "#********************************************************************************\n"
+              + "# This file contains user specific environment variables.\n"
+              + "# You may reconfigure some variables to tweak devonfw-ide to your personal needs.\n"
+              + "# However, you do so at your own risk!!!\n"
+              + "# Only change variables if you know exactly what you are doing!!!\n"
+              + "# For details see:\n"
+              + "# https://github.com/devonfw/ide/blob/master/documentation/configuration.asciidoc#configuration\n"
+              + "#********************************************************************************\n"
+              + "\n"
+              + "# Uncomment the following line to use your shared maven repository.\n"
+              + "# This will save diskspace but comes with the risk that other projects could\n"
+              + "# accidentally (or due to an security attack) access and use artifacts from this project.\n"
+              + "# If you are working in a project that is highly sensitive never use this feature.\n"
+              + "#export M2_REPO=~/.m2/repository\n"
+              + "\n"
+              + "# In case you are sitting behind a proxy these JVM options may help:\n"
+              + "#export JAVA_OPTS=-Dhttp.proxyHost=myproxy.com -Dhttp.proxyPort=8080\n";
+          Files.write(file_path, comment.getBytes());
+          Files.write(file_path, devonProperties.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.toList()),
+              StandardOpenOption.APPEND);
           Files.move(file_path, target);
           this.context.success("Updated file name: " + file_path + "\n-> " + target);
         } catch (IOException e) {
-          this.context.error("Error updating file name: " + file_path);
+          this.context.error("Error updating file name: " + file_path, e);
         }
       }
     }
