@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
  * Integration test of {@link VersionGetCommandlet}.
@@ -62,7 +63,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     versionGet.configured.setValue(true);
     versionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasMessage("3.9.1");
+    assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("3.9.1");
   }
 
   /**
@@ -79,7 +80,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     versionGet.installed.setValue(true);
     versionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasMessage("3.9.4");
+    assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("3.9.4");
   }
 
   /**
@@ -96,7 +97,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     versionGet.configured.setValue(true);
     versionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasMessage("*");
+    assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("*");
   }
 
   /**
@@ -113,7 +114,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     versionGet.tool.setValueAsString("mvn", context);
     versionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasMessage("3.9.4");
+    assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("3.9.4");
   }
 
   /**

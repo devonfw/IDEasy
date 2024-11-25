@@ -20,57 +20,41 @@ public class IdeSubLoggerSlf4j extends AbstractIdeSubLogger {
    * @param level the {@link #getLevel() log-level}.
    */
   public IdeSubLoggerSlf4j(IdeLogLevel level) {
+    this(level, null);
+  }
 
-    super(level);
+  /**
+   * The constructor.
+   *
+   * @param level the {@link #getLevel() log-level}.
+   */
+  public IdeSubLoggerSlf4j(IdeLogLevel level, IdeLogListener listener) {
+
+    super(level, false, IdeLogExceptionDetails.NONE, listener);
     this.logLevel = switch (level) {
       case TRACE -> Level.TRACE;
       case DEBUG -> Level.DEBUG;
-      case INFO, STEP, INTERACTION, SUCCESS -> Level.INFO;
       case WARNING -> Level.WARN;
       case ERROR -> Level.ERROR;
-      default -> throw new IllegalArgumentException("" + level);
+      default -> Level.INFO;
     };
   }
 
   @Override
-  public String log(Throwable error, String message, Object... args) {
+  protected void doLog(String message, Throwable error) {
 
-    if ((message == null) && (error != null)) {
-      message = error.getMessage();
-      if (message == null) {
-        message = error.toString();
+    LoggingEventBuilder builder = LOG.atLevel(this.logLevel);
+    String msg = message;
+    if (error != null) {
+      builder = builder.setCause(error);
+      if (msg == null) {
+        msg = error.toString();
       }
     }
-    String msg = message;
-    if ((this.level == IdeLogLevel.STEP) || (this.level == IdeLogLevel.INTERACTION) || (this.level == IdeLogLevel.SUCCESS)) {
+    if (this.level.isCustom()) {
       msg = this.level.name() + ":" + message;
     }
-    LoggingEventBuilder builder = LOG.atLevel(this.logLevel);
-    if (error != null) {
-      builder.setCause(error);
-    }
-    if (args == null) {
-      builder.log(msg);
-    } else {
-      builder.log(msg, args);
-    }
-    if (message == null) {
-      if (error == null) {
-        return null;
-      } else {
-        return error.toString();
-      }
-    } else if (args == null) {
-      return message;
-    } else {
-      return compose(message, args);
-    }
-  }
-
-  @Override
-  public boolean isEnabled() {
-
-    return LOG.isEnabledForLevel(this.logLevel);
+    builder.log(msg);
   }
 
 }
