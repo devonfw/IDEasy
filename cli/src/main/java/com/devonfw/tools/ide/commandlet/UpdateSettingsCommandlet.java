@@ -149,22 +149,18 @@ public class UpdateSettingsCommandlet extends Commandlet {
   }
 
   public void checkIfLegacyFolderExists() {
-    // Path to the "devon" folder
+
     Path devonFolder = context.getIdeHome().resolve("settings/devon");
-    // Path to the new "templates" folder
+
     Path templatesFolder = context.getIdeHome().resolve("settings/templates");
 
-    // Path to the "projects" folder
     Path projectsFolder = context.getIdeHome().resolve("settings/projects");
-    // Path to the "repositories" folder
+
     Path repositoriesFolder = context.getIdeHome().resolve("settings/repositories");
 
-    // Check if the "devon" folder exists
     if (Files.exists(devonFolder) && Files.isDirectory(devonFolder)) {
       try {
-        // Check if the "templates" folder already exists to avoid collisions
         if (!Files.exists(templatesFolder)) {
-          // Rename the "devon" folder to "templates"
           Files.move(devonFolder, templatesFolder, StandardCopyOption.REPLACE_EXISTING);
           this.context.success("Successfully updated folder name from 'settings/devon' to 'settings/templates'.");
         }
@@ -174,12 +170,9 @@ public class UpdateSettingsCommandlet extends Commandlet {
     } else {
       this.context.warning("The 'templates' folder already exists, skipping renaming.");
     }
-    // Check if the "projects" folder already exists
     if (Files.exists(projectsFolder) && Files.isDirectory(projectsFolder)) {
       try {
-        // Check if the "repositories" folder already exists to avoid collisions
         if (!Files.exists(repositoriesFolder)) {
-          // Rename the "projects" folder to "repositories"
           Files.move(projectsFolder, repositoriesFolder, StandardCopyOption.REPLACE_EXISTING);
           this.context.success("Successfully updated folder name from 'settings/projects' to 'settings/repositories'.");
         }
@@ -192,32 +185,26 @@ public class UpdateSettingsCommandlet extends Commandlet {
   }
 
   public void replaceIdeVariables() {
-    // Define the legacy to new mapping
     Map<String, String> legacyToNewMapping = Map.of(
         "${DEVON_IDE_HOME}", "$[IDE_HOME]",
         "${MAVEN_VERSION}", "$[MVN_VERSION]",
         "${SETTINGS_PATH}", "$[IDE_HOME]/settings"
     );
 
-    // Define the base directory for settings
     Path settingsDirectory = context.getIdeHome().resolve("settings");
 
-    // Try to list the workspace directories and files
     try {
-      // Use Files.walk() to recursively find directories and files
       Files.walk(settingsDirectory)
           .filter(path -> Files.isDirectory(path) && path.getFileName().toString().equals("workspace"))
           .forEach(workspaceDir -> {
-            // Now list all files in the found workspace directory
             try {
               Files.walk(workspaceDir)
-                  .filter(Files::isRegularFile) // Filter for regular files
+                  .filter(Files::isRegularFile)
                   .forEach(file -> {
                     if (file.getFileName().toString().equals("replacement-patterns.properties")) {
-                      handleReplacementPatternsFile(file); // This deletes the file if not empty
+                      handleReplacementPatternsFile(file);
                     }
                     if (Files.exists(file)) {
-                      // Process each found file
                       processFileForVariableReplacement(file, legacyToNewMapping);
                     }
                   });
@@ -232,53 +219,40 @@ public class UpdateSettingsCommandlet extends Commandlet {
 
   private void processFileForVariableReplacement(Path file, Map<String, String> legacyToNewMapping) {
     try {
-      // Read the file content into a string
       String content = Files.readString(file);
-      // Create a copy of the original content to compare later
       String originalContent = content;
 
-      // Replace legacy variables with new ones
       for (Map.Entry<String, String> entry : legacyToNewMapping.entrySet()) {
         content = content.replace(entry.getKey(), entry.getValue());
       }
 
-      // Replace curly brace variables with angled syntax
       content = content.replaceAll("\\$\\{([^}]+)\\}", "\\$\\[$1\\]");
 
-      // Check if the content has changed
       if (!content.equals(originalContent)) {
-        // If the content changed, write it back to the file
         Files.writeString(file, content, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
 
-        // Log success message, indicating the file was updated
         this.context.success("Successfully updated variables in file: {}", file);
       }
     } catch (AccessDeniedException e) {
-      // Handle the case where access to the file is denied (e.g., permission issue or file lock)
+
       this.context.error("Access denied to file: {}, exception: {}", file, e);
     } catch (IOException e) {
-      // Handle other I/O exceptions (e.g., file not found, etc.)
       this.context.error("Error processing file: {}, exception: {}", file, e);
     }
   }
 
   private void handleReplacementPatternsFile(Path file) {
-    // If the file matches 'replacement-patterns.properties'
     if (Files.exists(file) && Files.isRegularFile(file)) {
       try {
-        // Read the file content
         String content = Files.readString(file);
 
         if (!content.trim().isEmpty()) {
-          // Log a warning if the file is not empty
           this.context.warning("The file 'replacement-patterns.properties' is not empty: " + file);
         }
 
-        // Delete the file after processing
         Files.delete(file);
         this.context.success("Deleted 'replacement-patterns.properties' from: " + file);
       } catch (IOException e) {
-        // Handle any exceptions during reading or deleting the file
         this.context.error("Error processing 'replacement-patterns.properties' file: " + file, e);
       }
     }
