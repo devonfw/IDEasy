@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -90,8 +89,8 @@ public class UpdateSettingsCommandlet extends Commandlet {
           Properties mergedProperties = new Properties();
           mergedProperties.putAll(ideProperties.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue())));
           mergedProperties.putAll(devonProperties.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue())));
-          for (String name : ideProperties.stringPropertyNames()) {
-            mergedProperties.remove(name);
+          for (Entry<Object, Object> set : ideProperties.entrySet()) {
+            mergedProperties.remove(set.getKey());
           }
 
           for (Entry<Object, Object> set : mergedProperties.entrySet()) {
