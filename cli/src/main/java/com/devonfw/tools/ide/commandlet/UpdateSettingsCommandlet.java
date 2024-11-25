@@ -179,8 +179,13 @@ public class UpdateSettingsCommandlet extends Commandlet {
               Files.walk(workspaceDir)
                   .filter(Files::isRegularFile) // Filter for regular files
                   .forEach(file -> {
-                    // Process each found file
-                    processFileForVariableReplacement(file, legacyToNewMapping);
+                    if (file.getFileName().toString().equals("replacement-patterns.properties")) {
+                      handleReplacementPatternsFile(file); // This deletes the file if not empty
+                    }
+                    if (Files.exists(file)) {
+                      // Process each found file
+                      processFileForVariableReplacement(file, legacyToNewMapping);
+                    }
                   });
             } catch (IOException e) {
               this.context.error("Error while processing files in workspace: " + workspaceDir, e);
@@ -220,6 +225,28 @@ public class UpdateSettingsCommandlet extends Commandlet {
     } catch (IOException e) {
       // Handle other I/O exceptions (e.g., file not found, etc.)
       this.context.error("Error processing file: {}, exception: {}", file, e);
+    }
+  }
+
+  private void handleReplacementPatternsFile(Path file) {
+    // If the file matches 'replacement-patterns.properties'
+    if (Files.exists(file) && Files.isRegularFile(file)) {
+      try {
+        // Read the file content
+        String content = Files.readString(file);
+
+        if (!content.trim().isEmpty()) {
+          // Log a warning if the file is not empty
+          this.context.warning("The file 'replacement-patterns.properties' is not empty: " + file);
+        }
+
+        // Delete the file after processing
+        Files.delete(file);
+        this.context.success("Deleted 'replacement-patterns.properties' from: " + file);
+      } catch (IOException e) {
+        // Handle any exceptions during reading or deleting the file
+        this.context.error("Error processing 'replacement-patterns.properties' file: " + file, e);
+      }
     }
   }
 }
