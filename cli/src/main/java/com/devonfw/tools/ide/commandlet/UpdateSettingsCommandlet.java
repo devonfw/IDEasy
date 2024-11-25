@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -32,6 +33,7 @@ public class UpdateSettingsCommandlet extends Commandlet {
 
   @Override
   public void run() {
+    CheckIfLegacyFolderExists();
     Path source = context.getIdeHome();
     List<Path> test = context.getFileAccess().listChildrenRecursive(source, path -> path.getFileName().toString().equals("devon.properties"));
     for (Path file_path : test) {
@@ -100,6 +102,49 @@ public class UpdateSettingsCommandlet extends Commandlet {
         } catch (IOException e) {
           this.context.error("Error updating file name: " + file_path);
         }
+      }
+    }
+  }
+
+  public void CheckIfLegacyFolderExists() {
+    // Path to the "devon" folder
+    Path devonFolder = context.getIdeHome().resolve("settings/devon");
+    // Path to the new "templates" folder
+    Path templatesFolder = context.getIdeHome().resolve("settings/templates");
+
+    // Path to the "projects" folder
+    Path projectsFolder = context.getIdeHome().resolve("settings/projects");
+    // Path to the "repositories" folder
+    Path repositoriesFolder = context.getIdeHome().resolve("settings/repositories");
+
+    // Check if the "devon" folder exists
+    if (Files.exists(devonFolder) && Files.isDirectory(devonFolder)) {
+      try {
+        // Check if the "templates" folder already exists to avoid collisions
+        if (!Files.exists(templatesFolder)) {
+          // Rename the "devon" folder to "templates"
+          Files.move(devonFolder, templatesFolder, StandardCopyOption.REPLACE_EXISTING);
+          this.context.success("Successfully updated folder name from 'settings/devon' to 'settings/templates'.");
+        } else {
+          this.context.warning("The 'templates' folder already exists, skipping renaming.");
+        }
+      } catch (IOException e) {
+        this.context.error("Error updating 'settings/devon' folder to 'settings/templates': " + e.getMessage());
+      }
+    }
+    // Check if the "projects" folder already exists
+    if (Files.exists(projectsFolder) && Files.isDirectory(projectsFolder)) {
+      try {
+        // Check if the "repositories" folder already exists to avoid collisions
+        if (!Files.exists(repositoriesFolder)) {
+          // Rename the "projects" folder to "repositories"
+          Files.move(projectsFolder, repositoriesFolder, StandardCopyOption.REPLACE_EXISTING);
+          this.context.success("Successfully updated folder name from 'settings/projects' to 'settings/repositories'.");
+        } else {
+          this.context.warning("The 'repositories' folder already exists, skipping renaming.");
+        }
+      } catch (IOException e) {
+        this.context.error("Error updating 'settings/projects' folder to 'settings/repositories': " + e.getMessage());
       }
     }
   }
