@@ -131,12 +131,12 @@ public class UpdateSettingsCommandlet extends Commandlet {
           // Rename the "devon" folder to "templates"
           Files.move(devonFolder, templatesFolder, StandardCopyOption.REPLACE_EXISTING);
           this.context.success("Successfully updated folder name from 'settings/devon' to 'settings/templates'.");
-        } else {
-          this.context.warning("The 'templates' folder already exists, skipping renaming.");
         }
       } catch (IOException e) {
         this.context.error("Error updating 'settings/devon' folder to 'settings/templates': " + e.getMessage());
       }
+    } else {
+      this.context.warning("The 'templates' folder already exists, skipping renaming.");
     }
     // Check if the "projects" folder already exists
     if (Files.exists(projectsFolder) && Files.isDirectory(projectsFolder)) {
@@ -146,12 +146,12 @@ public class UpdateSettingsCommandlet extends Commandlet {
           // Rename the "projects" folder to "repositories"
           Files.move(projectsFolder, repositoriesFolder, StandardCopyOption.REPLACE_EXISTING);
           this.context.success("Successfully updated folder name from 'settings/projects' to 'settings/repositories'.");
-        } else {
-          this.context.warning("The 'repositories' folder already exists, skipping renaming.");
         }
       } catch (IOException e) {
         this.context.error("Error updating 'settings/projects' folder to 'settings/repositories': " + e.getMessage());
       }
+    } else {
+      this.context.warning("The 'repositories' folder already exists, skipping renaming.");
     }
   }
 }
