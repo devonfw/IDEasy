@@ -9,6 +9,7 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.stream.Collectors;
 
@@ -46,35 +47,62 @@ public class UpdateSettingsCommandlet extends Commandlet {
 
       Path target = file_path.getParent().resolve("ide.properties");
       Properties devonProperties = new Properties();
-      try (InputStream devonInputStream = Files.newInputStream(file_path)) {
-        devonProperties.load(devonInputStream);
-
-        for (String name : devonProperties.stringPropertyNames()) {
-          if (name.contains("DEVON_")) {
-            devonProperties.put(name.replace("DEVON_", ""), devonProperties.get(name));
-            devonProperties.remove(name);
+      try {
+        List<String> readLines = Files.readAllLines(file_path);
+        String[] split;
+        for (String line : readLines) {
+          if (!line.contains("#") && !line.isEmpty()) {
+            if (line.contains("DEVON_")) {
+              line.replace("DEVON_", "");
+            }
+            split = line.split("[ =]");
+            if (split.length == 3) {
+              devonProperties.put(split[1], new String[] { split[0], split[2] });
+            }
+            if (split.length == 2) {
+              devonProperties.put(split[0], split[1]);
+            }
           }
         }
+
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
 
       if (context.getFileAccess().findFirst(file_path.getParent(), path -> path.getFileName().toString().equals("ide.properties"), false) != null) {
         try {
+          List<String> readLines = Files.readAllLines(target);
+          String[] split;
+
           Properties ideProperties = new Properties();
-          try (InputStream ideInputStream = Files.newInputStream(target)) {
-            ideProperties.load(ideInputStream);
+          for (String line : readLines) {
+            if (!line.contains("#") && !line.isEmpty()) {
+              split = line.split("[ =]");
+              if (split.length == 3) {
+                ideProperties.put(split[1], new String[] { split[0], split[2] });
+              }
+              if (split.length == 2) {
+                ideProperties.put(split[0], split[1]);
+              }
+            }
           }
 
           Properties mergedProperties = new Properties();
-          mergedProperties.putAll(ideProperties.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().toString())));
-          mergedProperties.putAll(devonProperties.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue().toString())));
+          mergedProperties.putAll(ideProperties.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue())));
+          mergedProperties.putAll(devonProperties.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toString(), e -> e.getValue())));
           for (String name : ideProperties.stringPropertyNames()) {
             mergedProperties.remove(name);
           }
 
-          Files.write(target, mergedProperties.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.toList()),
-              StandardOpenOption.APPEND);
+          for (Entry<Object, Object> set : mergedProperties.entrySet()) {
+            if (set.getValue() instanceof String) {
+              Files.write(target, ("\n" + set.getKey().toString() + "=" + set.getValue().toString()).getBytes(), StandardOpenOption.APPEND);
+            }
+            if (set.getValue() instanceof String[]) {
+              String[] values = (String[]) set.getValue();
+              Files.write(target, ("\n" + values[0] + " " + set.getKey().toString() + "=" + values[1]).getBytes(), StandardOpenOption.APPEND);
+            }
+          }
 
           this.context.success("Successfully merged and updated ide.properties: " + file_path);
 
@@ -103,8 +131,15 @@ public class UpdateSettingsCommandlet extends Commandlet {
               + "# In case you are sitting behind a proxy these JVM options may help:\n"
               + "#export JAVA_OPTS=-Dhttp.proxyHost=myproxy.com -Dhttp.proxyPort=8080\n";
           Files.write(file_path, comment.getBytes());
-          Files.write(file_path, devonProperties.entrySet().stream().map(entry -> entry.getKey() + "=" + entry.getValue()).collect(Collectors.toList()),
-              StandardOpenOption.APPEND);
+          for (Entry<Object, Object> set : devonProperties.entrySet()) {
+            if (set.getValue() instanceof String) {
+              Files.write(file_path, ("\n" + set.getKey().toString() + "=" + set.getValue().toString()).getBytes(), StandardOpenOption.APPEND);
+            }
+            if (set.getValue() instanceof String[]) {
+              String[] values = (String[]) set.getValue();
+              Files.write(file_path, ("\n" + values[0] + " " + set.getKey().toString() + "=" + values[1]).getBytes(), StandardOpenOption.APPEND);
+            }
+          }
           Files.move(file_path, target);
           this.context.success("Updated file name: " + file_path + "\n-> " + target);
         } catch (IOException e) {
