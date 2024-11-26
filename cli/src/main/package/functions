@@ -4,18 +4,18 @@ function ide() {
   local return_code
   local ide_env
   if [ $# != 0 ] && [ "$1" != "init" ]; then
-    ideasy "$@"
+    ideasy ${IDE_OPTIONS} "$@"
     return_code=$?
     if [ $return_code != 0 ]; then
       echo -e "\n\033[91mError: IDEasy failed with exit code ${return_code}\033[91m" >&2
       return ${return_code}
     fi
   fi
-  ide_env="$(ideasy env --bash)"
+  ide_env="$(ideasy ${IDE_OPTIONS} env --bash)"
   if [ $? = 0 ]; then
     eval "${ide_env}"
     if [ $# = 0 ]; then
-      ideasy status
+      ideasy ${IDE_OPTIONS} status
       echo "IDE environment variables have been set for ${IDE_HOME} in workspace ${WORKSPACE}"
     fi
   fi
