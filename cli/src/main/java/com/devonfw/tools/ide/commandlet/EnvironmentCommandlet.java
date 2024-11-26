@@ -54,7 +54,7 @@ public final class EnvironmentCommandlet extends Commandlet {
 
   @Override
   public void run() {
-    if (context.getIdeRoot() == null) {
+    if (context.getIdeHome() == null) {
       throw new NullIdeRootException();
     }
     boolean winCmd = false;
