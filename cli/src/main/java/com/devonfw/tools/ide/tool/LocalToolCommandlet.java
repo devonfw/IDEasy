@@ -67,7 +67,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public final boolean install(boolean silent, EnvironmentContext environmentContext) {
+  public boolean install(boolean silent, EnvironmentContext environmentContext) {
 
     installDependencies();
     VersionIdentifier configuredVersion = getConfiguredVersion();

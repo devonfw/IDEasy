@@ -42,7 +42,7 @@ import com.devonfw.tools.ide.tool.vscode.Vscode;
 /**
  * Implementation of {@link CommandletManager}.
  */
-public final class CommandletManagerImpl implements CommandletManager {
+public class CommandletManagerImpl implements CommandletManager {
 
   private final Map<Class<? extends Commandlet>, Commandlet> commandletTypeMap;
 
@@ -115,7 +115,10 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new LazyDocker(context));
   }
 
-  private void add(Commandlet commandlet) {
+  /**
+   * @param commandlet the {@link Commandlet} to add.
+   */
+  protected void add(Commandlet commandlet) {
 
     boolean hasRequiredProperty = false;
     List<Property<?>> properties = commandlet.getProperties();
