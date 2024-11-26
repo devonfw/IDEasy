@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.devonfw.tools.ide.cli.NullIdeRootException;
+import com.devonfw.tools.ide.cli.CliExitException;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -55,7 +55,7 @@ public final class EnvironmentCommandlet extends Commandlet {
   @Override
   public void run() {
     if (context.getIdeRoot() == null) {
-      throw new NullIdeRootException();
+      throw new CliExitException();
     }
     boolean winCmd = false;
     WindowsPathSyntax pathSyntax = null;
