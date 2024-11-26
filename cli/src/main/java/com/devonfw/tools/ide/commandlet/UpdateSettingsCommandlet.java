@@ -145,8 +145,8 @@ public class UpdateSettingsCommandlet extends Commandlet {
         }
       }
     }
-    checkIfLegacyFolderExists();
     replaceIdeVariables();
+    checkIfLegacyFolderExists();
     checkForXMLNameSpace();
   }
 
@@ -272,7 +272,7 @@ public class UpdateSettingsCommandlet extends Commandlet {
     }
   }
 
-  public void checkForXMLNameSpace() {
+  private void checkForXMLNameSpace() {
     Path settingsDirectory = context.getIdeHome().resolve("settings");
     AtomicBoolean missingNamespaceFound = new AtomicBoolean(false);
     try {
