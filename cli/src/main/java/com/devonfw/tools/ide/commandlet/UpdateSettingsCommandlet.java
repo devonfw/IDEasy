@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -38,8 +39,6 @@ public class UpdateSettingsCommandlet extends Commandlet {
 
   @Override
   public void run() {
-    checkIfLegacyFolderExists();
-    replaceIdeVariables();
     Path source = context.getIdeHome();
     List<Path> test = context.getFileAccess().listChildrenRecursive(source, path -> path.getFileName().toString().equals("devon.properties"));
     for (Path file_path : test) {
@@ -146,6 +145,9 @@ public class UpdateSettingsCommandlet extends Commandlet {
         }
       }
     }
+    checkIfLegacyFolderExists();
+    replaceIdeVariables();
+    checkForXMLNameSpace();
   }
 
   public void checkIfLegacyFolderExists() {
@@ -205,7 +207,19 @@ public class UpdateSettingsCommandlet extends Commandlet {
                       handleReplacementPatternsFile(file);
                     }
                     if (Files.exists(file)) {
-                      processFileForVariableReplacement(file, legacyToNewMapping);
+                      try {
+                        String content = Files.readString(file);
+
+                        // Check if any key from the mapping is present in the file content
+                        boolean containsKey = legacyToNewMapping.keySet().stream()
+                            .anyMatch(content::contains);
+
+                        if (containsKey) {
+                          processFileForVariableReplacement(file, legacyToNewMapping);
+                        }
+                      } catch (IOException e) {
+                        this.context.error("Error reading file: " + file, e);
+                      }
                     }
                   });
             } catch (IOException e) {
@@ -255,6 +269,41 @@ public class UpdateSettingsCommandlet extends Commandlet {
       } catch (IOException e) {
         this.context.error("Error processing 'replacement-patterns.properties' file: " + file, e);
       }
+    }
+  }
+
+  public void checkForXMLNameSpace() {
+    Path settingsDirectory = context.getIdeHome().resolve("settings");
+    AtomicBoolean missingNamespaceFound = new AtomicBoolean(false);
+    try {
+      Files.walk(settingsDirectory)
+          .filter(path -> Files.isDirectory(path) && path.getFileName().toString().equals("workspace"))
+          .forEach(workspaceDir -> {
+            try {
+              Files.walk(workspaceDir)
+                  .filter(file -> Files.isRegularFile(file) && file.toString().endsWith(".xml"))
+                  .forEach(file -> {
+                    try {
+                      String content = Files.readString(file);
+
+                      if (!content.contains("xmlns:merge=\"https://github.com/devonfw/IDEasy/merge\"")) {
+                        this.context.warning("The XML file " + file + " does not contain the required 'xmlns:merge' attribute.");
+                        missingNamespaceFound.set(true);
+                      }
+                    } catch (IOException e) {
+                      this.context.error("Error reading the file: " + file, e);
+                    }
+                  });
+            } catch (IOException e) {
+              this.context.error("Error processing the workspace: " + workspaceDir, e);
+            }
+          });
+      if (missingNamespaceFound.get()) {
+        this.context.warning("For further information, please visit ... ");
+      }
+
+    } catch (IOException e) {
+      this.context.error("Error walking through the 'settings' directory", e);
     }
   }
 }
