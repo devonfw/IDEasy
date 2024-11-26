@@ -4,9 +4,17 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 == 2024.12.001
 
+NOTE: ATTENTION: When installing this release as an update, you need to manually remove IDEasy entries from `.bashrc` and if present also `.zshrc`.
+Also you should delete all files from your `$IDE_ROOT/_ide` folder before extracting the new version to it.
+Then run the `setup` and all should work fine.
+
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/589[#589]: Fix NLS Bundles for Linux and MacOS
+* https://github.com/devonfw/IDEasy/issues/778[#778]: Add icd command
+* https://github.com/devonfw/IDEasy/issues/779[#779]: Consider functions instead of alias
+* https://github.com/devonfw/IDEasy/issues/810[#810]: setup not adding IDEasy to current shell
+* https://github.com/devonfw/IDEasy/issues/782[#782]: Fix IDE_ROOT variable on Linux
 * https://github.com/devonfw/IDEasy/issues/637[#637]: Added option to disable updates
 * https://github.com/devonfw/IDEasy/issues/764[#764]: IDEasy not working properly in CMD
 * https://github.com/devonfw/IDEasy/issues/81[#81]: Implement Toolcommandlet for Kubernetes
