@@ -1,0 +1,16 @@
+= Migration to IDEasy
+
+If you used devonfw-ide for your projects so far, and you want to switch to IDEasy, you should follow these steps in order to do it properly:
+
+Step 1: Follow the https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc[setup] guide to properly install IDEasy
+
+Step 2: Get rid of all legacy by calling the following command:
+
+[source]
+----
+upgrade-settings
+----
+
+Step 3: After running the command, you might need to update your xml files for our merger.
+Please consider reading our documentation for that topic:
+https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc--
