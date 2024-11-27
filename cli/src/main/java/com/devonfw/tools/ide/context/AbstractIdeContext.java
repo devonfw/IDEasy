@@ -936,11 +936,13 @@ public abstract class AbstractIdeContext implements IdeContext {
       Property<?> currentProperty = property;
       if (!arguments.isEndOptions()) {
         Property<?> option = cmd.getOption(currentArgument.getKey());
-        //TODO:Hier Erkennung options von einem Commandlet einfügen
         CliArguments cliArguments = new CliArguments(currentArgument.getNext());
         ValidationResult mystate = apply(cliArguments, cmd, collector);
         if (option != null) {
           currentProperty = option;
+        }
+        if (currentArgument.isOption()) {
+          optionMatch(currentArgument, cmd, collector);
         }
       }
       if (currentProperty == null) {
@@ -973,12 +975,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     return new ValidationState(null);
   }
 
-  public List<String> optionMatch(CliArgument argument, Commandlet cmd) {
+  public void optionMatch(CliArgument argument, Commandlet cmd, CompletionCandidateCollector collector) {
     List<Property<?>> properties = cmd.getProperties();
     for (Property<?> property : properties) {
-      if (property.isOption()) {
-        if (/*argument ist am anfang von property enthalten*/ true) {
-          //zu liste adden, die am Ende zurückgegeben wird
+      if (property.getName().startsWith("--")) {
+        if (property.getName().startsWith(argument.toString())) {
+          collector.add(property.getName(), null, property, cmd);
         }
       }
     }

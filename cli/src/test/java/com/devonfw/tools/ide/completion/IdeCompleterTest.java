@@ -126,7 +126,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   public void testIdeCompleterWithOptionAfterCommandletWorks() {
 
     this.reader.setCompleter(newCompleter());
-    assertBuffer("env --bash", new TestBuffer("env --ba").tab().tab());
+    assertBuffer("env --bash ", new TestBuffer("env --ba").tab().tab());
   }
 
   private IdeCompleter newCompleter() {
