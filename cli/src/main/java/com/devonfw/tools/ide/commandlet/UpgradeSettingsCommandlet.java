@@ -253,15 +253,14 @@ public class UpgradeSettingsCommandlet extends Commandlet {
         content = content.replace(entry.getKey(), entry.getValue());
       }
 
-      content = content.replaceAll("\\$\\{([^}]+)\\}", "\\$\\[$1\\]");
-
+      content = content.replaceAll("\\{", "\\[");
+      content = content.replaceAll("\\}", "\\]");
+      
       if (!content.equals(originalContent)) {
         Files.writeString(file, content, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-
         this.context.success("Successfully updated variables in file: {}", file);
       }
     } catch (AccessDeniedException e) {
-
       this.context.error("Access denied to file: {}, exception: {}", file, e);
     } catch (IOException e) {
       this.context.error("Error processing file: {}, exception: {}", file, e);
