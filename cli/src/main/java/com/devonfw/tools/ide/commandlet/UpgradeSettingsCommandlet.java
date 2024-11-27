@@ -156,8 +156,9 @@ public class UpgradeSettingsCommandlet extends Commandlet {
         }
       }
     }
-    replaceLegacyVariables();
+    replaceLegacyVariablesAndBracketsInWorkspace();
     checkIfLegacyFolderExists();
+    handleReplacementPatternsFiles();
     checkForXMLNameSpace();
   }
 
@@ -198,8 +199,9 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     }
   }
 
-  private void replaceLegacyVariables() {
+  private void replaceLegacyVariablesAndBracketsInWorkspace() {
     this.context.info("Scanning for legacy variables...");
+
     Map<String, String> legacyToNewMapping = Map.of(
         "${DEVON_IDE_HOME}", "$[IDE_HOME]",
         "${MAVEN_VERSION}", "$[MVN_VERSION]",
@@ -216,23 +218,25 @@ public class UpgradeSettingsCommandlet extends Commandlet {
               Files.walk(workspaceDir)
                   .filter(Files::isRegularFile)
                   .forEach(file -> {
-                    if (file.getFileName().toString().equals("replacement-patterns.properties")) {
-                      handleReplacementPatternsFile(file);
-                    }
-                    if (Files.exists(file)) {
-                      try {
-                        String content = Files.readString(file);
+                    try {
+                      String content = Files.readString(file);
+                      String originalContent = content;
 
-                        // Check if any key from the mapping is present in the file content
-                        boolean containsKey = legacyToNewMapping.keySet().stream()
-                            .anyMatch(content::contains);
-
-                        if (containsKey) {
-                          processFileForVariableReplacement(file, legacyToNewMapping);
-                        }
-                      } catch (IOException e) {
-                        this.context.error("Error reading file: " + file, e);
+                      for (Map.Entry<String, String> entry : legacyToNewMapping.entrySet()) {
+                        content = content.replace(entry.getKey(), entry.getValue());
                       }
+
+                      content = content.replace("{", "[");
+                      content = content.replace("}", "]");
+
+                      if (!content.equals(originalContent)) {
+                        Files.writeString(file, content, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+                        this.context.success("Successfully updated variables/brackets " + file);
+                      }
+                    } catch (AccessDeniedException e) {
+                      this.context.error("Access denied to file: " + file + ", exception: " + e);
+                    } catch (IOException e) {
+                      this.context.error("Error processing file: " + file + ", exception: " + e);
                     }
                   });
             } catch (IOException e) {
@@ -240,47 +244,36 @@ public class UpgradeSettingsCommandlet extends Commandlet {
             }
           });
     } catch (IOException e) {
-      this.context.error("Error while searching for workspace directories", e);
+      this.context.error("Error while scanning for workspace directories", e);
     }
   }
 
-  private void processFileForVariableReplacement(Path file, Map<String, String> legacyToNewMapping) {
+  private void handleReplacementPatternsFiles() {
+    this.context.info("Scanning for legacy files");
+
+    Path settingsDirectory = context.getIdeHome().resolve("settings");
+
     try {
-      String content = Files.readString(file);
-      String originalContent = content;
+      Files.walk(settingsDirectory)
+          .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().equals("replacement-patterns.properties"))
+          .forEach(file -> {
+            try {
+              String content = Files.readString(file);
+              if (!content.trim().isEmpty()) {
+                this.context.warning("The file 'replacement-patterns.properties' is not empty: " + file);
+              }
 
-      for (Map.Entry<String, String> entry : legacyToNewMapping.entrySet()) {
-        content = content.replace(entry.getKey(), entry.getValue());
-      }
-
-      content = content.replaceAll("\\{", "\\[");
-      content = content.replaceAll("\\}", "\\]");
-      
-      if (!content.equals(originalContent)) {
-        Files.writeString(file, content, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-        this.context.success("Successfully updated variables in file: {}", file);
-      }
-    } catch (AccessDeniedException e) {
-      this.context.error("Access denied to file: {}, exception: {}", file, e);
+              Files.delete(file);
+              this.context.success("Deleted 'replacement-patterns.properties' from: " + file);
+            } catch (IOException e) {
+              this.context.error("Error processing 'replacement-patterns.properties' file: " + file, e);
+            }
+          });
     } catch (IOException e) {
-      this.context.error("Error processing file: {}, exception: {}", file, e);
+      this.context.error("Error scanning for 'replacement-patterns.properties' file", e);
     }
   }
 
-  private void handleReplacementPatternsFile(Path file) {
-    try {
-      String content = Files.readString(file);
-
-      if (!content.trim().isEmpty()) {
-        this.context.warning("The file 'replacement-patterns.properties' is not empty: " + file);
-      }
-
-      Files.delete(file);
-      this.context.success("Deleted 'replacement-patterns.properties' from: " + file);
-    } catch (IOException e) {
-      this.context.error("Error processing 'replacement-patterns.properties' file: " + file, e);
-    }
-  }
 
   private void checkForXMLNameSpace() {
     this.context.info("Scanning XML files...");
