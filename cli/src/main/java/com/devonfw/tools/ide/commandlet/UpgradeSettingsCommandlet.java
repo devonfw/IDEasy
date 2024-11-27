@@ -44,7 +44,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
 
   @Override
   public void run() {
-    renameDevonProperties();
+    updateDevonProperties();
     replaceLegacyVariablesAndBracketsInWorkspace();
     checkIfLegacyFolderExists();
     handleReplacementPatternsFiles();
@@ -237,7 +237,8 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     }
   }
 
-  private void renameDevonProperties() {
+  private void updateDevonProperties() {
+    this.context.info("Updating devon.properties...");
     Path source = context.getIdeHome();
     List<Path> test = context.getFileAccess().listChildren(source, path -> path.getFileName().toString().equals("devon.properties"), true);
     for (Path file_path : test) {
