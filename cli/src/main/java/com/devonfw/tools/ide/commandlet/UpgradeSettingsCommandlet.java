@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
@@ -13,9 +14,12 @@ import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
 import com.devonfw.tools.ide.context.IdeContext;
 
-public class UpdateSettingsCommandlet extends Commandlet {
+public class UpgradeSettingsCommandlet extends Commandlet {
 
   /**
    * The constructor.
@@ -23,9 +27,7 @@ public class UpdateSettingsCommandlet extends Commandlet {
    * @param context the {@link IdeContext}.
    */
 
-  private Map<String, String> legacyToNew;
-
-  public UpdateSettingsCommandlet(IdeContext context) {
+  public UpgradeSettingsCommandlet(IdeContext context) {
 
     super(context);
     addKeyword(getName());
@@ -34,7 +36,7 @@ public class UpdateSettingsCommandlet extends Commandlet {
   @Override
   public String getName() {
 
-    return "update-settings";
+    return "upgrade-settings";
   }
 
   @Override
@@ -45,13 +47,18 @@ public class UpdateSettingsCommandlet extends Commandlet {
 
       Path target = file_path.getParent().resolve("ide.properties");
       Properties devonProperties = new Properties();
+      devonProperties.put("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED", "false");
       try {
         List<String> readLines = Files.readAllLines(file_path);
         String[] split;
         for (String line : readLines) {
           if (!line.contains("#") && !line.isEmpty()) {
+            if (line.contains("DEVON_IDE_CUSTOM_TOOLS")) {
+              createCustomToolsJson(line);
+              continue;
+            }
             if (line.contains("DEVON_")) {
-              line.replace("DEVON_", "");
+              line = line.replace("DEVON_", "");
             }
             split = line.split("[ =]");
             if (split.length == 3) {
@@ -97,6 +104,7 @@ public class UpdateSettingsCommandlet extends Commandlet {
               Files.write(target, ("\n" + set.getKey().toString() + "=" + set.getValue().toString()).getBytes(), StandardOpenOption.APPEND);
             }
             if (set.getValue() instanceof String[]) {
+
               String[] values = (String[]) set.getValue();
               Files.write(target, ("\n" + values[0] + " " + set.getKey().toString() + "=" + values[1]).getBytes(), StandardOpenOption.APPEND);
             }
@@ -304,6 +312,41 @@ public class UpdateSettingsCommandlet extends Commandlet {
 
     } catch (IOException e) {
       this.context.error("Error walking through the 'settings' directory", e);
+    }
+  }
+
+  private void createCustomToolsJson(String variable) {
+    try {
+      JSONArray tabelObject = new JSONArray();
+      variable = variable.substring(variable.indexOf("(") + 1, variable.indexOf(")") - 1);
+      String url = variable.substring(variable.indexOf("https://"), variable.indexOf(" "));
+      String[] toolsArray = variable.split(" ");
+      for (String tool : toolsArray) {
+        JSONObject toolObject = new JSONObject();
+        String[] toolParts = tool.split(":");
+        toolObject.put("name", toolParts[0]);
+        toolObject.put("version", toolParts[1]);
+        if (toolParts.length > 2) {
+          toolObject.put("os-agnostic", toolParts[2].equals("all"));
+          toolObject.put("arch-agnostic", toolParts[2].equals("all"));
+        } else {
+          toolObject.put("os-agnostic", false);
+          toolObject.put("arch-agnostic", false);
+        }
+        tabelObject.add(toolObject);
+      }
+      JSONObject finalObject = new JSONObject();
+      finalObject.put("tools", tabelObject);
+      finalObject.put("url", url);
+
+      FileWriter writer = new FileWriter(context.getIdeHome().resolve("settings/custom-tools.json").toString());
+      writer.write(finalObject.toJSONString());
+
+      writer.flush();
+      writer.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+
     }
   }
 }
