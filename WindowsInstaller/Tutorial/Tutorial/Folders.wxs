@@ -1,0 +1,12 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+
+	  <Binary Id="CustomActionBinary" SourceFile="C:\Users\kloroff\source\repos\Tutorial\CustomAction\bin\Debug\CustomAction.CA.dll" />
+	  <CustomAction Id="CheckDrive" BinaryRef="CustomActionBinary" DllEntry="CheckDataDrive" Return="check" />
+	  <Directory Id="MY_INSTALL_LOCATION">
+		  <Directory Id="INSALLFOLDER" Name="Projects">
+			  
+		  </Directory>
+	  </Directory>
+  </Fragment>
+</Wix>

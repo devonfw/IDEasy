@@ -1,0 +1,8 @@
+C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\Tutorial.wixproj.CoreCompileInputs.cache
+C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\cab1.cab
+C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\Tutorial.msi
+C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\Tutorial.wixpdb
+C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\Tutorial.wixproj.BindTracking-en-US.txt
+C:\Users\kloroff\source\repos\Tutorial\Tutorial\bin\x86\Debug\en-US\Tutorial.msi
+C:\Users\kloroff\source\repos\Tutorial\Tutorial\bin\x86\Debug\en-US\cab1.cab
+C:\Users\kloroff\source\repos\Tutorial\Tutorial\bin\x86\Debug\en-US\Tutorial.wixpdb

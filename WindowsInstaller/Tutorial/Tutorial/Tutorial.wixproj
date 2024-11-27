@@ -1,0 +1,10 @@
+﻿<Project Sdk="WixToolset.Sdk/5.0.2">
+  <ItemGroup>
+    <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
+    <PackageReference Include="WixUI_Minimal.wxs" Version="5.0.2" />
+    <BindVariable Include="WixUILicenseRtf=C:\Users\kloroff\source\repos\Tutorial\LICENSE.rtf" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="TestDrive.vbs" />
+  </ItemGroup>
+</Project>

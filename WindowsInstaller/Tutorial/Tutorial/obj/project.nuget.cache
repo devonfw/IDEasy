@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "dgSpecHash": "DuMPwUJE/i8=",
+  "success": false,
+  "projectFilePath": "C:\\Users\\kloroff\\source\\repos\\Tutorial\\Tutorial\\Tutorial.wixproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\kloroff\\.nuget\\packages\\wixtoolset.ui.wixext\\5.0.2\\wixtoolset.ui.wixext.5.0.2.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "Unable to find package WixUI_Minimal.wxs. No packages exist with this id in source(s): Microsoft Visual Studio Offline Packages, nuget.org",
+      "libraryId": "WixUI_Minimal.wxs",
+      "targetGraphs": [
+        "native,Version=v0.0",
+        "native,Version=v0.0/win",
+        "native,Version=v0.0/win-arm64",
+        "native,Version=v0.0/win-x64",
+        "native,Version=v0.0/win-x86"
+      ]
+    }
+  ]
+}

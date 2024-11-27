@@ -1,0 +1,21 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+  <Fragment>
+
+	  
+	  <UI Id ="Test2">
+		  <TextStyle Id="DlgFont8" FaceName="Tahoma" Size="8" />
+		  <TextStyle Id="DlgTitleFont" FaceName="Tahoma" Size="8" Bold="yes" />
+		  <InstallUISequence>
+			  <Show Dialog="InstallDlg" After="CostFinalize" />
+		  </InstallUISequence>
+		  <Dialog Id="InstallDlg" Width="370" Height="270" Title="[ProductName] Setup" NoMinimize="yes">
+			  
+			  <Control Id="Title" Type="Text" X="15" Y="6" Width="200" Height="15" Transparent="yes" NoPrefix="yes"
+					   Text="{\DlgTitleFont}Ready to Install"/>
+			  <Control Id="Install" Type="PushButton" X="304" Y="243" Width="56" Height="17" Default="yes" Text="Install">
+				  <Publish Event="EndDialog" Value="Return" />
+			  </Control>
+		  </Dialog>
+	  </UI>
+  </Fragment>
+</Wix>
