@@ -297,10 +297,10 @@ public class GitContextImpl implements GitContext {
    * Checks if there is a git installation and throws an exception if there is none
    */
   private void verifyGitInstalled() {
-    String requiredBash = this.context.findBashRequired();
+    this.context.findBashRequired();
     Path git = Path.of("git");
-    String binaryGitPath = this.context.getPath().findBinary(git).toString();
-    if (requiredBash == binaryGitPath) {
+    Path binaryGitPath = this.context.getPath().findBinary(git);
+    if (git == binaryGitPath) {
       String message = "Could not find a git installation. We highly recommend installing git since most of our actions require git to work properly!";
       throw new IllegalStateException(message);
     }
