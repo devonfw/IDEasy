@@ -873,31 +873,11 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public List<Path> listChildren(Path dir, Predicate<Path> filter) {
-
-    if (!Files.isDirectory(dir)) {
-      return List.of();
-    }
-    List<Path> children = new ArrayList<>();
-    try (Stream<Path> childStream = Files.list(dir)) {
-      Iterator<Path> iterator = childStream.iterator();
-      while (iterator.hasNext()) {
-        Path child = iterator.next();
-        if (filter.test(child)) {
-          this.context.trace("Accepted file {}", child);
-          children.add(child);
-        } else {
-          this.context.trace("Ignoring file {} according to filter", child);
-        }
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to find children of directory " + dir, e);
-    }
-    return children;
+  public List<Path> listChildren(Path dir, Predicate<Path> filter, boolean recursive) {
+    return listChildrenRecursive(dir, filter, recursive);
   }
 
-  @Override
-  public List<Path> listChildrenRecursive(Path dir, Predicate<Path> filter) {
+  private List<Path> listChildrenRecursive(Path dir, Predicate<Path> filter, boolean recursive) {
     List<Path> folders = null;
     if (!Files.isDirectory(dir)) {
       return List.of();
@@ -913,7 +893,7 @@ public class FileAccessImpl implements FileAccess {
         } else {
           this.context.trace("Ignoring file {} according to filter", child);
         }
-        if (Files.isDirectory(child)) {
+        if (Files.isDirectory(child) && recursive) {
           if (folders == null) {
             folders = new ArrayList<>();
           }
@@ -922,7 +902,7 @@ public class FileAccessImpl implements FileAccess {
       }
       if (folders != null) {
         for (Path child : folders) {
-          List<Path> match = listChildrenRecursive(child, filter);
+          List<Path> match = listChildren(child, filter, recursive);
           if (match != null) {
             children.addAll(match);
           }
@@ -937,7 +917,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public boolean isEmptyDir(Path dir) {
 
-    return listChildren(dir, f -> true).isEmpty();
+    return listChildren(dir, f -> true, false).isEmpty();
   }
 
   /**

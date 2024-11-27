@@ -56,7 +56,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   private void loadPluginsFromDirectory(ToolPlugins map, Path pluginsPath) {
 
     List<Path> children = this.context.getFileAccess()
-        .listChildren(pluginsPath, p -> p.getFileName().toString().endsWith(IdeContext.EXT_PROPERTIES));
+        .listChildren(pluginsPath, p -> p.getFileName().toString().endsWith(IdeContext.EXT_PROPERTIES), false);
     for (Path child : children) {
       ToolPluginDescriptor descriptor = ToolPluginDescriptor.of(child, this.context, isPluginUrlNeeded());
       map.add(descriptor);

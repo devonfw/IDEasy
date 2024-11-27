@@ -81,7 +81,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private void setupConf(Path template, Path conf) {
 
-    List<Path> children = this.context.getFileAccess().listChildren(template, f -> true);
+    List<Path> children = this.context.getFileAccess().listChildren(template, f -> true, false);
     for (Path child : children) {
 
       String basename = child.getFileName().toString();
@@ -145,7 +145,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       Set<ToolCommandlet> toolCommandlets = new HashSet<>();
 
       // installed tools in IDE_HOME/software
-      List<Path> softwarePaths = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
+      List<Path> softwarePaths = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory, false);
       for (Path softwarePath : softwarePaths) {
         String toolName = softwarePath.getFileName().toString();
         ToolCommandlet toolCommandlet = this.context.getCommandletManager().getToolCommandlet(toolName);
