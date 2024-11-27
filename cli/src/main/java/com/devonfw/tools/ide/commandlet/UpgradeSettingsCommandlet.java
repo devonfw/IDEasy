@@ -19,6 +19,9 @@ import org.json.simple.JSONObject;
 
 import com.devonfw.tools.ide.context.IdeContext;
 
+/**
+ * {@link Commandlet} to upgrade settings after a migration from devofw-ide to IDEasy
+ */
 public class UpgradeSettingsCommandlet extends Commandlet {
 
   /**
@@ -153,12 +156,13 @@ public class UpgradeSettingsCommandlet extends Commandlet {
         }
       }
     }
-    replaceIdeVariables();
+    replaceLegacyVariables();
     checkIfLegacyFolderExists();
     checkForXMLNameSpace();
   }
 
-  public void checkIfLegacyFolderExists() {
+  private void checkIfLegacyFolderExists() {
+    this.context.info("Scanning for legacy folders...");
 
     Path devonFolder = context.getIdeHome().resolve("settings/devon");
 
@@ -194,7 +198,8 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     }
   }
 
-  public void replaceIdeVariables() {
+  private void replaceLegacyVariables() {
+    this.context.info("Scanning for legacy variables...");
     Map<String, String> legacyToNewMapping = Map.of(
         "${DEVON_IDE_HOME}", "$[IDE_HOME]",
         "${MAVEN_VERSION}", "$[MVN_VERSION]",
@@ -264,23 +269,22 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   }
 
   private void handleReplacementPatternsFile(Path file) {
-    if (Files.exists(file) && Files.isRegularFile(file)) {
-      try {
-        String content = Files.readString(file);
+    try {
+      String content = Files.readString(file);
 
-        if (!content.trim().isEmpty()) {
-          this.context.warning("The file 'replacement-patterns.properties' is not empty: " + file);
-        }
-
-        Files.delete(file);
-        this.context.success("Deleted 'replacement-patterns.properties' from: " + file);
-      } catch (IOException e) {
-        this.context.error("Error processing 'replacement-patterns.properties' file: " + file, e);
+      if (!content.trim().isEmpty()) {
+        this.context.warning("The file 'replacement-patterns.properties' is not empty: " + file);
       }
+
+      Files.delete(file);
+      this.context.success("Deleted 'replacement-patterns.properties' from: " + file);
+    } catch (IOException e) {
+      this.context.error("Error processing 'replacement-patterns.properties' file: " + file, e);
     }
   }
 
   private void checkForXMLNameSpace() {
+    this.context.info("Scanning XML files...");
     Path settingsDirectory = context.getIdeHome().resolve("settings");
     AtomicBoolean missingNamespaceFound = new AtomicBoolean(false);
     try {
@@ -307,7 +311,9 @@ public class UpgradeSettingsCommandlet extends Commandlet {
             }
           });
       if (missingNamespaceFound.get()) {
-        this.context.warning("For further information, please visit ... ");
+        this.context.warning("For further information, please visit https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc#xml-merger");
+      } else {
+        this.context.success("Your XML files are up to date");
       }
 
     } catch (IOException e) {
