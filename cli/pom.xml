@@ -180,6 +180,33 @@
   <profiles>
     <!-- Builds the native image and archives it with the documentation from the github artifact -->
     <profile>
+      <id>assembly</id>
+      <build>
+        <plugins>
+          <!-- Assembly Plugin -->
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>${assembly.maven.plugin.version}</version>
+            <executions>
+              <execution>
+                <id>create-distribution</id>
+                <phase>install</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <finalName>${project.artifactId}-${revision}</finalName>
+                  <appendAssemblyId>true</appendAssemblyId>
+                  <descriptorSourceDirectory>src/main/assembly</descriptorSourceDirectory>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
       <id>native</id>
       <build>
         <plugins>
@@ -194,7 +221,7 @@
                 <goals>
                   <goal>compile-no-fork</goal>
                 </goals>
-                <phase>package</phase>
+                <phase>compile</phase>
               </execution>
               <execution>
                 <id>test-native</id>
@@ -214,79 +241,9 @@
               <imageName>${imageName}</imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=http,https</arg>
-                <arg>-H:IncludeResources="nls/.*"</arg>
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
               </buildArgs>
             </configuration>
-          </plugin>
-          <!-- Assembly Plugin -->
-          <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-assembly-plugin</artifactId>
-            <version>${assembly.maven.plugin.version}</version>
-            <executions>
-              <execution>
-                <id>create-distribution</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>single</goal>
-                </goals>
-                <configuration>
-                  <finalName>${project.artifactId}-${revision}</finalName>
-                  <appendAssemblyId>true</appendAssemblyId>
-                  <descriptors>
-                    <descriptor>/src/main/assembly/release-${ideasy.assembly.id}.xml</descriptor>
-                  </descriptors>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
-    <!-- Attaches artifacts stored in cli/target/*.tgz to the maven build, moves them to documentation/target/nexus-staging/.../*.tgz and deploys them with the name defined in the classifier -->
-    <profile>
-      <id>deploy</id>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>3.4.0</version>
-            <executions>
-              <execution>
-                <id>attach-artifacts</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>attach-artifact</goal>
-                </goals>
-                <configuration>
-                  <artifacts>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-${revision}-windows-x64.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>windows-x64</classifier>
-                    </artifact>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-${revision}-linux-x64.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>linux-x64</classifier>
-                    </artifact>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-${revision}-mac-x64.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>mac-x64</classifier>
-                    </artifact>
-                    <artifact>
-                      <file>${project.build.directory}/${project.artifactId}-${revision}-mac-arm.tar.gz</file>
-                      <type>tar.gz</type>
-                      <classifier>mac-arm</classifier>
-                    </artifact>
-                  </artifacts>
-                </configuration>
-              </execution>
-            </executions>
           </plugin>
         </plugins>
       </build>

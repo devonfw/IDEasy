@@ -146,6 +146,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
 
     assertThat(context).logAtInfo().hasEntries(
         "--locale        the locale (e.g. '--locale=de' for German language).",
+        "--skip-updates  disables tool updates if the configured versions match the installed versions.",
         "-b | --batch    enable batch mode (non-interactive).",
         "-d | --debug    enable debug logging.",
         "-f | --force    enable force mode.",

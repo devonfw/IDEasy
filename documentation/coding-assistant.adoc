@@ -1,0 +1,33 @@
+:toc:
+toc::[]
+
+= Coding Assistant
+The Coding Assistant is an AI-powered tool that helps you write and edit code more efficiently.
+It offers features like code suggestions, autocompletion, and error detection, improving productivity and reducing mistakes.
+It can be easily integrated into your development environment for smarter coding support.
+
+== Continue
+Continue is a leading open-source AI code assistant.
+It comes with features like https://docs.continue.dev/chat/how-to-use-it[Chat], https://docs.continue.dev/autocomplete/how-to-use-it[Autocomplete], https://docs.continue.dev/edit/how-to-use-it[Edit] and https://docs.continue.dev/actions/how-to-use-it[Actions].
+Currently, the plugin is available for Intellij and VSCode.
+With IDEasy, we aim to keep the configuration process simple and provide the option to pre-configure the code assistant via https://github.com/devonfw/ide-settings[ide-settings]
+
+A possible pre-configuration file can be found here: https://github.com/devonfw/ide-settings/workspace/update/.continuerc.json[.continuerc.json] 
+
+The config is set so that your model runs via `vllm`.
+The only action you have to take is to override the `apiBase` key with your server url.
+Telemetry is also disabled by default.
+There is a variety of different configurations that can be done with `continue` plugin.
+You can find the latest information and documentation here: https://docs.continue.dev/
+```
+{
+  "models": [
+    {
+      "title": "My vLLM OpenAI-compatible server",
+      "apiBase": "http://localhost:8000/v1"
+    }
+  ],
+    
+  "allowAnonymousTelemetry": false   
+}
+``` 
