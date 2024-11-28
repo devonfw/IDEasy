@@ -6,34 +6,27 @@ function doSetupInConfigFile() {
     echo "${cfg} not found - skipping."
     return
   fi
-  if [ "${cfg}" = "~/.zshrc" ]; then
-    if ! grep -q "compinit" "${cfg}"; then
-      echo -e 'autoload -Uz compinit\ncompinit' >> "${cfg}"
-    fi
-    if ! grep -q "bashcompinit" "${cfg}"; then
-      echo -e 'autoload bashcompinit\nbashcompinit' >> "${cfg}"
-    fi
-  fi
   echo "Configuring IDEasy in ${cfg}."
-  if ! grep -q "${AUTOCOMPLETION}" "${cfg}"; then
-    echo -e "${AUTOCOMPLETION}" >> "${cfg}"
-  fi
-  if ! grep -q "alias ide=" "${cfg}"; then
-    echo -e "alias ide=\"source ${PWD}/bin/ide\"" >> "${cfg}"
-    echo -e "ide" >> "${cfg}"
-  fi
   if [ "${OSTYPE}" != "cygwin" ] && [ "${OSTYPE}" != "msys" ]; then
-    if ! grep -q "IDE_ROOT" "${cfg}"
+    if ! grep -q "export IDE_ROOT=" "${cfg}"
     then
-     echo -e 'export IDE_ROOT="${PWD}"' >> "${cfg}"
+     echo "export IDE_ROOT=\"${IDE_ROOT}\"" >> "${cfg}"
     fi
+  fi
+  if ! grep -q 'source "$IDE_ROOT/_ide/functions"' "${cfg}"; then
+    echo 'source "$IDE_ROOT/_ide/functions"' >> "${cfg}"
+    echo "ide init" >> "${cfg}"
   fi
 }
 
 cd "$(dirname "${BASH_SOURCE:-$0}")" || exit 255
-echo "Setting up your IDEasy in ${PWD}"
-
-AUTOCOMPLETION="source ${PWD}/completion"
+if [ "${PWD/*\//}" != "_ide" ]; then
+  echo -e "\033[93mInvalid installation path $PWD - you need to install IDEasy to a folder named '_ide'.\033[39m" >&2
+fi
+echo "Setting up IDEasy in ${PWD}"
+cd ..
+export IDE_ROOT=${PWD}
+source "$IDE_ROOT/_ide/functions"
 
 doSetupInConfigFile ~/.bashrc
 doSetupInConfigFile ~/.zshrc

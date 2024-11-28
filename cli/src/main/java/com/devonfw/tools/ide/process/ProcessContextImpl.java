@@ -172,27 +172,30 @@ public class ProcessContextImpl implements ProcessContext {
 
       Process process = this.processBuilder.start();
 
-      if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
-        CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
-        out = outFut.get();
-        err = errFut.get();
+      try {
+        if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+          CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
+          CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
+          out = outFut.get();
+          err = errFut.get();
+        }
+
+        int exitCode;
+
+        if (processMode.isBackground()) {
+          exitCode = ProcessResult.SUCCESS;
+        } else {
+          exitCode = process.waitFor();
+        }
+
+        ProcessResult result = new ProcessResultImpl(exitCode, out, err);
+
+        performLogging(result, exitCode, interpreter);
+
+        return result;
+      } finally {
+        process.destroy();
       }
-
-      int exitCode;
-
-      if (processMode.isBackground()) {
-        exitCode = ProcessResult.SUCCESS;
-      } else {
-        exitCode = process.waitFor();
-      }
-
-      ProcessResult result = new ProcessResultImpl(exitCode, out, err);
-
-      performLogging(result, exitCode, interpreter);
-
-      return result;
-
     } catch (CliProcessException | IllegalStateException e) {
       // these exceptions are thrown from performLogOnError and we do not want to wrap them (see #593)
       throw e;

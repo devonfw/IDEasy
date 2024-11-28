@@ -13,6 +13,8 @@ import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.IdeSystem;
+import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
@@ -126,6 +128,23 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       }
     }
     return super.createSystemVariables();
+  }
+
+  @Override
+  public IdeSystemTestImpl getSystem() {
+
+    if (this.system == null) {
+      this.system = IdeSystemTestImpl.ofSystemDefaults(this);
+    }
+    return (IdeSystemTestImpl) this.system;
+  }
+
+  /**
+   * @param system the new value of {@link #getSystem()}.
+   */
+  public void setSystem(IdeSystem system) {
+
+    this.system = system;
   }
 
   @Override
