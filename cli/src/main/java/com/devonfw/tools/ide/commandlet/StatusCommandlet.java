@@ -4,6 +4,7 @@ import java.nio.file.Path;
 
 import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 /**
  * {@link Commandlet} to print a status report about IDEasy.
@@ -31,13 +32,29 @@ public class StatusCommandlet extends Commandlet {
   public void run() {
 
     this.context.logIdeHomeAndRootStatus();
-    if (this.context.isOfflineMode()) {
-      this.context.warning("You have configured offline mode via CLI.");
-    } else if (this.context.isOnline()) {
-      this.context.success("You are online.");
-    } else {
-      this.context.warning("You are offline. Check your internet connection and potential proxy settings.");
+    logOnlineStatus();
+    logSettingsGitStatus();
+    logSettingsLegacyStatus();
+  }
+
+  private void logSettingsLegacyStatus() {
+    EnvironmentVariables variables = this.context.getVariables();
+    boolean hasLegacyProperties = false;
+    while (variables != null) {
+      Path legacyProperties = variables.getLegacyPropertiesFilePath();
+      if (legacyProperties != null) {
+        hasLegacyProperties = true;
+        this.context.warning("Found legacy properties {}", legacyProperties);
+      }
+      variables = variables.getParent();
     }
+    if (hasLegacyProperties) {
+      this.context.warning(
+          "Your settings are outdated and contain legacy configurations. Please consider upgrading your settings:\nhttps://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc#upgrade");
+    }
+  }
+
+  private void logSettingsGitStatus() {
     Path settingsPath = this.context.getSettingsPath();
     if (settingsPath != null) {
       GitContext gitContext = this.context.getGitContext();
@@ -51,6 +68,16 @@ public class StatusCommandlet extends Commandlet {
       if (!"master".equals(branch) && !"main".equals(branch)) {
         this.context.warning("Your settings are on a custom branch: {}", branch);
       }
+    }
+  }
+
+  private void logOnlineStatus() {
+    if (this.context.isOfflineMode()) {
+      this.context.warning("You have configured offline mode via CLI.");
+    } else if (this.context.isOnline()) {
+      this.context.success("You are online.");
+    } else {
+      this.context.warning("You are offline. Check your internet connection and potential proxy settings.");
     }
   }
 }
