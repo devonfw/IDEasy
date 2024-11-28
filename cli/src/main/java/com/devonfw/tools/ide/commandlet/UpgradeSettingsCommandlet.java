@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -18,6 +19,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 /**
  * {@link Commandlet} to upgrade settings after a migration from devofw-ide to IDEasy
@@ -231,6 +233,8 @@ public class UpgradeSettingsCommandlet extends Commandlet {
 
       writer.flush();
       writer.close();
+
+      context.success("Created custom-tools.json at: " + context.getIdeHome().resolve("settings/custom-tools.json"));
     } catch (IOException e) {
       throw new RuntimeException(e);
 
@@ -238,11 +242,19 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   }
 
   private void updateDevonProperties() {
-    this.context.info("Updating devon.properties...");
-    Path source = context.getIdeHome();
-    List<Path> test = context.getFileAccess().listChildren(source, path -> path.getFileName().toString().equals("devon.properties"), true);
-    for (Path file_path : test) {
+    List<Path> pathList = new ArrayList<>();
+    EnvironmentVariables devonPropertiesPath = context.getVariables();
+    while (devonPropertiesPath != null) {
+      if (devonPropertiesPath.getPropertiesFilePath() != null) {
+        pathList.add(devonPropertiesPath.getPropertiesFilePath().getParent().resolve("devon.properties"));
+      }
+      devonPropertiesPath = devonPropertiesPath.getParent();
+    }
 
+    for (Path file_path : pathList) {
+      if (!Files.exists(file_path)) {
+        continue;
+      }
       Path target = file_path.getParent().resolve("ide.properties");
       Properties devonProperties = new Properties();
       devonProperties.put("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED", "false");
@@ -345,7 +357,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
             }
           }
           Files.move(file_path, target);
-          this.context.success("Updated file name: " + file_path + "\n-> " + target);
+          this.context.success("Updated file name: " + file_path + "\n-> " + target + "and updated variables");
         } catch (IOException e) {
           this.context.error("Error updating file name: " + file_path, e);
         }
