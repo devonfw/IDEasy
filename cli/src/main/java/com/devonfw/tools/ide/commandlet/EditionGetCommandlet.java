@@ -1,10 +1,11 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * An internal {@link Commandlet} to get the installed edition for a tool.
@@ -53,42 +54,35 @@ public class EditionGetCommandlet extends Commandlet {
 
     ToolCommandlet commandlet = this.tool.getValue();
     String configuredEdition = commandlet.getConfiguredEdition();
+    IdeSubLogger logger = this.context.level(IdeLogLevel.PROCESSABLE);
 
     if (this.installed.isTrue() && !this.configured.isTrue()) { // get installed edition
-
-      VersionIdentifier installedVersion = commandlet.getInstalledVersion();
-      if (installedVersion == null) {
-        this.context.info("No installation of tool {} was found.", commandlet.getName());
-        toolInstallInfo(commandlet.getName(), configuredEdition);
+      String installedEdition = commandlet.getInstalledEdition();
+      if (commandlet.getInstalledVersion() == null) {
+        // note: getInstalledEdition() will fallback to configured edition and not return null, therefore we use getInstalledVersion()
+        toolInstallInfo(commandlet.getName(), configuredEdition, null, commandlet);
       } else {
-        String installedEdition = commandlet.getInstalledEdition();
-        this.context.info(installedEdition);
+        logger.log(installedEdition);
       }
-
     } else if (!this.installed.isTrue() && this.configured.isTrue()) { // get configured edition
-
-      this.context.info(configuredEdition);
-
+      logger.log(configuredEdition);
     } else { // get both configured and installed edition
       String installedEdition = commandlet.getInstalledEdition();
-
       if (configuredEdition.equals(installedEdition)) {
-        this.context.info(installedEdition);
+        logger.log(installedEdition);
       } else {
-        if (installedEdition == null) {
-          this.context.info("No installation of tool {} was found.", commandlet.getName());
-        } else {
-          this.context.info("The installed edition for tool {} is {}", commandlet.getName(), installedEdition);
-        }
-        toolInstallInfo(commandlet.getName(), configuredEdition);
+        toolInstallInfo(commandlet.getName(), configuredEdition, installedEdition, commandlet);
       }
-
     }
-
   }
 
-  private void toolInstallInfo(String toolName, String configuredEdition) {
+  private void toolInstallInfo(String toolName, String configuredEdition, String installedEdition, ToolCommandlet commandlet) {
 
+    if (installedEdition == null) {
+      this.context.warning("No installation of tool {} was found.", commandlet.getName());
+    } else {
+      this.context.info("The installed edition for tool {} is {}", commandlet.getName(), installedEdition);
+    }
     this.context.info("The configured edition for tool {} is {}", toolName, configuredEdition);
     this.context.info("To install that edition call the following command:");
     this.context.info("ide install {}", toolName);

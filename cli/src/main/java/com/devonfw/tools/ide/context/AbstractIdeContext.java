@@ -68,7 +68,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path confPath;
 
-  private Path settingsPath;
+  protected Path settingsPath;
 
   private Path softwarePath;
 
@@ -76,7 +76,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path softwareRepositoryPath;
 
-  private Path pluginsPath;
+  protected Path pluginsPath;
 
   private Path workspacePath;
 
@@ -108,7 +108,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final FileAccess fileAccess;
 
-  private final CommandletManager commandletManager;
+  protected CommandletManager commandletManager;
 
   protected ToolRepository defaultToolRepository;
 
@@ -539,6 +539,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public boolean isSkipUpdatesMode() {
+    return this.startContext.isSkipUpdatesMode();
+  }
+
+  @Override
   public boolean isOnline() {
 
     if (this.online == null) {
@@ -828,12 +833,14 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (!debug().isEnabled()) {
           // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
           for (IdeLogLevel level : IdeLogLevel.values()) {
-            if (level != IdeLogLevel.INFO) {
+            if (level != IdeLogLevel.PROCESSABLE) {
               this.startContext.setLogLevel(level, false);
             }
           }
         }
+        this.startContext.activateLogging();
       } else {
+        this.startContext.activateLogging();
         if (!isTest()) {
           if (this.ideRoot == null) {
             warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");

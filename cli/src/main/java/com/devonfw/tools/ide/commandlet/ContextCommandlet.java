@@ -4,6 +4,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 import com.devonfw.tools.ide.log.IdeSubLoggerOut;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.LocaleProperty;
@@ -25,6 +26,8 @@ public class ContextCommandlet extends Commandlet {
 
   private final FlagProperty offline;
 
+  private final FlagProperty skipUpdates;
+
   private final LocaleProperty locale;
 
   private IdeStartContextImpl startContext;
@@ -41,6 +44,7 @@ public class ContextCommandlet extends Commandlet {
     this.debug = add(new FlagProperty("--debug", false, "-d"));
     this.quiet = add(new FlagProperty("--quiet", false, "-q"));
     this.offline = add(new FlagProperty("--offline", false, "-o"));
+    this.skipUpdates = add(new FlagProperty("--skip-updates", false));
     this.locale = add(new LocaleProperty("--locale", false, null));
   }
 
@@ -61,16 +65,18 @@ public class ContextCommandlet extends Commandlet {
 
     IdeLogLevel logLevel = determineLogLevel();
     if (this.startContext == null) {
-      this.startContext = new IdeStartContextImpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel));
+      final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
+      this.startContext = new IdeStartContextImpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel, buffer));
     } else if (this.context != null) {
       IdeStartContextImpl newStartContext = ((AbstractIdeContext) this.context).getStartContext();
-      assert (this.startContext == newStartContext);
+      assert (this.startContext == newStartContext); // fast fail during development via assert
       this.startContext = newStartContext;
     }
     this.startContext.setBatchMode(this.batch.isTrue());
     this.startContext.setForceMode(this.force.isTrue());
     this.startContext.setQuietMode(this.quiet.isTrue());
     this.startContext.setOfflineMode(this.offline.isTrue());
+    this.startContext.setSkipUpdatesMode(this.skipUpdates.isTrue());
     this.startContext.setLocale(this.locale.getValue());
   }
 
