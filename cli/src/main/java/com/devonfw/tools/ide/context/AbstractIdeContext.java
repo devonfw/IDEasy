@@ -975,7 +975,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
       currentArgument = arguments.current();
     }
-    return new ValidationState(null);
+    return ValidationResultValid.get();
   }
 
   @Override
