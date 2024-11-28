@@ -26,5 +26,14 @@ public class StatusCommandlet extends Commandlet {
 
   @Override
   public void run() {
+
+    this.context.logIdeHomeAndRootStatus();
+    if (this.context.isOfflineMode()) {
+      this.context.warning("You have configured offline mode via CLI.");
+    } else if (this.context.isOnline()) {
+      this.context.success("You are online.");
+    } else {
+      this.context.warning("You are offline. Check your internet connection and potential proxy settings.");
+    }
   }
 }

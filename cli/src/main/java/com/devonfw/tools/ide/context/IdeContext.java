@@ -542,4 +542,9 @@ public interface IdeContext extends IdeStartContext {
    */
   WindowsPathSyntax getPathSyntax();
 
+  /**
+   * logs the status of {@link #getIdeHome() IDE_HOME} and {@link #getIdeRoot() IDE_ROOT}.
+   */
+  void logIdeHomeAndRootStatus();
+
 }

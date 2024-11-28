@@ -50,6 +50,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.validation.ValidationResult;
+import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -637,6 +638,19 @@ public abstract class AbstractIdeContext implements IdeContext {
   public IdeSubLogger level(IdeLogLevel level) {
 
     return this.startContext.level(level);
+  }
+
+  @Override
+  public void logIdeHomeAndRootStatus() {
+
+    if (this.ideRoot != null) {
+      success("IDE_ROOT is set to {}", this.ideRoot);
+    }
+    if (this.ideHome == null) {
+      warning(getMessageIdeHomeNotFound());
+    } else {
+      success("IDE_HOME is set to {}", this.ideHome);
+    }
   }
 
   @Override
