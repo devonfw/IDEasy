@@ -1,9 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Iterator;
 
 import org.fusesource.jansi.AnsiConsole;
@@ -66,8 +63,11 @@ public final class ShellCommandlet extends Commandlet {
   public void run() {
 
     try {
+      // TODO: add BuiltIns here, see: https://github.com/devonfw/IDEasy/issues/168
+
       Parser parser = new DefaultParser();
       try (Terminal terminal = TerminalBuilder.builder().build()) {
+
         // initialize our own completer here and add exit as an autocompletion option
         Completer completer = new AggregateCompleter(
             new StringsCompleter("exit"), new IdeCompleter((AbstractIdeContext) this.context));
@@ -132,40 +132,9 @@ public final class ShellCommandlet extends Commandlet {
     String[] arguments = args.split(" ", 0);
     CliArguments cliArgs = new CliArguments(arguments);
     cliArgs.next();
-
-    if ("cd".equals(arguments[0])) {
-      return changeDirectory(cliArgs);
-    }
-
     return ((AbstractIdeContext) this.context).run(cliArgs);
   }
 
-  private int changeDirectory(CliArguments cliArgs) {
-    if (!cliArgs.hasNext()) {
-      this.context.error("Error: 'cd' requires a directory argument.");
-      return -1;
-    }
-
-    String targetDir = String.valueOf(cliArgs.next());
-    Path path = Paths.get(targetDir);
-
-    // If the given path is relative, resolve it relative to the current directory
-    if (!path.isAbsolute()) {
-      path = context.getCwd();
-    }
-
-    // Check if the path exists and is a directory
-    if (Files.exists(path) && Files.isDirectory(path)) {
-      // Set the current working directory to the new path
-      context.setCwd(path, context.getWorkspaceName(), context.getIdeHome());
-      this.context.info("Changed directory to: " + path.toAbsolutePath());
-      return 0;
-    } else {
-      this.context.error("Error: Directory not found: " + targetDir);
-      return -1;
-    }
-  }
-  
   /**
    * @param argument the current {@link CliArgument} (position) to match.
    * @param commandlet the potential {@link Commandlet} to match.
