@@ -30,7 +30,7 @@ function icd() {
     ide init
     return
   elif [ $# -gt 2 ]; then
-    echo -e "\033[93mInvalid usage icd $*\033[39m" >&2
+    echo -e "\033[91mInvalid usage icd $*\033[39m" >&2
     return 1  
   fi
   if [ "$1" = "-p" ]; then
