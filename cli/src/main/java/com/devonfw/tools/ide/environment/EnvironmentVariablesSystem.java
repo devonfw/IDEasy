@@ -25,7 +25,7 @@ public final class EnvironmentVariablesSystem extends EnvironmentVariablesMap {
   @Override
   protected Map<String, String> getVariables() {
 
-    return System.getenv();
+    return this.context.getSystem().getEnv();
   }
 
   /**
