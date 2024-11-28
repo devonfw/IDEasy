@@ -167,14 +167,15 @@ public class ProcessContextImpl implements ProcessContext {
 
       this.processBuilder.command(args);
 
+      List<LogEvent> logs = new ArrayList<>();
       List<String> out = null;
       List<String> err = null;
 
       Process process = this.processBuilder.start();
 
       if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
-        CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
+        CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream(), false, logs);
+        CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream(), true, logs);
         out = outFut.get();
         err = errFut.get();
       }
@@ -187,10 +188,9 @@ public class ProcessContextImpl implements ProcessContext {
         exitCode = process.waitFor();
       }
 
-      ProcessResult result = new ProcessResultImpl(exitCode, out, err);
+      ProcessResult result = new ProcessResultImpl(exitCode, out, err, logs);
 
       performLogging(result, exitCode, interpreter);
-
       return result;
 
     } catch (CliProcessException | IllegalStateException e) {
@@ -214,11 +214,19 @@ public class ProcessContextImpl implements ProcessContext {
    * @param is {@link InputStream}.
    * @return {@link CompletableFuture}.
    */
-  private static CompletableFuture<List<String>> readInputStream(InputStream is) {
+  private static CompletableFuture<List<String>> readInputStream(InputStream is, boolean errorStream, List<LogEvent> logs) {
 
     return CompletableFuture.supplyAsync(() -> {
 
       try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr)) {
+
+        String line;
+        while ((line = br.readLine()) != null) {
+          synchronized (logs) {
+            LogEvent logEvent = new LogEvent(errorStream, line);
+            logs.add(logEvent);
+          }
+        }
         return br.lines().toList();
       } catch (Throwable e) {
         throw new RuntimeException("There was a problem while executing the program", e);

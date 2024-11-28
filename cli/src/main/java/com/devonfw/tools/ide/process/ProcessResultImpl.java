@@ -18,19 +18,23 @@ public class ProcessResultImpl implements ProcessResult {
 
   private final List<String> err;
 
+  private final List<LogEvent> logEvents;
+
   /**
    * The constructor.
    *
    * @param exitCode the {@link #getExitCode() exit code}.
    * @param out the {@link #getOut() out}.
    * @param err the {@link #getErr() err}.
+   * @param logEvents the {@link #getLogEvents()} () logEvents}.
    */
-  public ProcessResultImpl(int exitCode, List<String> out, List<String> err) {
+  public ProcessResultImpl(int exitCode, List<String> out, List<String> err, List<LogEvent> logEvents) {
 
     super();
     this.exitCode = exitCode;
     this.out = Objects.requireNonNullElse(out, Collections.emptyList());
     this.err = Objects.requireNonNullElse(err, Collections.emptyList());
+    this.logEvents = Objects.requireNonNullElse(logEvents, Collections.emptyList());
   }
 
   @Override
@@ -49,6 +53,11 @@ public class ProcessResultImpl implements ProcessResult {
   public List<String> getErr() {
 
     return this.err;
+  }
+
+  public List<LogEvent> getLogEvents() {
+
+    return this.logEvents;
   }
 
   @Override
