@@ -26,6 +26,7 @@ import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.jmc.Jmc;
 import com.devonfw.tools.ide.tool.kotlinc.Kotlinc;
 import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
+import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.node.Node;
@@ -41,7 +42,7 @@ import com.devonfw.tools.ide.tool.vscode.Vscode;
 /**
  * Implementation of {@link CommandletManager}.
  */
-public final class CommandletManagerImpl implements CommandletManager {
+public class CommandletManagerImpl implements CommandletManager {
 
   private final Map<Class<? extends Commandlet>, Commandlet> commandletTypeMap;
 
@@ -75,6 +76,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new EditionSetCommandlet(context));
     add(new EditionListCommandlet(context));
     add(new VersionCommandlet(context));
+    add(new StatusCommandlet(context));
     add(new RepositoryCommandlet(context));
     add(new UninstallCommandlet(context));
     add(new UpdateCommandlet(context));
@@ -96,6 +98,7 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new Quarkus(context));
     add(new Kotlinc(context));
     add(new KotlincNative(context));
+    add(new KubeCtl(context));
     add(new Tomcat(context));
     add(new Vscode(context));
     add(new Azure(context));
@@ -112,7 +115,10 @@ public final class CommandletManagerImpl implements CommandletManager {
     add(new LazyDocker(context));
   }
 
-  private void add(Commandlet commandlet) {
+  /**
+   * @param commandlet the {@link Commandlet} to add.
+   */
+  protected void add(Commandlet commandlet) {
 
     boolean hasRequiredProperty = false;
     List<Property<?>> properties = commandlet.getProperties();
