@@ -22,6 +22,7 @@ function doSetupInConfigFile() {
 cd "$(dirname "${BASH_SOURCE:-$0}")" || exit 255
 if [ "${PWD/*\//}" != "_ide" ]; then
   echo -e "\033[93mInvalid installation path $PWD - you need to install IDEasy to a folder named '_ide'.\033[39m" >&2
+  exit 1
 fi
 echo "Setting up IDEasy in ${PWD}"
 cd ..
@@ -30,3 +31,5 @@ source "$IDE_ROOT/_ide/functions"
 
 doSetupInConfigFile ~/.bashrc
 doSetupInConfigFile ~/.zshrc
+
+echo -e "\033[93mATTENTION: IDEasy has been setup for your shells but you need to start a new shell to make it work.\nOnly if you invoked this setup script by sourcing it, you are able to run 'ide' and 'icd' commands without starting a new shell.\n\033[39m" >&2
