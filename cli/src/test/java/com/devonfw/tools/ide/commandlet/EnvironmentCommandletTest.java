@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfoMock;
@@ -125,18 +124,6 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("WORKSPACE=\"foo-test\""), //
         IdeLogEntry.ofProcessable("WORKSPACE_PATH=\"" + normalize(context.getWorkspacePath()) + "\"") //
     );
-  }
-
-  /**
-   * Test that {@link EnvironmentCommandlet} requires home.
-   */
-  @Test
-  public void testThatHomeIsRequired() {
-
-    // arrange
-    EnvironmentCommandlet env = new EnvironmentCommandlet(IdeTestContextMock.get());
-    // act & assert
-    assertThat(env.isIdeHomeRequired()).isTrue();
   }
 
   private String normalize(Path path) {

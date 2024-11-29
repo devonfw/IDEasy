@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.devonfw.tools.ide.cli.CliExitException;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
@@ -42,7 +43,7 @@ public final class EnvironmentCommandlet extends Commandlet {
   @Override
   public boolean isIdeHomeRequired() {
 
-    return true;
+    return false;
   }
 
   @Override
@@ -53,7 +54,9 @@ public final class EnvironmentCommandlet extends Commandlet {
 
   @Override
   public void run() {
-
+    if (context.getIdeHome() == null) {
+      throw new CliExitException();
+    }
     boolean winCmd = false;
     WindowsPathSyntax pathSyntax = null;
     IdeSubLogger logger = this.context.level(IdeLogLevel.PROCESSABLE);
