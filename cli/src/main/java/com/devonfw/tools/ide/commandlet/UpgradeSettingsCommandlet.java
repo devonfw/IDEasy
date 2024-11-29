@@ -250,15 +250,15 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       devonPropertiesPath = devonPropertiesPath.getParent();
     }
 
-    for (Path file_path : pathList) {
-      if (!Files.exists(file_path)) {
+    for (Path filePath : pathList) {
+      if (!Files.exists(filePath)) {
         continue;
       }
-      Path target = file_path.getParent().resolve("ide.properties");
+      Path target = filePath.getParent().resolve("ide.properties");
       Properties devonProperties = new Properties();
       devonProperties.put("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED", "false");
       try {
-        List<String> readLines = Files.readAllLines(file_path);
+        List<String> readLines = Files.readAllLines(filePath);
         String[] split;
         for (String line : readLines) {
           if (!line.contains("#") && !line.isEmpty()) {
@@ -283,7 +283,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
         throw new RuntimeException(e);
       }
 
-      if (context.getFileAccess().findFirst(file_path.getParent(), path -> path.getFileName().toString().equals("ide.properties"), false) != null) {
+      if (context.getFileAccess().findFirst(filePath.getParent(), path -> path.getFileName().toString().equals("ide.properties"), false) != null) {
         try {
           List<String> readLines = Files.readAllLines(target);
           String[] split;
@@ -319,9 +319,9 @@ public class UpgradeSettingsCommandlet extends Commandlet {
             }
           }
 
-          this.context.success("Successfully merged and updated ide.properties: " + file_path);
+          this.context.success("Successfully merged and updated ide.properties: " + filePath);
 
-          Files.delete(file_path);
+          Files.delete(filePath);
 
         } catch (IOException e) {
           throw new RuntimeException(e);
@@ -345,20 +345,20 @@ public class UpgradeSettingsCommandlet extends Commandlet {
               + "\n"
               + "# In case you are sitting behind a proxy these JVM options may help:\n"
               + "#export JAVA_OPTS=-Dhttp.proxyHost=myproxy.com -Dhttp.proxyPort=8080\n";
-          Files.write(file_path, comment.getBytes());
+          Files.write(filePath, comment.getBytes());
           for (Entry<Object, Object> set : devonProperties.entrySet()) {
             if (set.getValue() instanceof String) {
-              Files.write(file_path, ("\n" + set.getKey().toString() + "=" + set.getValue().toString()).getBytes(), StandardOpenOption.APPEND);
+              Files.write(filePath, ("\n" + set.getKey().toString() + "=" + set.getValue().toString()).getBytes(), StandardOpenOption.APPEND);
             }
             if (set.getValue() instanceof String[]) {
               String[] values = (String[]) set.getValue();
-              Files.write(file_path, ("\n" + values[0] + " " + set.getKey().toString() + "=" + values[1]).getBytes(), StandardOpenOption.APPEND);
+              Files.write(filePath, ("\n" + values[0] + " " + set.getKey().toString() + "=" + values[1]).getBytes(), StandardOpenOption.APPEND);
             }
           }
-          Files.move(file_path, target);
-          this.context.success("Updated file name: " + file_path + "\n-> " + target + "and updated variables");
+          Files.move(filePath, target);
+          this.context.success("Updated file name: " + filePath + "\n-> " + target + "and updated variables");
         } catch (IOException e) {
-          this.context.error("Error updating file name: " + file_path, e);
+          this.context.error("Error updating file name: " + filePath, e);
         }
       }
     }
