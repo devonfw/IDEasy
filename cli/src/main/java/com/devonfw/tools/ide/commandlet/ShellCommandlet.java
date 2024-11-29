@@ -141,7 +141,7 @@ public final class ShellCommandlet extends Commandlet {
 
   private int changeDirectory(CliArguments cliArgs) {
     if (!cliArgs.hasNext()) {
-      Path homeDir = Paths.get(System.getProperty("user.home"));
+      Path homeDir = this.context.getUserHome();
       context.setCwd(homeDir, context.getWorkspaceName(), context.getIdeHome());
       return 0;
     }
