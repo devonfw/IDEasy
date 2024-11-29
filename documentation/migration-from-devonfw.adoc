@@ -13,4 +13,4 @@ upgrade-settings
 
 Step 3: After running the command, you might need to update your xml files for our merger.
 Please consider reading our documentation for that topic:
-https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc--
+https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc
