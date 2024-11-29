@@ -278,17 +278,6 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable initialization.
-   */
-  public String getMessageIdeHome() {
-
-    if (this.ideHome == null) {
-      return getMessageIdeHomeNotFound();
-    }
-    return getMessageIdeHomeFound();
-  }
-
-  /**
    * @return {@code true} if this is a test context for JUnits, {@code false} otherwise.
    */
   public boolean isTest() {
@@ -300,6 +289,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     return new SystemPath(this);
   }
+
 
   private boolean isIdeHome(Path dir) {
 

@@ -24,6 +24,9 @@ public interface ProcessResult {
   /** Return code if tool was requested that is not installed. */
   int TOOL_NOT_INSTALLED = 4;
 
+  /** Return code to exit if condition not met */
+  int EXIT = 17;
+
   /**
    * Return code to abort gracefully.
    *
