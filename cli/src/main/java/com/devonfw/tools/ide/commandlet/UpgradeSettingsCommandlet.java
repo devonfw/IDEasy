@@ -22,7 +22,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 /**
- * {@link Commandlet} to upgrade settings after a migration from devofw-ide to IDEasy
+ * {@link Commandlet} to upgrade settings after a migration from devofw-ide to IDEasy.
  */
 public class UpgradeSettingsCommandlet extends Commandlet {
 
@@ -164,7 +164,6 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       this.context.error("Error scanning for 'replacement-patterns.properties' file", e);
     }
   }
-
 
   private void checkForXMLNameSpace() {
     this.context.info("Scanning XML files...");

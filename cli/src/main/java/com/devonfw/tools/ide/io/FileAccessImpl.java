@@ -6,9 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.ProxySelector;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -82,12 +79,6 @@ public class FileAccessImpl implements FileAccess {
   private HttpClient createHttpClient(String url) {
 
     HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
-    Proxy proxy = this.context.getProxyContext().getProxy(url);
-    if (proxy != Proxy.NO_PROXY) {
-      this.context.info("Downloading through proxy: " + proxy);
-      InetSocketAddress proxyAddress = (InetSocketAddress) proxy.address();
-      builder.proxy(ProxySelector.of(proxyAddress));
-    }
     return builder.build();
   }
 
@@ -105,7 +96,6 @@ public class FileAccessImpl implements FileAccess {
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
         HttpClient client = createHttpClient(url);
         HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-
         if (response.statusCode() == 200) {
           downloadFileWithProgressBar(url, target, response);
         }
