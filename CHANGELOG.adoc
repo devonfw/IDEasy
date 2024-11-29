@@ -14,6 +14,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/792[#792]: Honor new variable IDE_OPTIONS in ide command wrapper
 * https://github.com/devonfw/IDEasy/issues/589[#589]: Fix NLS Bundles for Linux and MacOS
 * https://github.com/devonfw/IDEasy/issues/778[#778]: Add icd command
+* https://github.com/devonfw/IDEasy/issues/587[#587]: Checks for git installation before performing git operations
 * https://github.com/devonfw/IDEasy/issues/779[#779]: Consider functions instead of alias
 * https://github.com/devonfw/IDEasy/issues/810[#810]: setup not adding IDEasy to current shell
 * https://github.com/devonfw/IDEasy/issues/782[#782]: Fix IDE_ROOT variable on Linux
