@@ -1,23 +1,67 @@
-[[proxy-support.adoc]]
-= Proxy support
-
 :toc:
 toc::[]
 
-IDEasy provides built-in support for automatic HTTP and HTTPS proxy recognition.
+= Proxy support
 
-[[proxy-support.adoc_Configuring-Proxy-settings]]
+In order to be usable and acceptable world-wide and in enterprise contexts, it is required that IDEasy provides support for network proxies.
+In case you are working in a company and can only access the Internet via an HTTP proxy, we support your use-case and this page gives details how to make it work.
+
 == Configuring Proxy Settings
 
 To enable automatic proxy recognition, users need to set the appropriate environment variables in their system, or check if they are already set.
 These variables should be formatted as follows, lowercase or uppercase:
 
-[source,bash]
-----
-http_proxy=http://<host>:<port>
-# e.g. http_proxy=http://127.0.0.1:8888
-https_proxy=https://<host>:<port>
-# e.g. https_proxy=https://127.0.0.1:8888
-----
+```
+# example values for a proxy configuration
+http_proxy=http://proxy.host.com:8888
+https_proxy=https://proxy.host.com:8443
+no_proxy=.domain.com,localhost
+```
 
-IDEasy utilizes these environment variables to detect and configure proxy settings during runtime.
+Many famous tools like `wget`, `curl`, etc. honor these variables and work behind a proxy this way.
+This also applies for IDEasy so in a standard case, it will work for you out of the box.
+However, in case it is not working, please read on to find solutions to configure IDEasy to your needs.
+
+== Advanced Proxy Configuration
+
+To support advanced proxy configuration, we introduced the link:variables.adoc[variable] `IDE_OPTIONS` that you can set on OS level or e.g. in your `~/.bashrc`.
+It allows to set arbitrary JVM options like https://docs.oracle.com/en/java/javase/21/core/java-networking.html#JSCOR-GUID-2C88D6BD-F278-4BD5-B0E5-F39B2BFAA840[proxy settings]
+as well as https://www.baeldung.com/java-custom-truststore[truststore settings] (see also https://docs.oracle.com/en/java/javase/21/docs/api/system-properties.html[Java system properties]).
+
+E.g. if you do not want to rely on the proxy environment variables above, you can also make this explicitly:
+
+```
+export IDE_OPTIONS="-Dhttps.proxyHost=proxy.host.com -Dhttps.proxyPort=8443
+```
+
+=== Authentication
+
+In some cases your network proxy may require authentication.
+Then you need to manually configure your account details like in the following example:
+
+```
+export IDE_OPTIONS="-Dhttp.proxyUser=$USERNAME -Dhttp.proxyPassword=«password»"
+```
+
+=== Truststore
+
+Some strange VPN tools have the bad habit to break up and sniff TLS encrypted connections.
+Therefore, they create their own TLS connection with a self-made certificate that is typically installed into the certificate trust store of the OS during installation.
+However, tools like Java or Firefox do not use the OS trust store but bring their own and therefore may reveal this hack.
+In IDEasy (or Eclipse Marketplace) you may therefore end up with the following error:
+
+```
+javax.net.ssl.SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+```
+
+So in other words, you may want to create a proper https://www.baeldung.com/java-keystore-truststore-difference#java-truststore[truststore] and configure IDEasy like this:
+
+```
+export IDE_OPTIONS="-Djavax.net.ssl.trustStore=/path/to/another/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit"
+```
+
+Sorry, that we cannot support you automatically on this use-case.
+Ask your VPN tool vendor for support and why this is all required.
+In general encryption should be end-to-end and your data should be protected.
+You may also want to visit https://badssl.com/ while your VPN tool is active and click the certificate tests like https://pinning-test.badssl.com/[pinning-test].
+If you then do not get an error in your browser (like "Secure connection failed") but a red warning page, your VPN tools is putting you at risk with breaking your TLS connections.
