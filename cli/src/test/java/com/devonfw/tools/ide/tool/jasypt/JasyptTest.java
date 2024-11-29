@@ -1,20 +1,14 @@
 package com.devonfw.tools.ide.tool.jasypt;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
-import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
-import uk.org.webcompere.systemstubs.jupiter.SystemStub;
-import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
-
 /**
  * Integration test of {@link Jasypt}.
  */
-@ExtendWith(SystemStubsExtension.class)
 public class JasyptTest extends AbstractIdeContextTest {
 
   private static final String JASYPT_OPTS = "custom_argument";
@@ -78,9 +72,6 @@ public class JasyptTest extends AbstractIdeContextTest {
     checkInstallation(context);
   }
 
-  @SystemStub
-  private final EnvironmentVariables environment = new EnvironmentVariables();
-
   /**
    * Tests if {@link Jasypt} Commandlet is properly running with a user-defined JASYPT_OPTS env variable
    */
@@ -88,9 +79,8 @@ public class JasyptTest extends AbstractIdeContextTest {
   public void testJasyptRunWithCustomVariable() {
 
     // arrange
-    this.environment.set("JASYPT_OPTS", JASYPT_OPTS);
-
     IdeTestContext context = newContext(PROJECT_JASYPT);
+    context.getSystem().setEnv("JASYPT_OPTS", JASYPT_OPTS);
     Jasypt commandlet = new Jasypt(context);
 
     commandlet.command.setValue(JasyptCommand.ENCRYPT);
