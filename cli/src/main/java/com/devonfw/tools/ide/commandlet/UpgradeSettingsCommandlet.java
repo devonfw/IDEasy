@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
@@ -169,6 +170,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     this.context.info("Scanning XML files...");
     Path settingsDirectory = context.getIdeHome().resolve("settings");
     AtomicBoolean missingNamespaceFound = new AtomicBoolean(false);
+
     try {
       Files.walk(settingsDirectory)
           .filter(path -> Files.isDirectory(path) && path.getFileName().toString().equals("workspace"))
@@ -177,13 +179,24 @@ public class UpgradeSettingsCommandlet extends Commandlet {
               Files.walk(workspaceDir)
                   .filter(file -> Files.isRegularFile(file) && file.toString().endsWith(".xml"))
                   .forEach(file -> {
-                    try {
-                      String content = Files.readString(file);
+                    try (BufferedReader reader = Files.newBufferedReader(file)) {
+                      String line;
+                      int linesRead = 0;
+                      boolean namespaceFound = false;
 
-                      if (!content.contains("xmlns:merge=\"https://github.com/devonfw/IDEasy/merge\"")) {
+                      while ((line = reader.readLine()) != null && linesRead < 3) {
+                        linesRead++;
+                        if (line.contains("\"https://github.com/devonfw/IDEasy/merge\"")) {
+                          namespaceFound = true;
+                          break;
+                        }
+                      }
+
+                      if (!namespaceFound) {
                         this.context.warning("The XML file " + file + " does not contain the required 'xmlns:merge' attribute.");
                         missingNamespaceFound.set(true);
                       }
+
                     } catch (IOException e) {
                       this.context.error("Error reading the file: " + file, e);
                     }
@@ -192,6 +205,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
               this.context.error("Error processing the workspace: " + workspaceDir, e);
             }
           });
+
       if (missingNamespaceFound.get()) {
         this.context.warning("For further information, please visit https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc#xml-merger");
       } else {
@@ -202,6 +216,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       this.context.error("Error walking through the 'settings' directory", e);
     }
   }
+
 
   private void createCustomToolsJson(String variable) {
     try {
