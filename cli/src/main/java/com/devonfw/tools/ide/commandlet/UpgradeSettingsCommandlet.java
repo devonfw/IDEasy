@@ -57,13 +57,15 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   private void checkIfLegacyFolderExists() {
     this.context.info("Scanning for legacy folders...");
 
-    Path devonFolder = context.getSettingsPath().resolve("devon");
+    Path settingsPath = context.getSettingsPath();
 
-    Path templatesFolder = context.getSettingsPath().resolve("templates");
+    Path devonFolder = settingsPath.resolve("devon");
 
-    Path projectsFolder = context.getSettingsPath().resolve("projects");
+    Path templatesFolder = settingsPath.resolve("templates");
 
-    Path repositoriesFolder = context.getSettingsPath().resolve("repositories");
+    Path projectsFolder = settingsPath.resolve("projects");
+
+    Path repositoriesFolder = settingsPath.resolve("repositories");
 
     if (Files.exists(devonFolder) && Files.isDirectory(devonFolder)) {
       try {
@@ -219,7 +221,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
 
 
   private void createCustomToolsJson(String variable) {
-    try {
+    try (FileWriter writer = new FileWriter(context.getIdeHome().resolve("settings/custom-tools.json").toString())) {
       JSONArray tabelObject = new JSONArray();
       variable = variable.substring(variable.indexOf("(") + 1, variable.indexOf(")") - 1);
       String url = variable.substring(variable.indexOf("https://"), variable.indexOf(" "));
@@ -242,11 +244,9 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       finalObject.put("tools", tabelObject);
       finalObject.put("url", url);
 
-      FileWriter writer = new FileWriter(context.getIdeHome().resolve("settings/custom-tools.json").toString());
       writer.write(finalObject.toJSONString());
 
       writer.flush();
-      writer.close();
 
       context.success("Created custom-tools.json at: " + context.getIdeHome().resolve("settings/custom-tools.json"));
     } catch (IOException e) {
@@ -370,8 +370,8 @@ public class UpgradeSettingsCommandlet extends Commandlet {
               Files.write(filePath, ("\n" + values[0] + " " + set.getKey().toString() + "=" + values[1]).getBytes(), StandardOpenOption.APPEND);
             }
           }
-          Files.move(file_path, target);
-          this.context.success("Updated file name: " + file_path + "\n-> " + target + " and updated variables");
+          Files.move(filePath, target);
+          this.context.success("Updated file name: " + filePath + "\n-> " + target + " and updated variables");
         } catch (IOException e) {
           this.context.error("Error updating file name: " + filePath, e);
         }

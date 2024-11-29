@@ -863,12 +863,8 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public List<Path> listChildren(Path dir, Predicate<Path> filter, boolean recursive) {
-    return listChildrenRecursive(dir, filter, recursive);
-  }
+  public List<Path> listChildren(Path dir, Predicate<Path> filter) {
 
-  private List<Path> listChildrenRecursive(Path dir, Predicate<Path> filter, boolean recursive) {
-    List<Path> folders = null;
     if (!Files.isDirectory(dir)) {
       return List.of();
     }
@@ -883,20 +879,6 @@ public class FileAccessImpl implements FileAccess {
         } else {
           this.context.trace("Ignoring file {} according to filter", child);
         }
-        if (Files.isDirectory(child) && recursive) {
-          if (folders == null) {
-            folders = new ArrayList<>();
-          }
-          folders.add(child);
-        }
-      }
-      if (folders != null) {
-        for (Path child : folders) {
-          List<Path> match = listChildren(child, filter, recursive);
-          if (match != null) {
-            children.addAll(match);
-          }
-        }
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to find children of directory " + dir, e);
@@ -907,7 +889,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public boolean isEmptyDir(Path dir) {
 
-    return listChildren(dir, f -> true, false).isEmpty();
+    return listChildren(dir, f -> true).isEmpty();
   }
 
   /**

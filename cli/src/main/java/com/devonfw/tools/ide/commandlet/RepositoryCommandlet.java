@@ -58,7 +58,7 @@ public class RepositoryCommandlet extends Commandlet {
       }
 
       List<Path> propertiesFiles = this.context.getFileAccess()
-          .listChildren(repositories, path -> path.getFileName().toString().endsWith(".properties"), false);
+          .listChildren(repositories, path -> path.getFileName().toString().endsWith(".properties"));
 
       boolean forceMode = this.context.isForceMode();
       for (Path propertiesFile : propertiesFiles) {

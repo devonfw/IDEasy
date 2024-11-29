@@ -220,11 +220,10 @@ public interface FileAccess {
   /**
    * @param dir the {@link Path} to the directory where to list the children.
    * @param filter the {@link Predicate} used to {@link Predicate#test(Object) decide} which children to include (if {@code true} is returned).
-   * @param recursive - {@code true} to search recursive in all sub-folders, {@code false} otherwise.
    * @return all children of the given {@link Path} that match the given {@link Predicate}. Will be the empty list of the given {@link Path} is not an existing
    *     directory.
    */
-  List<Path> listChildren(Path dir, Predicate<Path> filter, boolean recursive);
+  List<Path> listChildren(Path dir, Predicate<Path> filter);
 
   /**
    * Finds the existing file with the specified name in the given list of directories.
