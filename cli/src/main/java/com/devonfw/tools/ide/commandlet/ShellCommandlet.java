@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Iterator;
 
 import org.fusesource.jansi.AnsiConsole;
@@ -79,13 +81,13 @@ public final class ShellCommandlet extends Commandlet {
 
         // TODO: implement TailTipWidgets, see: https://github.com/devonfw/IDEasy/issues/169
 
-        String prompt = "ide> ";
         String rightPrompt = null;
         String line;
 
         AnsiConsole.systemInstall();
         while (true) {
           try {
+            String prompt = context.getCwd() + "$ ide ";
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
             line = line.trim();
             if (line.equals("exit")) {
@@ -129,7 +131,35 @@ public final class ShellCommandlet extends Commandlet {
     String[] arguments = args.split(" ", 0);
     CliArguments cliArgs = new CliArguments(arguments);
     cliArgs.next();
+
+    if ("cd".equals(arguments[0])) {
+      return changeDirectory(cliArgs);
+    }
+
     return ((AbstractIdeContext) this.context).run(cliArgs);
+  }
+
+  private int changeDirectory(CliArguments cliArgs) {
+    if (!cliArgs.hasNext()) {
+      Path homeDir = this.context.getUserHome();
+      context.setCwd(homeDir, context.getWorkspaceName(), context.getIdeHome());
+      return 0;
+    }
+
+    String targetDir = String.valueOf(cliArgs.next());
+    Path path = Paths.get(targetDir);
+
+    // If the given path is relative, resolve it relative to the current directory
+    if (!path.isAbsolute()) {
+      path = context.getCwd().resolve(targetDir).normalize();
+    }
+
+    if (context.getFileAccess().isExpectedFolder(path)) {
+      context.setCwd(path, context.getWorkspaceName(), context.getIdeHome());
+      return 0;
+    } else {
+      return 1;
+    }
   }
 
   /**
