@@ -1,0 +1,5 @@
+${DEVON_IDE_HOME}
+This is a test text,this is a test text,this is a test text,this is a test text,
+this is a test text,
+this is a test text,${MAVEN_VERSION}this is a test text,this is a test text,${SETTINGS_PATH}
+this is a test text,this is a test text,this is a test text,this is a test text,
