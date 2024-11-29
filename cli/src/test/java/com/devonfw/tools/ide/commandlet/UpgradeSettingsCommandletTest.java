@@ -8,6 +8,9 @@ import org.junit.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 
+/**
+ * Integration test of {@link UpgradeSettingsCommandlet} .
+ */
 public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
 
   private static final Path UPGRADESETTINGS_PATH = Path.of("target/test-projects/upgrade-settings/project/");
@@ -15,6 +18,9 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
   private static final String PROJECT_UPGRADESETTINGS = "upgrade-settings";
   private final IdeTestContext context = newContext(PROJECT_UPGRADESETTINGS);
 
+  /**
+   * Ensure that all devon.properties are renamed to ide.properties and that the variables inside have been adjusted.
+   */
   @Test
   public void testDevonPropertiesUpgrade() {
     // arrange
@@ -39,6 +45,9 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
             + "IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED=false");
   }
 
+  /**
+   * Ensure that the custom-tools.json was created with the correct content.
+   */
   @Test
   public void testCustomJsonFileCreation() {
     // arrange
@@ -52,6 +61,9 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
         "{\"tools\":[{\"os-agnostic\":true,\"arch-agnostic\":true,\"name\":\"jboss-eap\",\"version\":\"7.1.4.GA\"},{\"os-agnostic\":false,\"arch-agnostic\":false,\"name\":\"firefox\",\"version\":\"70.0.1\"}],\"url\":\"https:\\/\\/host.tld\\/projects\\/my-project\"}");
   }
 
+  /**
+   * Ensure that settings/devon and settings/projects are renamed.
+   */
   @Test
   public void testIfFolderAreRenamed() {
     // arrange
@@ -63,6 +75,9 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     assertThat(Files.isDirectory(UPGRADESETTINGS_PATH.resolve("settings/repositories"))).isTrue();
   }
 
+  /**
+   * Ensure that the variable syntax is changed from CURLY into ANGLED.
+   */
   @Test
   public void testIfVariableSyntaxIsChanged() {
     // arrange
@@ -77,6 +92,9 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
         + "this is a test text,this is a test text,this is a test text,this is a test text,\n");
   }
 
+  /**
+   * Ensure that xml files that need to be adjusted are logged and the link to documentation is logged.
+   */
   @Test
   public void testLoggingOfXmlFiles() {
     // arrange
