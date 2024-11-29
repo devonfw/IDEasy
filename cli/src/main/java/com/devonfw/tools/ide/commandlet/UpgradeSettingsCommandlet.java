@@ -50,7 +50,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     replaceLegacyVariablesAndBracketsInWorkspace();
     checkIfLegacyFolderExists();
     handleReplacementPatternsFiles();
-    checkForXMLNameSpace();
+    checkForXmlNamespace();
   }
 
   private void checkIfLegacyFolderExists() {
@@ -165,7 +165,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     }
   }
 
-  private void checkForXMLNameSpace() {
+  private void checkForXmlNamespace() {
     this.context.info("Scanning XML files...");
     Path settingsDirectory = context.getIdeHome().resolve("settings");
     AtomicBoolean missingNamespaceFound = new AtomicBoolean(false);
