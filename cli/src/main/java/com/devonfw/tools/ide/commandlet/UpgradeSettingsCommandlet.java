@@ -170,44 +170,18 @@ public class UpgradeSettingsCommandlet extends Commandlet {
 
   private void checkForXmlNamespace() {
     this.context.info("Scanning XML files...");
-    Path settingsDirectory = context.getIdeHome().resolve("settings");
+    Path settingsDirectory = context.getSettingsPath();
     AtomicBoolean missingNamespaceFound = new AtomicBoolean(false);
 
     try {
-      Files.walk(settingsDirectory)
-          .filter(path -> Files.isDirectory(path) && path.getFileName().toString().equals("workspace"))
-          .forEach(workspaceDir -> {
-            try {
-              Files.walk(workspaceDir)
-                  .filter(file -> Files.isRegularFile(file) && file.toString().endsWith(".xml"))
-                  .forEach(file -> {
-                    try (BufferedReader reader = Files.newBufferedReader(file)) {
-                      String line;
-                      int linesRead = 0;
-                      boolean namespaceFound = false;
+      List<Path> workspaceDirs = findWorkspaceDirectories(settingsDirectory);
 
-                      while ((line = reader.readLine()) != null && linesRead < 3) {
-                        linesRead++;
-                        if (line.contains("\"https://github.com/devonfw/IDEasy/merge\"")) {
-                          namespaceFound = true;
-                          break;
-                        }
-                      }
+      for (Path workspaceDir : workspaceDirs) {
+        missingNamespaceFound.set(
+            checkXmlFilesForNamespace(workspaceDir, missingNamespaceFound.get()));
+      }
 
-                      if (!namespaceFound) {
-                        this.context.warning("The XML file " + file + " does not contain the required 'xmlns:merge' attribute.");
-                        missingNamespaceFound.set(true);
-                      }
-
-                    } catch (IOException e) {
-                      this.context.error("Error reading the file: " + file, e);
-                    }
-                  });
-            } catch (IOException e) {
-              this.context.error("Error processing the workspace: " + workspaceDir, e);
-            }
-          });
-
+      // Output the result
       if (missingNamespaceFound.get()) {
         this.context.warning("For further information, please visit https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc#xml-merger");
       } else {
@@ -217,6 +191,60 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     } catch (IOException e) {
       this.context.error("Error walking through the 'settings' directory", e);
     }
+  }
+
+  private List<Path> findWorkspaceDirectories(Path settingsDirectory) throws IOException {
+    List<Path> workspaceDirs = new ArrayList<>();
+    Files.walk(settingsDirectory)
+        .filter(path -> Files.isDirectory(path) && path.getFileName().toString().equals("workspace"))
+        .forEach(workspaceDirs::add);
+    return workspaceDirs;
+  }
+
+  private boolean checkXmlFilesForNamespace(Path workspaceDir, boolean missingNamespaceFound) {
+    try {
+      List<Path> xmlFiles = findXmlFilesInDirectory(workspaceDir);
+
+      for (Path xmlFile : xmlFiles) {
+        missingNamespaceFound = checkXmlNamespaceInFile(xmlFile, missingNamespaceFound);
+      }
+    } catch (IOException e) {
+      this.context.error("Error processing workspace directory: " + workspaceDir, e);
+    }
+    return missingNamespaceFound;
+  }
+
+  private List<Path> findXmlFilesInDirectory(Path directory) throws IOException {
+    List<Path> xmlFiles = new ArrayList<>();
+    Files.walk(directory)
+        .filter(file -> Files.isRegularFile(file) && file.toString().endsWith(".xml"))
+        .forEach(xmlFiles::add);
+    return xmlFiles;
+  }
+
+  private boolean checkXmlNamespaceInFile(Path xmlFile, boolean missingNamespaceFound) {
+    try (BufferedReader reader = Files.newBufferedReader(xmlFile)) {
+      String line;
+      int linesRead = 0;
+      boolean namespaceFound = false;
+
+      while ((line = reader.readLine()) != null && linesRead < 3) {
+        linesRead++;
+        if (line.contains("\"https://github.com/devonfw/IDEasy/merge\"")) {
+          namespaceFound = true;
+          break;
+        }
+      }
+
+      if (!namespaceFound) {
+        this.context.warning("The XML file " + xmlFile + " does not contain the required 'xmlns:merge' attribute.");
+        missingNamespaceFound = true;
+      }
+
+    } catch (IOException e) {
+      this.context.error("Error reading the file: " + xmlFile, e);
+    }
+    return missingNamespaceFound;
   }
 
 
