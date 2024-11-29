@@ -10,10 +10,10 @@ import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.IdeSystem;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
-import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -416,7 +416,10 @@ public interface IdeContext extends IdeStartContext {
    */
   Path getDefaultExecutionDirectory();
 
-  ProxyContext getProxyContext();
+  /**
+   * @return the {@link IdeSystem} instance wrapping {@link System}.
+   */
+  IdeSystem getSystem();
 
   /**
    * @return the {@link GitContext} used to run several git commands.
