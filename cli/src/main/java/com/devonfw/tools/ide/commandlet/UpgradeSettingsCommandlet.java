@@ -56,13 +56,13 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   private void checkIfLegacyFolderExists() {
     this.context.info("Scanning for legacy folders...");
 
-    Path devonFolder = context.getIdeHome().resolve("settings/devon");
+    Path devonFolder = context.getSettingsPath().resolve("devon");
 
-    Path templatesFolder = context.getIdeHome().resolve("settings/templates");
+    Path templatesFolder = context.getSettingsPath().resolve("templates");
 
-    Path projectsFolder = context.getIdeHome().resolve("settings/projects");
+    Path projectsFolder = context.getSettingsPath().resolve("projects");
 
-    Path repositoriesFolder = context.getIdeHome().resolve("settings/repositories");
+    Path repositoriesFolder = context.getSettingsPath().resolve("repositories");
 
     if (Files.exists(devonFolder) && Files.isDirectory(devonFolder)) {
       try {
