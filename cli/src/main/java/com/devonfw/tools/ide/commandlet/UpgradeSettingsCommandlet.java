@@ -356,7 +356,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
             }
           }
           Files.move(file_path, target);
-          this.context.success("Updated file name: " + file_path + "\n-> " + target + "and updated variables");
+          this.context.success("Updated file name: " + file_path + "\n-> " + target + " and updated variables");
         } catch (IOException e) {
           this.context.error("Error updating file name: " + file_path, e);
         }
