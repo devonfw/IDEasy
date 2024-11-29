@@ -21,6 +21,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/637[#637]: Added option to disable updates
 * https://github.com/devonfw/IDEasy/issues/764[#764]: IDEasy not working properly in CMD
 * https://github.com/devonfw/IDEasy/issues/81[#81]: Implement Toolcommandlet for Kubernetes
+* https://github.com/devonfw/IDEasy/issues/737[#737]: Adds cd command to ide shell
 * https://github.com/devonfw/IDEasy/issues/758[#758]: Create status commandlet
 * https://github.com/devonfw/IDEasy/issues/754[#754]: Again messages break processable command output
 * https://github.com/devonfw/IDEasy/issues/737[#739]:Improved error handling to show 'You are not inside an IDE installation' only when relevant.
