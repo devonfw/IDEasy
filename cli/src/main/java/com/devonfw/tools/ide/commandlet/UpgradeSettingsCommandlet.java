@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
@@ -50,19 +51,19 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     replaceLegacyVariablesAndBracketsInWorkspace();
     checkIfLegacyFolderExists();
     handleReplacementPatternsFiles();
-    checkForXMLNameSpace();
+    checkForXmlNamespace();
   }
 
   private void checkIfLegacyFolderExists() {
     this.context.info("Scanning for legacy folders...");
 
-    Path devonFolder = context.getIdeHome().resolve("settings/devon");
+    Path devonFolder = context.getSettingsPath().resolve("devon");
 
-    Path templatesFolder = context.getIdeHome().resolve("settings/templates");
+    Path templatesFolder = context.getSettingsPath().resolve("templates");
 
-    Path projectsFolder = context.getIdeHome().resolve("settings/projects");
+    Path projectsFolder = context.getSettingsPath().resolve("projects");
 
-    Path repositoriesFolder = context.getIdeHome().resolve("settings/repositories");
+    Path repositoriesFolder = context.getSettingsPath().resolve("repositories");
 
     if (Files.exists(devonFolder) && Files.isDirectory(devonFolder)) {
       try {
@@ -165,10 +166,11 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     }
   }
 
-  private void checkForXMLNameSpace() {
+  private void checkForXmlNamespace() {
     this.context.info("Scanning XML files...");
     Path settingsDirectory = context.getIdeHome().resolve("settings");
     AtomicBoolean missingNamespaceFound = new AtomicBoolean(false);
+
     try {
       Files.walk(settingsDirectory)
           .filter(path -> Files.isDirectory(path) && path.getFileName().toString().equals("workspace"))
@@ -177,13 +179,24 @@ public class UpgradeSettingsCommandlet extends Commandlet {
               Files.walk(workspaceDir)
                   .filter(file -> Files.isRegularFile(file) && file.toString().endsWith(".xml"))
                   .forEach(file -> {
-                    try {
-                      String content = Files.readString(file);
+                    try (BufferedReader reader = Files.newBufferedReader(file)) {
+                      String line;
+                      int linesRead = 0;
+                      boolean namespaceFound = false;
 
-                      if (!content.contains("xmlns:merge=\"https://github.com/devonfw/IDEasy/merge\"")) {
+                      while ((line = reader.readLine()) != null && linesRead < 3) {
+                        linesRead++;
+                        if (line.contains("\"https://github.com/devonfw/IDEasy/merge\"")) {
+                          namespaceFound = true;
+                          break;
+                        }
+                      }
+
+                      if (!namespaceFound) {
                         this.context.warning("The XML file " + file + " does not contain the required 'xmlns:merge' attribute.");
                         missingNamespaceFound.set(true);
                       }
+
                     } catch (IOException e) {
                       this.context.error("Error reading the file: " + file, e);
                     }
@@ -192,6 +205,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
               this.context.error("Error processing the workspace: " + workspaceDir, e);
             }
           });
+
       if (missingNamespaceFound.get()) {
         this.context.warning("For further information, please visit https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc#xml-merger");
       } else {
@@ -202,6 +216,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       this.context.error("Error walking through the 'settings' directory", e);
     }
   }
+
 
   private void createCustomToolsJson(String variable) {
     try {
@@ -250,15 +265,15 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       devonPropertiesPath = devonPropertiesPath.getParent();
     }
 
-    for (Path file_path : pathList) {
-      if (!Files.exists(file_path)) {
+    for (Path filePath : pathList) {
+      if (!Files.exists(filePath)) {
         continue;
       }
-      Path target = file_path.getParent().resolve("ide.properties");
+      Path target = filePath.getParent().resolve("ide.properties");
       Properties devonProperties = new Properties();
       devonProperties.put("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED", "false");
       try {
-        List<String> readLines = Files.readAllLines(file_path);
+        List<String> readLines = Files.readAllLines(filePath);
         String[] split;
         for (String line : readLines) {
           if (!line.contains("#") && !line.isEmpty()) {
@@ -283,7 +298,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
         throw new RuntimeException(e);
       }
 
-      if (context.getFileAccess().findFirst(file_path.getParent(), path -> path.getFileName().toString().equals("ide.properties"), false) != null) {
+      if (context.getFileAccess().findFirst(filePath.getParent(), path -> path.getFileName().toString().equals("ide.properties"), false) != null) {
         try {
           List<String> readLines = Files.readAllLines(target);
           String[] split;
@@ -319,9 +334,9 @@ public class UpgradeSettingsCommandlet extends Commandlet {
             }
           }
 
-          this.context.success("Successfully merged and updated ide.properties: " + file_path);
+          this.context.success("Successfully merged and updated ide.properties: " + filePath);
 
-          Files.delete(file_path);
+          Files.delete(filePath);
 
         } catch (IOException e) {
           throw new RuntimeException(e);
@@ -345,20 +360,20 @@ public class UpgradeSettingsCommandlet extends Commandlet {
               + "\n"
               + "# In case you are sitting behind a proxy these JVM options may help:\n"
               + "#export JAVA_OPTS=-Dhttp.proxyHost=myproxy.com -Dhttp.proxyPort=8080\n";
-          Files.write(file_path, comment.getBytes());
+          Files.write(filePath, comment.getBytes());
           for (Entry<Object, Object> set : devonProperties.entrySet()) {
             if (set.getValue() instanceof String) {
-              Files.write(file_path, ("\n" + set.getKey().toString() + "=" + set.getValue().toString()).getBytes(), StandardOpenOption.APPEND);
+              Files.write(filePath, ("\n" + set.getKey().toString() + "=" + set.getValue().toString()).getBytes(), StandardOpenOption.APPEND);
             }
             if (set.getValue() instanceof String[]) {
               String[] values = (String[]) set.getValue();
-              Files.write(file_path, ("\n" + values[0] + " " + set.getKey().toString() + "=" + values[1]).getBytes(), StandardOpenOption.APPEND);
+              Files.write(filePath, ("\n" + values[0] + " " + set.getKey().toString() + "=" + values[1]).getBytes(), StandardOpenOption.APPEND);
             }
           }
           Files.move(file_path, target);
           this.context.success("Updated file name: " + file_path + "\n-> " + target + " and updated variables");
         } catch (IOException e) {
-          this.context.error("Error updating file name: " + file_path, e);
+          this.context.error("Error updating file name: " + filePath, e);
         }
       }
     }
