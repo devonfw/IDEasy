@@ -28,13 +28,15 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.IdeSystem;
+import com.devonfw.tools.ide.environment.IdeSystemImpl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
-import com.devonfw.tools.ide.network.ProxyContext;
+import com.devonfw.tools.ide.network.NetworkProxy;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -50,6 +52,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.validation.ValidationResult;
+import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -123,6 +126,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   private StepImpl currentStep;
 
   protected Boolean online;
+
+  protected IdeSystem system;
+
+  private NetworkProxy networkProxy;
 
   /**
    * The constructor.
@@ -202,8 +209,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     return ideRootPath;
   }
 
-  private static Path getIdeRootPathFromEnv() {
-    String root = System.getenv(IdeVariables.IDE_ROOT.getName());
+  private Path getIdeRootPathFromEnv() {
+    String root = getSystem().getEnv(IdeVariables.IDE_ROOT.getName());
     if (root != null) {
       Path rootPath = Path.of(root);
       if (Files.isDirectory(rootPath)) {
@@ -242,7 +249,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         this.userHome = this.ideHome.resolve("home");
       }
     } else {
-      this.userHome = Path.of(System.getProperty("user.home"));
+      this.userHome = Path.of(getSystem().getProperty("user.home"));
     }
     this.userHomeIde = this.userHome.resolve(".ide");
     this.downloadPath = this.userHome.resolve("Downloads/ide");
@@ -261,8 +268,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     return "You are not inside an IDE installation: " + this.cwd;
   }
 
-  private static String getMessageIdeRootNotFound() {
-    String root = System.getenv("IDE_ROOT");
+  private String getMessageIdeRootNotFound() {
+    String root = getSystem().getEnv("IDE_ROOT");
     if (root == null) {
       return "The environment variable IDE_ROOT is undefined. Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     } else {
@@ -339,6 +346,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public FileAccess getFileAccess() {
 
+    // currently FileAccess contains download method and requires network proxy to be configured. Maybe download should be moved to its own interface/class
+    configureNetworkProxy();
     return this.fileAccess;
   }
 
@@ -537,6 +546,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   public boolean isOnline() {
 
     if (this.online == null) {
+      configureNetworkProxy();
       // we currently assume we have only a CLI process that runs shortly
       // therefore we run this check only once to save resources when this method is called many times
       try {
@@ -552,6 +562,13 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
     return this.online.booleanValue();
+  }
+
+  private void configureNetworkProxy() {
+    if (this.networkProxy == null) {
+      this.networkProxy = new NetworkProxy(this);
+      this.networkProxy.configure();
+    }
   }
 
   @Override
@@ -593,12 +610,6 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public ProxyContext getProxyContext() {
-
-    return new ProxyContext(this);
-  }
-
-  @Override
   public GitContext getGitContext() {
 
     return new GitContextImpl(this);
@@ -614,6 +625,15 @@ public abstract class AbstractIdeContext implements IdeContext {
     return processContext;
   }
 
+  @Override
+  public IdeSystem getSystem() {
+
+    if (this.system == null) {
+      this.system = new IdeSystemImpl(this);
+    }
+    return this.system;
+  }
+
   /**
    * @return a new instance of {@link ProcessContext}.
    * @see #newProcess()
@@ -627,6 +647,19 @@ public abstract class AbstractIdeContext implements IdeContext {
   public IdeSubLogger level(IdeLogLevel level) {
 
     return this.startContext.level(level);
+  }
+
+  @Override
+  public void logIdeHomeAndRootStatus() {
+
+    if (this.ideRoot != null) {
+      success("IDE_ROOT is set to {}", this.ideRoot);
+    }
+    if (this.ideHome == null) {
+      warning(getMessageIdeHomeNotFound());
+    } else {
+      success("IDE_HOME is set to {}", this.ideHome);
+    }
   }
 
   @Override
@@ -845,11 +878,11 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (cmd.isIdeHomeRequired()) {
           debug(getMessageIdeHomeFound());
         }
-      }
-      if (this.settingsPath != null) {
-        if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
-            (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
-          interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+        if (this.settingsPath != null) {
+          if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
+              (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
+            interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+          }
         }
       }
       cmd.run();
@@ -965,7 +998,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
       currentArgument = arguments.current();
     }
-    return new ValidationState(null);
+    return ValidationResultValid.get();
   }
 
   @Override
