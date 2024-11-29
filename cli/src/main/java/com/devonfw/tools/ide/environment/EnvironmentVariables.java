@@ -119,6 +119,11 @@ public interface EnvironmentVariables {
   Path getPropertiesFilePath();
 
   /**
+   * @return the {@link Path} to the {@link #LEGACY_PROPERTIES} if they exist for this {@link EnvironmentVariables} or {@code null} otherwise (does not exist).
+   */
+  Path getLegacyPropertiesFilePath();
+
+  /**
    * @return the {@link VariableSource} of this {@link EnvironmentVariables}.
    */
   VariableSource getSource();

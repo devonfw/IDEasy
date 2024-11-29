@@ -660,6 +660,19 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public void logIdeHomeAndRootStatus() {
+
+    if (this.ideRoot != null) {
+      success("IDE_ROOT is set to {}", this.ideRoot);
+    }
+    if (this.ideHome == null) {
+      warning(getMessageIdeHomeNotFound());
+    } else {
+      success("IDE_HOME is set to {}", this.ideHome);
+    }
+  }
+
+  @Override
   public String askForInput(String message, String defaultValue) {
 
     if (!message.isBlank()) {
@@ -875,11 +888,11 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (cmd.isIdeHomeRequired()) {
           debug(getMessageIdeHomeFound());
         }
-      }
-      if (this.settingsPath != null) {
-        if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
-            (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
-          interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+        if (this.settingsPath != null) {
+          if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
+              (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
+            interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+          }
         }
       }
       cmd.run();
