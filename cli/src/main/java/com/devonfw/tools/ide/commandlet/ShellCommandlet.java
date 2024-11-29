@@ -87,7 +87,7 @@ public final class ShellCommandlet extends Commandlet {
         AnsiConsole.systemInstall();
         while (true) {
           try {
-            String prompt = "ide " + context.getCwd() + "> ";
+            String prompt = context.getCwd() + "$ ide ";
             line = reader.readLine(prompt, rightPrompt, (MaskingCallback) null, null);
             line = line.trim();
             if (line.equals("exit")) {
@@ -141,8 +141,9 @@ public final class ShellCommandlet extends Commandlet {
 
   private int changeDirectory(CliArguments cliArgs) {
     if (!cliArgs.hasNext()) {
-      this.context.error("Error: 'cd' requires a directory argument.");
-      return 1;
+      Path homeDir = Paths.get(System.getProperty("user.home"));
+      context.setCwd(homeDir, context.getWorkspaceName(), context.getIdeHome());
+      return 0;
     }
 
     String targetDir = String.valueOf(cliArgs.next());
@@ -153,10 +154,7 @@ public final class ShellCommandlet extends Commandlet {
       path = context.getCwd().resolve(targetDir).normalize();
     }
 
-    // Check if the path exists and is a directory
-
     if (context.getFileAccess().isExpectedFolder(path)) {
-      // Set the current working directory to the new path
       context.setCwd(path, context.getWorkspaceName(), context.getIdeHome());
       return 0;
     } else {
