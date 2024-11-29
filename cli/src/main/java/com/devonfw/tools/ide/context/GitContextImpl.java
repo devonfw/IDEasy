@@ -1,16 +1,17 @@
-package com.devonfw.tools.ide.context;
+package com.devonfw.tools.ide.git;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Objects;
-
-import com.devonfw.tools.ide.cli.CliOfflineException;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.variable.IdeVariables;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * Implements the {@link GitContext}.
@@ -19,81 +20,57 @@ public class GitContextImpl implements GitContext {
 
   private final IdeContext context;
 
-  private final ProcessContext processContext;
-
-  private static final ProcessMode PROCESS_MODE = ProcessMode.DEFAULT;
-  private static final ProcessMode PROCESS_MODE_FOR_FETCH = ProcessMode.DEFAULT_CAPTURE;
-
   /**
    * @param context the {@link IdeContext context}.
    */
   public GitContextImpl(IdeContext context) {
 
     this.context = context;
-    this.processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").errorHandling(ProcessErrorHandling.LOG_WARNING);
   }
 
   @Override
-  public void pullOrCloneIfNeeded(String repoUrl, String branch, Path targetRepository) {
+  public void pullOrCloneIfNeeded(GitUrl gitUrl, Path repository) {
 
-    GitOperation.PULL_OR_CLONE.executeIfNeeded(this.context, repoUrl, targetRepository, null, branch);
+    GitOperation.PULL_OR_CLONE.executeIfNeeded(this.context, gitUrl, repository, null);
   }
 
   @Override
-  public boolean fetchIfNeeded(Path targetRepository) {
+  public boolean fetchIfNeeded(Path repository) {
 
-    return fetchIfNeeded(targetRepository, null, null);
+    return fetchIfNeeded(repository, null, null);
   }
 
   @Override
-  public boolean fetchIfNeeded(Path targetRepository, String remote, String branch) {
+  public boolean fetchIfNeeded(Path repository, String remote, String branch) {
 
-    return GitOperation.FETCH.executeIfNeeded(this.context, null, targetRepository, remote, branch);
+    return GitOperation.FETCH.executeIfNeeded(this.context, new GitUrl("https://dummy.url/repo.git", branch), repository, remote);
   }
 
   @Override
   public boolean isRepositoryUpdateAvailable(Path repository) {
+
     verifyGitInstalled();
-    ProcessResult result = this.processContext.directory(repository).addArg("rev-parse").addArg("HEAD").run(PROCESS_MODE_FOR_FETCH);
-    if (!result.isSuccessful()) {
-      this.context.warning("Failed to get the local commit hash.");
+    String localCommitId = runGitCommandAndGetSingleOutput("Failed to get the local commit id.", repository, "rev-parse", "HEAD");
+    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
+    if ((localCommitId == null) || (remoteCommitId == null)) {
       return false;
     }
-    String localCommitHash = result.getOut().stream().findFirst().orElse("").trim();
-    // get remote commit code
-    result = this.processContext.addArg("rev-parse").addArg("@{u}").run(PROCESS_MODE_FOR_FETCH);
-    if (!result.isSuccessful()) {
-      this.context.warning("Failed to get the remote commit hash.");
-      return false;
-    }
-    String remote_commit_code = result.getOut().stream().findFirst().orElse("").trim();
-    return !localCommitHash.equals(remote_commit_code);
+    return !localCommitId.equals(remoteCommitId);
   }
 
   @Override
-  public void pullOrCloneAndResetIfNeeded(String repoUrl, Path repository, String branch, String remoteName) {
+  public void pullOrCloneAndResetIfNeeded(GitUrl gitUrl, Path repository, String remoteName) {
 
-    pullOrCloneIfNeeded(repoUrl, branch, repository);
-
-    reset(repository, "master", remoteName);
-
+    pullOrCloneIfNeeded(gitUrl, repository);
+    reset(repository, gitUrl.branch(), remoteName);
     cleanup(repository);
   }
 
   @Override
-  public void pullOrClone(String gitRepoUrl, Path repository) {
-
-    pullOrClone(gitRepoUrl, repository, null);
-  }
-
-  @Override
-  public void pullOrClone(String gitRepoUrl, Path repository, String branch) {
+  public void pullOrClone(GitUrl gitUrl, Path repository) {
 
     Objects.requireNonNull(repository);
-    Objects.requireNonNull(gitRepoUrl);
-    if (!gitRepoUrl.startsWith("http")) {
-      throw new IllegalArgumentException("Invalid git URL '" + gitRepoUrl + "'!");
-    }
+    Objects.requireNonNull(gitUrl);
     if (Files.isDirectory(repository.resolve(GIT_FOLDER))) {
       // checks for remotes
       String remote = determineRemote(repository);
@@ -105,15 +82,15 @@ public class GitContextImpl implements GitContext {
         pull(repository);
       }
     } else {
-      clone(new GitUrl(gitRepoUrl, branch), repository);
+      clone(gitUrl, repository);
     }
   }
 
   /**
    * Handles errors which occurred during git pull.
    *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
-   *     git will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
+   * will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
    * @param result the {@link ProcessResult} to evaluate.
    */
   private void handleErrors(Path targetRepository, ProcessResult result) {
@@ -136,45 +113,41 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void clone(GitUrl gitRepoUrl, Path targetRepository) {
+  public void clone(GitUrl gitUrl, Path repository) {
+
     verifyGitInstalled();
     GitUrlSyntax gitUrlSyntax = IdeVariables.PREFERRED_GIT_PROTOCOL.get(getContext());
-    gitRepoUrl = gitUrlSyntax.format(gitRepoUrl);
-    this.processContext.directory(targetRepository);
-    ProcessResult result;
-    if (!this.context.isOffline()) {
-      this.context.getFileAccess().mkdirs(targetRepository);
-      this.context.requireOnline("git clone of " + gitRepoUrl.url());
-      this.processContext.addArg("clone");
-      if (this.context.isQuietMode()) {
-        this.processContext.addArg("-q");
-      }
-      this.processContext.addArgs("--recursive", gitRepoUrl.url(), "--config", "core.autocrlf=false", ".");
-      result = this.processContext.run(PROCESS_MODE);
-      if (!result.isSuccessful()) {
-        this.context.warning("Git failed to clone {} into {}.", gitRepoUrl.url(), targetRepository);
-      }
-      String branch = gitRepoUrl.branch();
-      if (branch != null) {
-        this.processContext.addArgs("checkout", branch);
-        result = this.processContext.run(PROCESS_MODE);
-        if (!result.isSuccessful()) {
-          this.context.warning("Git failed to checkout to branch {}", branch);
-        }
-      }
-    } else {
-      throw CliOfflineException.ofClone(gitRepoUrl.parseUrl(), targetRepository);
+    gitUrl = gitUrlSyntax.format(gitUrl);
+    if (this.context.isOfflineMode()) {
+      this.context.requireOnline("git clone of " + gitUrl);
+    }
+    this.context.getFileAccess().mkdirs(repository);
+    List<String> args = new ArrayList<>(7);
+    args.add("clone");
+    if (this.context.isQuietMode()) {
+      args.add("-q");
+    }
+    args.add("--recursive");
+    args.add(gitUrl.url());
+    args.add("--config");
+    args.add("core.autocrlf=false");
+    args.add(".");
+    runGitCommand(repository, args);
+    String branch = gitUrl.branch();
+    if (branch != null) {
+      runGitCommand(repository, "switch", branch);
     }
   }
 
   @Override
   public void pull(Path repository) {
+
     verifyGitInstalled();
     if (this.context.isOffline()) {
       this.context.info("Skipping git pull on {} because offline", repository);
       return;
     }
-    ProcessResult result = this.processContext.directory(repository).addArg("--no-pager").addArg("pull").addArg("--quiet").run(PROCESS_MODE);
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT, "--no-pager", "pull", "--quiet");
     if (!result.isSuccessful()) {
       String branchName = determineCurrentBranch(repository);
       this.context.warning("Git pull on branch {} failed for repository {}.", branchName, repository);
@@ -183,16 +156,16 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
-  public void fetch(Path targetRepository, String remote, String branch) {
+  public void fetch(Path repository, String remote, String branch) {
+
     verifyGitInstalled();
     if (branch == null) {
-      branch = determineCurrentBranch(targetRepository);
+      branch = determineCurrentBranch(repository);
     }
     if (remote == null) {
-      remote = determineRemote(targetRepository);
+      remote = determineRemote(repository);
     }
-    ProcessResult result = this.processContext.directory(targetRepository).addArg("fetch").addArg(remote).addArg(branch).run(PROCESS_MODE_FOR_FETCH);
-
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", remote, branch);
     if (!result.isSuccessful()) {
       this.context.warning("Git fetch for '{}/{} failed.'.", remote, branch);
     }
@@ -200,92 +173,55 @@ public class GitContextImpl implements GitContext {
 
   @Override
   public String determineCurrentBranch(Path repository) {
+
     verifyGitInstalled();
-    ProcessResult remoteResult = this.processContext.directory(repository).addArg("branch").addArg("--show-current").run(ProcessMode.DEFAULT_CAPTURE);
-    if (remoteResult.isSuccessful()) {
-      List<String> remotes = remoteResult.getOut();
-      if (!remotes.isEmpty()) {
-        assert (remotes.size() == 1);
-        return remotes.get(0);
-      }
-    } else {
-      this.context.warning("Failed to determine current branch of git repository {}", repository);
-    }
-    return null;
+    return runGitCommandAndGetSingleOutput("Failed to determine current branch of git repository", repository, "branch", "--show-current");
   }
 
   @Override
   public String determineRemote(Path repository) {
+
     verifyGitInstalled();
-    ProcessResult remoteResult = this.processContext.directory(repository).addArg("remote").run(ProcessMode.DEFAULT_CAPTURE);
-    if (remoteResult.isSuccessful()) {
-      List<String> remotes = remoteResult.getOut();
-      if (!remotes.isEmpty()) {
-        assert (remotes.size() == 1);
-        return remotes.get(0);
-      }
-    } else {
-      this.context.warning("Failed to determine current origin of git repository {}", repository);
-    }
-    return null;
+    return runGitCommandAndGetSingleOutput("Failed to determine current origin of git repository.", repository, "remote");
   }
 
   @Override
-  public void reset(Path targetRepository, String branchName, String remoteName) {
+  public void reset(Path repository, String branchName, String remoteName) {
+
     verifyGitInstalled();
     if ((remoteName == null) || remoteName.isEmpty()) {
       remoteName = DEFAULT_REMOTE;
     }
-    this.processContext.directory(targetRepository);
-    ProcessResult result;
-    // check for changed files
-    result = this.processContext.addArg("diff-index").addArg("--quiet").addArg("HEAD").run(PROCESS_MODE);
-
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT, "diff-index", "--quiet", "HEAD");
     if (!result.isSuccessful()) {
       // reset to origin/master
-      this.context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", targetRepository, remoteName, branchName);
-      result = this.processContext.addArg("reset").addArg("--hard").addArg(remoteName + "/" + branchName).run(PROCESS_MODE);
-
+      this.context.warning("Git has detected modified files -- attempting to reset {} to '{}/{}'.", repository, remoteName, branchName);
+      result = runGitCommand(repository, ProcessMode.DEFAULT, "reset", "--hard", remoteName + "/" + branchName);
       if (!result.isSuccessful()) {
-        this.context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, targetRepository);
-        handleErrors(targetRepository, result);
+        this.context.warning("Git failed to reset {} to '{}/{}'.", remoteName, branchName, repository);
+        handleErrors(repository, result);
       }
     }
   }
 
   @Override
-  public void cleanup(Path targetRepository) {
-    verifyGitInstalled();
-    this.processContext.directory(targetRepository);
-    ProcessResult result;
-    // check for untracked files
-    result = this.processContext.addArg("ls-files").addArg("--other").addArg("--directory").addArg("--exclude-standard").run(ProcessMode.DEFAULT_CAPTURE);
+  public void cleanup(Path repository) {
 
+    verifyGitInstalled();
+    // check for untracked files
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "ls-files", "--other", "--directory", "--exclude-standard");
     if (!result.getOut().isEmpty()) {
       // delete untracked files
-      this.context.warning("Git detected untracked files in {} and is attempting a cleanup.", targetRepository);
-      result = this.processContext.addArg("clean").addArg("-df").run(PROCESS_MODE);
-
-      if (!result.isSuccessful()) {
-        this.context.warning("Git failed to clean the repository {}.", targetRepository);
-      }
+      this.context.warning("Git detected untracked files in {} and is attempting a cleanup.", repository);
+      runGitCommand(repository, "clean", "-df");
     }
   }
 
   @Override
   public String retrieveGitUrl(Path repository) {
-    verifyGitInstalled();
-    this.processContext.directory(repository);
-    ProcessResult result;
-    result = this.processContext.addArgs("-C", repository, "remote", "-v").run(ProcessMode.DEFAULT_CAPTURE);
-    for (String line : result.getOut()) {
-      if (line.contains("(fetch)")) {
-        return line.split("\\s+")[1]; // Extract the URL from the line
-      }
-    }
 
-    this.context.error("Failed to retrieve git URL for repository: {}", repository);
-    return null;
+    verifyGitInstalled();
+    return runGitCommandAndGetSingleOutput("Failed to retrieve git URL for repository", repository, "config", "--get", "remote.origin.url");
   }
 
   IdeContext getContext() {
@@ -297,6 +233,7 @@ public class GitContextImpl implements GitContext {
    * Checks if there is a git installation and throws an exception if there is none
    */
   private void verifyGitInstalled() {
+
     this.context.findBashRequired();
     Path git = Path.of("git");
     Path binaryGitPath = this.context.getPath().findBinary(git);
@@ -305,6 +242,52 @@ public class GitContextImpl implements GitContext {
       throw new IllegalStateException(message);
     }
     this.context.trace("Git is installed");
+  }
+
+  private void runGitCommand(Path directory, String... args) {
+
+    ProcessResult result = runGitCommand(directory, ProcessMode.DEFAULT, args);
+    if (!result.isSuccessful()) {
+      String command = result.getCommand();
+      this.context.requireOnline(command);
+      result.failOnError();
+    }
+  }
+
+  private void runGitCommand(Path directory, List<String> args) {
+
+    runGitCommand(directory, args.toArray(String[]::new));
+  }
+
+  private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
+
+    ProcessResult result = runGitCommand(directory, ProcessMode.DEFAULT_CAPTURE, args);
+    if (result.isSuccessful()) {
+      List<String> out = result.getOut();
+      int size = out.size();
+      if (size == 1) {
+        return out.get(0);
+      } else if (size == 0) {
+        warningOnError += " - No output received from " + result.getCommand();
+      } else {
+        warningOnError += " - Expected single line of output but received " + size + " lines from " + result.getCommand();
+      }
+    }
+    this.context.warning(warningOnError);
+    return null;
+  }
+
+  private ProcessResult runGitCommand(Path directory, ProcessMode mode, String... args) {
+
+    return runGitCommand(directory, mode, ProcessErrorHandling.LOG_WARNING, args);
+  }
+
+  private ProcessResult runGitCommand(Path directory, ProcessMode mode, ProcessErrorHandling errorHandling, String... args) {
+
+    ProcessContext processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").errorHandling(errorHandling)
+        .directory(directory);
+    processContext.addArgs(args);
+    return processContext.run(mode);
   }
 }
 

@@ -1,7 +1,4 @@
-package com.devonfw.tools.ide.context;
-
-import java.net.MalformedURLException;
-import java.net.URL;
+package com.devonfw.tools.ide.git;
 
 /**
  * Handles parsing of git URLs.
@@ -10,6 +7,23 @@ import java.net.URL;
  * @param branch the branch name e.g. master.
  */
 public record GitUrl(String url, String branch) {
+
+  /** {@link #branch() Branch} @{@value }. */
+  public static final String BRANCH_MAIN = "main";
+
+  /** {@link #branch() Branch} @{@value }. */
+  public static final String BRANCH_MASTER = "master";
+
+  /**
+   * The constructor.
+   */
+  public GitUrl {
+    if (url.contains("#")) {
+      String message = "Invalid git URL " + url;
+      assert false : message;
+      System.out.println(message);
+    }
+  }
 
   /**
    * Converts the Git URL based on the specified {@link GitUrlSyntax}.
@@ -21,23 +35,46 @@ public record GitUrl(String url, String branch) {
     return syntax.format(this);
   }
 
-  /**
-   * Parses a git URL and omits the branch name if not provided.
-   *
-   * @return parsed URL.
-   */
-  public URL parseUrl() {
+  @Override
+  public String toString() {
 
-    String parsedUrl = this.url;
-    if (this.branch != null && !this.branch.isEmpty()) {
-      parsedUrl += "#" + this.branch;
+    if (this.branch == null) {
+      return this.url;
     }
-    URL validUrl;
-    try {
-      validUrl = new URL(parsedUrl);
-    } catch (MalformedURLException e) {
-      throw new RuntimeException("Git URL is not valid " + parsedUrl, e);
+    return this.url + "#" + this.branch;
+  }
+
+  /**
+   * @param gitUrl the {@link #toString() string representation} of a {@link GitUrl}. May contain a branch name as {@code «url»#«branch»}.
+   * @return the parsed {@link GitUrl}.
+   */
+  public static GitUrl of(String gitUrl) {
+
+    int hashIndex = gitUrl.indexOf('#');
+    String url = gitUrl;
+    String branch = null;
+    if (hashIndex > 0) {
+      url = gitUrl.substring(0, hashIndex);
+      branch = gitUrl.substring(hashIndex + 1);
     }
-    return validUrl;
+    return new GitUrl(url, branch);
+  }
+
+  /**
+   * @param gitUrl the git {@link #url() URL}.
+   * @return a new instance of {@link GitUrl} with the given URL and {@link #BRANCH_MAIN}.
+   */
+  public static GitUrl ofMain(String gitUrl) {
+
+    return new GitUrl(gitUrl, BRANCH_MAIN);
+  }
+
+  /**
+   * @param gitUrl the git {@link #url() URL}.
+   * @return a new instance of {@link GitUrl} with the given URL and {@link #BRANCH_MASTER}.
+   */
+  public static GitUrl ofMaster(String gitUrl) {
+
+    return new GitUrl(gitUrl, BRANCH_MASTER);
   }
 }

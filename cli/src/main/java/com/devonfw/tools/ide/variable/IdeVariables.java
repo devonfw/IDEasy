@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.variable;
 import java.util.Collection;
 import java.util.List;
 
-import com.devonfw.tools.ide.context.GitUrlSyntax;
+import com.devonfw.tools.ide.git.GitUrlSyntax;
 
 /**
  * Interface (mis)used to define all the available variables.
