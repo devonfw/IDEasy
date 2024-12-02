@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.context;
+package com.devonfw.tools.ide.git;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -13,6 +13,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.context.ProcessContextGitMock;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 
@@ -44,16 +48,15 @@ public class GitContextTest extends AbstractIdeContextTest {
     // arrange
     String gitRepoUrl = "https://github.com/test";
     IdeTestContext context = newGitContext(tempDir);
-    this.processContext.getOuts().add("test-remote");
-    context.setOnline(Boolean.FALSE);
+    GitUrl gitUrl = new GitUrl(gitRepoUrl, "branch");
+    context.getStartContext().setOfflineMode(true);
 
-    //IdeContext context = newGitContext(tempDir, errors, outs, 0, false);
     // act
     CliException e1 = assertThrows(CliException.class, () -> {
-      context.getGitContext().pullOrClone(gitRepoUrl, tempDir, "");
+      context.getGitContext().pullOrClone(gitUrl, tempDir);
     });
     // assert
-    assertThat(e1).hasMessageContaining(gitRepoUrl).hasMessageContaining(tempDir.toString())
+    assertThat(e1).hasMessageContaining(gitRepoUrl).hasMessage("You are offline but Internet access is required for git clone of " + gitUrl)
         .hasMessageContaining("offline");
   }
 
@@ -70,7 +73,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     IdeTestContext context = newGitContext(tempDir);
     this.processContext.getOuts().add("test-remote");
     // act
-    context.getGitContext().pullOrClone(gitRepoUrl, tempDir);
+    context.getGitContext().pullOrClone(GitUrl.of(gitRepoUrl), tempDir);
     // assert
     assertThat(tempDir.resolve(".git").resolve("url")).hasContent(gitRepoUrl);
   }
@@ -91,7 +94,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
     // act
-    context.getGitContext().pullOrClone(gitRepoUrl, tempDir);
+    context.getGitContext().pullOrClone(GitUrl.of(gitRepoUrl), tempDir);
     // assert
     assertThat(tempDir.resolve(".git").resolve("update")).hasContent(this.processContext.getNow().toString());
   }
@@ -128,7 +131,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     IdeTestContext context = newGitContext(tempDir);
     this.processContext.getOuts().add("test-remote");
     // act
-    context.getGitContext().pullOrCloneAndResetIfNeeded(gitRepoUrl, tempDir, "master", "origin");
+    context.getGitContext().pullOrCloneAndResetIfNeeded(new GitUrl(gitRepoUrl, "master"), tempDir, "origin");
     // assert
     assertThat(modifiedFile).hasContent("original");
   }
@@ -156,7 +159,7 @@ public class GitContextTest extends AbstractIdeContextTest {
       throw new RuntimeException(e);
     }
     // act
-    gitContext.pullOrCloneAndResetIfNeeded(gitRepoUrl, tempDir, "master", "origin");
+    gitContext.pullOrCloneAndResetIfNeeded(GitUrl.ofMain(gitRepoUrl), tempDir, "origin");
     // assert
     assertThat(tempDir.resolve("new-folder")).doesNotExist();
   }

@@ -7,8 +7,9 @@ import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.repo.CustomTool;
@@ -129,7 +130,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         } else if ("-".equals(repository)) {
           repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
         }
-        gitContext.pullOrClone(repository, settingsPath);
+        gitContext.pullOrClone(GitUrl.of(repository), settingsPath);
       }
       step.success("Successfully updated settings repository.");
     } finally {

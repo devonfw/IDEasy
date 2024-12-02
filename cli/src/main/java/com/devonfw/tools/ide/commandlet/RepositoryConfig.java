@@ -8,6 +8,8 @@ import java.util.Collections;
 import java.util.Properties;
 import java.util.Set;
 
+import com.devonfw.tools.ide.git.GitUrl;
+
 /**
  * Represents the configuration of a repository to be used by the {@link RepositoryCommandlet}.
  *
@@ -32,6 +34,18 @@ public record RepositoryConfig(
     Set<String> imports,
     boolean active) {
 
+  /**
+   * @return the {@link GitUrl} from {@link #gitUrl()} and {@link #gitBranch()}.
+   */
+  public GitUrl asGitUrl() {
+
+    return new GitUrl(this.gitUrl, this.gitBranch);
+  }
+
+  /**
+   * @param filePath the {@link Path} to the {@link Properties} to load.
+   * @return the parsed {@link RepositoryConfig}.
+   */
   public static RepositoryConfig loadProperties(Path filePath) {
 
     Properties properties = new Properties();
