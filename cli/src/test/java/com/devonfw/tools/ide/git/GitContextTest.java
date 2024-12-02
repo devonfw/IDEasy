@@ -51,7 +51,6 @@ public class GitContextTest extends AbstractIdeContextTest {
     GitUrl gitUrl = new GitUrl(gitRepoUrl, "branch");
     context.getStartContext().setOfflineMode(true);
 
-    //IdeContext context = newGitContext(tempDir, errors, outs, 0, false);
     // act
     CliException e1 = assertThrows(CliException.class, () -> {
       context.getGitContext().pullOrClone(gitUrl, tempDir);
