@@ -31,7 +31,7 @@ jobs:
           current_version="${current_version/ */}"
           next_version="${current_version/-SNAPSHOT/}"
           cd cli
-          mvn -B -ntp -Drevision=${next_version} -Pnative -DskipTests=true compile
+          mvn -B -ntp -Drevision=${next_version} -Pnative -DskipTests=true package
       - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
