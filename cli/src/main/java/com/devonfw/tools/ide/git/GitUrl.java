@@ -21,7 +21,6 @@ public record GitUrl(String url, String branch) {
     if (url.contains("#")) {
       String message = "Invalid git URL " + url;
       assert false : message;
-      System.out.println(message);
     }
   }
 
