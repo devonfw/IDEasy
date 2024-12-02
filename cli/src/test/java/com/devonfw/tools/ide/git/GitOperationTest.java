@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.context;
+package com.devonfw.tools.ide.git;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.mockito.Mockito;
 
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
+
 /**
  * Test of {@link GitOperation}.
  */
@@ -16,6 +19,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
   private static final String URL = "https://github.com/devonfw/IDEasy.git";
   private static final String REMOTE = "origin";
   private static final String BRANCH = "main";
+  private static final GitUrl GIT_URL = new GitUrl(URL, BRANCH);
 
   @Test
   public void testFetchSkippedIfTimestampFileUpToDate(@TempDir Path tempDir) throws Exception {
@@ -28,7 +32,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Path repo = createFakeGitRepo(tempDir, operation.getTimestampFilename());
 
     // act
-    operation.executeIfNeeded(context, null, repo, REMOTE, BRANCH);
+    operation.executeIfNeeded(context, GIT_URL, repo, REMOTE);
 
     // assert
     Mockito.verifyNoInteractions(mock);
@@ -45,7 +49,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Path repo = createFakeGitRepo(tempDir, null);
 
     // act
-    operation.executeIfNeeded(context, null, repo, REMOTE, BRANCH);
+    operation.executeIfNeeded(context, GIT_URL, repo, REMOTE);
 
     // assert
     Mockito.verify(mock).fetch(repo, REMOTE, BRANCH);
@@ -62,7 +66,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Path repo = createFakeGitRepo(tempDir, operation.getTimestampFilename(), true);
 
     // act
-    operation.executeIfNeeded(context, null, repo, REMOTE, BRANCH);
+    operation.executeIfNeeded(context, GIT_URL, repo, REMOTE);
 
     // assert
     Mockito.verify(mock).fetch(repo, REMOTE, BRANCH);
@@ -80,7 +84,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Path repo = createFakeGitRepo(tempDir, operation.getTimestampFilename(), true);
 
     // act
-    operation.executeIfNeeded(context, null, repo, REMOTE, BRANCH);
+    operation.executeIfNeeded(context, GIT_URL, repo, REMOTE);
 
     // assert
     Mockito.verify(mock).fetch(repo, REMOTE, BRANCH);
@@ -98,7 +102,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Path repo = createFakeGitRepo(tempDir, null);
 
     // act
-    operation.executeIfNeeded(context, null, repo, REMOTE, BRANCH);
+    operation.executeIfNeeded(context, GIT_URL, repo, REMOTE);
 
     // assert
     Mockito.verifyNoInteractions(mock);
@@ -115,7 +119,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Path repo = createFakeGitRepo(tempDir, operation.getTimestampFilename());
 
     // act
-    operation.executeIfNeeded(context, URL, repo, null, BRANCH);
+    operation.executeIfNeeded(context, GIT_URL, repo, null);
 
     // assert
     Mockito.verifyNoInteractions(mock);
@@ -132,10 +136,10 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Path repo = createFakeGitRepo(tempDir, null);
 
     // act
-    operation.executeIfNeeded(context, URL, repo, null, BRANCH);
+    operation.executeIfNeeded(context, GIT_URL, repo, null);
 
     // assert
-    Mockito.verify(mock).pullOrClone(URL, repo, BRANCH);
+    Mockito.verify(mock).pullOrClone(GIT_URL, repo);
   }
 
   @Test
@@ -149,10 +153,10 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Path repo = createFakeGitRepo(tempDir, operation.getTimestampFilename(), true);
 
     // act
-    operation.executeIfNeeded(context, URL, repo, null, BRANCH);
+    operation.executeIfNeeded(context, GIT_URL, repo, null);
 
     // assert
-    Mockito.verify(mock).pullOrClone(URL, repo, BRANCH);
+    Mockito.verify(mock).pullOrClone(GIT_URL, repo);
   }
 
   @Test
@@ -167,10 +171,10 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Path repo = createFakeGitRepo(tempDir, operation.getTimestampFilename(), true);
 
     // act
-    operation.executeIfNeeded(context, URL, repo, null, BRANCH);
+    operation.executeIfNeeded(context, GIT_URL, repo, null);
 
     // assert
-    Mockito.verify(mock).pullOrClone(URL, repo, BRANCH);
+    Mockito.verify(mock).pullOrClone(GIT_URL, repo);
   }
 
   @Test
@@ -185,7 +189,7 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Path repo = createFakeGitRepo(tempDir, null);
 
     // act
-    operation.executeIfNeeded(context, URL, repo, null, BRANCH);
+    operation.executeIfNeeded(context, GIT_URL, repo, null);
 
     // assert
     Mockito.verifyNoInteractions(mock);
@@ -204,10 +208,10 @@ public class GitOperationTest extends AbstractIdeContextTest {
     Files.createDirectories(repo);
 
     // act
-    operation.executeIfNeeded(context, URL, repo, null, BRANCH);
+    operation.executeIfNeeded(context, GIT_URL, repo, null);
 
     // assert
-    Mockito.verify(mock).pullOrClone(URL, repo, BRANCH);
+    Mockito.verify(mock).pullOrClone(GIT_URL, repo);
   }
 
   private Path createFakeGitRepo(Path dir, String file) throws Exception {

@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.cli;
 
-import java.net.URL;
 import java.nio.file.Path;
 
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -67,7 +66,7 @@ public final class CliOfflineException extends CliException {
    * @param repository the path, where the repository should be cloned to.
    * @return A {@link CliOfflineException} with an informative message.
    */
-  public static CliOfflineException ofClone(URL url, Path repository) {
+  public static CliOfflineException ofClone(String url, Path repository) {
     return new CliOfflineException("Could not clone " + url + " to " + repository + " because you are offline.");
   }
 
