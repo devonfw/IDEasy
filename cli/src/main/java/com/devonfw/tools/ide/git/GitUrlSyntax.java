@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.context;
+package com.devonfw.tools.ide.git;
 
 import java.util.Arrays;
 import java.util.List;

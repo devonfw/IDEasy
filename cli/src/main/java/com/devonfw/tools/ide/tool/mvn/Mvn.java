@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 
 import com.devonfw.tools.ide.common.Tag;
-import com.devonfw.tools.ide.context.GitContext;
+import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;

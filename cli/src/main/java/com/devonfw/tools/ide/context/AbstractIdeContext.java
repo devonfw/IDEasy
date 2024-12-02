@@ -30,6 +30,9 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.IdeSystem;
 import com.devonfw.tools.ide.environment.IdeSystemImpl;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextImpl;
+import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
@@ -61,7 +64,7 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public abstract class AbstractIdeContext implements IdeContext {
 
-  private static final String IDE_URLS_GIT = "https://github.com/devonfw/ide-urls.git";
+  private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
 
   private final IdeStartContextImpl startContext;
 

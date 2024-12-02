@@ -2,9 +2,9 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
 
-import com.devonfw.tools.ide.context.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.git.GitContext;
 
 /**
  * {@link Commandlet} to print a status report about IDEasy.

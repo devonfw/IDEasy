@@ -83,7 +83,7 @@ public class RepositoryCommandlet extends Commandlet {
 
     String repository = repositoryConfig.path();
     String gitUrl = repositoryConfig.gitUrl();
-    if (repository == null || "".equals(repository) || gitUrl == null || "".equals(gitUrl)) {
+    if (repository == null || repository.isEmpty() || gitUrl == null || gitUrl.isEmpty()) {
       this.context.warning("Invalid repository configuration {} - both 'path' and 'git-url' have to be defined.", repositoryFile.getFileName().toString());
       return;
     }
@@ -95,7 +95,7 @@ public class RepositoryCommandlet extends Commandlet {
     this.context.getFileAccess().mkdirs(workspacePath);
 
     Path repositoryPath = workspacePath.resolve(repository);
-    this.context.getGitContext().pullOrClone(gitUrl, repositoryPath, repositoryConfig.gitBranch());
+    this.context.getGitContext().pullOrClone(repositoryConfig.asGitUrl(), repositoryPath);
 
     String buildCmd = repositoryConfig.buildCmd();
     this.context.debug("Building repository with ide command: {}", buildCmd);

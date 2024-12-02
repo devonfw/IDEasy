@@ -121,6 +121,11 @@ public class ProcessContextGitMock implements ProcessContext {
   @Override
   public ProcessResult run(ProcessMode processMode) {
 
+    StringBuilder command = new StringBuilder("git");
+    for (String arg : this.arguments) {
+      command.append(' ');
+      command.append(arg);
+    }
     Path gitFolderPath = this.directory.resolve(".git");
     // deletes a newly added folder
     if (this.arguments.contains("clean")) {
@@ -176,7 +181,7 @@ public class ProcessContextGitMock implements ProcessContext {
       }
     }
     this.arguments.clear();
-    return new ProcessResultImpl(this.exitCode, this.outs, this.errors);
+    return new ProcessResultImpl("git", command.toString(), this.exitCode, this.outs, this.errors);
   }
 
 }

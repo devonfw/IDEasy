@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.process;
 
 import java.util.List;
 
+import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
@@ -42,6 +43,17 @@ public interface ProcessResult {
   int OFFLINE = 23;
 
   /**
+   * @return the filename of the executable that was run (e.g. "git").
+   * @see #getCommand()
+   */
+  String getExecutable();
+
+  /**
+   * @return the full command that was executed (e.g. "git rev-parse HEAD").
+   */
+  String getCommand();
+
+  /**
    * @return the exit code. Will be {@link #SUCCESS} on successful completion of the {@link Process}.
    */
   int getExitCode();
@@ -80,4 +92,11 @@ public interface ProcessResult {
    * @param errorLevel the {@link IdeLogLevel} to use for {@link #getErr()}.
    */
   void log(IdeLogLevel outLevel, IdeContext context, IdeLogLevel errorLevel);
+
+  /**
+   * Throws a {@link CliProcessException} if not {@link #isSuccessful() successful} and otherwise does nothing.
+   *
+   * @throws CliProcessException if not {@link #isSuccessful() successful}.
+   */
+  void failOnError() throws CliProcessException;
 }
