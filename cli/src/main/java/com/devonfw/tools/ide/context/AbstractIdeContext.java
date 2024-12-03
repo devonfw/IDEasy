@@ -831,6 +831,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   private ValidationResult applyAndRun(CliArguments arguments, Commandlet cmd) {
 
+    IdeLogLevel previousLogLevel = null;
     cmd.reset();
     ValidationResult result = apply(arguments, cmd);
     if (result.isValid()) {
@@ -843,30 +844,32 @@ public abstract class AbstractIdeContext implements IdeContext {
       } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
         throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
       }
-      if (cmd.isProcessableOutput()) {
-        if (!debug().isEnabled()) {
-          // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
-          for (IdeLogLevel level : IdeLogLevel.values()) {
-            if (level != IdeLogLevel.PROCESSABLE) {
-              this.startContext.setLogLevel(level, false);
+      try {
+        if (cmd.isProcessableOutput()) {
+          if (!debug().isEnabled()) {
+            // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
+            previousLogLevel = this.startContext.setLogLevel(IdeLogLevel.PROCESSABLE);
+          }
+          this.startContext.activateLogging();
+        } else {
+          this.startContext.activateLogging();
+          verifyIdeRoot();
+          if (cmd.isIdeHomeRequired()) {
+            debug(getMessageIdeHomeFound());
+          }
+          if (this.settingsPath != null) {
+            if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
+                (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
+              interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
             }
           }
         }
-        this.startContext.activateLogging();
-      } else {
-        this.startContext.activateLogging();
-        verifyIdeRoot();
-        if (cmd.isIdeHomeRequired()) {
-          debug(getMessageIdeHomeFound());
-        }
-        if (this.settingsPath != null) {
-          if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
-              (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
-            interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
-          }
+        cmd.run();
+      } finally {
+        if (previousLogLevel != null) {
+          this.startContext.setLogLevel(previousLogLevel);
         }
       }
-      cmd.run();
     } else {
       trace("Commandlet did not match");
     }
