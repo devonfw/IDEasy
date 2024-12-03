@@ -90,7 +90,7 @@ public interface FileAccess {
 
   /**
    * @param source the source {@link Path file or folder} to copy.
-   * @param target the {@link Path} to copy {@code source} to. See {@link #copy(Path, Path, FileCopyMode)} for details. will always ensure that in the end
+   * @param target the {@link Path} to copy {@code source} to. See {@link #copy(Path, Path, FileCopyMode)} for details. Will always ensure that in the end
    *     you will find the same content of {@code source} in {@code target}.
    */
   default void copy(Path source, Path target) {

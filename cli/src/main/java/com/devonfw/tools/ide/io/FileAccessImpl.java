@@ -11,7 +11,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystemException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
@@ -27,15 +29,12 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -62,6 +61,8 @@ public class FileAccessImpl implements FileAccess {
   private static final String WINDOWS_FILE_LOCK_WARNING =
       "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
           + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
+
+  private static final Map<String, String> FS_ENV = Map.of("encoding", "UTF-8");
 
   private final IdeContext context;
 
@@ -614,7 +615,28 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractZip(Path file, Path targetDir) {
 
-    extractZipArchive(file, targetDir);
+    this.context.trace("Unpacking archive {} to {}", file, targetDir);
+
+    URI uri = URI.create("jar:" + file.toUri());
+    try (FileSystem fs = FileSystems.newFileSystem(uri, FS_ENV);
+        //FileInputStream fis = new FileInputStream(file.toFile()); ZipInputStream zis = new ZipInputStream(fis); IdeProgressBar pb = getProgressbarForUnpacking(getFileSize(file))
+    ) {
+      for (Path root : fs.getRootDirectories()) {
+        Path filename = root.getFileName();
+        if (filename == null) {
+          Iterator<Path> iterator = Files.list(root).iterator();
+          while (iterator.hasNext()) {
+            Path child = iterator.next();
+            String fileName = child.getFileName().toString();
+            copy(child, targetDir.resolve(fileName), FileCopyMode.COPY_TREE_CONTENT);
+          }
+        } else {
+          copy(root, targetDir.resolve(filename), FileCopyMode.COPY_TREE_CONTENT);
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
+    }
   }
 
   @Override
@@ -626,29 +648,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractJar(Path file, Path targetDir) {
 
-    this.context.trace("Unpacking JAR {} to {}", file, targetDir);
-    try (JarInputStream jis = new JarInputStream(Files.newInputStream(file)); IdeProgressBar pb = getProgressbarForUnpacking(
-        getFileSize(file))) {
-      JarEntry entry;
-      while ((entry = jis.getNextJarEntry()) != null) {
-        Path entryPath = targetDir.resolve(entry.getName()).toAbsolutePath();
-
-        if (!entryPath.startsWith(targetDir)) {
-          throw new IOException("Preventing path traversal attack from " + entry.getName() + " to " + entryPath);
-        }
-
-        if (entry.isDirectory()) {
-          Files.createDirectories(entryPath);
-        } else {
-          Files.createDirectories(entryPath.getParent());
-          Files.copy(jis, entryPath);
-        }
-        pb.stepBy(entry.getCompressedSize());
-        jis.closeEntry();
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to extract JAR " + file + " to " + targetDir, e);
-    }
+    extractZip(file, targetDir);
   }
 
   /**
@@ -702,34 +702,6 @@ public class FileAccessImpl implements FileAccess {
         }
         pb.stepBy(entry.getSize());
         entry = ais.getNextEntry();
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
-    }
-  }
-
-  private void extractZipArchive(Path file, Path targetDir) {
-
-    this.context.trace("Unpacking archive {} to {}", file, targetDir);
-    try (FileInputStream fis = new FileInputStream(file.toFile()); ZipInputStream zis = new ZipInputStream(fis); IdeProgressBar pb = getProgressbarForUnpacking(
-        getFileSize(file))) {
-      ZipEntry entry = zis.getNextEntry();
-      while (entry != null) {
-        Path entryName = Path.of(entry.getName());
-        Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
-        if (!entryPath.startsWith(targetDir)) {
-          throw new IOException("Preventing path traversal attack from " + entryName + " to " + entryPath);
-        }
-        if (entry.isDirectory()) {
-          mkdirs(entryPath);
-        } else {
-          // ensure the file can also be created if directory entry was missing or out of order...
-          mkdirs(entryPath.getParent());
-          Files.copy(zis, entryPath);
-        }
-        pb.stepBy(entry.getCompressedSize());
-        zis.closeEntry();
-        entry = zis.getNextEntry();
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
@@ -921,11 +893,12 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void makeExecutable(Path filePath) {
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
-      return;
-    }
 
     if (Files.exists(filePath)) {
+      if (SystemInfoImpl.INSTANCE.isWindows()) {
+        this.context.trace("Windows does not have executable flags hence omitting for file {}", filePath);
+        return;
+      }
       // Read the current file permissions
       Set<PosixFilePermission> perms;
       try {
@@ -936,15 +909,21 @@ public class FileAccessImpl implements FileAccess {
 
       if (perms != null) {
         // Add execute permission for all users
-        perms.add(PosixFilePermission.OWNER_EXECUTE);
-        perms.add(PosixFilePermission.GROUP_EXECUTE);
-        perms.add(PosixFilePermission.OTHERS_EXECUTE);
+        boolean update = false;
+        update |= perms.add(PosixFilePermission.OWNER_EXECUTE);
+        update |= perms.add(PosixFilePermission.GROUP_EXECUTE);
+        update |= perms.add(PosixFilePermission.OTHERS_EXECUTE);
 
-        // Set the new permissions
-        try {
-          Files.setPosixFilePermissions(filePath, perms);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
+        if (update) {
+          this.context.debug("Setting executable flags for file {}", filePath);
+          // Set the new permissions
+          try {
+            Files.setPosixFilePermissions(filePath, perms);
+          } catch (IOException e) {
+            throw new RuntimeException(e);
+          }
+        } else {
+          this.context.trace("Executable flags already present so no need to set them for file {}", filePath);
         }
       }
     } else {
