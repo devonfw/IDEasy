@@ -96,6 +96,21 @@ public class CliArguments implements Iterator<CliArgument> {
   }
 
   /**
+   * @return {@code true} if the last argument shall be {@link CliArgument#isCompletion() completed}, {@code false}.
+   */
+  public boolean isCompletion() {
+
+    CliArgument arg = this.currentArg;
+    while ((arg != null) && !arg.isEnd()) {
+      if (arg.isCompletion()) {
+        return true;
+      }
+      arg = arg.next;
+    }
+    return false;
+  }
+
+  /**
    * @return the initial {@link CliArgument}.
    */
   public CliArgument getInitialArgument() {

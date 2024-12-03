@@ -32,6 +32,17 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   }
 
   /**
+   * Test of 1st level auto-completion (commandlet name). Here we test the special case of the {@link com.devonfw.tools.ide.commandlet.VersionCommandlet} that
+   * has a long-option style.
+   */
+  @Test
+  public void testIdeCompleterBatch() {
+
+    this.reader.setCompleter(newCompleter());
+    assertBuffer("--batch ", new TestBuffer("--b").tab());
+  }
+
+  /**
    * Test of 2nd level auto-completion with tool property of {@link com.devonfw.tools.ide.commandlet.InstallCommandlet}.
    */
   @Test
@@ -92,7 +103,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   public void testIdeCompleterPreventsOptionsAfterCommandWithMinus() {
 
     this.reader.setCompleter(newCompleter());
-    assertBuffer("get-version --configured", new TestBuffer("get-version -").tab().tab());
+    assertBuffer("get-version --configured ", new TestBuffer("get-version -").tab().tab());
     assertBuffer("get-version - ", new TestBuffer("get-version - ").tab().tab());
 
   }
