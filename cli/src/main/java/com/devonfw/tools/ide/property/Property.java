@@ -336,9 +336,6 @@ public abstract class Property<V> {
       int size = collector.getCandidates().size();
       complete(argument, args, context, commandlet, collector);
       return (collector.getCandidates().size() > size);
-      //{ // completions added so complete matched?
-      //  return true;
-      //}
     }
     boolean option = isOption();
     if (option && !argument.isOption()) {

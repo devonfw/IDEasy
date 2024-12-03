@@ -1031,21 +1031,6 @@ public abstract class AbstractIdeContext implements IdeContext {
     return ValidationResultValid.get();
   }
 
-  public void optionMatch(CliArgument argument, Commandlet cmd, CompletionCandidateCollector collector) {
-    List<Property<?>> properties = cmd.getProperties();
-    for (Property<?> property : properties) {
-      if (property.isOption()) {
-        if (property.getName().startsWith(argument.toString())) {
-          CompletionCandidate completionCandidate = new CompletionCandidate(property.getName(), null);
-          List<CompletionCandidate> sortedCandidates = collector.getSortedCandidates();
-          if (!sortedCandidates.contains(completionCandidate)) {
-            collector.add(completionCandidate.text(), completionCandidate.description(), property, cmd);
-          }
-        }
-      }
-    }
-  }
-
   @Override
   public String findBash() {
 
