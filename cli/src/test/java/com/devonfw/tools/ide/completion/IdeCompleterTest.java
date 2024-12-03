@@ -92,7 +92,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   public void testIdeCompleterPreventsOptionsAfterCommandWithMinus() {
 
     this.reader.setCompleter(newCompleter());
-    assertBuffer("get-version -", new TestBuffer("get-version -").tab().tab());
+    assertBuffer("get-version --configured", new TestBuffer("get-version -").tab().tab());
     assertBuffer("get-version - ", new TestBuffer("get-version - ").tab().tab());
 
   }
@@ -127,6 +127,16 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("env --bash ", new TestBuffer("env --ba").tab().tab());
+  }
+
+  /**
+   * Test of completion of options and arguments after commandlets.
+   */
+  @Test
+  public void testIdeCompleterWithOptionAndArguments() {
+
+    this.reader.setCompleter(newCompleter());
+    assertBuffer("get-version --configured ", new TestBuffer("get-version --c").tab().tab());
   }
 
   private IdeCompleter newCompleter() {

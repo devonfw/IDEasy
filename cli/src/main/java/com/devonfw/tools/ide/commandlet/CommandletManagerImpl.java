@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
@@ -117,14 +116,14 @@ public final class CommandletManagerImpl implements CommandletManager {
     boolean hasRequiredProperty = false;
     List<Property<?>> properties = commandlet.getProperties();
     int propertyCount = properties.size();
+    String keyword = commandlet.getKeyword();
+    if (keyword != null) {
+      this.firstKeywordMap.putIfAbsent(keyword, commandlet);
+    }
     for (int i = 0; i < propertyCount; i++) {
       Property<?> property = properties.get(i);
       if (property.isRequired()) {
         hasRequiredProperty = true;
-        if ((i == 0) && (property instanceof KeywordProperty)) {
-          String keyword = property.getName();
-          this.firstKeywordMap.putIfAbsent(keyword, commandlet);
-        }
         break;
       }
     }

@@ -892,7 +892,10 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (!matches) {
         for (Commandlet cmd : this.commandletManager.getCommandlets()) {
           if (cmd != firstCandidate) {
-            completeCommandlet(arguments, cmd, collector);
+            if (firstCandidate == null || cmd.getKeyword().equals(keyword)) {
+              completeCommandlet(arguments, cmd, collector);
+            }
+
           }
         }
       }
@@ -936,12 +939,10 @@ public abstract class AbstractIdeContext implements IdeContext {
       Property<?> currentProperty = property;
       if (!arguments.isEndOptions()) {
         Property<?> option = cmd.getOption(currentArgument.getKey());
-        CliArguments cliArguments = new CliArguments(currentArgument.getNext());
-        ValidationResult mystate = apply(cliArguments, cmd, collector);
         if (option != null) {
           currentProperty = option;
         }
-        if (currentArgument.isOption()) {
+        if (currentArgument.isOption() && currentArgument.isCompletion()) {
           optionMatch(currentArgument, cmd, collector);
         }
       }
@@ -978,9 +979,13 @@ public abstract class AbstractIdeContext implements IdeContext {
   public void optionMatch(CliArgument argument, Commandlet cmd, CompletionCandidateCollector collector) {
     List<Property<?>> properties = cmd.getProperties();
     for (Property<?> property : properties) {
-      if (property.getName().startsWith("--")) {
+      if (property.isOption()) {
         if (property.getName().startsWith(argument.toString())) {
-          collector.add(property.getName(), null, property, cmd);
+          CompletionCandidate completionCandidate = new CompletionCandidate(property.getName(), null);
+          List<CompletionCandidate> sortedCandidates = collector.getSortedCandidates();
+          if (!sortedCandidates.contains(completionCandidate)) {
+            collector.add(completionCandidate.text(), completionCandidate.description(), property, cmd);
+          }
         }
       }
     }

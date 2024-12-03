@@ -343,6 +343,9 @@ public abstract class Property<V> {
     if (option && !argument.isOption()) {
       return false;
     }
+    //if (!option && argument.isOption() && !argument.isEndOptions()) {
+    //return false;
+    //}
     String argValue = null;
     boolean lookahead = false;
     if (this.name.isEmpty()) {
