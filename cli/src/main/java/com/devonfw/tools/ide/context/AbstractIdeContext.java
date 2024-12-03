@@ -28,13 +28,18 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.IdeSystem;
+import com.devonfw.tools.ide.environment.IdeSystemImpl;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextImpl;
+import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
-import com.devonfw.tools.ide.network.ProxyContext;
+import com.devonfw.tools.ide.network.NetworkProxy;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -50,6 +55,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.validation.ValidationResult;
+import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -58,7 +64,7 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public abstract class AbstractIdeContext implements IdeContext {
 
-  private static final String IDE_URLS_GIT = "https://github.com/devonfw/ide-urls.git";
+  private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
 
   private final IdeStartContextImpl startContext;
 
@@ -68,7 +74,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path confPath;
 
-  private Path settingsPath;
+  protected Path settingsPath;
 
   private Path softwarePath;
 
@@ -76,7 +82,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path softwareRepositoryPath;
 
-  private Path pluginsPath;
+  protected Path pluginsPath;
 
   private Path workspacePath;
 
@@ -108,7 +114,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final FileAccess fileAccess;
 
-  private final CommandletManager commandletManager;
+  protected CommandletManager commandletManager;
 
   protected ToolRepository defaultToolRepository;
 
@@ -123,6 +129,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   private StepImpl currentStep;
 
   protected Boolean online;
+
+  protected IdeSystem system;
+
+  private NetworkProxy networkProxy;
 
   /**
    * The constructor.
@@ -202,8 +212,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     return ideRootPath;
   }
 
-  private static Path getIdeRootPathFromEnv() {
-    String root = System.getenv(IdeVariables.IDE_ROOT.getName());
+  private Path getIdeRootPathFromEnv() {
+    String root = getSystem().getEnv(IdeVariables.IDE_ROOT.getName());
     if (root != null) {
       Path rootPath = Path.of(root);
       if (Files.isDirectory(rootPath)) {
@@ -242,7 +252,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         this.userHome = this.ideHome.resolve("home");
       }
     } else {
-      this.userHome = Path.of(System.getProperty("user.home"));
+      this.userHome = Path.of(getSystem().getProperty("user.home"));
     }
     this.userHomeIde = this.userHome.resolve(".ide");
     this.downloadPath = this.userHome.resolve("Downloads/ide");
@@ -261,24 +271,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     return "You are not inside an IDE installation: " + this.cwd;
   }
 
-  private static String getMessageIdeRootNotFound() {
-    String root = System.getenv("IDE_ROOT");
+  private String getMessageIdeRootNotFound() {
+    String root = getSystem().getEnv("IDE_ROOT");
     if (root == null) {
       return "The environment variable IDE_ROOT is undefined. Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     } else {
       return "The environment variable IDE_ROOT is pointing to an invalid path " + root + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     }
-  }
-
-  /**
-   * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable initialization.
-   */
-  public String getMessageIdeHome() {
-
-    if (this.ideHome == null) {
-      return getMessageIdeHomeNotFound();
-    }
-    return getMessageIdeHomeFound();
   }
 
   /**
@@ -293,6 +292,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     return new SystemPath(this);
   }
+
 
   private boolean isIdeHome(Path dir) {
 
@@ -349,6 +349,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public FileAccess getFileAccess() {
 
+    // currently FileAccess contains download method and requires network proxy to be configured. Maybe download should be moved to its own interface/class
+    configureNetworkProxy();
     return this.fileAccess;
   }
 
@@ -539,9 +541,15 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public boolean isSkipUpdatesMode() {
+    return this.startContext.isSkipUpdatesMode();
+  }
+
+  @Override
   public boolean isOnline() {
 
     if (this.online == null) {
+      configureNetworkProxy();
       // we currently assume we have only a CLI process that runs shortly
       // therefore we run this check only once to save resources when this method is called many times
       try {
@@ -557,6 +565,13 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
     return this.online.booleanValue();
+  }
+
+  private void configureNetworkProxy() {
+    if (this.networkProxy == null) {
+      this.networkProxy = new NetworkProxy(this);
+      this.networkProxy.configure();
+    }
   }
 
   @Override
@@ -598,12 +613,6 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public ProxyContext getProxyContext() {
-
-    return new ProxyContext(this);
-  }
-
-  @Override
   public GitContext getGitContext() {
 
     return new GitContextImpl(this);
@@ -619,6 +628,15 @@ public abstract class AbstractIdeContext implements IdeContext {
     return processContext;
   }
 
+  @Override
+  public IdeSystem getSystem() {
+
+    if (this.system == null) {
+      this.system = new IdeSystemImpl(this);
+    }
+    return this.system;
+  }
+
   /**
    * @return a new instance of {@link ProcessContext}.
    * @see #newProcess()
@@ -632,6 +650,19 @@ public abstract class AbstractIdeContext implements IdeContext {
   public IdeSubLogger level(IdeLogLevel level) {
 
     return this.startContext.level(level);
+  }
+
+  @Override
+  public void logIdeHomeAndRootStatus() {
+
+    if (this.ideRoot != null) {
+      success("IDE_ROOT is set to {}", this.ideRoot);
+    }
+    if (this.ideHome == null) {
+      warning(getMessageIdeHomeNotFound());
+    } else {
+      success("IDE_HOME is set to {}", this.ideHome);
+    }
   }
 
   @Override
@@ -828,12 +859,14 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (!debug().isEnabled()) {
           // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
           for (IdeLogLevel level : IdeLogLevel.values()) {
-            if (level != IdeLogLevel.INFO) {
+            if (level != IdeLogLevel.PROCESSABLE) {
               this.startContext.setLogLevel(level, false);
             }
           }
         }
+        this.startContext.activateLogging();
       } else {
+        this.startContext.activateLogging();
         if (!isTest()) {
           if (this.ideRoot == null) {
             warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");
@@ -848,11 +881,11 @@ public abstract class AbstractIdeContext implements IdeContext {
         if (cmd.isIdeHomeRequired()) {
           debug(getMessageIdeHomeFound());
         }
-      }
-      if (this.settingsPath != null) {
-        if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
-            (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
-          interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+        if (this.settingsPath != null) {
+          if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
+              (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
+            interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+          }
         }
       }
       cmd.run();
@@ -973,7 +1006,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
       currentArgument = arguments.current();
     }
-    return new ValidationState(null);
+    return ValidationResultValid.get();
   }
 
   public void optionMatch(CliArgument argument, Commandlet cmd, CompletionCandidateCollector collector) {
