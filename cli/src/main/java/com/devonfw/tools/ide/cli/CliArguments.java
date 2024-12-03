@@ -67,6 +67,14 @@ public class CliArguments implements Iterator<CliArgument> {
   }
 
   /**
+   * @return {@code true} if short options (e.g. "-bdf") should not be split (e.g. into "-b -d -f" for "--batch --debug --force"), {@code false} otherwise.
+   */
+  public boolean isSplitShortOpts() {
+
+    return splitShortOpts;
+  }
+
+  /**
    * @return {@code true} if the options have ended, {@code false} otherwise.
    * @see CliArgument#isEndOptions()
    * @see com.devonfw.tools.ide.property.Property#isEndOptions()
