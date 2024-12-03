@@ -43,6 +43,9 @@ The settings folder (see `link:variables.adoc[SETTINGS_PATH]`) has to follow thi
 │  └──/ https://github.com/devonfw/ide-settings/tree/main/vscode/workspace[workspace]
 │     ├──/ https://github.com/devonfw/ide-settings/tree/main/vscode/workspace/setup[setup]
 │     └──/ https://github.com/devonfw/ide-settings/tree/main/vscode/workspace/update[update]
+├──/ https://github.com/devonfw/ide-settings/tree/main/repositories[repositories]
+│  ├──/ ...
+│  └──/ https://github.com/devonfw/ide-settings/blob/main/repositories/README.adoc[README.adoc]
 ├──/ ...
 └── https://github.com/devonfw/ide-settings/blob/main/ide.properties[ide.properties]
 ----
