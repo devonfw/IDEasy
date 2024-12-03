@@ -38,14 +38,14 @@ public final class HelpCommandlet extends Commandlet {
   public HelpCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(getName());
+    addKeyword(getName(), "-h");
     this.commandlet = add(new CommandletProperty("", false, "commandlet"));
   }
 
   @Override
   public String getName() {
 
-    return "help";
+    return "--help";
   }
 
   @Override
