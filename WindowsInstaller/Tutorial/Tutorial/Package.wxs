@@ -1,0 +1,21 @@
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+  xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+  <Package Name="Tutorial" Manufacturer="TODO Manufacturer" Version="1.0.0.0" UpgradeCode="c41c4cc7-b242-45de-96eb-36726ea512c7">
+    <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
+
+    <Feature Id="Main">
+      <ComponentGroupRef Id="ExampleComponents" />
+    </Feature>
+
+	  <InstallExecuteSequence>
+		  <!-- Sets TARGETDIR to either D:\ or C:\ -->
+		  <Custom Action='CheckDrive' Before="CostInitialize" />
+	  </InstallExecuteSequence>
+
+	  <ui:WixUI
+	Id="WixUI_InstallDir"
+	InstallDirectory="INSTALLFOLDER"
+        />
+
+  </Package>
+</Wix>

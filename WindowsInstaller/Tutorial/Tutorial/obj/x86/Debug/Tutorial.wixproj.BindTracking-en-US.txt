@@ -1,0 +1,14 @@
+BuiltContentOutput	C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\cab1.cab
+BuiltPdbOutput	C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\Tutorial.wixpdb
+BuiltTargetOutput	C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\Tutorial.msi
+Input	C:\Users\kloroff\.nuget\packages\wixtoolset.ui.wixext\5.0.2\wixext5\WixToolset.UI.wixext.dll
+Input	C:\Users\kloroff\source\repos\Tutorial\CustomAction\bin\Debug\CustomAction.CA.dll
+Input	ExampleComponents.wxs
+Intermediate	C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\cab1.cab
+Intermediate	C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\WixToolset.UI.wixext_AKfG8I-TAdBk2p4ZTL7YOeiWYWc\wix-ir\bannrbmp.bmp
+Intermediate	C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\WixToolset.UI.wixext_AKfG8I-TAdBk2p4ZTL7YOeiWYWc\wix-ir\dlgbmp.bmp
+Intermediate	C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\WixToolset.UI.wixext_AKfG8I-TAdBk2p4ZTL7YOeiWYWc\wix-ir\exclamic.ico
+Intermediate	C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\WixToolset.UI.wixext_AKfG8I-TAdBk2p4ZTL7YOeiWYWc\wix-ir\info.ico
+Intermediate	C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\WixToolset.UI.wixext_AKfG8I-TAdBk2p4ZTL7YOeiWYWc\wix-ir\new.ico
+Intermediate	C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\WixToolset.UI.wixext_AKfG8I-TAdBk2p4ZTL7YOeiWYWc\wix-ir\uica.dll-2
+Intermediate	C:\Users\kloroff\source\repos\Tutorial\Tutorial\obj\x86\Debug\en-US\WixToolset.UI.wixext_AKfG8I-TAdBk2p4ZTL7YOeiWYWc\wix-ir\up.ico

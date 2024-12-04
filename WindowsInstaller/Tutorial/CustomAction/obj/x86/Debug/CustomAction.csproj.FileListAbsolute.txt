@@ -1,0 +1,10 @@
+C:\Users\kloroff\source\repos\Tutorial\CustomAction\obj\x86\Debug\CustomAction.csproj.AssemblyReference.cache
+C:\Users\kloroff\source\repos\Tutorial\CustomAction\obj\x86\Debug\CustomAction.csproj.CoreCompileInputs.cache
+C:\Users\kloroff\source\repos\Tutorial\CustomAction\bin\Debug\CustomAction.dll
+C:\Users\kloroff\source\repos\Tutorial\CustomAction\bin\Debug\CustomAction.CA.dll
+C:\Users\kloroff\source\repos\Tutorial\CustomAction\bin\Debug\CustomAction.pdb
+C:\Users\kloroff\source\repos\Tutorial\CustomAction\bin\Debug\Microsoft.Deployment.WindowsInstaller.dll
+C:\Users\kloroff\source\repos\Tutorial\CustomAction\bin\Debug\Microsoft.Deployment.WindowsInstaller.xml
+C:\Users\kloroff\source\repos\Tutorial\CustomAction\obj\x86\Debug\CustomAc.B0A35538.Up2Date
+C:\Users\kloroff\source\repos\Tutorial\CustomAction\obj\x86\Debug\CustomAction.dll
+C:\Users\kloroff\source\repos\Tutorial\CustomAction\obj\x86\Debug\CustomAction.pdb
