@@ -1,4 +1,7 @@
-package com.devonfw.tools.ide.context;
+package com.devonfw.tools.ide.git;
+
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
 
 import org.junit.jupiter.api.Test;
 

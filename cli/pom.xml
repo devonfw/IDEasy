@@ -68,13 +68,6 @@
       <version>1.5.3</version>
       <!--optional>true</optional-->
     </dependency>
-    <!-- Needed for WireMock test support -->
-    <dependency>
-      <groupId>com.github.tomakehurst</groupId>
-      <artifactId>wiremock-jre8</artifactId>
-      <version>2.35.1</version>
-      <scope>test</scope>
-    </dependency>
     <dependency>
       <groupId>me.tongfei</groupId>
       <artifactId>progressbar</artifactId>
@@ -90,6 +83,21 @@
       <artifactId>jansi</artifactId>
       <version>${jansi.version}</version>
     </dependency>
+    <!-- Test dependencies -->
+    <!-- Mockito for mocking -->
+    <dependency>
+      <groupId>org.mockito</groupId>
+      <artifactId>mockito-core</artifactId>
+      <version>5.10.0</version>
+      <scope>test</scope>
+    </dependency>
+    <!-- Needed for WireMock test support -->
+    <dependency>
+      <groupId>com.github.tomakehurst</groupId>
+      <artifactId>wiremock-jre8</artifactId>
+      <version>2.35.1</version>
+      <scope>test</scope>
+    </dependency>
     <dependency>
       <!-- required for advanced mocking -->
       <groupId>net.bytebuddy</groupId>
@@ -102,11 +110,13 @@
       <groupId>org.xmlunit</groupId>
       <artifactId>xmlunit-core</artifactId>
       <version>2.10.0</version>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.xmlunit</groupId>
       <artifactId>xmlunit-assertj3</artifactId>
       <version>2.9.1</version>
+      <scope>test</scope>
     </dependency>
   </dependencies>
 
@@ -216,7 +226,7 @@
                 <goals>
                   <goal>compile-no-fork</goal>
                 </goals>
-                <phase>compile</phase>
+                <phase>package</phase>
               </execution>
               <execution>
                 <id>test-native</id>
