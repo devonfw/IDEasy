@@ -6,6 +6,7 @@
 *.tar binary
 *.bz2 binary
 *.gz binary
+*.ifp binary
 
 # special handling for test files
 studio64.exe text
