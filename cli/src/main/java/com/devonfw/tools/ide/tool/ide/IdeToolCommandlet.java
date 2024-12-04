@@ -35,11 +35,11 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
   private boolean hasIde(Set<Tag> tags) {
 
     for (Tag tag : tags) {
-      if (tag.isAncestorOf(Tag.IDE)) {
+      if (tag.isAncestorOf(Tag.IDE) || (tag == Tag.IDE)) {
         return true;
       }
     }
-    throw new IllegalStateException("Tags of IdeTool hat to be connected with tag IDE: " + tags);
+    throw new IllegalStateException("Tags of IdeTool has to be connected with tag IDE: " + tags);
   }
 
   @Override
@@ -62,7 +62,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
     Path settingsWorkspaceFolder = this.context.getSettingsPath().resolve(this.tool)
         .resolve(IdeContext.FOLDER_WORKSPACE);
-    Path genericWorkspaceFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_WORKSPACE); 
+    Path genericWorkspaceFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_WORKSPACE);
     Path workspaceUpdateFolder = genericWorkspaceFolder.resolve(IdeContext.FOLDER_UPDATE);
     Path workspaceSetupFolder = genericWorkspaceFolder.resolve(IdeContext.FOLDER_SETUP);
     FileAccess fileAccess = this.context.getFileAccess();
