@@ -152,6 +152,7 @@ public class ProcessContextImpl implements ProcessContext {
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(this.executable.toString(), args);
     args.addAll(this.arguments);
+    String command = createCommand();
     if (this.context.debug().isEnabled()) {
       String message = createCommandMessage(interpreter, " ...");
       this.context.debug(message);
@@ -172,27 +173,30 @@ public class ProcessContextImpl implements ProcessContext {
 
       Process process = this.processBuilder.start();
 
-      if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
-        CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
-        out = outFut.get();
-        err = errFut.get();
+      try {
+        if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+          CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
+          CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
+          out = outFut.get();
+          err = errFut.get();
+        }
+
+        int exitCode;
+
+        if (processMode.isBackground()) {
+          exitCode = ProcessResult.SUCCESS;
+        } else {
+          exitCode = process.waitFor();
+        }
+
+        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, out, err);
+
+        performLogging(result, exitCode, interpreter);
+
+        return result;
+      } finally {
+        process.destroy();
       }
-
-      int exitCode;
-
-      if (processMode.isBackground()) {
-        exitCode = ProcessResult.SUCCESS;
-      } else {
-        exitCode = process.waitFor();
-      }
-
-      ProcessResult result = new ProcessResultImpl(exitCode, out, err);
-
-      performLogging(result, exitCode, interpreter);
-
-      return result;
-
     } catch (CliProcessException | IllegalStateException e) {
       // these exceptions are thrown from performLogOnError and we do not want to wrap them (see #593)
       throw e;
@@ -224,6 +228,17 @@ public class ProcessContextImpl implements ProcessContext {
         throw new RuntimeException("There was a problem while executing the program", e);
       }
     });
+  }
+
+  private String createCommand() {
+    String cmd = this.executable.toString();
+    StringBuilder sb = new StringBuilder(cmd.length() + this.arguments.size() * 4);
+    sb.append(cmd);
+    for (String arg : this.arguments) {
+      sb.append(' ');
+      sb.append(arg);
+    }
+    return sb.toString();
   }
 
   private String createCommandMessage(String interpreter, String suffix) {

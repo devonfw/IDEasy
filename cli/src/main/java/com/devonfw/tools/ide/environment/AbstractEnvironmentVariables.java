@@ -74,6 +74,12 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   @Override
+  public Path getLegacyPropertiesFilePath() {
+
+    return null;
+  }
+
+  @Override
   public VariableSource getSource() {
 
     if (this.source == null) {

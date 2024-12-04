@@ -253,6 +253,22 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
   }
 
   @Override
+  public Path getLegacyPropertiesFilePath() {
+
+    if (this.propertiesFilePath == null) {
+      return null;
+    }
+    if (this.propertiesFilePath.getFileName().toString().equals(LEGACY_PROPERTIES)) {
+      return this.propertiesFilePath;
+    }
+    Path legacyProperties = this.propertiesFilePath.getParent().resolve(LEGACY_PROPERTIES);
+    if (Files.exists(legacyProperties)) {
+      return legacyProperties;
+    }
+    return null;
+  }
+
+  @Override
   public String set(String name, String value, boolean export) {
 
     String oldValue = this.variables.put(name, value);
