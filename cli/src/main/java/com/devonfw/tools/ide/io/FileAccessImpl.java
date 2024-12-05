@@ -319,7 +319,7 @@ public class FileAccessImpl implements FileAccess {
       // Therefore we need to add the filename (foldername) of "source" to the "target" path before.
       // For the rare cases, where we want to copy the content of a folder (cp -r source/* target) we support
       // it via the COPY_TREE_CONTENT mode.
-      target = target.resolve(source.getFileName());
+      target = target.resolve(source.getFileName().toString());
     }
     boolean fileOnly = mode.isFileOnly();
     String operation = mode.getOperation();
