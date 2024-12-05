@@ -308,7 +308,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void copy(Path source, Path target, FileCopyMode mode) {
+  public void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener) {
 
     if (mode != FileCopyMode.COPY_TREE_CONTENT) {
       // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy
@@ -322,29 +322,34 @@ public class FileAccessImpl implements FileAccess {
       target = target.resolve(source.getFileName());
     }
     boolean fileOnly = mode.isFileOnly();
-    if (fileOnly) {
-      this.context.debug("Copying file {} to {}", source, target);
+    String operation = mode.getOperation();
+    if (mode.isExtract()) {
+      this.context.debug("{} {} to {}", operation, source, target);
     } else {
-      this.context.debug("Copying {} recursively to {}", source, target);
+      if (fileOnly) {
+        this.context.debug("{} file {} to {}", operation, source, target);
+      } else {
+        this.context.debug("{} {} recursively to {}", operation, source, target);
+      }
     }
     if (fileOnly && Files.isDirectory(source)) {
       throw new IllegalStateException("Expected file but found a directory to copy at " + source);
     }
     if (mode.isFailIfExists()) {
       if (Files.exists(target)) {
-        throw new IllegalStateException("Failed to copy " + source + " to already existing target " + target);
+        throw new IllegalStateException("Failed to " + operation + " " + source + " to already existing target " + target);
       }
     } else if (mode == FileCopyMode.COPY_TREE_OVERRIDE_TREE) {
       delete(target);
     }
     try {
-      copyRecursive(source, target, mode);
+      copyRecursive(source, target, mode, listener);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to copy " + source + " to " + target, e);
+      throw new IllegalStateException("Failed to " + operation + " " + source + " to " + target, e);
     }
   }
 
-  private void copyRecursive(Path source, Path target, FileCopyMode mode) throws IOException {
+  private void copyRecursive(Path source, Path target, FileCopyMode mode, PathCopyListener listener) throws IOException {
 
     if (Files.isDirectory(source)) {
       mkdirs(target);
@@ -352,19 +357,17 @@ public class FileAccessImpl implements FileAccess {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
           Path child = iterator.next();
-          copyRecursive(child, target.resolve(child.getFileName().toString()), mode);
+          copyRecursive(child, target.resolve(child.getFileName().toString()), mode, listener);
         }
       }
+      listener.onCopy(source, target, true);
     } else if (Files.exists(source)) {
       if (mode.isOverrideFile()) {
         delete(target);
       }
-      this.context.trace("Copying {} to {}", source, target);
+      this.context.trace("{} {} to {}", mode.getOperation(), source, target);
       Files.copy(source, target);
-      Object attribute = Files.getAttribute(source, "zip:permissions");
-      if (attribute instanceof Set permissionSet) {
-        Files.setPosixFilePermissions(target, permissionSet);
-      }
+      listener.onCopy(source, target, false);
     } else {
       throw new IOException("Path " + source + " does not exist.");
     }
@@ -559,24 +562,12 @@ public class FileAccessImpl implements FileAccess {
         this.context.trace("Determined file extension {}", extension);
       }
       switch (extension) {
-        case "zip" -> {
-          extractZip(archiveFile, tmpDir);
-        }
-        case "jar" -> {
-          extractJar(archiveFile, tmpDir);
-        }
-        case "dmg" -> {
-          extractDmg(archiveFile, tmpDir);
-        }
-        case "msi" -> {
-          extractMsi(archiveFile, tmpDir);
-        }
-        case "pkg" -> {
-          extractPkg(archiveFile, tmpDir);
-        }
-        default -> {
-          throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + archiveFile);
-        }
+        case "zip" -> extractZip(archiveFile, tmpDir);
+        case "jar" -> extractJar(archiveFile, tmpDir);
+        case "dmg" -> extractDmg(archiveFile, tmpDir);
+        case "msi" -> extractMsi(archiveFile, tmpDir);
+        case "pkg" -> extractPkg(archiveFile, tmpDir);
+        default -> throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + archiveFile);
       }
     }
     Path properInstallDir = getProperInstallationSubDirOf(tmpDir, archiveFile);
@@ -620,18 +611,35 @@ public class FileAccessImpl implements FileAccess {
   public void extractZip(Path file, Path targetDir) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
-
+    long compressedSize = getFileSize(file);
+    long size = (long) (compressedSize * 1.3); // brute guess about unknown compression rate
     URI uri = URI.create("jar:" + file.toUri());
     try (FileSystem fs = FileSystems.newFileSystem(uri, FS_ENV);
-        //FileInputStream fis = new FileInputStream(file.toFile()); ZipInputStream zis = new ZipInputStream(fis); IdeProgressBar pb = getProgressbarForUnpacking(getFileSize(file))
-    ) {
+        IdeProgressBar bp = getProgressbarForUnpacking(size)) {
+
+      PathCopyListener listener = (source, target, directory) -> {
+        if (directory) {
+          return;
+        }
+        if (!context.getSystemInfo().isWindows()) {
+          try {
+            Object attribute = Files.getAttribute(source, "zip:permissions");
+            if (attribute instanceof Set<?> permissionSet) {
+              Files.setPosixFilePermissions(target, (Set<PosixFilePermission>) permissionSet);
+            }
+          } catch (Exception e) {
+            context.error(e, "Failed to transfer zip permissions for {}", target);
+          }
+        }
+        bp.stepBy(getFileSize(target));
+      };
       for (Path root : fs.getRootDirectories()) {
         try (Stream<Path> list = Files.list(root)) {
           Iterator<Path> iterator = list.iterator();
           while (iterator.hasNext()) {
             Path child = iterator.next();
             String fileName = child.getFileName().toString();
-            copy(child, targetDir.resolve(fileName), FileCopyMode.COPY_TREE_CONTENT);
+            copy(child, targetDir.resolve(fileName), FileCopyMode.EXTRACT, listener);
           }
         }
       }
@@ -662,7 +670,6 @@ public class FileAccessImpl implements FileAccess {
     permissions &= 0b111111111;
 
     StringBuilder permissionStringBuilder = new StringBuilder("rwxrwxrwx");
-
     for (int i = 0; i < 9; i++) {
       int mask = 1 << i;
       char currentChar = ((permissions & mask) != 0) ? permissionStringBuilder.charAt(8 - i) : '-';
@@ -672,11 +679,13 @@ public class FileAccessImpl implements FileAccess {
     return permissionStringBuilder.toString();
   }
 
-  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
+  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream<?>> unpacker) {
 
     this.context.trace("Unpacking archive {} to {}", file, targetDir);
-    try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is); IdeProgressBar pb = getProgressbarForUnpacking(
-        getFileSize(file))) {
+    try (InputStream is = Files.newInputStream(file);
+        ArchiveInputStream<?> ais = unpacker.apply(is);
+        IdeProgressBar pb = getProgressbarForUnpacking(getFileSize(file))) {
+
       ArchiveEntry entry = ais.getNextEntry();
       boolean isTar = ais instanceof TarArchiveInputStream;
       while (entry != null) {
@@ -865,15 +874,14 @@ public class FileAccessImpl implements FileAccess {
     return listChildren(dir, f -> true).isEmpty();
   }
 
-  /**
-   * Gets the file size of a provided file path.
-   *
-   * @param path of the file.
-   * @return the file size.
-   */
-  protected long getFileSize(Path path) {
+  private long getFileSize(Path file) {
 
-    return path.toFile().length();
+    try {
+      return Files.size(file);
+    } catch (IOException e) {
+      this.context.warning(e.getMessage(), e);
+      return 0;
+    }
   }
 
   @Override

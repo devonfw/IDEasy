@@ -105,10 +105,24 @@ public interface FileAccess {
    *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
    *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
    *     the same content of {@code source} in {@code target}.
-   * @param fileOnly - {@code true} if {@code fileOrFolder} is expected to be a file and an exception shall be thrown if it is a directory, {@code false}
-   *     otherwise (copy recursively).
+   * @param mode the {@link FileCopyMode}.
    */
-  void copy(Path source, Path target, FileCopyMode fileOnly);
+  default void copy(Path source, Path target, FileCopyMode mode) {
+
+    copy(source, target, mode, PathCopyListener.NONE);
+  }
+
+  /**
+   * @param source the source {@link Path file or folder} to copy.
+   * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not take the filename of {@code source}
+   *     and copy that to {@code target} in case that is an existing folder. Instead it will always be simple and stupid and just copy from {@code source} to
+   *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
+   *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
+   *     the same content of {@code source} in {@code target}.
+   * @param mode the {@link FileCopyMode}.
+   * @param listener the {@link PathCopyListener} that will be called for each copied {@link Path}.
+   */
+  void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener);
 
   /**
    * @param archiveFile the {@link Path} to the file to extract.
