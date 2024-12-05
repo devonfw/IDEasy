@@ -131,9 +131,17 @@ public class CommandletManagerImpl implements CommandletManager {
     boolean hasRequiredProperty = false;
     List<Property<?>> properties = commandlet.getProperties();
     int propertyCount = properties.size();
-    String keyword = commandlet.getKeyword();
+    KeywordProperty keyword = commandlet.getFirstKeyword();
     if (keyword != null) {
-      this.firstKeywordMap.putIfAbsent(keyword, commandlet);
+      String name = keyword.getName();
+      this.firstKeywordMap.putIfAbsent(name, commandlet);
+      if (name.startsWith("--")) {
+        this.firstKeywordMap.putIfAbsent(name.substring(2), commandlet);
+      }
+      String alias = keyword.getAlias();
+      if (alias != null) {
+        this.firstKeywordMap.putIfAbsent(alias, commandlet);
+      }
     }
     for (int i = 0; i < propertyCount; i++) {
       Property<?> property = properties.get(i);
