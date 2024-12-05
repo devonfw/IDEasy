@@ -63,8 +63,10 @@ But please follow best-practices and common sense and publish them as a new rele
 === Proper file format
 
 On Linux and Mac binaries and scripts need executable permission to be run (`chmod a+x «binary»`).
-Theoretically ZIP files can also store such metadata but since this was later added to ZIP format.
+Theoretically ZIP files can also store such metadata but this was added to ZIP format very late.
+Also ZIP is commonly used on Windows while other platforms prefer to use TAR-based archives.
 Therefore, many ZIP libraries are not supporting this feature at all or if they do they do it very poor.
+Many users and developers do not even know that ZIP files can actually store file permissions with executable flags.
 We started with apache commons-compress that unfortunetaly is already https://issues.apache.org/jira/browse/COMPRESS-562[buggy on simple extract].
 Then we discovered that `java.util.zip` from JDK https://stackoverflow.com/questions/54654170/what-are-the-extra-bytes-in-the-zipentry-used-for[cannot give reliable access to metadata such as executable flags].
 Finally, we found https://bugs.openjdk.org/browse/JDK-8213082[JDK-8213082] that lead us to the solution but caused many pitfalls and headaches until we came up with a unpacking of ZIP files that reliably preserves file permissions.
