@@ -100,8 +100,9 @@ public interface CommandletManager {
    * @param collector the optional {@link CompletionCandidateCollector}. Will be {@code null} if no argument {@link CliArguments#isCompletion() completion}
    *     shall be performed.
    * @return an {@link Iterator} of the matching {@link Commandlet}(s). Typically empty or containing a single {@link Commandlet}. Only in edge-cases multiple
-   *     {@link Commandlet}s could be found (e.g. if two {@link Commandlet}s exist with the same keyword but with different mandatory properties such as in "ide
-   *     get version ..." and "ide get edition ..." - however, we redesigned our CLI to "ide get-version ..." and "ide get-edition ..." to simplify this).
+   *     {@link Commandlet}s could be found (e.g. if two {@link Commandlet}s exist with the same keyword but with different mandatory properties such as in our
+   *     legacy devonfw-ide "ide get version ..." and "ide get edition ..." - however, we redesigned our CLI to "ide get-version ..." and "ide get-edition ..."
+   *     to simplify this).
    */
   Iterator<Commandlet> findCommandlet(CliArguments arguments, CompletionCandidateCollector collector);
 

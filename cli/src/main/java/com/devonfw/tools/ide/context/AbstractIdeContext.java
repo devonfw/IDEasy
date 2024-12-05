@@ -803,7 +803,6 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
       if (result != null) {
-        //throw new CliException(result.getErrorMessage());
         error(result.getErrorMessage());
       }
       step.error("Invalid arguments: {}", current.getArgs());
@@ -984,7 +983,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
    *     {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
-   * @return the {@link ValidationResult} telling is the {@link CliArguments} can be applied successfully or it validation errors ocurred.
+   * @return the {@link ValidationResult} telling if the {@link CliArguments} can be applied successfully or if validation errors ocurred.
    */
   public ValidationResult apply(CliArguments arguments, Commandlet cmd) {
 
