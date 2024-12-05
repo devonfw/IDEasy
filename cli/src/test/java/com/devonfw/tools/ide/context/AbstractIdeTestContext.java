@@ -134,7 +134,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public IdeSystemTestImpl getSystem() {
 
     if (this.system == null) {
-      this.system = IdeSystemTestImpl.ofSystemDefaults(this);
+      this.system = new IdeSystemTestImpl(this);
     }
     return (IdeSystemTestImpl) this.system;
   }

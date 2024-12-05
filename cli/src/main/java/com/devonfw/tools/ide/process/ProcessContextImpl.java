@@ -195,7 +195,9 @@ public class ProcessContextImpl implements ProcessContext {
 
         return result;
       } finally {
-        process.destroy();
+        if (!processMode.isBackground()) {
+          process.destroy();
+        }
       }
     } catch (CliProcessException | IllegalStateException e) {
       // these exceptions are thrown from performLogOnError and we do not want to wrap them (see #593)
