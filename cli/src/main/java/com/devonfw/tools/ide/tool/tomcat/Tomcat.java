@@ -29,6 +29,10 @@ import com.devonfw.tools.ide.version.GenericVersionRange;
  */
 public class Tomcat extends LocalToolCommandlet {
 
+  private static final String CATALINA = "catalina";
+  private static final String CATALINA_BAT = CATALINA + ".bat";
+  private static final String CATALINA_BASH_SCRIPT = CATALINA + ".sh";
+
   /**
    * The constructor.
    *
@@ -37,6 +41,16 @@ public class Tomcat extends LocalToolCommandlet {
   public Tomcat(IdeContext context) {
 
     super(context, "tomcat", Set.of(Tag.JAVA));
+  }
+
+  @Override
+  protected String getBinaryName() {
+
+    if (this.context.getSystemInfo().isWindows()) {
+      return CATALINA_BAT;
+    } else {
+      return CATALINA_BASH_SCRIPT;
+    }
   }
 
   @Override
@@ -61,19 +75,6 @@ public class Tomcat extends LocalToolCommandlet {
 
     super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
     environmentContext.withEnvVar("CATALINA_HOME", toolInstallation.linkDir().toString());
-  }
-
-  @Override
-  protected void postExtract(Path extractedDir) {
-
-    super.postExtract(extractedDir);
-    String binaryName;
-    if (this.context.getSystemInfo().isWindows()) {
-      binaryName = "catalina.bat";
-    } else {
-      binaryName = "catalina.sh";
-    }
-    createStartScript(extractedDir, binaryName, false);
   }
 
   private void printTomcatPort() {

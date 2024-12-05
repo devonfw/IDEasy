@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.intellij;
 
-import java.nio.file.Path;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -33,6 +32,18 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
+  protected String getBinaryName() {
+
+    if (this.context.getSystemInfo().isWindows()) {
+      return IDEA64_EXE;
+    } else if (this.context.getSystemInfo().isMac()) {
+      return IDEA;
+    } else {
+      return IDEA_BASH_SCRIPT;
+    }
+  }
+
+  @Override
   protected void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
@@ -45,21 +56,6 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     // TODO create intellij/intellij/dependencies.json file in ide-urls and delete this method
     // TODO create intellij/ultimate/dependencies.json file in ide-urls and delete this method
     getCommandlet(Java.class).install();
-  }
-
-  @Override
-  protected void postExtract(Path extractedDir) {
-
-    super.postExtract(extractedDir);
-    String binaryName;
-    if (this.context.getSystemInfo().isWindows()) {
-      binaryName = IDEA64_EXE;
-    } else if (this.context.getSystemInfo().isMac()) {
-      binaryName = IDEA;
-    } else {
-      binaryName = IDEA_BASH_SCRIPT;
-    }
-    createStartScript(extractedDir, binaryName, true);
   }
 
 }
