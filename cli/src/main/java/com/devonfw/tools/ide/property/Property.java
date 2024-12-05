@@ -85,7 +85,7 @@ public abstract class Property<V> {
   }
 
   /**
-   * @return the name of this property.
+   * @return the name of this property. Will be the empty {@link String} for a {@link #isValue() value} property that is not a keyword.
    */
   public String getName() {
 
@@ -335,17 +335,15 @@ public abstract class Property<V> {
     if (argument.isCompletion()) {
       int size = collector.getCandidates().size();
       complete(argument, args, context, commandlet, collector);
-      if (collector.getCandidates().size() > size) { // completions added so complete matched?
-        return true;
-      }
+      return (collector.getCandidates().size() > size);
     }
     boolean option = isOption();
     if (option && !argument.isOption()) {
       return false;
     }
-    //if (!option && argument.isOption() && !argument.isEndOptions()) {
-    //return false;
-    //}
+    if (!option && argument.isOption() && args.isSplitShortOpts()) {
+      return false;
+    }
     String argValue = null;
     boolean lookahead = false;
     if (this.name.isEmpty()) {
@@ -387,7 +385,6 @@ public abstract class Property<V> {
 
     if (success) {
       if (this.multivalued) {
-
         while (success && args.hasNext()) {
           CliArgument arg = args.next();
           success = assignValueAsString(arg.get(), context, commandlet);
