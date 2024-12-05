@@ -135,6 +135,9 @@ public interface IdeContext extends IdeStartContext {
 
   /** Legacy folder name used as compatibility fallback if {@link #FOLDER_TEMPLATES} does not exist. */
   String FOLDER_LEGACY_TEMPLATES = "devon";
+
+  /**
+   * file containing the current local commit hash of the settings repository. */
   String SETTINGS_COMMIT_ID = ".commit.id";
 
   /**

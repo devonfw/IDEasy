@@ -1,14 +1,11 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.property.BooleanProperty;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 
