@@ -319,17 +319,20 @@ public class FileAccessImpl implements FileAccess {
       // Therefore we need to add the filename (foldername) of "source" to the "target" path before.
       // For the rare cases, where we want to copy the content of a folder (cp -r source/* target) we support
       // it via the COPY_TREE_CONTENT mode.
-      target = target.resolve(source.getFileName().toString());
+      Path fileName = source.getFileName();
+      if (fileName != null) { // if filename is null, we are copying the root of a (virtual filesystem)
+        target = target.resolve(fileName.toString());
+      }
     }
     boolean fileOnly = mode.isFileOnly();
     String operation = mode.getOperation();
     if (mode.isExtract()) {
-      this.context.debug("{} {} to {}", operation, source, target);
+      this.context.debug("Starting to {} to {}", operation, target);
     } else {
       if (fileOnly) {
-        this.context.debug("{} file {} to {}", operation, source, target);
+        this.context.debug("Starting to {} file {} to {}", operation, source, target);
       } else {
-        this.context.debug("{} {} recursively to {}", operation, source, target);
+        this.context.debug("Starting to {} {} recursively to {}", operation, source, target);
       }
     }
     if (fileOnly && Files.isDirectory(source)) {
@@ -365,7 +368,7 @@ public class FileAccessImpl implements FileAccess {
       if (mode.isOverrideFile()) {
         delete(target);
       }
-      this.context.trace("{} {} to {}", mode.getOperation(), source, target);
+      this.context.trace("Starting to {} {} to {}", mode.getOperation(), source, target);
       Files.copy(source, target);
       listener.onCopy(source, target, false);
     } else {
@@ -634,14 +637,7 @@ public class FileAccessImpl implements FileAccess {
         bp.stepBy(getFileSize(target));
       };
       for (Path root : fs.getRootDirectories()) {
-        try (Stream<Path> list = Files.list(root)) {
-          Iterator<Path> iterator = list.iterator();
-          while (iterator.hasNext()) {
-            Path child = iterator.next();
-            String fileName = child.getFileName().toString();
-            copy(child, targetDir.resolve(fileName), FileCopyMode.EXTRACT, listener);
-          }
-        }
+        copy(root, targetDir, FileCopyMode.EXTRACT, listener);
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
