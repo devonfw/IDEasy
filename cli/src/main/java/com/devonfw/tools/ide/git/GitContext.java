@@ -58,13 +58,18 @@ public interface GitContext {
    * Checks if there are updates available for the Git repository in the specified target folder by comparing the local commit hash with the remote commit
    * hash.
    *
-   * @param repository the {@link Path} to the target folder where the git repository is located. This should be the folder containing the ".git"
-   *     subfolder.
+   * @param repository the {@link Path} to the target folder where the git repository is located.
    * @return {@code true} if the remote repository contains commits that are not present in the local repository, indicating that updates are available.
    *     {@code false} if the local and remote repositories are in sync, or if there was an issue retrieving the commit hashes.
    */
   boolean isRepositoryUpdateAvailable(Path repository);
 
+
+  /**
+   * Saves the current git commit ID of a repository to a .commit.id file in IDE_HOME.
+   *
+   * @param repository the path to the git repository
+   */
   void saveCurrentCommitId(Path repository);
 
   /**

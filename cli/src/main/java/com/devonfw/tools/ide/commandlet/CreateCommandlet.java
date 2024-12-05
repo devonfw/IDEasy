@@ -23,8 +23,10 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   /** {@link FlagProperty} for skipping the setup of git repositories */
   public final FlagProperty skipRepositories;
 
+  /** {@link FlagProperty} for creating a project with settings inside a code repository */
   public final FlagProperty codeRepositoryFlag;
 
+  /** {@link StringProperty} for the URL of the given code repository */
   public final StringProperty codeRepository;
 
   /**
@@ -38,7 +40,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     this.newProject = add(new StringProperty("", true, "project"));
     this.skipRepositories = add(new FlagProperty("--skip-repositories"));
     this.codeRepositoryFlag = add(new FlagProperty("--code"));
-    this.codeRepository = add(new StringProperty("", false, ""));
+    this.codeRepository = add(new StringProperty("", false, "codeRepository"));
     add(this.settingsRepo);
   }
 

@@ -117,7 +117,11 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       if (Files.isDirectory(settingsPath) && !this.context.getFileAccess().isEmptyDir(settingsPath)) {
         step = this.context.newStep("Pull settings repository");
         if (!Files.isDirectory(settingsPath.resolve(GitContext.GIT_FOLDER))) {
-          settingsPath = settingsPath.toRealPath();
+          try {
+            settingsPath = settingsPath.toRealPath();
+          } catch (IOException e) {
+            throw new IllegalStateException("Could not resolve settings folder to real path.", e);
+          }
         }
         gitContext.pull(settingsPath);
       } else {
@@ -138,9 +142,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       }
       gitContext.saveCurrentCommitId(settingsPath);
       step.success("Successfully updated settings repository.");
-    } catch (IOException e) {
-      throw new IllegalStateException("Could not update the settings repository.");
-    } finally {
+    }  finally {
       if (step != null) {
         step.close();
       }

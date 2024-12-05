@@ -53,19 +53,17 @@ public class GitContextImpl implements GitContext {
 
     verifyGitInstalled();
     Path commitIdFile = this.context.getIdeHome().resolve(IdeContext.SETTINGS_COMMIT_ID);
-    String trackedCommitId = null;
-    if (Files.exists(commitIdFile)) {
-      try {
-        trackedCommitId = Files.readString(commitIdFile);
-      } catch (IOException e) {
-        return false;
-      }
+    if (!Files.exists(commitIdFile)) {
+      saveCurrentCommitId(repository);
+    }
+    String trackedCommitId;
+    try {
+      trackedCommitId = Files.readString(commitIdFile);
+    } catch (IOException e) {
+      return false;
     }
 
     String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
-    if ((trackedCommitId == null) || (remoteCommitId == null)) {
-      return false;
-    }
     return !trackedCommitId.equals(remoteCommitId);
   }
 
@@ -84,7 +82,7 @@ public class GitContextImpl implements GitContext {
     try {
       Files.writeString(commitIdFile, currentCommitId);
     } catch (IOException e) {
-      throw new RuntimeException("Failed to save commit ID", e);
+      throw new IllegalStateException("Failed to save commit ID", e);
     }
   }
 
