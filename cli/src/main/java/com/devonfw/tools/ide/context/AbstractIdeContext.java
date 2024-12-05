@@ -802,11 +802,11 @@ public abstract class AbstractIdeContext implements IdeContext {
           return ProcessResult.SUCCESS;
         }
       }
+      this.startContext.activateLogging();
       if (result != null) {
         error(result.getErrorMessage());
       }
       step.error("Invalid arguments: {}", current.getArgs());
-
       HelpCommandlet help = this.commandletManager.getCommandlet(HelpCommandlet.class);
       if (cmd != null) {
         help.commandlet.setValue(cmd);
@@ -814,6 +814,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       help.run();
       return 1;
     } catch (Throwable t) {
+      this.startContext.activateLogging();
       step.error(t, true);
       throw t;
     } finally {
