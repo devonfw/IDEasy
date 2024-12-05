@@ -352,7 +352,7 @@ public class FileAccessImpl implements FileAccess {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
           Path child = iterator.next();
-          copyRecursive(child, target.resolve(child.getFileName()), mode);
+          copyRecursive(child, target.resolve(child.getFileName().toString()), mode);
         }
       }
     } else if (Files.exists(source)) {
@@ -622,16 +622,13 @@ public class FileAccessImpl implements FileAccess {
         //FileInputStream fis = new FileInputStream(file.toFile()); ZipInputStream zis = new ZipInputStream(fis); IdeProgressBar pb = getProgressbarForUnpacking(getFileSize(file))
     ) {
       for (Path root : fs.getRootDirectories()) {
-        Path filename = root.getFileName();
-        if (filename == null) {
-          Iterator<Path> iterator = Files.list(root).iterator();
+        try (Stream<Path> list = Files.list(root)) {
+          Iterator<Path> iterator = list.iterator();
           while (iterator.hasNext()) {
             Path child = iterator.next();
             String fileName = child.getFileName().toString();
             copy(child, targetDir.resolve(fileName), FileCopyMode.COPY_TREE_CONTENT);
           }
-        } else {
-          copy(root, targetDir.resolve(filename), FileCopyMode.COPY_TREE_CONTENT);
         }
       }
     } catch (IOException e) {
