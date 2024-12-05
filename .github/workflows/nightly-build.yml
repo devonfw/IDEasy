@@ -23,8 +23,12 @@ jobs:
       - name: Build native image
         shell: bash
         run: |
+          maven_config="$(cat .mvn/maven.config)"
+          current_version="${maven_config/#*-Drevision=}"
+          current_version="${current_version/ */}"
+          current_version="${current_version/-SNAPSHOT/-$(date +%m_%d_%H)-SNAPSHOT/}"
           cd cli
-          mvn -B -ntp -Pnative -DskipTests=true package
+          mvn -B -ntp -Pnative -DskipTests=true -Drevision=${current_version} package
       - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
