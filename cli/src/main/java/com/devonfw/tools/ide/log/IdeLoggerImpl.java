@@ -44,6 +44,7 @@ public class IdeLoggerImpl implements IdeLogger {
    * Sets the log level.
    *
    * @param logLevel {@link IdeLogLevel}
+   * @return the previous set logLevel {@link IdeLogLevel}
    */
   public IdeLogLevel setLogLevel(IdeLogLevel logLevel) {
 
