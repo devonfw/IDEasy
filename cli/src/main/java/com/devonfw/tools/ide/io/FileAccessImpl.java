@@ -361,6 +361,10 @@ public class FileAccessImpl implements FileAccess {
       }
       this.context.trace("Copying {} to {}", source, target);
       Files.copy(source, target);
+      Object attribute = Files.getAttribute(source, "zip:permissions");
+      if (attribute instanceof Set permissionSet) {
+        Files.setPosixFilePermissions(target, permissionSet);
+      }
     } else {
       throw new IOException("Path " + source + " does not exist.");
     }
