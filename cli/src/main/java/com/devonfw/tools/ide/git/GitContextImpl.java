@@ -1,17 +1,17 @@
 package com.devonfw.tools.ide.git;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.variable.IdeVariables;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Implements the {@link GitContext}.
@@ -89,8 +89,8 @@ public class GitContextImpl implements GitContext {
   /**
    * Handles errors which occurred during git pull.
    *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
    * @param result the {@link ProcessResult} to evaluate.
    */
   private void handleErrors(Path targetRepository, ProcessResult result) {
@@ -165,7 +165,9 @@ public class GitContextImpl implements GitContext {
     if (remote == null) {
       remote = determineRemote(repository);
     }
-    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", remote, branch);
+
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", Objects.requireNonNullElse(remote, "origin"), branch);
+
     if (!result.isSuccessful()) {
       this.context.warning("Git fetch for '{}/{} failed.'.", remote, branch);
     }
