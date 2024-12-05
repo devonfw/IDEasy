@@ -27,6 +27,9 @@ public class IdeLogListenerBuffer extends IdeLogListenerCollector {
    */
   public void flushAndDisable(IdeLogger logger) {
 
+    if (this.entries == null) {
+      return;
+    }
     List<IdeLogEntry> buffer = this.entries;
     // disable ourselves from collecting further events
     this.entries = null;

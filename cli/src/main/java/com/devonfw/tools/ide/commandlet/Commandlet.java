@@ -73,7 +73,7 @@ public abstract class Commandlet {
   /**
    * Clear the set values on all properties of the {@link Commandlet#propertiesList}
    */
-  public void clearProperties() {
+  public void reset() {
 
     for (Property<?> property : this.propertiesList) {
       property.clearValue();
@@ -94,10 +94,19 @@ public abstract class Commandlet {
    */
   protected void addKeyword(String keyword) {
 
+    addKeyword(keyword, null);
+  }
+
+  /**
+   * @param keyword the {@link KeywordProperty keyword} to {@link #add(Property) add}.
+   * @param alias the optional {@link KeywordProperty#getAlias() alias}.
+   */
+  protected void addKeyword(String keyword, String alias) {
+
     if (this.properties.isEmpty()) {
       this.firstKeyword = keyword;
     }
-    add(new KeywordProperty(keyword, true, null));
+    add(new KeywordProperty(keyword, true, alias));
   }
 
   /**

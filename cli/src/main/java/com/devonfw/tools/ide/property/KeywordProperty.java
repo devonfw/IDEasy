@@ -20,7 +20,13 @@ public class KeywordProperty extends BooleanProperty {
   public KeywordProperty(String name, boolean required, String alias) {
 
     super(name, required, alias);
-    assert (!name.isEmpty() && isValue());
+    assert !name.isEmpty();
+  }
+
+  @Override
+  public boolean isValue() {
+
+    return true;
   }
 
   @Override

@@ -44,13 +44,22 @@ public class IdeLoggerImpl implements IdeLogger {
    * Sets the log level.
    *
    * @param logLevel {@link IdeLogLevel}
+   * @return the previous set logLevel {@link IdeLogLevel}
    */
-  public void setLogLevel(IdeLogLevel logLevel) {
+  public IdeLogLevel setLogLevel(IdeLogLevel logLevel) {
 
+    IdeLogLevel previousLogLevel = null;
     for (IdeLogLevel level : IdeLogLevel.values()) {
       boolean enabled = level.ordinal() >= logLevel.ordinal();
+      if ((previousLogLevel == null) && this.loggers[level.ordinal()].isEnabled()) {
+        previousLogLevel = level;
+      }
       setLogLevel(level, enabled);
     }
+    if ((previousLogLevel == null) || (previousLogLevel.ordinal() > IdeLogLevel.INFO.ordinal())) {
+      previousLogLevel = IdeLogLevel.INFO;
+    }
+    return previousLogLevel;
   }
 
   /**

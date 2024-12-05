@@ -67,6 +67,14 @@ public class CliArguments implements Iterator<CliArgument> {
   }
 
   /**
+   * @return {@code true} if short options (e.g. "-bdf") should not be split (e.g. into "-b -d -f" for "--batch --debug --force"), {@code false} otherwise.
+   */
+  public boolean isSplitShortOpts() {
+
+    return splitShortOpts;
+  }
+
+  /**
    * @return {@code true} if the options have ended, {@code false} otherwise.
    * @see CliArgument#isEndOptions()
    * @see com.devonfw.tools.ide.property.Property#isEndOptions()
@@ -85,6 +93,21 @@ public class CliArguments implements Iterator<CliArgument> {
     } else {
       this.currentArg = arg;
     }
+  }
+
+  /**
+   * @return {@code true} if the last argument shall be {@link CliArgument#isCompletion() completed}, {@code false}.
+   */
+  public boolean isCompletion() {
+
+    CliArgument arg = this.currentArg;
+    while ((arg != null) && !arg.isEnd()) {
+      if (arg.isCompletion()) {
+        return true;
+      }
+      arg = arg.next;
+    }
+    return false;
   }
 
   /**

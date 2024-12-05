@@ -35,6 +35,23 @@ public class CompleteTest extends IdeContextTest {
         .containsExactly(expectedCandidates.toArray(String[]::new));
   }
 
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for long option. */
+  @Test
+  public void testCompleteLongOptionBatch() {
+
+    // arrange
+    boolean includeContextOptions = true;
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    CliArguments args = CliArguments.ofCompletion("--b");
+    args.next();
+    List<String> expectedCandidates = List.of("--batch");
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, includeContextOptions);
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text))
+        .containsExactly(expectedCandidates.toArray(String[]::new));
+  }
+
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for empty input. */
   @Test
   public void testCompleteEmptyNoCtxOptions() {
@@ -118,6 +135,19 @@ public class CompleteTest extends IdeContextTest {
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
     assertThat(candidates).isEmpty();
+  }
+
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for an option inside a commandlet. */
+  @Test
+  public void testCompleteCommandletOption() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    CliArguments args = CliArguments.ofCompletion("get-version", "--c");
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, true);
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("--configured");
   }
 
   private static List<String> getExpectedCandidates(AbstractIdeContext context, boolean commandlets,
