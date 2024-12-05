@@ -65,6 +65,8 @@ public interface GitContext {
    */
   boolean isRepositoryUpdateAvailable(Path repository);
 
+  void saveCurrentCommitId(Path repository);
+
   /**
    * Attempts a git pull and reset if required.
    *

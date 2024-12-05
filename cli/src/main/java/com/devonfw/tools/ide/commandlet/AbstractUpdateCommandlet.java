@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -115,6 +116,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       // here we do not use pullOrClone to prevent asking a pointless question for repository URL...
       if (Files.isDirectory(settingsPath) && !this.context.getFileAccess().isEmptyDir(settingsPath)) {
         step = this.context.newStep("Pull settings repository");
+        if (!Files.isDirectory(settingsPath.resolve(GitContext.GIT_FOLDER))) {
+          settingsPath = settingsPath.toRealPath();
+        }
         gitContext.pull(settingsPath);
       } else {
         step = this.context.newStep("Clone settings repository");
@@ -132,7 +136,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         }
         gitContext.pullOrClone(GitUrl.of(repository), settingsPath);
       }
+      gitContext.saveCurrentCommitId(settingsPath);
       step.success("Successfully updated settings repository.");
+    } catch (IOException e) {
+      throw new IllegalStateException("Could not update the settings repository.");
     } finally {
       if (step != null) {
         step.close();

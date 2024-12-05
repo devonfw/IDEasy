@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.git;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -51,12 +52,40 @@ public class GitContextImpl implements GitContext {
   public boolean isRepositoryUpdateAvailable(Path repository) {
 
     verifyGitInstalled();
-    String localCommitId = runGitCommandAndGetSingleOutput("Failed to get the local commit id.", repository, "rev-parse", "HEAD");
+    Path commitIdFile = this.context.getIdeHome().resolve(IdeContext.SETTINGS_COMMIT_ID);
+    String trackedCommitId = null;
+    if (Files.exists(commitIdFile)) {
+      try {
+        trackedCommitId = Files.readString(commitIdFile);
+      } catch (IOException e) {
+        return false;
+      }
+    }
+
     String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
-    if ((localCommitId == null) || (remoteCommitId == null)) {
+    if ((trackedCommitId == null) || (remoteCommitId == null)) {
       return false;
     }
-    return !localCommitId.equals(remoteCommitId);
+    return !trackedCommitId.equals(remoteCommitId);
+  }
+
+  @Override
+  public void saveCurrentCommitId(Path repository) {
+
+    if (!Files.exists(repository.resolve(GitContext.GIT_FOLDER))) {
+      try {
+        repository = repository.toRealPath();
+      } catch (IOException e) {
+        throw new IllegalStateException("Couldn't resolve settings to real path.", e);
+      }
+    }
+    String currentCommitId = runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
+    Path commitIdFile = this.context.getIdeHome().resolve(IdeContext.SETTINGS_COMMIT_ID);
+    try {
+      Files.writeString(commitIdFile, currentCommitId);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to save commit ID", e);
+    }
   }
 
   @Override

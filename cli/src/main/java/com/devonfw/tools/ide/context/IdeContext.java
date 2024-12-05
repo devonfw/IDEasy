@@ -135,6 +135,7 @@ public interface IdeContext extends IdeStartContext {
 
   /** Legacy folder name used as compatibility fallback if {@link #FOLDER_TEMPLATES} does not exist. */
   String FOLDER_LEGACY_TEMPLATES = "devon";
+  String SETTINGS_COMMIT_ID = ".commit.id";
 
   /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.

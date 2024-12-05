@@ -859,7 +859,7 @@ public abstract class AbstractIdeContext implements IdeContext {
           if (this.settingsPath != null) {
             if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
                 (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
-              interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+              interaction("Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
             }
           }
         }
