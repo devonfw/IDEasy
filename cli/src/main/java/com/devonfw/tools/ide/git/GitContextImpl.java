@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -241,7 +242,7 @@ public class GitContextImpl implements GitContext {
     Path binaryGitPath = this.context.getPath().findBinary(git);
     if (git == binaryGitPath) {
       String message = "Could not find a git installation. We highly recommend installing git since most of our actions require git to work properly!";
-      throw new IllegalStateException(message);
+      throw new CliException(message);
     }
     this.context.trace("Git is installed");
   }
