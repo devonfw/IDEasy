@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.io;
 
 import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -159,24 +158,21 @@ public class FileAccessImpl implements FileAccess {
    */
   private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
-    try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
-      long size;
-      size = getFileSize(source);
+    long size = Files.size(source);
+    try (InputStream in = Files.newInputStream(source);
+        OutputStream out = Files.newOutputStream(target);
+        IdeProgressBar pb = this.context.prepareProgressBar("Copying", size)) {
 
-      informAboutMissingContentLength(size, null, source);
       byte[] buf = new byte[1024];
       int readBytes;
-
-      try (IdeProgressBar pb = this.context.prepareProgressBar("Copying", size)) {
-        while ((readBytes = in.read(buf)) > 0) {
-          out.write(buf, 0, readBytes);
-          if (size > 0) {
-            pb.stepBy(readBytes);
-          }
+      while ((readBytes = in.read(buf)) > 0) {
+        out.write(buf, 0, readBytes);
+        if (size > 0) {
+          pb.stepBy(readBytes);
         }
-      } catch (Exception e) {
-        throw new RuntimeException(e);
       }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 
@@ -890,17 +886,6 @@ public class FileAccessImpl implements FileAccess {
   public boolean isEmptyDir(Path dir) {
 
     return listChildren(dir, f -> true).isEmpty();
-  }
-
-  /**
-   * Gets the file size of a provided file path.
-   *
-   * @param path of the file.
-   * @return the file size.
-   */
-  protected long getFileSize(Path path) {
-
-    return path.toFile().length();
   }
 
   @Override
