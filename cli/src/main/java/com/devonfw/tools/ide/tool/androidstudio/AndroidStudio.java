@@ -18,8 +18,6 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
 
   private static final String STUDIO64_EXE = STUDIO + "64.exe";
 
-  private static final String STUDIO_BASH_SCRIPT = STUDIO + ".sh";
-
   /**
    * The constructor.
    *
@@ -35,10 +33,8 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
 
     if (this.context.getSystemInfo().isWindows()) {
       return STUDIO64_EXE;
-    } else if (this.context.getSystemInfo().isMac()) {
-      return STUDIO;
     } else {
-      return STUDIO_BASH_SCRIPT;
+      return STUDIO;
     }
   }
 
