@@ -20,6 +20,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/782[#782]: Fix IDE_ROOT variable on Linux
 * https://github.com/devonfw/IDEasy/issues/637[#637]: Added option to disable updates
 * https://github.com/devonfw/IDEasy/issues/764[#764]: IDEasy not working properly in CMD
+* https://github.com/devonfw/IDEasy/issues/799[#799]: binaries from zip download lack executable flags
 * https://github.com/devonfw/IDEasy/issues/81[#81]: Implement Toolcommandlet for Kubernetes
 * https://github.com/devonfw/IDEasy/issues/737[#737]: Adds cd command to ide shell
 * https://github.com/devonfw/IDEasy/issues/758[#758]: Create status commandlet

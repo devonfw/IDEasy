@@ -143,7 +143,7 @@ public class IntellijTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
         "Successfully installed intellij in version 2023.3.3");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin MockedPlugin'.");
-    assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).exists();
+    assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("dev").resolve("MockedClass.class")).exists();
   }
 
   private void setupMockedPlugin(WireMockRuntimeInfo wmRuntimeInfo, boolean mockedPluginActive) throws IOException {

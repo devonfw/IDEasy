@@ -19,15 +19,15 @@ public enum FileCopyMode {
   /** Copy {@link #isRecursive() recursively} and override existing files but merge existing folders. */
   COPY_TREE_OVERRIDE_FILES,
 
-  /**
-   * Copy {@link #isRecursive() recursively} and {@link FileAccess#delete(java.nio.file.Path) delete} the target-file if it exists before copying.
-   */
+  /** Copy {@link #isRecursive() recursively} from virtual filesystem of a compressed archive and override existing files but merge existing folders. */
+  EXTRACT,
+
+  /** Copy {@link #isRecursive() recursively} and {@link FileAccess#delete(java.nio.file.Path) delete} the target-file if it exists before copying. */
   COPY_TREE_OVERRIDE_TREE,
 
-  /**
-   * Copy {@link #isRecursive() recursively} and appends the file name to the target.
-   */
+  /** Copy {@link #isRecursive() recursively} and append the file name to the target. */
   COPY_TREE_CONTENT;
+
 
   /**
    * @return {@code true} if only a single file shall be copied. Will fail if a directory is given to copy, {@code false} otherwise (to copy folders
@@ -54,8 +54,30 @@ public enum FileCopyMode {
     return (this == COPY_FILE_FAIL_IF_EXISTS) || (this == COPY_TREE_FAIL_IF_EXISTS);
   }
 
+  /**
+   * @return {@code true} to override existing files, {@code false} otherwise.
+   */
   public boolean isOverrideFile() {
 
     return (this == COPY_FILE_OVERRIDE) || (this == COPY_TREE_OVERRIDE_FILES);
+  }
+
+  /**
+   * @return {@code true} if we copy from a virtual filesystem of a compressed archive.
+   */
+  public boolean isExtract() {
+
+    return (this == EXTRACT);
+  }
+
+  /**
+   * @return the name of the operation (typically "copy" but may also be e.g. "extract").
+   */
+  public String getOperation() {
+
+    if (isExtract()) {
+      return "extract";
+    }
+    return "copy";
   }
 }
