@@ -137,6 +137,10 @@ public interface IdeContext extends IdeStartContext {
   String FOLDER_LEGACY_TEMPLATES = "devon";
 
   /**
+   * file containing the current local commit hash of the settings repository. */
+  String SETTINGS_COMMIT_ID = ".commit.id";
+
+  /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
    */
   default boolean isOffline() {
