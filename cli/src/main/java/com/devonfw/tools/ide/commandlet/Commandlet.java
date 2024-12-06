@@ -36,7 +36,7 @@ public abstract class Commandlet {
 
   private Property<?> multiValued;
 
-  private String firstKeyword;
+  private KeywordProperty firstKeyword;
 
   /**
    * The constructor.
@@ -103,21 +103,13 @@ public abstract class Commandlet {
    */
   protected void addKeyword(String keyword, String alias) {
 
-    if (this.properties.isEmpty()) {
-      this.firstKeyword = keyword;
+    KeywordProperty property = new KeywordProperty(keyword, true, alias);
+    if (this.firstKeyword == null) {
+      if (!this.properties.isEmpty()) {
+        throw new IllegalStateException(property + " must be first property in " + getClass().getSimpleName());
+      }
+      this.firstKeyword = property;
     }
-    add(new KeywordProperty(keyword, true, alias));
-  }
-
-  /**
-   * @param property the keyword {@link Property} to {@link #add(Property) add}.
-   */
-  protected void addKeyword(Property<?> property) {
-
-    if (!this.properties.isEmpty()) {
-      throw new IllegalStateException();
-    }
-    this.firstKeyword = property.getNameOrAlias();
     add(property);
   }
 
@@ -169,7 +161,7 @@ public abstract class Commandlet {
   /**
    * @return the first keyword of this {@link Commandlet}. Typically the same as {@link #getName() name} but may also differ (e.g. "set" vs. "set-version").
    */
-  public String getKeyword() {
+  public KeywordProperty getFirstKeyword() {
 
     return this.firstKeyword;
   }
