@@ -19,8 +19,6 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   private static final String IDEA64_EXE = IDEA + "64.exe";
 
-  private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
-
   /**
    * The constructor.
    *
@@ -36,10 +34,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
     if (this.context.getSystemInfo().isWindows()) {
       return IDEA64_EXE;
-    } else if (this.context.getSystemInfo().isMac()) {
-      return IDEA;
     } else {
-      return IDEA_BASH_SCRIPT;
+      return IDEA;
     }
   }
 
