@@ -127,7 +127,7 @@ public class FileAccessImpl implements FileAccess {
   private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(-1);
-    informAboutMissingContentLength(contentLength, url, null);
+    informAboutMissingContentLength(contentLength, url);
 
     byte[] data = new byte[1024];
     boolean fileComplete = false;
@@ -136,7 +136,7 @@ public class FileAccessImpl implements FileAccess {
     try (InputStream body = response.body();
         FileOutputStream fileOutput = new FileOutputStream(target.toFile());
         BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, data.length);
-        IdeProgressBar pb = this.context.prepareProgressBar("Downloading", contentLength)) {
+        IdeProgressBar pb = this.context.newProgressBarForDownload(contentLength)) {
       while (!fileComplete) {
         count = body.read(data);
         if (count <= 0) {
@@ -161,14 +161,10 @@ public class FileAccessImpl implements FileAccess {
   private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
     try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
-      long size;
-      size = getFileSize(source);
-
-      informAboutMissingContentLength(size, null, source);
+      long size = getFileSize(source);
       byte[] buf = new byte[1024];
-      int readBytes;
-
-      try (IdeProgressBar pb = this.context.prepareProgressBar("Copying", size)) {
+      try (IdeProgressBar pb = this.context.newProgressbarForCopying(size)) {
+        int readBytes;
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
           if (size > 0) {
@@ -181,17 +177,10 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  private void informAboutMissingContentLength(long contentLength, String url, Path path) {
+  private void informAboutMissingContentLength(long contentLength, String url) {
 
-    String source;
     if (contentLength < 0) {
-      if (path != null) {
-        source = path.toString();
-      } else {
-        source = url;
-      }
-      this.context.warning("Content-Length was not provided by download/copy source: {}.",
-          source);
+      this.context.warning("Content-Length was not provided by download from {}", url);
     }
   }
 
@@ -248,8 +237,7 @@ public class FileAccessImpl implements FileAccess {
         throw new IllegalStateException("Failed to read and hash file " + file, e);
       }
       byte[] digestBytes = md.digest();
-      String checksum = HexUtil.toHexString(digestBytes);
-      return checksum;
+      return HexUtil.toHexString(digestBytes);
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException("No such hash algorithm " + UrlChecksum.HASH_ALGORITHM, e);
     }
@@ -613,31 +601,33 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractZip(Path file, Path targetDir) {
 
-    this.context.trace("Unpacking archive {} to {}", file, targetDir);
-    long compressedSize = getFileSize(file);
-    long size = (long) (compressedSize * 1.3); // brute guess about unknown compression rate
+    this.context.info("Extracting ZIP file {} to {}", file, targetDir);
     URI uri = URI.create("jar:" + file.toUri());
-    try (FileSystem fs = FileSystems.newFileSystem(uri, FS_ENV);
-        IdeProgressBar bp = getProgressbarForUnpacking(size)) {
-
-      PathCopyListener listener = (source, target, directory) -> {
-        if (directory) {
-          return;
-        }
-        if (!context.getSystemInfo().isWindows()) {
-          try {
-            Object attribute = Files.getAttribute(source, "zip:permissions");
-            if (attribute instanceof Set<?> permissionSet) {
-              Files.setPosixFilePermissions(target, (Set<PosixFilePermission>) permissionSet);
-            }
-          } catch (Exception e) {
-            context.error(e, "Failed to transfer zip permissions for {}", target);
-          }
-        }
-        bp.stepBy(getFileSize(target));
-      };
+    try (FileSystem fs = FileSystems.newFileSystem(uri, FS_ENV)) {
+      long size = 0;
       for (Path root : fs.getRootDirectories()) {
-        copy(root, targetDir, FileCopyMode.EXTRACT, listener);
+        size += getFileSizeRecursive(root);
+      }
+      try (IdeProgressBar bp = this.context.newProgressbarForExtracting(size)) {
+        PathCopyListener listener = (source, target, directory) -> {
+          if (directory) {
+            return;
+          }
+          if (!context.getSystemInfo().isWindows()) {
+            try {
+              Object attribute = Files.getAttribute(source, "zip:permissions");
+              if (attribute instanceof Set<?> permissionSet) {
+                Files.setPosixFilePermissions(target, (Set<PosixFilePermission>) permissionSet);
+              }
+            } catch (Exception e) {
+              context.error(e, "Failed to transfer zip permissions for {}", target);
+            }
+          }
+          bp.stepBy(getFileSize(target));
+        };
+        for (Path root : fs.getRootDirectories()) {
+          copy(root, targetDir, FileCopyMode.EXTRACT, listener);
+        }
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
@@ -677,10 +667,10 @@ public class FileAccessImpl implements FileAccess {
 
   private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream<?>> unpacker) {
 
-    this.context.trace("Unpacking archive {} to {}", file, targetDir);
+    this.context.info("Extracting TAR file {} to {}", file, targetDir);
     try (InputStream is = Files.newInputStream(file);
         ArchiveInputStream<?> ais = unpacker.apply(is);
-        IdeProgressBar pb = getProgressbarForUnpacking(getFileSize(file))) {
+        IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
 
       ArchiveEntry entry = ais.getNextEntry();
       boolean isTar = ais instanceof TarArchiveInputStream;
@@ -717,6 +707,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractDmg(Path file, Path targetDir) {
 
+    this.context.info("Extracting DMG file {} to {}", file, targetDir);
     assert this.context.getSystemInfo().isMac();
 
     Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
@@ -738,6 +729,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractMsi(Path file, Path targetDir) {
 
+    this.context.info("Extracting MSI file {} to {}", file, targetDir);
     this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + targetDir).run();
     // msiexec also creates a copy of the MSI
     Path msiCopy = targetDir.resolve(file.getFileName());
@@ -747,6 +739,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractPkg(Path file, Path targetDir) {
 
+    this.context.info("Extracting PKG file {} to {}", file, targetDir);
     Path tmpDirPkg = createTempDir("ide-pkg-");
     ProcessContext pc = this.context.newProcess();
     // we might also be able to use cpio from commons-compression instead of external xar...
@@ -831,15 +824,6 @@ public class FileAccessImpl implements FileAccess {
     return null;
   }
 
-  /**
-   * @param sizeFile the size of archive
-   * @return prepared progressbar for unpacking
-   */
-  private IdeProgressBar getProgressbarForUnpacking(long sizeFile) {
-
-    return this.context.prepareProgressBar("Unpacking", sizeFile);
-  }
-
   @Override
   public List<Path> listChildren(Path dir, Predicate<Path> filter) {
 
@@ -880,6 +864,25 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
+  private long getFileSizeRecursive(Path path) {
+
+    long size = 0;
+    if (Files.isDirectory(path)) {
+      try (Stream<Path> childStream = Files.list(path)) {
+        Iterator<Path> iterator = childStream.iterator();
+        while (iterator.hasNext()) {
+          Path child = iterator.next();
+          size += getFileSizeRecursive(child);
+        }
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to iterate children of folder " + path, e);
+      }
+    } else {
+      size += getFileSize(path);
+    }
+    return size;
+  }
+
   @Override
   public Path findExistingFile(String fileName, List<Path> searchDirs) {
 
@@ -904,15 +907,10 @@ public class FileAccessImpl implements FileAccess {
         this.context.trace("Windows does not have executable flags hence omitting for file {}", filePath);
         return;
       }
-      // Read the current file permissions
-      Set<PosixFilePermission> perms;
       try {
-        perms = Files.getPosixFilePermissions(filePath);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
+        // Read the current file permissions
+        Set<PosixFilePermission> perms = Files.getPosixFilePermissions(filePath);
 
-      if (perms != null) {
         // Add execute permission for all users
         boolean update = false;
         update |= perms.add(PosixFilePermission.OWNER_EXECUTE);
@@ -922,14 +920,12 @@ public class FileAccessImpl implements FileAccess {
         if (update) {
           this.context.debug("Setting executable flags for file {}", filePath);
           // Set the new permissions
-          try {
-            Files.setPosixFilePermissions(filePath, perms);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
+          Files.setPosixFilePermissions(filePath, perms);
         } else {
           this.context.trace("Executable flags already present so no need to set them for file {}", filePath);
         }
+      } catch (IOException e) {
+        throw new RuntimeException(e);
       }
     } else {
       this.context.warning("Cannot set executable flag on file that does not exist: {}", filePath);
