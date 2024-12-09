@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.nio.file.Files;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -19,6 +20,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   private static final String IDEA64_EXE = IDEA + "64.exe";
 
+  private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
+
   /**
    * The constructor.
    *
@@ -35,7 +38,13 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     if (this.context.getSystemInfo().isWindows()) {
       return IDEA64_EXE;
     } else {
-      return IDEA;
+      if (Files.exists(this.getToolBinPath().resolve(IDEA))) {
+        return IDEA;
+      } else if (Files.exists(this.getToolBinPath().resolve(IDEA_BASH_SCRIPT))) {
+        return IDEA_BASH_SCRIPT;
+      } else {
+        return IDEA;
+      }
     }
   }
 

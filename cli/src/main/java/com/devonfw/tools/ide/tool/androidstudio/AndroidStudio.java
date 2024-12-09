@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.androidstudio;
 
+import java.nio.file.Files;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -18,6 +19,8 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
 
   private static final String STUDIO64_EXE = STUDIO + "64.exe";
 
+  private static final String STUDIO_BASH_SCRIPT = STUDIO + ".sh";
+
   /**
    * The constructor.
    *
@@ -34,7 +37,13 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
     if (this.context.getSystemInfo().isWindows()) {
       return STUDIO64_EXE;
     } else {
-      return STUDIO;
+      if (Files.exists(this.getToolBinPath().resolve(STUDIO))) {
+        return STUDIO;
+      } else if (Files.exists(this.getToolBinPath().resolve(STUDIO_BASH_SCRIPT))) {
+        return STUDIO_BASH_SCRIPT;
+      } else {
+        return STUDIO;
+      }
     }
   }
 
