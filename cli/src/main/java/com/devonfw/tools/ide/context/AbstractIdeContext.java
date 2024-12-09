@@ -6,6 +6,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -788,43 +789,32 @@ public abstract class AbstractIdeContext implements IdeContext {
     assert (this.currentStep == null);
     boolean supressStepSuccess = false;
     StepImpl step = newStep(true, "ide", (Object[]) current.asArray());
-    Commandlet firstCandidate = null;
+    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, null);
+    Commandlet cmd = null;
+    ValidationResult result = null;
     try {
-      if (!current.isEnd()) {
-        String keyword = current.get();
-        firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
-        ValidationResult firstResult = null;
-        if (firstCandidate != null) {
-          firstResult = applyAndRun(arguments.copy(), firstCandidate);
-          if (firstResult.isValid()) {
-            supressStepSuccess = firstCandidate.isSuppressStepSuccess();
-            step.success();
-            return ProcessResult.SUCCESS;
-          }
+      while (commandletIterator.hasNext()) {
+        cmd = commandletIterator.next();
+        result = applyAndRun(arguments.copy(), cmd);
+        if (result.isValid()) {
+          supressStepSuccess = cmd.isSuppressStepSuccess();
+          step.success();
+          return ProcessResult.SUCCESS;
         }
-        for (Commandlet cmd : this.commandletManager.getCommandlets()) {
-          if (cmd != firstCandidate) {
-            ValidationResult result = applyAndRun(arguments.copy(), cmd);
-            if (result.isValid()) {
-              supressStepSuccess = cmd.isSuppressStepSuccess();
-              step.success();
-              return ProcessResult.SUCCESS;
-            }
-          }
-        }
-        if (firstResult != null) {
-          throw new CliException(firstResult.getErrorMessage());
-        }
-        step.error("Invalid arguments: {}", current.getArgs());
       }
-
+      this.startContext.activateLogging();
+      if (result != null) {
+        error(result.getErrorMessage());
+      }
+      step.error("Invalid arguments: {}", current.getArgs());
       HelpCommandlet help = this.commandletManager.getCommandlet(HelpCommandlet.class);
-      if (firstCandidate != null) {
-        help.commandlet.setValue(firstCandidate);
+      if (cmd != null) {
+        help.commandlet.setValue(cmd);
       }
       help.run();
       return 1;
     } catch (Throwable t) {
+      this.startContext.activateLogging();
       step.error(t, true);
       throw t;
     } finally {
@@ -835,16 +825,15 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
-   *     {@link Commandlet#run() run}.
+   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet) apply} and {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
    *     {@link Commandlet} did not match and we have to try a different candidate).
    */
   private ValidationResult applyAndRun(CliArguments arguments, Commandlet cmd) {
 
-    cmd.clearProperties();
-
-    ValidationResult result = apply(arguments, cmd, null);
+    IdeLogLevel previousLogLevel = null;
+    cmd.reset();
+    ValidationResult result = apply(arguments, cmd);
     if (result.isValid()) {
       result = cmd.validate();
     }
@@ -855,44 +844,50 @@ public abstract class AbstractIdeContext implements IdeContext {
       } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
         throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
       }
-      if (cmd.isProcessableOutput()) {
-        if (!debug().isEnabled()) {
-          // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
-          for (IdeLogLevel level : IdeLogLevel.values()) {
-            if (level != IdeLogLevel.PROCESSABLE) {
-              this.startContext.setLogLevel(level, false);
+      try {
+        if (cmd.isProcessableOutput()) {
+          if (!debug().isEnabled()) {
+            // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
+            previousLogLevel = this.startContext.setLogLevel(IdeLogLevel.PROCESSABLE);
+          }
+          this.startContext.activateLogging();
+        } else {
+          this.startContext.activateLogging();
+          verifyIdeRoot();
+          if (cmd.isIdeHomeRequired()) {
+            debug(getMessageIdeHomeFound());
+          }
+          if (this.settingsPath != null) {
+            if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
+                (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
+              interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
             }
           }
         }
-        this.startContext.activateLogging();
-      } else {
-        this.startContext.activateLogging();
-        if (!isTest()) {
-          if (this.ideRoot == null) {
-            warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");
-          } else if (this.ideHome != null) {
-            Path ideRootPath = getIdeRootPathFromEnv();
-            if (!this.ideRoot.equals(ideRootPath)) {
-              warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPath,
-                  this.ideHome.getFileName(), this.ideRoot);
-            }
-          }
-        }
-        if (cmd.isIdeHomeRequired()) {
-          debug(getMessageIdeHomeFound());
-        }
-        if (this.settingsPath != null) {
-          if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
-              (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
-            interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
-          }
+        cmd.run();
+      } finally {
+        if (previousLogLevel != null) {
+          this.startContext.setLogLevel(previousLogLevel);
         }
       }
-      cmd.run();
     } else {
       trace("Commandlet did not match");
     }
     return result;
+  }
+
+  private void verifyIdeRoot() {
+    if (!isTest()) {
+      if (this.ideRoot == null) {
+        warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");
+      } else if (this.ideHome != null) {
+        Path ideRootPath = getIdeRootPathFromEnv();
+        if (!this.ideRoot.equals(ideRootPath)) {
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPath,
+              this.ideHome.getFileName(), this.ideRoot);
+        }
+      }
+    }
   }
 
   /**
@@ -901,7 +896,6 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
   public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
-
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
     if (arguments.current().isStart()) {
       arguments.next();
@@ -913,32 +907,75 @@ public abstract class AbstractIdeContext implements IdeContext {
         property.apply(arguments, this, cc, collector);
       }
     }
+    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, collector);
     CliArgument current = arguments.current();
-    if (!current.isEnd()) {
-      String keyword = current.get();
-      Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
-      boolean matches = false;
-      if (firstCandidate != null) {
-        matches = completeCommandlet(arguments, firstCandidate, collector);
-      } else if (current.isCombinedShortOption()) {
-        collector.add(keyword, null, null, null);
-      }
-      if (!matches) {
-        for (Commandlet cmd : this.commandletManager.getCommandlets()) {
-          if (cmd != firstCandidate) {
-            completeCommandlet(arguments, cmd, collector);
-          }
-        }
+    if (current.isCompletion() && current.isCombinedShortOption()) {
+      collector.add(current.get(), null, null, null);
+    }
+    arguments.next();
+    while (commandletIterator.hasNext()) {
+      Commandlet cmd = commandletIterator.next();
+      if (!arguments.current().isEnd()) {
+        completeCommandlet(arguments.copy(), cmd, collector);
       }
     }
     return collector.getSortedCandidates();
   }
 
-  private boolean completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
-    if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
-      return false;
-    } else {
-      return apply(arguments.copy(), cmd, collector).isValid();
+  private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+    trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
+    Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
+    valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
+    List<Property<?>> properties = cmd.getProperties();
+    // we are creating our own list of options and remove them when matched to avoid duplicate suggestions
+    List<Property<?>> optionProperties = new ArrayList<>(properties.size());
+    for (Property<?> property : properties) {
+      if (property.isOption()) {
+        optionProperties.add(property);
+      }
+    }
+    CliArgument currentArgument = arguments.current();
+    while (!currentArgument.isEnd()) {
+      trace("Trying to match argument '{}'", currentArgument);
+      if (currentArgument.isOption() && !arguments.isEndOptions()) {
+        if (currentArgument.isCompletion()) {
+          Iterator<Property<?>> optionIterator = optionProperties.iterator();
+          while (optionIterator.hasNext()) {
+            Property<?> option = optionIterator.next();
+            boolean success = option.apply(arguments, this, cmd, collector);
+            if (success) {
+              optionIterator.remove();
+              arguments.next();
+            }
+          }
+        } else {
+          Property<?> option = cmd.getOption(currentArgument.get());
+          if (option != null) {
+            arguments.next();
+            boolean removed = optionProperties.remove(option);
+            if (!removed) {
+              option = null;
+            }
+          }
+          if (option == null) {
+            trace("No such option was found.");
+            return;
+          }
+        }
+      } else {
+        if (valueIterator.hasNext()) {
+          Property<?> valueProperty = valueIterator.next();
+          boolean success = valueProperty.apply(arguments, this, cmd, collector);
+          if (!success) {
+            trace("Completion cannot match any further.");
+            return;
+          }
+        } else {
+          trace("No value left for completion.");
+          return;
+        }
+      }
+      currentArgument = arguments.current();
     }
   }
 
@@ -947,20 +984,13 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
    *     {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
-   * @param collector the {@link CompletionCandidateCollector}.
-   * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
-   *     and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @return the {@link ValidationResult} telling if the {@link CliArguments} can be applied successfully or if validation errors ocurred.
    */
-  public ValidationResult apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+  public ValidationResult apply(CliArguments arguments, Commandlet cmd) {
 
     trace("Trying to match arguments to commandlet {}", cmd.getName());
     CliArgument currentArgument = arguments.current();
-    Iterator<Property<?>> propertyIterator;
-    if (currentArgument.isCompletion()) {
-      propertyIterator = cmd.getProperties().iterator();
-    } else {
-      propertyIterator = cmd.getValues().iterator();
-    }
+    Iterator<Property<?>> propertyIterator = cmd.getValues().iterator();
     Property<?> property = null;
     if (propertyIterator.hasNext()) {
       property = propertyIterator.next();
@@ -993,8 +1023,8 @@ public abstract class AbstractIdeContext implements IdeContext {
           arguments.stopSplitShortOptions();
         }
       }
-      boolean matches = currentProperty.apply(arguments, this, cmd, collector);
-      if (!matches || currentArgument.isCompletion()) {
+      boolean matches = currentProperty.apply(arguments, this, cmd, null);
+      if (!matches && currentArgument.isCompletion()) {
         ValidationState state = new ValidationState(null);
         state.addErrorMessage("No matching property found");
         return state;
