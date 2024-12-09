@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.androidstudio;
 
+import java.nio.file.Files;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -35,10 +36,14 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
 
     if (this.context.getSystemInfo().isWindows()) {
       return STUDIO64_EXE;
-    } else if (this.context.getSystemInfo().isMac()) {
-      return STUDIO;
     } else {
-      return STUDIO_BASH_SCRIPT;
+      if (Files.exists(this.getToolBinPath().resolve(STUDIO))) {
+        return STUDIO;
+      } else if (Files.exists(this.getToolBinPath().resolve(STUDIO_BASH_SCRIPT))) {
+        return STUDIO_BASH_SCRIPT;
+      } else {
+        return STUDIO;
+      }
     }
   }
 
