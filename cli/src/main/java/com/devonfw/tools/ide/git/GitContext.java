@@ -75,15 +75,6 @@ public interface GitContext {
    */
   boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath);
 
-
-  /**
-   * Saves the current git commit ID of a repository to a file given as an argument.
-   *
-   * @param repository the path to the git repository
-   * @param trackedCommitIdPath the path to the file where the commit Id will be written.
-   */
-  void saveCurrentCommitId(Path repository, Path trackedCommitIdPath);
-
   /**
    * Attempts a git pull and reset if required.
    *
@@ -193,5 +184,16 @@ public interface GitContext {
    * @return the name of the default origin.
    */
   String determineRemote(Path repository);
+
+  /**
+   * Executes a Git command and returns a single line of output.
+   *
+   * @param warningOnError The warning message to log if the command fails or produces unexpected output
+   * @param directory The directory in which to execute the Git command
+   * @param args Variable number of command arguments to pass to Git
+   * @return The single line of output if successful and exactly one line is produced, null otherwise
+   *         (with a warning logged containing warningOnError and additional context)
+   */
+  String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args);
 
 }

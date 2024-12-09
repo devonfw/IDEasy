@@ -560,4 +560,12 @@ public interface IdeContext extends IdeStartContext {
    */
   void logIdeHomeAndRootStatus();
 
+  /**
+   * Saves the current git commit ID of a repository to a file given as an argument.
+   *
+   * @param repository the path to the git repository
+   * @param trackedCommitIdPath the path to the file where the commit Id will be written.
+   */
+  void saveCurrentCommitId(Path repository, Path trackedCommitIdPath);
+
 }

@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.context;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -1131,5 +1132,16 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public void reload() {
     this.variables = null;
+  }
+
+  @Override
+  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+
+    String currentCommitId = getGitContext().runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
+    try {
+      Files.writeString(trackedCommitIdPath, currentCommitId);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to save commit ID", e);
+    }
   }
 }

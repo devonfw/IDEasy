@@ -87,7 +87,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     if (Files.exists(settingsFolder)) {
       this.context.getFileAccess().symlink(settingsFolder, this.context.getSettingsPath());
       // create a file in IDE_HOME with the current local commit id
-      this.context.getGitContext().saveCurrentCommitId(codeRepoPath, this.context.getSettingsCommitIdPath());
+      this.context.saveCurrentCommitId(codeRepoPath, this.context.getSettingsCommitIdPath());
     } else {
       this.context.warning("No settings folder was found inside the code repository.");
     }

@@ -65,7 +65,7 @@ public class GitContextImpl implements GitContext {
 
     verifyGitInstalled();
     if (!Files.exists(trackedCommitIdPath)) {
-      saveCurrentCommitId(repository, this.context.getSettingsCommitIdPath());
+      this.context.saveCurrentCommitId(repository, this.context.getSettingsCommitIdPath());
     }
     String trackedCommitId;
     try {
@@ -76,18 +76,6 @@ public class GitContextImpl implements GitContext {
 
     String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
     return !trackedCommitId.equals(remoteCommitId);
-  }
-
-
-  @Override
-  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
-
-    String currentCommitId = runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
-    try {
-      Files.writeString(trackedCommitIdPath, currentCommitId);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to save commit ID", e);
-    }
   }
 
   @Override
@@ -293,7 +281,7 @@ public class GitContextImpl implements GitContext {
     runGitCommand(directory, args.toArray(String[]::new));
   }
 
-  private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
+  public String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
 
     ProcessResult result = runGitCommand(directory, ProcessMode.DEFAULT_CAPTURE, args);
     if (result.isSuccessful()) {
