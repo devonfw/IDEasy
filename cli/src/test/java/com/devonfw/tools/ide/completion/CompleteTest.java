@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContextTest;
+import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 
 /**
@@ -92,7 +93,7 @@ public class CompleteTest extends IdeContextTest {
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-f", "-fb", "-fd", "-fo", "-fq",
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-f", "-fb", "-fd", "-fh", "-fo", "-fq",
         "-ft", "-fv");
   }
 
@@ -106,7 +107,7 @@ public class CompleteTest extends IdeContextTest {
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdoqt", "-fbdoqtv");
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdoqt", "-fbdoqth", "-fbdoqtv");
   }
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
@@ -151,7 +152,7 @@ public class CompleteTest extends IdeContextTest {
   }
 
   private static List<String> getExpectedCandidates(AbstractIdeContext context, boolean commandlets,
-      boolean ctxOptions, boolean addVersionAlias) {
+      boolean ctxOptions, boolean addAlias) {
 
     List<String> expectedCandidates = new ArrayList<>();
     if (ctxOptions) {
@@ -167,9 +168,14 @@ public class CompleteTest extends IdeContextTest {
     if (commandlets) {
       for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
         expectedCandidates.add(cmd.getName());
-      }
-      if (addVersionAlias) {
-        expectedCandidates.add("-v"); // alias for VersionCommandlet (--version)
+        if (addAlias) {
+          Property<?> firstProperty = cmd.getValues().get(0);
+          assert (firstProperty instanceof KeywordProperty);
+          String alias = firstProperty.getAlias();
+          if (alias != null) {
+            expectedCandidates.add(alias);
+          }
+        }
       }
     }
     Collections.sort(expectedCandidates);
