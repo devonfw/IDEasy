@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import java.nio.file.Files;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -36,10 +37,14 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
     if (this.context.getSystemInfo().isWindows()) {
       return IDEA64_EXE;
-    } else if (this.context.getSystemInfo().isMac()) {
-      return IDEA;
     } else {
-      return IDEA_BASH_SCRIPT;
+      if (Files.exists(this.getToolBinPath().resolve(IDEA))) {
+        return IDEA;
+      } else if (Files.exists(this.getToolBinPath().resolve(IDEA_BASH_SCRIPT))) {
+        return IDEA_BASH_SCRIPT;
+      } else {
+        return IDEA;
+      }
     }
   }
 
