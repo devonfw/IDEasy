@@ -52,13 +52,24 @@ public class GitContextImpl implements GitContext {
   public boolean isRepositoryUpdateAvailable(Path repository) {
 
     verifyGitInstalled();
-    Path commitIdFile = this.context.getIdeHome().resolve(IdeContext.SETTINGS_COMMIT_ID);
-    if (!Files.exists(commitIdFile)) {
-      saveCurrentCommitId(repository);
+    String localCommitId = runGitCommandAndGetSingleOutput("Failed to get the local commit id.", repository, "rev-parse", "HEAD");
+    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
+    if ((localCommitId == null) || (remoteCommitId == null)) {
+      return false;
+    }
+    return !localCommitId.equals(remoteCommitId);
+  }
+
+  @Override
+  public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
+
+    verifyGitInstalled();
+    if (!Files.exists(trackedCommitIdPath)) {
+      saveCurrentCommitId(repository, this.context.getSettingsCommitIdPath());
     }
     String trackedCommitId;
     try {
-      trackedCommitId = Files.readString(commitIdFile);
+      trackedCommitId = Files.readString(trackedCommitIdPath);
     } catch (IOException e) {
       return false;
     }
@@ -67,20 +78,13 @@ public class GitContextImpl implements GitContext {
     return !trackedCommitId.equals(remoteCommitId);
   }
 
-  @Override
-  public void saveCurrentCommitId(Path repository) {
 
-    if (!Files.exists(repository.resolve(GitContext.GIT_FOLDER))) {
-      try {
-        repository = repository.toRealPath();
-      } catch (IOException e) {
-        throw new IllegalStateException("Couldn't resolve settings to real path.", e);
-      }
-    }
+  @Override
+  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+
     String currentCommitId = runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
-    Path commitIdFile = this.context.getIdeHome().resolve(IdeContext.SETTINGS_COMMIT_ID);
     try {
-      Files.writeString(commitIdFile, currentCommitId);
+      Files.writeString(trackedCommitIdPath, currentCommitId);
     } catch (IOException e) {
       throw new IllegalStateException("Failed to save commit ID", e);
     }

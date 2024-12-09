@@ -74,9 +74,14 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public void saveCurrentCommitId(Path repository) {
+  public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
 
-    return;
+    return false;
+  }
+
+  @Override
+  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+
   }
 
   @Override

@@ -356,6 +356,11 @@ public interface IdeContext extends IdeStartContext {
   Path getSettingsPath();
 
   /**
+   * @return the {@link Path} to the file containing the last tracked commit Id of the settings repository.
+   */
+  Path getSettingsCommitIdPath();
+
+  /**
    * @return the {@link Path} to the templates folder inside the {@link #getSettingsPath() settings}. The relative directory structure in this templates folder
    *     is to be applied to {@link #getIdeHome() IDE_HOME} when the project is set up.
    */
