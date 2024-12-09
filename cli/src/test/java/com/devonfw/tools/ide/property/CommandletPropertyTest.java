@@ -18,22 +18,31 @@ class CommandletPropertyTest {
 
   @Test
   public void testCompleteValue() {
+
+    // arrange
     IdeContext context = IdeTestContextMock.get();
     String[] expectedCandidates = { "help", "helm" };
     String input = "he";
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(context);
-
     CommandletProperty cmdProp = new CommandletProperty("", false, "");
+
+    // act
     cmdProp.completeValue(input, context, new ContextCommandlet(), collector);
 
+    // assert
     assertThat(collector.getCandidates().stream().map(CompletionCandidate::text)).containsExactlyInAnyOrder(expectedCandidates);
   }
 
   @Test
   public void testParse() {
+
+    // arrange
     IdeContext context = IdeTestContextMock.get();
+
+    // act
     CommandletProperty cmdProp = new CommandletProperty("", false, "");
 
+    // act + assert
     assertThat(cmdProp.parse("help", context)).isInstanceOf(HelpCommandlet.class);
     assertThat(cmdProp.parse("helm", context)).isInstanceOf(Helm.class);
     assertThat(cmdProp.parse("intellij", context)).isInstanceOf(Intellij.class);

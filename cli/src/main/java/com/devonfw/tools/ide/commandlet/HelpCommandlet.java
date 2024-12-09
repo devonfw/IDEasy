@@ -38,7 +38,7 @@ public final class HelpCommandlet extends Commandlet {
   public HelpCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(getName());
+    addKeyword("--help", "-h");
     this.commandlet = add(new CommandletProperty("", false, "commandlet"));
   }
 
