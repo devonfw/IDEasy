@@ -108,12 +108,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  public IdeProgressBar prepareProgressBar(String taskName, long size) {
+  public IdeProgressBar newProgressBar(String title, long maxSize, String unitName, long unitSize) {
 
-    IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
-    IdeProgressBarTestImpl duplicate = this.progressBarMap.put(taskName, progressBar);
+    IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(title, maxSize, unitName, unitSize);
+    IdeProgressBarTestImpl duplicate = this.progressBarMap.put(title, progressBar);
     // If we have multiple downloads or unpacking, we may have an existing "Downloading" or "Unpacking" key
-    assert (taskName.equals("Downloading")) || (taskName.equals("Unpacking")) || duplicate == null;
+    assert (title.equals(IdeProgressBar.TITLE_DOWNLOADING)) || (title.equals(IdeProgressBar.TITLE_EXTRACTING)) || duplicate == null;
     return progressBar;
   }
 
