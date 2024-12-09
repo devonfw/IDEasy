@@ -30,7 +30,7 @@ public interface IdeProgressBar extends AutoCloseable {
   String getUnitName();
 
   /**
-   * @return the size of a single unit (e.g. 1 if the {@link #stepBy(long) reported progress} and {@link #getMaxSize() max size} numbers as is or 1000 for
+   * @return the size of a single unit (e.g. 1 if the {@link #stepBy(long) reported progress} and {@link #getMaxSize() max size} numbers remain unchanged or 1000 for
    *     "kilo" or 1000000 for "mega" in order to avoid displaying too long numbers).
    */
   long getUnitSize();
