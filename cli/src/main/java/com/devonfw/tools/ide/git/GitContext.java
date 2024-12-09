@@ -58,12 +58,22 @@ public interface GitContext {
    * Checks if there are updates available for the Git repository in the specified target folder by comparing the local commit hash with the remote commit
    * hash.
    *
-   * @param repository the {@link Path} to the target folder where the git repository is located. This should be the folder containing the ".git"
-   *     subfolder.
+   * @param repository the {@link Path} to the target folder where the git repository is located.
    * @return {@code true} if the remote repository contains commits that are not present in the local repository, indicating that updates are available.
    *     {@code false} if the local and remote repositories are in sync, or if there was an issue retrieving the commit hashes.
    */
   boolean isRepositoryUpdateAvailable(Path repository);
+
+  /**
+   * Checks if there are updates available for the Git repository in the specified target folder by comparing the local commit hash with the remote commit
+   * hash.
+   *
+   * @param repository the {@link Path} to the target folder where the git repository is located.
+   * @param trackedCommitIdPath the {@link Path} to a file containing the last tracked commit ID of this repository.
+   * @return {@code true} if the remote repository contains commits that are not present in the local repository, indicating that updates are available.
+   *     {@code false} if the local and remote repositories are in sync, or if there was an issue retrieving the commit hashes.
+   */
+  boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath);
 
   /**
    * Attempts a git pull and reset if required.
@@ -174,5 +184,16 @@ public interface GitContext {
    * @return the name of the default origin.
    */
   String determineRemote(Path repository);
+
+  /**
+   * Executes a Git command and returns a single line of output.
+   *
+   * @param warningOnError The warning message to log if the command fails or produces unexpected output
+   * @param directory The directory in which to execute the Git command
+   * @param args Variable number of command arguments to pass to Git
+   * @return The single line of output if successful and exactly one line is produced, null otherwise
+   *         (with a warning logged containing warningOnError and additional context)
+   */
+  String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args);
 
 }

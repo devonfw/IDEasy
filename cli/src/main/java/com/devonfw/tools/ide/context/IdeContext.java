@@ -137,6 +137,10 @@ public interface IdeContext extends IdeStartContext {
   String FOLDER_LEGACY_TEMPLATES = "devon";
 
   /**
+   * file containing the current local commit hash of the settings repository. */
+  String SETTINGS_COMMIT_ID = ".commit.id";
+
+  /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
    */
   default boolean isOffline() {
@@ -350,6 +354,11 @@ public interface IdeContext extends IdeStartContext {
    * @return the {@link Path} to the {@code settings} folder with the cloned git repository containing the project configuration.
    */
   Path getSettingsPath();
+
+  /**
+   * @return the {@link Path} to the file containing the last tracked commit Id of the settings repository.
+   */
+  Path getSettingsCommitIdPath();
 
   /**
    * @return the {@link Path} to the templates folder inside the {@link #getSettingsPath() settings}. The relative directory structure in this templates folder
@@ -587,5 +596,13 @@ public interface IdeContext extends IdeStartContext {
    * logs the status of {@link #getIdeHome() IDE_HOME} and {@link #getIdeRoot() IDE_ROOT}.
    */
   void logIdeHomeAndRootStatus();
+
+  /**
+   * Saves the current git commit ID of a repository to a file given as an argument.
+   *
+   * @param repository the path to the git repository
+   * @param trackedCommitIdPath the path to the file where the commit Id will be written.
+   */
+  void saveCurrentCommitId(Path repository, Path trackedCommitIdPath);
 
 }

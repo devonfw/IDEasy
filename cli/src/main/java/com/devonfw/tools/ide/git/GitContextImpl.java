@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.git;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -57,6 +58,24 @@ public class GitContextImpl implements GitContext {
       return false;
     }
     return !localCommitId.equals(remoteCommitId);
+  }
+
+  @Override
+  public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
+
+    verifyGitInstalled();
+    if (!Files.exists(trackedCommitIdPath)) {
+      this.context.saveCurrentCommitId(repository, this.context.getSettingsCommitIdPath());
+    }
+    String trackedCommitId;
+    try {
+      trackedCommitId = Files.readString(trackedCommitIdPath);
+    } catch (IOException e) {
+      return false;
+    }
+
+    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
+    return !trackedCommitId.equals(remoteCommitId);
   }
 
   @Override
@@ -262,7 +281,7 @@ public class GitContextImpl implements GitContext {
     runGitCommand(directory, args.toArray(String[]::new));
   }
 
-  private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
+  public String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
 
     ProcessResult result = runGitCommand(directory, ProcessMode.DEFAULT_CAPTURE, args);
     if (result.isSuccessful()) {
