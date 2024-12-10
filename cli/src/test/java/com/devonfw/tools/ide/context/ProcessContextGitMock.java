@@ -7,7 +7,9 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.devonfw.tools.ide.process.OutputMessage;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -21,9 +23,7 @@ public class ProcessContextGitMock implements ProcessContext {
 
   private final List<String> arguments;
 
-  private final List<String> errors;
-
-  private final List<String> outs;
+  private final List<OutputMessage> outputMessages;
 
   private final LocalDateTime now;
 
@@ -37,8 +37,7 @@ public class ProcessContextGitMock implements ProcessContext {
   public ProcessContextGitMock(Path directory) {
 
     this.arguments = new ArrayList<>();
-    this.errors = new ArrayList<>();
-    this.outs = new ArrayList<>();
+    this.outputMessages = new ArrayList<>();
     this.exitCode = ProcessResult.SUCCESS;
     this.directory = directory;
     this.now = LocalDateTime.now();
@@ -65,7 +64,8 @@ public class ProcessContextGitMock implements ProcessContext {
    */
   public List<String> getErrors() {
 
-    return errors;
+    return this.outputMessages.stream().filter(OutputMessage::error).map(OutputMessage::message).collect(Collectors.toList());
+
   }
 
   /**
@@ -73,7 +73,8 @@ public class ProcessContextGitMock implements ProcessContext {
    */
   public List<String> getOuts() {
 
-    return outs;
+    return this.outputMessages.stream().filter(outputMessage -> !outputMessage.error()).map(OutputMessage::message).collect(Collectors.toList());
+
   }
 
   @Override
@@ -139,7 +140,8 @@ public class ProcessContextGitMock implements ProcessContext {
     // part of git cleanup checks if a new directory 'new-folder' exists
     if (this.arguments.contains("ls-files")) {
       if (Files.exists(this.directory.resolve("new-folder"))) {
-        this.outs.add("new-folder");
+        OutputMessage outputMessage = new OutputMessage(false, "new-folder");
+        this.outputMessages.add(outputMessage);
         this.exitCode = 0;
       }
     }
@@ -181,7 +183,7 @@ public class ProcessContextGitMock implements ProcessContext {
       }
     }
     this.arguments.clear();
-    return new ProcessResultImpl("git", command.toString(), this.exitCode, this.outs, this.errors);
+    return new ProcessResultImpl("git", command.toString(), this.exitCode, this.outputMessages);
   }
 
 }

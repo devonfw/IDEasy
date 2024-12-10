@@ -168,17 +168,16 @@ public class ProcessContextImpl implements ProcessContext {
 
       this.processBuilder.command(args);
 
-      List<String> out = null;
-      List<String> err = null;
+      List<OutputMessage> output = new ArrayList<>();
 
       Process process = this.processBuilder.start();
 
       try {
         if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-          CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
-          CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
-          out = outFut.get();
-          err = errFut.get();
+          CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream(), false, output);
+          CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream(), true, output);
+          outFut.get();
+          errFut.get();
         }
 
         int exitCode;
@@ -189,7 +188,7 @@ public class ProcessContextImpl implements ProcessContext {
           exitCode = process.waitFor();
         }
 
-        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, out, err);
+        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, output);
 
         performLogging(result, exitCode, interpreter);
 
@@ -220,11 +219,19 @@ public class ProcessContextImpl implements ProcessContext {
    * @param is {@link InputStream}.
    * @return {@link CompletableFuture}.
    */
-  private static CompletableFuture<List<String>> readInputStream(InputStream is) {
+  private static CompletableFuture<List<String>> readInputStream(InputStream is, boolean errorStream, List<OutputMessage> outputs) {
 
     return CompletableFuture.supplyAsync(() -> {
 
       try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr)) {
+
+        String line;
+        while ((line = br.readLine()) != null) {
+          synchronized (outputs) {
+            OutputMessage outputMessage = new OutputMessage(errorStream, line);
+            outputs.add(outputMessage);
+          }
+        }
         return br.lines().toList();
       } catch (Throwable e) {
         throw new RuntimeException("There was a problem while executing the program", e);
