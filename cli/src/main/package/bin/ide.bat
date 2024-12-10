@@ -5,6 +5,13 @@ Set _fBGreen=[92m
 Set _fBRed=[91m
 Set _RESET=[0m
 
+rem Add Git PATH entries for CMD - https://github.com/devonfw/IDEasy/issues/764
+for %%H in ( HKEY_LOCAL_MACHINE HKEY_CURRENT_USER ) do for /F "usebackq tokens=2*" %%O in (`call "%SystemRoot%"\system32\reg.exe query "%%H\Software\GitForWindows" /v "InstallPath" 2^>nul ^| "%SystemRoot%\system32\findstr.exe" REG_SZ`) do set GIT_HOME=%%P
+
+if exist "%GIT_HOME%\bin\bash.exe" (
+  set "PATH=%PATH%;%GIT_HOME%\usr\bin\;%GIT_HOME%\mingw64\libexec\git-core"
+)
+
 if not "%1%" == "" (
   ideasy %IDE_OPTIONS% %*
   if not %ERRORLEVEL% == 0 (
