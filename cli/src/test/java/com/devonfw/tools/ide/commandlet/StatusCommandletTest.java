@@ -17,12 +17,11 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
   @Test
   public void testStatusOutsideOfHome() {
     //arrange
-
-    IdeTestContext context = newContext(PROJECT_BASIC);
+    IdeTestContext context = new IdeTestContext();
     CliArguments args = new CliArguments("status");
     args.next();
-    //act
 
+    //act
     context.run(args);
 
     //assert
