@@ -13,7 +13,7 @@ public interface PathCopyListener {
   /**
    * An empty {@link PathCopyListener} instance doing nothing.
    */
-  static PathCopyListener NONE = (s, t, d) -> {
+  PathCopyListener NONE = (s, t, d) -> {
   };
 
   /**

@@ -608,30 +608,33 @@ public class FileAccessImpl implements FileAccess {
       for (Path root : fs.getRootDirectories()) {
         size += getFileSizeRecursive(root);
       }
-      try (IdeProgressBar bp = this.context.newProgressbarForExtracting(size)) {
-        PathCopyListener listener = (source, target, directory) -> {
-          if (directory) {
-            return;
-          }
-          if (!context.getSystemInfo().isWindows()) {
-            try {
-              Object attribute = Files.getAttribute(source, "zip:permissions");
-              if (attribute instanceof Set<?> permissionSet) {
-                Files.setPosixFilePermissions(target, (Set<PosixFilePermission>) permissionSet);
-              }
-            } catch (Exception e) {
-              context.error(e, "Failed to transfer zip permissions for {}", target);
-            }
-          }
-          bp.stepBy(getFileSize(target));
-        };
+      try (final IdeProgressBar progressBar = this.context.newProgressbarForExtracting(size)) {
         for (Path root : fs.getRootDirectories()) {
-          copy(root, targetDir, FileCopyMode.EXTRACT, listener);
+          copy(root, targetDir, FileCopyMode.EXTRACT, (s, t, d) -> onFileCopiedFromZip(s, t, d, progressBar));
         }
       }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void onFileCopiedFromZip(Path source, Path target, boolean directory, IdeProgressBar progressBar) {
+
+    if (directory) {
+      return;
+    }
+    if (!context.getSystemInfo().isWindows()) {
+      try {
+        Object attribute = Files.getAttribute(source, "zip:permissions");
+        if (attribute instanceof Set<?> permissionSet) {
+          Files.setPosixFilePermissions(target, (Set<PosixFilePermission>) permissionSet);
+        }
+      } catch (Exception e) {
+        context.error(e, "Failed to transfer zip permissions for {}", target);
+      }
+    }
+    progressBar.stepBy(getFileSize(target));
   }
 
   @Override
