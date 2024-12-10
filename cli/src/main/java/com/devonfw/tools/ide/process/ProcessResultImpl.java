@@ -75,9 +75,10 @@ public class ProcessResultImpl implements ProcessResult {
     return outputMessages.stream().filter(OutputMessage::error).map(OutputMessage::message).collect(Collectors.toList());
   }
 
-  public List<OutputMessage> getOutputMessages() {
+  public List<String> getOutputMessages() {
 
-    return this.outputMessages;
+    return outputMessages.stream().map(OutputMessage::message).collect(Collectors.toList());
+
   }
 
   @Override
@@ -88,11 +89,8 @@ public class ProcessResultImpl implements ProcessResult {
   @Override
   public void log(IdeLogLevel outLevel, IdeContext context, IdeLogLevel errorLevel) {
 
-    if (!this.out.isEmpty()) {
-      doLog(outLevel, this.out, context);
-    }
-    if (!this.err.isEmpty()) {
-      doLog(errorLevel, this.err, context);
+    if (!this.outputMessages.isEmpty()) {
+      doLog(outLevel, getOutputMessages(), context);
     }
   }
 
