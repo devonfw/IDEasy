@@ -23,6 +23,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/799[#799]: binaries from zip download lack executable flags
 * https://github.com/devonfw/IDEasy/issues/81[#81]: Implement Toolcommandlet for Kubernetes
 * https://github.com/devonfw/IDEasy/issues/737[#737]: Adds cd command to ide shell
+* https://github.com/devonfw/IDEasy/issues/879[#879]: cannot omit default settings URL in ide create
 * https://github.com/devonfw/IDEasy/issues/758[#758]: Create status commandlet
 * https://github.com/devonfw/IDEasy/issues/824[#824]: ide create «settings-url»#«branch» not working
 * https://github.com/devonfw/IDEasy/issues/875[#875]: lazydocker is not working
