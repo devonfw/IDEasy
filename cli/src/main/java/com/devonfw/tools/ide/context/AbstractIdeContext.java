@@ -171,6 +171,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (nameCount >= 1) {
         name1 = currentDir.getName(nameCount - 1).toString();
       }
+      //TODO: make sure, that this does not check above IDE_ROOT
       currentDir = currentDir.getParent();
     }
 
@@ -841,6 +842,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       debug("Running commandlet {}", cmd);
       if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
         throw new CliException(getMessageIdeHomeNotFound(), ProcessResult.NO_IDE_HOME);
+      } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
       } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
         throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
       }
