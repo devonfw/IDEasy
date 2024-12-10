@@ -5,6 +5,8 @@ Set _fBGreen=[92m
 Set _fBRed=[91m
 Set _RESET=[0m
 
+set PATH=%PATH%;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\libexec\git-core
+
 if not "%1%" == "" (
   ideasy %IDE_OPTIONS% %*
   if not %ERRORLEVEL% == 0 (
