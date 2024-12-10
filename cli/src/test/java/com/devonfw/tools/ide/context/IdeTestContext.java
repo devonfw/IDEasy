@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.context;
 
 import java.nio.file.Path;
 
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.process.ProcessContext;

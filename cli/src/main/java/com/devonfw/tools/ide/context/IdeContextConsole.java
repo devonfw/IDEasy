@@ -23,7 +23,7 @@ public class IdeContextConsole extends AbstractIdeContext {
    */
   public IdeContextConsole(IdeLogLevel minLogLevel, Appendable out, boolean colored) {
 
-    super(new IdeStartContextImpl(minLogLevel, level -> new IdeSubLoggerOut(level, out, colored, minLogLevel)), null);
+    super(new IdeStartContextImpl(minLogLevel, level -> new IdeSubLoggerOut(level, out, colored, minLogLevel, null)), null);
     if (System.console() == null) {
       debug("System console not available - using System.in as fallback");
       this.scanner = new Scanner(System.in);
@@ -59,7 +59,8 @@ public class IdeContextConsole extends AbstractIdeContext {
   }
 
   @Override
-  public IdeProgressBar prepareProgressBar(String taskName, long size) {
-    return new IdeProgressBarConsole(getSystemInfo(), taskName, size);
+  public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
+
+    return new IdeProgressBarConsole(getSystemInfo(), title, size, unitName, unitSize);
   }
 }

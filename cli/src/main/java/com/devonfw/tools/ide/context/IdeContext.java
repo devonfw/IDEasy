@@ -10,10 +10,11 @@ import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.IdeSystem;
+import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
-import com.devonfw.tools.ide.network.ProxyContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -398,13 +399,50 @@ public interface IdeContext extends IdeStartContext {
   ProcessContext newProcess();
 
   /**
-   * Prepares the {@link IdeProgressBar} initializes task name and maximum size as well as the behaviour and style.
-   *
-   * @param taskName name of the task.
-   * @param size of the content.
-   * @return {@link IdeProgressBar} to use.
+   * @param title the {@link IdeProgressBar#getTitle() title}.
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum size}.
+   * @param unitName the {@link IdeProgressBar#getUnitName() unit name}.
+   * @param unitSize the {@link IdeProgressBar#getUnitSize() unit size}.
+   * @return the new {@link IdeProgressBar} to use.
    */
-  IdeProgressBar prepareProgressBar(String taskName, long size);
+  IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize);
+
+  /**
+   * @param title the {@link IdeProgressBar#getTitle() title}.
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum size} in bytes.
+   * @return the new {@link IdeProgressBar} to use.
+   */
+  default IdeProgressBar newProgressBarInMib(String title, long size) {
+
+    return newProgressBar(title, size, "MiB", 1048576);
+  }
+
+  /**
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum size} in bytes.
+   * @return the new {@link IdeProgressBar} for copy.
+   */
+  default IdeProgressBar newProgressBarForDownload(long size) {
+
+    return newProgressBarInMib(IdeProgressBar.TITLE_DOWNLOADING, size);
+  }
+
+  /**
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum size} in bytes.
+   * @return the new {@link IdeProgressBar} for extracting.
+   */
+  default IdeProgressBar newProgressbarForExtracting(long size) {
+
+    return newProgressBarInMib(IdeProgressBar.TITLE_EXTRACTING, size);
+  }
+
+  /**
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum size} in bytes.
+   * @return the new {@link IdeProgressBar} for copy.
+   */
+  default IdeProgressBar newProgressbarForCopying(long size) {
+
+    return newProgressBarInMib(IdeProgressBar.TITLE_COPYING, size);
+  }
 
   /**
    * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
@@ -416,7 +454,10 @@ public interface IdeContext extends IdeStartContext {
    */
   Path getDefaultExecutionDirectory();
 
-  ProxyContext getProxyContext();
+  /**
+   * @return the {@link IdeSystem} instance wrapping {@link System}.
+   */
+  IdeSystem getSystem();
 
   /**
    * @return the {@link GitContext} used to run several git commands.
@@ -541,5 +582,10 @@ public interface IdeContext extends IdeStartContext {
    * @return the {@link WindowsPathSyntax} used for {@link Path} conversion or {@code null} for no such conversion (typically if not on Windows).
    */
   WindowsPathSyntax getPathSyntax();
+
+  /**
+   * logs the status of {@link #getIdeHome() IDE_HOME} and {@link #getIdeRoot() IDE_ROOT}.
+   */
+  void logIdeHomeAndRootStatus();
 
 }

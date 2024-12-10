@@ -1,14 +1,16 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.devonfw.tools.ide.cli.CliExitException;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.VariableLine;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.property.FlagProperty;
 
@@ -41,7 +43,7 @@ public final class EnvironmentCommandlet extends Commandlet {
   @Override
   public boolean isIdeHomeRequired() {
 
-    return true;
+    return false;
   }
 
   @Override
@@ -52,9 +54,12 @@ public final class EnvironmentCommandlet extends Commandlet {
 
   @Override
   public void run() {
-
+    if (context.getIdeHome() == null) {
+      throw new CliExitException();
+    }
     boolean winCmd = false;
     WindowsPathSyntax pathSyntax = null;
+    IdeSubLogger logger = this.context.level(IdeLogLevel.PROCESSABLE);
     if (this.context.getSystemInfo().isWindows()) {
       if (this.bash.isTrue()) {
         pathSyntax = WindowsPathSyntax.MSYS;
@@ -77,31 +82,31 @@ public final class EnvironmentCommandlet extends Commandlet {
               this.context.debug("from {}:", line.getSource());
               sourcePrinted = true;
             }
-            printEnvLine(line);
+            logger.log(format(line, winCmd));
           }
         }
       }
     } else {
       sortVariables(variables);
       for (VariableLine line : variables) {
-        if (winCmd) {
-          // MS-Dos (aka CMD) has no concept of exported variables
-          this.context.info(line.getName() + "=" + line.getValue() + "");
-        } else {
-          printEnvLine(line);
-        }
+        logger.log(format(line, winCmd));
       }
     }
   }
 
   private static void sortVariables(List<VariableLine> lines) {
-    Collections.sort(lines, (c1, c2) -> c1.getName().compareTo(c2.getName()));
+    lines.sort((c1, c2) -> c1.getName().compareTo(c2.getName()));
   }
 
-  private void printEnvLine(VariableLine line) {
-    String lineValue = line.getValue();
-    lineValue = "\"" + lineValue + "\"";
-    line = line.withValue(lineValue);
-    this.context.info(line.toString());
+  private String format(VariableLine line, boolean winCmd) {
+
+    if (winCmd) {
+      return line.getName() + "=" + line.getValue();
+    } else {
+      String lineValue = line.getValue();
+      lineValue = "\"" + lineValue + "\"";
+      line = line.withValue(lineValue);
+      return line.toString();
+    }
   }
 }
