@@ -80,4 +80,16 @@ public class StatusCommandlet extends Commandlet {
       this.context.warning("You are offline. Check your internet connection and potential proxy settings.");
     }
   }
+
+  @Override
+  public boolean isIdeHomeRequired() {
+
+    return false;
+  }
+
+  @Override
+  public boolean isIdeRootRequired() {
+
+    return false;
+  }
 }
