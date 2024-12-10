@@ -38,14 +38,13 @@ public class LazyDocker extends LocalToolCommandlet {
     // TODO create lazydocker/lazydocker/dependencies.json file in ide-urls and delete this method
     getCommandlet(Docker.class).install();
     // verify docker API version requirements
-    String bashPath = this.context.findBashRequired();
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable(bashPath)
-        .addArg("-c").addArg("docker").addArg("version").addArg("--format").addArg("'{{.Client.APIVersion}}'");
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable("docker")
+        .addArg("version").addArg("--format").addArg("'{{.Client.APIVersion}}'");
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
     verifyDockerVersion(result, MIN_API_VERSION, "docker API");
 
     // verify docker compose version requirements
-    pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable(bashPath).addArg("-c").addArg("docker-compose").addArg("version")
+    pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable("docker-compose").addArg("version")
         .addArg("--short");
     result = pc.run(ProcessMode.DEFAULT_CAPTURE);
     verifyDockerVersion(result, MIN_COMPOSE_VERSION, "docker-compose");
