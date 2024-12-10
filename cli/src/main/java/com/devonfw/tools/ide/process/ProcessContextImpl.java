@@ -219,7 +219,7 @@ public class ProcessContextImpl implements ProcessContext {
    * @param is {@link InputStream}.
    * @return {@link CompletableFuture}.
    */
-  private static CompletableFuture<List<String>> readInputStream(InputStream is, boolean errorStream, List<OutputMessage> logs) {
+  private static CompletableFuture<List<String>> readInputStream(InputStream is, boolean errorStream, List<OutputMessage> outputs) {
 
     return CompletableFuture.supplyAsync(() -> {
 
@@ -227,9 +227,9 @@ public class ProcessContextImpl implements ProcessContext {
 
         String line;
         while ((line = br.readLine()) != null) {
-          synchronized (logs) {
+          synchronized (outputs) {
             OutputMessage outputMessage = new OutputMessage(errorStream, line);
-            logs.add(outputMessage);
+            outputs.add(outputMessage);
           }
         }
         return br.lines().toList();
