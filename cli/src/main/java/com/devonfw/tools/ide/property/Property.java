@@ -358,7 +358,7 @@ public abstract class Property<V> {
     if (option && !argument.isOption()) {
       return false;
     }
-    if (!option && argument.isOption() && args.isSplitShortOpts()) {
+    if (!option && argument.isOption() && (argument.get().length() > 1) && args.isSplitShortOpts()) {
       return false;
     }
     String argValue = null;
