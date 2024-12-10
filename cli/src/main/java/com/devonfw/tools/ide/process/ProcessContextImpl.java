@@ -168,18 +168,16 @@ public class ProcessContextImpl implements ProcessContext {
 
       this.processBuilder.command(args);
 
-      List<LogEvent> logs = new ArrayList<>();
-      List<String> out = null;
-      List<String> err = null;
+      List<OutputMessage> output = new ArrayList<>();
 
       Process process = this.processBuilder.start();
 
       try {
         if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-          CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
-          CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
-          out = outFut.get();
-          err = errFut.get();
+          CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream(), false, output);
+          CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream(), true, output);
+          outFut.get();
+          errFut.get();
         }
 
         int exitCode;
@@ -190,7 +188,7 @@ public class ProcessContextImpl implements ProcessContext {
           exitCode = process.waitFor();
         }
 
-        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, out, err);
+        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, output);
 
         performLogging(result, exitCode, interpreter);
 
@@ -221,7 +219,7 @@ public class ProcessContextImpl implements ProcessContext {
    * @param is {@link InputStream}.
    * @return {@link CompletableFuture}.
    */
-  private static CompletableFuture<List<String>> readInputStream(InputStream is, boolean errorStream, List<LogEvent> logs) {
+  private static CompletableFuture<List<String>> readInputStream(InputStream is, boolean errorStream, List<OutputMessage> logs) {
 
     return CompletableFuture.supplyAsync(() -> {
 
@@ -230,8 +228,8 @@ public class ProcessContextImpl implements ProcessContext {
         String line;
         while ((line = br.readLine()) != null) {
           synchronized (logs) {
-            LogEvent logEvent = new LogEvent(errorStream, line);
-            logs.add(logEvent);
+            OutputMessage outputMessage = new OutputMessage(errorStream, line);
+            logs.add(outputMessage);
           }
         }
         return br.lines().toList();

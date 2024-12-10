@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.process;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -23,7 +24,7 @@ public class ProcessResultImpl implements ProcessResult {
 
   private final List<String> err;
 
-  private final List<LogEvent> logEvents;
+  private final List<OutputMessage> outputMessages;
 
   /**
    * The constructor.
@@ -31,19 +32,17 @@ public class ProcessResultImpl implements ProcessResult {
    * @param executable the {@link #getExecutable() executable}.
    * @param command the {@link #getCommand() command}.
    * @param exitCode the {@link #getExitCode() exit code}.
-   * @param out the {@link #getOut() out}.
-   * @param err the {@link #getErr() err}.
-   * @param logEvents the {@link #getLogEvents()} () logEvents}.
+   * @param output {@link #getOutputMessages() output Messages}.
    */
-  public ProcessResultImpl(String executable, String command, int exitCode, List<String> out, List<String> err) {
+  public ProcessResultImpl(String executable, String command, int exitCode, List<OutputMessage> output) {
 
     super();
     this.executable = executable;
     this.command = command;
     this.exitCode = exitCode;
-    this.out = Objects.requireNonNullElse(out, Collections.emptyList());
-    this.err = Objects.requireNonNullElse(err, Collections.emptyList());
-    this.logEvents = Objects.requireNonNullElse(logEvents, Collections.emptyList());
+    this.outputMessages = Objects.requireNonNullElse(output, Collections.emptyList());
+    this.out = this.outputMessages.stream().filter(outputMessage -> !outputMessage.error()).map(OutputMessage::message).collect(Collectors.toList());
+    this.err = this.outputMessages.stream().filter(OutputMessage::error).map(OutputMessage::message).collect(Collectors.toList());
   }
 
   @Override
@@ -67,18 +66,18 @@ public class ProcessResultImpl implements ProcessResult {
   @Override
   public List<String> getOut() {
 
-    return this.out;
+    return outputMessages.stream().filter(output -> !output.error()).map(OutputMessage::message).collect(Collectors.toList());
   }
 
   @Override
   public List<String> getErr() {
 
-    return this.err;
+    return outputMessages.stream().filter(OutputMessage::error).map(OutputMessage::message).collect(Collectors.toList());
   }
 
-  public List<LogEvent> getLogEvents() {
+  public List<OutputMessage> getOutputMessages() {
 
-    return this.logEvents;
+    return this.outputMessages;
   }
 
   @Override
