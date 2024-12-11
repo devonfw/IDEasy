@@ -53,7 +53,7 @@ public class LazyDocker extends LocalToolCommandlet {
   private static void verifyDockerVersion(ProcessResult result, VersionIdentifier minimumVersion, String kind) {
     // we have this pattern a lot that we want to get a single line output of a successful ProcessResult.
     // we should create a generic method in ProcessResult for this use-case.
-    if (!result.isSuccessful() || result.getOut().isEmpty()) {
+    if (result.getOut().isEmpty()) {
       throw new CliException("Docker is not installed, but required for lazydocker.\n" //
           + "To install docker, call the following command:\n" //
           + "ide install docker");
