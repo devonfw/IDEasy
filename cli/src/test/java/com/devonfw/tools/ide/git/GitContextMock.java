@@ -80,11 +80,6 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
-  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
-
-  }
-
-  @Override
   public String determineCurrentBranch(Path repository) {
 
     return "main";
@@ -94,5 +89,11 @@ public class GitContextMock implements GitContext {
   public String determineRemote(Path repository) {
 
     return "origin";
+  }
+
+  @Override
+  public String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
+
+    return null;
   }
 }

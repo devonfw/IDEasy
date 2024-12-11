@@ -64,9 +64,6 @@ public class GitContextImpl implements GitContext {
   public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
 
     verifyGitInstalled();
-    if (!Files.exists(trackedCommitIdPath)) {
-      this.context.saveCurrentCommitId(repository, this.context.getSettingsCommitIdPath());
-    }
     String trackedCommitId;
     try {
       trackedCommitId = Files.readString(trackedCommitIdPath);
