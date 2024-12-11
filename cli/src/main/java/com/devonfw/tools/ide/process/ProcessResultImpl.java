@@ -32,7 +32,7 @@ public class ProcessResultImpl implements ProcessResult {
    * @param executable the {@link #getExecutable() executable}.
    * @param command the {@link #getCommand() command}.
    * @param exitCode the {@link #getExitCode() exit code}.
-   * @param output {@link #getOutputMessages() output Messages}.
+   * @param outputMessages {@link #getOutputMessages() output Messages}.
    */
   public ProcessResultImpl(String executable, String command, int exitCode, List<OutputMessage> outputMessages) {
 
@@ -66,15 +66,16 @@ public class ProcessResultImpl implements ProcessResult {
   @Override
   public List<String> getOut() {
 
-    return outputMessages.stream().filter(output -> !output.error()).map(OutputMessage::message).collect(Collectors.toList());
+    return this.out;
   }
 
   @Override
   public List<String> getErr() {
 
-    return outputMessages.stream().filter(OutputMessage::error).map(OutputMessage::message).collect(Collectors.toList());
+    return this.err;
   }
 
+  @Override
   public List<OutputMessage> getOutputMessages() {
 
     return outputMessages;
