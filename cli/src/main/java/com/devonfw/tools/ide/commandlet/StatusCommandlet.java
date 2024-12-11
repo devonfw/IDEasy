@@ -84,7 +84,7 @@ public class StatusCommandlet extends Commandlet {
   @Override
   public boolean isIdeHomeRequired() {
 
-    return false;
+    return isIdeRootRequired();
   }
 
   @Override

@@ -25,6 +25,6 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
     context.run(args);
 
     //assert
-    assertThat(context).logAtWarning().hasMessageContaining("You are not inside an IDE installation: C:");
+    assertThat(context).logAtWarning().hasMessageContaining("You are not inside an IDE installation: ");
   }
 }
