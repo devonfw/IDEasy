@@ -31,8 +31,6 @@ public class ProcessContextGitMock implements ProcessContext {
 
   private final Path directory;
 
-  private final List<String> outs;
-
   /**
    * @param directory the {@link Path} to the git repository.
    */
@@ -42,7 +40,6 @@ public class ProcessContextGitMock implements ProcessContext {
     this.outputMessages = new ArrayList<>();
     this.exitCode = ProcessResult.SUCCESS;
     this.directory = directory;
-    this.outs = new ArrayList<>();
     this.now = LocalDateTime.now();
   }
 
