@@ -67,8 +67,15 @@ public class GraalVm extends PluginBasedCommandlet {
     doGuPluginCommand(plugin, "remove");
   }
 
+  /**
+   * We only need to use gu if the graalvm community version is less than 21.0.0, gu was removed by the graalvm community edition and native-image was added by
+   * default now. See: <a href="https://www.graalvm.org/latest/reference-manual/graalvm-updater/">graalvm-updater</a>
+   */
   private void doGuPluginCommand(ToolPluginDescriptor plugin, String command) {
-    this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI).executable(getToolPath().resolve("bin").resolve("gu")).addArgs(command, plugin.name()).run(ProcessMode.DEFAULT);
+    if (this.getConfiguredEdition().equals("community") && this.getConfiguredVersion().isLess(VersionIdentifier.of("21"))) {
+      this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI).executable(getToolPath().resolve("bin").resolve("gu"))
+          .addArgs(command, plugin.name()).run(ProcessMode.DEFAULT);
+    }
   }
 
 }
