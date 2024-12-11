@@ -34,13 +34,13 @@ public class ProcessResultImpl implements ProcessResult {
    * @param exitCode the {@link #getExitCode() exit code}.
    * @param output {@link #getOutputMessages() output Messages}.
    */
-  public ProcessResultImpl(String executable, String command, int exitCode, List<OutputMessage> output) {
+  public ProcessResultImpl(String executable, String command, int exitCode, List<OutputMessage> outputMessages) {
 
     super();
     this.executable = executable;
     this.command = command;
     this.exitCode = exitCode;
-    this.outputMessages = Objects.requireNonNullElse(output, Collections.emptyList());
+    this.outputMessages = Objects.requireNonNullElse(outputMessages, Collections.emptyList());
     this.out = this.outputMessages.stream().filter(outputMessage -> !outputMessage.error()).map(OutputMessage::message).collect(Collectors.toList());
     this.err = this.outputMessages.stream().filter(OutputMessage::error).map(OutputMessage::message).collect(Collectors.toList());
   }
@@ -75,9 +75,9 @@ public class ProcessResultImpl implements ProcessResult {
     return outputMessages.stream().filter(OutputMessage::error).map(OutputMessage::message).collect(Collectors.toList());
   }
 
-  public List<String> getOutputMessages() {
+  public List<OutputMessage> getOutputMessages() {
 
-    return outputMessages.stream().map(OutputMessage::message).collect(Collectors.toList());
+    return outputMessages;
 
   }
 
@@ -90,7 +90,7 @@ public class ProcessResultImpl implements ProcessResult {
   public void log(IdeLogLevel outLevel, IdeContext context, IdeLogLevel errorLevel) {
 
     if (!this.outputMessages.isEmpty()) {
-      doLog(outLevel, getOutputMessages(), context);
+      doLog(outLevel, getOutputMessages().stream().map(OutputMessage::message).collect(Collectors.toList()), context);
     }
   }
 

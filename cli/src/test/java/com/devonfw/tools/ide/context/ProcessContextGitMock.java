@@ -31,6 +31,8 @@ public class ProcessContextGitMock implements ProcessContext {
 
   private final Path directory;
 
+  private final List<String> outs;
+
   /**
    * @param directory the {@link Path} to the git repository.
    */
@@ -40,6 +42,7 @@ public class ProcessContextGitMock implements ProcessContext {
     this.outputMessages = new ArrayList<>();
     this.exitCode = ProcessResult.SUCCESS;
     this.directory = directory;
+    this.outs = new ArrayList<>();
     this.now = LocalDateTime.now();
   }
 
@@ -60,7 +63,7 @@ public class ProcessContextGitMock implements ProcessContext {
   }
 
   /**
-   * @return the {@link List} of mocked error messages.
+   * @return the {@link List} of mocked stderr messages.
    */
   public List<String> getErrors() {
 
@@ -69,11 +72,20 @@ public class ProcessContextGitMock implements ProcessContext {
   }
 
   /**
-   * @return the {@link List} of mocked out messages.
+   * @return the {@link List} of mocked stdout messages.
    */
   public List<String> getOuts() {
 
-    return this.outputMessages.stream().filter(outputMessage -> !outputMessage.error()).map(OutputMessage::message).collect(Collectors.toList());
+    return this.outputMessages.stream().filter(output -> !output.error()).map(OutputMessage::message).collect(Collectors.toList());
+
+  }
+
+  /**
+   * @return the {@link List} of mocked {@link OutputMessage}.
+   */
+  public List<OutputMessage> getOutputMessages() {
+
+    return this.outputMessages;
 
   }
 

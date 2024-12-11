@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextGitMock;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
+import com.devonfw.tools.ide.process.OutputMessage;
 
 /**
  * Test of {@link GitContext}.
@@ -89,7 +90,8 @@ public class GitContextTest extends AbstractIdeContextTest {
     // arrange
     String gitRepoUrl = "https://github.com/test";
     IdeTestContext context = newGitContext(tempDir);
-    this.processContext.getOuts().add("test-remote");
+    OutputMessage outputMessage = new OutputMessage(false, "test-remote");
+    this.processContext.getOutputMessages().add(outputMessage);
     FileAccess fileAccess = new FileAccessImpl(context);
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
