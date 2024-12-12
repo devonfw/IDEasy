@@ -17,13 +17,13 @@ public class VersionCommandlet extends Commandlet {
   public VersionCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(getName(), "-v");
+    addKeyword("--version", "-v");
   }
 
   @Override
   public String getName() {
 
-    return "--version";
+    return "version";
   }
 
   @Override

@@ -10,6 +10,8 @@ import com.devonfw.tools.ide.context.IdeContext;
  */
 public class KeywordProperty extends BooleanProperty {
 
+  private final String optionName;
+
   /**
    * The constructor.
    *
@@ -19,8 +21,17 @@ public class KeywordProperty extends BooleanProperty {
    */
   public KeywordProperty(String name, boolean required, String alias) {
 
-    super(name, required, alias);
+    super(getNormalizedName(name), required, alias);
+    this.optionName = name;
+  }
+
+  private static String getNormalizedName(String name) {
+
     assert !name.isEmpty();
+    if (name.startsWith("--")) {
+      return name.substring(2);
+    }
+    return name;
   }
 
   @Override
@@ -33,6 +44,25 @@ public class KeywordProperty extends BooleanProperty {
   public boolean isExpectValue() {
 
     return false;
+  }
+
+  @Override
+  public boolean matches(String nameOrAlias) {
+
+    if (super.matches(nameOrAlias)) {
+      return true;
+    }
+    return this.optionName.equals(nameOrAlias);
+  }
+
+  @Override
+  public boolean apply(CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+
+    String normalizedName = this.name;
+    if (args.current().isOption()) {
+      normalizedName = this.optionName;
+    }
+    return apply(normalizedName, args, context, commandlet, collector);
   }
 
   @Override

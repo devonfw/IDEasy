@@ -59,7 +59,8 @@ public class IdeContextConsole extends AbstractIdeContext {
   }
 
   @Override
-  public IdeProgressBar prepareProgressBar(String taskName, long size) {
-    return new IdeProgressBarConsole(getSystemInfo(), taskName, size);
+  public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
+
+    return new IdeProgressBarConsole(getSystemInfo(), title, size, unitName, unitSize);
   }
 }

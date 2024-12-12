@@ -478,7 +478,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
     // act
     context.getFileAccess()
-        .extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io").resolve("executable_and_non_executable.zip"),
+        .extractZip(Path.of("src/test/resources/com/devonfw/tools/ide/io/executable_and_non_executable.zip"),
             tempDir);
 
     // assert

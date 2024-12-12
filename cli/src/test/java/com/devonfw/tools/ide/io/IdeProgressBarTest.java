@@ -68,17 +68,12 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
 
     //assert
     assertUnknownProgressBar(context, "Downloading", MAX_LENGTH);
-    checkLogMessageForMissingContentLength(context, testUrl);
+    assertThat(context).logAtWarning().hasMessage(
+        "Content-Length was not provided by download from " + testUrl);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
 
-    assertThat(progressBar.getMaxLength()).isEqualTo(-1);
-  }
-
-  private void checkLogMessageForMissingContentLength(IdeTestContext context, String source) {
-
-    assertThat(context).logAtWarning().hasMessage(
-        "Content-Length was not provided by download/copy source: " + source + ".");
+    assertThat(progressBar.getMaxSize()).isEqualTo(-1);
   }
 
   /**
@@ -108,6 +103,6 @@ public class IdeProgressBarTest extends AbstractIdeContextTest {
     assertProgressBar(context, "Copying", maxSize);
     assertThat(tempDir.resolve("windows_x64_url.tgz")).exists();
     IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
-    assertThat(progressBar.getMaxLength()).isEqualTo(maxSize);
+    assertThat(progressBar.getMaxSize()).isEqualTo(maxSize);
   }
 }

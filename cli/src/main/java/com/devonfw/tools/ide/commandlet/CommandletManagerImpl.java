@@ -134,13 +134,13 @@ public class CommandletManagerImpl implements CommandletManager {
     KeywordProperty keyword = commandlet.getFirstKeyword();
     if (keyword != null) {
       String name = keyword.getName();
-      this.firstKeywordMap.putIfAbsent(name, commandlet);
+      registerKeyword(name, commandlet);
       if (name.startsWith("--")) {
-        this.firstKeywordMap.putIfAbsent(name.substring(2), commandlet);
+        registerKeyword(name.substring(2), commandlet);
       }
       String alias = keyword.getAlias();
       if (alias != null) {
-        this.firstKeywordMap.putIfAbsent(alias, commandlet);
+        registerKeyword(alias, commandlet);
       }
     }
     for (int i = 0; i < propertyCount; i++) {
@@ -157,6 +157,14 @@ public class CommandletManagerImpl implements CommandletManager {
     Commandlet duplicate = this.commandletNameMap.put(commandlet.getName(), commandlet);
     if (duplicate != null) {
       throw new IllegalStateException("Commandlet " + commandlet + " has the same name as " + duplicate);
+    }
+  }
+
+  private void registerKeyword(String keyword, Commandlet commandlet) {
+
+    Commandlet duplicate = this.firstKeywordMap.putIfAbsent(keyword, commandlet);
+    if (duplicate != null) {
+      this.context.debug("Duplicate keyword {} already used by {} so it cannot be associated also with {}", keyword, duplicate, commandlet);
     }
   }
 
