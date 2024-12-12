@@ -5,6 +5,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -19,8 +20,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class LazyDocker extends LocalToolCommandlet {
 
-  public static final VersionIdentifier MIN_API_VERSION = VersionIdentifier.of("1.25");
-  public static final VersionIdentifier MIN_COMPOSE_VERSION = VersionIdentifier.of("1.23.2");
+  private static final VersionIdentifier MIN_API_VERSION = VersionIdentifier.of("1.25");
+  private static final VersionIdentifier MIN_COMPOSE_VERSION = VersionIdentifier.of("1.23.2");
 
   /**
    * The constructor.
@@ -38,31 +39,30 @@ public class LazyDocker extends LocalToolCommandlet {
     // TODO create lazydocker/lazydocker/dependencies.json file in ide-urls and delete this method
     getCommandlet(Docker.class).install();
     // verify docker API version requirements
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable("docker")
-        .addArg("version").addArg("--format").addArg("'{{.Client.APIVersion}}'");
+    String bashPath = this.context.findBashRequired();
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable(bashPath)
+        .addArg("-c").addArg("docker").addArg("version").addArg("--format").addArg("'{{.Client.APIVersion}}'");
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
-    verifyDockerVersion(result, MIN_API_VERSION, "docker API", this.context);
+    verifyDockerVersion(result, MIN_API_VERSION, "docker API");
 
     // verify docker compose version requirements
-    pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable("docker-compose").addArg("version")
+    pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable(bashPath).addArg("-c").addArg("docker-compose").addArg("version")
         .addArg("--short");
     result = pc.run(ProcessMode.DEFAULT_CAPTURE);
-    verifyDockerVersion(result, MIN_COMPOSE_VERSION, "docker-compose", this.context);
+    verifyDockerVersion(result, MIN_COMPOSE_VERSION, "docker-compose");
   }
 
-  private static void verifyDockerVersion(ProcessResult result, VersionIdentifier minimumVersion, String kind, IdeContext context) {
+  private void verifyDockerVersion(ProcessResult result, VersionIdentifier minimumVersion, String kind) {
     // we have this pattern a lot that we want to get a single line output of a successful ProcessResult.
     // we should create a generic method in ProcessResult for this use-case.
     if (!result.isSuccessful()) {
-      context.error("There appears to be a problem with your docker installation.\n{}", result.getErr().toString());
+      result.log(IdeLogLevel.WARNING, this.context);
     }
-
     if (result.getOut().isEmpty()) {
       throw new CliException("Docker is not installed, but required for lazydocker.\n" //
           + "To install docker, call the following command:\n" //
           + "ide install docker");
     }
-
     VersionIdentifier installedVersion = VersionIdentifier.of(result.getOut().get(0).toString());
     if (installedVersion.isLess(minimumVersion)) {
       throw new CliException("The installed " + kind + " version is '" + installedVersion + "'.\n" + //
