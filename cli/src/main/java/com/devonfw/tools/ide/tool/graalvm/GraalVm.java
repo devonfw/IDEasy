@@ -70,7 +70,7 @@ public class GraalVm extends PluginBasedCommandlet {
 
   private void doGuPluginCommand(ToolPluginDescriptor plugin, String command) {
     String guCommand = "gu";
-    if (context.getSystemInfo().isWindows()) {
+    if (this.context.getSystemInfo().isWindows()) {
       guCommand += ".cmd";
     }
     Path guPath = getToolBinPath().resolve(guCommand);
