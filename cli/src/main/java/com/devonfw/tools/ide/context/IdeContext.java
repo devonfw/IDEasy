@@ -356,6 +356,12 @@ public interface IdeContext extends IdeStartContext {
   Path getSettingsPath();
 
   /**
+   *
+   * @return the {@link Path} to the {@code settings} folder with the cloned git repository containing the project configuration only if the settings repository is in fact a git repository.
+   */
+  Path getSettingsGitRepository();
+
+  /**
    * @return the {@link Path} to the file containing the last tracked commit Id of the settings repository.
    */
   Path getSettingsCommitIdPath();

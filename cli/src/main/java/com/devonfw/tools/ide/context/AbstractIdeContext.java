@@ -435,6 +435,22 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public Path getSettingsGitRepository() {
+    Path settingsPath = getSettingsPath();
+
+    if (Objects.isNull(settingsPath)) {
+      error("No settings repository was found.");
+    }
+
+    if (!Files.exists(settingsPath.resolve(".git")) && !Files.isSymbolicLink(settingsPath)) {
+      error("Settings repository exists but is not a git repository.");
+      return null;
+    }
+
+    return settingsPath;
+  }
+
+  @Override
   public Path getSettingsCommitIdPath() {
 
     return this.settingsCommitIdPath;
@@ -867,9 +883,10 @@ public abstract class AbstractIdeContext implements IdeContext {
           if (cmd.isIdeHomeRequired()) {
             debug(getMessageIdeHomeFound());
           }
-          if (this.settingsPath != null) {
-            if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath, getSettingsCommitIdPath()) ||
-                (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath, getSettingsCommitIdPath()))) {
+          Path settingsRepository = getSettingsGitRepository();
+          if (settingsRepository != null) {
+            if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) ||
+                (getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()))) {
               interaction("Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
             }
           }
@@ -1138,8 +1155,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
 
     trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
-    if (!Files.exists(repository) || (!Files.exists(repository.resolve(".git")) && !Files.isSymbolicLink(repository))) {
-      debug("{} does not exist or is not a git repository", repository);
+    if (Objects.isNull(repository)) {
       return;
     }
     String currentCommitId = getGitContext().runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");

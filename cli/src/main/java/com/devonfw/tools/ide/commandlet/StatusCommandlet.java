@@ -55,7 +55,7 @@ public class StatusCommandlet extends Commandlet {
   }
 
   private void logSettingsGitStatus() {
-    Path settingsPath = this.context.getSettingsPath();
+    Path settingsPath = this.context.getSettingsGitRepository();
     if (settingsPath != null) {
       GitContext gitContext = this.context.getGitContext();
       if (gitContext.isRepositoryUpdateAvailable(settingsPath, this.context.getSettingsCommitIdPath())) {
