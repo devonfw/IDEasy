@@ -41,23 +41,28 @@ public class LazyDocker extends LocalToolCommandlet {
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable("docker")
         .addArg("version").addArg("--format").addArg("'{{.Client.APIVersion}}'");
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
-    verifyDockerVersion(result, MIN_API_VERSION, "docker API");
+    verifyDockerVersion(result, MIN_API_VERSION, "docker API", this.context);
 
     // verify docker compose version requirements
     pc = this.context.newProcess().errorHandling(ProcessErrorHandling.NONE).executable("docker-compose").addArg("version")
         .addArg("--short");
     result = pc.run(ProcessMode.DEFAULT_CAPTURE);
-    verifyDockerVersion(result, MIN_COMPOSE_VERSION, "docker-compose");
+    verifyDockerVersion(result, MIN_COMPOSE_VERSION, "docker-compose", this.context);
   }
 
-  private static void verifyDockerVersion(ProcessResult result, VersionIdentifier minimumVersion, String kind) {
+  private static void verifyDockerVersion(ProcessResult result, VersionIdentifier minimumVersion, String kind, IdeContext context) {
     // we have this pattern a lot that we want to get a single line output of a successful ProcessResult.
     // we should create a generic method in ProcessResult for this use-case.
+    if (!result.isSuccessful()) {
+      context.error("There appears to be a problem with your docker installation.\n{}", result.getErr().toString());
+    }
+
     if (result.getOut().isEmpty()) {
       throw new CliException("Docker is not installed, but required for lazydocker.\n" //
           + "To install docker, call the following command:\n" //
           + "ide install docker");
     }
+
     VersionIdentifier installedVersion = VersionIdentifier.of(result.getOut().get(0).toString());
     if (installedVersion.isLess(minimumVersion)) {
       throw new CliException("The installed " + kind + " version is '" + installedVersion + "'.\n" + //
