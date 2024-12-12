@@ -9,7 +9,6 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 /**
  * Test of {@link StatusCommandlet}.
  */
-
 public class StatusCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_BASIC = "basic";
