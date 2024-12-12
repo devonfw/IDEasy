@@ -69,10 +69,11 @@ public class GraalVm extends PluginBasedCommandlet {
   }
 
   private void doGuPluginCommand(ToolPluginDescriptor plugin, String command) {
-    Path guPath = getToolBinPath().resolve("gu");
+    String guCommand = "gu";
     if (context.getSystemInfo().isWindows()) {
-      guPath = getToolBinPath().resolve("gu.cmd");
+      guCommand += ".cmd";
     }
+    Path guPath = getToolBinPath().resolve(guCommand);
     if (Files.exists(guPath)) {
       this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI).executable(guPath)
           .addArgs(command, plugin.name()).run(ProcessMode.DEFAULT);
