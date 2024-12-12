@@ -171,7 +171,6 @@ public abstract class AbstractIdeContext implements IdeContext {
       if (nameCount >= 1) {
         name1 = currentDir.getName(nameCount - 1).toString();
       }
-      //TODO: make sure, that this does not check above IDE_ROOT
       currentDir = currentDir.getParent();
     }
 
