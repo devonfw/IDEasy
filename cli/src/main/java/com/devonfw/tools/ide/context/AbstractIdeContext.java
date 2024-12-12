@@ -437,12 +437,14 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @Override
   public Path getSettingsGitRepository() {
+
     Path settingsPath = getSettingsPath();
 
     if (Objects.isNull(settingsPath)) {
       error("No settings repository was found.");
     }
 
+    // check whether the settings path has a .git folder only if its not a symbolic link
     if (!Files.exists(settingsPath.resolve(".git")) && !Files.isSymbolicLink(settingsPath)) {
       error("Settings repository exists but is not a git repository.");
       return null;
@@ -1160,10 +1162,12 @@ public abstract class AbstractIdeContext implements IdeContext {
       return;
     }
     String currentCommitId = getGitContext().runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
-    try {
-      Files.writeString(trackedCommitIdPath, currentCommitId);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to save commit ID", e);
+    if (currentCommitId != null) {
+      try {
+        Files.writeString(trackedCommitIdPath, currentCommitId);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to save commit ID", e);
+      }
     }
   }
 }
