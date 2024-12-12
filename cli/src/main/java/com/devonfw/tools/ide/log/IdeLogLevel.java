@@ -1,9 +1,6 @@
 package com.devonfw.tools.ide.log;
 
-import java.util.Objects;
-
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
 
 /**
  * {@link Enum} with the available log-levels.
@@ -75,18 +72,6 @@ public enum IdeLogLevel {
   public boolean isCustom() {
 
     return (this == STEP) || (this == INTERACTION) || (this == SUCCESS) || (this == PROCESSABLE);
-  }
-
-  /**
-   * @param errorHandling the given {@link ProcessErrorHandling}.
-   * @return matching {@link IdeLogLevel}.
-   */
-  public static IdeLogLevel getLogLevelFromErrorHandling(ProcessErrorHandling errorHandling) {
-
-    if (Objects.requireNonNull(errorHandling) == ProcessErrorHandling.LOG_WARNING) {
-      return IdeLogLevel.WARNING;
-    }
-    return IdeLogLevel.ERROR;
   }
 
 }

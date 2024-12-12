@@ -332,8 +332,7 @@ public class ProcessContextImpl implements ProcessContext {
   private void performLogging(ProcessResult result, int exitCode, String interpreter) {
 
     if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
-      IdeLogLevel ideLogLevel = IdeLogLevel.getLogLevelFromErrorHandling(this.errorHandling);
-      ;
+      IdeLogLevel ideLogLevel = this.errorHandling.getLogLevel();
       String message = createCommandMessage(interpreter, "\nfailed with exit code " + exitCode + "!");
 
       context.level(ideLogLevel).log(message);
