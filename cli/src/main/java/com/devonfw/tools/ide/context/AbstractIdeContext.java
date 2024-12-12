@@ -1137,6 +1137,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
 
+    trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
+    if (!Files.exists(repository)) {
+      debug("{} does not exist.", repository);
+      return;
+    }
     String currentCommitId = getGitContext().runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
     try {
       Files.writeString(trackedCommitIdPath, currentCommitId);
