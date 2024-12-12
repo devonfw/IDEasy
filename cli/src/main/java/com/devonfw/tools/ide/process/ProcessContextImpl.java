@@ -332,17 +332,8 @@ public class ProcessContextImpl implements ProcessContext {
   private void performLogging(ProcessResult result, int exitCode, String interpreter) {
 
     if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
-      IdeLogLevel ideLogLevel;
+      IdeLogLevel ideLogLevel = this.errorHandling.getLogLevel();
       String message = createCommandMessage(interpreter, "\nfailed with exit code " + exitCode + "!");
-
-      if (this.errorHandling == ProcessErrorHandling.LOG_ERROR) {
-        ideLogLevel = IdeLogLevel.ERROR;
-      } else if (this.errorHandling == ProcessErrorHandling.LOG_WARNING) {
-        ideLogLevel = IdeLogLevel.WARNING;
-      } else {
-        ideLogLevel = IdeLogLevel.ERROR;
-        this.context.error("Internal error: Undefined error handling {}", this.errorHandling);
-      }
 
       context.level(ideLogLevel).log(message);
       result.log(ideLogLevel, context);
