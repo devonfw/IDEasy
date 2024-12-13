@@ -34,6 +34,14 @@ public class KeywordProperty extends BooleanProperty {
     return name;
   }
 
+  /**
+   * @return the option name (e.g. "--help") or the {@link #getName() name} if not an option (e.g. "install").
+   */
+  public String getOptionName() {
+
+    return this.optionName;
+  }
+
   @Override
   public boolean isValue() {
 
