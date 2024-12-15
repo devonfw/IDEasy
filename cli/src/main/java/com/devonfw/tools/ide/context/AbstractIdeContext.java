@@ -442,6 +442,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (Objects.isNull(settingsPath)) {
       error("No settings repository was found.");
+      return null;
     }
 
     // check whether the settings path has a .git folder only if its not a symbolic link

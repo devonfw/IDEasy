@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitUrl;
@@ -109,11 +110,22 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   @Override
   protected void updateSettings() {
 
-    if (codeRepositoryFlag.isTrue() && !settingsRepo.getValue().isBlank()) {
-      String repoUrl = settingsRepo.getValue();
-      initializeCodeRepository(repoUrl);
+    if (codeRepositoryFlag.isTrue()) {
+      String codeRepository;
+      if (!Objects.isNull(settingsRepo.getValue())) {
+        codeRepository = settingsRepo.getValue();
+      } else {
+        String message = """
+          No code repository was given after '--code'.
+          Please give the code repository below that includes your settings folder.
+          Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.asciidoc
+          """;
+        codeRepository = this.context.askForInput(message);
+      }
+      initializeCodeRepository(codeRepository);
     } else {
       super.updateSettings();
     }
+
   }
 }
