@@ -13,6 +13,20 @@ public final class CliProcessException extends CliException {
 
   /**
    * The constructor.
+   *
+   * @param processResult the {@link #getProcessResult() process result}.
+   */
+  public CliProcessException(ProcessResult processResult) {
+
+    this("Command " + processResult.getExecutable() + " failed with exit code " + processResult.getExitCode() + " - full commandline was "
+        + processResult.getCommand(), processResult);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param message the message to display.
+   * @param processResult the {@link #getProcessResult() process result}.
    */
   public CliProcessException(String message, ProcessResult processResult) {
 

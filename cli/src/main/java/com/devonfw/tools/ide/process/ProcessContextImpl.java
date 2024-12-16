@@ -152,6 +152,7 @@ public class ProcessContextImpl implements ProcessContext {
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(this.executable.toString(), args);
     args.addAll(this.arguments);
+    String command = createCommand();
     if (this.context.debug().isEnabled()) {
       String message = createCommandMessage(interpreter, " ...");
       this.context.debug(message);
@@ -188,13 +189,15 @@ public class ProcessContextImpl implements ProcessContext {
           exitCode = process.waitFor();
         }
 
-        ProcessResult result = new ProcessResultImpl(exitCode, out, err);
+        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, out, err);
 
         performLogging(result, exitCode, interpreter);
 
         return result;
       } finally {
-        process.destroy();
+        if (!processMode.isBackground()) {
+          process.destroy();
+        }
       }
     } catch (CliProcessException | IllegalStateException e) {
       // these exceptions are thrown from performLogOnError and we do not want to wrap them (see #593)
@@ -227,6 +230,17 @@ public class ProcessContextImpl implements ProcessContext {
         throw new RuntimeException("There was a problem while executing the program", e);
       }
     });
+  }
+
+  private String createCommand() {
+    String cmd = this.executable.toString();
+    StringBuilder sb = new StringBuilder(cmd.length() + this.arguments.size() * 4);
+    sb.append(cmd);
+    for (String arg : this.arguments) {
+      sb.append(' ');
+      sb.append(arg);
+    }
+    return sb.toString();
   }
 
   private String createCommandMessage(String interpreter, String suffix) {
@@ -318,17 +332,8 @@ public class ProcessContextImpl implements ProcessContext {
   private void performLogging(ProcessResult result, int exitCode, String interpreter) {
 
     if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
-      IdeLogLevel ideLogLevel;
+      IdeLogLevel ideLogLevel = this.errorHandling.getLogLevel();
       String message = createCommandMessage(interpreter, "\nfailed with exit code " + exitCode + "!");
-
-      if (this.errorHandling == ProcessErrorHandling.LOG_ERROR) {
-        ideLogLevel = IdeLogLevel.ERROR;
-      } else if (this.errorHandling == ProcessErrorHandling.LOG_WARNING) {
-        ideLogLevel = IdeLogLevel.WARNING;
-      } else {
-        ideLogLevel = IdeLogLevel.ERROR;
-        this.context.error("Internal error: Undefined error handling {}", this.errorHandling);
-      }
 
       context.level(ideLogLevel).log(message);
       result.log(ideLogLevel, context);

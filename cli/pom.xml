@@ -201,7 +201,7 @@
             <executions>
               <execution>
                 <id>create-distribution</id>
-                <phase>install</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>single</goal>
                 </goals>
@@ -231,7 +231,7 @@
                 <goals>
                   <goal>compile-no-fork</goal>
                 </goals>
-                <phase>compile</phase>
+                <phase>package</phase>
               </execution>
               <execution>
                 <id>test-native</id>

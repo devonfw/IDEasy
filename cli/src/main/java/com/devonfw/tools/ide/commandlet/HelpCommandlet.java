@@ -38,7 +38,7 @@ public final class HelpCommandlet extends Commandlet {
   public HelpCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(getName());
+    addKeyword("--help", "-h");
     this.commandlet = add(new CommandletProperty("", false, "commandlet"));
   }
 
@@ -132,9 +132,12 @@ public final class HelpCommandlet extends Commandlet {
     Args toolcommandlets = new Args();
     for (Commandlet cmd : this.context.getCommandletManager().getCommandlets()) {
       String key = cmd.getName();
-      String keyword = cmd.getKeyword();
-      if ((keyword != null) && !keyword.equals(key)) {
-        key = key + "(" + keyword + ")";
+      KeywordProperty keyword = cmd.getFirstKeyword();
+      if (keyword != null) {
+        String name = keyword.getName();
+        if (!name.equals(key)) {
+          key = key + "(" + keyword + ")";
+        }
       }
       if (cmd instanceof ToolCommandlet) {
         toolcommandlets.add(key, bundle.get(cmd));
