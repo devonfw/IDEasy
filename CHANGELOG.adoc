@@ -7,6 +7,9 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/888[#888]: Removed gu update functionality (needs to be run manually for old versions now).
+* https://github.com/devonfw/IDEasy/issues/885[#885]: Gcviewer starts in foreground fixed
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/17?closed=1[milestone 2024.12.002].
 
 == 2024.12.001
 

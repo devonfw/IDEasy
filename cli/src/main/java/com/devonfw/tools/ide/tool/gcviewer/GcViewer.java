@@ -5,6 +5,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
@@ -40,6 +41,6 @@ public class GcViewer extends LocalToolCommandlet {
     pc.executable("java");
     pc.addArg("-jar");
     pc.addArg("gcviewer-" + getInstalledVersion() + ".jar");
-    pc.run();
+    pc.run(ProcessMode.BACKGROUND_SILENT);
   }
 }
