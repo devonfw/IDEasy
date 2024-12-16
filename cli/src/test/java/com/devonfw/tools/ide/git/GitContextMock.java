@@ -74,6 +74,12 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
+  public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
+
+    return false;
+  }
+
+  @Override
   public String determineCurrentBranch(Path repository) {
 
     return "main";
@@ -83,5 +89,11 @@ public class GitContextMock implements GitContext {
   public String determineRemote(Path repository) {
 
     return "origin";
+  }
+
+
+  @Override
+  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+    
   }
 }

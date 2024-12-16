@@ -55,10 +55,10 @@ public class StatusCommandlet extends Commandlet {
   }
 
   private void logSettingsGitStatus() {
-    Path settingsPath = this.context.getSettingsPath();
+    Path settingsPath = this.context.getSettingsGitRepository();
     if (settingsPath != null) {
       GitContext gitContext = this.context.getGitContext();
-      if (gitContext.isRepositoryUpdateAvailable(settingsPath)) {
+      if (gitContext.isRepositoryUpdateAvailable(settingsPath, this.context.getSettingsCommitIdPath())) {
         this.context.warning("Your settings are not up-to-date, please run 'ide update'.");
       } else {
         this.context.success("Your settings are up-to-date.");

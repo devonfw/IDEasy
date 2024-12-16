@@ -106,7 +106,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     }
   }
 
-  private void updateSettings() {
+  protected void updateSettings() {
 
     Path settingsPath = this.context.getSettingsPath();
     GitContext gitContext = this.context.getGitContext();
@@ -132,6 +132,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         }
         gitContext.pullOrClone(GitUrl.of(repository), settingsPath);
       }
+      this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
       step.success("Successfully updated settings repository.");
     } finally {
       if (step != null) {
