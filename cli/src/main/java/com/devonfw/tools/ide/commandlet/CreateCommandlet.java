@@ -88,7 +88,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     if (Files.exists(settingsFolder)) {
       this.context.getFileAccess().symlink(settingsFolder, this.context.getSettingsPath());
       // create a file in IDE_HOME with the current local commit id
-      this.context.saveCurrentCommitId(codeRepoPath, this.context.getSettingsCommitIdPath());
+      this.context.getGitContext().saveCurrentCommitId(codeRepoPath, this.context.getSettingsCommitIdPath());
     } else {
       this.context.warning("No settings folder was found inside the code repository.");
     }
@@ -111,14 +111,13 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   protected void updateSettings() {
 
     if (codeRepositoryFlag.isTrue()) {
-      String codeRepository;
-      if (!Objects.isNull(settingsRepo.getValue())) {
-        codeRepository = settingsRepo.getValue();
-      } else {
+      String codeRepository = this.settingsRepo.getValue();
+      if (codeRepository == null || codeRepository.isBlank()) {
         String message = """
           No code repository was given after '--code'.
           Please give the code repository below that includes your settings folder.
           Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.asciidoc
+          Code repository URL:
           """;
         codeRepository = this.context.askForInput(message);
       }

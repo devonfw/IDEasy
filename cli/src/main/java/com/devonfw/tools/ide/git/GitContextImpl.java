@@ -278,7 +278,7 @@ public class GitContextImpl implements GitContext {
     runGitCommand(directory, args.toArray(String[]::new));
   }
 
-  public String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
+  private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
 
     ProcessResult result = runGitCommand(directory, ProcessMode.DEFAULT_CAPTURE, args);
     if (result.isSuccessful()) {
@@ -307,6 +307,23 @@ public class GitContextImpl implements GitContext {
         .directory(directory);
     processContext.addArgs(args);
     return processContext.run(mode);
+  }
+
+  @Override
+  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+
+    this.context.trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
+    if (Objects.isNull(repository)) {
+      return;
+    }
+    String currentCommitId = runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
+    if (currentCommitId != null) {
+      try {
+        Files.writeString(trackedCommitIdPath, currentCommitId);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to save commit ID", e);
+      }
+    }
   }
 }
 
