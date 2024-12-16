@@ -25,6 +25,7 @@ public final class CliProcessException extends CliException {
   /**
    * The constructor.
    *
+   * @param message the message to display.
    * @param processResult the {@link #getProcessResult() process result}.
    */
   public CliProcessException(String message, ProcessResult processResult) {
