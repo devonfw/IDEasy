@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.context;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
@@ -13,7 +12,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -440,7 +438,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     Path settingsPath = getSettingsPath();
 
-    if (Objects.isNull(settingsPath)) {
+    if (settingsPath == null) {
       error("No settings repository was found.");
       return null;
     }
@@ -1154,5 +1152,4 @@ public abstract class AbstractIdeContext implements IdeContext {
   public void reload() {
     this.variables = null;
   }
-
 }

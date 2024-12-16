@@ -91,9 +91,9 @@ public class GitContextMock implements GitContext {
     return "origin";
   }
 
-  @Override
-  public String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
 
-    return null;
+  @Override
+  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+    
   }
 }
