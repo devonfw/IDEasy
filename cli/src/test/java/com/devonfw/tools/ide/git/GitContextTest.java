@@ -35,6 +35,8 @@ public class GitContextTest extends AbstractIdeContextTest {
     this.processContext = new ProcessContextGitMock(dir);
     context.setProcessContext(processContext);
     context.setGitContext(new GitContextImpl(context));
+    // reset ProcessResult instance
+    this.processContext.setProcessResult(0, new ArrayList<>());
     return context;
   }
 
@@ -72,7 +74,8 @@ public class GitContextTest extends AbstractIdeContextTest {
     // arrange
     String gitRepoUrl = "https://github.com/test";
     IdeTestContext context = newGitContext(tempDir);
-    this.processContext.getOuts().add("test-remote");
+    OutputMessage outputMessage = new OutputMessage(false, "test-remote");
+    this.processContext.getProcessResult().getOutputMessages().add(outputMessage);
     // act
     context.getGitContext().pullOrClone(GitUrl.of(gitRepoUrl), tempDir);
     // assert
@@ -91,7 +94,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     String gitRepoUrl = "https://github.com/test";
     IdeTestContext context = newGitContext(tempDir);
     OutputMessage outputMessage = new OutputMessage(false, "test-remote");
-    this.processContext.getOutputMessages().add(outputMessage);
+    this.processContext.getProcessResult().getOutputMessages().add(outputMessage);
     FileAccess fileAccess = new FileAccessImpl(context);
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
@@ -131,7 +134,8 @@ public class GitContextTest extends AbstractIdeContextTest {
       throw new RuntimeException(e);
     }
     IdeTestContext context = newGitContext(tempDir);
-    this.processContext.getOuts().add("test-remote");
+    OutputMessage outputMessage = new OutputMessage(false, "test-remote");
+    this.processContext.getProcessResult().getOutputMessages().add(outputMessage);
     // act
     context.getGitContext().pullOrCloneAndResetIfNeeded(new GitUrl(gitRepoUrl, "master"), tempDir, "origin");
     // assert
@@ -149,7 +153,8 @@ public class GitContextTest extends AbstractIdeContextTest {
     // arrange
     String gitRepoUrl = "https://github.com/test";
     IdeTestContext context = newGitContext(tempDir);
-    this.processContext.getOuts().add("test-remote");
+    OutputMessage outputMessage = new OutputMessage(false, "test-remote");
+    this.processContext.getProcessResult().getOutputMessages().add(outputMessage);
     GitContext gitContext = context.getGitContext();
     FileAccess fileAccess = context.getFileAccess();
     Path gitFolderPath = tempDir.resolve(".git");

@@ -219,6 +219,7 @@ public class ProcessContextImpl implements ProcessContext {
    * "https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki/57483714#57483714">StackOverflow</a>
    *
    * @param is {@link InputStream}.
+   * @param errorStream to identify if the output came from stdout or stderr
    * @return {@link CompletableFuture}.
    */
   private static CompletableFuture<List<String>> readInputStream(InputStream is, boolean errorStream, ConcurrentLinkedQueue<OutputMessage> outputMessages) {
