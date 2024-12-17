@@ -17,7 +17,7 @@ if exist "%GIT_HOME%\bin\bash.exe" (
 
 if exist "%GIT_HOME%\bin\bash.exe" (
 	echo "%PATH%" | find /i "%GIT_CORE%">nul  || set PATH=%PATH%;%GIT_CORE%
-	REM clear ERRORLEVEL back to 0 otherwise it's 1 when PATH entries not found
+	REM KEEP the whitespace after call to clear ERRORLEVEL back to 0 otherwise it's 1 when PATH entries not found in find
 	call
 )
 
