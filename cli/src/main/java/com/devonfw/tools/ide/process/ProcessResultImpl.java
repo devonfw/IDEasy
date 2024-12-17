@@ -20,10 +20,6 @@ public class ProcessResultImpl implements ProcessResult {
 
   private final int exitCode;
 
-  private final List<String> out;
-
-  private final List<String> err;
-
   private final List<OutputMessage> outputMessages;
 
   /**
@@ -41,8 +37,6 @@ public class ProcessResultImpl implements ProcessResult {
     this.command = command;
     this.exitCode = exitCode;
     this.outputMessages = Objects.requireNonNullElse(outputMessages, Collections.emptyList());
-    this.out = this.outputMessages.stream().filter(outputMessage -> !outputMessage.error()).map(OutputMessage::message).collect(Collectors.toList());
-    this.err = this.outputMessages.stream().filter(OutputMessage::error).map(OutputMessage::message).collect(Collectors.toList());
   }
 
   @Override
@@ -66,13 +60,13 @@ public class ProcessResultImpl implements ProcessResult {
   @Override
   public List<String> getOut() {
 
-    return this.out;
+    return this.outputMessages.stream().filter(outputMessage -> !outputMessage.error()).map(OutputMessage::message).toList();
   }
 
   @Override
   public List<String> getErr() {
 
-    return this.err;
+    return this.outputMessages.stream().filter(OutputMessage::error).map(OutputMessage::message).toList();
   }
 
   @Override
