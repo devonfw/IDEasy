@@ -11,14 +11,12 @@ for %%H in ( HKEY_LOCAL_MACHINE HKEY_CURRENT_USER ) do for /F "usebackq tokens=2
 set "GIT_BIN=%GIT_HOME%\usr\bin"
 set "GIT_CORE=%GIT_HOME%\mingw64\libexec\git-core"
 
-if exist "%GIT_HOME%\bin\bash.exe" (
+if exist "%GIT_BIN%" (
 	echo "%PATH%" | find /i "%GIT_BIN%">nul  || set PATH=%PATH%;%GIT_BIN%
 )
 
-if exist "%GIT_HOME%\bin\bash.exe" (
+if exist "%GIT_CORE%" (
 	echo "%PATH%" | find /i "%GIT_CORE%">nul  || set PATH=%PATH%;%GIT_CORE%
-	REM KEEP the whitespace after call to clear ERRORLEVEL back to 0 otherwise it's 1 when PATH entries not found in find
-	call
 )
 
 if not "%1%" == "" (
@@ -34,6 +32,6 @@ for /f "tokens=*" %%i in ('ideasy %IDE_OPTIONS% env') do (
   call set %%i
 )
 
-if %ERRORLEVEL% == 0 (
+if not %ERRORLEVEL% == 0 (
   echo IDE environment variables have been set for %IDE_HOME% in workspace %WORKSPACE%
 )
