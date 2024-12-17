@@ -33,6 +33,7 @@ REM https://stackoverflow.com/questions/61888625/what-is-f-in-the-for-loop-comma
 for /f "tokens=*" %%i in ('ideasy %IDE_OPTIONS% env') do (
   call set %%i
 )
+
 if %ERRORLEVEL% == 0 (
   echo IDE environment variables have been set for %IDE_HOME% in workspace %WORKSPACE%
 )
