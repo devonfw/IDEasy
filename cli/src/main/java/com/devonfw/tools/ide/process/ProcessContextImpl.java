@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliProcessException;
@@ -168,7 +169,7 @@ public class ProcessContextImpl implements ProcessContext {
 
       this.processBuilder.command(args);
 
-      List<OutputMessage> output = new ArrayList<>();
+      ConcurrentLinkedQueue<OutputMessage> output = new ConcurrentLinkedQueue<>();
 
       Process process = this.processBuilder.start();
 
@@ -188,7 +189,8 @@ public class ProcessContextImpl implements ProcessContext {
           exitCode = process.waitFor();
         }
 
-        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, output);
+        List<OutputMessage> finalOutput = new ArrayList<>(output);
+        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, finalOutput);
 
         performLogging(result, exitCode, interpreter);
 
@@ -219,7 +221,7 @@ public class ProcessContextImpl implements ProcessContext {
    * @param is {@link InputStream}.
    * @return {@link CompletableFuture}.
    */
-  private static CompletableFuture<List<String>> readInputStream(InputStream is, boolean errorStream, List<OutputMessage> outputMessages) {
+  private static CompletableFuture<List<String>> readInputStream(InputStream is, boolean errorStream, ConcurrentLinkedQueue<OutputMessage> outputMessages) {
 
     return CompletableFuture.supplyAsync(() -> {
 
@@ -227,11 +229,10 @@ public class ProcessContextImpl implements ProcessContext {
 
         String line;
         while ((line = br.readLine()) != null) {
-          synchronized (outputMessages) {
-            OutputMessage outputMessage = new OutputMessage(errorStream, line);
-            outputMessages.add(outputMessage);
-          }
+          OutputMessage outputMessage = new OutputMessage(errorStream, line);
+          outputMessages.add(outputMessage);
         }
+
         return br.lines().toList();
       } catch (Throwable e) {
         throw new RuntimeException("There was a problem while executing the program", e);
