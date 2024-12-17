@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.process;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -72,7 +71,7 @@ public class ProcessResultImpl implements ProcessResult {
   @Override
   public List<OutputMessage> getOutputMessages() {
 
-    return outputMessages;
+    return this.outputMessages;
 
   }
 
@@ -85,18 +84,22 @@ public class ProcessResultImpl implements ProcessResult {
   public void log(IdeLogLevel outLevel, IdeContext context, IdeLogLevel errorLevel) {
 
     if (!this.outputMessages.isEmpty()) {
-      doLog(outLevel, getOutputMessages().stream().map(OutputMessage::message).collect(Collectors.toList()), context);
+      for (OutputMessage outputMessage : this.outputMessages) {
+        if (outputMessage.error()) {
+          doLog(errorLevel, outputMessage.message(), context);
+        } else {
+          doLog(outLevel, outputMessage.message(), context);
+        }
+      }
     }
   }
 
-  private void doLog(IdeLogLevel level, List<String> lines, IdeContext context) {
-    for (String line : lines) {
-      // remove !MESSAGE from log message
-      if (line.startsWith("!MESSAGE ")) {
-        line = line.substring(9);
-      }
-      context.level(level).log(line);
+  private void doLog(IdeLogLevel level, String message, IdeContext context) {
+    // remove !MESSAGE from log message
+    if (message.startsWith("!MESSAGE ")) {
+      message = message.substring(9);
     }
+    context.level(level).log(message);
   }
 
   @Override
