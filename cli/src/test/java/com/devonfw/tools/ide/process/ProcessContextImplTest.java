@@ -221,6 +221,18 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     assertThat(context).log(IdeLogLevel.ERROR).hasMessageContaining("another error message to stderr");
   }
 
+  @Test
+  public void defaultCaptureShouldCaptureStreamsWithCorrectOrder() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+
+    // act
+    context.newProcess().executable(TEST_RESOURCES.resolve("process-context").resolve("log-order.sh")).run();
+
+    // assert
+    assertThat(context).log(IdeLogLevel.INFO).hasEntries("out1", "err1", "out2", "err2");
+  }
+
   private IdeLogLevel convertToIdeLogLevel(ProcessErrorHandling processErrorHandling) {
 
     return switch (processErrorHandling) {
