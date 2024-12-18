@@ -249,7 +249,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
 
 
   private void createCustomToolsJson(String variable) {
-    try (FileWriter writer = new FileWriter(context.getIdeHome().resolve("settings/custom-tools.json").toString())) {
+    try (FileWriter writer = new FileWriter(context.getIdeHome().resolve("settings").resolve(IdeContext.FILE_CUSTOM_TOOLS).toString())) {
       JSONArray tabelObject = new JSONArray();
       variable = variable.substring(variable.indexOf("(") + 1, variable.indexOf(")") - 1);
       String url = variable.substring(variable.indexOf("https://"), variable.indexOf(" "));
