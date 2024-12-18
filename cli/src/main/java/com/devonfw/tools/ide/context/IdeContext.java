@@ -136,6 +136,12 @@ public interface IdeContext extends IdeStartContext {
   /** Legacy folder name used as compatibility fallback if {@link #FOLDER_TEMPLATES} does not exist. */
   String FOLDER_LEGACY_TEMPLATES = "devon";
 
+  /** The filename of the configuration file in the settings for this {@link CustomToolRepository}. */
+  String FILE_CUSTOM_TOOLS = "ide-custom-tools.json";
+
+  String DEVON_IDE_CUSTOM_TOOLS = "DEVON_IDE_CUSTOM_TOOLS";
+  String IDE_CUSTOM_TOOLS = "IDE_CUSTOM_TOOLS";
+
   /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
    */

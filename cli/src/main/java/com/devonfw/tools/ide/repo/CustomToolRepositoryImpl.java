@@ -162,39 +162,46 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
     Path settingsPath = context.getSettingsPath();
     Path customToolsJson = null;
     if (settingsPath != null) {
-      customToolsJson = settingsPath.resolve(FILE_CUSTOM_TOOLS);
+      customToolsJson = settingsPath.resolve(IdeContext.FILE_CUSTOM_TOOLS);
     }
     List<CustomTool> tools = new ArrayList<>();
     if ((customToolsJson != null) && Files.exists(customToolsJson)) {
-      try (InputStream in = Files.newInputStream(customToolsJson);
-          Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-
-        JsonReader jsonReader = Json.createReader(new BufferedReader(reader));
-        JsonStructure json = jsonReader.read();
-        JsonObject jsonRoot = requireObject(json);
-        String defaultUrl = getString(jsonRoot, "url", "");
-        JsonArray jsonTools = requireArray(jsonRoot.get("tools"));
-        for (JsonValue jsonTool : jsonTools) {
-          JsonObject jsonToolObject = requireObject(jsonTool);
-          String name = getString(jsonToolObject, "name");
-          String version = getString(jsonToolObject, "version");
-          String url = getString(jsonToolObject, "url", defaultUrl);
-          boolean osAgnostic = getBoolean(jsonToolObject, "os-agnostic", Boolean.FALSE);
-          boolean archAgnostic = getBoolean(jsonToolObject, "arch-agnostic", Boolean.TRUE);
-          if (url.isEmpty()) {
-            throw new IllegalStateException("Missing 'url' property for tool '" + name + "'!");
-          }
-          // TODO
-          String checksum = null;
-          CustomTool customTool = new CustomTool(name, VersionIdentifier.of(version), osAgnostic, archAgnostic, url,
-              checksum, context.getSystemInfo());
-          tools.add(customTool);
-        }
-      } catch (Exception e) {
-        throw new IllegalStateException("Failed to read JSON from " + customToolsJson, e);
-      }
+      readCustomToolsFromJson(context, customToolsJson);
     }
     return new CustomToolRepositoryImpl(context, tools);
+  }
+
+  public static CustomToolsJson readCustomToolsFromJson(IdeContext context, Path customToolsJsonPath) {
+    try (InputStream in = Files.newInputStream(customToolsJsonPath);
+        Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+
+      JsonReader jsonReader = Json.createReader(new BufferedReader(reader));
+      JsonStructure json = jsonReader.read();
+      JsonObject jsonRoot = requireObject(json);
+      String defaultUrl = getString(jsonRoot, "url", "");
+      JsonArray jsonTools = requireArray(jsonRoot.get("tools"));
+      List<CustomTool> customTools = new ArrayList<>();
+
+      for (JsonValue jsonTool : jsonTools) {
+        JsonObject jsonToolObject = requireObject(jsonTool);
+        String name = getString(jsonToolObject, "name");
+        String version = getString(jsonToolObject, "version");
+        String url = getString(jsonToolObject, "url", defaultUrl);
+        boolean osAgnostic = getBoolean(jsonToolObject, "os-agnostic", Boolean.FALSE);
+        boolean archAgnostic = getBoolean(jsonToolObject, "arch-agnostic", Boolean.TRUE);
+        if (url.isEmpty()) {
+          throw new IllegalStateException("Missing 'url' property for tool '" + name + "'!");
+        }
+        // TODO
+        String checksum = null;
+        CustomTool customTool = new CustomTool(name, VersionIdentifier.of(version), osAgnostic, archAgnostic, url,
+            checksum, context.getSystemInfo());
+        customTools.add(customTool);
+      }
+      return new CustomToolsJson("tools", defaultUrl, customTools);
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to read JSON from " + customToolsJsonPath, e);
+    }
   }
 
   private static boolean getBoolean(JsonObject json, String property, Boolean defaultValue) {
