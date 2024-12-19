@@ -48,7 +48,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     uninstallCommandlet.run();
     // assert
     assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled " + npm),
-        IdeLogEntry.ofWarning("An installed version of " + dotnet + " does not exist"));
+        IdeLogEntry.ofWarning("Couldn't uninstall " + dotnet + " because we could not find an installation"));
     assertThat(context.getSoftwarePath().resolve(npm)).doesNotExist();
   }
 
@@ -65,7 +65,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     // act
     uninstallCommandlet.run();
     // assert
-    assertThat(context).logAtWarning().hasMessage("An installed version of " + eclipse + " does not exist");
+    assertThat(context).logAtWarning().hasMessage("Couldn't uninstall " + eclipse + " because we could not find an installation");
     assertThat(Files.notExists(context.getSoftwarePath().resolve(eclipse)));
   }
 

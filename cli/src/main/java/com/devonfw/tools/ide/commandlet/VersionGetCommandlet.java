@@ -55,9 +55,9 @@ public class VersionGetCommandlet extends Commandlet {
 
     ToolCommandlet commandlet = this.tool.getValue();
     VersionIdentifier configuredVersion = commandlet.getConfiguredVersion();
+    VersionIdentifier installedVersion = commandlet.getInstalledVersion();
     IdeSubLogger logger = this.context.level(IdeLogLevel.PROCESSABLE);
     if (this.installed.isTrue() && !this.configured.isTrue()) {// get installed version
-      VersionIdentifier installedVersion = commandlet.getInstalledVersion();
       if (installedVersion == null) {
         toolInstallInfo(commandlet.getName(), configuredVersion, null, commandlet);
       } else {
@@ -65,26 +65,35 @@ public class VersionGetCommandlet extends Commandlet {
       }
     } else if (!this.installed.isTrue() && this.configured.isTrue()) {// get configured version
       logger.log(configuredVersion.toString());
-    } else { // get both configured and installed version
-      VersionIdentifier installedVersion = commandlet.getInstalledVersion();
-      if (configuredVersion.matches(installedVersion)) {
-        logger.log(installedVersion.toString());
+    } else if (this.installed.isTrue() && this.configured.isTrue()) {// get both configured and installed version
+      logger.log(configuredVersion.toString());
+      if (!configuredVersion.matches(installedVersion)) {
+        if (installedVersion != null) {
+          logger.log(installedVersion.toString());
+        } else {
+          logger.log("No installed version detected");
+        }
+      }
+    } else {
+      if (installedVersion == null) {
+        logger.log(configuredVersion.toString());
       } else {
-        toolInstallInfo(commandlet.getName(), configuredVersion, installedVersion, commandlet);
+        logger.log(installedVersion.toString());
       }
     }
   }
 
   private void toolInstallInfo(String toolName, VersionIdentifier configuredVersion, VersionIdentifier installedVersion, ToolCommandlet commandlet) {
 
+    IdeSubLogger logger = this.context.level(IdeLogLevel.PROCESSABLE);
     if (installedVersion == null) {
-      this.context.info("No installation of tool {} was found.", commandlet.getName());
+      logger.log("No installation of tool {} was found.", commandlet.getName());
     } else {
-      this.context.info("The installed version for tool {} is {}", commandlet.getName(), installedVersion);
+      logger.log("The installed version for tool {} is {}", commandlet.getName(), installedVersion);
     }
-    this.context.info("The configured version for tool {} is {}", toolName, configuredVersion);
-    this.context.info("To install that version call the following command:");
-    this.context.info("ide install {}", toolName);
+    logger.log("The configured version for tool {} is {}", toolName, configuredVersion);
+    logger.log("To install that version call the following command:");
+    logger.log("ide install {}", toolName);
 
   }
 

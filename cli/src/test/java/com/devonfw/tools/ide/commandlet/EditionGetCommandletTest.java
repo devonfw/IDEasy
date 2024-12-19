@@ -72,10 +72,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     editionGet.tool.setValueAsString("az", context);
     editionGet.run();
     // assert
-    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("No installation of tool az was found."),
-        IdeLogEntry.ofInfo("The configured edition for tool az is az"),
-        IdeLogEntry.ofInfo("To install that edition call the following command:"),
-        IdeLogEntry.ofInfo("ide install az"));
+    assertThat(context).logAtProcessable().hasMessage("az");
   }
 
   /** Test of {@link EditionGetCommandlet} run, with --installed flag, when Installed Version is null. */
@@ -90,10 +87,10 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     // act
     editionGet.run();
     // assert
-    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("No installation of tool java was found."),
-        IdeLogEntry.ofInfo("The configured edition for tool java is java"),
-        IdeLogEntry.ofInfo("To install that edition call the following command:"),
-        IdeLogEntry.ofInfo("ide install java"));
+    assertThat(context).log().hasEntries(IdeLogEntry.ofProcessable("No installation of tool java was found."),
+        IdeLogEntry.ofProcessable("The configured edition for tool java is java"),
+        IdeLogEntry.ofProcessable("To install that edition call the following command:"),
+        IdeLogEntry.ofProcessable("ide install java"));
   }
 
 
