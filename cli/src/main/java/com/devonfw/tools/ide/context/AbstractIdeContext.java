@@ -51,6 +51,7 @@ import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
 import com.devonfw.tools.ide.repo.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.repo.DefaultToolRepository;
+import com.devonfw.tools.ide.repo.MavenRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
@@ -59,6 +60,8 @@ import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.variable.IdeVariables;
+
+import javax.tools.Tool;
 
 /**
  * Abstract base implementation of {@link IdeContext}.
@@ -120,6 +123,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   protected ToolRepository defaultToolRepository;
 
   private CustomToolRepository customToolRepository;
+
+  private MavenRepository mavenRepository;
 
   private DirectoryMerger workspaceMerger;
 
@@ -200,6 +205,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
 
     this.defaultToolRepository = new DefaultToolRepository(this);
+    this.mavenRepository = new MavenRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -365,6 +371,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   public ToolRepository getDefaultToolRepository() {
 
     return this.defaultToolRepository;
+  }
+
+  @Override
+  public ToolRepository getMavenSoftwareRepository() {
+
+    return this.mavenRepository;
   }
 
   @Override
