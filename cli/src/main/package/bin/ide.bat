@@ -16,7 +16,7 @@ if exist "%GIT_BIN%" (
 )
 
 if exist "%GIT_CORE%" (
-	echo "%PATH%" | find /i "%GIT_CORE%">nul  || set PATH=%PATH%;%GIT_CORE%
+	echo "%PATH%" | find /i "%GIT_CORE%">nul  || set "PATH=%PATH%;%GIT_CORE%"
 )
 
 if not "%1%" == "" (
