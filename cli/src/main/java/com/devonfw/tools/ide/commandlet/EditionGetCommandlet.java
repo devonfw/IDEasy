@@ -54,10 +54,9 @@ public class EditionGetCommandlet extends Commandlet {
 
     ToolCommandlet commandlet = this.tool.getValue();
     String configuredEdition = commandlet.getConfiguredEdition();
+    String installedEdition = commandlet.getInstalledEdition();
     IdeSubLogger logger = this.context.level(IdeLogLevel.PROCESSABLE);
-
     if (this.installed.isTrue() && !this.configured.isTrue()) { // get installed edition
-      String installedEdition = commandlet.getInstalledEdition();
       if (commandlet.getInstalledVersion() == null) {
         // note: getInstalledEdition() will fallback to configured edition and not return null, therefore we use getInstalledVersion()
         toolInstallInfo(commandlet.getName(), configuredEdition, null, commandlet);
@@ -66,25 +65,34 @@ public class EditionGetCommandlet extends Commandlet {
       }
     } else if (!this.installed.isTrue() && this.configured.isTrue()) { // get configured edition
       logger.log(configuredEdition);
-    } else { // get both configured and installed edition
-      String installedEdition = commandlet.getInstalledEdition();
-      if (configuredEdition.equals(installedEdition)) {
-        logger.log(installedEdition);
+    } else if (this.installed.isTrue() && this.configured.isTrue()) { // get both configured and installed edition
+      logger.log(configuredEdition);
+      if (!configuredEdition.equals(installedEdition)) {
+        if (commandlet.getInstalledVersion() != null) {
+          logger.log(installedEdition);
+        } else {
+          logger.log("No installed edition detected");
+        }
+      }
+    } else { // get configured or installed depending on if the tool is installed or not
+      if (commandlet.getInstalledVersion() == null) {
+        logger.log(configuredEdition);
       } else {
-        toolInstallInfo(commandlet.getName(), configuredEdition, installedEdition, commandlet);
+        logger.log(installedEdition);
       }
     }
   }
 
   private void toolInstallInfo(String toolName, String configuredEdition, String installedEdition, ToolCommandlet commandlet) {
 
+    IdeSubLogger logger = this.context.level(IdeLogLevel.PROCESSABLE);
     if (installedEdition == null) {
-      this.context.warning("No installation of tool {} was found.", commandlet.getName());
+      logger.log("No installation of tool {} was found.", commandlet.getName());
     } else {
-      this.context.info("The installed edition for tool {} is {}", commandlet.getName(), installedEdition);
+      logger.log("The installed edition for tool {} is {}", commandlet.getName(), installedEdition);
     }
-    this.context.info("The configured edition for tool {} is {}", toolName, configuredEdition);
-    this.context.info("To install that edition call the following command:");
-    this.context.info("ide install {}", toolName);
+    logger.log("The configured edition for tool {} is {}", toolName, configuredEdition);
+    logger.log("To install that edition call the following command:");
+    logger.log("ide install {}", toolName);
   }
 }
