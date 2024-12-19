@@ -21,9 +21,12 @@ public interface WorkspaceMerger {
   /**
    * @param workspace the workspace {@link Path} where to get the changes from.
    * @param variables the {@link EnvironmentVariables} to {@link EnvironmentVariables#inverseResolve(String, Object) inverse resolve variables}.
-   * @param addNewProperties - {@code true} to also add new properties to the {@code updateFile}, {@code false} otherwise (to only update existing properties).
+   * @param addNewProperties - {@code true} to also add new properties to the {@code updateFile}, {@code false} otherwise (to only update existing
+   *     properties).
    * @param update the update {@link Path}
    */
   void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update);
+
+  void upgrade(Path workspace);
 
 }

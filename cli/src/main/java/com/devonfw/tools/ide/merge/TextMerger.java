@@ -59,4 +59,10 @@ public class TextMerger extends FileMerger {
   public void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update) {
 
   }
+
+  @Override
+  protected boolean doUpgrade(Path workspaceFile) throws Exception {
+
+    return doUpgradeTextContent(workspaceFile);
+  }
 }

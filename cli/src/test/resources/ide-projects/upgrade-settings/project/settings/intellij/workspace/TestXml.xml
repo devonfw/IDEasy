@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<application strategy="override" version="4">
+  <component name="Trusted.Paths" id="@name">
+    <option name="TRUSTED_PROJECT_PATHS" id="@name">
+      <map id="name()">
+        <entry key="$[WORKSPACE_PATH]" value="true" id="@key"/>
+      </map>
+    </option>
+  </component>
+  <component name="Trusted.Paths.Settings" id="@name">
+    <option name="TRUSTED_PATHS" id="@name">
+      <list id="name()">
+        <option value="$[WORKSPACE_PATH]" id="@value"/>
+      </list>
+    </option>
+  </component>
+</application>
