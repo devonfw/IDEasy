@@ -1,19 +1,15 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.io.BufferedReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import org.json.simple.JSONArray;
@@ -21,6 +17,7 @@ import org.json.simple.JSONObject;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.merge.DirectoryMerger;
 
 /**
  * {@link Commandlet} to upgrade settings after a migration from devofw-ide to IDEasy.
@@ -50,8 +47,6 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     updateDevonProperties();
     replaceLegacyVariablesAndBracketsInWorkspace();
     checkIfLegacyFolderExists();
-    handleReplacementPatternsFiles();
-    checkForXmlNamespace();
   }
 
   private void checkIfLegacyFolderExists() {
@@ -96,157 +91,38 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   private void replaceLegacyVariablesAndBracketsInWorkspace() {
     this.context.info("Scanning for legacy variables...");
 
-    Map<String, String> legacyToNewMapping = Map.of(
-        "${DEVON_IDE_HOME}", "$[IDE_HOME]",
-        "${MAVEN_VERSION}", "$[MVN_VERSION]",
-        "${SETTINGS_PATH}", "$[IDE_HOME]/settings"
-    );
-
-    Path settingsDirectory = context.getIdeHome().resolve("settings");
-
-    try {
-      Files.walk(settingsDirectory)
-          .filter(path -> Files.isDirectory(path) && path.getFileName().toString().equals("workspace"))
-          .forEach(workspaceDir -> {
-            try {
-              Files.walk(workspaceDir)
-                  .filter(Files::isRegularFile)
-                  .forEach(file -> {
-                    try {
-                      String content = Files.readString(file);
-                      String originalContent = content;
-
-                      for (Map.Entry<String, String> entry : legacyToNewMapping.entrySet()) {
-                        content = content.replace(entry.getKey(), entry.getValue());
-                      }
-
-                      content = content.replace("{", "[");
-                      content = content.replace("}", "]");
-
-                      if (!content.equals(originalContent)) {
-                        Files.writeString(file, content, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-                        this.context.success("Successfully updated variables/brackets " + file);
-                      }
-                    } catch (AccessDeniedException e) {
-                      this.context.error("Access denied to file: " + file + ", exception: " + e);
-                    } catch (IOException e) {
-                      this.context.error("Error processing file: " + file + ", exception: " + e);
-                    }
-                  });
-            } catch (IOException e) {
-              this.context.error("Error while processing files in workspace: " + workspaceDir, e);
-            }
-          });
-    } catch (IOException e) {
-      this.context.error("Error while scanning for workspace directories", e);
+    DirectoryMerger merger = this.context.getWorkspaceMerger();
+    Path settingsDir = this.context.getSettingsPath();
+    Path workspaceDir = settingsDir.resolve(IdeContext.FOLDER_WORKSPACE);
+    if (Files.isDirectory(workspaceDir)) {
+      merger.upgrade(workspaceDir);
     }
-  }
-
-  private void handleReplacementPatternsFiles() {
-    this.context.info("Scanning for legacy files");
-
-    Path settingsDirectory = context.getIdeHome().resolve("settings");
-
-    try {
-      Files.walk(settingsDirectory)
-          .filter(path -> Files.isRegularFile(path) && path.getFileName().toString().equals("replacement-patterns.properties"))
-          .forEach(file -> {
-            try {
-              String content = Files.readString(file);
-              if (!content.trim().isEmpty()) {
-                this.context.warning("The file 'replacement-patterns.properties' is not empty: " + file);
-              }
-
-              Files.delete(file);
-              this.context.success("Deleted 'replacement-patterns.properties' from: " + file);
-            } catch (IOException e) {
-              this.context.error("Error processing 'replacement-patterns.properties' file: " + file, e);
-            }
-          });
-    } catch (IOException e) {
-      this.context.error("Error scanning for 'replacement-patterns.properties' file", e);
-    }
-  }
-
-  private void checkForXmlNamespace() {
-    this.context.info("Scanning XML files...");
-    Path settingsDirectory = context.getSettingsPath();
-    AtomicBoolean missingNamespaceFound = new AtomicBoolean(false);
-
-    try {
-      List<Path> workspaceDirs = findWorkspaceDirectories(settingsDirectory);
-
-      for (Path workspaceDir : workspaceDirs) {
-        missingNamespaceFound.set(
-            checkXmlFilesForNamespace(workspaceDir, missingNamespaceFound.get()));
+    this.context.getFileAccess().listChildrenMapped(settingsDir, child -> {
+      Path childWorkspaceDir = child.resolve(IdeContext.FOLDER_WORKSPACE);
+      if (Files.isDirectory(childWorkspaceDir)) {
+        merger.upgrade(childWorkspaceDir);
       }
-
-      // Output the result
-      if (missingNamespaceFound.get()) {
-        this.context.warning("For further information, please visit https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc#xml-merger");
-      } else {
-        this.context.success("Your XML files are up to date");
-      }
-
-    } catch (IOException e) {
-      this.context.error("Error walking through the 'settings' directory", e);
-    }
+      return null;
+    });
   }
 
-  private List<Path> findWorkspaceDirectories(Path settingsDirectory) throws IOException {
+  private List<Path> findWorkspaceDirectories() {
+    Path settingsDir = this.context.getSettingsPath();
     List<Path> workspaceDirs = new ArrayList<>();
-    Files.walk(settingsDirectory)
-        .filter(path -> Files.isDirectory(path) && path.getFileName().toString().equals("workspace"))
-        .forEach(workspaceDirs::add);
+    Path workspaceDir = settingsDir.resolve(IdeContext.FOLDER_WORKSPACE);
+    if (Files.isDirectory(workspaceDir)) {
+      workspaceDirs.add(workspaceDir);
+    }
+    List<Path> childWorkspaceDirs = this.context.getFileAccess().listChildrenMapped(settingsDir, child -> {
+      Path childWorkspaceDir = child.resolve(IdeContext.FOLDER_WORKSPACE);
+      if (Files.isDirectory(childWorkspaceDir)) {
+        return childWorkspaceDir;
+      }
+      return null;
+    });
+    workspaceDirs.addAll(childWorkspaceDirs);
     return workspaceDirs;
   }
-
-  private boolean checkXmlFilesForNamespace(Path workspaceDir, boolean missingNamespaceFound) {
-    try {
-      List<Path> xmlFiles = findXmlFilesInDirectory(workspaceDir);
-
-      for (Path xmlFile : xmlFiles) {
-        missingNamespaceFound = checkXmlNamespaceInFile(xmlFile, missingNamespaceFound);
-      }
-    } catch (IOException e) {
-      this.context.error("Error processing workspace directory: " + workspaceDir, e);
-    }
-    return missingNamespaceFound;
-  }
-
-  private List<Path> findXmlFilesInDirectory(Path directory) throws IOException {
-    List<Path> xmlFiles = new ArrayList<>();
-    Files.walk(directory)
-        .filter(file -> Files.isRegularFile(file) && file.toString().endsWith(".xml"))
-        .forEach(xmlFiles::add);
-    return xmlFiles;
-  }
-
-  private boolean checkXmlNamespaceInFile(Path xmlFile, boolean missingNamespaceFound) {
-    try (BufferedReader reader = Files.newBufferedReader(xmlFile)) {
-      String line;
-      int linesRead = 0;
-      boolean namespaceFound = false;
-
-      while ((line = reader.readLine()) != null && linesRead < 3) {
-        linesRead++;
-        if (line.contains("\"https://github.com/devonfw/IDEasy/merge\"")) {
-          namespaceFound = true;
-          break;
-        }
-      }
-
-      if (!namespaceFound) {
-        this.context.warning("The XML file " + xmlFile + " does not contain the required 'xmlns:merge' attribute.");
-        missingNamespaceFound = true;
-      }
-
-    } catch (IOException e) {
-      this.context.error("Error reading the file: " + xmlFile, e);
-    }
-    return missingNamespaceFound;
-  }
-
 
   private void createCustomToolsJson(String variable) {
     try (FileWriter writer = new FileWriter(context.getIdeHome().resolve("settings").resolve(IdeContext.FILE_CUSTOM_TOOLS).toString())) {

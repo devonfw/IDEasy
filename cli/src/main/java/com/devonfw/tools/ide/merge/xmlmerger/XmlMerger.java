@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.merge.xmlmerger;
 
+import java.io.BufferedWriter;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,6 +36,7 @@ public class XmlMerger extends FileMerger {
 
   private static final TransformerFactory TRANSFORMER_FACTORY;
 
+  /** The namespace URI for this XML merger. */
   public static final String MERGE_NS_URI = "https://github.com/devonfw/IDEasy/merge";
 
   static {
@@ -255,4 +257,81 @@ public class XmlMerger extends FileMerger {
       attribute.setValue(resolvedValue);
     }
   }
+
+  @Override
+  protected boolean doUpgrade(Path workspaceFile) throws Exception {
+
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder builder = factory.newDocumentBuilder();
+    Document document = builder.parse(workspaceFile.toFile());
+    checkForXmlNamespace(document, workspaceFile);
+    boolean modified = updateWorkspaceXml(document.getDocumentElement());
+    if (modified) {
+      TransformerFactory transformerFactory = TransformerFactory.newInstance();
+      Transformer transformer = transformerFactory.newTransformer();
+      DOMSource source = new DOMSource(document);
+      try (BufferedWriter writer = Files.newBufferedWriter(workspaceFile)) {
+        StreamResult result = new StreamResult(writer);
+        transformer.transform(source, result);
+      }
+    }
+    return modified;
+  }
+
+  private boolean updateWorkspaceXml(Element element) {
+
+    boolean modified = false;
+    NamedNodeMap attributes = element.getAttributes();
+    if (attributes != null) {
+      for (int i = 0; i < attributes.getLength(); i++) {
+        Node node = attributes.item(i);
+        if (node instanceof Attr attribute) {
+          String value = attribute.getValue();
+          String migratedValue = upgradeWorkspaceContent(value);
+          if (!migratedValue.equals(value)) {
+            modified = true;
+            attribute.setValue(migratedValue);
+          }
+        }
+      }
+    }
+
+    NodeList childNodes = element.getChildNodes();
+    for (int i = 0; i < childNodes.getLength(); i++) {
+      Node childNode = childNodes.item(i);
+      boolean childModified = false;
+      if (childNode instanceof Element childElement) {
+        childModified = updateWorkspaceXml(childElement);
+      } else if (childNode instanceof Text childText) {
+        String text = childText.getTextContent();
+        String migratedText = upgradeWorkspaceContent(text);
+        childModified = !migratedText.equals(text);
+        if (childModified) {
+          childText.setTextContent(migratedText);
+        }
+      }
+      if (childModified) {
+        modified = true;
+      }
+    }
+    return modified;
+  }
+
+  private void checkForXmlNamespace(Document document, Path workspaceFile) {
+
+    NamedNodeMap attributes = document.getDocumentElement().getAttributes();
+    if (attributes != null) {
+      for (int i = 0; i < attributes.getLength(); i++) {
+        Node node = attributes.item(i);
+        String uri = node.getNamespaceURI();
+        if (MERGE_NS_URI.equals(uri)) {
+          return;
+        }
+      }
+    }
+    this.context.warning(
+        "The XML file {} does not contain the XML merge namespace as seems outdated. For details see:\n"
+            + "https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc#xml-merger", workspaceFile);
+  }
+
 }

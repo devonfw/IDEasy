@@ -828,7 +828,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public List<Path> listChildren(Path dir, Predicate<Path> filter) {
+  public List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter) {
 
     if (!Files.isDirectory(dir)) {
       return List.of();
@@ -838,9 +838,14 @@ public class FileAccessImpl implements FileAccess {
       Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
         Path child = iterator.next();
-        if (filter.test(child)) {
-          this.context.trace("Accepted file {}", child);
-          children.add(child);
+        Path filteredChild = filter.apply(child);
+        if (filteredChild != null) {
+          if (filteredChild == child) {
+            this.context.trace("Accepted file {}", child);
+          } else {
+            this.context.trace("Accepted file {} and mapped to {}", child, filteredChild);
+          }
+          children.add(filteredChild);
         } else {
           this.context.trace("Ignoring file {} according to filter", child);
         }
