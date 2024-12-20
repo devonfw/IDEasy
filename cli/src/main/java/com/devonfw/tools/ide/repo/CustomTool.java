@@ -7,6 +7,8 @@ import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * Representation of a {@link CustomTool} from a {@link CustomToolRepository}.
@@ -16,6 +18,8 @@ public final class CustomTool implements UrlDownloadFileMetadata {
   private final String tool;
 
   private final VersionIdentifier version;
+
+  private final String versionString;
 
   private final boolean osAgnostic;
 
@@ -35,23 +39,23 @@ public final class CustomTool implements UrlDownloadFileMetadata {
    * The constructor.
    *
    * @param tool the {@link #getTool() tool}.
-   * @param versionIdentifier the {@link #getVersion() version}.
+   * @param versionString the {@link #getVersion() version}.
    * @param osAgnostic the {@link #isOsAgnostic() OS-agnostic flag}.
    * @param archAgnostic the {@link #isArchAgnostic() architecture-agnostic flag}.
    * @param repositoryUrl the {@link #getRepositoryUrl() repository URL}.
    * @param checksum the {@link #getChecksum() checksum}.
    * @param systemInfo the {@link SystemInfo}.
    */
-  public CustomTool(String tool, VersionIdentifier versionIdentifier, boolean osAgnostic, boolean archAgnostic,
+  public CustomTool(String tool, String versionString, boolean osAgnostic, boolean archAgnostic,
       String repositoryUrl, String checksum, SystemInfo systemInfo) {
 
     super();
     this.tool = tool;
-    this.version = versionIdentifier;
+    this.versionString = versionString;
+    this.version = VersionIdentifier.of(versionString);
     this.osAgnostic = osAgnostic;
     this.archAgnostic = archAgnostic;
     this.repositoryUrl = repositoryUrl;
-    String versionString = versionIdentifier.toString();
     int capacity = repositoryUrl.length() + 2 * tool.length() + 2 * versionString.length() + 7;
     if (osAgnostic) {
       this.os = null;
@@ -92,26 +96,36 @@ public final class CustomTool implements UrlDownloadFileMetadata {
   }
 
   @Override
+  @JsonProperty(value = "name")
   public String getTool() {
 
     return this.tool;
   }
 
   @Override
+  @JsonIgnore
   public String getEdition() {
 
     return this.tool;
   }
 
   @Override
+  @JsonIgnore
   public VersionIdentifier getVersion() {
 
-    return this.version;
+    return version;
+  }
+
+  @JsonProperty(value = "version")
+  public String getVersionString() {
+
+    return version.toString();
   }
 
   /**
    * @return {@code true} if {@link OperatingSystem} agnostic, {@code false} otherwise.
    */
+  @JsonProperty(value = "os-agnostic")
   public boolean isOsAgnostic() {
 
     return this.osAgnostic;
@@ -120,6 +134,7 @@ public final class CustomTool implements UrlDownloadFileMetadata {
   /**
    * @return {@code true} if {@link SystemArchitecture} agnostic, {@code false} otherwise.
    */
+  @JsonProperty(value = "arch-agnostic")
   public boolean isArchAgnostic() {
 
     return this.archAgnostic;
@@ -127,8 +142,9 @@ public final class CustomTool implements UrlDownloadFileMetadata {
 
   /**
    * @return the repository base URL. This may be a typical URL (e.g. "https://host/path") but may also be a path in your file-system (e.g. to a mounted remote
-   * network drive).
+   *     network drive).
    */
+  @JsonIgnore
   public String getRepositoryUrl() {
 
     return this.repositoryUrl;
@@ -143,24 +159,28 @@ public final class CustomTool implements UrlDownloadFileMetadata {
   }
 
   @Override
+  @JsonIgnore
   public String getChecksum() {
 
     return this.checksum;
   }
 
   @Override
+  @JsonIgnore
   public OperatingSystem getOs() {
 
     return this.os;
   }
 
   @Override
+  @JsonIgnore
   public SystemArchitecture getArch() {
 
     return this.arch;
   }
 
   @Override
+  @JsonIgnore
   public Set<String> getUrls() {
 
     return Set.of(this.url);
