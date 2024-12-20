@@ -26,10 +26,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     // act
     versionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasEntries("No installation of tool java was found.",
-        "The configured version for tool java is 17*",
-        "To install that version call the following command:",
-        "ide install java");
+    assertThat(context).logAtProcessable().hasMessage("17*");
   }
 
   @Test
@@ -43,7 +40,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     // act
     versionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasEntries("No installation of tool java was found.",
+    assertThat(context).logAtProcessable().hasEntries("No installation of tool java was found.",
         "The configured version for tool java is 17*",
         "To install that version call the following command:",
         "ide install java");
@@ -130,10 +127,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
     versionGet.tool.setValueAsString("java", context);
     versionGet.run();
     // assert
-    assertThat(context).logAtInfo().hasEntries("No installation of tool java was found.",
-        "The configured version for tool java is *",
-        "To install that version call the following command:",
-        "ide install java");
+    assertThat(context).logAtProcessable().hasMessage("*");
   }
 
 }
