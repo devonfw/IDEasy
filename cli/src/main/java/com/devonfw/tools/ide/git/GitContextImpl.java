@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.git;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -57,6 +58,21 @@ public class GitContextImpl implements GitContext {
       return false;
     }
     return !localCommitId.equals(remoteCommitId);
+  }
+
+  @Override
+  public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
+
+    verifyGitInstalled();
+    String trackedCommitId;
+    try {
+      trackedCommitId = Files.readString(trackedCommitIdPath);
+    } catch (IOException e) {
+      return false;
+    }
+
+    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
+    return !trackedCommitId.equals(remoteCommitId);
   }
 
   @Override
@@ -291,6 +307,24 @@ public class GitContextImpl implements GitContext {
         .directory(directory);
     processContext.addArgs(args);
     return processContext.run(mode);
+  }
+
+  @Override
+  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+
+    if ((repository == null) || (trackedCommitIdPath == null)) {
+      this.context.warning("Invalid usage of saveCurrentCommitId with null value");
+      return;
+    }
+    this.context.trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
+    String currentCommitId = runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
+    if (currentCommitId != null) {
+      try {
+        Files.writeString(trackedCommitIdPath, currentCommitId);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to save commit ID", e);
+      }
+    }
   }
 }
 
