@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.VariableLine;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,19 +28,11 @@ public record CustomToolsJson(@JsonIgnore String title, String url, List<CustomT
    * @return {@link CustomToolsJson}.
    */
   public static CustomToolsJson retrieveCustomToolsFromLegacyConfig(String customToolsContent, IdeContext context) {
-    int firstParenthesis = customToolsContent.indexOf("(");
-    int lastParenthesis = customToolsContent.indexOf(")");
-    if (firstParenthesis < 0 || lastParenthesis < 0) {
-      return null;
-    }
+    List<String> tools = VariableLine.fromString(customToolsContent, true);
 
-    String toolsString = customToolsContent.substring(customToolsContent.indexOf("(") + 1, customToolsContent.indexOf(")"));
-
-    if (!toolsString.isEmpty()) {
-      // TODO: use properties parser
-      String[] tools = toolsString.split(" ");
+    if (!tools.isEmpty()) {
       List<CustomTool> customToolJsonList = new ArrayList<>();
-      Tool toolObject = parseTool(tools[0], "");
+      Tool toolObject = parseTool(tools.get(0), "");
       String defaultUrl = "";
       if (toolObject != null) {
         defaultUrl = toolObject.url();
