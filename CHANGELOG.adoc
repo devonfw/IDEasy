@@ -20,6 +20,7 @@ Then run the `setup` and all should work fine.
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/764[#764]: Fix IDEasy in CMD
 * https://github.com/devonfw/IDEasy/issues/774[#774]: HTTP proxy support not working properly
 * https://github.com/devonfw/IDEasy/issues/792[#792]: Honor new variable IDE_OPTIONS in ide command wrapper
 * https://github.com/devonfw/IDEasy/issues/589[#589]: Fix NLS Bundles for Linux and MacOS
