@@ -194,7 +194,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
         }
         // TODO
         String checksum = null;
-        CustomTool customTool = new CustomTool(name, VersionIdentifier.of(version), osAgnostic, archAgnostic, url,
+        CustomTool customTool = new CustomTool(name, version, osAgnostic, archAgnostic, url,
             checksum, context.getSystemInfo());
         customTools.add(customTool);
       }

@@ -11,7 +11,6 @@ import com.devonfw.tools.ide.context.IdeSlf4jContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Test of {@link CustomTool}.
@@ -26,7 +25,7 @@ public class CustomToolTest extends Assertions {
 
     // arrange
     String name = "jboss-eap";
-    VersionIdentifier version = VersionIdentifier.of("7.4.5.GA");
+    String version = "7.4.5.GA";
     String repositoryUrl = "https://host.domain.tld:8443/folder/repo";
     String checksum = "4711";
     boolean osAgnostic = true;
@@ -52,7 +51,7 @@ public class CustomToolTest extends Assertions {
 
     // arrange
     String name = "firefox";
-    VersionIdentifier version = VersionIdentifier.of("70.0.1");
+    String version = "70.0.1";
     String repositoryUrl = "https://host.domain.tld:8443/folder/repo";
     String checksum = "4711";
     boolean osAgnostic = false;
@@ -92,7 +91,7 @@ public class CustomToolTest extends Assertions {
   public void testReadCustomToolsFromLegacyConfig() {
     // arrange
     IdeContext context = new IdeTestContext();
-    String legacyProperties = "DEVON_IDE_CUSTOM_TOOLS=(jboss-eap:7.1.4.GA:all:https://host.tld/projects/my-project firefox:70.0.1:all:https://host.tld/projects/my-project2)";
+    String legacyProperties = "(jboss-eap:7.1.4.GA:all:https://host.tld/projects/my-project firefox:70.0.1:all:https://host.tld/projects/my-project2)";
     // act
     CustomToolsJson customToolsJson = CustomToolsJson.retrieveCustomToolsFromLegacyConfig(legacyProperties, context);
     // assert
@@ -107,7 +106,7 @@ public class CustomToolTest extends Assertions {
   public void testReadEmptyCustomToolsFromLegacyConfig() {
     // arrange
     IdeContext context = new IdeTestContext();
-    String legacyProperties = "DEVON_IDE_CUSTOM_TOOLS=()";
+    String legacyProperties = "()";
     // act
     CustomToolsJson customToolsJson = CustomToolsJson.retrieveCustomToolsFromLegacyConfig(legacyProperties, context);
     // assert
@@ -118,7 +117,7 @@ public class CustomToolTest extends Assertions {
   public void testReadFaultyCustomToolsFromLegacyConfig() {
     // arrange
     IdeContext context = new IdeTestContext();
-    String legacyProperties = "DEVON_IDE_CUSTOM_TOOLS=(jboss-eap:7.1.4.GA:all)";
+    String legacyProperties = "(jboss-eap:7.1.4.GA:all)";
     // act
     CustomToolsJson customToolsJson = CustomToolsJson.retrieveCustomToolsFromLegacyConfig(legacyProperties, context);
     // assert
