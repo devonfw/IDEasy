@@ -312,10 +312,11 @@ public class GitContextImpl implements GitContext {
   @Override
   public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
 
-    this.context.trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
-    if (Objects.isNull(repository)) {
+    if ((repository == null) || (trackedCommitIdPath == null)) {
+      this.context.warning("Invalid usage of saveCurrentCommitId with null value");
       return;
     }
+    this.context.trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
     String currentCommitId = runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
     if (currentCommitId != null) {
       try {
