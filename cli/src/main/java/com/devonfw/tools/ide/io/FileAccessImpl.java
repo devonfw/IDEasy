@@ -27,6 +27,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -912,13 +913,14 @@ public class FileAccessImpl implements FileAccess {
       }
       try {
         // Read the current file permissions
-        Set<PosixFilePermission> perms = Files.getPosixFilePermissions(file);
+        Set<PosixFilePermission> existingPermissions = Files.getPosixFilePermissions(file);
 
         // Add execute permission for all users
+        Set<PosixFilePermission> executablePermissions = new HashSet<>(existingPermissions);
         boolean update = false;
-        update |= perms.add(PosixFilePermission.OWNER_EXECUTE);
-        update |= perms.add(PosixFilePermission.GROUP_EXECUTE);
-        update |= perms.add(PosixFilePermission.OTHERS_EXECUTE);
+        update |= executablePermissions.add(PosixFilePermission.OWNER_EXECUTE);
+        update |= executablePermissions.add(PosixFilePermission.GROUP_EXECUTE);
+        update |= executablePermissions.add(PosixFilePermission.OTHERS_EXECUTE);
 
         if (update) {
           if (confirm) {
@@ -928,6 +930,8 @@ public class FileAccessImpl implements FileAccess {
                     + "Before running the command, we suggest to set executable permissions to the file:\n"
                     + file + "\n"
                     + "For security reasons we ask for your confirmation so please check this request.\n"
+                    + "Changing permissions from " + PosixFilePermissions.toString(existingPermissions) + " to " + PosixFilePermissions.toString(
+                    executablePermissions) + ".\n"
                     + "Do you confirm to make the command executable before running it?");
             if (!yesContinue) {
               return;
@@ -935,7 +939,7 @@ public class FileAccessImpl implements FileAccess {
           }
           this.context.debug("Setting executable flags for file {}", file);
           // Set the new permissions
-          Files.setPosixFilePermissions(file, perms);
+          Files.setPosixFilePermissions(file, executablePermissions);
         } else {
           this.context.trace("Executable flags already present so no need to set them for file {}", file);
         }
