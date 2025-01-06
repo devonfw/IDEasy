@@ -287,4 +287,16 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
     return oldValue;
   }
 
+  /**
+   * Removes a property.
+   *
+   * @param name name of the property to remove.
+   */
+  public void remove(String name) {
+    this.variables.remove(name);
+    this.modifiedVariables.add(name);
+    this.exportedVariables.remove(name);
+    this.context.debug("Removed variable name of '{}' in {}", name, this.propertiesFilePath);
+  }
+
 }

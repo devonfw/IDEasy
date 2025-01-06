@@ -73,7 +73,7 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
     if (value.isEmpty()) {
       return Collections.emptyList();
     }
-    List<String> list = VariableLine.fromString(value, isBashArray(value));
+    List<String> list = VariableLine.parseArray(value);
     list = Collections.unmodifiableList(list);
     return list;
   }

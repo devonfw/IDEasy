@@ -28,7 +28,7 @@ public record CustomToolsJson(@JsonIgnore String title, String url, List<CustomT
    * @return {@link CustomToolsJson}.
    */
   public static CustomToolsJson retrieveCustomToolsFromLegacyConfig(String customToolsContent, IdeContext context) {
-    List<String> tools = VariableLine.fromString(customToolsContent, true);
+    List<String> tools = VariableLine.parseArray(customToolsContent);
 
     if (!tools.isEmpty()) {
       List<CustomTool> customToolJsonList = new ArrayList<>();

@@ -321,13 +321,13 @@ public abstract class VariableLine {
    * Returns a list of String Variables.
    *
    * @param value String to parse
-   * @param isBashArray boolean {@link true} if starting and ending with parenthesis, {@link false if not}.
    * @return List of variables.
    */
-  public static List<String> fromString(String value, boolean isBashArray) {
+  public static List<String> parseArray(String value) {
     String csv = value;
     String separator = ",";
-    if (isBashArray) {
+    // TODO: refactor with isBashArray method from VariableDefinitionStringList
+    if (value.startsWith("(") && value.endsWith(")")) {
       csv = value.substring(1, value.length() - 1);
       separator = " ";
     }

@@ -264,4 +264,10 @@ public interface EnvironmentVariables {
     return tool.toUpperCase(Locale.ROOT) + "_EDITION";
   }
 
+  /**
+   * Removes a property.
+   *
+   * @param string name of the property to remove.
+   */
+  void remove(String string);
 }
