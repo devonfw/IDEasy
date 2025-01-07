@@ -106,6 +106,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     }
   }
 
+  /**
+   * Updates the settings repository in IDE_HOME/settings by either cloning if no such repository exists or pulling
+   * if the repository exists then saves the latest current commit ID in the file ".commit.id".
+   */
   protected void updateSettings() {
 
     Path settingsPath = this.context.getSettingsPath();
