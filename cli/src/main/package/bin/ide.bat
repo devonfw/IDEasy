@@ -39,4 +39,4 @@ if %ERRORLEVEL% == 0 (
 if not %ERRORLEVEL% == 0 (
 	echo %_fBRed%Error: IDEasy failed with exit code %ERRORLEVEL% %_RESET%
 	exit /b %ERRORLEVEL%
-  )
+)
