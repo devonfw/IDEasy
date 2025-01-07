@@ -37,6 +37,6 @@ if %ERRORLEVEL% == 0 (
 
 :output_error
 if not %ERRORLEVEL% == 0 (
-	echo %_fBRed%Error: IDEasy failed with exit code %ERRORLEVEL% %_RESET%
-	exit /b %ERRORLEVEL%
+  echo %_fBRed%Error: IDEasy failed with exit code %ERRORLEVEL% %_RESET%
+  exit /b %ERRORLEVEL%
 )
