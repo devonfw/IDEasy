@@ -52,6 +52,7 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     TextMerger textMerger = new TextMerger(context);
     this.extension2mergerMap.put("name", textMerger); // intellij specific
     this.extension2mergerMap.put("editorconfig", textMerger);
+    this.extension2mergerMap.put("txt", textMerger);
     this.fallbackMerger = new FallbackMerger(context);
   }
 
@@ -154,7 +155,7 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
           String filename = child.getFileName().toString();
           if ("replacement-patterns.properties".equals(filename)) {
             this.context.warning("Found obsolete file {}", child);
-            // Files.delete(child);
+            Files.delete(child);
           }
           FileMerger merger = getMerger(child);
           merger.upgrade(child);

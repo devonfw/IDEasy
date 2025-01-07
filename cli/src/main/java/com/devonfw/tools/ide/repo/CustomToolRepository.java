@@ -8,8 +8,8 @@ import java.util.Collection;
 public interface CustomToolRepository extends ToolRepository {
 
   /**
-   * @return the {@link Collection} with the {@link CustomTool}s. Will be {@link Collection#isEmpty() empty} if no custom tools are configured.
+   * @return the {@link Collection} with the {@link CustomToolMetadata}s. Will be {@link Collection#isEmpty() empty} if no custom tools are configured.
    */
-  Collection<CustomTool> getTools();
+  Collection<CustomToolMetadata> getTools();
 
 }

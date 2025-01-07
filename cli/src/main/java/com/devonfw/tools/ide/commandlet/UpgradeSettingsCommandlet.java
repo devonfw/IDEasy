@@ -8,8 +8,10 @@ import java.nio.file.StandardCopyOption;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.repo.CustomToolsJson;
+import com.devonfw.tools.ide.repo.CustomToolsJsonMapper;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -36,47 +38,31 @@ public class UpgradeSettingsCommandlet extends Commandlet {
 
   @Override
   public void run() {
+    updateLegacyFolders();
     updateProperties();
     replaceLegacyVariablesAndBracketsInWorkspace();
-    checkIfLegacyFolderExists();
   }
 
-  private void checkIfLegacyFolderExists() {
+  private void updateLegacyFolders() {
     this.context.info("Scanning for legacy folders...");
-
     Path settingsPath = context.getSettingsPath();
+    updateLegacyFolder(settingsPath, IdeContext.FOLDER_LEGACY_TEMPLATES, IdeContext.FOLDER_TEMPLATES);
+    updateLegacyFolder(settingsPath, IdeContext.FOLDER_LEGACY_REPOSITORIES, IdeContext.FOLDER_REPOSITORIES);
+  }
 
-    Path devonFolder = settingsPath.resolve("devon");
+  private void updateLegacyFolder(Path folder, String legacyName, String newName) {
 
-    Path templatesFolder = settingsPath.resolve("templates");
-
-    Path projectsFolder = settingsPath.resolve("projects");
-
-    Path repositoriesFolder = settingsPath.resolve("repositories");
-
-    if (Files.exists(devonFolder) && Files.isDirectory(devonFolder)) {
+    Path legacyFolder = folder.resolve(legacyName);
+    Path newFolder = folder.resolve(newName);
+    if (Files.isDirectory(legacyFolder)) {
       try {
-        if (!Files.exists(templatesFolder)) {
-          Files.move(devonFolder, templatesFolder, StandardCopyOption.REPLACE_EXISTING);
-          this.context.success("Successfully updated folder name from 'settings/devon' to 'settings/templates'.");
+        if (!Files.exists(newFolder)) {
+          Files.move(legacyFolder, newFolder, StandardCopyOption.REPLACE_EXISTING);
+          this.context.success("Successfully renamed folder '{}' to '{}' in {}.", legacyName, newName, folder);
         }
       } catch (IOException e) {
-        this.context.error("Error updating 'settings/devon' folder to 'settings/templates': " + e.getMessage());
+        this.context.error("Error renaming folder " + legacyName + " to " + newName + " in " + folder, e);
       }
-    } else {
-      this.context.warning("The 'templates' folder already exists, skipping renaming.");
-    }
-    if (Files.exists(projectsFolder) && Files.isDirectory(projectsFolder)) {
-      try {
-        if (!Files.exists(repositoriesFolder)) {
-          Files.move(projectsFolder, repositoriesFolder, StandardCopyOption.REPLACE_EXISTING);
-          this.context.success("Successfully updated folder name from 'settings/projects' to 'settings/repositories'.");
-        }
-      } catch (IOException e) {
-        this.context.error("Error updating 'settings/projects' folder to 'settings/repositories': " + e.getMessage());
-      }
-    } else {
-      this.context.warning("The 'repositories' folder already exists, skipping renaming.");
     }
   }
 
@@ -99,44 +85,46 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   }
 
   private void updateProperties() {
-    EnvironmentVariables environmentVariables = context.getVariables();
-    CustomToolsJson customToolsJson = null;
-
     // updates DEVON_IDE_CUSTOM_TOOLS to new ide-custom-tools.json
-    String devonCustomToolsName = IdeVariables.DEVON_IDE_CUSTOM_TOOLS.getName();
-    String devonCustomTools = environmentVariables.getParent().get(devonCustomToolsName);
+    String devonCustomTools = IdeVariables.DEVON_IDE_CUSTOM_TOOLS.get(this.context);
     if (devonCustomTools != null) {
-      String customToolsContent = environmentVariables.getParent().get(devonCustomToolsName);
-      if (!customToolsContent.isEmpty()) {
-        customToolsJson = CustomToolsJson.retrieveCustomToolsFromLegacyConfig(customToolsContent, context);
-      }
+      CustomToolsJson customToolsJson = CustomToolsJsonMapper.parseCustomToolsFromLegacyConfig(devonCustomTools, context);
       if (customToolsJson != null) {
-        customToolsJson.doSave(context.getSettingsPath().resolve(IdeContext.FILE_CUSTOM_TOOLS));
+        CustomToolsJsonMapper.saveJson(customToolsJson, this.context.getSettingsPath().resolve(IdeContext.FILE_CUSTOM_TOOLS));
       }
     }
 
+    EnvironmentVariables environmentVariables = context.getVariables();
     while (environmentVariables != null) {
-
-      if (environmentVariables instanceof EnvironmentVariablesPropertiesFile) {
-        if (environmentVariables.getLegacyPropertiesFilePath() == null && environmentVariables.getPropertiesFilePath() == null) {
-          continue;
-        }
-        Path propertiesFilePath = environmentVariables.getPropertiesFilePath();
-
-        // adds disabled legacySupportEnabled variable if missing in ide.properties
-        String legacySupportEnabledName = IdeVariables.IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED.getName();
-        String legacySupportEnabled = environmentVariables.get(legacySupportEnabledName);
-        if (legacySupportEnabled == null && propertiesFilePath != null && propertiesFilePath.endsWith(EnvironmentVariables.LEGACY_PROPERTIES)) {
-          environmentVariables.set(legacySupportEnabledName, "false", false);
-        }
-
-        if (propertiesFilePath != null && propertiesFilePath.endsWith(EnvironmentVariables.LEGACY_PROPERTIES)) {
-          environmentVariables.remove(devonCustomToolsName);
-          environmentVariables.save();
-        }
-
+      if (environmentVariables instanceof EnvironmentVariablesPropertiesFile environmentVariablesProperties) {
+        updateProperties(environmentVariablesProperties);
       }
       environmentVariables = environmentVariables.getParent();
+    }
+    Path templateProperties = this.context.getSettingsTemplatePath().resolve(EnvironmentVariables.LEGACY_PROPERTIES);
+    if (Files.exists(templateProperties)) {
+      EnvironmentVariablesPropertiesFile environmentVariablesProperties = new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.USER,
+          templateProperties, this.context);
+      updateProperties(environmentVariablesProperties);
+    }
+
+  }
+
+  private static void updateProperties(EnvironmentVariablesPropertiesFile environmentVariables) {
+    Path propertiesFilePath = environmentVariables.getPropertiesFilePath();
+    if (propertiesFilePath != null || environmentVariables.getLegacyPropertiesFilePath() != null) {
+      if (environmentVariables.getType() == EnvironmentVariablesType.SETTINGS) {
+        // adds disabled legacySupportEnabled variable if missing in ide.properties
+        String legacySupportEnabledName = IdeVariables.IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED.getName();
+        String legacySupportEnabledValue = environmentVariables.get(legacySupportEnabledName);
+        if (!"false".equals(legacySupportEnabledValue)) {
+          environmentVariables.set(legacySupportEnabledName, "false", false);
+        }
+      }
+      if ((propertiesFilePath != null) && propertiesFilePath.endsWith(EnvironmentVariables.LEGACY_PROPERTIES)) {
+        environmentVariables.remove(IdeVariables.DEVON_IDE_CUSTOM_TOOLS.getName());
+      }
+      environmentVariables.save();
     }
   }
 }

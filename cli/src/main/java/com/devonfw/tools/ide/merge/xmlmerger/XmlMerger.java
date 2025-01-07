@@ -330,7 +330,7 @@ public class XmlMerger extends FileMerger {
       }
     }
     this.context.warning(
-        "The XML file {} does not contain the XML merge namespace as seems outdated. For details see:\n"
+        "The XML file {} does not contain the XML merge namespace and seems outdated. For details see:\n"
             + "https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc#xml-merger", workspaceFile);
   }
 

@@ -101,7 +101,7 @@ public abstract class FileMerger extends AbstractWorkspaceMerger {
     String migratedContent = upgradeWorkspaceContent(content);
     boolean modified = !migratedContent.equals(content);
     if (modified) {
-      Files.writeString(workspaceFile, content);
+      Files.writeString(workspaceFile, migratedContent);
     }
     return modified;
   }
