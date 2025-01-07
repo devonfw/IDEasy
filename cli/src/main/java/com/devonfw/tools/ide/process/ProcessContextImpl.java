@@ -175,8 +175,8 @@ public class ProcessContextImpl implements ProcessContext {
 
       try {
         if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-          CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream(), false, output);
-          CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream(), true, output);
+          CompletableFuture<Void> outFut = readInputStream(process.getInputStream(), false, output);
+          CompletableFuture<Void> errFut = readInputStream(process.getErrorStream(), true, output);
           outFut.get();
           errFut.get();
         }
@@ -222,7 +222,7 @@ public class ProcessContextImpl implements ProcessContext {
    * @param errorStream to identify if the output came from stdout or stderr
    * @return {@link CompletableFuture}.
    */
-  private static CompletableFuture<List<String>> readInputStream(InputStream is, boolean errorStream, ConcurrentLinkedQueue<OutputMessage> outputMessages) {
+  private static CompletableFuture<Void> readInputStream(InputStream is, boolean errorStream, ConcurrentLinkedQueue<OutputMessage> outputMessages) {
 
     return CompletableFuture.supplyAsync(() -> {
 
@@ -234,7 +234,7 @@ public class ProcessContextImpl implements ProcessContext {
           outputMessages.add(outputMessage);
         }
 
-        return br.lines().toList();
+        return null;
       } catch (Throwable e) {
         throw new RuntimeException("There was a problem while executing the program", e);
       }
