@@ -2,6 +2,13 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.01.001
+
+Release with new features and bugfixes:
+
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/18?closed=1[milestone 2025.01.001].
+
 == 2024.12.002
 
 Release with new features and bugfixes:
@@ -20,6 +27,7 @@ Then run the `setup` and all should work fine.
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/734[#734]: Improve ProcessResult: get out and err in order
+* https://github.com/devonfw/IDEasy/issues/764[#764]: Fix IDEasy in CMD
 * https://github.com/devonfw/IDEasy/issues/774[#774]: HTTP proxy support not working properly
 * https://github.com/devonfw/IDEasy/issues/792[#792]: Honor new variable IDE_OPTIONS in ide command wrapper
 * https://github.com/devonfw/IDEasy/issues/589[#589]: Fix NLS Bundles for Linux and MacOS
