@@ -29,9 +29,9 @@ public class UpgradeCommandlet extends Commandlet {
   public void run() {
 
     ToolRepository mavenRepo = this.context.getMavenSoftwareRepository();
-    VersionIdentifier lastVersion = mavenRepo.resolveVersion("ide", "someEdition", VersionIdentifier.of("*"));
+    VersionIdentifier lastVersion = mavenRepo.resolveVersion("ide", "ideasy", VersionIdentifier.of("*"));
     this.context.info("\n{}", lastVersion.toString());
-
+    // compare installed version with the resolved Version, if resolved is newer, install it
 
   }
 
