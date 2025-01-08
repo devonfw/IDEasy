@@ -136,8 +136,9 @@ public class CommandletManagerImpl implements CommandletManager {
     if (keyword != null) {
       String name = keyword.getName();
       registerKeyword(name, commandlet);
-      if (name.startsWith("--")) {
-        registerKeyword(name.substring(2), commandlet);
+      String optionName = keyword.getOptionName();
+      if (!optionName.equals(name)) {
+        registerKeyword(optionName, commandlet);
       }
       String alias = keyword.getAlias();
       if (alias != null) {
