@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.repo.CustomToolsJson;
 import com.devonfw.tools.ide.repo.CustomToolsJsonMapper;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -46,8 +47,9 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   private void updateLegacyFolders() {
     this.context.info("Scanning for legacy folders...");
     Path settingsPath = context.getSettingsPath();
-    updateLegacyFolder(settingsPath, IdeContext.FOLDER_LEGACY_TEMPLATES, IdeContext.FOLDER_TEMPLATES);
     updateLegacyFolder(settingsPath, IdeContext.FOLDER_LEGACY_REPOSITORIES, IdeContext.FOLDER_REPOSITORIES);
+    updateLegacyFolder(settingsPath, IdeContext.FOLDER_LEGACY_TEMPLATES, IdeContext.FOLDER_TEMPLATES);
+    updateLegacyFolder(settingsPath.resolve(IdeContext.FOLDER_TEMPLATES).resolve(IdeContext.FOLDER_CONF), Mvn.MVN_CONFIG_LEGACY_FOLDER, Mvn.MVN_CONFIG_FOLDER);
   }
 
   private void updateLegacyFolder(Path folder, String legacyName, String newName) {
@@ -101,7 +103,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       }
       environmentVariables = environmentVariables.getParent();
     }
-    Path templateProperties = this.context.getSettingsTemplatePath().resolve(EnvironmentVariables.LEGACY_PROPERTIES);
+    Path templateProperties = this.context.getSettingsTemplatePath().resolve(IdeContext.FOLDER_CONF).resolve(EnvironmentVariables.LEGACY_PROPERTIES);
     if (Files.exists(templateProperties)) {
       EnvironmentVariablesPropertiesFile environmentVariablesProperties = new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.USER,
           templateProperties, this.context);

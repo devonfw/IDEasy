@@ -28,9 +28,10 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     // act
     upgradeSettingsCommandlet.run();
     // assert that files where renamed
-    assertThat(Files.exists(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties"))).isTrue();
-    assertThat(Files.exists(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties"))).isTrue();
-    assertThat(Files.exists(UPGRADE_SETTINGS_PATH.resolve("workspaces/main/ide.properties"))).isTrue();
+    // FIXME assertThat(UPGRADE_SETTINGS_PATH.resolve("home/ide.properties")).exists();
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties")).exists();
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties")).exists();
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("workspaces/main/ide.properties")).exists();
     //assert that file content was changed
     assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties")).content()
         .isEqualTo("#********************************************************************************\n"
@@ -41,7 +42,7 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Ensure that the custom-tools.json was created with the correct content.
+   * Ensure that the ide-custom-tools.json was created with the correct content.
    */
   @Test
   public void testCustomJsonFileCreation() throws Exception {
@@ -66,8 +67,9 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     // act
     upgradeSettingsCommandlet.run();
     //assert
-    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/templates/ide.properties")).exists();
-    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/repositories")).isDirectory();
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/repositories/IDEasy.properties")).exists();
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/templates/conf/ide.properties")).exists();
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/templates/conf/mvn/settings.xml")).exists();
   }
 
   /**
