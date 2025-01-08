@@ -138,7 +138,7 @@ public class CustomToolsJsonMapper {
       } else {
         String url = customToolJson.url();
         if (defaultUrl == null) {
-          if (url.isEmpty()) {
+          if ((url == null) || url.isEmpty()) {
             context.warning("First custom tool entry has no URL specified: {}", customToolConfig);
           } else {
             defaultUrl = url;
