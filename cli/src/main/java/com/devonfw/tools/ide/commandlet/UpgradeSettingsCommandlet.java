@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.repo.CustomToolsJson;
 import com.devonfw.tools.ide.repo.CustomToolsJsonMapper;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.variable.VariableDefinition;
 
 /**
  * {@link Commandlet} to upgrade settings after a migration from devonfw-ide to IDEasy.
@@ -97,6 +98,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       }
     }
 
+    // update properties (devon.properties -> ide.properties, convert legacy properties)
     EnvironmentVariables environmentVariables = context.getVariables();
     while (environmentVariables != null) {
       if (environmentVariables instanceof EnvironmentVariablesPropertiesFile environmentVariablesProperties) {
@@ -104,32 +106,40 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       }
       environmentVariables = environmentVariables.getParent();
     }
-    Path templateProperties = this.context.getSettingsTemplatePath().resolve(IdeContext.FOLDER_CONF).resolve(EnvironmentVariables.LEGACY_PROPERTIES);
-    if (Files.exists(templateProperties)) {
-      EnvironmentVariablesPropertiesFile environmentVariablesProperties = new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.USER,
-          templateProperties, this.context);
+    Path templatePropertiesDir = this.context.getSettingsTemplatePath().resolve(IdeContext.FOLDER_CONF);
+    if (Files.exists(templatePropertiesDir)) {
+      EnvironmentVariablesPropertiesFile environmentVariablesProperties = new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.CONF,
+          templatePropertiesDir, null, this.context);
       updateProperties(environmentVariablesProperties);
     }
-
   }
 
   private void updateProperties(EnvironmentVariablesPropertiesFile environmentVariables) {
     Path propertiesFilePath = environmentVariables.getPropertiesFilePath();
-    if (propertiesFilePath != null || environmentVariables.getLegacyPropertiesFilePath() != null) {
+    if (environmentVariables.getLegacyConfiguration() != null) {
       if (environmentVariables.getType() == EnvironmentVariablesType.SETTINGS) {
         // adds disabled legacySupportEnabled variable if missing in ide.properties
-        String legacySupportEnabledName = IdeVariables.IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED.getName();
-        String legacySupportEnabledValue = environmentVariables.get(legacySupportEnabledName);
-        if (!"false".equals(legacySupportEnabledValue)) {
-          environmentVariables.set(legacySupportEnabledName, "false", false);
-        }
+        environmentVariables.set(IdeVariables.IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED.getName(), "false", false);
       }
-      if ((propertiesFilePath != null) && propertiesFilePath.endsWith(EnvironmentVariables.LEGACY_PROPERTIES)) {
-        environmentVariables.remove(IdeVariables.DEVON_IDE_CUSTOM_TOOLS.getName());
+      environmentVariables.remove(IdeVariables.DEVON_IDE_CUSTOM_TOOLS.getName());
+      for (VariableDefinition<?> var : IdeVariables.VARIABLES) {
+        String legacyName = var.getLegacyName();
+        if (legacyName != null) {
+          String value = environmentVariables.get(legacyName);
+          if (value != null) {
+            String name = var.getName();
+            String newValue = environmentVariables.get(name);
+            if (newValue == null) {
+              environmentVariables.set(name, value, environmentVariables.isExported(name));
+            }
+          }
+          environmentVariables.remove(legacyName);
+        }
       }
       updatePropertiesLegacyEdition(environmentVariables, "INTELLIJ_EDITION_TYPE", "INTELLIJ_EDITION", this::mapLegacyIntellijEdition);
       updatePropertiesLegacyEdition(environmentVariables, "ECLIPSE_EDITION_TYPE", "ECLIPSE_EDITION", this::mapLegacyIntellijEdition);
       environmentVariables.save();
+      this.context.getFileAccess().backup(environmentVariables.getLegacyPropertiesFilePath());
     }
   }
 

@@ -43,14 +43,18 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
    */
   private void verifyUpdateProperties() throws Exception {
 
-    // FIXME assertThat(UPGRADE_SETTINGS_PATH.resolve("home/ide.properties")).exists();
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("home/.ide/ide.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties")).exists().content().contains("INTELLIJ_EDITION=ultimate")
-        .doesNotContain("INTELLIJ_EDITION_TYPE");
-    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties")).exists().content().contains("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED=false");
+        .doesNotContain("INTELLIJ_EDITION_TYPE").contains("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED=false");
     assertThat(UPGRADE_SETTINGS_PATH.resolve("workspaces/main/ide.properties")).exists();
     //assert that file content was changed
     assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties")).exists().content().contains("MVN_VERSION=test");
 
+    // devon.properties have been deleted (moved to backup)
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("home/devon.properties")).doesNotExist();
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/devon.properties")).doesNotExist();
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("workspaces/main/devon.properties")).doesNotExist();
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/devon.properties")).doesNotExist();
     verifyCustomToolsJson();
   }
 

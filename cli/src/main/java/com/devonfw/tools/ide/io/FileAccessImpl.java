@@ -263,20 +263,31 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void backup(Path fileOrFolder) {
 
-    if (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder)) {
+    if ((fileOrFolder != null) && (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder))) {
       delete(fileOrFolder);
-    } else {
+    } else if ((fileOrFolder != null) && Files.exists(fileOrFolder)) {
       // fileOrFolder is a directory
-      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
       LocalDateTime now = LocalDateTime.now();
-      String date = DateTimeUtil.formatDate(now);
+      String date = DateTimeUtil.formatDate(now, true);
       String time = DateTimeUtil.formatTime(now);
-      Path backupDatePath = backupPath.resolve(date);
-      mkdirs(backupDatePath);
-      Path target = backupDatePath.resolve(fileOrFolder.getFileName().toString() + "_" + time);
+      String filename = fileOrFolder.getFileName().toString();
+      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS).resolve(date).resolve(time + "_" + filename);
+      backupPath = appendParentPath(backupPath, fileOrFolder.getParent(), 2);
+      mkdirs(backupPath);
+      Path target = backupPath.resolve(filename);
       this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
       move(fileOrFolder, target);
+    } else {
+      this.context.trace("Backup of {} skipped as the path does not exist.", fileOrFolder);
     }
+  }
+
+  private static Path appendParentPath(Path path, Path parent, int max) {
+
+    if ((parent == null) || (max <= 0)) {
+      return path;
+    }
+    return appendParentPath(path, parent.getParent(), max - 1).resolve(parent.getFileName());
   }
 
   @Override

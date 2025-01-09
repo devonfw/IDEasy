@@ -81,7 +81,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path softwareExtraPath;
 
-  private Path softwareRepositoryPath;
+  private final Path softwareRepositoryPath;
 
   protected Path pluginsPath;
 
@@ -91,15 +91,15 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   protected Path urlsPath;
 
-  private Path tempPath;
+  private final Path tempPath;
 
-  private Path tempDownloadPath;
+  private final Path tempDownloadPath;
 
   private Path cwd;
 
   private Path downloadPath;
 
-  private Path toolRepositoryPath;
+  private final Path toolRepositoryPath;
 
   protected Path userHome;
 
@@ -308,37 +308,16 @@ public abstract class AbstractIdeContext implements IdeContext {
   private EnvironmentVariables createVariables() {
 
     AbstractEnvironmentVariables system = createSystemVariables();
-    AbstractEnvironmentVariables user = extendVariables(system, this.userHomeIde, EnvironmentVariablesType.USER);
-    AbstractEnvironmentVariables settings = extendVariables(user, this.settingsPath, EnvironmentVariablesType.SETTINGS);
-    // TODO should we keep this workspace properties? Was this feature ever used?
-    AbstractEnvironmentVariables workspace = extendVariables(settings, this.workspacePath, EnvironmentVariablesType.WORKSPACE);
-    AbstractEnvironmentVariables conf = extendVariables(workspace, this.confPath, EnvironmentVariablesType.CONF);
+    AbstractEnvironmentVariables user = system.extend(this.userHomeIde, EnvironmentVariablesType.USER);
+    AbstractEnvironmentVariables settings = user.extend(this.settingsPath, EnvironmentVariablesType.SETTINGS);
+    AbstractEnvironmentVariables workspace = settings.extend(this.workspacePath, EnvironmentVariablesType.WORKSPACE);
+    AbstractEnvironmentVariables conf = workspace.extend(this.confPath, EnvironmentVariablesType.CONF);
     return conf.resolved();
   }
 
   protected AbstractEnvironmentVariables createSystemVariables() {
 
     return EnvironmentVariables.ofSystem(this);
-  }
-
-  protected AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
-
-    Path propertiesFile = null;
-    if (propertiesPath == null) {
-      trace("Configuration directory for type {} does not exist.", type);
-    } else if (Files.isDirectory(propertiesPath)) {
-      propertiesFile = propertiesPath.resolve(EnvironmentVariables.DEFAULT_PROPERTIES);
-      boolean legacySupport = (type != EnvironmentVariablesType.USER);
-      if (legacySupport && !Files.exists(propertiesFile)) {
-        Path legacyFile = propertiesPath.resolve(EnvironmentVariables.LEGACY_PROPERTIES);
-        if (Files.exists(legacyFile)) {
-          propertiesFile = legacyFile;
-        }
-      }
-    } else {
-      debug("Configuration directory {} does not exist.", propertiesPath);
-    }
-    return envVariables.extend(propertiesFile, type);
   }
 
   @Override

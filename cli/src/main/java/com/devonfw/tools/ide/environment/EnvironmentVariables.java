@@ -140,6 +140,16 @@ public interface EnvironmentVariables {
   /**
    * @param name the {@link com.devonfw.tools.ide.variable.VariableDefinition#getName() name} of the variable to set.
    * @param value the new {@link #get(String) value} of the variable to set. May be {@code null} to unset the variable.
+   * @return the old variable value.
+   */
+  default String set(String name, String value) {
+
+    throw new UnsupportedOperationException();
+  }
+
+  /**
+   * @param name the {@link com.devonfw.tools.ide.variable.VariableDefinition#getName() name} of the variable to set.
+   * @param value the new {@link #get(String) value} of the variable to set. May be {@code null} to unset the variable.
    * @param export - {@code true} if the variable needs to be exported, {@code false} otherwise.
    * @return the old variable value.
    */

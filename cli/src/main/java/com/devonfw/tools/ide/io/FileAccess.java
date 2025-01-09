@@ -210,6 +210,9 @@ public interface FileAccess {
 
   /**
    * Deletes the given {@link Path} idempotent and recursive.
+   * <p>
+   * ATTENTION: In most cases we want to use {@link #backup(Path)} instead to prevent the user from data loss.
+   * </p>
    *
    * @param path the {@link Path} to delete.
    */
