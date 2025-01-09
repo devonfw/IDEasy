@@ -43,15 +43,17 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
 
     // FIXME assertThat(UPGRADE_SETTINGS_PATH.resolve("home/ide.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties")).exists();
-    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties")).exists();
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties")).exists().content().contains("INTELLIJ_EDITION=ultimate")
+        .doesNotContain("INTELLIJ_EDITION_TYPE");
     assertThat(UPGRADE_SETTINGS_PATH.resolve("workspaces/main/ide.properties")).exists();
     //assert that file content was changed
-    assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties")).content()
-        .isEqualTo("#********************************************************************************\n"
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties")).hasContent(
+        "#********************************************************************************\n"
             + "# This file contains project specific environment variables defined by the user\n"
             + "#********************************************************************************\n"
             + "\n"
             + "MVN_VERSION=test\n");
+
     verifyCustomToolsJson();
   }
 

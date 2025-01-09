@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.function.Function;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
@@ -112,7 +113,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
 
   }
 
-  private static void updateProperties(EnvironmentVariablesPropertiesFile environmentVariables) {
+  private void updateProperties(EnvironmentVariablesPropertiesFile environmentVariables) {
     Path propertiesFilePath = environmentVariables.getPropertiesFilePath();
     if (propertiesFilePath != null || environmentVariables.getLegacyPropertiesFilePath() != null) {
       if (environmentVariables.getType() == EnvironmentVariablesType.SETTINGS) {
@@ -126,7 +127,47 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       if ((propertiesFilePath != null) && propertiesFilePath.endsWith(EnvironmentVariables.LEGACY_PROPERTIES)) {
         environmentVariables.remove(IdeVariables.DEVON_IDE_CUSTOM_TOOLS.getName());
       }
+      updatePropertiesLegacyEdition(environmentVariables, "INTELLIJ_EDITION_TYPE", "INTELLIJ_EDITION", this::mapLegacyIntellijEdition);
+      updatePropertiesLegacyEdition(environmentVariables, "ECLIPSE_EDITION_TYPE", "ECLIPSE_EDITION", this::mapLegacyIntellijEdition);
       environmentVariables.save();
+    }
+  }
+
+  private String mapLegacyIntellijEdition(String legacyEdition) {
+
+    return switch (legacyEdition) {
+      case "U" -> "ultimate";
+      case "C" -> "intellij";
+      default -> {
+        this.context.warning("Undefined legacy edition {}", legacyEdition);
+        yield "intellij";
+      }
+    };
+  }
+
+  private String mapLegacyEclipseEdition(String legacyEdition) {
+
+    return switch (legacyEdition) {
+      case "java" -> "eclipse";
+      case "jee" -> "jee";
+      case "cpp" -> "cpp";
+      default -> {
+        this.context.warning("Undefined legacy edition {}", legacyEdition);
+        yield "eclipse";
+      }
+    };
+  }
+
+  private static void updatePropertiesLegacyEdition(EnvironmentVariablesPropertiesFile environmentVariables, String legacyEditionVariable,
+      String newEditionVariable, Function<String, String> editionMapper) {
+
+    String legacyEdition = environmentVariables.get(legacyEditionVariable);
+    if (legacyEdition != null) {
+      String newEdition = environmentVariables.get(newEditionVariable);
+      if (newEdition == null) {
+        environmentVariables.set(newEditionVariable, editionMapper.apply(legacyEdition), false);
+      }
+      environmentVariables.remove(legacyEditionVariable);
     }
   }
 }
