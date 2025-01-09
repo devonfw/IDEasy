@@ -41,11 +41,11 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   public void run() {
     updateLegacyFolders();
     updateProperties();
-    replaceLegacyVariablesAndBracketsInWorkspace();
+    updateWorkspaceTemplates();
   }
 
-  private void updateLegacyFolders() {
-    this.context.info("Scanning for legacy folders...");
+  void updateLegacyFolders() {
+    this.context.info("Updating legacy folders if present...");
     Path settingsPath = context.getSettingsPath();
     updateLegacyFolder(settingsPath, IdeContext.FOLDER_LEGACY_REPOSITORIES, IdeContext.FOLDER_REPOSITORIES);
     updateLegacyFolder(settingsPath, IdeContext.FOLDER_LEGACY_TEMPLATES, IdeContext.FOLDER_TEMPLATES);
@@ -68,8 +68,8 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     }
   }
 
-  private void replaceLegacyVariablesAndBracketsInWorkspace() {
-    this.context.info("Scanning for legacy variables...");
+  void updateWorkspaceTemplates() {
+    this.context.info("Updating workspace templates (replace legacy variables and change variable syntax)...");
 
     DirectoryMerger merger = this.context.getWorkspaceMerger();
     Path settingsDir = this.context.getSettingsPath();
@@ -86,7 +86,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     });
   }
 
-  private void updateProperties() {
+  void updateProperties() {
     // updates DEVON_IDE_CUSTOM_TOOLS to new ide-custom-tools.json
     String devonCustomTools = IdeVariables.DEVON_IDE_CUSTOM_TOOLS.get(this.context);
     if (devonCustomTools != null) {

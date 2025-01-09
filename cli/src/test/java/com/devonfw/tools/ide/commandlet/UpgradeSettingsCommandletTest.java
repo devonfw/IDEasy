@@ -19,15 +19,28 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
   private static final Path UPGRADE_SETTINGS_PATH = TEST_PROJECTS_COPY.resolve(PROJECT_UPGRADE_SETTINGS).resolve("project");
 
   /**
-   * Ensure that all devon.properties are renamed to ide.properties and that the variables inside have been adjusted.
+   * Test of {@link UpgradeSettingsCommandlet}.
+   *
+   * @throws Exception on error.
    */
   @Test
-  public void testDevonPropertiesUpgrade() {
+  public void testUpdateSettings() throws Exception {
     // arrange
     UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
     // act
     upgradeSettingsCommandlet.run();
-    // assert that files where renamed
+    // assert
+    verifyUpdateLegacyFolders();
+    verifyUpdateProperties();
+    verifyUpdateWorkspaceTemplates();
+  }
+
+  /**
+   * @throws Exception on error.
+   * @see UpgradeSettingsCommandlet#updateProperties()
+   */
+  private void verifyUpdateProperties() throws Exception {
+
     // FIXME assertThat(UPGRADE_SETTINGS_PATH.resolve("home/ide.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties")).exists();
@@ -39,13 +52,10 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
             + "#********************************************************************************\n"
             + "\n"
             + "MVN_VERSION=test\n");
+    verifyCustomToolsJson();
   }
 
-  /**
-   * Ensure that the ide-custom-tools.json was created with the correct content.
-   */
-  @Test
-  public void testCustomJsonFileCreation() throws Exception {
+  private void verifyCustomToolsJson() throws Exception {
     // arrange
     UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
     // act
@@ -58,25 +68,18 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Ensure that settings/devon and settings/projects are renamed.
+   * @see UpgradeSettingsCommandlet#updateLegacyFolders()
    */
-  @Test
-  public void testIfFolderAreRenamed() {
-    // arrange
-    UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
-    // act
-    upgradeSettingsCommandlet.run();
-    //assert
+  private void verifyUpdateLegacyFolders() {
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/repositories/IDEasy.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/templates/conf/ide.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/templates/conf/mvn/settings.xml")).exists();
   }
 
   /**
-   * Ensure that the variable syntax is changed from CURLY into ANGLED.
+   * @see UpgradeSettingsCommandlet#updateWorkspaceTemplates()
    */
-  @Test
-  public void testIfVariableSyntaxIsChanged() {
+  private void verifyUpdateWorkspaceTemplates() {
     // arrange
     UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
     // act
@@ -87,19 +90,12 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
         + "this is a test text,\n"
         + "this is a test text,$[MVN_VERSION]this is a test text,this is a test text,$[IDE_HOME]/settings\n"
         + "this is a test text,this is a test text,this is a test text,this is a test text,\n");
+    verifyLoggingOfXmlFiles();
   }
 
-  /**
-   * Ensure that xml files that need to be adjusted are logged and the link to documentation is logged.
-   */
-  @Test
-  public void testLoggingOfXmlFiles() {
-    // arrange
-    UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
+  private void verifyLoggingOfXmlFiles() {
     Path workspace = UPGRADE_SETTINGS_PATH.resolve(IdeContext.FOLDER_SETTINGS).resolve("intellij").resolve(IdeContext.FOLDER_WORKSPACE).resolve("TestXml.xml")
         .toAbsolutePath();
-    // act
-    upgradeSettingsCommandlet.run();
     //assert
     assertThat(context).logAtWarning().hasMessage(
         "The XML file " + workspace + " does not contain the XML merge namespace and seems outdated. For details see:\n"
