@@ -132,7 +132,7 @@ public abstract class FileMerger extends AbstractWorkspaceMerger {
       return content;
     }
     matcher.appendTail(sb);
-    return sb.toString();
+    return sb.toString().replace("\\conf\\.m2\\", "/conf/.m2/").replace("/conf/.m2/", "/conf/mvn/");
   }
 
 

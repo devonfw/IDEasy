@@ -94,7 +94,7 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     upgradeSettingsCommandlet.run();
     //assert
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/workspace/testVariableSyntax.txt")).exists().content().contains("$[IDE_HOME]").contains("$[MVN_VERSION]")
-        .doesNotContain("${IDE_HOME}").doesNotContain("${MVN_VERSION}");
+        .contains("$[IDE_HOME]/conf/mvn/settings.xml").doesNotContain("${IDE_HOME}").doesNotContain("${MVN_VERSION}");
     verifyLoggingOfXmlFiles();
   }
 
