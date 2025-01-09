@@ -152,11 +152,6 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
         if (Files.isDirectory(child)) {
           upgrade(child);
         } else {
-          String filename = child.getFileName().toString();
-          if ("replacement-patterns.properties".equals(filename)) {
-            this.context.warning("Found obsolete file {}", child);
-            Files.delete(child);
-          }
           FileMerger merger = getMerger(child);
           merger.upgrade(child);
         }
