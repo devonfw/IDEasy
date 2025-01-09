@@ -65,7 +65,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
           this.context.success("Successfully renamed folder '{}' to '{}' in {}.", legacyName, newName, folder);
         }
       } catch (IOException e) {
-        this.context.error("Error renaming folder " + legacyName + " to " + newName + " in " + folder, e);
+        this.context.error(e, "Error renaming folder {} to {} in {}", legacyName, newName, folder);
       }
     }
   }
