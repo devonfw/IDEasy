@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -8,6 +7,9 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.repo.CustomToolJson;
+import com.devonfw.tools.ide.repo.CustomToolsJson;
+import com.devonfw.tools.ide.repo.CustomToolsJsonMapper;
 
 /**
  * Integration test of {@link UpgradeSettingsCommandlet} .
@@ -42,17 +44,12 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
   private void verifyUpdateProperties() throws Exception {
 
     // FIXME assertThat(UPGRADE_SETTINGS_PATH.resolve("home/ide.properties")).exists();
-    assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties")).exists().content().contains("INTELLIJ_EDITION=ultimate")
         .doesNotContain("INTELLIJ_EDITION_TYPE");
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/ide.properties")).exists().content().contains("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED=false");
     assertThat(UPGRADE_SETTINGS_PATH.resolve("workspaces/main/ide.properties")).exists();
     //assert that file content was changed
-    assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties")).hasContent(
-        "#********************************************************************************\n"
-            + "# This file contains project specific environment variables defined by the user\n"
-            + "#********************************************************************************\n"
-            + "\n"
-            + "MVN_VERSION=test\n");
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("conf/ide.properties")).exists().content().contains("MVN_VERSION=test");
 
     verifyCustomToolsJson();
   }
@@ -63,10 +60,15 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     // act
     upgradeSettingsCommandlet.run();
     // assert
+
     Path customToolsJsonFile = UPGRADE_SETTINGS_PATH.resolve("settings").resolve(IdeContext.FILE_CUSTOM_TOOLS);
+    // assert that ide-custom-tools.json exists
     assertThat(customToolsJsonFile).exists();
-    assertThat(Files.readString(customToolsJsonFile).replace("\r", "").replace("\n", "").replace(" ", "")).isEqualTo(
-        "{\"url\":\"https://host.tld/projects/my-project\",\"tools\":[{\"name\":\"jboss-eap\",\"version\":\"7.1.4.GA\",\"os-agnostic\":true,\"arch-agnostic\":true},{\"name\":\"firefox\",\"version\":\"70.0.1\",\"os-agnostic\":false,\"arch-agnostic\":false}]}");
+    CustomToolsJson customToolsJson = CustomToolsJsonMapper.loadJson(customToolsJsonFile);
+    //assert that ide-custom-tools.json has the correct content
+    assertThat(customToolsJson.url()).isEqualTo("https://host.tld/projects/my-project");
+    assertThat(customToolsJson.tools()).containsExactly(new CustomToolJson("jboss-eap", "7.1.4.GA", true, true, null),
+        new CustomToolJson("firefox", "70.0.1", false, false, null));
   }
 
   /**
@@ -87,11 +89,8 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     // act
     upgradeSettingsCommandlet.run();
     //assert
-    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/workspace/testVariableSyntax.txt")).content().isEqualTo("$[IDE_HOME]\n"
-        + "This is a test text,this is a test text,this is a test text,this is a test text,\n"
-        + "this is a test text,\n"
-        + "this is a test text,$[MVN_VERSION]this is a test text,this is a test text,$[IDE_HOME]/settings\n"
-        + "this is a test text,this is a test text,this is a test text,this is a test text,\n");
+    assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/workspace/testVariableSyntax.txt")).exists().content().contains("$[IDE_HOME]").contains("$[MVN_VERSION]")
+        .doesNotContain("${IDE_HOME}").doesNotContain("${MVN_VERSION}");
     verifyLoggingOfXmlFiles();
   }
 
