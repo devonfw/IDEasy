@@ -273,18 +273,29 @@ public interface FileAccess {
   boolean isEmptyDir(Path dir);
 
   /**
-   * Makes a file executable. Equivalent of using 'chmod a+x'. Adds execute permissions to current file permissions.
+   * Makes a file executable (analog to 'chmod a+x').
    *
-   * @param filePath {@link Path} to the file.
+   * @param file {@link Path} to the file.
    */
-  void makeExecutable(Path filePath);
+  default void makeExecutable(Path file) {
+
+    makeExecutable(file, false);
+  }
+
+  /**
+   * Makes a file executable (analog to 'chmod a+x').
+   *
+   * @param file {@link Path} to the file.
+   * @param confirm - {@code true} to get user confirmation before adding missing executable flags, {@code false} otherwise (always set missing flags).
+   */
+  void makeExecutable(Path file, boolean confirm);
 
   /**
    * Like the linux touch command this method will update the modification time of the given {@link Path} to the current
    * {@link System#currentTimeMillis() system time}. In case the file does not exist, it will be created as empty file. If already the
    * {@link Path#getParent() parent folder} does not exist, the operation will fail.
    *
-   * @param filePath the {@link Path} to the file or folder.
+   * @param file the {@link Path} to the file or folder.
    */
-  void touch(Path filePath);
+  void touch(Path file);
 }
