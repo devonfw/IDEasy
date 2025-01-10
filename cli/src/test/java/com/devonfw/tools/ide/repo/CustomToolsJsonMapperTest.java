@@ -13,7 +13,6 @@ import com.devonfw.tools.ide.context.IdeSlf4jContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
-import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -25,13 +24,9 @@ public class CustomToolsJsonMapperTest extends Assertions {
   @Test
   public void testReadCustomToolsFromJson() {
     // arrange
-    AbstractIdeTestContext context = new IdeSlf4jContext(Path.of(""));
-    SystemInfo systemInfo = SystemInfoMock.of("linux");
-    context.setSystemInfo(systemInfo);
     Path testPath = Path.of("src/test/resources/customtools");
     // act
     CustomToolsJson customToolsJson = CustomToolsJsonMapper.loadJson(testPath.resolve("ide-custom-tools.json"));
-    List<CustomToolMetadata> customToolsMetadata = CustomToolsJsonMapper.convert(customToolsJson, context);
     // assert
     assertThat(customToolsJson.url()).isEqualTo("https://some-file-server.company.com/projects/my-project");
     // assert that custom tools content matches to json file
@@ -39,11 +34,6 @@ public class CustomToolsJsonMapperTest extends Assertions {
             null),
         new CustomToolJson("firefox", "70.0.1", false, false,
             "https://some-file-server.company.com/projects/my-project2"));
-    // assert that url was properly created
-    assertThat(customToolsMetadata.get(0).getUrl()).isEqualTo(
-        "https://some-file-server.company.com/projects/my-project/jboss-eap/7.1.4.GA/jboss-eap-7.1.4.GA.tgz");
-    assertThat(customToolsMetadata.get(1).getUrl()).isEqualTo(
-        "https://some-file-server.company.com/projects/my-project2/firefox/70.0.1/firefox-70.0.1-linux-x64.tgz");
   }
 
   @Test
@@ -53,17 +43,11 @@ public class CustomToolsJsonMapperTest extends Assertions {
     String legacyProperties = "(jboss-eap:7.1.4.GA:all:https://host.tld/projects/my-project firefox:70.0.1:all:)";
     // act
     CustomToolsJson customToolsJson = CustomToolsJsonMapper.parseCustomToolsFromLegacyConfig(legacyProperties, context);
-    List<CustomToolMetadata> customToolsMetadata = CustomToolsJsonMapper.convert(customToolsJson, context);
     // assert
     assertThat(customToolsJson.url()).isEqualTo("https://host.tld/projects/my-project");
     assertThat(customToolsJson.tools()).containsExactly(new CustomToolJson("jboss-eap", "7.1.4.GA", true, true,
             null),
         new CustomToolJson("firefox", "70.0.1", true, true, ""));
-
-    assertThat(customToolsMetadata.get(0).getUrl()).isEqualTo(
-        "https://host.tld/projects/my-project/jboss-eap/7.1.4.GA/jboss-eap-7.1.4.GA.tgz");
-    assertThat(customToolsMetadata.get(1).getUrl()).isEqualTo(
-        "https://host.tld/projects/my-project/firefox/70.0.1/firefox-70.0.1.tgz");
   }
 
   @Test
@@ -96,8 +80,7 @@ public class CustomToolsJsonMapperTest extends Assertions {
 
     // arrange
     AbstractIdeTestContext context = new IdeSlf4jContext(Path.of(""));
-    SystemInfo systemInfo = SystemInfoMock.LINUX_X64;
-    context.setSystemInfo(systemInfo);
+    context.setSystemInfo(SystemInfoMock.LINUX_X64);
     String name = "jboss-eap";
     String version = "7.4.5.GA";
     String repositoryUrl = "https://host.domain.tld:8443/folder/repo/";
@@ -133,6 +116,7 @@ public class CustomToolsJsonMapperTest extends Assertions {
     assertThat(customToolMetadata.get(1).getVersion()).isEqualTo(VersionIdentifier.of(version1));
     assertThat(customToolMetadata.get(1).getOs()).isEqualTo(os1);
     assertThat(customToolMetadata.get(1).getArch()).isEqualTo(arch1);
+    // assert that url was properly created
     assertThat(customToolMetadata.get(1).getUrl()).isEqualTo(checkOsArchUrl);
     assertThat(customToolMetadata.get(1).getChecksum()).isNull();
     assertThat(customToolMetadata.get(1).getRepositoryUrl()).isEqualTo(repositoryUrl1);
