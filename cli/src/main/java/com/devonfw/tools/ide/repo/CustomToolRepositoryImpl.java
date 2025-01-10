@@ -122,11 +122,11 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version) {
 
     CustomToolMetadata customTool = getCustomTool(tool);
-    VersionIdentifier customToolVerstion = customTool.getVersion();
-    if (!version.contains(customToolVerstion)) {
+    VersionIdentifier customToolVersion = customTool.getVersion();
+    if (!version.contains(customToolVersion)) {
       throw new IllegalStateException(customTool + " does not satisfy version to install " + version);
     }
-    return customToolVerstion;
+    return customToolVersion;
   }
 
   @Override
