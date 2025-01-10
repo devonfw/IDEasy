@@ -27,6 +27,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -903,52 +904,67 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void makeExecutable(Path filePath) {
+  public void makeExecutable(Path file, boolean confirm) {
 
-    if (Files.exists(filePath)) {
+    if (Files.exists(file)) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        this.context.trace("Windows does not have executable flags hence omitting for file {}", filePath);
+        this.context.trace("Windows does not have executable flags hence omitting for file {}", file);
         return;
       }
       try {
         // Read the current file permissions
-        Set<PosixFilePermission> perms = Files.getPosixFilePermissions(filePath);
+        Set<PosixFilePermission> existingPermissions = Files.getPosixFilePermissions(file);
 
         // Add execute permission for all users
+        Set<PosixFilePermission> executablePermissions = new HashSet<>(existingPermissions);
         boolean update = false;
-        update |= perms.add(PosixFilePermission.OWNER_EXECUTE);
-        update |= perms.add(PosixFilePermission.GROUP_EXECUTE);
-        update |= perms.add(PosixFilePermission.OTHERS_EXECUTE);
+        update |= executablePermissions.add(PosixFilePermission.OWNER_EXECUTE);
+        update |= executablePermissions.add(PosixFilePermission.GROUP_EXECUTE);
+        update |= executablePermissions.add(PosixFilePermission.OTHERS_EXECUTE);
 
         if (update) {
-          this.context.debug("Setting executable flags for file {}", filePath);
+          if (confirm) {
+            boolean yesContinue = this.context.question(
+                "We want to execute " + file.getFileName() + " but this command seems to lack executable permissions!\n"
+                    + "Most probably the tool vendor did forgot to add x-flags in the binary release package.\n"
+                    + "Before running the command, we suggest to set executable permissions to the file:\n"
+                    + file + "\n"
+                    + "For security reasons we ask for your confirmation so please check this request.\n"
+                    + "Changing permissions from " + PosixFilePermissions.toString(existingPermissions) + " to " + PosixFilePermissions.toString(
+                    executablePermissions) + ".\n"
+                    + "Do you confirm to make the command executable before running it?");
+            if (!yesContinue) {
+              return;
+            }
+          }
+          this.context.debug("Setting executable flags for file {}", file);
           // Set the new permissions
-          Files.setPosixFilePermissions(filePath, perms);
+          Files.setPosixFilePermissions(file, executablePermissions);
         } else {
-          this.context.trace("Executable flags already present so no need to set them for file {}", filePath);
+          this.context.trace("Executable flags already present so no need to set them for file {}", file);
         }
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     } else {
-      this.context.warning("Cannot set executable flag on file that does not exist: {}", filePath);
+      this.context.warning("Cannot set executable flag on file that does not exist: {}", file);
     }
   }
 
   @Override
-  public void touch(Path filePath) {
+  public void touch(Path file) {
 
-    if (Files.exists(filePath)) {
+    if (Files.exists(file)) {
       try {
-        Files.setLastModifiedTime(filePath, FileTime.fromMillis(System.currentTimeMillis()));
+        Files.setLastModifiedTime(file, FileTime.fromMillis(System.currentTimeMillis()));
       } catch (IOException e) {
-        throw new IllegalStateException("Could not update modification-time of " + filePath, e);
+        throw new IllegalStateException("Could not update modification-time of " + file, e);
       }
     } else {
       try {
-        Files.createFile(filePath);
+        Files.createFile(file);
       } catch (IOException e) {
-        throw new IllegalStateException("Could not create empty file " + filePath, e);
+        throw new IllegalStateException("Could not create empty file " + file, e);
       }
     }
   }
