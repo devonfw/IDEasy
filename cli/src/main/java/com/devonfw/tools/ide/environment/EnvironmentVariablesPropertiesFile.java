@@ -172,14 +172,14 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
   @Override
   public void save() {
 
-    boolean isLegecy = Boolean.TRUE.equals(this.legacyConfiguration);
-    if (this.modifiedVariables.isEmpty() && !isLegecy) {
+    boolean isLegacy = Boolean.TRUE.equals(this.legacyConfiguration);
+    if (this.modifiedVariables.isEmpty() && !isLegacy) {
       this.context.trace("No changes to save in properties file {}", this.propertiesFilePath);
       return;
     }
 
     Path file = this.propertiesFilePath;
-    if (isLegecy) {
+    if (isLegacy) {
       this.context.info("Converting legacy properties to {}", this.propertiesFilePath);
       file = this.legacyPropertiesFilePath;
     }
