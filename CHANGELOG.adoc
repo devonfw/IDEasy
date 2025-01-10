@@ -8,6 +8,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/757[#757]: Support to allow settings in code repository
 * https://github.com/devonfw/IDEasy/issues/826[#826]: Fix git settings check when settings folder is empty
+* https://github.com/devonfw/IDEasy/issues/894[#894]: Fix ide.bat printing for initialization and error output
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/18?closed=1[milestone 2025.01.001].
 
