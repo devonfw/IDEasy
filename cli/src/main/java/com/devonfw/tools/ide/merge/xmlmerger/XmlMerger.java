@@ -81,6 +81,8 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
           resultDocument = workspaceDocument.getDocument();
         }
       }
+    } else if (workspaceDocument != null) {
+      resultDocument = workspaceDocument.getDocument();
     }
     if (resultDocument != null) {
       XmlMergeDocument result = new XmlMergeDocument(resultDocument, workspace);
