@@ -284,11 +284,11 @@ public interface XmlMergeSupport {
     if (attributeCount == 0) {
       return XPATH_ELEMENT_NAME;
     }
-    id = null;
+    id = XPATH_ELEMENT_NAME;
     for (int i = 0; i < attributeCount; i++) {
       Attr attribute = (Attr) attributes.item(i);
       if (!hasMergeNamespace(attribute)) {
-        if (id == null) {
+        if (id != XPATH_ELEMENT_NAME) {
           id = "@" + attribute.getName();
         } else {
           id = null;

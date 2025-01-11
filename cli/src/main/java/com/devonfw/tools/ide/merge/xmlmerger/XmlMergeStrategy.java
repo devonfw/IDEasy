@@ -26,9 +26,7 @@ public enum XmlMergeStrategy {
 
       BiFunction<Attr, Attr, String> attributeMerger = null; // here we can allow more configuration flexibility e.g. via merge:attribute-override="id,name"
       XmlMergeSupport.combineAttributes(templateElement, resultElement, attributeMerger);
-      if (resultElement.getParentNode() instanceof Element) {
-        combineChildNodes(templateElement, resultElement, matcher);
-      }
+      combineChildNodes(templateElement, resultElement, matcher);
     }
   },
 
