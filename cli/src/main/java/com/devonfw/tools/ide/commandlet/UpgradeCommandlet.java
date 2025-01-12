@@ -67,7 +67,7 @@ public class UpgradeCommandlet extends Commandlet {
 
       return latestTime.isAfter(currentTime);
     } catch (Exception e) {
-      this.context.warning("Failed to parse snapshot versions for comparison: " + e.getMessage());
+      this.context.warning("Failed to parse snapshot versions for comparison", e);
       return true; // If parsing fails, assume we need to upgrade
     }
   }
@@ -77,6 +77,7 @@ public class UpgradeCommandlet extends Commandlet {
 
     ToolRepository mavenRepo = this.context.getMavenSoftwareRepository();
     VersionIdentifier currentVersion = VersionIdentifier.of(IdeVersion.get());
+    currentVersion = VersionIdentifier.of("2024.12.001-beta");
     VersionIdentifier latestVersion = mavenRepo.resolveVersion(IDEASY_GROUP, IDEASY_ARTIFACT, null);
 
     boolean upgradeAvailable;

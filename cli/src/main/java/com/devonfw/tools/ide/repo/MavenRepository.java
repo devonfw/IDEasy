@@ -41,7 +41,7 @@ public class MavenRepository extends AbstractToolRepository {
   private String getBaseUrl(String groupId, String artifactId) {
 
     if (IDEASY_GROUP_ID.equals(groupId) && IDEASY_ARTIFACT_ID.equals(artifactId) && IdeVersion.get().contains("SNAPSHOT")) {
-      return MAVEN_SNAPSHOTS;
+      return MAVEN_CENTRAL;
     }
     return MAVEN_CENTRAL;
   }
