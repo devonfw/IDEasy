@@ -279,5 +279,7 @@ public interface EnvironmentVariables {
    *
    * @param string name of the property to remove.
    */
-  void remove(String string);
+  default void remove(String string) {
+    throw new UnsupportedOperationException("Not yet implemented!");
+  }
 }

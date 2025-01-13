@@ -23,11 +23,6 @@ public final class EnvironmentVariablesSystem extends EnvironmentVariablesMap {
   }
 
   @Override
-  public void remove(String string) {
-
-  }
-
-  @Override
   protected Map<String, String> getVariables() {
 
     return this.context.getSystem().getEnv();

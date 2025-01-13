@@ -27,11 +27,6 @@ public class EnvironmentVariablesResolved extends AbstractEnvironmentVariables {
   }
 
   @Override
-  public void remove(String string) {
-    
-  }
-
-  @Override
   public String getFlat(String name) {
 
     return null;
