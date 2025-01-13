@@ -18,7 +18,7 @@
     <native.maven.plugin.version>0.10.2</native.maven.plugin.version>
     <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
     <jline.version>3.24.1</jline.version>
-    <jansi.version>2.4.0</jansi.version>
+    <jansi.version>2.4.1</jansi.version>
     <jackson.version>2.18.0</jackson.version>
   </properties>
 
