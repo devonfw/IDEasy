@@ -27,7 +27,7 @@ public abstract class FileMerger extends AbstractWorkspaceMerger {
   public FileMerger(IdeContext context) {
 
     super(context);
-    this.legacySupport = IdeVariables.IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED.get(context).booleanValue();
+    this.legacySupport = Boolean.TRUE.equals(IdeVariables.IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED.get(context));
   }
 
   /**
@@ -106,6 +106,10 @@ public abstract class FileMerger extends AbstractWorkspaceMerger {
     return modified;
   }
 
+  /**
+   * @param content the content from a workspace template file that may contain legacy stuff like old variable syntax.
+   * @return the given {@link String} with potential legacy constructs being resolved.
+   */
   protected String upgradeWorkspaceContent(String content) {
 
     VariableSyntax syntax = VariableSyntax.CURLY;

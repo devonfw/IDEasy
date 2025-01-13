@@ -360,7 +360,10 @@ public class JsonMerger extends FileMerger {
 
   }
 
-  public static class JsonPrettyPrinter extends DefaultPrettyPrinter {
+  /**
+   * Extends {@link DefaultPrettyPrinter} to get nicely formatted JSON output.
+   */
+  private static class JsonPrettyPrinter extends DefaultPrettyPrinter {
 
     public JsonPrettyPrinter() {
       DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter("  ", "\n");

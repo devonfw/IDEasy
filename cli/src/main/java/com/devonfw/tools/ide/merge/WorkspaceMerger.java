@@ -27,6 +27,10 @@ public interface WorkspaceMerger {
    */
   void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update);
 
+  /**
+   * @param workspace the {@link Path} to the {@link com.devonfw.tools.ide.context.IdeContext#FOLDER_WORKSPACE workspace} with IDE templates to upgrade
+   *     (migrate and replace legacy constructs).
+   */
   void upgrade(Path workspace);
 
 }
