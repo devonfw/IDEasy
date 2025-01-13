@@ -259,7 +259,6 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.downloadPath = this.userHome.resolve("Downloads/ide");
 
     this.path = computeSystemPath();
-    this.customToolRepository = CustomToolRepositoryImpl.of(this);
   }
 
   private String getMessageIdeHomeFound() {
@@ -370,6 +369,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public CustomToolRepository getCustomToolRepository() {
 
+    if (this.customToolRepository == null) {
+      this.customToolRepository = CustomToolRepositoryImpl.of(this);
+    }
     return this.customToolRepository;
   }
 
@@ -1122,5 +1124,6 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public void reload() {
     this.variables = null;
+    this.customToolRepository = null;
   }
 }
