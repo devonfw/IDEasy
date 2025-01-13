@@ -46,7 +46,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     updateWorkspaceTemplates();
   }
 
-  void updateLegacyFolders() {
+  private void updateLegacyFolders() {
     this.context.info("Updating legacy folders if present...");
     Path settingsPath = context.getSettingsPath();
     updateLegacyFolder(settingsPath, IdeContext.FOLDER_LEGACY_REPOSITORIES, IdeContext.FOLDER_REPOSITORIES);
@@ -70,7 +70,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     }
   }
 
-  void updateWorkspaceTemplates() {
+  private void updateWorkspaceTemplates() {
     this.context.info("Updating workspace templates (replace legacy variables and change variable syntax)...");
 
     DirectoryMerger merger = this.context.getWorkspaceMerger();
@@ -88,7 +88,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     });
   }
 
-  void updateProperties() {
+  private void updateProperties() {
     // updates DEVON_IDE_CUSTOM_TOOLS to new ide-custom-tools.json
     String devonCustomTools = IdeVariables.DEVON_IDE_CUSTOM_TOOLS.get(this.context);
     if (devonCustomTools != null) {
@@ -137,7 +137,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
         }
       }
       updatePropertiesLegacyEdition(environmentVariables, "INTELLIJ_EDITION_TYPE", "INTELLIJ_EDITION", this::mapLegacyIntellijEdition);
-      updatePropertiesLegacyEdition(environmentVariables, "ECLIPSE_EDITION_TYPE", "ECLIPSE_EDITION", this::mapLegacyIntellijEdition);
+      updatePropertiesLegacyEdition(environmentVariables, "ECLIPSE_EDITION_TYPE", "ECLIPSE_EDITION", this::mapLegacyEclipseEdition);
       environmentVariables.save();
       this.context.getFileAccess().backup(environmentVariables.getLegacyPropertiesFilePath());
     }
