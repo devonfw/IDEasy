@@ -2,13 +2,19 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionComparisonResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -54,16 +60,13 @@ public class UpgradeCommandlet extends Commandlet {
 
     // Convert timestamps to LocalDateTime for comparison
     try {
-      LocalDateTime currentTime = LocalDateTime.parse(
-          "20" + currentTimestamp.substring(0, 2) + // year
+      LocalDateTime currentTime = LocalDateTime.parse("20" + currentTimestamp.substring(0, 2) + // year
               currentTimestamp.substring(2, 4) + // month
               currentTimestamp.substring(4, 6) + // day
               "000000", // we don't have time in current version
           DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
-      LocalDateTime latestTime = LocalDateTime.parse(
-          latestTimestamp,
-          DateTimeFormatter.ofPattern("yyyyMMdd"));
+      LocalDateTime latestTime = LocalDateTime.parse(latestTimestamp, DateTimeFormatter.ofPattern("yyyyMMdd"));
 
       return latestTime.isAfter(currentTime);
     } catch (Exception e) {
@@ -82,10 +85,8 @@ public class UpgradeCommandlet extends Commandlet {
 
     boolean upgradeAvailable;
     if (currentVersion.toString().contains("SNAPSHOT")) {
-      // Handle SNAPSHOT versions
       upgradeAvailable = isSnapshotNewer(currentVersion.toString(), latestVersion.toString());
     } else {
-      // Handle release versions
       VersionComparisonResult comparisonResult = currentVersion.compareVersion(latestVersion);
       upgradeAvailable = comparisonResult.isLess();
     }
@@ -96,16 +97,49 @@ public class UpgradeCommandlet extends Commandlet {
         this.context.info("Downloading new version...");
         Path downloadTarget = mavenRepo.download(IDEASY_GROUP, IDEASY_ARTIFACT, latestVersion);
 
-        this.context.info("Extracting files...");
-        FileAccess fileAccess = this.context.getFileAccess();
-        fileAccess.extract(downloadTarget, this.context.getIdeRoot().resolve(IdeContext.FOLDER_IDE));
+        if (this.context.getSystemInfo().isWindows()) {
+          // Windows-specific handling
+          Path scriptPath = createWindowsUpgradeScript(downloadTarget);
 
-        this.context.success("Successfully upgraded to version " + latestVersion);
+          // Start the upgrade script in the background
+          ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING)
+              .executable(scriptPath);
+
+          pc.run(ProcessMode.BACKGROUND_SILENT);
+
+          this.context.success("Upgrade script has been initiated. The application will restart shortly.");
+          System.exit(0);
+        } else {
+          // Normal extraction for non-Windows systems
+          this.context.info("Extracting files...");
+          FileAccess fileAccess = this.context.getFileAccess();
+          fileAccess.extract(downloadTarget, this.context.getIdeRoot().resolve(IdeContext.FOLDER_IDE));
+          this.context.success("Successfully upgraded to version " + latestVersion);
+        }
       } catch (Exception e) {
         this.context.error("Failed to upgrade: " + e.getMessage());
       }
     } else {
       this.context.info("You are already on the latest version.");
     }
+  }
+
+  private Path createWindowsUpgradeScript(Path downloadTarget) throws IOException {
+    Path scriptPath = this.context.getIdeRoot().resolve("upgrade.bat");
+    String ideFolderPath = this.context.getIdeRoot().resolve(IdeContext.FOLDER_IDE).toString();
+    // Create the content of the batch script
+    String scriptContent = String.format(
+        "@echo off\r\n" +
+            "timeout /t 3 /nobreak > nul\r\n" +  // Wait for 3 seconds
+            "echo Starting upgrade process...\r\n" +
+            "tar -xzf \"%s\" -C \"%s\"\r\n" +  // Extract tar.gz file to IDE folder
+            "echo Upgrade complete!\r\n" +
+            "del \"%%~f0\"\r\n",  // Self-delete the script - note the %% to escape %
+        downloadTarget.toString(),
+        ideFolderPath
+    );
+
+    Files.write(scriptPath, scriptContent.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+    return scriptPath;
   }
 }
