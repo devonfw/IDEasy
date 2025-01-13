@@ -267,7 +267,6 @@ public class FileAccessImpl implements FileAccess {
     if ((fileOrFolder != null) && (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder))) {
       delete(fileOrFolder);
     } else if ((fileOrFolder != null) && Files.exists(fileOrFolder)) {
-      // fileOrFolder is a directory
       LocalDateTime now = LocalDateTime.now();
       String date = DateTimeUtil.formatDate(now, true);
       String time = DateTimeUtil.formatTime(now);

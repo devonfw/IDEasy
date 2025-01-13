@@ -250,7 +250,7 @@ public interface FileAccess {
    * @param dir the {@link Path} to the directory where to list the children.
    * @param filter the filter {@link Function} used to {@link Function#apply(Object) filter and transform} children to include. If the {@link Function}
    *     returns  {@code null}, the child will be filtered, otherwise the returned {@link Path} will be included in the resulting {@link List}.
-   * @return all children of the given {@link Path} returned by the given {@link Function}. Will be the empty list of the given {@link Path} is not an existing
+   * @return all children of the given {@link Path} returned by the given {@link Function}. Will be the empty list if the given {@link Path} is not an existing
    *     directory.
    */
   List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter);
