@@ -2,14 +2,16 @@ package com.devonfw.tools.ide.tool.intellij;
 
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
@@ -72,38 +74,24 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   @Override
   public void installPlugin(ToolPluginDescriptor plugin, Step step) {
 
-    doInstallPlugins(List.of(plugin));
-    step.success();
-  }
-
-  @Override
-  protected void installPlugins(Collection<ToolPluginDescriptor> plugins) {
-
-    List<ToolPluginDescriptor> pluginsToInstall = new ArrayList<>();
-
-    for (ToolPluginDescriptor plugin : plugins) {
-      if (plugin.active()) {
-        pluginsToInstall.add(plugin);
-      }
+    List<String> args = new ArrayList<>();
+    args.add("installPlugins");
+    args.add(plugin.id());
+    if (plugin.url() != null) {
+      args.add(plugin.url());
     }
-    doInstallPlugins(pluginsToInstall);
-  }
-
-  private void doInstallPlugins(List<ToolPluginDescriptor> pluginsToInstall) {
-
-    List<String> extensionsCommands = new ArrayList<>();
-
-    if (pluginsToInstall.isEmpty()) {
-      this.context.info("No plugins to be installed");
-    } else {
-
-      extensionsCommands.add("installPlugins");
-
-      for (ToolPluginDescriptor plugin : pluginsToInstall) {
-        extensionsCommands.add(plugin.id());
+    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, null, ProcessErrorHandling.LOG_WARNING, args.toArray(new String[0]));
+    if (result.isSuccessful()) {
+      for (String line : result.getOut()) {
+        if (line.contains("installed plugin: PluginNode{id=" + plugin.id())) {
+          step.success();
+          return;
+        }
       }
     }
 
-    runTool(ProcessMode.DEFAULT, null, extensionsCommands.toArray(new String[0]));
+    result.log(IdeLogLevel.DEBUG, context, IdeLogLevel.ERROR);
+    step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
   }
+
 }
