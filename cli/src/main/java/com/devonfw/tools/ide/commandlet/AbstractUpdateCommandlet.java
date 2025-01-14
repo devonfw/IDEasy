@@ -12,7 +12,7 @@ import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
-import com.devonfw.tools.ide.repo.CustomTool;
+import com.devonfw.tools.ide.repo.CustomToolMetadata;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -169,7 +169,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       }
 
       // custom tools in ide-custom-tools.json
-      for (CustomTool customTool : this.context.getCustomToolRepository().getTools()) {
+      for (CustomToolMetadata customTool : this.context.getCustomToolRepository().getTools()) {
         CustomToolCommandlet customToolCommandlet = new CustomToolCommandlet(this.context, customTool);
         toolCommandlets.add(customToolCommandlet);
       }

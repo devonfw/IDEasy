@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.environment;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.devonfw.tools.ide.log.IdeLogger;
 
 /**
@@ -312,6 +315,28 @@ public abstract class VariableLine {
   public static VariableLine of(boolean export, String name, String value, VariableSource source) {
 
     return new Variable(export, name, value, null, source);
+  }
+
+  /**
+   * Returns a list of String Variables.
+   *
+   * @param value String to parse
+   * @return List of variables.
+   */
+  public static List<String> parseArray(String value) {
+    String csv = value;
+    String separator = ",";
+    // TODO: refactor with isBashArray method from VariableDefinitionStringList
+    if (value.startsWith("(") && value.endsWith(")")) {
+      csv = value.substring(1, value.length() - 1);
+      separator = " ";
+    }
+    String[] items = csv.split(separator);
+    List<String> list = new ArrayList<>(items.length);
+    for (String item : items) {
+      list.add(item.trim());
+    }
+    return list;
   }
 
 }
