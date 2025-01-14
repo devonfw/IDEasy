@@ -151,7 +151,7 @@ public class ProcessContextImpl implements ProcessContext {
     this.executable = systemPath.findBinary(this.executable);
     this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
-    String interpreter = addExecutable(this.executable.toString(), args);
+    String interpreter = addExecutable(args);
     args.addAll(this.arguments);
     String command = createCommand();
     if (this.context.debug().isEnabled()) {
@@ -306,11 +306,12 @@ public class ProcessContextImpl implements ProcessContext {
     return null;
   }
 
-  private String addExecutable(String exec, List<String> args) {
+  private String addExecutable(List<String> args) {
 
     String interpreter = null;
-    String fileExtension = FilenameUtil.getExtension(exec);
+    String fileExtension = FilenameUtil.getExtension(this.executable.getFileName().toString());
     boolean isBashScript = "sh".equals(fileExtension);
+    this.context.getFileAccess().makeExecutable(this.executable, true);
     if (!isBashScript) {
       String sheBang = getSheBang(this.executable);
       if (sheBang != null) {
@@ -334,7 +335,7 @@ public class ProcessContextImpl implements ProcessContext {
       args.add(0, "/i");
       args.add(0, "msiexec");
     }
-    args.add(exec);
+    args.add(this.executable.toString());
     return interpreter;
   }
 
