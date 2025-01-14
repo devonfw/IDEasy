@@ -39,7 +39,6 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
 
   /**
    * @throws Exception on error.
-   * @see UpgradeSettingsCommandlet#updateProperties()
    */
   private void verifyUpdateProperties() throws Exception {
 
@@ -75,18 +74,12 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
         new CustomToolJson("firefox", "70.0.1", false, false, null));
   }
 
-  /**
-   * @see UpgradeSettingsCommandlet#updateLegacyFolders()
-   */
   private void verifyUpdateLegacyFolders() {
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/repositories/IDEasy.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/templates/conf/ide.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/templates/conf/mvn/settings.xml")).exists();
   }
-
-  /**
-   * @see UpgradeSettingsCommandlet#updateWorkspaceTemplates()
-   */
+  
   private void verifyUpdateWorkspaceTemplates() {
     // arrange
     UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);
