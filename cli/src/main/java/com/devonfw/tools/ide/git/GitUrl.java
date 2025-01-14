@@ -44,6 +44,21 @@ public record GitUrl(String url, String branch) {
   }
 
   /**
+   * Extracts the project name from an git URL.
+   * For URLs like "https://github.com/devonfw/ide-urls.git" returns "ide-urls"
+   *
+   * @return the project name without ".git" extension
+   */
+  public String getProjectName() {
+    String path = this.url.substring(this.url.indexOf("://") + 3);
+    if (path.endsWith(".git")) {
+      path = path.substring(0, path.length() - 4);
+    }
+    String[] parts = path.split("/");
+    return parts[parts.length - 1];
+  }
+
+  /**
    * @param gitUrl the {@link #toString() string representation} of a {@link GitUrl}. May contain a branch name as {@code «url»#«branch»}.
    * @return the parsed {@link GitUrl}.
    */
