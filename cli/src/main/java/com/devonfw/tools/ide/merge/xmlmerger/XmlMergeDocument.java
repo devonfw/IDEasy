@@ -11,7 +11,6 @@ import org.w3c.dom.NodeList;
  */
 public class XmlMergeDocument {
 
-  /** The */
   private final Document document;
 
   private final Path path;

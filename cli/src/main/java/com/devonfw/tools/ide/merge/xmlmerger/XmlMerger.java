@@ -178,14 +178,10 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
 
     ensureParentDirectoryExists(file);
     try {
-      //Source xsltSource = new StringSource(xslt);
-      //Templates templates = TRANSFORMER_FACTORY.newTemplates(xsltSource);
-      //Transformer transformer = templates.newTransformer();
       Transformer transformer = TRANSFORMER_FACTORY.newTransformer();
       transformer.setOutputProperty(OutputKeys.INDENT, "yes");
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
       transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-      // transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
       transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
 
       // Workaround:

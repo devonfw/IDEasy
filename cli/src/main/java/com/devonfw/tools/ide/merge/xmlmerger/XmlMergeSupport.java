@@ -202,7 +202,7 @@ public interface XmlMergeSupport {
    */
   static void removeMergeNsAttributes(Element element) {
 
-    removeAttriubtes(element, XmlMergeSupport::hasMergeNamespace);
+    removeAttributes(element, XmlMergeSupport::hasMergeNamespace);
   }
 
   /**
@@ -210,7 +210,7 @@ public interface XmlMergeSupport {
    * @param filter the {@link Predicate} that {@link Predicate#test(Object) decides} if an {@link Attr attribute} shall be removed (if {@code true}) or
    *     not.
    */
-  static void removeAttriubtes(Element element, Predicate<Attr> filter) {
+  static void removeAttributes(Element element, Predicate<Attr> filter) {
 
     NamedNodeMap attributes = element.getAttributes();
     // we iterate backwards so we do not cause errors by removing attributes inside the loop
