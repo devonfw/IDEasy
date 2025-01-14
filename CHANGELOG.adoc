@@ -7,7 +7,10 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/916[#916]: download is missing status code error handling
+* https://github.com/devonfw/IDEasy/issues/757[#757]: Support to allow settings in code repository
+* https://github.com/devonfw/IDEasy/issues/826[#826]: Fix git settings check when settings folder is empty
 * https://github.com/devonfw/IDEasy/issues/894[#894]: Fix ide.bat printing for initialization and error output
+* https://github.com/devonfw/IDEasy/issues/759[#759]: Add UpgradeSettingsCommandlet for the upgrade of legacy devonfw-ide settings to IDEasy
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/18?closed=1[milestone 2025.01.001].
 
