@@ -38,7 +38,6 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
 
     super.configureToolArgs(pc, processMode, errorHandling, args);
-    pc.addArg(this.context.getWorkspacePath());
   }
 
   @Override
