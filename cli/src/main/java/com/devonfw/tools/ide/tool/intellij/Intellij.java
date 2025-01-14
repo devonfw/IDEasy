@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.intellij;
 
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -89,9 +90,13 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         }
       }
     }
-
     result.log(IdeLogLevel.DEBUG, context, IdeLogLevel.ERROR);
     step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
   }
 
+  @Override
+  protected void installPlugins(Collection<ToolPluginDescriptor> plugins) {
+    super.installPlugins(plugins);
+    run();
+  }
 }
