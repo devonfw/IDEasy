@@ -349,7 +349,11 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
     return oldValue;
   }
 
-  @Override
+  /**
+   * Removes a property.
+   *
+   * @param name name of the property to remove.
+   */
   public void remove(String name) {
     String oldValue = this.variables.remove(name);
     if (oldValue != null) {

@@ -273,13 +273,4 @@ public interface EnvironmentVariables {
 
     return tool.toUpperCase(Locale.ROOT) + "_EDITION";
   }
-
-  /**
-   * Removes a property.
-   *
-   * @param string name of the property to remove.
-   */
-  default void remove(String string) {
-    throw new UnsupportedOperationException("Not yet implemented!");
-  }
 }
