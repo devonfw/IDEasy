@@ -35,8 +35,6 @@ public class GitContextTest extends AbstractIdeContextTest {
     this.processContext = new ProcessContextGitMock(dir);
     context.setProcessContext(processContext);
     context.setGitContext(new GitContextImpl(context));
-    // reset ProcessResult instance
-    this.processContext.setProcessResult(0, new ArrayList<>());
     return context;
   }
 

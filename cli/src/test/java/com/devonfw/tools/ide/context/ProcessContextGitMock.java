@@ -24,8 +24,6 @@ public class ProcessContextGitMock implements ProcessContext {
 
   private final LocalDateTime now;
 
-  private int exitCode;
-
   private final Path directory;
 
   private ProcessResult processResult;
@@ -37,7 +35,6 @@ public class ProcessContextGitMock implements ProcessContext {
 
     this.arguments = new ArrayList<>();
     this.processResult = new ProcessResultImpl("git", "", 0, new ArrayList<>());
-    this.exitCode = ProcessResult.SUCCESS;
     this.directory = directory;
     this.now = LocalDateTime.now();
   }
@@ -51,29 +48,13 @@ public class ProcessContextGitMock implements ProcessContext {
   }
 
   /**
-   * @param exitCode the {@link #getExitCode() exit code}.
+   * @param exitCode th exit code.
    * @param output the list of {@link OutputMessage}}
    * @return the mocked {@link ProcessResult}
    */
   public void setProcessResult(int exitCode, List<OutputMessage> output) {
 
     this.processResult = new ProcessResultImpl("git", "", exitCode, output);
-  }
-
-  /**
-   * @return the mocked {@link ProcessResult#getExitCode() exit code}.
-   */
-  public int getExitCode() {
-
-    return this.exitCode;
-  }
-
-  /**
-   * @param exitCode the {@link #getExitCode() exit code}.
-   */
-  public void setExitCode(int exitCode) {
-
-    this.exitCode = exitCode;
   }
 
   @Override
@@ -121,6 +102,7 @@ public class ProcessContextGitMock implements ProcessContext {
   @Override
   public ProcessResult run(ProcessMode processMode) {
 
+    int exitCode = ProcessResult.SUCCESS;
     StringBuilder command = new StringBuilder("git");
     for (String arg : this.arguments) {
       command.append(' ');
@@ -131,7 +113,6 @@ public class ProcessContextGitMock implements ProcessContext {
     if (this.arguments.contains("clean")) {
       try {
         Files.deleteIfExists(this.directory.resolve("new-folder"));
-        this.exitCode = 0;
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -141,7 +122,6 @@ public class ProcessContextGitMock implements ProcessContext {
       if (Files.exists(this.directory.resolve("new-folder"))) {
         OutputMessage outputMessage = new OutputMessage(false, "new-folder");
         processResult.getOutputMessages().add(outputMessage);
-        this.exitCode = 0;
       }
     }
     if (this.arguments.contains("clone")) {
@@ -150,14 +130,13 @@ public class ProcessContextGitMock implements ProcessContext {
         Path newFile = Files.createFile(gitFolderPath.resolve("url"));
         // 3rd argument = repository Url
         Files.writeString(newFile, this.arguments.get(2));
-        this.exitCode = 0;
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     }
     // always consider that files were changed
     if (this.arguments.contains("diff-index")) {
-      this.exitCode = 1;
+      exitCode = 1;
     }
     // changes file back to initial state (uses reference file in .git folder)
     if (this.arguments.contains("reset")) {
@@ -166,7 +145,7 @@ public class ProcessContextGitMock implements ProcessContext {
           Files.copy(gitFolderPath.resolve("objects").resolve("referenceFile"), this.directory.resolve("trackedFile"),
               StandardCopyOption.REPLACE_EXISTING);
         }
-        this.exitCode = 0;
+        exitCode = ProcessResult.SUCCESS;
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
@@ -176,13 +155,13 @@ public class ProcessContextGitMock implements ProcessContext {
         Files.createDirectories(gitFolderPath);
         Path newFile = Files.createFile(gitFolderPath.resolve("update"));
         Files.writeString(newFile, this.now.toString());
-        this.exitCode = 0;
+        exitCode = ProcessResult.SUCCESS;
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     }
     this.arguments.clear();
-    setProcessResult(getExitCode(), this.processResult.getOutputMessages());
+    setProcessResult(exitCode, this.processResult.getOutputMessages());
     return this.processResult;
   }
 
