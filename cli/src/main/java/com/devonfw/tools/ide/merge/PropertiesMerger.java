@@ -8,8 +8,6 @@ import java.nio.file.Path;
 import java.util.Properties;
 import java.util.Set;
 
-import org.jline.utils.Log;
-
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.SortedProperties;
@@ -37,7 +35,7 @@ public class PropertiesMerger extends FileMerger {
     Path template = setup;
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
-        Log.trace("Nothing to do as update file does not exist: {}", update);
+        this.context.trace("Nothing to do as update file does not exist: {}", update);
         return; // nothing to do ...
       }
       load(properties, workspace);
@@ -50,14 +48,14 @@ public class PropertiesMerger extends FileMerger {
     }
     resolve(properties, resolver, template.toString());
     save(properties, workspace);
-    Log.trace("Saved merged properties to: {}", workspace);
+    this.context.trace("Saved merged properties to: {}", workspace);
   }
 
   /**
    * @param file the {@link Path} to load.
    * @return the loaded {@link Properties}.
    */
-  public static Properties load(Path file) {
+  public Properties load(Path file) {
 
     Properties properties = new Properties();
     load(properties, file);
@@ -68,14 +66,14 @@ public class PropertiesMerger extends FileMerger {
    * @param file the {@link Path} to load.
    * @return the loaded {@link Properties}.
    */
-  public static Properties loadIfExists(Path file) {
+  public Properties loadIfExists(Path file) {
 
     Properties properties = new Properties();
     if (file != null) {
       if (Files.exists(file)) {
         load(properties, file);
       } else {
-        Log.trace("Properties file does not exist: {}", file);
+        this.context.trace("Properties file does not exist: {}", file);
       }
     }
     return properties;
@@ -85,9 +83,9 @@ public class PropertiesMerger extends FileMerger {
    * @param properties the existing {@link Properties} instance.
    * @param file the properties {@link Path} to load.
    */
-  public static void load(Properties properties, Path file) {
+  public void load(Properties properties, Path file) {
 
-    Log.trace("Loading properties file: {}", file);
+    this.context.trace("Loading properties file: {}", file);
     try (Reader reader = Files.newBufferedReader(file)) {
       properties.load(reader);
     } catch (IOException e) {
@@ -108,9 +106,9 @@ public class PropertiesMerger extends FileMerger {
    * @param properties the {@link Properties} to save.
    * @param file the {@link Path} to save to.
    */
-  public static void save(Properties properties, Path file) {
+  public void save(Properties properties, Path file) {
 
-    Log.trace("Saving properties file: {}", file);
+    this.context.trace("Saving properties file: {}", file);
     ensureParentDirectoryExists(file);
     try (Writer writer = Files.newBufferedWriter(file)) {
       properties.store(writer, null);
@@ -123,11 +121,11 @@ public class PropertiesMerger extends FileMerger {
   public void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update) {
 
     if (!Files.exists(workspace)) {
-      Log.trace("Workspace file does not exist: {}", workspace);
+      this.context.trace("Workspace file does not exist: {}", workspace);
       return;
     }
     if (!Files.exists(update)) {
-      Log.trace("Update file does not exist: {}", update);
+      this.context.trace("Update file does not exist: {}", update);
       return;
     }
     Object src = workspace.getFileName();
@@ -153,10 +151,15 @@ public class PropertiesMerger extends FileMerger {
     }
     if (updated) {
       save(mergedProperties, update);
-      Log.debug("Saved changes from: {} to: {}", workspace.getFileName(), update);
+      this.context.debug("Saved changes from: {} to: {}", workspace.getFileName(), update);
     } else {
-      Log.trace("No changes for: {}", update);
+      this.context.trace("No changes for: {}", update);
     }
   }
 
+  @Override
+  protected boolean doUpgrade(Path workspaceFile) throws Exception {
+
+    return doUpgradeTextContent(workspaceFile);
+  }
 }

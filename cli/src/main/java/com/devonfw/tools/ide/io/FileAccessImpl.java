@@ -27,6 +27,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -97,8 +98,11 @@ public class FileAccessImpl implements FileAccess {
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
         HttpClient client = createHttpClient(url);
         HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-        if (response.statusCode() == 200) {
+        int statusCode = response.statusCode();
+        if (statusCode == 200) {
           downloadFileWithProgressBar(url, target, response);
+        } else {
+          throw new IllegalStateException("Download failed with status code " + statusCode);
         }
       } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
         throw new IllegalArgumentException("Unsupported download URL: " + url);
@@ -263,20 +267,30 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void backup(Path fileOrFolder) {
 
-    if (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder)) {
+    if ((fileOrFolder != null) && (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder))) {
       delete(fileOrFolder);
-    } else {
-      // fileOrFolder is a directory
-      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
+    } else if ((fileOrFolder != null) && Files.exists(fileOrFolder)) {
       LocalDateTime now = LocalDateTime.now();
-      String date = DateTimeUtil.formatDate(now);
+      String date = DateTimeUtil.formatDate(now, true);
       String time = DateTimeUtil.formatTime(now);
-      Path backupDatePath = backupPath.resolve(date);
-      mkdirs(backupDatePath);
-      Path target = backupDatePath.resolve(fileOrFolder.getFileName().toString() + "_" + time);
+      String filename = fileOrFolder.getFileName().toString();
+      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS).resolve(date).resolve(time + "_" + filename);
+      backupPath = appendParentPath(backupPath, fileOrFolder.getParent(), 2);
+      mkdirs(backupPath);
+      Path target = backupPath.resolve(filename);
       this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
       move(fileOrFolder, target);
+    } else {
+      this.context.trace("Backup of {} skipped as the path does not exist.", fileOrFolder);
     }
+  }
+
+  private static Path appendParentPath(Path path, Path parent, int max) {
+
+    if ((parent == null) || (max <= 0)) {
+      return path;
+    }
+    return appendParentPath(path, parent.getParent(), max - 1).resolve(parent.getFileName());
   }
 
   @Override
@@ -828,7 +842,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public List<Path> listChildren(Path dir, Predicate<Path> filter) {
+  public List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter) {
 
     if (!Files.isDirectory(dir)) {
       return List.of();
@@ -838,9 +852,14 @@ public class FileAccessImpl implements FileAccess {
       Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
         Path child = iterator.next();
-        if (filter.test(child)) {
-          this.context.trace("Accepted file {}", child);
-          children.add(child);
+        Path filteredChild = filter.apply(child);
+        if (filteredChild != null) {
+          if (filteredChild == child) {
+            this.context.trace("Accepted file {}", child);
+          } else {
+            this.context.trace("Accepted file {} and mapped to {}", child, filteredChild);
+          }
+          children.add(filteredChild);
         } else {
           this.context.trace("Ignoring file {} according to filter", child);
         }
@@ -903,52 +922,67 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void makeExecutable(Path filePath) {
+  public void makeExecutable(Path file, boolean confirm) {
 
-    if (Files.exists(filePath)) {
+    if (Files.exists(file)) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        this.context.trace("Windows does not have executable flags hence omitting for file {}", filePath);
+        this.context.trace("Windows does not have executable flags hence omitting for file {}", file);
         return;
       }
       try {
         // Read the current file permissions
-        Set<PosixFilePermission> perms = Files.getPosixFilePermissions(filePath);
+        Set<PosixFilePermission> existingPermissions = Files.getPosixFilePermissions(file);
 
         // Add execute permission for all users
+        Set<PosixFilePermission> executablePermissions = new HashSet<>(existingPermissions);
         boolean update = false;
-        update |= perms.add(PosixFilePermission.OWNER_EXECUTE);
-        update |= perms.add(PosixFilePermission.GROUP_EXECUTE);
-        update |= perms.add(PosixFilePermission.OTHERS_EXECUTE);
+        update |= executablePermissions.add(PosixFilePermission.OWNER_EXECUTE);
+        update |= executablePermissions.add(PosixFilePermission.GROUP_EXECUTE);
+        update |= executablePermissions.add(PosixFilePermission.OTHERS_EXECUTE);
 
         if (update) {
-          this.context.debug("Setting executable flags for file {}", filePath);
+          if (confirm) {
+            boolean yesContinue = this.context.question(
+                "We want to execute " + file.getFileName() + " but this command seems to lack executable permissions!\n"
+                    + "Most probably the tool vendor did forgot to add x-flags in the binary release package.\n"
+                    + "Before running the command, we suggest to set executable permissions to the file:\n"
+                    + file + "\n"
+                    + "For security reasons we ask for your confirmation so please check this request.\n"
+                    + "Changing permissions from " + PosixFilePermissions.toString(existingPermissions) + " to " + PosixFilePermissions.toString(
+                    executablePermissions) + ".\n"
+                    + "Do you confirm to make the command executable before running it?");
+            if (!yesContinue) {
+              return;
+            }
+          }
+          this.context.debug("Setting executable flags for file {}", file);
           // Set the new permissions
-          Files.setPosixFilePermissions(filePath, perms);
+          Files.setPosixFilePermissions(file, executablePermissions);
         } else {
-          this.context.trace("Executable flags already present so no need to set them for file {}", filePath);
+          this.context.trace("Executable flags already present so no need to set them for file {}", file);
         }
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
     } else {
-      this.context.warning("Cannot set executable flag on file that does not exist: {}", filePath);
+      this.context.warning("Cannot set executable flag on file that does not exist: {}", file);
     }
   }
 
   @Override
-  public void touch(Path filePath) {
+  public void touch(Path file) {
 
-    if (Files.exists(filePath)) {
+    if (Files.exists(file)) {
       try {
-        Files.setLastModifiedTime(filePath, FileTime.fromMillis(System.currentTimeMillis()));
+        Files.setLastModifiedTime(file, FileTime.fromMillis(System.currentTimeMillis()));
       } catch (IOException e) {
-        throw new IllegalStateException("Could not update modification-time of " + filePath, e);
+        throw new IllegalStateException("Could not update modification-time of " + file, e);
       }
     } else {
       try {
-        Files.createFile(filePath);
+        Files.createFile(file);
       } catch (IOException e) {
-        throw new IllegalStateException("Could not create empty file " + filePath, e);
+        throw new IllegalStateException("Could not create empty file " + file, e);
       }
     }
   }

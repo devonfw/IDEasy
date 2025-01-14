@@ -1,11 +1,14 @@
 package com.devonfw.tools.ide.merge;
 
+import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import jakarta.json.Json;
@@ -23,6 +26,13 @@ import jakarta.json.stream.JsonGenerator;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
  * Implementation of {@link FileMerger} for JSON.
@@ -225,6 +235,92 @@ public class JsonMerger extends FileMerger {
     }
   }
 
+  @Override
+  protected boolean doUpgrade(Path workspaceFile) throws Exception {
+
+    JsonNode jsonNode;
+    ObjectMapper mapper = new ObjectMapper();
+    try (Reader reader = Files.newBufferedReader(workspaceFile)) {
+      jsonNode = mapper.reader().readTree(reader);
+    }
+    JsonNode migratedNode = upgradeJsonNode(jsonNode);
+    boolean modified = (migratedNode != jsonNode);
+    if (migratedNode == null) {
+      migratedNode = jsonNode;
+    }
+    if (modified) {
+      try (Writer writer = Files.newBufferedWriter(workspaceFile)) {
+        mapper.writer(new JsonPrettyPrinter()).writeValue(writer, migratedNode);
+      }
+    }
+    return modified;
+  }
+
+  /**
+   * @param jsonNode the {@link JsonNode} to upgrade.
+   * @return the given {@link JsonNode} if unmodified after upgrade. Otherwise, a new migrated {@link JsonNode} or {@code null} if the given {@link JsonNode}
+   *     was mutable and the migration could be applied directly.
+   */
+  private JsonNode upgradeJsonNode(JsonNode jsonNode) {
+
+    if (jsonNode instanceof ArrayNode jsonArray) {
+      return upgradeJsonArray(jsonArray);
+    } else if (jsonNode instanceof ObjectNode jsonObject) {
+      return upgradeJsonObject(jsonObject);
+    } else if (jsonNode instanceof TextNode jsonString) {
+      return upgradeJsonString(jsonString);
+    } else {
+      assert jsonNode.isValueNode();
+      return jsonNode;
+    }
+  }
+
+  private ObjectNode upgradeJsonObject(ObjectNode jsonObject) {
+
+    ObjectNode result = jsonObject;
+    Iterator<String> fieldNames = jsonObject.fieldNames();
+    while (fieldNames.hasNext()) {
+      String fieldName = fieldNames.next();
+      JsonNode child = jsonObject.get(fieldName);
+      JsonNode migratedChild = upgradeJsonNode(child);
+      if (migratedChild != child) {
+        result = null;
+        if (migratedChild != null) {
+          jsonObject.put(fieldName, migratedChild);
+        }
+      }
+    }
+    return result;
+  }
+
+  private ArrayNode upgradeJsonArray(ArrayNode jsonArray) {
+
+    ArrayNode result = jsonArray;
+    int size = jsonArray.size();
+    for (int i = 0; i < size; i++) {
+      JsonNode child = jsonArray.get(i);
+      JsonNode migratedChild = upgradeJsonNode(child);
+      if (migratedChild != child) {
+        result = null;
+        if (migratedChild != null) {
+          jsonArray.set(i, migratedChild);
+        }
+      }
+    }
+    return result;
+  }
+
+  private JsonNode upgradeJsonString(TextNode jsonString) {
+
+    String text = jsonString.textValue();
+    String migratedText = upgradeWorkspaceContent(text);
+    if (migratedText.equals(text)) {
+      return jsonString;
+    } else {
+      return new TextNode(migratedText);
+    }
+  }
+
   private static class Status {
 
     /**
@@ -264,4 +360,37 @@ public class JsonMerger extends FileMerger {
 
   }
 
+  /**
+   * Extends {@link DefaultPrettyPrinter} to get nicely formatted JSON output.
+   */
+  private static class JsonPrettyPrinter extends DefaultPrettyPrinter {
+
+    public JsonPrettyPrinter() {
+      DefaultPrettyPrinter.Indenter indenter = new DefaultIndenter("  ", "\n");
+      indentObjectsWith(indenter);
+      indentArraysWith(indenter);
+      _objectFieldValueSeparatorWithSpaces = ": ";
+    }
+
+    private JsonPrettyPrinter(JsonPrettyPrinter pp) {
+      super(pp);
+    }
+
+    @Override
+    public void writeEndArray(com.fasterxml.jackson.core.JsonGenerator g, int nrOfValues) throws IOException {
+
+      if (!_arrayIndenter.isInline()) {
+        _nesting--;
+      }
+      if (nrOfValues > 0) {
+        _arrayIndenter.writeIndentation(g, _nesting);
+      }
+      g.writeRaw(']');
+    }
+
+    @Override
+    public DefaultPrettyPrinter createInstance() {
+      return new JsonPrettyPrinter(this);
+    }
+  }
 }
