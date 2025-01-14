@@ -73,7 +73,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     String gitRepoUrl = "https://github.com/test";
     IdeTestContext context = newGitContext(tempDir);
     OutputMessage outputMessage = new OutputMessage(false, "test-remote");
-    this.processContext.getProcessResult().getOutputMessages().add(outputMessage);
+    this.processContext.addOutputMessage(outputMessage);
     // act
     context.getGitContext().pullOrClone(GitUrl.of(gitRepoUrl), tempDir);
     // assert
@@ -92,7 +92,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     String gitRepoUrl = "https://github.com/test";
     IdeTestContext context = newGitContext(tempDir);
     OutputMessage outputMessage = new OutputMessage(false, "test-remote");
-    this.processContext.getProcessResult().getOutputMessages().add(outputMessage);
+    this.processContext.addOutputMessage(outputMessage);
     FileAccess fileAccess = new FileAccessImpl(context);
     Path gitFolderPath = tempDir.resolve(".git");
     fileAccess.mkdirs(gitFolderPath);
@@ -133,7 +133,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     }
     IdeTestContext context = newGitContext(tempDir);
     OutputMessage outputMessage = new OutputMessage(false, "test-remote");
-    this.processContext.getProcessResult().getOutputMessages().add(outputMessage);
+    this.processContext.addOutputMessage(outputMessage);
     // act
     context.getGitContext().pullOrCloneAndResetIfNeeded(new GitUrl(gitRepoUrl, "master"), tempDir, "origin");
     // assert
@@ -152,7 +152,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     String gitRepoUrl = "https://github.com/test";
     IdeTestContext context = newGitContext(tempDir);
     OutputMessage outputMessage = new OutputMessage(false, "test-remote");
-    this.processContext.getProcessResult().getOutputMessages().add(outputMessage);
+    this.processContext.addOutputMessage(outputMessage);
     GitContext gitContext = context.getGitContext();
     FileAccess fileAccess = context.getFileAccess();
     Path gitFolderPath = tempDir.resolve(".git");

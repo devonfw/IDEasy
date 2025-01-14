@@ -26,7 +26,7 @@ public class ProcessContextGitMock implements ProcessContext {
 
   private final Path directory;
 
-  private ProcessResult processResult;
+  private List<OutputMessage> outputMessages;
 
   /**
    * @param directory the {@link Path} to the git repository.
@@ -34,27 +34,13 @@ public class ProcessContextGitMock implements ProcessContext {
   public ProcessContextGitMock(Path directory) {
 
     this.arguments = new ArrayList<>();
-    this.processResult = new ProcessResultImpl("git", "", 0, new ArrayList<>());
     this.directory = directory;
     this.now = LocalDateTime.now();
+    this.outputMessages = new ArrayList<OutputMessage>();
   }
 
-  /**
-   * @return the mocked {@link ProcessResult}
-   */
-  public ProcessResult getProcessResult() {
-
-    return this.processResult;
-  }
-
-  /**
-   * @param exitCode th exit code.
-   * @param output the list of {@link OutputMessage}}
-   * @return the mocked {@link ProcessResult}
-   */
-  public void setProcessResult(int exitCode, List<OutputMessage> output) {
-
-    this.processResult = new ProcessResultImpl("git", "", exitCode, output);
+  public void addOutputMessage(OutputMessage message) {
+    this.outputMessages.add(message);
   }
 
   @Override
@@ -121,7 +107,7 @@ public class ProcessContextGitMock implements ProcessContext {
     if (this.arguments.contains("ls-files")) {
       if (Files.exists(this.directory.resolve("new-folder"))) {
         OutputMessage outputMessage = new OutputMessage(false, "new-folder");
-        processResult.getOutputMessages().add(outputMessage);
+        this.outputMessages.add(outputMessage);
       }
     }
     if (this.arguments.contains("clone")) {
@@ -161,8 +147,7 @@ public class ProcessContextGitMock implements ProcessContext {
       }
     }
     this.arguments.clear();
-    setProcessResult(exitCode, this.processResult.getOutputMessages());
-    return this.processResult;
+    return new ProcessResultImpl("git", "", exitCode, this.outputMessages);
   }
 
 }
