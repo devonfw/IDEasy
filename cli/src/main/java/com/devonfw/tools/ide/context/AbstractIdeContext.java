@@ -77,6 +77,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   protected Path settingsPath;
 
+  private Path settingsCommitIdPath;
+
   private Path softwarePath;
 
   private Path softwareExtraPath;
@@ -241,6 +243,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
       this.confPath = this.ideHome.resolve(FOLDER_CONF);
       this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
+      this.settingsCommitIdPath = this.ideHome.resolve(IdeContext.SETTINGS_COMMIT_ID);
       this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
       this.softwareExtraPath = this.softwarePath.resolve(FOLDER_EXTRA);
       this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
@@ -407,6 +410,31 @@ public abstract class AbstractIdeContext implements IdeContext {
   public Path getSettingsPath() {
 
     return this.settingsPath;
+  }
+
+  @Override
+  public Path getSettingsGitRepository() {
+
+    Path settingsPath = getSettingsPath();
+
+    if (settingsPath == null) {
+      error("No settings repository was found.");
+      return null;
+    }
+
+    // check whether the settings path has a .git folder only if its not a symbolic link
+    if (!Files.exists(settingsPath.resolve(".git")) && !Files.isSymbolicLink(settingsPath)) {
+      error("Settings repository exists but is not a git repository.");
+      return null;
+    }
+
+    return settingsPath;
+  }
+
+  @Override
+  public Path getSettingsCommitIdPath() {
+
+    return this.settingsCommitIdPath;
   }
 
   @Override
@@ -836,10 +864,11 @@ public abstract class AbstractIdeContext implements IdeContext {
           if (cmd.isIdeHomeRequired()) {
             debug(getMessageIdeHomeFound());
           }
-          if (this.settingsPath != null) {
-            if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
-                (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
-              interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+          Path settingsRepository = getSettingsGitRepository();
+          if (settingsRepository != null) {
+            if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) ||
+                (getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()))) {
+              interaction("Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
             }
           }
         }
