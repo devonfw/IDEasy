@@ -98,8 +98,11 @@ public class FileAccessImpl implements FileAccess {
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
         HttpClient client = createHttpClient(url);
         HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-        if (response.statusCode() == 200) {
+        int statusCode = response.statusCode();
+        if (statusCode == 200) {
           downloadFileWithProgressBar(url, target, response);
+        } else {
+          throw new IllegalStateException("Download failed with status code " + statusCode);
         }
       } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
         throw new IllegalArgumentException("Unsupported download URL: " + url);
@@ -264,20 +267,30 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void backup(Path fileOrFolder) {
 
-    if (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder)) {
+    if ((fileOrFolder != null) && (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder))) {
       delete(fileOrFolder);
-    } else {
-      // fileOrFolder is a directory
-      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
+    } else if ((fileOrFolder != null) && Files.exists(fileOrFolder)) {
       LocalDateTime now = LocalDateTime.now();
-      String date = DateTimeUtil.formatDate(now);
+      String date = DateTimeUtil.formatDate(now, true);
       String time = DateTimeUtil.formatTime(now);
-      Path backupDatePath = backupPath.resolve(date);
-      mkdirs(backupDatePath);
-      Path target = backupDatePath.resolve(fileOrFolder.getFileName().toString() + "_" + time);
+      String filename = fileOrFolder.getFileName().toString();
+      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS).resolve(date).resolve(time + "_" + filename);
+      backupPath = appendParentPath(backupPath, fileOrFolder.getParent(), 2);
+      mkdirs(backupPath);
+      Path target = backupPath.resolve(filename);
       this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
       move(fileOrFolder, target);
+    } else {
+      this.context.trace("Backup of {} skipped as the path does not exist.", fileOrFolder);
     }
+  }
+
+  private static Path appendParentPath(Path path, Path parent, int max) {
+
+    if ((parent == null) || (max <= 0)) {
+      return path;
+    }
+    return appendParentPath(path, parent.getParent(), max - 1).resolve(parent.getFileName());
   }
 
   @Override
@@ -829,7 +842,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public List<Path> listChildren(Path dir, Predicate<Path> filter) {
+  public List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter) {
 
     if (!Files.isDirectory(dir)) {
       return List.of();
@@ -839,9 +852,14 @@ public class FileAccessImpl implements FileAccess {
       Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
         Path child = iterator.next();
-        if (filter.test(child)) {
-          this.context.trace("Accepted file {}", child);
-          children.add(child);
+        Path filteredChild = filter.apply(child);
+        if (filteredChild != null) {
+          if (filteredChild == child) {
+            this.context.trace("Accepted file {}", child);
+          } else {
+            this.context.trace("Accepted file {} and mapped to {}", child, filteredChild);
+          }
+          children.add(filteredChild);
         } else {
           this.context.trace("Ignoring file {} according to filter", child);
         }
