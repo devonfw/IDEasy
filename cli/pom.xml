@@ -19,7 +19,7 @@
     <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
     <jline.version>3.28.0</jline.version>
     <jansi.version>2.4.1</jansi.version>
-    <jackson.version>2.18.0</jackson.version>
+    <jackson.version>2.18.2</jackson.version>
   </properties>
 
   <dependencies>
