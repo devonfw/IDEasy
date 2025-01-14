@@ -86,6 +86,9 @@ public interface IdeVariables {
   VariableDefinitionBoolean IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED = new VariableDefinitionBoolean("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED", null,
       c -> Boolean.TRUE);
 
+  /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() DEVON_IDE_CUSTOM_TOOLS}. */
+  VariableDefinitionString DEVON_IDE_CUSTOM_TOOLS = new VariableDefinitionString("DEVON_IDE_CUSTOM_TOOLS");
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, CREATE_START_SCRIPTS,
       IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, GRADLE_BUILD_OPTS, YARN_BUILD_OPTS, JASYPT_OPTS, MAVEN_ARGS,

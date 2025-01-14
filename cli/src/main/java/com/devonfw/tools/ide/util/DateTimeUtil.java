@@ -11,7 +11,10 @@ import java.time.format.DateTimeFormatterBuilder;
  */
 public final class DateTimeUtil {
 
-  private static final DateTimeFormatter DATE_FORMATTER = new DateTimeFormatterBuilder().appendPattern("YYYY-MM-dd")
+  private static final DateTimeFormatter DATE_FORMATTER_PATH = new DateTimeFormatterBuilder().appendPattern("YYYY/MM/dd")
+      .toFormatter();
+
+  private static final DateTimeFormatter DATE_FORMATTER_NAME = new DateTimeFormatterBuilder().appendPattern("YYYY-MM-dd")
       .toFormatter();
 
   private static final DateTimeFormatter TIME_FORMATTER = new DateTimeFormatterBuilder().appendPattern("HH-mm-ss")
@@ -66,11 +69,16 @@ public final class DateTimeUtil {
 
   /**
    * @param temporal the {@link LocalDateTime} to format as date.
-   * @return the {@link LocalDateTime} formatted as date in the format YYYY-MM-dd.
+   * @param dirs {@code true} to use "/" as separator to create subfolders per year, month, and date, {@code false} otherwise.
+   * @return the {@link LocalDateTime} formatted as date in the format YYYY-MM-dd or YYYY/MM/dd.
    */
-  public static String formatDate(LocalDateTime temporal) {
+  public static String formatDate(LocalDateTime temporal, boolean dirs) {
 
-    return temporal.format(DATE_FORMATTER);
+    if (dirs) {
+      return temporal.format(DATE_FORMATTER_PATH);
+    } else {
+      return temporal.format(DATE_FORMATTER_NAME);
+    }
   }
 
   /**

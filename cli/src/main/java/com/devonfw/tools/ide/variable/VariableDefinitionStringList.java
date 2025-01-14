@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.variable;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
@@ -61,7 +60,7 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
     super(name, legacyName, defaultValueFactory, forceDefaultValue);
   }
 
-  @SuppressWarnings( { "unchecked", "rawtypes" })
+  @SuppressWarnings({ "unchecked", "rawtypes" })
   @Override
   public Class<List<String>> getValueType() {
 
@@ -74,17 +73,7 @@ public class VariableDefinitionStringList extends AbstractVariableDefinition<Lis
     if (value.isEmpty()) {
       return Collections.emptyList();
     }
-    String csv = value;
-    String separator = ",";
-    if (isBashArray(value)) {
-      csv = value.substring(1, value.length() - 1);
-      separator = " ";
-    }
-    String[] items = csv.split(separator);
-    List<String> list = new ArrayList<>(items.length);
-    for (String item : items) {
-      list.add(item.trim());
-    }
+    List<String> list = VariableLine.parseArray(value);
     list = Collections.unmodifiableList(list);
     return list;
   }

@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import org.jline.utils.Log;
 
@@ -51,6 +52,7 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     TextMerger textMerger = new TextMerger(context);
     this.extension2mergerMap.put("name", textMerger); // intellij specific
     this.extension2mergerMap.put("editorconfig", textMerger);
+    this.extension2mergerMap.put("txt", textMerger);
     this.fallbackMerger = new FallbackMerger(context);
   }
 
@@ -99,8 +101,8 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
         return;
       }
       Log.trace("Traversing directory: {}", update);
-      try {
-        Iterator<Path> iterator = Files.list(update).iterator();
+      try (Stream<Path> childStream = Files.list(update)) {
+        Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
           Path updateChild = iterator.next();
           Path fileName = updateChild.getFileName();
@@ -125,8 +127,8 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
     if (!Files.isDirectory(folder)) {
       return children;
     }
-    try {
-      Iterator<Path> iterator = Files.list(folder).iterator();
+    try (Stream<Path> childStream = Files.list(folder)) {
+      Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
         Path child = iterator.next();
         if (children == null) {
@@ -135,6 +137,25 @@ public class DirectoryMerger extends AbstractWorkspaceMerger {
         children.add(child.getFileName().toString());
       }
       return children;
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to list children of folder " + folder, e);
+    }
+  }
+
+  @Override
+  public void upgrade(Path folder) {
+
+    try (Stream<Path> childStream = Files.list(folder)) {
+      Iterator<Path> iterator = childStream.iterator();
+      while (iterator.hasNext()) {
+        Path child = iterator.next();
+        if (Files.isDirectory(child)) {
+          upgrade(child);
+        } else {
+          FileMerger merger = getMerger(child);
+          merger.upgrade(child);
+        }
+      }
     } catch (IOException e) {
       throw new IllegalStateException("Failed to list children of folder " + folder, e);
     }

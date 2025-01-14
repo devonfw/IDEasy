@@ -95,9 +95,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   protected boolean isExported(String name) {
 
     if (this.parent != null) {
-      if (this.parent.isExported(name)) {
-        return true;
-      }
+      return this.parent.isExported(name);
     }
     return false;
   }
@@ -144,13 +142,14 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   /**
-   * @param propertiesFilePath the {@link #getPropertiesFilePath() propertiesFilePath} of the child {@link EnvironmentVariables}.
+   * @param propertiesFolderPath the {@link Path} to the folder containing the {@link #getPropertiesFilePath() properties file} of the child
+   *     {@link EnvironmentVariables}.
    * @param type the {@link #getType() type}.
    * @return the new {@link EnvironmentVariables}.
    */
-  public AbstractEnvironmentVariables extend(Path propertiesFilePath, EnvironmentVariablesType type) {
+  public AbstractEnvironmentVariables extend(Path propertiesFolderPath, EnvironmentVariablesType type) {
 
-    return new EnvironmentVariablesPropertiesFile(this, type, propertiesFilePath, this.context);
+    return new EnvironmentVariablesPropertiesFile(this, type, propertiesFolderPath, null, this.context);
   }
 
   /**

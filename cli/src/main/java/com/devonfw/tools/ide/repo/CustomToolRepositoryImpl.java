@@ -1,9 +1,5 @@
 package com.devonfw.tools.ide.repo;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -14,14 +10,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import jakarta.json.Json;
-import jakarta.json.JsonArray;
-import jakarta.json.JsonObject;
-import jakarta.json.JsonReader;
-import jakarta.json.JsonString;
-import jakarta.json.JsonStructure;
-import jakarta.json.JsonValue;
-import jakarta.json.JsonValue.ValueType;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
@@ -36,24 +24,24 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
 
   private final String id;
 
-  private final Map<String, CustomTool> toolsMap;
+  private final Map<String, CustomToolMetadata> toolsMap;
 
-  private final Collection<CustomTool> tools;
+  private final Collection<CustomToolMetadata> tools;
 
   /**
    * The constructor.
    *
    * @param context the owning {@link IdeContext}.
-   * @param tools the {@link CustomTool}s.
+   * @param tools the {@link CustomToolMetadata}s.
    */
-  public CustomToolRepositoryImpl(IdeContext context, Collection<CustomTool> tools) {
+  public CustomToolRepositoryImpl(IdeContext context, Collection<CustomToolMetadata> tools) {
 
     super(context);
     this.toolsMap = new HashMap<>(tools.size());
     String repoId = null;
-    for (CustomTool tool : tools) {
+    for (CustomToolMetadata tool : tools) {
       String name = tool.getTool();
-      CustomTool duplicate = this.toolsMap.put(name, tool);
+      CustomToolMetadata duplicate = this.toolsMap.put(name, tool);
       if (duplicate != null) {
         throw new IllegalStateException("Duplicate custom tool '" + name + "'!");
       }
@@ -76,7 +64,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
       id = id.substring(schemaIndex + 3); // remove schema like "https://"
       id = URLDecoder.decode(id, StandardCharsets.UTF_8);
     }
-    id.replace('\\', '/').replace("//", "/"); // normalize slashes
+    id = id.replace('\\', '/').replace("//", "/"); // normalize slashes
     if (id.startsWith("/")) {
       id = id.substring(1);
     }
@@ -111,7 +99,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   @Override
   protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version) {
 
-    CustomTool customTool = getCustomTool(tool);
+    CustomToolMetadata customTool = getCustomTool(tool);
     if (!version.equals(customTool.getVersion())) {
       throw new IllegalArgumentException("Undefined version '" + version + "' for custom tool '" + tool
           + "' - expected version '" + customTool.getVersion() + "'!");
@@ -122,8 +110,8 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
     return customTool;
   }
 
-  private CustomTool getCustomTool(String tool) {
-    CustomTool customTool = this.toolsMap.get(tool);
+  private CustomToolMetadata getCustomTool(String tool) {
+    CustomToolMetadata customTool = this.toolsMap.get(tool);
     if (customTool == null) {
       throw new IllegalArgumentException("Undefined custom tool '" + tool + "'!");
     }
@@ -133,16 +121,16 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   @Override
   public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version) {
 
-    CustomTool customTool = getCustomTool(tool);
-    VersionIdentifier customToolVerstion = customTool.getVersion();
-    if (!version.contains(customToolVerstion)) {
+    CustomToolMetadata customTool = getCustomTool(tool);
+    VersionIdentifier customToolVersion = customTool.getVersion();
+    if (!version.contains(customToolVersion)) {
       throw new IllegalStateException(customTool + " does not satisfy version to install " + version);
     }
-    return customToolVerstion;
+    return customToolVersion;
   }
 
   @Override
-  public Collection<CustomTool> getTools() {
+  public Collection<CustomToolMetadata> getTools() {
 
     return this.tools;
   }
@@ -160,109 +148,18 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   public static CustomToolRepository of(IdeContext context) {
 
     Path settingsPath = context.getSettingsPath();
-    Path customToolsJson = null;
+    Path customToolsJsonFile = null;
     if (settingsPath != null) {
-      customToolsJson = settingsPath.resolve(FILE_CUSTOM_TOOLS);
+      customToolsJsonFile = settingsPath.resolve(IdeContext.FILE_CUSTOM_TOOLS);
     }
-    List<CustomTool> tools = new ArrayList<>();
-    if ((customToolsJson != null) && Files.exists(customToolsJson)) {
-      try (InputStream in = Files.newInputStream(customToolsJson);
-          Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
-
-        JsonReader jsonReader = Json.createReader(new BufferedReader(reader));
-        JsonStructure json = jsonReader.read();
-        JsonObject jsonRoot = requireObject(json);
-        String defaultUrl = getString(jsonRoot, "url", "");
-        JsonArray jsonTools = requireArray(jsonRoot.get("tools"));
-        for (JsonValue jsonTool : jsonTools) {
-          JsonObject jsonToolObject = requireObject(jsonTool);
-          String name = getString(jsonToolObject, "name");
-          String version = getString(jsonToolObject, "version");
-          String url = getString(jsonToolObject, "url", defaultUrl);
-          boolean osAgnostic = getBoolean(jsonToolObject, "os-agnostic", Boolean.FALSE);
-          boolean archAgnostic = getBoolean(jsonToolObject, "arch-agnostic", Boolean.TRUE);
-          if (url.isEmpty()) {
-            throw new IllegalStateException("Missing 'url' property for tool '" + name + "'!");
-          }
-          // TODO
-          String checksum = null;
-          CustomTool customTool = new CustomTool(name, VersionIdentifier.of(version), osAgnostic, archAgnostic, url,
-              checksum, context.getSystemInfo());
-          tools.add(customTool);
-        }
-      } catch (Exception e) {
-        throw new IllegalStateException("Failed to read JSON from " + customToolsJson, e);
-      }
+    List<CustomToolMetadata> tools;
+    if ((customToolsJsonFile != null) && Files.exists(customToolsJsonFile)) {
+      CustomToolsJson customToolsJson = CustomToolsJsonMapper.loadJson(customToolsJsonFile);
+      tools = CustomToolsJsonMapper.convert(customToolsJson, context);
+    } else {
+      tools = new ArrayList<>();
     }
     return new CustomToolRepositoryImpl(context, tools);
-  }
-
-  private static boolean getBoolean(JsonObject json, String property, Boolean defaultValue) {
-
-    JsonValue value = json.get(property);
-    if (value == null) {
-      if (defaultValue == null) {
-        throw new IllegalArgumentException("Missing string property '" + property + "' in JSON: " + json);
-      }
-      return defaultValue.booleanValue();
-    }
-    ValueType valueType = value.getValueType();
-    if (valueType == ValueType.TRUE) {
-      return true;
-    } else if (valueType == ValueType.FALSE) {
-      return false;
-    } else {
-      throw new IllegalStateException("Expected value type boolean but found " + valueType + " for JSON: " + json);
-    }
-  }
-
-  private static String getString(JsonObject json, String property) {
-
-    return getString(json, property, null);
-  }
-
-  private static String getString(JsonObject json, String property, String defaultValue) {
-
-    JsonValue value = json.get(property);
-    if (value == null) {
-      if (defaultValue == null) {
-        throw new IllegalArgumentException("Missing string property '" + property + "' in JSON: " + json);
-      }
-      return defaultValue;
-    }
-    require(value, ValueType.STRING);
-    return ((JsonString) value).getString();
-  }
-
-  /**
-   * @param json the {@link JsonValue} to check.
-   */
-  private static JsonObject requireObject(JsonValue json) {
-
-    require(json, ValueType.OBJECT);
-    return (JsonObject) json;
-  }
-
-  /**
-   * @param json the {@link JsonValue} to check.
-   */
-  private static JsonArray requireArray(JsonValue json) {
-
-    require(json, ValueType.ARRAY);
-    return (JsonArray) json;
-  }
-
-  /**
-   * @param json the {@link JsonValue} to check.
-   * @param type the expected {@link ValueType}.
-   */
-  private static void require(JsonValue json, ValueType type) {
-
-    ValueType actualType = json.getValueType();
-    if (actualType != type) {
-      throw new IllegalStateException(
-          "Expected value type " + type + " but found " + actualType + " for JSON: " + json);
-    }
   }
 
 }

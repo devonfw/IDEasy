@@ -1,0 +1,18 @@
+{
+  "url": "https://some-file-server.company.com/projects/my-project",
+  "tools": [
+    {
+      "name": "jboss-eap",
+      "version": "7.1.4.GA",
+      "os-agnostic": true,
+      "arch-agnostic": true
+    },
+    {
+      "name": "firefox",
+      "version": "70.0.1",
+      "os-agnostic": false,
+      "arch-agnostic": false,
+      "url": "https://some-file-server.company.com/projects/my-project2"
+    }
+  ]
+}
