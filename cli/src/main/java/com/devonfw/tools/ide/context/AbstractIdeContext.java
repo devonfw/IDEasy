@@ -77,11 +77,13 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   protected Path settingsPath;
 
+  private Path settingsCommitIdPath;
+
   private Path softwarePath;
 
   private Path softwareExtraPath;
 
-  private Path softwareRepositoryPath;
+  private final Path softwareRepositoryPath;
 
   protected Path pluginsPath;
 
@@ -91,15 +93,15 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   protected Path urlsPath;
 
-  private Path tempPath;
+  private final Path tempPath;
 
-  private Path tempDownloadPath;
+  private final Path tempDownloadPath;
 
   private Path cwd;
 
   private Path downloadPath;
 
-  private Path toolRepositoryPath;
+  private final Path toolRepositoryPath;
 
   protected Path userHome;
 
@@ -241,6 +243,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
       this.confPath = this.ideHome.resolve(FOLDER_CONF);
       this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
+      this.settingsCommitIdPath = this.ideHome.resolve(IdeContext.SETTINGS_COMMIT_ID);
       this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
       this.softwareExtraPath = this.softwarePath.resolve(FOLDER_EXTRA);
       this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
@@ -307,37 +310,16 @@ public abstract class AbstractIdeContext implements IdeContext {
   private EnvironmentVariables createVariables() {
 
     AbstractEnvironmentVariables system = createSystemVariables();
-    AbstractEnvironmentVariables user = extendVariables(system, this.userHomeIde, EnvironmentVariablesType.USER);
-    AbstractEnvironmentVariables settings = extendVariables(user, this.settingsPath, EnvironmentVariablesType.SETTINGS);
-    // TODO should we keep this workspace properties? Was this feature ever used?
-    AbstractEnvironmentVariables workspace = extendVariables(settings, this.workspacePath, EnvironmentVariablesType.WORKSPACE);
-    AbstractEnvironmentVariables conf = extendVariables(workspace, this.confPath, EnvironmentVariablesType.CONF);
+    AbstractEnvironmentVariables user = system.extend(this.userHomeIde, EnvironmentVariablesType.USER);
+    AbstractEnvironmentVariables settings = user.extend(this.settingsPath, EnvironmentVariablesType.SETTINGS);
+    AbstractEnvironmentVariables workspace = settings.extend(this.workspacePath, EnvironmentVariablesType.WORKSPACE);
+    AbstractEnvironmentVariables conf = workspace.extend(this.confPath, EnvironmentVariablesType.CONF);
     return conf.resolved();
   }
 
   protected AbstractEnvironmentVariables createSystemVariables() {
 
     return EnvironmentVariables.ofSystem(this);
-  }
-
-  protected AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
-
-    Path propertiesFile = null;
-    if (propertiesPath == null) {
-      trace("Configuration directory for type {} does not exist.", type);
-    } else if (Files.isDirectory(propertiesPath)) {
-      propertiesFile = propertiesPath.resolve(EnvironmentVariables.DEFAULT_PROPERTIES);
-      boolean legacySupport = (type != EnvironmentVariablesType.USER);
-      if (legacySupport && !Files.exists(propertiesFile)) {
-        Path legacyFile = propertiesPath.resolve(EnvironmentVariables.LEGACY_PROPERTIES);
-        if (Files.exists(legacyFile)) {
-          propertiesFile = legacyFile;
-        }
-      }
-    } else {
-      debug("Configuration directory {} does not exist.", propertiesPath);
-    }
-    return envVariables.extend(propertiesFile, type);
   }
 
   @Override
@@ -430,6 +412,31 @@ public abstract class AbstractIdeContext implements IdeContext {
   public Path getSettingsPath() {
 
     return this.settingsPath;
+  }
+
+  @Override
+  public Path getSettingsGitRepository() {
+
+    Path settingsPath = getSettingsPath();
+
+    if (settingsPath == null) {
+      error("No settings repository was found.");
+      return null;
+    }
+
+    // check whether the settings path has a .git folder only if its not a symbolic link
+    if (!Files.exists(settingsPath.resolve(".git")) && !Files.isSymbolicLink(settingsPath)) {
+      error("Settings repository exists but is not a git repository.");
+      return null;
+    }
+
+    return settingsPath;
+  }
+
+  @Override
+  public Path getSettingsCommitIdPath() {
+
+    return this.settingsCommitIdPath;
   }
 
   @Override
@@ -859,10 +866,11 @@ public abstract class AbstractIdeContext implements IdeContext {
           if (cmd.isIdeHomeRequired()) {
             debug(getMessageIdeHomeFound());
           }
-          if (this.settingsPath != null) {
-            if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
-                (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
-              interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+          Path settingsRepository = getSettingsGitRepository();
+          if (settingsRepository != null) {
+            if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) ||
+                (getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()))) {
+              interaction("Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
             }
           }
         }
