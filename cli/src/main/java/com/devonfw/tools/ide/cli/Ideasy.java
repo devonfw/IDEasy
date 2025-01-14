@@ -52,11 +52,7 @@ public final class Ideasy {
       exitStatus = runOrThrow(args);
     } catch (CliException error) {
       exitStatus = error.getExitCode();
-      if (context().level(IdeLogLevel.DEBUG).isEnabled()) {
-        context().error(error, error.getMessage());
-      } else {
-        context().error(error.getMessage());
-      }
+      context().error(error.getMessage());
     } catch (Throwable error) {
       exitStatus = 255;
       String title = error.getMessage();
