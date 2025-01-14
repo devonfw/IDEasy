@@ -164,7 +164,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
       this.context.getFileAccess().download(url, tmpDownloadFile);
       if (resolvedVersion.toString().equals("latest")) {
         // Some software vendors violate best-practices and provide the latest version only under a fixed URL.
-        // Therefore if a newer version of that file gets released, the same URL suddenly leads to a different
+        // Therefore, if a newer version of that file gets released, the same URL suddenly leads to a different
         // download file with a newer version and a different checksum.
         // In order to still support such tools we had to implement this workaround so we cannot move the file in the
         // download cache for later reuse, cannot verify its checksum and also delete the downloaded file on exit

@@ -136,6 +136,13 @@ public interface IdeContext extends IdeStartContext {
   /** Legacy folder name used as compatibility fallback if {@link #FOLDER_TEMPLATES} does not exist. */
   String FOLDER_LEGACY_TEMPLATES = "devon";
 
+  /** The filename of the configuration file in the settings for this {@link CustomToolRepository}. */
+  String FILE_CUSTOM_TOOLS = "ide-custom-tools.json";
+
+  /**
+   * file containing the current local commit hash of the settings repository. */
+  String SETTINGS_COMMIT_ID = ".commit.id";
+
   /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
    */
@@ -350,6 +357,17 @@ public interface IdeContext extends IdeStartContext {
    * @return the {@link Path} to the {@code settings} folder with the cloned git repository containing the project configuration.
    */
   Path getSettingsPath();
+
+  /**
+   *
+   * @return the {@link Path} to the {@code settings} folder with the cloned git repository containing the project configuration only if the settings repository is in fact a git repository.
+   */
+  Path getSettingsGitRepository();
+
+  /**
+   * @return the {@link Path} to the file containing the last tracked commit Id of the settings repository.
+   */
+  Path getSettingsCommitIdPath();
 
   /**
    * @return the {@link Path} to the templates folder inside the {@link #getSettingsPath() settings}. The relative directory structure in this templates folder
