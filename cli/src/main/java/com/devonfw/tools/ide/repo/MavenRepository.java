@@ -8,25 +8,37 @@ import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
+/**
+ * Implementation of {@link AbstractToolRepository} for maven-based artifacts.
+ */
 public class MavenRepository extends AbstractToolRepository {
 
   private static final String MAVEN_CENTRAL = "https://repo1.maven.org/maven2";
 
   private static final String MAVEN_SNAPSHOTS = "https://s01.oss.sonatype.org/content/repositories/snapshots";
 
-  public static final String MAVEN_METADATA_XML = "maven-metadata.xml";
+  private static final String MAVEN_METADATA_XML = "maven-metadata.xml";
 
-  private static final String IDEASY_GROUP_ID = "com.devonfw.tools.IDEasy";
+  /** Group id of IDEasy. */
+  public static final String IDEASY_GROUP_ID = "com.devonfw.tools.IDEasy";
 
-  private static final String IDEASY_ARTIFACT_ID = "ide-cli";
+  /** Artifact Id of IDEasy. */
+  public static final String IDEASY_ARTIFACT_ID = "ide-cli";
 
+  /**
+   * The constructor.
+   *
+   * @param context the owning {@link IdeContext}.
+   */
   public MavenRepository(IdeContext context) {
 
     super(context);
@@ -40,8 +52,8 @@ public class MavenRepository extends AbstractToolRepository {
 
   private String getBaseUrl(String groupId, String artifactId) {
 
-    if (IDEASY_GROUP_ID.equals(groupId) && IDEASY_ARTIFACT_ID.equals(artifactId) && IdeVersion.get().contains("SNAPSHOT")) {
-      return MAVEN_CENTRAL;
+    if (isIdeasySnapshot(groupId, artifactId, IdeVersion.get())) {
+      return MAVEN_SNAPSHOTS;
     }
     return MAVEN_CENTRAL;
   }
@@ -52,8 +64,16 @@ public class MavenRepository extends AbstractToolRepository {
     SystemInfo sys = this.context.getSystemInfo();
     String classifier = sys.getOs() + "-" + sys.getArchitecture();
 
+    String pathVersion = version.toString();
+    // If it's a resolved snapshot version (contains timestamp), convert back to -SNAPSHOT format for the path
+    if (pathVersion.matches(".*-\\d{8}\\.\\d{6}-\\d+")) {
+      pathVersion = pathVersion.replaceAll("-\\d{8}\\.\\d{6}-\\d+", "-SNAPSHOT");
+    }
+
+    // hardcoding the file extension seems wrong
     String fileName = artifactId + "-" + version + "-" + classifier + ".tar.gz";
-    String downloadUrl = getBaseUrl(groupId, artifactId) + "/" + getPath(groupId, artifactId, version.toString(), fileName);
+    String downloadUrl = getBaseUrl(groupId, artifactId) + "/" +
+        getPath(groupId, artifactId, pathVersion, fileName);
     return new MavenArtifactMetadata(groupId, artifactId, version, downloadUrl, sys.getOs(), sys.getArchitecture());
   }
 
@@ -62,24 +82,23 @@ public class MavenRepository extends AbstractToolRepository {
 
     try {
       String metadataUrl = getBaseUrl(groupId, artifactId) + "/" + getPath(groupId, artifactId, null, MAVEN_METADATA_XML);
-
       Path tmpDownloadFile = createTempDownload(MAVEN_METADATA_XML);
+
       try {
         this.context.getFileAccess().download(metadataUrl, tmpDownloadFile);
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.parse(tmpDownloadFile.toFile());
 
-        String version = getElementContent((org.w3c.dom.Element) doc.getElementsByTagName("latest").item(0));
-        if (version == null || version.isEmpty()) {
-          version = getElementContent((org.w3c.dom.Element) doc.getElementsByTagName("release").item(0));
-        }
+        String version = Optional.ofNullable(doc.getElementsByTagName("latest").item(0))
+            .map(Element.class::cast)
+            .map(Element::getTextContent)
+            .orElseGet(() -> Optional.ofNullable(doc.getElementsByTagName("release").item(0))
+                .map(Element.class::cast)
+                .map(Element::getTextContent)
+                .orElseThrow(() -> new IllegalStateException("No latest or release version found in metadata")));
 
-        if (version == null || version.isEmpty()) {
-          throw new IllegalStateException("No latest or release version found in metadata");
-        }
-
-        if (IDEASY_GROUP_ID.equals(groupId) && IDEASY_ARTIFACT_ID.equals(artifactId) && version.contains("SNAPSHOT")) {
+        if (isIdeasySnapshot(groupId, artifactId, version)) {
           version = resolveSnapshotVersion(groupId, artifactId, version);
         }
 
@@ -104,12 +123,17 @@ public class MavenRepository extends AbstractToolRepository {
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.parse(tmpDownloadFile.toFile());
 
-        String timestamp = getElementContent((org.w3c.dom.Element) doc.getElementsByTagName("timestamp").item(0));
-        String buildNumber = getElementContent((org.w3c.dom.Element) doc.getElementsByTagName("buildNumber").item(0));
+        String timestamp = Optional.ofNullable(doc.getElementsByTagName("timestamp").item(0))
+            .map(Element.class::cast)
+            .map(Element::getTextContent)
+            .orElseThrow(() -> new IllegalStateException("No timestamp found in snapshot metadata"));
 
-        // Remove -SNAPSHOT and append timestamp and buildNumber
-        String version = baseVersion.replace("-SNAPSHOT", "") + "-" + timestamp + "-" + buildNumber;
-        return version;
+        String buildNumber = Optional.ofNullable(doc.getElementsByTagName("buildNumber").item(0))
+            .map(Element.class::cast)
+            .map(Element::getTextContent)
+            .orElseThrow(() -> new IllegalStateException("No buildNumber found in snapshot metadata"));
+
+        return baseVersion.replace("-SNAPSHOT", "") + "-" + timestamp + "-" + buildNumber;
       } finally {
         this.context.getFileAccess().delete(tmpDownloadFile);
       }
@@ -118,9 +142,9 @@ public class MavenRepository extends AbstractToolRepository {
     }
   }
 
-  private String getElementContent(org.w3c.dom.Element element) {
+  private boolean isIdeasySnapshot(String groupId, String artifactId, String version) {
 
-    return element != null ? element.getTextContent() : null;
+    return IDEASY_GROUP_ID.equals(groupId) && IDEASY_ARTIFACT_ID.equals(artifactId) && version != null && version.contains("SNAPSHOT");
   }
 
   @Override
@@ -135,4 +159,3 @@ public class MavenRepository extends AbstractToolRepository {
     return Collections.emptyList();
   }
 }
-
