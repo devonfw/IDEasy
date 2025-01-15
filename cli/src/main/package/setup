@@ -1,7 +1,19 @@
-#!/bin/bash
+#!/bin/bash -x
 
 function doSetupInConfigFile() {
   local cfg=$1
+ local fileBashrc="$HOME/.bashrc"
+   local fileZshrc="$HOME/.zshrc"
+   if [ "$1" = "${fileBashrc}" ] && [ ! -f "${fileBashrc}" ]; then
+       echo "File .bashrc not found."
+       touch "$fileBashrc"
+       echo "Created .bashrc file in directory ~/."
+     fi
+ 	if [ "$1" = "${fileBashrc}" ] && [ ! -f "${fileZshrc}" ]; then
+       echo "File .zshrc not found."
+       touch "$fileZshrc"
+       echo "Created .zshrc file in directory ~/."
+     fi
   if [ ! -f "${cfg}" ]; then
     echo "${cfg} not found - skipping."
     return
