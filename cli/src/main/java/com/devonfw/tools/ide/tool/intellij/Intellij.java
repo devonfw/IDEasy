@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.tool.intellij;
 
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -96,10 +95,4 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
   }
 
-  @Override
-  public void runTool(String... args) {
-    List<String> extendedArgs = new ArrayList<>(Arrays.asList(args));
-    extendedArgs.add(this.context.getWorkspacePath().toString());
-    super.runTool(extendedArgs.toArray(new String[0]));
-  }
 }

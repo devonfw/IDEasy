@@ -7,6 +7,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -67,6 +70,13 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
         context.getFileAccess().delete(tmpDir);
       }
     }
+  }
+
+  @Override
+  public void runTool(String... args) {
+    List<String> extendedArgs = new ArrayList<>(Arrays.asList(args));
+    extendedArgs.add(this.context.getWorkspacePath().toString());
+    super.runTool(extendedArgs.toArray(new String[0]));
   }
 
   /**
