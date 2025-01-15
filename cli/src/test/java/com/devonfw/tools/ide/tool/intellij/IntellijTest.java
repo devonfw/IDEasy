@@ -128,6 +128,31 @@ public class IntellijTest extends AbstractIdeContextTest {
         "intellij " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
   }
 
+  /**
+   * Tests if {@link Intellij IntelliJ IDE} can install plugins with custom url.
+   *
+   * @param os String of the OS to use.
+   * @throws IOException if reading the content of the mocked plugin fails
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  public void testIntellijPluginInstallWithCustomRepoUrl(String os) throws IOException {
+
+    // arrange
+    setupMockedPluginWithCustomToolUrl();
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    this.context.setSystemInfo(systemInfo);
+    Intellij commandlet = new Intellij(this.context);
+
+    // act
+    commandlet.install();
+
+    // assert
+    checkInstallation(this.context);
+    assertThat(commandlet.getToolBinPath().resolve("customRepoTest")).hasContent(
+        "custom plugin repo url is: http://customRepo");
+  }
+
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
@@ -139,6 +164,13 @@ public class IntellijTest extends AbstractIdeContextTest {
   private void setupMockedPlugin(boolean mockedPluginActive) throws IOException {
 
     String content = "plugin_id=mockedPlugin\nplugin_active=" + mockedPluginActive;
+    Files.write(this.context.getSettingsPath().resolve("intellij").resolve("plugins").resolve("MockedPlugin.properties"),
+        content.getBytes(StandardCharsets.UTF_8));
+  }
+
+  private void setupMockedPluginWithCustomToolUrl() throws IOException {
+
+    String content = "plugin_id=mockedPlugin\nplugin_active=true\nplugin_url=http://customRepo";
     Files.write(this.context.getSettingsPath().resolve("intellij").resolve("plugins").resolve("MockedPlugin.properties"),
         content.getBytes(StandardCharsets.UTF_8));
   }
