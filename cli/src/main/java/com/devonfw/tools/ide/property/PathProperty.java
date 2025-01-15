@@ -109,6 +109,10 @@ public class PathProperty extends Property<Path> {
 
     Path path = Path.of(arg);
     Path parent = path.getParent();
+    //set a default parent directory when unable to obtain the parent directory
+    if (parent == null) {
+      parent = Path.of(".");
+    }
     String filename = path.getFileName().toString();
     if (Files.isDirectory(parent)) {
       try (Stream<Path> children = Files.list(parent)) {
