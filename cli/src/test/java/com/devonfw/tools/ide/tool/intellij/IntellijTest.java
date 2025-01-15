@@ -11,7 +11,6 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
@@ -21,23 +20,20 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 public class IntellijTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_INTELLIJ = "intellij";
-  private static final String MOCKED_PLUGIN_JAR = "mocked-plugin.jar";
-  private static final String MOCKED_PLUGIN_ID = "mockedPlugin";
   private final IdeTestContext context = newContext(PROJECT_INTELLIJ);
 
   /**
    * Tests if the {@link Intellij} can be installed properly.
    *
    * @param os String of the OS to use.
-   * @param wmRuntimeInfo wireMock server on a random port
    * @throws IOException if reading the content of the mocked plugin fails
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijInstall(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void testIntellijInstall(String os) throws IOException {
 
     // arrange
-    setupMockedPlugin(wmRuntimeInfo, true);
+    setupMockedPlugin(true);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
@@ -61,10 +57,10 @@ public class IntellijTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijInstallPluginAfterwards(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void testIntellijInstallPluginAfterwards(String os) throws IOException {
 
     // arrange
-    setupMockedPlugin(wmRuntimeInfo, false);
+    setupMockedPlugin(false);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
@@ -85,10 +81,10 @@ public class IntellijTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijUninstallPluginAfterwards(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void testIntellijUninstallPluginAfterwards(String os) throws IOException {
 
     // arrange
-    setupMockedPlugin(wmRuntimeInfo, true);
+    setupMockedPlugin(true);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
@@ -114,10 +110,10 @@ public class IntellijTest extends AbstractIdeContextTest {
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijRun(String os, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void testIntellijRun(String os) throws IOException {
 
     // arrange
-    setupMockedPlugin(wmRuntimeInfo, true);
+    setupMockedPlugin(true);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
@@ -140,15 +136,11 @@ public class IntellijTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin MockedPlugin'.");
   }
 
-  private void setupMockedPlugin(WireMockRuntimeInfo wmRuntimeInfo, boolean mockedPluginActive) throws IOException {
+  private void setupMockedPlugin(boolean mockedPluginActive) throws IOException {
 
-    String pluginWithoutCustomRepo = "plugin_id=mockedPlugin\nplugin_active=" + mockedPluginActive;
+    String content = "plugin_id=mockedPlugin\nplugin_active=" + mockedPluginActive;
     Files.write(this.context.getSettingsPath().resolve("intellij").resolve("plugins").resolve("MockedPlugin.properties"),
-        pluginWithoutCustomRepo.getBytes(StandardCharsets.UTF_8));
-
-    String pluginWithCustomRepo = "plugin_id=mockedPlugin\nplugin_active=" + mockedPluginActive + "\nplugin_url=http:/customrepo";
-    Files.write(this.context.getSettingsPath().resolve("intellij").resolve("plugins").resolve("MockedPlugin.properties"),
-        pluginWithoutCustomRepo.getBytes(StandardCharsets.UTF_8));
+        content.getBytes(StandardCharsets.UTF_8));
   }
 
 }
