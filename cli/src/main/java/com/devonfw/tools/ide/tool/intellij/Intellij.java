@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.tool.intellij;
 
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -75,10 +75,12 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   @Override
   public void installPlugin(ToolPluginDescriptor plugin, Step step) {
 
+    // In case of plugins with a custom repo url
+    boolean customRepo = plugin.url() != null;
     List<String> args = new ArrayList<>();
     args.add("installPlugins");
     args.add(plugin.id());
-    if (plugin.url() != null) {
+    if (customRepo) {
       args.add(plugin.url());
     }
     ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, null, ProcessErrorHandling.LOG_WARNING, args.toArray(new String[0]));
@@ -95,8 +97,9 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  protected void installPlugins(Collection<ToolPluginDescriptor> plugins) {
-    super.installPlugins(plugins);
-    run();
+  public void runTool(String... args) {
+    List<String> extendedArgs = new ArrayList<>(Arrays.asList(args));
+    extendedArgs.add(this.context.getWorkspacePath().toString());
+    super.runTool(extendedArgs.toArray(new String[0]));
   }
 }

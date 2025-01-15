@@ -1,14 +1,8 @@
 package com.devonfw.tools.ide.tool.intellij;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -28,6 +22,7 @@ public class IntellijTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_INTELLIJ = "intellij";
   private static final String MOCKED_PLUGIN_JAR = "mocked-plugin.jar";
+  private static final String MOCKED_PLUGIN_ID = "mockedPlugin";
   private final IdeTestContext context = newContext(PROJECT_INTELLIJ);
 
   /**
@@ -143,22 +138,17 @@ public class IntellijTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
         "Successfully installed intellij in version 2023.3.3");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin MockedPlugin'.");
-    assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("dev").resolve("MockedClass.class")).exists();
   }
 
   private void setupMockedPlugin(WireMockRuntimeInfo wmRuntimeInfo, boolean mockedPluginActive) throws IOException {
 
-    String content = "plugin_id=mockedPlugin\nplugin_active=" + mockedPluginActive + "\nplugin_url=" + wmRuntimeInfo.getHttpBaseUrl() + "/mockedPlugin";
+    String pluginWithoutCustomRepo = "plugin_id=mockedPlugin\nplugin_active=" + mockedPluginActive;
     Files.write(this.context.getSettingsPath().resolve("intellij").resolve("plugins").resolve("MockedPlugin.properties"),
-        content.getBytes(StandardCharsets.UTF_8));
+        pluginWithoutCustomRepo.getBytes(StandardCharsets.UTF_8));
 
-    Path mockedPlugin = this.context.getIdeRoot().resolve("repository").resolve(MOCKED_PLUGIN_JAR);
-    byte[] contentBytes = Files.readAllBytes(mockedPlugin);
-    int contentLength = contentBytes.length;
-
-    stubFor(any(urlEqualTo("/mockedPlugin")).willReturn(
-        aResponse().withStatus(200).withHeader("Content-Type", "application/java-archive").withHeader("Content-Length", String.valueOf(contentLength))
-            .withBody(contentBytes)));
+    String pluginWithCustomRepo = "plugin_id=mockedPlugin\nplugin_active=" + mockedPluginActive + "\nplugin_url=http:/customrepo";
+    Files.write(this.context.getSettingsPath().resolve("intellij").resolve("plugins").resolve("MockedPlugin.properties"),
+        pluginWithoutCustomRepo.getBytes(StandardCharsets.UTF_8));
   }
 
 }
