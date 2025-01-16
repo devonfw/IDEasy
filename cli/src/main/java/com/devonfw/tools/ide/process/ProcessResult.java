@@ -77,6 +77,12 @@ public interface ProcessResult {
   List<String> getErr();
 
   /**
+   * @return the {@link List} with {@link OutputMessage} that captured on standard out and standard error lines. Will be {@code null} if not captured but
+   *     redirected.
+   */
+  List<OutputMessage> getOutputMessages();
+
+  /**
    * Logs output and error messages on the provided log level.
    *
    * @param level the {@link IdeLogLevel} to use e.g. IdeLogLevel.ERROR.

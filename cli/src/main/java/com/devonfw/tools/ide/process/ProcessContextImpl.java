@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliProcessException;
@@ -168,17 +169,16 @@ public class ProcessContextImpl implements ProcessContext {
 
       this.processBuilder.command(args);
 
-      List<String> out = null;
-      List<String> err = null;
+      ConcurrentLinkedQueue<OutputMessage> output = new ConcurrentLinkedQueue<>();
 
       Process process = this.processBuilder.start();
 
       try {
         if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-          CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
-          CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
-          out = outFut.get();
-          err = errFut.get();
+          CompletableFuture<Void> outFut = readInputStream(process.getInputStream(), false, output);
+          CompletableFuture<Void> errFut = readInputStream(process.getErrorStream(), true, output);
+          outFut.get();
+          errFut.get();
         }
 
         int exitCode;
@@ -189,7 +189,8 @@ public class ProcessContextImpl implements ProcessContext {
           exitCode = process.waitFor();
         }
 
-        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, out, err);
+        List<OutputMessage> finalOutput = new ArrayList<>(output);
+        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, finalOutput);
 
         performLogging(result, exitCode, interpreter);
 
@@ -218,14 +219,22 @@ public class ProcessContextImpl implements ProcessContext {
    * "https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki/57483714#57483714">StackOverflow</a>
    *
    * @param is {@link InputStream}.
+   * @param errorStream to identify if the output came from stdout or stderr
    * @return {@link CompletableFuture}.
    */
-  private static CompletableFuture<List<String>> readInputStream(InputStream is) {
+  private static CompletableFuture<Void> readInputStream(InputStream is, boolean errorStream, ConcurrentLinkedQueue<OutputMessage> outputMessages) {
 
     return CompletableFuture.supplyAsync(() -> {
 
       try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr)) {
-        return br.lines().toList();
+
+        String line;
+        while ((line = br.readLine()) != null) {
+          OutputMessage outputMessage = new OutputMessage(errorStream, line);
+          outputMessages.add(outputMessage);
+        }
+
+        return null;
       } catch (Throwable e) {
         throw new RuntimeException("There was a problem while executing the program", e);
       }
