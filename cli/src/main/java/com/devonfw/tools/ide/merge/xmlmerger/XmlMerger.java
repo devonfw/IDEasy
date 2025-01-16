@@ -208,12 +208,13 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
     NodeList children = node.getChildNodes();
     for (int i = 0; i < children.getLength(); i++) {
       Node child = children.item(i);
-      if (XmlMergeSupport.isTextual(child)) {
+      short nodeType = child.getNodeType();
+      if (nodeType == Node.TEXT_NODE) {
         if (child.getTextContent().trim().isEmpty()) {
           node.removeChild(child);
           i--;
         }
-      } else {
+      } else if (nodeType == Node.ELEMENT_NODE) {
         removeWhitespace(child);
       }
     }

@@ -76,7 +76,7 @@ public interface XmlMergeSupport {
 
   /**
    * @param element the {@link Element} for which the XPath is requested.
-   * @param includeAttributes {@code true} to also include the attributes of
+   * @param includeAttributes {@code true} to also include the attributes of the {@link Element}s to the XPath (for debugging), {@code false} otherwise.
    * @return the XPath expression.
    */
   static String getXPath(Element element, boolean includeAttributes) {
@@ -86,10 +86,6 @@ public interface XmlMergeSupport {
     return sb.toString();
   }
 
-  /**
-   * @param sb the {@link StringBuilder} where to {@link StringBuilder#append(String) append} the XML.
-   * @param element the {@link Element} with the XPath to append.
-   */
   private static void getXPath(StringBuilder sb, Element element, boolean includeAttributes) {
 
     Node parent = element.getParentNode();

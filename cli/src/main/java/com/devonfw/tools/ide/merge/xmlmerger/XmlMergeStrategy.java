@@ -70,6 +70,13 @@ public enum XmlMergeStrategy {
     }
   }
 
+  /**
+   * Internal implementation of {@link #merge(Element, Element, ElementMatcher)}
+   *
+   * @param templateElement the {@link Element} of the template XML file to merge.
+   * @param resultElement the {@link Element} populated with the workspace XML file to merge into.
+   * @param matcher the {@link ElementMatcher}.
+   */
   protected abstract void doMerge(Element templateElement, Element resultElement, ElementMatcher matcher);
 
   /**
@@ -110,7 +117,6 @@ public enum XmlMergeStrategy {
         }
       } else if (XmlMergeSupport.isTextual(templateChild)) {
         if (!templateChild.getTextContent().isBlank()) {
-          // TODO this looks wrong to me...
           replaceTextNode(resultElement, templateChild);
         }
       }
@@ -120,26 +126,26 @@ public enum XmlMergeStrategy {
   /**
    * Replaces the text node in the target element with the text from the update element, otherwise appends it.
    *
-   * @param element the element to be updated
-   * @param updateChild the new text node
+   * @param resultElement the element to be updated
+   * @param templateChild the new text node
    */
-  protected void replaceTextNode(Element element, Node updateChild) {
+  protected void replaceTextNode(Element resultElement, Node templateChild) {
 
     try {
-      NodeList targetChildNodes = element.getChildNodes();
+      NodeList targetChildNodes = resultElement.getChildNodes();
       for (int i = 0; i < targetChildNodes.getLength(); i++) {
         Node targetChild = targetChildNodes.item(i);
         if (XmlMergeSupport.isTextual(targetChild)) {
           if (!targetChild.getTextContent().isBlank()) {
-            targetChild.setTextContent(updateChild.getTextContent().trim());
+            targetChild.setTextContent(templateChild.getTextContent().trim());
             return;
           }
         }
       }
-      Node importedNode = element.getOwnerDocument().importNode(updateChild, true);
-      element.appendChild(importedNode);
+      Node importedNode = resultElement.getOwnerDocument().importNode(templateChild, true);
+      resultElement.appendChild(importedNode);
     } catch (DOMException e) {
-      throw new IllegalStateException("Failed to replace text node for element " + XmlMergeSupport.getXPath(element), e);
+      throw new IllegalStateException("Failed to replace text node for element " + XmlMergeSupport.getXPath(resultElement), e);
     }
   }
 
