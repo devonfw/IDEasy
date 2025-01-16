@@ -2,25 +2,20 @@
 
 function createFile() {
   local fileName=$1
-  echo "File $fileName not found."
   touch "$fileName"
   echo "Created ${fileName}"
 }
 
-function checkIfFileExists() {
+function createFileIfNotExists() {
   local fileName=$1
-  if [ ! -f "${fileName#~/}" ]; then
+  if [ ! -f "${fileName}" ]; then
     createFile "$fileName"
   fi
 }
 
 function doSetupInConfigFile() {
   local cfg=$1
-  checkIfFileExists "${cfg}"
-  if [ ! -f "${cfg}" ]; then
-    echo "${cfg} not found - skipping."
-    return
-  fi
+  createFileIfNotExists "${cfg}"
   echo "Configuring IDEasy in ${cfg}."
   if [ "${OSTYPE}" != "cygwin" ] && [ "${OSTYPE}" != "msys" ]; then
     if ! grep -q "export IDE_ROOT=" "${cfg}"
