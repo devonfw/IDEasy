@@ -16,9 +16,7 @@ import com.devonfw.tools.ide.merge.xmlmerger.XmlMergeSupport;
  */
 public class IdComputer {
 
-  /**
-   * the value of merge:id that is used to evaluate the xpath expression.
-   */
+  /** The value of merge:id that is used to evaluate the xpath expression. */
   private final String id;
 
   private static final XPathFactory xPathFactory = XPathFactory.newInstance();
@@ -50,7 +48,6 @@ public class IdComputer {
    * @param workspaceElement the workspace {@link Element} in which to evaluate the {@link XPath} expression.
    * @return the matched Element if found, or {@code null} if not found
    */
-
   public Element evaluateExpression(Element templateElement, Element workspaceElement) {
     XPath xpath = xPathFactory.newXPath();
     xpath.setNamespaceContext(new NamespaceContextFromElement(templateElement));
@@ -73,7 +70,7 @@ public class IdComputer {
   }
 
   /**
-   * Builds the XPath expression for the given merge element based on the ID value.
+   * Builds the XPath expression for the given merge element based on the {@link #getId()} merge:id} value.
    *
    * @param element the {@link Element} for which to build the XPath expression
    * @return the XPath expression as a {@link String}.
