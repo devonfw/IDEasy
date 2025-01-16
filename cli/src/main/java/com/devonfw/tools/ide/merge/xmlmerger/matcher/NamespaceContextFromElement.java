@@ -6,6 +6,9 @@ import javax.xml.namespace.NamespaceContext;
 
 import org.w3c.dom.Element;
 
+/**
+ * Implements {@link NamespaceContext} using a given {@link Element} that is used to resolve the namespace information.
+ */
 class NamespaceContextFromElement implements NamespaceContext {
 
   private final Element element;
