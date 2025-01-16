@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.util.Objects;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
@@ -90,6 +91,7 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
     } else {
       if (getInstalledValue) {
         if (installedValue == null) {
+
           logToolInfo(logger, commandlet, configuredValue, null);
         } else {
           logger.log(installedValue.toString());
@@ -105,11 +107,15 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
     String property = getPropertyToGet();
     String toolName = commandlet.getName();
     if (installedValue == null) {
-      logger.log("No installation of tool {} was found.", toolName);
+      throw new CliException("No installation of tool " + toolName + " was found.", 1);
     } else {
-      logger.log("The installed {} for tool {} is {}", property, toolName, installedValue);
+      logger.log("The installed {} for tool {} is {}.", property, toolName, installedValue);
     }
-    logger.log("The configured {} for tool {} is {}", property, toolName, configuredValue);
+    if (configuredValue == null) {
+      logger.log("There is no configured {} for tool {}.", property, toolName);
+    } else {
+      logger.log("The configured {} for tool {} is {}.", property, toolName, configuredValue);
+    }
     if (!Objects.equals(configuredValue, installedValue)) {
       logger.log("To install that {} call the following command:", property);
       logger.log("ide install {}", toolName);

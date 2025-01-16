@@ -131,25 +131,29 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   /**
    * @param plugin the {@link ToolPluginDescriptor} to uninstall.
-   * @return 0 if the uninstallation was successfull and 1 if it failed
    */
-  public int uninstallPlugin(ToolPluginDescriptor plugin) {
+  public void uninstallPlugin(ToolPluginDescriptor plugin) {
 
+    boolean error = false;
     Path pluginsPath = getPluginsInstallationPath();
     if (!Files.isDirectory(pluginsPath)) {
       this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not exist at {}",
           plugin.name(), plugin.id(), pluginsPath);
-      return 1;
+      error = true;
     }
     FileAccess fileAccess = this.context.getFileAccess();
     Path match = fileAccess.findFirst(pluginsPath, p -> p.getFileName().toString().startsWith(plugin.id()), false);
     if (match == null) {
       this.context.debug("Omitting to uninstall plugin {} ({}) as plugins folder does not contain a match at {}",
           plugin.name(), plugin.id(), pluginsPath);
-      return 1;
+      error = true;
     }
     fileAccess.delete(match);
-    return 0;
+    if (error) {
+      context.error("Could not uninstall plugin " + plugin + " because we could not find an installation");
+    } else {
+      context.info("Successfully uninstalled plugin " + plugin);
+    }
   }
 
   /**
