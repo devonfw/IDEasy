@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<application xmlns:merge="https://github.com/devonfw/IDEasy/merge" merge:strategy="combine">
+  <component name="ProjectJdkTable">
+    <jdk version="2" merge:id="./jdk/version[@value='OpenJDK $[JAVA_VERSION]']/.." merge:strategy="override">
+      <name value="Java"/>
+      <type value="JavaSDK"/>
+      <version value="OpenJDK $[JAVA_VERSION]"/>
+      <homePath value="$[JAVA_HOME]/software/java"/>
+      <roots>
+        <annotationsPath>
+          <root type="composite">
+            <root url="jar://$APPLICATION_HOME_DIR$/plugins/java/lib/resources/jdkAnnotations.jar!/" type="simple"/>
+          </root>
+        </annotationsPath>
+        <classPath>
+          <root type="composite">
+            <root url="jrt://$[JAVA_HOME]/software/java!/java.base" type="simple"/>
+            <root url="jrt://$[JAVA_HOME]/software/java!/..." type="simple"/>
+          </root>
+        </classPath>
+        <javadocPath>
+          <root type="composite"/>
+        </javadocPath>
+        <sourcePath>
+          <root type="composite">
+            <root url="jar://$[JAVA_HOME]/software/java/lib/src.zip!/java.se" type="simple"/>
+            <root url="jar://$[JAVA_HOME]/software/java/lib/src.zip!/..." type="simple"/>
+          </root>
+        </sourcePath>
+      </roots>
+      <additional/>
+    </jdk>
+  </component>
+</application>
