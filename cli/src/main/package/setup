@@ -25,7 +25,6 @@ function doSetupInConfigFile() {
   fi
   if ! grep -q 'source "$IDE_ROOT/_ide/functions"' "${cfg}"; then
     echo 'source "$IDE_ROOT/_ide/functions"' >> "${cfg}"
-    echo "ide init" >> "${cfg}"
   fi
 }
 
