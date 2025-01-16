@@ -21,7 +21,9 @@ if exist "%GIT_CORE%" (
 
 if not "%1%" == "" (
   ideasy %IDE_OPTIONS% %*
-  goto :output_error
+  if not %ERRORLEVEL% == 0 (
+    echo %_fBRed%Error: IDEasy failed with exit code %ERRORLEVEL% %_RESET%
+    exit /b %ERRORLEVEL%
 )
 
 REM https://stackoverflow.com/questions/61888625/what-is-f-in-the-for-loop-command
@@ -33,10 +35,4 @@ ideasy %IDE_OPTIONS% env>nul
 
 if %ERRORLEVEL% == 0 (
   echo IDE environment variables have been set for %IDE_HOME% in workspace %WORKSPACE%
-)
-
-:output_error
-if not %ERRORLEVEL% == 0 (
-  echo %_fBRed%Error: IDEasy failed with exit code %ERRORLEVEL% %_RESET%
-  exit /b %ERRORLEVEL%
 )
