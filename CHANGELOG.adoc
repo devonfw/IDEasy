@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/915[#915]: custom-tools not working
 * https://github.com/devonfw/IDEasy/issues/916[#916]: download is missing status code error handling
 * https://github.com/devonfw/IDEasy/issues/757[#757]: Support to allow settings in code repository
 * https://github.com/devonfw/IDEasy/issues/826[#826]: Fix git settings check when settings folder is empty
@@ -32,6 +33,7 @@ Then run the `setup` and all should work fine.
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/734[#734]: Improve ProcessResult: get out and err in order
 * https://github.com/devonfw/IDEasy/issues/764[#764]: Fix IDEasy in CMD
 * https://github.com/devonfw/IDEasy/issues/774[#774]: HTTP proxy support not working properly
 * https://github.com/devonfw/IDEasy/issues/792[#792]: Honor new variable IDE_OPTIONS in ide command wrapper
