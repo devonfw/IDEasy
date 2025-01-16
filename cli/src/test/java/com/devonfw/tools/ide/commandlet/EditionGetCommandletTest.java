@@ -17,7 +17,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 
 public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
-  private static final String PROJECT = "editionget";
+  private static final String PROJECT = "edition-version-get-uninstall";
 
   /**
    * Mocks the installation of a tool, since getEdition depends on symlinks which are not distributed with git

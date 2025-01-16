@@ -1,9 +1,13 @@
 package com.devonfw.tools.ide.commandlet;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 
 /**
@@ -12,38 +16,20 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 public class VersionGetCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_SETTINGS = "settings";
+  private static final String PROJECT = "edition-version-get-uninstall";
 
   /**
    * Test of {@link VersionGetCommandlet} run, when Installed Version is null.
    */
   @Test
-  public void testVersionGetCommandletNotInstalledRun() {
+  public void testVersionGetCommandletNotInstalledRunThrowsException() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    IdeTestContext context = newContext(PROJECT);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     versionGet.tool.setValueAsString("java", context);
-    // act
-    versionGet.run();
-    // assert
-    assertThat(context).logAtProcessable().hasMessage("17*");
-  }
-
-  @Test
-  public void testVersionGetCommandletNotInstalledRunInstalledFlag() {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
-    VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
-    versionGet.tool.setValueAsString("java", context);
-    versionGet.installed.setValue(true);
-    // act
-    versionGet.run();
-    // assert
-    assertThat(context).logAtProcessable().hasEntries("No installation of tool java was found.",
-        "The configured version for tool java is 17*",
-        "To install that version call the following command:",
-        "ide install java");
+    // act/assert
+    assertThrows(CliException.class, () -> versionGet.run());
   }
 
   /**
@@ -53,7 +39,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletConfiguredRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    IdeTestContext context = newContext(PROJECT);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     // act
     versionGet.tool.setValueAsString("mvn", context);
@@ -70,7 +56,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletInstalledRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
+    IdeTestContext context = newContext(PROJECT_SETTINGS);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     // act
     versionGet.tool.setValueAsString("mvn", context);
@@ -87,7 +73,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletConfiguredStarRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
+    IdeTestContext context = newContext(PROJECT_SETTINGS);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     // act
     versionGet.tool.setValueAsString("mvn", context);
@@ -98,36 +84,23 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link VersionGetCommandlet} run, where a specific version is installed (mvn 3.9.4) but no specific version is configured (configured version *)
-   * The expected output is to be 3.9.4 only.
+   * Test of {@link VersionGetCommandlet} run, where a specific version is installed (mvn 3.9.4) but no specific version is configured (configured version *).
    */
   @Test
   public void testVersionGetCommandletMatchInstalledToConfiguredStarRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
+    IdeTestContext context = newContext(PROJECT_SETTINGS);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     // act
     versionGet.tool.setValueAsString("mvn", context);
     versionGet.run();
     // assert
-    assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("3.9.4");
-  }
-
-  /**
-   * Test of {@link VersionGetCommandlet} run, where the tool is neither installed nor configured.
-   */
-  @Test
-  public void testVersionGetCommandletNeitherInstalledNorConfigured() {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
-    VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
-    // act
-    versionGet.tool.setValueAsString("java", context);
-    versionGet.run();
-    // assert
-    assertThat(context).logAtProcessable().hasMessage("*");
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofProcessable("The installed version for tool mvn is 3.9.4."),
+        IdeLogEntry.ofProcessable("The configured version for tool mvn is *."),
+        IdeLogEntry.ofProcessable("ide install mvn")
+    );
   }
 
 }
