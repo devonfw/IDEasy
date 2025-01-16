@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<application xmlns:merge="https://github.com/devonfw/IDEasy/merge" merge:strategy="COMBINE">
+  <roots>
+    <annotationsPath>
+      <foo type="composite" merge:id="name()">
+        <foo type="simple" name="test"/>
+        <foo type="simple" name="test2"/>
+      </foo>
+    </annotationsPath>
+  </roots>
+</application>

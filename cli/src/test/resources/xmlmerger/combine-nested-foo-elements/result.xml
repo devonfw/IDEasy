@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<application>
+  <roots>
+    <annotationsPath>
+      <foo type="composite">
+        <foo type="simple" name="test"/>
+        <foo type="abstract" name="test3"/>
+        <foo type="simple" name="test2"/>
+      </foo>
+    </annotationsPath>
+  </roots>
+</application>

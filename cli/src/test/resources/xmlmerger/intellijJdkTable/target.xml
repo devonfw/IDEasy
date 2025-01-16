@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<application>
+  <component name="ProjectJdkTable">
+    <jdk version="2">
+      <name value="Java"/>
+      <type value="JavaSDK"/>
+      <version value="OpenJDK 21"/>
+      <homePath value="broken"/>
+      <roots>
+        <annotationsPath>
+          <root type="composite">
+            <root url="lost" type="simple"/>
+          </root>
+        </annotationsPath>
+        <classPath>
+          <root type="composite">
+            <root url="gone" type="simple"/>
+          </root>
+        </classPath>
+        <javadocPath>
+          <root type="composite"/>
+        </javadocPath>
+        <sourcePath>
+          <root type="composite">
+            <root url="void" type="simple"/>
+          </root>
+        </sourcePath>
+      </roots>
+      <additional/>
+    </jdk>
+    <jdk version="2">
+      <name value="adopt-1.8"/>
+      <type value="JavaSDK"/>
+      <version value="AdoptOpenJDK (HotSpot) version 1.8.0_292"/>
+      <homePath value="/projects/myproject/software/java1.8/jdk"/>
+      <roots>
+        <annotationsPath>
+          <root type="composite">
+            <root url="jar://$APPLICATION_HOME_DIR$/plugins/java/lib/resources/jdkAnnotations.jar!/" type="simple"/>
+          </root>
+        </annotationsPath>
+        <classPath>
+          <root type="composite">
+            <root url="jar:///projects/myproject/software/java1.8/jdk/jre/lib/charsets.jar!/" type="simple"/>
+            <root url="jar:///projects/myproject/software/java1.8/jdk/jre/lib/ext/..." type="simple"/>
+          </root>
+        </classPath>
+        <javadocPath>
+          <root type="composite"/>
+        </javadocPath>
+        <sourcePath>
+          <root type="composite">
+            <root type="simple" url="jar:///projects/myproject/software/java1.8/jdk/src.zip!/"/>
+          </root>
+        </sourcePath>
+      </roots>
+      <additional/>
+    </jdk>
+  </component>
+</application>

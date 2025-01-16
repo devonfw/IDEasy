@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<root xmlns:merge="https://github.com/devonfw/IDEasy/merge" merge:strategy="COMBINE">
-  <element name="elem1" attr1="value1" merge:id="@name">
-    <child name="child1" attr2="newValue" merge:id="@name">New text</child>
-  </element>
-</root>

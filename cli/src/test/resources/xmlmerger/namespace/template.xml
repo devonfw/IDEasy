@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root xmlns:merge="https://github.com/devonfw/IDEasy/merge" merge:strategy="combine" xmlns:ns="http://example.com/ns">
+  <ns:element name="elem1" ns:attr1="newValue" merge:id="@name"> <!-- strategy inherited from parent!-->
+    <ns:child name="child" ns:attr2="newValue" merge:id="@name">New text</ns:child>
+  </ns:element>
+  <ns:element name="elem2" ns:attr1="newValue" merge:strategy="override">New text</ns:element>
+  <ns:element name="elem3" ns:attr1="newValue" merge:strategy="keep"></ns:element>
+</root>
