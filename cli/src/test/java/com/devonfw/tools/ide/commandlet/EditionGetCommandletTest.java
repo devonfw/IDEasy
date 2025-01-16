@@ -48,8 +48,8 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).log().hasEntries(
         IdeLogEntry.ofWarning("Undefined edition " + tool + " of tool " + tool),
-        IdeLogEntry.ofProcessable("The installed edition for tool " + tool + " is " + tool + "."),
-        IdeLogEntry.ofProcessable("The configured edition for tool " + tool + " is " + tool + "."));
+        IdeLogEntry.ofProcessable("The installed edition for tool " + tool + " is " + tool),
+        IdeLogEntry.ofProcessable("The configured edition for tool " + tool + " is " + tool));
   }
 
   /** Test of {@link VersionGetCommandlet} run with --configured flag and installed tool */
@@ -67,6 +67,21 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("java");
   }
 
+  /** Test of {@link VersionGetCommandlet} run with --configured flag and not installed tool */
+  @Test
+  public void testEditionGetCommandletNotInstalledConfiguredEdition() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT);
+    EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
+    editionGet.tool.setValueAsString("tomcat", context);
+    editionGet.configured.setValue(true);
+    // act
+    editionGet.run();
+    // assert
+    assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("basic");
+  }
+
   /** Test of {@link VersionGetCommandlet} run with --configured flag but tool was not installed */
   @Test
   public void testEditionGetCommandletConfiguredEditionButNotInstalled() {
@@ -82,7 +97,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("az");
   }
 
-  /** Test of {@link EditionGetCommandlet} run, when tool is not installed but --installed flag was used. */
+  /** Test of {@link EditionGetCommandlet} run, when tool is not installed but --installed flag was used and --configured was not used. */
   @Test
   public void testEditionGetCommandletToolNotInstalledButInstalledFlagInUseThrowsException() {
 
@@ -95,29 +110,12 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     assertThrows(CliException.class, () -> editionGet.run());
   }
 
-  /** Test of {@link EditionGetCommandlet} run, with --installed flag, when Installed Version is null. */
-  @Test
-  public void testEditionGetCommandletInstalledEditionToolNotInstalled() {
-
-    // arrange
-    IdeTestContext context = newContext(PROJECT);
-    EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
-    editionGet.tool.setValueAsString("java", context);
-    editionGet.installed.setValue(true);
-    // act
-    editionGet.run();
-    // assert
-    assertThat(context).log().hasEntries(IdeLogEntry.ofProcessable("java"));
-  }
-
-
   /** Test of {@link EditionGetCommandlet} run, with --installed flag, when tool is installed. */
   @Test
   public void testEditionGetCommandletInstalledEditionToolInstalled() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT);
-    mockInstallTool(context, "mvn");
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString("mvn", context);
     editionGet.installed.setValue(true);
@@ -125,5 +123,26 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     editionGet.run();
     // assert
     assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("mvn");
+  }
+
+  /** Test of {@link EditionGetCommandlet} run, with --installed and --configured flag, when tool is not installed. */
+  @Test
+  public void testEditionGetCommandletInstalledConfiguredEditionToolNotInstalled() {
+
+    // arrange
+    String tool = "tomcat";
+    IdeTestContext context = newContext(PROJECT);
+    EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
+    editionGet.tool.setValueAsString(tool, context);
+    editionGet.configured.setValue(true);
+    editionGet.installed.setValue(true);
+    // act
+    editionGet.run();
+    // assert
+    assertThat(context).log().hasEntries(
+        IdeLogEntry.ofProcessable("No installation of tool " + tool + " was found."),
+        IdeLogEntry.ofProcessable("The configured edition for tool " + tool + " is basic"),
+        IdeLogEntry.ofProcessable("ide install " + tool)
+    );
   }
 }

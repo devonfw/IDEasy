@@ -76,6 +76,9 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
     Object installedValue = getInstalledValue(commandlet);
     boolean getInstalledValue = this.installed.isTrue();
     boolean getConfiguredValue = this.configured.isTrue();
+    if (installedValue == null && getInstalledValue && !getConfiguredValue) {
+      throw new CliException("Tool " + commandlet + " is not installed.", 1);
+    }
     if (getInstalledValue == getConfiguredValue) {
       if (getInstalledValue) { // both --configured and --installed
         logToolInfo(logger, commandlet, configuredValue, installedValue);
@@ -91,7 +94,6 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
     } else {
       if (getInstalledValue) {
         if (installedValue == null) {
-
           logToolInfo(logger, commandlet, configuredValue, null);
         } else {
           logger.log(installedValue.toString());
@@ -107,15 +109,11 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
     String property = getPropertyToGet();
     String toolName = commandlet.getName();
     if (installedValue == null) {
-      throw new CliException("No installation of tool " + toolName + " was found.", 1);
+      logger.log("No installation of tool {} was found.", toolName);
     } else {
-      logger.log("The installed {} for tool {} is {}.", property, toolName, installedValue);
+      logger.log("The installed {} for tool {} is {}", property, toolName, installedValue);
     }
-    if (configuredValue == null) {
-      logger.log("There is no configured {} for tool {}.", property, toolName);
-    } else {
-      logger.log("The configured {} for tool {} is {}.", property, toolName, configuredValue);
-    }
+    logger.log("The configured {} for tool {} is {}", property, toolName, configuredValue);
     if (!Objects.equals(configuredValue, installedValue)) {
       logger.log("To install that {} call the following command:", property);
       logger.log("ide install {}", toolName);
