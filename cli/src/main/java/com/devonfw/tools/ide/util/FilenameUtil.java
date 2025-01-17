@@ -39,7 +39,7 @@ public final class FilenameUtil {
     }
     // include previous ".tar" for ".tar.gz" or ".tar.bz2"
     int rawNameLength = lastDot - lastSlash;
-    if ((rawNameLength > 4) && path.substring(lastDot - 4, lastDot).equals(".tar")) {
+    if ((rawNameLength > 4) && path.startsWith(".tar", lastDot - 4)) {
       lastDot = lastDot - 4;
     }
     return path.substring(lastDot + 1);
