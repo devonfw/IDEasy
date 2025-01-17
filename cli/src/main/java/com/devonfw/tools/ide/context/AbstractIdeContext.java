@@ -6,6 +6,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -55,6 +56,7 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
+import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
@@ -66,6 +68,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 public abstract class AbstractIdeContext implements IdeContext {
 
   private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
+  
+  private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
 
   private final IdeStartContextImpl startContext;
 
@@ -869,11 +873,13 @@ public abstract class AbstractIdeContext implements IdeContext {
           Path settingsRepository = getSettingsGitRepository();
           if (settingsRepository != null) {
             if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) ||
-                (getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()))) {
+                (getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(settingsRepository,
+                    getSettingsCommitIdPath()))) {
               interaction("Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
             }
           }
         }
+        ensureLicenseAgreement();
         cmd.run();
       } finally {
         if (previousLogLevel != null) {
@@ -884,6 +890,61 @@ public abstract class AbstractIdeContext implements IdeContext {
       trace("Commandlet did not match");
     }
     return result;
+  }
+
+  private void ensureLicenseAgreement() {
+
+    if ((this.ideRoot == null) || isTest()) {
+      return; // error: IDE_ROOT undefined
+    }
+    Path ideBase = this.ideRoot.resolve(FOLDER_IDE);
+    if (!Files.isDirectory(ideBase)) {
+      return; // error: $IDE_ROOT/_ide does not exist, broken installation
+    }
+    Path licenseAgreement = ideBase.resolve(FILE_LICENSE_AGREEMENT);
+    if (Files.isRegularFile(licenseAgreement)) {
+      return; // success, license already accepted
+    }
+    boolean logLevelInfoDisabled = !this.startContext.info().isEnabled();
+    if (logLevelInfoDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INFO, true);
+    }
+    boolean logLevelInteractionDisabled = !this.startContext.interaction().isEnabled();
+    if (logLevelInteractionDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INTERACTION, true);
+    }
+    StringBuilder sb = new StringBuilder(1180);
+    sb.append(LOGO).append("""
+            Welcome to IDEasy!
+            This product (with its included 3rd party components) is open-source software and can be used free (also commercially).
+            It supports automatic download and installation of arbitrary 3rd party tools.
+            By default only open-source 3rd party tools are used (downloaded, installed, executed).
+            But if explicitly configured, also commercial software that requires an additional license may be used.
+            This happens e.g. if you configure "ultimate" edition of IntelliJ or "docker" edition of Docker (Docker Desktop).
+            You are solely responsible for all risk implied by using this software.
+            Before using IDEasy you need to read and accept the license agreement with all involved licenses.
+            You will be able to find it online under the following URL:
+            """).append(LICENSE_URL)
+        .append("\n\nAlso it is included in the documentation that you can find here:\n").
+        append(ideBase.resolve("IDEasy.pdf").toString()).append("\n");
+    info(sb.toString());
+    askToContinue("Do you accept these terms of use and all license agreements?");
+
+    sb.setLength(0);
+    LocalDateTime now = LocalDateTime.now();
+    sb.append("On ").append(DateTimeUtil.formatDate(now, false)).append(" at ").append(DateTimeUtil.formatTime(now))
+        .append(" you accepted the IDEasy license.\n").append(LICENSE_URL);
+    try {
+      Files.writeString(licenseAgreement, sb);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to save license agreement!", e);
+    }
+    if (logLevelInfoDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INFO, false);
+    }
+    if (logLevelInteractionDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INTERACTION, false);
+    }
   }
 
   private void verifyIdeRoot() {
