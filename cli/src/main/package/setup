@@ -1,11 +1,21 @@
 #!/bin/bash
 
+function createFile() {
+  local fileName=$1
+  touch "$fileName"
+  echo "Created ${fileName}"
+}
+
+function createFileIfNotExists() {
+  local fileName=$1
+  if [ ! -f "${fileName}" ]; then
+    createFile "$fileName"
+  fi
+}
+
 function doSetupInConfigFile() {
   local cfg=$1
-  if [ ! -f "${cfg}" ]; then
-    echo "${cfg} not found - skipping."
-    return
-  fi
+  createFileIfNotExists "${cfg}"
   echo "Configuring IDEasy in ${cfg}."
   if [ "${OSTYPE}" != "cygwin" ] && [ "${OSTYPE}" != "msys" ]; then
     if ! grep -q "export IDE_ROOT=" "${cfg}"
@@ -15,7 +25,6 @@ function doSetupInConfigFile() {
   fi
   if ! grep -q 'source "$IDE_ROOT/_ide/functions"' "${cfg}"; then
     echo 'source "$IDE_ROOT/_ide/functions"' >> "${cfg}"
-    echo "ide init" >> "${cfg}"
   fi
 }
 
