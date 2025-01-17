@@ -7,7 +7,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
+import com.devonfw.tools.ide.merge.xmlmerger.XmlMergeSupport;
 
 /**
  * The ElementMatcher class is responsible for matching XML elements in a target document based on the provided update elements.
@@ -16,40 +16,48 @@ public class ElementMatcher {
 
   private final IdeContext context;
 
-  private final Map<QName, IdComputer> qNameIdMap;
+  private final Map<QName, String> qName2IdMap;
 
+  private final Map<String, IdComputer> id2ComputerMap;
+
+  /**
+   * The constructor.
+   *
+   * @param context the {@link IdeContext}.
+   */
   public ElementMatcher(IdeContext context) {
 
     this.context = context;
-    this.qNameIdMap = new HashMap<>();
+    this.qName2IdMap = new HashMap<>();
+    this.id2ComputerMap = new HashMap<>();
   }
 
-  private IdComputer createIdComputer(String id, QName qname, MergeElement sourceElement) {
+  private IdComputer getIdComputer(Element element) {
 
+    QName qName = XmlMergeSupport.getQualifiedName(element);
+    String id = XmlMergeSupport.getMergeId(element);
     if ((id == null) || id.isEmpty()) {
-      throw new IllegalStateException(
-          "No merge:id value defined for element " + sourceElement.getXPath() + " in document " + sourceElement.getDocumentPath());
+      id = this.qName2IdMap.get(qName);
+      if (id == null) {
+        throw new IllegalStateException(
+            "Attribute merge:id is required for XML element " + XmlMergeSupport.getXPath(element, true));
+      }
+    } else {
+      this.qName2IdMap.putIfAbsent(qName, id);
     }
-    return new IdComputer(id);
+    return this.id2ComputerMap.computeIfAbsent(id, IdComputer::new);
   }
 
   /**
    * Looks for an element matching the source element inside the target element.
    *
-   * @param sourceElement the update element to be matched
-   * @param targetElement the target element in which to match the element
-   * @return the matched MergeElement if found, or {@code null} if not found
+   * @param templateElement the template {@link Element} to be matched.
+   * @param workspaceElement the workspace {@link Element} in which to match the template {@link Element}.
+   * @return the matched {@link Element} if found, or {@code null} if not found
    */
-  public MergeElement matchElement(MergeElement sourceElement, MergeElement targetElement) {
+  public Element matchElement(Element templateElement, Element workspaceElement) {
 
-    String id = sourceElement.getId();
-    QName qName = sourceElement.getQName();
-
-    IdComputer idComputer = this.qNameIdMap.computeIfAbsent(qName, k -> createIdComputer(id, qName, sourceElement));
-    Element matchedNode = idComputer.evaluateExpression(sourceElement, targetElement);
-    if (matchedNode != null) {
-      return new MergeElement(matchedNode, targetElement.getDocumentPath());
-    }
-    return null;
+    IdComputer idComputer = getIdComputer(templateElement);
+    return idComputer.evaluateExpression(templateElement, workspaceElement);
   }
 }

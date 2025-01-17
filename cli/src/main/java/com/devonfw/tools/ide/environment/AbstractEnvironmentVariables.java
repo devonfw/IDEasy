@@ -205,7 +205,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     if (context.syntax == null) {
       resolved = resolveWithSyntax(value, source, recursion, resolvedVars, context, VariableSyntax.SQUARE);
       if (context.legacySupport) {
-        resolved = resolveWithSyntax(value, source, recursion, resolvedVars, context, VariableSyntax.CURLY);
+        resolved = resolveWithSyntax(resolved, source, recursion, resolvedVars, context, VariableSyntax.CURLY);
       }
     } else {
       resolved = resolveWithSyntax(value, source, recursion, resolvedVars, context, context.syntax);
