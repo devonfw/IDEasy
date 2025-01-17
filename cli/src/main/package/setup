@@ -1,15 +1,10 @@
 #!/bin/bash
 
-function createFile() {
-  local fileName=$1
-  touch "$fileName"
-  echo "Created ${fileName}"
-}
-
 function createFileIfNotExists() {
-  local fileName=$1
-  if [ ! -f "${fileName}" ]; then
-    createFile "$fileName"
+  local file=$1
+  if [ ! -f "${file}" ]; then
+    touch "$file"
+    echo "Created ${file}"
   fi
 }
 
@@ -35,8 +30,14 @@ if [ "${PWD/*\//}" != "_ide" ]; then
 fi
 echo "Setting up IDEasy in ${PWD}"
 cd ..
+if [ "${PWD/*\//}" != "projects" ]; then
+  echo -e "\033[93mYour IDE_ROOT folder is $PWD - you need to rename ${PWD/*\//} to 'projects'.\033[39m" >&2
+  exit 1
+fi
 export IDE_ROOT=${PWD}
-source "$IDE_ROOT/_ide/functions"
+source "$IDE_ROOT/_ide/functions" || exit 255
+# enforce license agreement
+ide -v || exit 255
 
 doSetupInConfigFile ~/.bashrc
 doSetupInConfigFile ~/.zshrc

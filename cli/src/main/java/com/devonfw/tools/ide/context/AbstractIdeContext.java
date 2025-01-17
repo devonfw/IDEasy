@@ -68,7 +68,7 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 public abstract class AbstractIdeContext implements IdeContext {
 
   private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
-  
+
   private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
 
   private final IdeStartContextImpl startContext;
@@ -894,14 +894,11 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private void ensureLicenseAgreement() {
 
-    if ((this.ideRoot == null) || isTest()) {
-      return; // error: IDE_ROOT undefined
+    if (isTest()) {
+      return; // ignore for tests
     }
-    Path ideBase = this.ideRoot.resolve(FOLDER_IDE);
-    if (!Files.isDirectory(ideBase)) {
-      return; // error: $IDE_ROOT/_ide does not exist, broken installation
-    }
-    Path licenseAgreement = ideBase.resolve(FILE_LICENSE_AGREEMENT);
+    getFileAccess().mkdirs(this.userHomeIde);
+    Path licenseAgreement = this.userHomeIde.resolve(FILE_LICENSE_AGREEMENT);
     if (Files.isRegularFile(licenseAgreement)) {
       return; // success, license already accepted
     }
@@ -915,18 +912,20 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     StringBuilder sb = new StringBuilder(1180);
     sb.append(LOGO).append("""
-            Welcome to IDEasy!
-            This product (with its included 3rd party components) is open-source software and can be used free (also commercially).
-            It supports automatic download and installation of arbitrary 3rd party tools.
-            By default only open-source 3rd party tools are used (downloaded, installed, executed).
-            But if explicitly configured, also commercial software that requires an additional license may be used.
-            This happens e.g. if you configure "ultimate" edition of IntelliJ or "docker" edition of Docker (Docker Desktop).
-            You are solely responsible for all risk implied by using this software.
-            Before using IDEasy you need to read and accept the license agreement with all involved licenses.
-            You will be able to find it online under the following URL:
-            """).append(LICENSE_URL)
-        .append("\n\nAlso it is included in the documentation that you can find here:\n").
-        append(ideBase.resolve("IDEasy.pdf").toString()).append("\n");
+        Welcome to IDEasy!
+        This product (with its included 3rd party components) is open-source software and can be used free (also commercially).
+        It supports automatic download and installation of arbitrary 3rd party tools.
+        By default only open-source 3rd party tools are used (downloaded, installed, executed).
+        But if explicitly configured, also commercial software that requires an additional license may be used.
+        This happens e.g. if you configure "ultimate" edition of IntelliJ or "docker" edition of Docker (Docker Desktop).
+        You are solely responsible for all risk implied by using this software.
+        Before using IDEasy you need to read and accept the license agreement with all involved licenses.
+        You will be able to find it online under the following URL:
+        """).append(LICENSE_URL);
+    if (this.ideRoot != null) {
+      sb.append("\n\nAlso it is included in the documentation that you can find here:\n").
+          append(this.ideRoot.resolve(FOLDER_IDE).resolve("IDEasy.pdf").toString()).append("\n");
+    }
     info(sb.toString());
     askToContinue("Do you accept these terms of use and all license agreements?");
 
