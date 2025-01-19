@@ -136,7 +136,9 @@
                           <linetokenizer/>
                           <!-- make anchors unique by prefixing with filename -->
                           <replaceregex pattern="\[\[" replace="[[${norm_prefix}_" flags="g"/>
-                          <!-- automatically generate anchors for sections -->
+                          <!-- insert top-level anchor for file so links to this entire file work after being resolved as xref -->
+                          <replaceregex pattern="^(=) " replace="[[${norm_prefix}_top]]${line.separator}\1 " flags="g"/>
+                          <!-- automatically generate anchors for (sub-)sections -->
                           <replaceregex pattern="^(==+) (.*)" replace="[[${norm_prefix}_\2]]${line.separator}\1 \2" flags="g"/>
 
                           <!-- fix xref/link with empty linktext to use target as linktext (AsciiDoc default) -->
@@ -148,7 +150,7 @@
                           <!-- fix relative links with anchor to xref inter document ref -->
                           <replaceregex pattern="link:([^#:]+)#([^\[]*)\[" replace="xref:${path_id_prefix}\1_\2[" flags="g"/>
                           <!-- fix relative links without anchor to xref document ref -->
-                          <replaceregex pattern="link:([^:\[]+)(#|\[)" replace="xref:${path_id_prefix}\1\2" flags="g"/>
+                          <replaceregex pattern="link:([^:\[]+)(#|\[)" replace="xref:${path_id_prefix}\1_top\2" flags="g"/>
 
                           <!-- normalize (generated) anchors to not contain special characters -->
                           <scriptfilter language="beanshell" byline="true" setbeans="true"><![CDATA[
@@ -161,8 +163,6 @@
                               }
                             }
                           ]]></scriptfilter>
-                          <!-- insert top-level anchor for file so links to this enire file work after being resolved as xref -->
-                          <replaceregex pattern="^(=) " replace="[[${norm_prefix}]]${line.separator}\1 " flags="g"/>
                           <!-- resolve maven variables -->
                           <replaceregex pattern="\$\{project\.version\}" replace="${project.version}" flags="g"/>
                           <replaceregex pattern="\$\{project\.artifactId\}" replace="${project.artifactId}" flags="g"/>
