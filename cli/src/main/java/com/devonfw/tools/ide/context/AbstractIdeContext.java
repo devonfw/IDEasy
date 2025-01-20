@@ -918,7 +918,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         By default only open-source 3rd party tools are used (downloaded, installed, executed).
         But if explicitly configured, also commercial software that requires an additional license may be used.
         This happens e.g. if you configure "ultimate" edition of IntelliJ or "docker" edition of Docker (Docker Desktop).
-        You are solely responsible for all risk implied by using this software.
+        You are solely responsible for all risks implied by using this software.
         Before using IDEasy you need to read and accept the license agreement with all involved licenses.
         You will be able to find it online under the following URL:
         """).append(LICENSE_URL);
