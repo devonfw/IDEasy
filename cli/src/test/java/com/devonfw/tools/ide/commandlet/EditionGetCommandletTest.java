@@ -39,7 +39,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     String tool = "az";
-    IdeTestContext context = newContext(PROJECT, null, false);
+    IdeTestContext context = newContext(PROJECT, null, true);
     mockInstallTool(context, tool);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString(tool, context);
