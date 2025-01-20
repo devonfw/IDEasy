@@ -60,14 +60,12 @@ Here are some examples with `IDEasy`:
 
 [source,bash]
 --------
-[~]$ ide
-You are not inside an IDEasy project: /home
-[~]$ ide create cool-project
+[~]$ ide create cool-project -
 ...
-[~]$ cd projects/cool-project
-[devonfw]$ mvn
+[~]$ cd $IDE_ROOT/cool-project
+[cool-project]$ mvn
 command not found: mvn
-[devonfw]$ ide
+[cool-project]$ ide
 Environment variables have been set for ~/projects/cool-project in workspace main
 [devonfw]$ mvn -v
 Apache Maven 3.9.9 (8e8579a9e76f7d015ee5ec7bfcdc97d260186937)
@@ -75,7 +73,7 @@ Maven home: ~/projects/cool-project/software/mvn
 Java version: 21.0.4, vendor: Eclipse Adoptium, runtime: ~/projects/cool-project/software/java
 Default locale: de_DE, platform encoding: UTF-8
 OS name: "mac os x", version: "21.0.4", arch: "x86_64", family: "mac"
-[devonfw]$ cd ../ide-test/workspaces/test/my-project
+[cool-project]$ cd ../ide-test/workspaces/test/my-project
 [my-project]$ ide
 Environment variables have been set for ~/projects/ide-test in workspace test
 [my-project]$ mvn -v

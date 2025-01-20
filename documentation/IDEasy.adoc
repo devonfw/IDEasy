@@ -1,5 +1,5 @@
 = IDEasy
-The devonfw community
+The IDEasy community
 ${project.version}, ${buildtime}
 :description: comprehensive documentation of the IDEasy tool to manage your development environments.
 :doctype: book
