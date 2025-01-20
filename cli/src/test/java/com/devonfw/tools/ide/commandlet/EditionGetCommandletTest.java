@@ -39,7 +39,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     String tool = "az";
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     mockInstallTool(context, tool);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString(tool, context);
@@ -57,7 +57,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
   public void testEditionGetCommandletConfiguredEditionAndInstalled() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString("java", context);
     editionGet.configured.setValue(true);
@@ -67,12 +67,12 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
     assertThat(context).log(IdeLogLevel.PROCESSABLE).hasMessage("java");
   }
 
-  /** Test of {@link VersionGetCommandlet} run with --configured flag and not installed tool */
+  /** Test of {@link VersionGetCommandlet} run with --configured flag and not installed tool but set 'basic' edition for TOMCAT_EDITION in ide.properties */
   @Test
   public void testEditionGetCommandletNotInstalledConfiguredEdition() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString("tomcat", context);
     editionGet.configured.setValue(true);
@@ -87,7 +87,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
   public void testEditionGetCommandletConfiguredEditionButNotInstalled() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString("az", context);
     editionGet.configured.setValue(true);
@@ -102,7 +102,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
   public void testEditionGetCommandletToolNotInstalledButInstalledFlagInUseThrowsException() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString("az", context);
     editionGet.installed.setValue(true);
@@ -115,7 +115,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
   public void testEditionGetCommandletInstalledEditionToolInstalled() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString("mvn", context);
     editionGet.installed.setValue(true);
@@ -131,7 +131,7 @@ public class EditionGetCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     String tool = "tomcat";
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     EditionGetCommandlet editionGet = context.getCommandletManager().getCommandlet(EditionGetCommandlet.class);
     editionGet.tool.setValueAsString(tool, context);
     editionGet.configured.setValue(true);

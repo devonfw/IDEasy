@@ -25,7 +25,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletNotInstalledRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     versionGet.tool.setValueAsString("az", context);
     // act
@@ -44,7 +44,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletNotInstalledWithInstalledFlagRunThrowsException() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     versionGet.tool.setValueAsString("tomcat", context);
     versionGet.installed.setValue(true);
@@ -59,7 +59,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletNotInstalledConfiguredWithConfiguredFlagRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_SETTINGS);
+    IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     versionGet.tool.setValueAsString("az", context);
     versionGet.configured.setValue(true);
@@ -76,7 +76,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletNotInstalledWithConfigured() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     versionGet.tool.setValueAsString("az", context);
     versionGet.configured.setValue(true);
@@ -93,7 +93,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletConfiguredRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     // act
     versionGet.tool.setValueAsString("mvn", context);
@@ -110,7 +110,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletInstalledRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     // act
     versionGet.tool.setValueAsString("mvn", context);
@@ -127,7 +127,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletConfiguredStarRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_SETTINGS);
+    IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     // act
     versionGet.tool.setValueAsString("mvn", context);
@@ -144,7 +144,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletConfiguredInstalledRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_SETTINGS);
+    IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     // act
     versionGet.tool.setValueAsString("mvn", context);
@@ -165,7 +165,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletConfiguredInstalledSpecificRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT);
+    IdeTestContext context = newContext(PROJECT, null, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     // act
     versionGet.tool.setValueAsString("mvn", context);
@@ -186,7 +186,7 @@ public class VersionGetCommandletTest extends AbstractIdeContextTest {
   public void testVersionGetCommandletMatchInstalledToConfiguredStarRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_SETTINGS);
+    IdeTestContext context = newContext(PROJECT_SETTINGS, null, false);
     VersionGetCommandlet versionGet = context.getCommandletManager().getCommandlet(VersionGetCommandlet.class);
     // act
     versionGet.tool.setValueAsString("mvn", context);
