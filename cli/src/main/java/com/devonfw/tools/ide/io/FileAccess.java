@@ -5,6 +5,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -209,6 +210,9 @@ public interface FileAccess {
 
   /**
    * Deletes the given {@link Path} idempotent and recursive.
+   * <p>
+   * ATTENTION: In most cases we want to use {@link #backup(Path)} instead to prevent the user from data loss.
+   * </p>
    *
    * @param path the {@link Path} to delete.
    */
@@ -237,7 +241,19 @@ public interface FileAccess {
    * @return all children of the given {@link Path} that match the given {@link Predicate}. Will be the empty list of the given {@link Path} is not an existing
    *     directory.
    */
-  List<Path> listChildren(Path dir, Predicate<Path> filter);
+  default List<Path> listChildren(Path dir, Predicate<Path> filter) {
+
+    return listChildrenMapped(dir, child -> (filter.test(child)) ? child : null);
+  }
+
+  /**
+   * @param dir the {@link Path} to the directory where to list the children.
+   * @param filter the filter {@link Function} used to {@link Function#apply(Object) filter and transform} children to include. If the {@link Function}
+   *     returns  {@code null}, the child will be filtered, otherwise the returned {@link Path} will be included in the resulting {@link List}.
+   * @return all children of the given {@link Path} returned by the given {@link Function}. Will be the empty list if the given {@link Path} is not an existing
+   *     directory.
+   */
+  List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter);
 
   /**
    * Finds the existing file with the specified name in the given list of directories.
@@ -282,4 +298,12 @@ public interface FileAccess {
    * @param file the {@link Path} to the file or folder.
    */
   void touch(Path file);
+
+  /**
+   * @param file the {@link Path} to the file to read.
+   * @return the content of the specified file (in UTF-8 encoding).
+   * @see java.nio.file.Files#readString(Path)
+   */
+  String readFileContent(Path file);
+
 }
