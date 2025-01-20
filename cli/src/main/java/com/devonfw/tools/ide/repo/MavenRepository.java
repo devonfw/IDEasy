@@ -72,8 +72,7 @@ public class MavenRepository extends AbstractToolRepository {
 
     // hardcoding the file extension seems wrong
     String fileName = artifactId + "-" + version + "-" + classifier + ".tar.gz";
-    String downloadUrl = getBaseUrl(groupId, artifactId) + "/" +
-        getPath(groupId, artifactId, pathVersion, fileName);
+    String downloadUrl = getBaseUrl(groupId, artifactId) + "/" + getPath(groupId, artifactId, pathVersion, fileName);
     return new MavenArtifactMetadata(groupId, artifactId, version, downloadUrl, sys.getOs(), sys.getArchitecture());
   }
 
@@ -81,7 +80,8 @@ public class MavenRepository extends AbstractToolRepository {
   public VersionIdentifier resolveVersion(String groupId, String artifactId, GenericVersionRange versionRange) {
 
     try {
-      String metadataUrl = getBaseUrl(groupId, artifactId) + "/" + getPath(groupId, artifactId, null, MAVEN_METADATA_XML);
+      String metadataUrl =
+          getBaseUrl(groupId, artifactId) + "/" + getPath(groupId, artifactId, null, MAVEN_METADATA_XML);
       Path tmpDownloadFile = createTempDownload(MAVEN_METADATA_XML);
 
       try {
@@ -90,13 +90,11 @@ public class MavenRepository extends AbstractToolRepository {
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.parse(tmpDownloadFile.toFile());
 
-        String version = Optional.ofNullable(doc.getElementsByTagName("latest").item(0))
-            .map(Element.class::cast)
-            .map(Element::getTextContent)
-            .orElseGet(() -> Optional.ofNullable(doc.getElementsByTagName("release").item(0))
-                .map(Element.class::cast)
-                .map(Element::getTextContent)
-                .orElseThrow(() -> new IllegalStateException("No latest or release version found in metadata")));
+        String version = Optional.ofNullable(doc.getElementsByTagName("latest").item(0)).map(Element.class::cast)
+            .map(Element::getTextContent).orElseGet(
+                () -> Optional.ofNullable(doc.getElementsByTagName("release").item(0)).map(Element.class::cast)
+                    .map(Element::getTextContent)
+                    .orElseThrow(() -> new IllegalStateException("No latest or release version found in metadata")));
 
         if (isIdeasySnapshot(groupId, artifactId, version)) {
           version = resolveSnapshotVersion(groupId, artifactId, version);
@@ -123,14 +121,12 @@ public class MavenRepository extends AbstractToolRepository {
         DocumentBuilder builder = factory.newDocumentBuilder();
         Document doc = builder.parse(tmpDownloadFile.toFile());
 
-        String timestamp = Optional.ofNullable(doc.getElementsByTagName("timestamp").item(0))
-            .map(Element.class::cast)
+        String timestamp = Optional.ofNullable(doc.getElementsByTagName("timestamp").item(0)).map(Element.class::cast)
             .map(Element::getTextContent)
             .orElseThrow(() -> new IllegalStateException("No timestamp found in snapshot metadata"));
 
         String buildNumber = Optional.ofNullable(doc.getElementsByTagName("buildNumber").item(0))
-            .map(Element.class::cast)
-            .map(Element::getTextContent)
+            .map(Element.class::cast).map(Element::getTextContent)
             .orElseThrow(() -> new IllegalStateException("No buildNumber found in snapshot metadata"));
 
         return baseVersion.replace("-SNAPSHOT", "") + "-" + timestamp + "-" + buildNumber;
@@ -144,7 +140,8 @@ public class MavenRepository extends AbstractToolRepository {
 
   private boolean isIdeasySnapshot(String groupId, String artifactId, String version) {
 
-    return IDEASY_GROUP_ID.equals(groupId) && IDEASY_ARTIFACT_ID.equals(artifactId) && version != null && version.contains("SNAPSHOT");
+    return IDEASY_GROUP_ID.equals(groupId) && IDEASY_ARTIFACT_ID.equals(artifactId) && version != null
+        && version.contains("SNAPSHOT");
   }
 
   @Override
