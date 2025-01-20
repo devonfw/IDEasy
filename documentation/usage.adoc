@@ -63,7 +63,7 @@ Then add the default ide-settings as origin, fetch and pull from it:
 ```
 git remote add upstream https://github.com/devonfw/ide-settings.git
 git fetch upstream
-git pull upstream master
+git pull upstream main
 git push
 ```
 +
