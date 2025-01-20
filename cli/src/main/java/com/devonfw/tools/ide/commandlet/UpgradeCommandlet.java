@@ -41,9 +41,28 @@ public class UpgradeCommandlet extends Commandlet {
     return "upgrade";
   }
 
-  private boolean isSnapshotNewer(String currentVersion, String latestVersion) {
+  /**
+   * Compares two snapshot versions to determine if the latest is newer. Handles versions in the following formats: -
+   * Current version format: "2024.12.002-beta-12_18_02-SNAPSHOT" - Latest version format:
+   * "2025.01.001-beta-20250118.022832-8"
+   *
+   * First compares base versions (e.g. 2024.12.002 with 2025.01.001), then timestamps if base versions are equal.
+   * Returns false if version formats are unexpected to avoid unintended upgrades.
+   *
+   * @param currentVersion The current snapshot version
+   * @param latestVersion The latest snapshot version to compare against
+   * @return true if latestVersion is newer than currentVersion, false otherwise or if formats are invalid
+   */
+  protected boolean isSnapshotNewer(String currentVersion, String latestVersion) {
+
     try {
-      // First compare the base versions
+      // Validate input formats
+      if (currentVersion == null || latestVersion == null || !currentVersion.contains("-") || !latestVersion.contains(
+          "-")) {
+        return false;
+      }
+
+      // First compare base versions (2024.12.002 with 2025.01.001)
       String currentBase = currentVersion.substring(0, currentVersion.indexOf('-'));
       String latestBase = latestVersion.substring(0, latestVersion.indexOf('-'));
 
@@ -55,45 +74,34 @@ public class UpgradeCommandlet extends Commandlet {
         return currentBaseVersion.compareVersion(latestBaseVersion).isLess();
       }
 
-      // Base versions are equal, now compare timestamps
+      // Validate timestamp formats
       String[] currentParts = currentVersion.split("-");
-      if (currentParts.length < 3) {
-        return true; // If format is unexpected, assume we need to upgrade
-      }
-      // currentParts[2] format is "MM_DD_HH-SNAPSHOT"
-      String currentTimestamp = currentParts[2].split("-")[0].replace("_", ""); // "010802"
-
       String[] latestParts = latestVersion.split("-");
-      if (latestParts.length < 3) {
-        return true;
+      if (currentParts.length < 3 || latestParts.length < 3) {
+        return false;
       }
 
-      // Get the timestamp part (20250108.023429)
+      // Extract timestamps
+      String currentTimestamp = currentParts[2].split("-")[0].replace("_", ""); // "010102"
       String[] latestTimestampParts = latestParts[2].split("\\.");
-      String latestDatePart = latestTimestampParts[0]; // "20250108"
-
-      // Convert timestamps to LocalDateTime for comparison
-      try {
-        // Current: month=01, day=08, hour=02
-        LocalDateTime currentTime = LocalDateTime.now()
-            .withMonth(Integer.parseInt(currentTimestamp.substring(0, 2)))
-            .withDayOfMonth(Integer.parseInt(currentTimestamp.substring(2, 4)))
-            .withHour(Integer.parseInt(currentTimestamp.substring(4, 6)))
-            .withMinute(0)
-            .withSecond(0);
-
-        // Latest: truncate to hours to match current time format
-        LocalDateTime latestTime = LocalDateTime.parse(
-            latestDatePart + "000000", // Pad with zeros for hour/minute/second
-            DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
-        ).withMinute(0).withSecond(0);
-
-        return latestTime.isAfter(currentTime);
-      } catch (Exception e) {
-        throw new IllegalStateException("Failed to parse snapshot version timestamps for comparison.", e);
+      if (latestTimestampParts.length < 1) {
+        return false;
       }
+
+      // Get year from base version (2024.12.002 -> 2024)
+      String year = currentBase.substring(0, 4);
+
+      // Parse current date/time using extracted year (currentTimestamp format: MMDDXX)
+      LocalDateTime currentTime = LocalDateTime.parse(year + currentTimestamp + "00", // YYYYMMDDHHmm
+          DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
+
+      // Parse latest date/time (format: YYYYMMDD.HHMMSS)
+      LocalDateTime latestTime = LocalDateTime.parse(latestTimestampParts[0] + "000000",
+          DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+
+      return latestTime.isAfter(currentTime);
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to compare snapshot versions.", e);
+      return false;
     }
   }
 
@@ -102,7 +110,8 @@ public class UpgradeCommandlet extends Commandlet {
 
     ToolRepository mavenRepo = this.context.getMavenSoftwareRepository();
     VersionIdentifier currentVersion = VersionIdentifier.of(IdeVersion.get());
-    VersionIdentifier latestVersion = mavenRepo.resolveVersion(MavenRepository.IDEASY_GROUP_ID, MavenRepository.IDEASY_ARTIFACT_ID, null);
+    VersionIdentifier latestVersion = mavenRepo.resolveVersion(MavenRepository.IDEASY_GROUP_ID,
+        MavenRepository.IDEASY_ARTIFACT_ID, null);
 
     boolean upgradeAvailable;
     if (currentVersion.toString().contains("SNAPSHOT")) {
@@ -118,7 +127,8 @@ public class UpgradeCommandlet extends Commandlet {
       try {
 
         this.context.info("Downloading new version...");
-        Path downloadTarget = mavenRepo.download(MavenRepository.IDEASY_GROUP_ID, MavenRepository.IDEASY_ARTIFACT_ID, latestVersion);
+        Path downloadTarget = mavenRepo.download(MavenRepository.IDEASY_GROUP_ID, MavenRepository.IDEASY_ARTIFACT_ID,
+            latestVersion);
         Path extractionTarget = this.context.getIdeRoot().resolve(IdeContext.FOLDER_IDE);
         if (this.context.getSystemInfo().isWindows()) {
           // Windows-specific handling
@@ -127,7 +137,7 @@ public class UpgradeCommandlet extends Commandlet {
           ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING)
               .executable(scriptPath).addArgs(downloadTarget, extractionTarget);
           pc.run(ProcessMode.BACKGROUND_SILENT);
-          this.context.success("Upgrade script has been initiated. The application will restart shortly.");
+          this.context.success("Upgrade process has been initiated.");
         } else {
           // Normal extraction for non-Windows systems
           this.context.info("Extracting files...");
@@ -147,11 +157,9 @@ public class UpgradeCommandlet extends Commandlet {
 
     Path scriptPath = this.context.getIdeRoot().resolve("upgrade.bat");
 
-    String scriptContent = "@echo off\n"
-        + "ping -n 4 127.0.0.1 > nul\n"
-        + "C:\\Windows\\System32\\tar.exe -xzf \"%~1\" -C \"%~2\"\n"
-        + "if errorlevel 1 (exit /b 1)\n"
-        + "del \"%~f0\"";
+    String scriptContent =
+        "@echo off\n" + "ping -n 4 127.0.0.1 > nul\n" + "C:\\Windows\\System32\\tar.exe -xzf \"%~1\" -C \"%~2\"\n"
+            + "del \"%~f0\"";
 
     Files.write(scriptPath, scriptContent.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     return scriptPath;
