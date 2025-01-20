@@ -298,4 +298,12 @@ public interface FileAccess {
    * @param file the {@link Path} to the file or folder.
    */
   void touch(Path file);
+
+  /**
+   * @param file the {@link Path} to the file to read.
+   * @return the content of the specified file (in UTF-8 encoding).
+   * @see java.nio.file.Files#readString(Path)
+   */
+  String readFileContent(Path file);
+
 }

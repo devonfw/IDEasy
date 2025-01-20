@@ -94,7 +94,7 @@ public final class MacOsHelper {
    */
   public Path findRootToolPath(ToolCommandlet commandlet, IdeContext context) {
     return context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve(commandlet.getName())
-        .resolve(commandlet.getInstalledEdition().toString())
+        .resolve(commandlet.getInstalledEdition())
         .resolve(commandlet.getInstalledVersion().toString());
   }
 
