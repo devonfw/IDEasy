@@ -72,6 +72,7 @@ echo "%BASH%" -l -c "cd \"%CD%\";./setup"
 "%BASH%" -l -c "cd \"%CD%\";./setup"
 if %ERRORLEVEL% neq 0 (
   echo %_fBRed%Error occurred while running setup of IDEasy in bash.%_RESET%
+  pause
   exit /b %ERRORLEVEL%
 )
 echo %_fBGreen%Setup of IDEasy completed%_RESET%
