@@ -16,9 +16,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.os.MacOsHelper;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
@@ -35,12 +32,6 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
    */
   public IdeaBasedIdeToolCommandlet(IdeContext context, String tool, Set<Tag> tags) {
     super(context, tool, tags);
-  }
-
-  @Override
-  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
-
-    super.configureToolArgs(pc, processMode, errorHandling, args);
   }
 
   @Override
