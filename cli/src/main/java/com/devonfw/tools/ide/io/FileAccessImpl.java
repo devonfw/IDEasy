@@ -986,4 +986,17 @@ public class FileAccessImpl implements FileAccess {
       }
     }
   }
+
+  @Override
+  public String readFileContent(Path file) {
+
+    this.context.trace("Reading content of file from {}", file);
+    try {
+      String content = Files.readString(file);
+      this.context.trace("Read content of file {} as {}", file, content);
+      return content;
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read file " + file, e);
+    }
+  }
 }

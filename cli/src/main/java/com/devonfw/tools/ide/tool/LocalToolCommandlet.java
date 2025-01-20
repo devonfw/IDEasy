@@ -312,20 +312,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         return null;
       }
     }
-    this.context.trace("Reading tool version from {}", toolVersionFile);
-    try {
-      String version = Files.readString(toolVersionFile).trim();
-      this.context.trace("Read tool version {} from {}", version, toolVersionFile);
-      return VersionIdentifier.of(version);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to read file " + toolVersionFile, e);
-    }
+    String version = this.context.getFileAccess().readFileContent(toolVersionFile).trim();
+    return VersionIdentifier.of(version);
   }
 
   @Override
   public String getInstalledEdition() {
 
-    return getInstalledEdition(this.context.getSoftwarePath().resolve(getName()));
+    return getInstalledEdition(this.context.getSoftwarePath().resolve(this.tool));
   }
 
   /**
@@ -333,25 +327,43 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *     to the passed {@link Path path} must be the name of the edition.
    * @return the installed edition of this tool or {@code null} if not installed.
    */
-  public String getInstalledEdition(Path toolPath) {
+  private String getInstalledEdition(Path toolPath) {
 
     if (!Files.isDirectory(toolPath)) {
-      this.context.debug("Tool {} not installed in {}", getName(), toolPath);
+      this.context.debug("Tool {} not installed in {}", this.tool, toolPath);
       return null;
     }
-    try {
-      String edition = toolPath.toRealPath().getParent().getFileName().toString();
-      if (!this.context.getUrls().getSortedEditions(getName()).contains(edition)) {
-        edition = getConfiguredEdition();
+    Path realPath = this.context.getFileAccess().toRealPath(toolPath);
+    // if the realPath changed, a link has been resolved
+    if (realPath.equals(toolPath)) {
+      if (!isIgnoreSoftwareRepo()) {
+        this.context.warning("Tool {} is not installed via software repository (maybe from devonfw-ide). Please consider reinstalling it.", this.tool);
       }
-      return edition;
-    } catch (IOException e) {
-      throw new IllegalStateException(
-          "Couldn't determine the edition of " + getName() + " from the directory structure of its software path "
-              + toolPath
-              + ", assuming the name of the parent directory of the real path of the software path to be the edition "
-              + "of the tool.", e);
+      // I do not see any reliable way how we could determine the edition of a tool that does not use software repo or that was installed by devonfw-ide
+      return getConfiguredEdition();
     }
+    Path toolRepoFolder = context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve(this.tool);
+    String edition = getEdition(toolRepoFolder, realPath);
+    if (!this.context.getUrls().getSortedEditions(this.tool).contains(edition)) {
+      this.context.warning("Undefined edition {} of tool {}", edition, this.tool);
+    }
+    return edition;
+  }
+
+  private String getEdition(Path toolRepoFolder, Path toolInstallFolder) {
+
+    int toolRepoNameCount = toolRepoFolder.getNameCount();
+    int toolInstallNameCount = toolInstallFolder.getNameCount();
+    if (toolRepoNameCount < toolInstallNameCount) {
+      // ensure toolInstallFolder starts with $IDE_ROOT/_ide/software/default/«tool»
+      for (int i = 0; i < toolRepoNameCount; i++) {
+        if (!toolRepoFolder.getName(i).toString().equals(toolInstallFolder.getName(i).toString())) {
+          return null;
+        }
+      }
+      return toolInstallFolder.getName(toolRepoNameCount).toString();
+    }
+    return null;
   }
 
   @Override
