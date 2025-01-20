@@ -109,21 +109,49 @@ public class PathProperty extends Property<Path> {
 
     Path path = Path.of(arg);
     Path parent = path.getParent();
+    //set a default parent directory when unable to obtain the parent directory
+    if (parent == null) {
+      parent = Path.of(".");
+    }
     String filename = path.getFileName().toString();
-    if (Files.isDirectory(parent)) {
-      try (Stream<Path> children = Files.list(parent)) {
-        children.filter(child -> isValidPath(path, filename)).forEach(child -> collector.add(child.toString(), null, this, commandlet));
+    completeValuesFromFolder(parent, filename, context, commandlet, collector);
+  }
+
+  /**
+   * @param folder the {@link Path} to the directory where to search for the file.
+   * @param filename the filename (prefix) to complete.
+   * @param context the {@link IdeContext}.
+   * @param commandlet the owning {@link Commandlet}.
+   * @param collector the {@link CompletionCandidateCollector}.
+   */
+  protected void completeValuesFromFolder(Path folder, String filename, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+
+    if (Files.isDirectory(folder)) {
+      try (Stream<Path> children = Files.list(folder)) {
+        children.filter(child -> isValidPath(child, filename))
+            .forEach(child -> collector.add(getPathForCompletion(child, context, commandlet), null, this, commandlet));
       } catch (IOException e) {
         throw new IllegalStateException(e);
       }
     }
   }
 
+  /**
+   * @param path the {@link Path} that has been found via completion.
+   * @param context the {@link IdeContext}.
+   * @param commandlet the owning {@link Commandlet}.
+   * @return the {@link String} to {@link CompletionCandidateCollector#add(String, String, Property, Commandlet) add} as completion candidate.
+   */
+  protected String getPathForCompletion(Path path, IdeContext context, Commandlet commandlet) {
+
+    return path.toString();
+  }
+
   private boolean isValidPath(Path path, String filename) {
 
-    if (isPathRequiredToBeFile() && !Files.isRegularFile(getValue())) {
-      return false;
-    } else if (isPathRequiredToBeFolder() && !Files.isDirectory(getValue())) {
+    if (isPathRequiredToBeFile() && !Files.isRegularFile(path)) {
+      return false; // isnt this wrong? How can I use completion to complete a file in a sub-folder?
+    } else if (isPathRequiredToBeFolder() && !Files.isDirectory(path)) {
       return false;
     }
     return path.getFileName().toString().startsWith(filename);
