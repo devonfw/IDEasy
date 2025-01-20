@@ -115,7 +115,7 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
     }
     logger.log("The configured {} for tool {} is {}", property, toolName, configuredValue);
     if (!Objects.equals(configuredValue, installedValue)) {
-      logger.log("To install that {} call the following command:", property);
+      logger.log("To install the configured {} call the following command:", property);
       logger.log("ide install {}", toolName);
     }
   }
