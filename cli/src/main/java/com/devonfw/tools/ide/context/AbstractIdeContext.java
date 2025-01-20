@@ -22,6 +22,7 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
+import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
 import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
@@ -879,7 +880,10 @@ public abstract class AbstractIdeContext implements IdeContext {
             }
           }
         }
-        ensureLicenseAgreement();
+        boolean success = ensureLicenseAgreement(cmd);
+        if (!success) {
+          return ValidationResultValid.get();
+        }
         cmd.run();
       } finally {
         if (previousLogLevel != null) {
@@ -892,15 +896,21 @@ public abstract class AbstractIdeContext implements IdeContext {
     return result;
   }
 
-  private void ensureLicenseAgreement() {
+  private boolean ensureLicenseAgreement(Commandlet cmd) {
 
     if (isTest()) {
-      return; // ignore for tests
+      return true; // ignore for tests
     }
     getFileAccess().mkdirs(this.userHomeIde);
     Path licenseAgreement = this.userHomeIde.resolve(FILE_LICENSE_AGREEMENT);
     if (Files.isRegularFile(licenseAgreement)) {
-      return; // success, license already accepted
+      return true; // success, license already accepted
+    }
+    if (cmd instanceof EnvironmentCommandlet) {
+      // if the license was not accepted, "$(ideasy env --bash)" that is written into a variable prevents the user from seeing the question he is asked
+      // in such situation the user could not open a bash terminal anymore and gets blocked what would really annoy the user so we exit here without doing or
+      // printing anything anymore in such case.
+      return false;
     }
     boolean logLevelInfoDisabled = !this.startContext.info().isEnabled();
     if (logLevelInfoDisabled) {
@@ -944,6 +954,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (logLevelInteractionDisabled) {
       this.startContext.setLogLevel(IdeLogLevel.INTERACTION, false);
     }
+    return true;
   }
 
   private void verifyIdeRoot() {
