@@ -375,9 +375,29 @@ public interface IdeContext extends IdeStartContext {
   Path getUserHomeIde();
 
   /**
-   * @return the {@link Path} to the {@code settings} folder with the cloned git repository containing the project configuration.
+   * @return the {@link Path} to the {@link #FOLDER_SETTINGS settings} folder with the cloned git repository containing the project configuration.
    */
   Path getSettingsPath();
+
+  /**
+   * @return the {@link Path} to the {@link #FOLDER_REPOSITORIES repositories} folder with legacy fallback if not present or {@code null} if not found.
+   */
+  default Path getRepositoriesPath() {
+
+    Path settingsPath = getSettingsPath();
+    if (settingsPath == null) {
+      return null;
+    }
+    Path repositoriesPath = settingsPath.resolve(IdeContext.FOLDER_REPOSITORIES);
+    if (Files.isDirectory(repositoriesPath)) {
+      return repositoriesPath;
+    }
+    Path legacyRepositoriesPath = settingsPath.resolve(IdeContext.FOLDER_LEGACY_REPOSITORIES);
+    if (Files.isDirectory(legacyRepositoriesPath)) {
+      return legacyRepositoriesPath;
+    }
+    return null;
+  }
 
   /**
    * @return the {@link Path} to the {@code settings} folder with the cloned git repository containing the project configuration only if the settings repository

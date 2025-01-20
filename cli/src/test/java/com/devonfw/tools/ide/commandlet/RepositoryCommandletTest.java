@@ -93,7 +93,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     // act
     rc.run();
     // assert
-    assertThat(this.context).logAtWarning().hasMessage("Cannot find repositories folder nor projects folder.");
+    assertThat(this.context).logAtWarning().hasMessage("Cannot find folder 'repositories' nor 'projects' in your settings.");
   }
 
   private void createPropertiesFile() {
