@@ -100,7 +100,7 @@ public class UpgradeCommandlet extends Commandlet {
 
       return latestTime.isAfter(currentTime);
     } catch (Exception e) {
-      return false;
+      throw new IllegalStateException("Failed to compare current and latest Snapshot.", e);
     }
   }
 
