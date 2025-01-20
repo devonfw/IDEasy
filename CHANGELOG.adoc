@@ -15,6 +15,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/759[#759]: Add UpgradeSettingsCommandlet for the upgrade of legacy devonfw-ide settings to IDEasy
 * https://github.com/devonfw/IDEasy/issues/498[#498]: Improvement of XML merger: resolve before merge
 * https://github.com/devonfw/IDEasy/issues/691[#691]: XMLMerger can not handle merge of subnodes properly
+* https://github.com/devonfw/IDEasy/issues/815[#815]: Links within IDEasy.pdf generally do not work
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/18?closed=1[milestone 2025.01.001].
 
