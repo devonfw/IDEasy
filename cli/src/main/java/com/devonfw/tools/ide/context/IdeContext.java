@@ -124,6 +124,9 @@ public interface IdeContext extends IdeStartContext {
   /** The file where the installed software version is written to as plain text. */
   String FILE_LEGACY_SOFTWARE_VERSION = ".devon.software.version";
 
+  /** The file for the license agreement. */
+  String FILE_LICENSE_AGREEMENT = ".license.agreement";
+
   /** The file extension for a {@link java.util.Properties} file. */
   String EXT_PROPERTIES = ".properties";
 
@@ -144,6 +147,15 @@ public interface IdeContext extends IdeStartContext {
    */
   String SETTINGS_COMMIT_ID = ".commit.id";
 
+  /** The IDEasy ASCII logo. */
+  String LOGO = """
+      __       ___ ___  ___
+      ╲ ╲     |_ _|   ╲| __|__ _ ____ _
+       > >     | || |) | _|/ _` (_-< || |
+      /_/ ___ |___|___/|___╲__,_/__/╲_, |
+         |___|                       |__/
+      """.replace('╲', '\\');
+
   /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
    */
@@ -156,6 +168,14 @@ public interface IdeContext extends IdeStartContext {
    * @return {@code true} if we are currently online (Internet access is available), {@code false} otherwise.
    */
   boolean isOnline();
+
+  /**
+   * Print the IDEasy {@link #LOGO logo}.
+   */
+  default void printLogo() {
+
+    info(LOGO);
+  }
 
   /**
    * Asks the user for a single string input.

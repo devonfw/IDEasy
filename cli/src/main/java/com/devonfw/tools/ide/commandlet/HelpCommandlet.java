@@ -19,14 +19,6 @@ import com.devonfw.tools.ide.version.IdeVersion;
  */
 public final class HelpCommandlet extends Commandlet {
 
-  static final String LOGO = """
-      __       ___ ___  ___
-      ╲ ╲     |_ _|   ╲| __|__ _ ____ _
-       > >     | || |) | _|/ _` (_-< || |
-      /_/ ___ |___|___/|___╲__,_/__/╲_, |
-         |___|                       |__/
-      """.replace('╲', '\\');
-
   /** The optional commandlet to get help about. */
   public final CommandletProperty commandlet;
 
@@ -54,15 +46,11 @@ public final class HelpCommandlet extends Commandlet {
     return false;
   }
 
-  private void printLogo() {
-
-    this.context.info(LOGO);
-  }
 
   @Override
   public void run() {
 
-    printLogo();
+    this.context.printLogo();
     NlsBundle bundle = NlsBundle.of(this.context);
     this.context.success(bundle.get("version-banner"), IdeVersion.get());
     Commandlet cmd = this.commandlet.getValue();
