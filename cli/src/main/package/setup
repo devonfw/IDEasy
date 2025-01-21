@@ -1,10 +1,10 @@
 #!/bin/bash
 
 function createFileIfNotExists() {
-  local file=$1
-  if [ ! -f "${file}" ]; then
-    touch "$file"
-    echo "Created ${file}"
+  local configFile=$1
+  if [ ! -f "${configFile}" ]; then
+    touch "${configFile}"
+    echo "Created ${configFile}"
   fi
 }
 
