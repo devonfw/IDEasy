@@ -13,7 +13,9 @@ jobs:
         with:
           java-version: '17'
       - name: Build project with Maven
-        run: mvn -B -ntp -Dstyle.color=always install
+        run: |
+          apt-get update && apt-get install -y coreutils
+          mvn -B -ntp -Dstyle.color=always install
         shell: bash
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v2.2.3
