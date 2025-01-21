@@ -1,4 +1,5 @@
 #!/bash
+which bash
 echo "out1"
 sleep 1
 echo "err1" >&2
