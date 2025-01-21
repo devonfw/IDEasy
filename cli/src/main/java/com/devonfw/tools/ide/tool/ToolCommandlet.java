@@ -67,7 +67,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @return the name of the tool (e.g. "java", "mvn", "npm", "node").
    */
   @Override
-  public String getName() {
+  public final String getName() {
 
     return this.tool;
   }
