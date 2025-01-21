@@ -12,6 +12,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -221,13 +222,12 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     assertThat(context).log(IdeLogLevel.ERROR).hasMessageContaining("another error message to stderr");
   }
 
-  @Test
+  @RepeatedTest(50)
   public void defaultCaptureShouldCaptureStreamsWithCorrectOrder() {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     // act
-    context.warning("pathWWW" + System.getenv("PATH"));
     context.newProcess().executable(TEST_RESOURCES.resolve("process-context").resolve("keep-order.sh")).run();
 
     // assert
