@@ -227,7 +227,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
 
     // act
-    context.newProcess().executable(TEST_RESOURCES.resolve("process-context").resolve("keep-order.sh")).run();
+    context.newProcess().executable(TEST_RESOURCES.resolve("process-context").resolve("log-order.sh")).run();
 
     // assert
     assertThat(context).log(IdeLogLevel.INFO).hasEntries("out1", "err1", "out2", "err2");
