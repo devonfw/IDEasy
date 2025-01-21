@@ -228,7 +228,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
 
     // act
     context.warning("using bash: " + context.findBash());
-    context.newProcess().executable(TEST_RESOURCES.resolve("process-context").resolve("keep-order")).run();
+    context.newProcess().executable(TEST_RESOURCES.resolve("process-context").resolve("keep-order.sh")).run();
 
     // assert
     assertThat(context).log(IdeLogLevel.INFO).hasEntries("out1", "err1", "out2", "err2");
