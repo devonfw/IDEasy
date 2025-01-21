@@ -19,6 +19,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/815[#815]: Links within IDEasy.pdf generally do not work
 * https://github.com/devonfw/IDEasy/issues/914[#914]: Setup needs to create .bashrc if not existent
 * https://github.com/devonfw/IDEasy/issues/853[#853]: NPE when trying to auto-complete after ide repository
+* https://github.com/devonfw/IDEasy/issues/734[#734]: Improve ProcessResult: get out and err in order
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/18?closed=1[milestone 2025.01.001].
 
@@ -39,7 +40,6 @@ Then run the `setup` and all should work fine.
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/734[#734]: Improve ProcessResult: get out and err in order
 * https://github.com/devonfw/IDEasy/issues/764[#764]: Fix IDEasy in CMD
 * https://github.com/devonfw/IDEasy/issues/774[#774]: HTTP proxy support not working properly
 * https://github.com/devonfw/IDEasy/issues/792[#792]: Honor new variable IDE_OPTIONS in ide command wrapper
