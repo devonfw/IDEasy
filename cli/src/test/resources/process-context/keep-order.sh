@@ -1,4 +1,4 @@
-#!/bash
+#!/bin/bash
 which bash
 echo "out1"
 sleep 1
