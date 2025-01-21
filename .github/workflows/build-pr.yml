@@ -5,7 +5,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           submodules: recursive
       - name: Set up JDK
@@ -14,5 +14,6 @@ jobs:
           java-version: '17'
       - name: Build project with Maven
         run: mvn -B -ntp -Dstyle.color=always install
+        shell: bash
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v2.2.3
