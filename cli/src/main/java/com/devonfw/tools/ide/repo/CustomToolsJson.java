@@ -11,4 +11,10 @@ import java.util.List;
  */
 public record CustomToolsJson(String url, List<CustomToolJson> tools) {
 
+  /** JSON property name for {@link #url()}. */
+  public static final String PROPERTY_URL = "url";
+
+  /** JSON property name for {@link #tools()}. */
+  public static final String PROPERTY_TOOLS = "tools";
+
 }
