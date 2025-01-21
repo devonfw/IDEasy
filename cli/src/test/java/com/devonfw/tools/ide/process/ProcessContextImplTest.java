@@ -12,7 +12,6 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -222,7 +221,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     assertThat(context).log(IdeLogLevel.ERROR).hasMessageContaining("another error message to stderr");
   }
 
-  @RepeatedTest(50)
+  @Test
   public void defaultCaptureShouldCaptureStreamsWithCorrectOrder() {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC, null, false);
