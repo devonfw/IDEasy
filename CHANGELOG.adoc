@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/790[#790]: Fix intellij plugin installation
 * https://github.com/devonfw/IDEasy/issues/915[#915]: custom-tools not working
 * https://github.com/devonfw/IDEasy/issues/916[#916]: download is missing status code error handling
 * https://github.com/devonfw/IDEasy/issues/757[#757]: Support to allow settings in code repository
