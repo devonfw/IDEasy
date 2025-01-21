@@ -148,10 +148,10 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
           plugin.name(), plugin.id(), pluginsPath);
       error = true;
     }
-    fileAccess.delete(match);
     if (error) {
       context.error("Could not uninstall plugin " + plugin + " because we could not find an installation");
     } else {
+      fileAccess.delete(match);
       context.info("Successfully uninstalled plugin " + plugin);
     }
   }
