@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.JsonDeserializer;
  */
 public class CustomToolJsonDeserializer extends JsonDeserializer<CustomToolJson> {
 
-  private static final String INVALID_DEPENDENCY_INFO = "Invalid JSON for custom tool!";
+  private static final String INVALID_CUSTOM_TOOL = "Invalid JSON for custom tool!";
 
   @Override
   public CustomToolJson deserialize(JsonParser p, DeserializationContext context) throws IOException {
@@ -55,7 +55,7 @@ public class CustomToolJsonDeserializer extends JsonDeserializer<CustomToolJson>
         return new CustomToolJson(name, version, osAgnostic, archAgnostic, url);
       }
     }
-    throw new IllegalStateException(INVALID_DEPENDENCY_INFO);
+    throw new IllegalStateException(INVALID_CUSTOM_TOOL);
   }
 
   private boolean parseBoolean(JsonToken token, String name) {
@@ -64,7 +64,7 @@ public class CustomToolJsonDeserializer extends JsonDeserializer<CustomToolJson>
     } else if (token == JsonToken.VALUE_FALSE) {
       return false;
     } else {
-      throw new IllegalStateException(INVALID_DEPENDENCY_INFO + " Property " + name + " must have boolean value (true or false).");
+      throw new IllegalStateException(INVALID_CUSTOM_TOOL + " Property " + name + " must have boolean value (true or false).");
     }
   }
 
