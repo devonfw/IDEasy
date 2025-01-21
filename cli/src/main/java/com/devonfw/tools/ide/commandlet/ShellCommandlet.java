@@ -22,6 +22,7 @@ import org.jline.widget.AutosuggestionWidgets;
 
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.completion.IdeCompleter;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -112,6 +113,8 @@ public final class ShellCommandlet extends Commandlet {
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
+    } catch (CliException e) {
+      throw e;
     } catch (Exception e) {
       throw new RuntimeException("Unexpected error during interactive auto-completion", e);
     }

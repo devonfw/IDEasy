@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -42,7 +43,7 @@ public class StatusCommandlet extends Commandlet {
     boolean hasLegacyProperties = false;
     while (variables != null) {
       Path legacyProperties = variables.getLegacyPropertiesFilePath();
-      if (legacyProperties != null) {
+      if (legacyProperties != null && Files.exists(legacyProperties)) {
         hasLegacyProperties = true;
         this.context.warning("Found legacy properties {}", legacyProperties);
       }
@@ -80,7 +81,7 @@ public class StatusCommandlet extends Commandlet {
       this.context.warning("You are offline. Check your internet connection and potential proxy settings.");
     }
   }
-  
+
   @Override
   public boolean isIdeRootRequired() {
 
