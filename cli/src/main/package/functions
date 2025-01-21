@@ -15,7 +15,6 @@ function ide() {
   if [ $? = 0 ]; then
     eval "${ide_env}"
     if [ $# = 0 ]; then
-      ideasy ${IDE_OPTIONS} status
       echo "IDE environment variables have been set for ${IDE_HOME} in workspace ${WORKSPACE}"
     fi
   fi
