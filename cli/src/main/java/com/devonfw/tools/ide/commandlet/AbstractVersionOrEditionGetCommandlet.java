@@ -77,7 +77,7 @@ public abstract class AbstractVersionOrEditionGetCommandlet extends Commandlet {
     boolean getInstalledValue = this.installed.isTrue();
     boolean getConfiguredValue = this.configured.isTrue();
     if (installedValue == null && getInstalledValue && !getConfiguredValue) {
-      throw new CliException("Tool " + commandlet + " is not installed.", 1);
+      throw new CliException("Tool " + commandlet.getName() + " is not installed.", 1);
     }
     if (getInstalledValue == getConfiguredValue) {
       if (getInstalledValue) { // both --configured and --installed
