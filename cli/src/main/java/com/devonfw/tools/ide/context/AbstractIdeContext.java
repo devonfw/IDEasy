@@ -6,6 +6,8 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -20,6 +22,7 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
+import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
 import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
@@ -28,13 +31,18 @@ import com.devonfw.tools.ide.completion.CompletionCandidateCollectorDefault;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.IdeSystem;
+import com.devonfw.tools.ide.environment.IdeSystemImpl;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextImpl;
+import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
-import com.devonfw.tools.ide.network.ProxyContext;
+import com.devonfw.tools.ide.network.NetworkProxy;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -49,7 +57,9 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
+import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.validation.ValidationResult;
+import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -58,7 +68,9 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public abstract class AbstractIdeContext implements IdeContext {
 
-  private static final String IDE_URLS_GIT = "https://github.com/devonfw/ide-urls.git";
+  private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
+
+  private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
 
   private final IdeStartContextImpl startContext;
 
@@ -70,11 +82,13 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   protected Path settingsPath;
 
+  private Path settingsCommitIdPath;
+
   private Path softwarePath;
 
   private Path softwareExtraPath;
 
-  private Path softwareRepositoryPath;
+  private final Path softwareRepositoryPath;
 
   protected Path pluginsPath;
 
@@ -84,15 +98,15 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   protected Path urlsPath;
 
-  private Path tempPath;
+  private final Path tempPath;
 
-  private Path tempDownloadPath;
+  private final Path tempDownloadPath;
 
   private Path cwd;
 
   private Path downloadPath;
 
-  private Path toolRepositoryPath;
+  private final Path toolRepositoryPath;
 
   protected Path userHome;
 
@@ -123,6 +137,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   private StepImpl currentStep;
 
   protected Boolean online;
+
+  protected IdeSystem system;
+
+  private NetworkProxy networkProxy;
 
   /**
    * The constructor.
@@ -202,8 +220,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     return ideRootPath;
   }
 
-  private static Path getIdeRootPathFromEnv() {
-    String root = System.getenv(IdeVariables.IDE_ROOT.getName());
+  private Path getIdeRootPathFromEnv() {
+    String root = getSystem().getEnv(IdeVariables.IDE_ROOT.getName());
     if (root != null) {
       Path rootPath = Path.of(root);
       if (Files.isDirectory(rootPath)) {
@@ -230,6 +248,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
       this.confPath = this.ideHome.resolve(FOLDER_CONF);
       this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
+      this.settingsCommitIdPath = this.ideHome.resolve(IdeContext.SETTINGS_COMMIT_ID);
       this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
       this.softwareExtraPath = this.softwarePath.resolve(FOLDER_EXTRA);
       this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
@@ -242,13 +261,12 @@ public abstract class AbstractIdeContext implements IdeContext {
         this.userHome = this.ideHome.resolve("home");
       }
     } else {
-      this.userHome = Path.of(System.getProperty("user.home"));
+      this.userHome = Path.of(getSystem().getProperty("user.home"));
     }
     this.userHomeIde = this.userHome.resolve(".ide");
     this.downloadPath = this.userHome.resolve("Downloads/ide");
 
     this.path = computeSystemPath();
-    this.customToolRepository = CustomToolRepositoryImpl.of(this);
   }
 
   private String getMessageIdeHomeFound() {
@@ -261,24 +279,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     return "You are not inside an IDE installation: " + this.cwd;
   }
 
-  private static String getMessageIdeRootNotFound() {
-    String root = System.getenv("IDE_ROOT");
+  private String getMessageIdeRootNotFound() {
+    String root = getSystem().getEnv("IDE_ROOT");
     if (root == null) {
       return "The environment variable IDE_ROOT is undefined. Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     } else {
       return "The environment variable IDE_ROOT is pointing to an invalid path " + root + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     }
-  }
-
-  /**
-   * @return the status message about the {@link #getIdeHome() IDE_HOME} detection and environment variable initialization.
-   */
-  public String getMessageIdeHome() {
-
-    if (this.ideHome == null) {
-      return getMessageIdeHomeNotFound();
-    }
-    return getMessageIdeHomeFound();
   }
 
   /**
@@ -294,6 +301,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     return new SystemPath(this);
   }
 
+
   private boolean isIdeHome(Path dir) {
 
     if (!Files.isDirectory(dir.resolve("workspaces"))) {
@@ -307,37 +315,16 @@ public abstract class AbstractIdeContext implements IdeContext {
   private EnvironmentVariables createVariables() {
 
     AbstractEnvironmentVariables system = createSystemVariables();
-    AbstractEnvironmentVariables user = extendVariables(system, this.userHomeIde, EnvironmentVariablesType.USER);
-    AbstractEnvironmentVariables settings = extendVariables(user, this.settingsPath, EnvironmentVariablesType.SETTINGS);
-    // TODO should we keep this workspace properties? Was this feature ever used?
-    AbstractEnvironmentVariables workspace = extendVariables(settings, this.workspacePath, EnvironmentVariablesType.WORKSPACE);
-    AbstractEnvironmentVariables conf = extendVariables(workspace, this.confPath, EnvironmentVariablesType.CONF);
+    AbstractEnvironmentVariables user = system.extend(this.userHomeIde, EnvironmentVariablesType.USER);
+    AbstractEnvironmentVariables settings = user.extend(this.settingsPath, EnvironmentVariablesType.SETTINGS);
+    AbstractEnvironmentVariables workspace = settings.extend(this.workspacePath, EnvironmentVariablesType.WORKSPACE);
+    AbstractEnvironmentVariables conf = workspace.extend(this.confPath, EnvironmentVariablesType.CONF);
     return conf.resolved();
   }
 
   protected AbstractEnvironmentVariables createSystemVariables() {
 
     return EnvironmentVariables.ofSystem(this);
-  }
-
-  protected AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
-
-    Path propertiesFile = null;
-    if (propertiesPath == null) {
-      trace("Configuration directory for type {} does not exist.", type);
-    } else if (Files.isDirectory(propertiesPath)) {
-      propertiesFile = propertiesPath.resolve(EnvironmentVariables.DEFAULT_PROPERTIES);
-      boolean legacySupport = (type != EnvironmentVariablesType.USER);
-      if (legacySupport && !Files.exists(propertiesFile)) {
-        Path legacyFile = propertiesPath.resolve(EnvironmentVariables.LEGACY_PROPERTIES);
-        if (Files.exists(legacyFile)) {
-          propertiesFile = legacyFile;
-        }
-      }
-    } else {
-      debug("Configuration directory {} does not exist.", propertiesPath);
-    }
-    return envVariables.extend(propertiesFile, type);
   }
 
   @Override
@@ -349,6 +336,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public FileAccess getFileAccess() {
 
+    // currently FileAccess contains download method and requires network proxy to be configured. Maybe download should be moved to its own interface/class
+    configureNetworkProxy();
     return this.fileAccess;
   }
 
@@ -367,6 +356,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public CustomToolRepository getCustomToolRepository() {
 
+    if (this.customToolRepository == null) {
+      this.customToolRepository = CustomToolRepositoryImpl.of(this);
+    }
     return this.customToolRepository;
   }
 
@@ -425,6 +417,31 @@ public abstract class AbstractIdeContext implements IdeContext {
   public Path getSettingsPath() {
 
     return this.settingsPath;
+  }
+
+  @Override
+  public Path getSettingsGitRepository() {
+
+    Path settingsPath = getSettingsPath();
+
+    if (settingsPath == null) {
+      error("No settings repository was found.");
+      return null;
+    }
+
+    // check whether the settings path has a .git folder only if its not a symbolic link
+    if (!Files.exists(settingsPath.resolve(".git")) && !Files.isSymbolicLink(settingsPath)) {
+      error("Settings repository exists but is not a git repository.");
+      return null;
+    }
+
+    return settingsPath;
+  }
+
+  @Override
+  public Path getSettingsCommitIdPath() {
+
+    return this.settingsCommitIdPath;
   }
 
   @Override
@@ -547,6 +564,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   public boolean isOnline() {
 
     if (this.online == null) {
+      configureNetworkProxy();
       // we currently assume we have only a CLI process that runs shortly
       // therefore we run this check only once to save resources when this method is called many times
       try {
@@ -562,6 +580,13 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
     return this.online.booleanValue();
+  }
+
+  private void configureNetworkProxy() {
+    if (this.networkProxy == null) {
+      this.networkProxy = new NetworkProxy(this);
+      this.networkProxy.configure();
+    }
   }
 
   @Override
@@ -603,12 +628,6 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public ProxyContext getProxyContext() {
-
-    return new ProxyContext(this);
-  }
-
-  @Override
   public GitContext getGitContext() {
 
     return new GitContextImpl(this);
@@ -624,6 +643,15 @@ public abstract class AbstractIdeContext implements IdeContext {
     return processContext;
   }
 
+  @Override
+  public IdeSystem getSystem() {
+
+    if (this.system == null) {
+      this.system = new IdeSystemImpl(this);
+    }
+    return this.system;
+  }
+
   /**
    * @return a new instance of {@link ProcessContext}.
    * @see #newProcess()
@@ -637,6 +665,19 @@ public abstract class AbstractIdeContext implements IdeContext {
   public IdeSubLogger level(IdeLogLevel level) {
 
     return this.startContext.level(level);
+  }
+
+  @Override
+  public void logIdeHomeAndRootStatus() {
+
+    if (this.ideRoot != null) {
+      success("IDE_ROOT is set to {}", this.ideRoot);
+    }
+    if (this.ideHome == null) {
+      warning(getMessageIdeHomeNotFound());
+    } else {
+      success("IDE_HOME is set to {}", this.ideHome);
+    }
   }
 
   @Override
@@ -762,43 +803,32 @@ public abstract class AbstractIdeContext implements IdeContext {
     assert (this.currentStep == null);
     boolean supressStepSuccess = false;
     StepImpl step = newStep(true, "ide", (Object[]) current.asArray());
-    Commandlet firstCandidate = null;
+    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, null);
+    Commandlet cmd = null;
+    ValidationResult result = null;
     try {
-      if (!current.isEnd()) {
-        String keyword = current.get();
-        firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
-        ValidationResult firstResult = null;
-        if (firstCandidate != null) {
-          firstResult = applyAndRun(arguments.copy(), firstCandidate);
-          if (firstResult.isValid()) {
-            supressStepSuccess = firstCandidate.isSuppressStepSuccess();
-            step.success();
-            return ProcessResult.SUCCESS;
-          }
+      while (commandletIterator.hasNext()) {
+        cmd = commandletIterator.next();
+        result = applyAndRun(arguments.copy(), cmd);
+        if (result.isValid()) {
+          supressStepSuccess = cmd.isSuppressStepSuccess();
+          step.success();
+          return ProcessResult.SUCCESS;
         }
-        for (Commandlet cmd : this.commandletManager.getCommandlets()) {
-          if (cmd != firstCandidate) {
-            ValidationResult result = applyAndRun(arguments.copy(), cmd);
-            if (result.isValid()) {
-              supressStepSuccess = cmd.isSuppressStepSuccess();
-              step.success();
-              return ProcessResult.SUCCESS;
-            }
-          }
-        }
-        if (firstResult != null) {
-          throw new CliException(firstResult.getErrorMessage());
-        }
-        step.error("Invalid arguments: {}", current.getArgs());
       }
-
+      this.startContext.activateLogging();
+      if (result != null) {
+        error(result.getErrorMessage());
+      }
+      step.error("Invalid arguments: {}", current.getArgs());
       HelpCommandlet help = this.commandletManager.getCommandlet(HelpCommandlet.class);
-      if (firstCandidate != null) {
-        help.commandlet.setValue(firstCandidate);
+      if (cmd != null) {
+        help.commandlet.setValue(cmd);
       }
       help.run();
       return 1;
     } catch (Throwable t) {
+      this.startContext.activateLogging();
       step.error(t, true);
       throw t;
     } finally {
@@ -809,16 +839,15 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet, CompletionCandidateCollector) apply} and
-   *     {@link Commandlet#run() run}.
+   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet) apply} and {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
    *     {@link Commandlet} did not match and we have to try a different candidate).
    */
   private ValidationResult applyAndRun(CliArguments arguments, Commandlet cmd) {
 
-    cmd.clearProperties();
-
-    ValidationResult result = apply(arguments, cmd, null);
+    IdeLogLevel previousLogLevel = null;
+    cmd.reset();
+    ValidationResult result = apply(arguments, cmd);
     if (result.isValid()) {
       result = cmd.validate();
     }
@@ -829,44 +858,117 @@ public abstract class AbstractIdeContext implements IdeContext {
       } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
         throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
       }
-      if (cmd.isProcessableOutput()) {
-        if (!debug().isEnabled()) {
-          // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
-          for (IdeLogLevel level : IdeLogLevel.values()) {
-            if (level != IdeLogLevel.PROCESSABLE) {
-              this.startContext.setLogLevel(level, false);
+      try {
+        if (cmd.isProcessableOutput()) {
+          if (!debug().isEnabled()) {
+            // unless --debug or --trace was supplied, processable output commandlets will disable all log-levels except INFO to prevent other logs interfere
+            previousLogLevel = this.startContext.setLogLevel(IdeLogLevel.PROCESSABLE);
+          }
+          this.startContext.activateLogging();
+        } else {
+          this.startContext.activateLogging();
+          verifyIdeRoot();
+          if (cmd.isIdeHomeRequired()) {
+            debug(getMessageIdeHomeFound());
+          }
+          Path settingsRepository = getSettingsGitRepository();
+          if (settingsRepository != null) {
+            if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) ||
+                (getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(settingsRepository,
+                    getSettingsCommitIdPath()))) {
+              interaction("Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
             }
           }
         }
-        this.startContext.activateLogging();
-      } else {
-        this.startContext.activateLogging();
-        if (!isTest()) {
-          if (this.ideRoot == null) {
-            warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");
-          } else if (this.ideHome != null) {
-            Path ideRootPath = getIdeRootPathFromEnv();
-            if (!this.ideRoot.equals(ideRootPath)) {
-              warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPath,
-                  this.ideHome.getFileName(), this.ideRoot);
-            }
-          }
+        boolean success = ensureLicenseAgreement(cmd);
+        if (!success) {
+          return ValidationResultValid.get();
         }
-        if (cmd.isIdeHomeRequired()) {
-          debug(getMessageIdeHomeFound());
+        cmd.run();
+      } finally {
+        if (previousLogLevel != null) {
+          this.startContext.setLogLevel(previousLogLevel);
         }
       }
-      if (this.settingsPath != null) {
-        if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
-            (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
-          interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
-        }
-      }
-      cmd.run();
     } else {
       trace("Commandlet did not match");
     }
     return result;
+  }
+
+  private boolean ensureLicenseAgreement(Commandlet cmd) {
+
+    if (isTest()) {
+      return true; // ignore for tests
+    }
+    getFileAccess().mkdirs(this.userHomeIde);
+    Path licenseAgreement = this.userHomeIde.resolve(FILE_LICENSE_AGREEMENT);
+    if (Files.isRegularFile(licenseAgreement)) {
+      return true; // success, license already accepted
+    }
+    if (cmd instanceof EnvironmentCommandlet) {
+      // if the license was not accepted, "$(ideasy env --bash)" that is written into a variable prevents the user from seeing the question he is asked
+      // in such situation the user could not open a bash terminal anymore and gets blocked what would really annoy the user so we exit here without doing or
+      // printing anything anymore in such case.
+      return false;
+    }
+    boolean logLevelInfoDisabled = !this.startContext.info().isEnabled();
+    if (logLevelInfoDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INFO, true);
+    }
+    boolean logLevelInteractionDisabled = !this.startContext.interaction().isEnabled();
+    if (logLevelInteractionDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INTERACTION, true);
+    }
+    StringBuilder sb = new StringBuilder(1180);
+    sb.append(LOGO).append("""
+        Welcome to IDEasy!
+        This product (with its included 3rd party components) is open-source software and can be used free (also commercially).
+        It supports automatic download and installation of arbitrary 3rd party tools.
+        By default only open-source 3rd party tools are used (downloaded, installed, executed).
+        But if explicitly configured, also commercial software that requires an additional license may be used.
+        This happens e.g. if you configure "ultimate" edition of IntelliJ or "docker" edition of Docker (Docker Desktop).
+        You are solely responsible for all risks implied by using this software.
+        Before using IDEasy you need to read and accept the license agreement with all involved licenses.
+        You will be able to find it online under the following URL:
+        """).append(LICENSE_URL);
+    if (this.ideRoot != null) {
+      sb.append("\n\nAlso it is included in the documentation that you can find here:\n").
+          append(this.ideRoot.resolve(FOLDER_IDE).resolve("IDEasy.pdf").toString()).append("\n");
+    }
+    info(sb.toString());
+    askToContinue("Do you accept these terms of use and all license agreements?");
+
+    sb.setLength(0);
+    LocalDateTime now = LocalDateTime.now();
+    sb.append("On ").append(DateTimeUtil.formatDate(now, false)).append(" at ").append(DateTimeUtil.formatTime(now))
+        .append(" you accepted the IDEasy license.\n").append(LICENSE_URL);
+    try {
+      Files.writeString(licenseAgreement, sb);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to save license agreement!", e);
+    }
+    if (logLevelInfoDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INFO, false);
+    }
+    if (logLevelInteractionDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INTERACTION, false);
+    }
+    return true;
+  }
+
+  private void verifyIdeRoot() {
+    if (!isTest()) {
+      if (this.ideRoot == null) {
+        warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");
+      } else if (this.ideHome != null) {
+        Path ideRootPath = getIdeRootPathFromEnv();
+        if (!this.ideRoot.equals(ideRootPath)) {
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPath,
+              this.ideHome.getFileName(), this.ideRoot);
+        }
+      }
+    }
   }
 
   /**
@@ -875,7 +977,6 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
   public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
-
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
     if (arguments.current().isStart()) {
       arguments.next();
@@ -887,32 +988,75 @@ public abstract class AbstractIdeContext implements IdeContext {
         property.apply(arguments, this, cc, collector);
       }
     }
+    Iterator<Commandlet> commandletIterator = this.commandletManager.findCommandlet(arguments, collector);
     CliArgument current = arguments.current();
-    if (!current.isEnd()) {
-      String keyword = current.get();
-      Commandlet firstCandidate = this.commandletManager.getCommandletByFirstKeyword(keyword);
-      boolean matches = false;
-      if (firstCandidate != null) {
-        matches = completeCommandlet(arguments, firstCandidate, collector);
-      } else if (current.isCombinedShortOption()) {
-        collector.add(keyword, null, null, null);
-      }
-      if (!matches) {
-        for (Commandlet cmd : this.commandletManager.getCommandlets()) {
-          if (cmd != firstCandidate) {
-            completeCommandlet(arguments, cmd, collector);
-          }
-        }
+    if (current.isCompletion() && current.isCombinedShortOption()) {
+      collector.add(current.get(), null, null, null);
+    }
+    arguments.next();
+    while (commandletIterator.hasNext()) {
+      Commandlet cmd = commandletIterator.next();
+      if (!arguments.current().isEnd()) {
+        completeCommandlet(arguments.copy(), cmd, collector);
       }
     }
     return collector.getSortedCandidates();
   }
 
-  private boolean completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
-    if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
-      return false;
-    } else {
-      return apply(arguments.copy(), cmd, collector).isValid();
+  private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+    trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
+    Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
+    valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
+    List<Property<?>> properties = cmd.getProperties();
+    // we are creating our own list of options and remove them when matched to avoid duplicate suggestions
+    List<Property<?>> optionProperties = new ArrayList<>(properties.size());
+    for (Property<?> property : properties) {
+      if (property.isOption()) {
+        optionProperties.add(property);
+      }
+    }
+    CliArgument currentArgument = arguments.current();
+    while (!currentArgument.isEnd()) {
+      trace("Trying to match argument '{}'", currentArgument);
+      if (currentArgument.isOption() && !arguments.isEndOptions()) {
+        if (currentArgument.isCompletion()) {
+          Iterator<Property<?>> optionIterator = optionProperties.iterator();
+          while (optionIterator.hasNext()) {
+            Property<?> option = optionIterator.next();
+            boolean success = option.apply(arguments, this, cmd, collector);
+            if (success) {
+              optionIterator.remove();
+              arguments.next();
+            }
+          }
+        } else {
+          Property<?> option = cmd.getOption(currentArgument.get());
+          if (option != null) {
+            arguments.next();
+            boolean removed = optionProperties.remove(option);
+            if (!removed) {
+              option = null;
+            }
+          }
+          if (option == null) {
+            trace("No such option was found.");
+            return;
+          }
+        }
+      } else {
+        if (valueIterator.hasNext()) {
+          Property<?> valueProperty = valueIterator.next();
+          boolean success = valueProperty.apply(arguments, this, cmd, collector);
+          if (!success) {
+            trace("Completion cannot match any further.");
+            return;
+          }
+        } else {
+          trace("No value left for completion.");
+          return;
+        }
+      }
+      currentArgument = arguments.current();
     }
   }
 
@@ -921,20 +1065,13 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
    *     {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
-   * @param collector the {@link CompletionCandidateCollector}.
-   * @return {@code true} if the given {@link Commandlet} matches to the given {@link CliArgument}(s) and those have been applied (set in the {@link Commandlet}
-   *     and {@link Commandlet#validate() validated}), {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @return the {@link ValidationResult} telling if the {@link CliArguments} can be applied successfully or if validation errors ocurred.
    */
-  public ValidationResult apply(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+  public ValidationResult apply(CliArguments arguments, Commandlet cmd) {
 
     trace("Trying to match arguments to commandlet {}", cmd.getName());
     CliArgument currentArgument = arguments.current();
-    Iterator<Property<?>> propertyIterator;
-    if (currentArgument.isCompletion()) {
-      propertyIterator = cmd.getProperties().iterator();
-    } else {
-      propertyIterator = cmd.getValues().iterator();
-    }
+    Iterator<Property<?>> propertyIterator = cmd.getValues().iterator();
     Property<?> property = null;
     if (propertyIterator.hasNext()) {
       property = propertyIterator.next();
@@ -967,15 +1104,15 @@ public abstract class AbstractIdeContext implements IdeContext {
           arguments.stopSplitShortOptions();
         }
       }
-      boolean matches = currentProperty.apply(arguments, this, cmd, collector);
-      if (!matches || currentArgument.isCompletion()) {
+      boolean matches = currentProperty.apply(arguments, this, cmd, null);
+      if (!matches && currentArgument.isCompletion()) {
         ValidationState state = new ValidationState(null);
         state.addErrorMessage("No matching property found");
         return state;
       }
       currentArgument = arguments.current();
     }
-    return new ValidationState(null);
+    return ValidationResultValid.get();
   }
 
   @Override
@@ -1066,5 +1203,6 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public void reload() {
     this.variables = null;
+    this.customToolRepository = null;
   }
 }

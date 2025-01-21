@@ -5,6 +5,7 @@ import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
@@ -90,7 +91,7 @@ public interface FileAccess {
 
   /**
    * @param source the source {@link Path file or folder} to copy.
-   * @param target the {@link Path} to copy {@code source} to. See {@link #copy(Path, Path, FileCopyMode)} for details. will always ensure that in the end
+   * @param target the {@link Path} to copy {@code source} to. See {@link #copy(Path, Path, FileCopyMode)} for details. Will always ensure that in the end
    *     you will find the same content of {@code source} in {@code target}.
    */
   default void copy(Path source, Path target) {
@@ -105,10 +106,24 @@ public interface FileAccess {
    *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
    *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
    *     the same content of {@code source} in {@code target}.
-   * @param fileOnly - {@code true} if {@code fileOrFolder} is expected to be a file and an exception shall be thrown if it is a directory, {@code false}
-   *     otherwise (copy recursively).
+   * @param mode the {@link FileCopyMode}.
    */
-  void copy(Path source, Path target, FileCopyMode fileOnly);
+  default void copy(Path source, Path target, FileCopyMode mode) {
+
+    copy(source, target, mode, PathCopyListener.NONE);
+  }
+
+  /**
+   * @param source the source {@link Path file or folder} to copy.
+   * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not take the filename of {@code source}
+   *     and copy that to {@code target} in case that is an existing folder. Instead it will always be simple and stupid and just copy from {@code source} to
+   *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
+   *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
+   *     the same content of {@code source} in {@code target}.
+   * @param mode the {@link FileCopyMode}.
+   * @param listener the {@link PathCopyListener} that will be called for each copied {@link Path}.
+   */
+  void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener);
 
   /**
    * @param archiveFile the {@link Path} to the file to extract.
@@ -195,6 +210,9 @@ public interface FileAccess {
 
   /**
    * Deletes the given {@link Path} idempotent and recursive.
+   * <p>
+   * ATTENTION: In most cases we want to use {@link #backup(Path)} instead to prevent the user from data loss.
+   * </p>
    *
    * @param path the {@link Path} to delete.
    */
@@ -223,7 +241,19 @@ public interface FileAccess {
    * @return all children of the given {@link Path} that match the given {@link Predicate}. Will be the empty list of the given {@link Path} is not an existing
    *     directory.
    */
-  List<Path> listChildren(Path dir, Predicate<Path> filter);
+  default List<Path> listChildren(Path dir, Predicate<Path> filter) {
+
+    return listChildrenMapped(dir, child -> (filter.test(child)) ? child : null);
+  }
+
+  /**
+   * @param dir the {@link Path} to the directory where to list the children.
+   * @param filter the filter {@link Function} used to {@link Function#apply(Object) filter and transform} children to include. If the {@link Function}
+   *     returns  {@code null}, the child will be filtered, otherwise the returned {@link Path} will be included in the resulting {@link List}.
+   * @return all children of the given {@link Path} returned by the given {@link Function}. Will be the empty list if the given {@link Path} is not an existing
+   *     directory.
+   */
+  List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter);
 
   /**
    * Finds the existing file with the specified name in the given list of directories.
@@ -243,18 +273,37 @@ public interface FileAccess {
   boolean isEmptyDir(Path dir);
 
   /**
-   * Makes a file executable. Equivalent of using 'chmod a+x'. Adds execute permissions to current file permissions.
+   * Makes a file executable (analog to 'chmod a+x').
    *
-   * @param filePath {@link Path} to the file.
+   * @param file {@link Path} to the file.
    */
-  void makeExecutable(Path filePath);
+  default void makeExecutable(Path file) {
+
+    makeExecutable(file, false);
+  }
+
+  /**
+   * Makes a file executable (analog to 'chmod a+x').
+   *
+   * @param file {@link Path} to the file.
+   * @param confirm - {@code true} to get user confirmation before adding missing executable flags, {@code false} otherwise (always set missing flags).
+   */
+  void makeExecutable(Path file, boolean confirm);
 
   /**
    * Like the linux touch command this method will update the modification time of the given {@link Path} to the current
    * {@link System#currentTimeMillis() system time}. In case the file does not exist, it will be created as empty file. If already the
    * {@link Path#getParent() parent folder} does not exist, the operation will fail.
    *
-   * @param filePath the {@link Path} to the file or folder.
+   * @param file the {@link Path} to the file or folder.
    */
-  void touch(Path filePath);
+  void touch(Path file);
+
+  /**
+   * @param file the {@link Path} to the file to read.
+   * @return the content of the specified file (in UTF-8 encoding).
+   * @see java.nio.file.Files#readString(Path)
+   */
+  String readFileContent(Path file);
+
 }

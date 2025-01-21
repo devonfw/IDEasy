@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root xmlns:merge="https://github.com/devonfw/IDEasy/merge" merge:strategy="override">
+  <element name="elem1" attr1="newValue">
+    <child name="child1" attr2="newValue">New text</child>
+  </element>
+</root>

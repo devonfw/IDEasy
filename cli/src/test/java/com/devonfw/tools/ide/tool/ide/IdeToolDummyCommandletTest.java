@@ -75,7 +75,7 @@ public class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
 
       // skip installation but trigger postInstall to test mocked plugin installation
       postInstall(true);
-      return new ProcessResultImpl(0, List.of(), List.of());
+      return new ProcessResultImpl(this.tool, this.tool, 0, List.of());
     }
 
     @Override

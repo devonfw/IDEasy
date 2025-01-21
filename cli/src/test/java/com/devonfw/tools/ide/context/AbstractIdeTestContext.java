@@ -13,6 +13,8 @@ import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.environment.IdeSystem;
+import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
@@ -106,12 +108,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  public IdeProgressBar prepareProgressBar(String taskName, long size) {
+  public IdeProgressBar newProgressBar(String title, long maxSize, String unitName, long unitSize) {
 
-    IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
-    IdeProgressBarTestImpl duplicate = this.progressBarMap.put(taskName, progressBar);
+    IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(title, maxSize, unitName, unitSize);
+    IdeProgressBarTestImpl duplicate = this.progressBarMap.put(title, progressBar);
     // If we have multiple downloads or unpacking, we may have an existing "Downloading" or "Unpacking" key
-    assert (taskName.equals("Downloading")) || (taskName.equals("Unpacking")) || duplicate == null;
+    assert (title.equals(IdeProgressBar.TITLE_DOWNLOADING)) || (title.equals(IdeProgressBar.TITLE_EXTRACTING)) || duplicate == null;
     return progressBar;
   }
 
@@ -126,6 +128,23 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       }
     }
     return super.createSystemVariables();
+  }
+
+  @Override
+  public IdeSystemTestImpl getSystem() {
+
+    if (this.system == null) {
+      this.system = new IdeSystemTestImpl(this);
+    }
+    return (IdeSystemTestImpl) this.system;
+  }
+
+  /**
+   * @param system the new value of {@link #getSystem()}.
+   */
+  public void setSystem(IdeSystem system) {
+
+    this.system = system;
   }
 
   @Override

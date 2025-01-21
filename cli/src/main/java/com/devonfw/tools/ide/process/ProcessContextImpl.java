@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 
 import com.devonfw.tools.ide.cli.CliProcessException;
@@ -150,8 +151,9 @@ public class ProcessContextImpl implements ProcessContext {
     this.executable = systemPath.findBinary(this.executable);
     this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
-    String interpreter = addExecutable(this.executable.toString(), args);
+    String interpreter = addExecutable(args);
     args.addAll(this.arguments);
+    String command = createCommand();
     if (this.context.debug().isEnabled()) {
       String message = createCommandMessage(interpreter, " ...");
       this.context.debug(message);
@@ -167,32 +169,37 @@ public class ProcessContextImpl implements ProcessContext {
 
       this.processBuilder.command(args);
 
-      List<String> out = null;
-      List<String> err = null;
+      ConcurrentLinkedQueue<OutputMessage> output = new ConcurrentLinkedQueue<>();
 
       Process process = this.processBuilder.start();
 
-      if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        CompletableFuture<List<String>> outFut = readInputStream(process.getInputStream());
-        CompletableFuture<List<String>> errFut = readInputStream(process.getErrorStream());
-        out = outFut.get();
-        err = errFut.get();
+      try {
+        if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+          CompletableFuture<Void> outFut = readInputStream(process.getInputStream(), false, output);
+          CompletableFuture<Void> errFut = readInputStream(process.getErrorStream(), true, output);
+          outFut.get();
+          errFut.get();
+        }
+
+        int exitCode;
+
+        if (processMode.isBackground()) {
+          exitCode = ProcessResult.SUCCESS;
+        } else {
+          exitCode = process.waitFor();
+        }
+
+        List<OutputMessage> finalOutput = new ArrayList<>(output);
+        ProcessResult result = new ProcessResultImpl(this.executable.getFileName().toString(), command, exitCode, finalOutput);
+
+        performLogging(result, exitCode, interpreter);
+
+        return result;
+      } finally {
+        if (!processMode.isBackground()) {
+          process.destroy();
+        }
       }
-
-      int exitCode;
-
-      if (processMode.isBackground()) {
-        exitCode = ProcessResult.SUCCESS;
-      } else {
-        exitCode = process.waitFor();
-      }
-
-      ProcessResult result = new ProcessResultImpl(exitCode, out, err);
-
-      performLogging(result, exitCode, interpreter);
-
-      return result;
-
     } catch (CliProcessException | IllegalStateException e) {
       // these exceptions are thrown from performLogOnError and we do not want to wrap them (see #593)
       throw e;
@@ -212,18 +219,37 @@ public class ProcessContextImpl implements ProcessContext {
    * "https://stackoverflow.com/questions/14165517/processbuilder-forwarding-stdout-and-stderr-of-started-processes-without-blocki/57483714#57483714">StackOverflow</a>
    *
    * @param is {@link InputStream}.
+   * @param errorStream to identify if the output came from stdout or stderr
    * @return {@link CompletableFuture}.
    */
-  private static CompletableFuture<List<String>> readInputStream(InputStream is) {
+  private static CompletableFuture<Void> readInputStream(InputStream is, boolean errorStream, ConcurrentLinkedQueue<OutputMessage> outputMessages) {
 
     return CompletableFuture.supplyAsync(() -> {
 
       try (InputStreamReader isr = new InputStreamReader(is); BufferedReader br = new BufferedReader(isr)) {
-        return br.lines().toList();
+
+        String line;
+        while ((line = br.readLine()) != null) {
+          OutputMessage outputMessage = new OutputMessage(errorStream, line);
+          outputMessages.add(outputMessage);
+        }
+
+        return null;
       } catch (Throwable e) {
         throw new RuntimeException("There was a problem while executing the program", e);
       }
     });
+  }
+
+  private String createCommand() {
+    String cmd = this.executable.toString();
+    StringBuilder sb = new StringBuilder(cmd.length() + this.arguments.size() * 4);
+    sb.append(cmd);
+    for (String arg : this.arguments) {
+      sb.append(' ');
+      sb.append(arg);
+    }
+    return sb.toString();
   }
 
   private String createCommandMessage(String interpreter, String suffix) {
@@ -280,11 +306,12 @@ public class ProcessContextImpl implements ProcessContext {
     return null;
   }
 
-  private String addExecutable(String exec, List<String> args) {
+  private String addExecutable(List<String> args) {
 
     String interpreter = null;
-    String fileExtension = FilenameUtil.getExtension(exec);
+    String fileExtension = FilenameUtil.getExtension(this.executable.getFileName().toString());
     boolean isBashScript = "sh".equals(fileExtension);
+    this.context.getFileAccess().makeExecutable(this.executable, true);
     if (!isBashScript) {
       String sheBang = getSheBang(this.executable);
       if (sheBang != null) {
@@ -308,24 +335,15 @@ public class ProcessContextImpl implements ProcessContext {
       args.add(0, "/i");
       args.add(0, "msiexec");
     }
-    args.add(exec);
+    args.add(this.executable.toString());
     return interpreter;
   }
 
   private void performLogging(ProcessResult result, int exitCode, String interpreter) {
 
     if (!result.isSuccessful() && (this.errorHandling != ProcessErrorHandling.NONE)) {
-      IdeLogLevel ideLogLevel;
+      IdeLogLevel ideLogLevel = this.errorHandling.getLogLevel();
       String message = createCommandMessage(interpreter, "\nfailed with exit code " + exitCode + "!");
-
-      if (this.errorHandling == ProcessErrorHandling.LOG_ERROR) {
-        ideLogLevel = IdeLogLevel.ERROR;
-      } else if (this.errorHandling == ProcessErrorHandling.LOG_WARNING) {
-        ideLogLevel = IdeLogLevel.WARNING;
-      } else {
-        ideLogLevel = IdeLogLevel.ERROR;
-        this.context.error("Internal error: Undefined error handling {}", this.errorHandling);
-      }
 
       context.level(ideLogLevel).log(message);
       result.log(ideLogLevel, context);

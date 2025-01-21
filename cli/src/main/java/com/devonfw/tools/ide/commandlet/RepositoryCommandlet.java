@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.property.RepositoryProperty;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 
@@ -45,20 +46,13 @@ public class RepositoryCommandlet extends Commandlet {
       doImportRepository(repositoryFile, true);
     } else {
       // If no specific repository is provided, check for repositories folder
-      Path repositoriesPath = this.context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES);
-      Path legacyRepositoriesPath = this.context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_REPOSITORIES);
-      Path repositories;
-      if (Files.exists(repositoriesPath)) {
-        repositories = repositoriesPath;
-      } else if (Files.exists(legacyRepositoriesPath)) {
-        repositories = legacyRepositoriesPath;
-      } else {
-        this.context.warning("Cannot find repositories folder nor projects folder.");
+      Path repositoriesPath = this.context.getRepositoriesPath();
+      if (repositoriesPath == null) {
+        this.context.warning("Cannot find folder 'repositories' nor 'projects' in your settings.");
         return;
       }
-
-      List<Path> propertiesFiles = this.context.getFileAccess().listChildren(repositories, path -> path.getFileName().toString().endsWith(".properties"));
-
+      List<Path> propertiesFiles = this.context.getFileAccess()
+          .listChildren(repositoriesPath, path -> path.getFileName().toString().endsWith(".properties"));
       boolean forceMode = this.context.isForceMode();
       for (Path propertiesFile : propertiesFiles) {
         doImportRepository(propertiesFile, forceMode);
@@ -83,19 +77,24 @@ public class RepositoryCommandlet extends Commandlet {
 
     String repository = repositoryConfig.path();
     String gitUrl = repositoryConfig.gitUrl();
-    if (repository == null || "".equals(repository) || gitUrl == null || "".equals(gitUrl)) {
+    if (repository == null || repository.isEmpty() || gitUrl == null || gitUrl.isEmpty()) {
       this.context.warning("Invalid repository configuration {} - both 'path' and 'git-url' have to be defined.", repositoryFile.getFileName().toString());
       return;
     }
 
     this.context.debug(repositoryConfig.toString());
 
-    String workspace = repositoryConfig.workspace() != null ? repositoryConfig.workspace() : "main";
-    Path workspacePath = this.context.getIdeHome().resolve("workspaces").resolve(workspace);
+    String workspace = repositoryConfig.workspace();
+    if (workspace == null) {
+      workspace = IdeContext.WORKSPACE_MAIN;
+    }
+    Path workspacePath = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace);
     this.context.getFileAccess().mkdirs(workspacePath);
 
     Path repositoryPath = workspacePath.resolve(repository);
-    this.context.getGitContext().pullOrClone(gitUrl, repositoryPath, repositoryConfig.gitBranch());
+    if (!Files.isDirectory(repositoryPath.resolve(GitContext.GIT_FOLDER))) {
+      this.context.getGitContext().pullOrClone(repositoryConfig.asGitUrl(), repositoryPath);
+    }
 
     String buildCmd = repositoryConfig.buildCmd();
     this.context.debug("Building repository with ide command: {}", buildCmd);

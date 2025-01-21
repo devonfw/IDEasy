@@ -12,6 +12,7 @@
   <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>ide-gui</artifactId>
   <version>${revision}</version>
+  <name>${project.artifactId}</name>
 
   <properties>
     <mainClass>com.devonfw.ide.gui.AppLauncher</mainClass>

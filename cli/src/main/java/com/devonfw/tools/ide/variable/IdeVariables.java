@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.variable;
 import java.util.Collection;
 import java.util.List;
 
-import com.devonfw.tools.ide.context.GitUrlSyntax;
+import com.devonfw.tools.ide.git.GitUrlSyntax;
 
 /**
  * Interface (mis)used to define all the available variables.
@@ -85,6 +85,9 @@ public interface IdeVariables {
    */
   VariableDefinitionBoolean IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED = new VariableDefinitionBoolean("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED", null,
       c -> Boolean.TRUE);
+
+  /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() DEVON_IDE_CUSTOM_TOOLS}. */
+  VariableDefinitionString DEVON_IDE_CUSTOM_TOOLS = new VariableDefinitionString("DEVON_IDE_CUSTOM_TOOLS");
 
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, CREATE_START_SCRIPTS,
