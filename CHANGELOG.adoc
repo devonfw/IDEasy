@@ -17,6 +17,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/498[#498]: Improvement of XML merger: resolve before merge
 * https://github.com/devonfw/IDEasy/issues/691[#691]: XMLMerger can not handle merge of subnodes properly
 * https://github.com/devonfw/IDEasy/issues/815[#815]: Links within IDEasy.pdf generally do not work
+* https://github.com/devonfw/IDEasy/issues/914[#914]: Setup needs to create .bashrc if not existent
 * https://github.com/devonfw/IDEasy/issues/853[#853]: NPE when trying to auto-complete after ide repository
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/18?closed=1[milestone 2025.01.001].
