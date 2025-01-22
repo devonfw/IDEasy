@@ -1,21 +1,23 @@
 package com.devonfw.tools.ide.repo;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.GenericVersionRange;
-import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import java.nio.file.Path;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
 /**
  * Implementation of {@link AbstractToolRepository} for maven-based artifacts.
@@ -28,11 +30,11 @@ public class MavenRepository extends AbstractToolRepository {
 
   private static final String MAVEN_METADATA_XML = "maven-metadata.xml";
 
-  /** Group id of IDEasy. */
-  public static final String IDEASY_GROUP_ID = "com.devonfw.tools.IDEasy";
+  private static final String DEFAULT_EXTENSION = ".jar";
 
-  /** Artifact Id of IDEasy. */
-  public static final String IDEASY_ARTIFACT_ID = "ide-cli";
+  private final DocumentBuilder documentBuilder;
+
+  private static final String SNAPSHOT_VERSION_PATTERN = ".*-\\d{8}\\.\\d{6}-\\d+";
 
   /**
    * The constructor.
@@ -42,68 +44,79 @@ public class MavenRepository extends AbstractToolRepository {
   public MavenRepository(IdeContext context) {
 
     super(context);
-  }
-
-  private String getPath(String groupId, String artifactId, String version, String fileName) {
-
-    String basePath = groupId.replace('.', '/') + "/" + artifactId;
-    return version != null ? basePath + "/" + version + "/" + fileName : basePath + "/" + fileName;
-  }
-
-  private String getBaseUrl(String groupId, String artifactId) {
-
-    if (isIdeasySnapshot(groupId, artifactId, IdeVersion.get())) {
-      return MAVEN_SNAPSHOTS;
+    try {
+      DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      this.documentBuilder = factory.newDocumentBuilder();
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to create XML document builder", e);
     }
-    return MAVEN_CENTRAL;
   }
 
   @Override
   protected UrlDownloadFileMetadata getMetadata(String groupId, String artifactId, VersionIdentifier version) {
 
-    SystemInfo sys = this.context.getSystemInfo();
-    String classifier = sys.getOs() + "-" + sys.getArchitecture();
+    return getMetadata(groupId, artifactId, version, null, null);
+  }
 
-    String pathVersion = version.toString();
-    // If it's a resolved snapshot version (contains timestamp), convert back to -SNAPSHOT format for the path
-    if (pathVersion.matches(".*-\\d{8}\\.\\d{6}-\\d+")) {
-      pathVersion = pathVersion.replaceAll("-\\d{8}\\.\\d{6}-\\d+", "-SNAPSHOT");
+  @Override
+  protected UrlDownloadFileMetadata getMetadata(String groupId, String artifactId, VersionIdentifier version, String classifier, String extension) {
+
+    if (extension == null || extension.isEmpty()) {
+      extension = DEFAULT_EXTENSION;
     }
 
-    // hardcoding the file extension seems wrong
-    String fileName = artifactId + "-" + version + "-" + classifier + ".tar.gz";
-    String downloadUrl = getBaseUrl(groupId, artifactId) + "/" + getPath(groupId, artifactId, pathVersion, fileName);
-    return new MavenArtifactMetadata(groupId, artifactId, version, downloadUrl, sys.getOs(), sys.getArchitecture());
+    String versionStr = version.toString();
+    boolean isSnapshot = versionStr.matches(SNAPSHOT_VERSION_PATTERN);
+    String pathVersion = isSnapshot ?
+        versionStr.replaceAll("-\\d{8}\\.\\d{6}-\\d+", "-SNAPSHOT") :
+        versionStr;
+
+    StringBuilder fileNameBuilder = new StringBuilder()
+        .append(artifactId)
+        .append("-")
+        .append(versionStr);
+
+    if (classifier != null && !classifier.isEmpty()) {
+      fileNameBuilder.append("-").append(classifier);
+    }
+    fileNameBuilder.append(extension);
+
+    String fileName = fileNameBuilder.toString();
+    String baseUrl = isSnapshot ? MAVEN_SNAPSHOTS : MAVEN_CENTRAL;
+    String downloadUrl = baseUrl + "/" + getPath(groupId, artifactId, pathVersion, fileName);
+
+    return new MavenArtifactMetadata(groupId, artifactId, version, downloadUrl, null, null);
   }
+
 
   @Override
   public VersionIdentifier resolveVersion(String groupId, String artifactId, GenericVersionRange versionRange) {
 
     try {
-      String metadataUrl =
-          getBaseUrl(groupId, artifactId) + "/" + getPath(groupId, artifactId, null, MAVEN_METADATA_XML);
-      Path tmpDownloadFile = createTempDownload(MAVEN_METADATA_XML);
+      String baseUrl = versionRange.toString().endsWith("-SNAPSHOT") ? MAVEN_SNAPSHOTS : MAVEN_CENTRAL;
+      String metadataUrl = baseUrl + "/" + getPath(groupId, artifactId, null, MAVEN_METADATA_XML);
+      Document doc = fetchXmlMetadata(metadataUrl);
 
-      try {
-        this.context.getFileAccess().download(metadataUrl, tmpDownloadFile);
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document doc = builder.parse(tmpDownloadFile.toFile());
+      XPath xpath = XPathFactory.newInstance().newXPath();
+      NodeList versions = (NodeList) xpath.evaluate("//versions/version", doc, XPathConstants.NODESET);
 
-        String version = Optional.ofNullable(doc.getElementsByTagName("latest").item(0)).map(Element.class::cast)
-            .map(Element::getTextContent).orElseGet(
-                () -> Optional.ofNullable(doc.getElementsByTagName("release").item(0)).map(Element.class::cast)
-                    .map(Element::getTextContent)
-                    .orElseThrow(() -> new IllegalStateException("No latest or release version found in metadata")));
-
-        if (isIdeasySnapshot(groupId, artifactId, version)) {
-          version = resolveSnapshotVersion(groupId, artifactId, version);
-        }
-
-        return VersionIdentifier.of(version);
-      } finally {
-        this.context.getFileAccess().delete(tmpDownloadFile);
+      if (versions.getLength() == 0) {
+        throw new IllegalStateException("No versions found in metadata of " + artifactId);
       }
+
+      VersionIdentifier latestVersion = null;
+      for (int i = 0; i < versions.getLength(); i++) {
+        VersionIdentifier version = VersionIdentifier.of(versions.item(i).getTextContent());
+        if (latestVersion == null || latestVersion.compareVersion(version).isLess()) {
+          latestVersion = version;
+        }
+      }
+
+      if (latestVersion.toString().endsWith("-SNAPSHOT")) {
+        return VersionIdentifier.of(resolveSnapshotVersion(groupId, artifactId, latestVersion.toString()));
+      }
+
+      return latestVersion;
     } catch (Exception e) {
       throw new IllegalStateException("Failed to resolve version for " + groupId + ":" + artifactId, e);
     }
@@ -113,35 +126,38 @@ public class MavenRepository extends AbstractToolRepository {
 
     try {
       String metadataUrl = MAVEN_SNAPSHOTS + "/" + getPath(groupId, artifactId, baseVersion, MAVEN_METADATA_XML);
-      Path tmpDownloadFile = createTempDownload(MAVEN_METADATA_XML);
+      Document doc = fetchXmlMetadata(metadataUrl);
 
-      try {
-        this.context.getFileAccess().download(metadataUrl, tmpDownloadFile);
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document doc = builder.parse(tmpDownloadFile.toFile());
+      XPath xpath = XPathFactory.newInstance().newXPath();
+      String timestamp = (String) xpath.evaluate("//timestamp", doc, XPathConstants.STRING);
+      String buildNumber = (String) xpath.evaluate("//buildNumber", doc, XPathConstants.STRING);
 
-        String timestamp = Optional.ofNullable(doc.getElementsByTagName("timestamp").item(0)).map(Element.class::cast)
-            .map(Element::getTextContent)
-            .orElseThrow(() -> new IllegalStateException("No timestamp found in snapshot metadata"));
-
-        String buildNumber = Optional.ofNullable(doc.getElementsByTagName("buildNumber").item(0))
-            .map(Element.class::cast).map(Element::getTextContent)
-            .orElseThrow(() -> new IllegalStateException("No buildNumber found in snapshot metadata"));
-
-        return baseVersion.replace("-SNAPSHOT", "") + "-" + timestamp + "-" + buildNumber;
-      } finally {
-        this.context.getFileAccess().delete(tmpDownloadFile);
+      if (timestamp.isEmpty() || buildNumber.isEmpty()) {
+        throw new IllegalStateException("Missing timestamp or buildNumber in snapshot metadata");
       }
+
+      return baseVersion.replace("-SNAPSHOT", "") + "-" + timestamp + "-" + buildNumber;
     } catch (Exception e) {
       throw new IllegalStateException("Failed to resolve snapshot version for " + baseVersion, e);
     }
   }
 
-  private boolean isIdeasySnapshot(String groupId, String artifactId, String version) {
+  private Document fetchXmlMetadata(String url) {
 
-    return IDEASY_GROUP_ID.equals(groupId) && IDEASY_ARTIFACT_ID.equals(artifactId) && version != null
-        && version.contains("SNAPSHOT");
+    try {
+      URL xmlUrl = new URL(url);
+      try (InputStream is = xmlUrl.openStream()) {
+        return documentBuilder.parse(is);
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to fetch XML metadata from " + url, e);
+    }
+  }
+
+  private String getPath(String groupId, String artifactId, String version, String fileName) {
+
+    String basePath = groupId.replace('.', '/') + "/" + artifactId;
+    return version != null ? basePath + "/" + version + "/" + fileName : basePath + "/" + fileName;
   }
 
   @Override
@@ -153,6 +169,8 @@ public class MavenRepository extends AbstractToolRepository {
   @Override
   public Collection<ToolDependency> findDependencies(String groupId, String artifactId, VersionIdentifier version) {
 
+    // We could read POM here and find dependencies but we do not want to reimplement maven here.
+    // For our use-case we only download bundled packages from maven central so we do KISS for now.
     return Collections.emptyList();
   }
 }

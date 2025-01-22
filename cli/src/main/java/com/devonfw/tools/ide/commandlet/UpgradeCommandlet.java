@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -22,6 +23,12 @@ import java.time.format.DateTimeFormatter;
  * {@link Commandlet} to upgrade the version of IDEasy
  */
 public class UpgradeCommandlet extends Commandlet {
+
+  /** Group id of IDEasy. */
+  private static final String IDEASY_GROUP_ID = "com.devonfw.tools.IDEasy";
+
+  /** Artifact Id of IDEasy. */
+  private static final String IDEASY_ARTIFACT_ID = "ide-cli";
 
   /**
    * The constructor.
@@ -109,8 +116,7 @@ public class UpgradeCommandlet extends Commandlet {
 
     ToolRepository mavenRepo = this.context.getMavenSoftwareRepository();
     VersionIdentifier currentVersion = VersionIdentifier.of(IdeVersion.get());
-    VersionIdentifier latestVersion = mavenRepo.resolveVersion(MavenRepository.IDEASY_GROUP_ID,
-        MavenRepository.IDEASY_ARTIFACT_ID, null);
+    VersionIdentifier latestVersion = mavenRepo.resolveVersion(IDEASY_GROUP_ID, IDEASY_ARTIFACT_ID, currentVersion);
 
     boolean upgradeAvailable;
     if (currentVersion.toString().contains("SNAPSHOT")) {
@@ -121,45 +127,52 @@ public class UpgradeCommandlet extends Commandlet {
     }
 
     if (upgradeAvailable) {
-
       this.context.info("A newer version is available: " + latestVersion);
       try {
-
         this.context.info("Downloading new version...");
-        Path downloadTarget = mavenRepo.download(MavenRepository.IDEASY_GROUP_ID, MavenRepository.IDEASY_ARTIFACT_ID,
-            latestVersion);
+        SystemInfo sys = this.context.getSystemInfo();
+        String classifier = sys.getOs() + "-" + sys.getArchitecture();
+
+        Path downloadTarget = mavenRepo.download(IDEASY_GROUP_ID,
+            IDEASY_ARTIFACT_ID,
+            latestVersion,
+            classifier,
+            ".tar.gz");
+
         Path extractionTarget = this.context.getIdeRoot().resolve(IdeContext.FOLDER_IDE);
         if (this.context.getSystemInfo().isWindows()) {
-          // Windows-specific handling
-          Path scriptPath = createUpgradeScript();
-          // Start the upgrade script in the background
-          ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING)
-              .executable(scriptPath).addArgs(downloadTarget, extractionTarget);
-          pc.run(ProcessMode.BACKGROUND_SILENT);
-          this.context.success("Upgrade process has been initiated.");
+          handleWindowsUpgrade(downloadTarget, extractionTarget);
         } else {
-          // Normal extraction for non-Windows systems
           this.context.info("Extracting files...");
-          FileAccess fileAccess = this.context.getFileAccess();
-          fileAccess.extract(downloadTarget, extractionTarget);
-          this.context.success("Successfully upgraded to version " + latestVersion);
+          this.context.getFileAccess().extract(downloadTarget, extractionTarget);
+          this.context.success("Successfully upgraded to version {}", latestVersion);
         }
       } catch (Exception e) {
-        this.context.error("Failed to upgrade: " + e.getMessage());
+        throw new IllegalStateException("Failed to upgrade version.", e);
       }
     } else {
       this.context.info("You are already on the latest version.");
     }
   }
 
-  private Path createUpgradeScript() throws IOException {
+  private void handleWindowsUpgrade(Path downloadTarget, Path extractionTarget) throws IOException {
+
+    Path scriptPath = createUpgradeScriptForWindows();
+    ProcessContext pc = this.context.newProcess()
+        .errorHandling(ProcessErrorHandling.LOG_WARNING)
+        .executable(scriptPath)
+        .addArgs(downloadTarget, extractionTarget);
+    pc.run(ProcessMode.BACKGROUND_SILENT);
+    this.context.success("Upgrade process has been initiated.");
+  }
+
+  private Path createUpgradeScriptForWindows() throws IOException {
 
     Path scriptPath = this.context.getIdeRoot().resolve("upgrade.bat");
-
-    String scriptContent =
-        "@echo off\n" + "ping -n 4 127.0.0.1 > nul\n" + "C:\\Windows\\System32\\tar.exe -xzf \"%~1\" -C \"%~2\"\n"
-            + "del \"%~f0\"";
-
+    String scriptContent = "@echo off\n" +
+        "ping -n 4 127.0.0.1 > nul\n" +
+        "C:\\Windows\\System32\\tar.exe -xzf \"%~1\" -C \"%~2\"\n" +
+        "del \"%~f0\"";
     Files.write(scriptPath, scriptContent.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
     return scriptPath;
   }
