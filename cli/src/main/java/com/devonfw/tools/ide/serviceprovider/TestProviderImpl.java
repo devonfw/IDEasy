@@ -6,10 +6,13 @@ import org.slf4j.helpers.NOPMDCAdapter;
 import org.slf4j.spi.MDCAdapter;
 import org.slf4j.spi.SLF4JServiceProvider;
 
-public class TestProvider implements SLF4JServiceProvider {
+/**
+ * Implementation of {@link SLF4JServiceProvider}.
+ */
+public class TestProviderImpl implements SLF4JServiceProvider {
 
   private final String REQUESTED_API_VERSION = "2.0.12";
-  private TestLoggerFactory testLoggerFactory;
+  private TestLoggerFactoryImpl testLoggerFactory;
   
 
   @Override
@@ -38,6 +41,6 @@ public class TestProvider implements SLF4JServiceProvider {
 
   @Override
   public void initialize() {
-    testLoggerFactory = new TestLoggerFactory();
+    testLoggerFactory = new TestLoggerFactoryImpl();
   }
 }

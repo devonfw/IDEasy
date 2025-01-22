@@ -1,12 +1,21 @@
 package com.devonfw.tools.ide.serviceprovider;
 
+import org.slf4j.Logger;
 import org.slf4j.Marker;
 
-public class TestLogger implements org.slf4j.Logger {
+/**
+ * Implementation of {@link Logger}.
+ */
+public class IdeLoggerAdapter implements Logger {
 
   private final String name;
 
-  public TestLogger(String name) {
+  /**
+   * The constructor.
+   *
+   * @param name of the logger.
+   */
+  public IdeLoggerAdapter(String name) {
 
     this.name = name;
   }
