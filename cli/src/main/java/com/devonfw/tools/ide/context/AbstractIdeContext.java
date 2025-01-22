@@ -6,6 +6,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,6 +22,7 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
+import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
 import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
@@ -56,6 +58,7 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
+import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
@@ -70,6 +73,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
 
+  private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
+
   private final IdeStartContextImpl startContext;
 
   private Path ideHome;
@@ -80,11 +85,13 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   protected Path settingsPath;
 
+  private Path settingsCommitIdPath;
+
   private Path softwarePath;
 
   private Path softwareExtraPath;
 
-  private Path softwareRepositoryPath;
+  private final Path softwareRepositoryPath;
 
   protected Path pluginsPath;
 
@@ -94,15 +101,15 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   protected Path urlsPath;
 
-  private Path tempPath;
+  private final Path tempPath;
 
-  private Path tempDownloadPath;
+  private final Path tempDownloadPath;
 
   private Path cwd;
 
   private Path downloadPath;
 
-  private Path toolRepositoryPath;
+  private final Path toolRepositoryPath;
 
   protected Path userHome;
 
@@ -247,6 +254,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
       this.confPath = this.ideHome.resolve(FOLDER_CONF);
       this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
+      this.settingsCommitIdPath = this.ideHome.resolve(IdeContext.SETTINGS_COMMIT_ID);
       this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
       this.softwareExtraPath = this.softwarePath.resolve(FOLDER_EXTRA);
       this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
@@ -265,7 +273,6 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.downloadPath = this.userHome.resolve("Downloads/ide");
 
     this.path = computeSystemPath();
-    this.customToolRepository = CustomToolRepositoryImpl.of(this);
   }
 
   private String getMessageIdeHomeFound() {
@@ -314,37 +321,16 @@ public abstract class AbstractIdeContext implements IdeContext {
   private EnvironmentVariables createVariables() {
 
     AbstractEnvironmentVariables system = createSystemVariables();
-    AbstractEnvironmentVariables user = extendVariables(system, this.userHomeIde, EnvironmentVariablesType.USER);
-    AbstractEnvironmentVariables settings = extendVariables(user, this.settingsPath, EnvironmentVariablesType.SETTINGS);
-    // TODO should we keep this workspace properties? Was this feature ever used?
-    AbstractEnvironmentVariables workspace = extendVariables(settings, this.workspacePath, EnvironmentVariablesType.WORKSPACE);
-    AbstractEnvironmentVariables conf = extendVariables(workspace, this.confPath, EnvironmentVariablesType.CONF);
+    AbstractEnvironmentVariables user = system.extend(this.userHomeIde, EnvironmentVariablesType.USER);
+    AbstractEnvironmentVariables settings = user.extend(this.settingsPath, EnvironmentVariablesType.SETTINGS);
+    AbstractEnvironmentVariables workspace = settings.extend(this.workspacePath, EnvironmentVariablesType.WORKSPACE);
+    AbstractEnvironmentVariables conf = workspace.extend(this.confPath, EnvironmentVariablesType.CONF);
     return conf.resolved();
   }
 
   protected AbstractEnvironmentVariables createSystemVariables() {
 
     return EnvironmentVariables.ofSystem(this);
-  }
-
-  protected AbstractEnvironmentVariables extendVariables(AbstractEnvironmentVariables envVariables, Path propertiesPath, EnvironmentVariablesType type) {
-
-    Path propertiesFile = null;
-    if (propertiesPath == null) {
-      trace("Configuration directory for type {} does not exist.", type);
-    } else if (Files.isDirectory(propertiesPath)) {
-      propertiesFile = propertiesPath.resolve(EnvironmentVariables.DEFAULT_PROPERTIES);
-      boolean legacySupport = (type != EnvironmentVariablesType.USER);
-      if (legacySupport && !Files.exists(propertiesFile)) {
-        Path legacyFile = propertiesPath.resolve(EnvironmentVariables.LEGACY_PROPERTIES);
-        if (Files.exists(legacyFile)) {
-          propertiesFile = legacyFile;
-        }
-      }
-    } else {
-      debug("Configuration directory {} does not exist.", propertiesPath);
-    }
-    return envVariables.extend(propertiesFile, type);
   }
 
   @Override
@@ -382,6 +368,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public CustomToolRepository getCustomToolRepository() {
 
+    if (this.customToolRepository == null) {
+      this.customToolRepository = CustomToolRepositoryImpl.of(this);
+    }
     return this.customToolRepository;
   }
 
@@ -440,6 +429,31 @@ public abstract class AbstractIdeContext implements IdeContext {
   public Path getSettingsPath() {
 
     return this.settingsPath;
+  }
+
+  @Override
+  public Path getSettingsGitRepository() {
+
+    Path settingsPath = getSettingsPath();
+
+    if (settingsPath == null) {
+      error("No settings repository was found.");
+      return null;
+    }
+
+    // check whether the settings path has a .git folder only if its not a symbolic link
+    if (!Files.exists(settingsPath.resolve(".git")) && !Files.isSymbolicLink(settingsPath)) {
+      error("Settings repository exists but is not a git repository.");
+      return null;
+    }
+
+    return settingsPath;
+  }
+
+  @Override
+  public Path getSettingsCommitIdPath() {
+
+    return this.settingsCommitIdPath;
   }
 
   @Override
@@ -869,12 +883,18 @@ public abstract class AbstractIdeContext implements IdeContext {
           if (cmd.isIdeHomeRequired()) {
             debug(getMessageIdeHomeFound());
           }
-          if (this.settingsPath != null) {
-            if (getGitContext().isRepositoryUpdateAvailable(this.settingsPath) ||
-                (getGitContext().fetchIfNeeded(this.settingsPath) && getGitContext().isRepositoryUpdateAvailable(this.settingsPath))) {
-              interaction("Updates are available for the settings repository. If you want to pull the latest changes, call ide update.");
+          Path settingsRepository = getSettingsGitRepository();
+          if (settingsRepository != null) {
+            if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) ||
+                (getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(settingsRepository,
+                    getSettingsCommitIdPath()))) {
+              interaction("Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
             }
           }
+        }
+        boolean success = ensureLicenseAgreement(cmd);
+        if (!success) {
+          return ValidationResultValid.get();
         }
         cmd.run();
       } finally {
@@ -886,6 +906,67 @@ public abstract class AbstractIdeContext implements IdeContext {
       trace("Commandlet did not match");
     }
     return result;
+  }
+
+  private boolean ensureLicenseAgreement(Commandlet cmd) {
+
+    if (isTest()) {
+      return true; // ignore for tests
+    }
+    getFileAccess().mkdirs(this.userHomeIde);
+    Path licenseAgreement = this.userHomeIde.resolve(FILE_LICENSE_AGREEMENT);
+    if (Files.isRegularFile(licenseAgreement)) {
+      return true; // success, license already accepted
+    }
+    if (cmd instanceof EnvironmentCommandlet) {
+      // if the license was not accepted, "$(ideasy env --bash)" that is written into a variable prevents the user from seeing the question he is asked
+      // in such situation the user could not open a bash terminal anymore and gets blocked what would really annoy the user so we exit here without doing or
+      // printing anything anymore in such case.
+      return false;
+    }
+    boolean logLevelInfoDisabled = !this.startContext.info().isEnabled();
+    if (logLevelInfoDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INFO, true);
+    }
+    boolean logLevelInteractionDisabled = !this.startContext.interaction().isEnabled();
+    if (logLevelInteractionDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INTERACTION, true);
+    }
+    StringBuilder sb = new StringBuilder(1180);
+    sb.append(LOGO).append("""
+        Welcome to IDEasy!
+        This product (with its included 3rd party components) is open-source software and can be used free (also commercially).
+        It supports automatic download and installation of arbitrary 3rd party tools.
+        By default only open-source 3rd party tools are used (downloaded, installed, executed).
+        But if explicitly configured, also commercial software that requires an additional license may be used.
+        This happens e.g. if you configure "ultimate" edition of IntelliJ or "docker" edition of Docker (Docker Desktop).
+        You are solely responsible for all risks implied by using this software.
+        Before using IDEasy you need to read and accept the license agreement with all involved licenses.
+        You will be able to find it online under the following URL:
+        """).append(LICENSE_URL);
+    if (this.ideRoot != null) {
+      sb.append("\n\nAlso it is included in the documentation that you can find here:\n").
+          append(this.ideRoot.resolve(FOLDER_IDE).resolve("IDEasy.pdf").toString()).append("\n");
+    }
+    info(sb.toString());
+    askToContinue("Do you accept these terms of use and all license agreements?");
+
+    sb.setLength(0);
+    LocalDateTime now = LocalDateTime.now();
+    sb.append("On ").append(DateTimeUtil.formatDate(now, false)).append(" at ").append(DateTimeUtil.formatTime(now))
+        .append(" you accepted the IDEasy license.\n").append(LICENSE_URL);
+    try {
+      Files.writeString(licenseAgreement, sb);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to save license agreement!", e);
+    }
+    if (logLevelInfoDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INFO, false);
+    }
+    if (logLevelInteractionDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INTERACTION, false);
+    }
+    return true;
   }
 
   private void verifyIdeRoot() {
@@ -1134,5 +1215,6 @@ public abstract class AbstractIdeContext implements IdeContext {
    */
   public void reload() {
     this.variables = null;
+    this.customToolRepository = null;
   }
 }

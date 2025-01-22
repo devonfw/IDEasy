@@ -1,15 +1,22 @@
 package com.devonfw.tools.ide.tool.intellij;
 
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
@@ -61,6 +68,25 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     // TODO create intellij/intellij/dependencies.json file in ide-urls and delete this method
     // TODO create intellij/ultimate/dependencies.json file in ide-urls and delete this method
     getCommandlet(Java.class).install();
+  }
+
+  @Override
+  public void installPlugin(ToolPluginDescriptor plugin, final Step step) {
+
+    // In case of plugins with a custom repo url
+    boolean customRepo = plugin.url() != null;
+    List<String> args = new ArrayList<>();
+    args.add("installPlugins");
+    args.add(plugin.id());
+    if (customRepo) {
+      args.add(plugin.url());
+    }
+    ProcessResult result = runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.LOG_WARNING, args.toArray(new String[0]));
+    if (result.isSuccessful()) {
+      step.success();
+    } else {
+      step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
+    }
   }
 
 }

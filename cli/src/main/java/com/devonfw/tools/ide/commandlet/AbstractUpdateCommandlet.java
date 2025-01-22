@@ -12,7 +12,7 @@ import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
-import com.devonfw.tools.ide.repo.CustomTool;
+import com.devonfw.tools.ide.repo.CustomToolMetadata;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -106,7 +106,11 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     }
   }
 
-  private void updateSettings() {
+  /**
+   * Updates the settings repository in IDE_HOME/settings by either cloning if no such repository exists or pulling
+   * if the repository exists then saves the latest current commit ID in the file ".commit.id".
+   */
+  protected void updateSettings() {
 
     Path settingsPath = this.context.getSettingsPath();
     GitContext gitContext = this.context.getGitContext();
@@ -132,6 +136,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         }
         gitContext.pullOrClone(GitUrl.of(repository), settingsPath);
       }
+      this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
       step.success("Successfully updated settings repository.");
     } finally {
       if (step != null) {
@@ -164,7 +169,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       }
 
       // custom tools in ide-custom-tools.json
-      for (CustomTool customTool : this.context.getCustomToolRepository().getTools()) {
+      for (CustomToolMetadata customTool : this.context.getCustomToolRepository().getTools()) {
         CustomToolCommandlet customToolCommandlet = new CustomToolCommandlet(this.context, customTool);
         toolCommandlets.add(customToolCommandlet);
       }
