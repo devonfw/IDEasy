@@ -1,0 +1,24 @@
+<?define name = "IDEasy"?>
+<?define path = "C:\projects\wixToolProject\workspaces\main\build-msi"?>
+<?define version = "1.0.0"?>
+<?define publisher = "devonfw-ide"?>
+<?define guid = "ba3ad5c0-94e9-42c3-9374-efaaddd3b967"?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+        <Package Name="$(var.name)"
+                Manufacturer="$(var.publisher)"
+                Version="$(var.version)"
+                UpgradeCode="$(var.guid)"
+                Scope="perMachine">
+                
+                <Files Include="ide-setup\**" />
+                
+                <WixVariable Id="WixUILicenseRtf" Value="LICENSE.rtf" />
+                
+                <Directory Id="ROOTDIRECTORY">
+                        <Directory Id="INSTALLFOLDER" Name="projects" />
+                </Directory>
+
+                <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+        </Package>
+</Wix>
