@@ -1,5 +1,4 @@
 <?define name = "IDEasy"?>
-<?define path = "C:\projects\wixToolProject\workspaces\main\build-msi"?>
 <?define version = "1.0.0"?>
 <?define publisher = "devonfw-ide"?>
 <?define guid = "ba3ad5c0-94e9-42c3-9374-efaaddd3b967"?>
