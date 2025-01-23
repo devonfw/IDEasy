@@ -45,7 +45,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    updateSettings();
+    if (!this.context.isSettingsRepositorySymlink() || this.context.isForceMode()) {
+      updateSettings();
+    }
     updateConf();
     reloadContext();
 

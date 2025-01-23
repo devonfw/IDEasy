@@ -221,6 +221,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   private Path getIdeRootPathFromEnv() {
+
     String root = getSystem().getEnv(IdeVariables.IDE_ROOT.getName());
     if (root != null) {
       Path rootPath = Path.of(root);
@@ -280,11 +281,13 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   private String getMessageIdeRootNotFound() {
+
     String root = getSystem().getEnv("IDE_ROOT");
     if (root == null) {
       return "The environment variable IDE_ROOT is undefined. Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     } else {
-      return "The environment variable IDE_ROOT is pointing to an invalid path " + root + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
+      return "The environment variable IDE_ROOT is pointing to an invalid path " + root
+          + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     }
   }
 
@@ -300,7 +303,6 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     return new SystemPath(this);
   }
-
 
   private boolean isIdeHome(Path dir) {
 
@@ -429,13 +431,19 @@ public abstract class AbstractIdeContext implements IdeContext {
       return null;
     }
 
-    // check whether the settings path has a .git folder only if its not a symbolic link
-    if (!Files.exists(settingsPath.resolve(".git")) && !Files.isSymbolicLink(settingsPath)) {
+    // check whether the settings path has a .git folder only if its not a symbolic link or junction
+    if (!Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlink()) {
       error("Settings repository exists but is not a git repository.");
       return null;
     }
 
     return settingsPath;
+  }
+
+  public boolean isSettingsRepositorySymlink() {
+
+    Path settingsPath = getSettingsPath();
+    return Files.isSymbolicLink(settingsPath) || getFileAccess().isJunction(settingsPath);
   }
 
   @Override
@@ -557,6 +565,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @Override
   public boolean isSkipUpdatesMode() {
+
     return this.startContext.isSkipUpdatesMode();
   }
 
@@ -583,6 +592,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   private void configureNetworkProxy() {
+
     if (this.networkProxy == null) {
       this.networkProxy = new NetworkProxy(this);
       this.networkProxy.configure();
@@ -609,7 +619,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @return the {@link #getDefaultExecutionDirectory() default execution directory} in which a command process is executed.
+   * @return the {@link #getDefaultExecutionDirectory() default execution directory} in which a command process is
+   * executed.
    */
   @Override
   public Path getDefaultExecutionDirectory() {
@@ -792,7 +803,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its {@link Commandlet#getProperties() properties} and will execute it.
+   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its
+   * {@link Commandlet#getProperties() properties} and will execute it.
    *
    * @param arguments the {@link CliArgument}.
    * @return the return code of the execution.
@@ -839,9 +851,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet) apply} and {@link Commandlet#run() run}.
-   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
-   *     {@link Commandlet} did not match and we have to try a different candidate).
+   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet) apply} and
+   * {@link Commandlet#run() run}.
+   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
+   * {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
    */
   private ValidationResult applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -873,10 +886,17 @@ public abstract class AbstractIdeContext implements IdeContext {
           }
           Path settingsRepository = getSettingsGitRepository();
           if (settingsRepository != null) {
-            if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) ||
-                (getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(settingsRepository,
-                    getSettingsCommitIdPath()))) {
-              interaction("Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
+            if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
+                getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
+                    settingsRepository, getSettingsCommitIdPath()))) {
+              if (isSettingsRepositorySymlink()) {
+                interaction(
+                    "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.");
+
+              } else {
+                interaction(
+                    "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
+              }
             }
           }
         }
@@ -933,8 +953,8 @@ public abstract class AbstractIdeContext implements IdeContext {
         You will be able to find it online under the following URL:
         """).append(LICENSE_URL);
     if (this.ideRoot != null) {
-      sb.append("\n\nAlso it is included in the documentation that you can find here:\n").
-          append(this.ideRoot.resolve(FOLDER_IDE).resolve("IDEasy.pdf").toString()).append("\n");
+      sb.append("\n\nAlso it is included in the documentation that you can find here:\n")
+          .append(this.ideRoot.resolve(FOLDER_IDE).resolve("IDEasy.pdf").toString()).append("\n");
     }
     info(sb.toString());
     askToContinue("Do you accept these terms of use and all license agreements?");
@@ -958,14 +978,15 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   private void verifyIdeRoot() {
+
     if (!isTest()) {
       if (this.ideRoot == null) {
         warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");
       } else if (this.ideHome != null) {
         Path ideRootPath = getIdeRootPathFromEnv();
         if (!this.ideRoot.equals(ideRootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPath,
-              this.ideHome.getFileName(), this.ideRoot);
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
+              ideRootPath, this.ideHome.getFileName(), this.ideRoot);
         }
       }
     }
@@ -977,6 +998,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
   public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
+
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
     if (arguments.current().isStart()) {
       arguments.next();
@@ -1004,6 +1026,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+
     trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
@@ -1060,12 +1083,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
   }
 
-
   /**
-   * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
-   *     {@link CliArguments#copy() copy} as needed.
+   * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are
+   * matched. Consider passing a {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
-   * @return the {@link ValidationResult} telling if the {@link CliArguments} can be applied successfully or if validation errors ocurred.
+   * @return the {@link ValidationResult} telling if the {@link CliArguments} can be applied successfully or if
+   * validation errors ocurred.
    */
   public ValidationResult apply(CliArguments arguments, Commandlet cmd) {
 
@@ -1179,6 +1202,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @Override
   public WindowsPathSyntax getPathSyntax() {
+
     return this.pathSyntax;
   }
 
@@ -1202,6 +1226,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    * Reloads this context and re-initializes the {@link #getVariables() variables}.
    */
   public void reload() {
+
     this.variables = null;
     this.customToolRepository = null;
   }
