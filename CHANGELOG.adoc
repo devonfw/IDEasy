@@ -2,6 +2,14 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.01.002
+
+Release with important bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/979[#979]: XML Merger: Failed to compile XPath expression
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/19?closed=1[milestone 2025.01.002].
+
 == 2025.01.001
 
 Release with new features and bugfixes:
@@ -11,6 +19,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/916[#916]: download is missing status code error handling
 * https://github.com/devonfw/IDEasy/issues/757[#757]: Support to allow settings in code repository
 * https://github.com/devonfw/IDEasy/issues/826[#826]: Fix git settings check when settings folder is empty
+* https://github.com/devonfw/IDEasy/issues/919[#919]: Require user to agree to license
 * https://github.com/devonfw/IDEasy/issues/898[#898]: Improved output of get-version/edition and uninstall/-plugin
 * https://github.com/devonfw/IDEasy/issues/894[#894]: ide.bat not printing if IDEasy was initialized
 * https://github.com/devonfw/IDEasy/issues/759[#759]: Add UpgradeSettingsCommandlet for the upgrade of legacy devonfw-ide settings to IDEasy
