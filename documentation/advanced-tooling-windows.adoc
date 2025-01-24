@@ -145,7 +145,7 @@ For the example (« and ») you can simply use this script to get started:
 
 First, just press `[ctrl][<]` and `[ctrl][>]` (`[ctrl][shift][<]`).
 Next, create shortcuts to launch your IDE, to open your favorite tool, etc.
-If you like a GUI to easily configure the scrips, that comes with a lot of extensions preinstalled, you should have a look at https://activaid.telgkamp.de/[Active Aid].
+If you like a GUI to easily configure the scrips, that comes with a lot of extensions preinstalled, you should have a look at https://activaid.telgkamp.de/[Ac'tiveAid].
 
 === Paint anywhere on your desktop
 
