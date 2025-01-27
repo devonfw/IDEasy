@@ -141,6 +141,16 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   }
 
   /**
+   * Test of completion of repository.
+   */
+  @Test
+  public void testIdeCompleterWithRepository() {
+
+    this.reader.setCompleter(newCompleter());
+    assertBuffer("repository setup ", new TestBuffer("repository ").tab().tab());
+  }
+
+  /**
    * Test of completion of options and arguments after commandlets.
    */
   @Test
