@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.io;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
@@ -322,6 +323,19 @@ public interface FileAccess {
       return properties;
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read properties file: " + file, e);
+    }
+  }
+
+  /**
+   * @param properties the {@link Properties} to save.
+   * @param file the {@link Path} to the file where to save the properties.
+   */
+  default void writeProperties(Properties properties, Path file) {
+
+    try (Writer writer = Files.newBufferedWriter(file)) {
+      properties.store(writer, null);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to save properties file during tests.", e);
     }
   }
 

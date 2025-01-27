@@ -6,6 +6,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 
 /**
@@ -52,21 +53,28 @@ final class RepositoryProperties {
   public String getProperty(String name, boolean required) {
 
     String value = this.properties.getProperty(name);
-    if (value != null) {
-      return value;
-    }
-    String legacyName = name.replace("_", ".");
-    if (!legacyName.equals(name)) {
-      value = getLegacyProperty(legacyName, name);
-      if (value == null) {
-        legacyName = name.replace("_", "-");
+    if (value == null) {
+      String legacyName = name.replace("_", ".");
+      if (!legacyName.equals(name)) {
         value = getLegacyProperty(legacyName, name);
+        if (value == null) {
+          legacyName = name.replace("_", "-");
+          value = getLegacyProperty(legacyName, name);
+        }
       }
     }
-    if (required && (value == null)) {
-      this.context.error("The properties file {} is missing the required property {}", this.file, name);
+    if (isEmpty(value)) {
+      if (required) {
+        throw new CliException("The properties file " + this.file + " must have a non-empty value for the required property " + name);
+      }
+      return null;
     }
     return value;
+  }
+
+  private static boolean isEmpty(String value) {
+
+    return (value == null) || value.isBlank();
   }
 
   private String getLegacyProperty(String legacyName, String name) {

@@ -171,7 +171,7 @@ public class RepositoryCommandlet extends Commandlet {
 
     Set<String> imports = repositoryConfig.imports();
     if ((imports == null) || imports.isEmpty()) {
-      this.context.debug("Repository {} has no IDE configured for import.");
+      this.context.debug("Repository {} has no IDE configured for import.", repositoryId);
       return;
     }
     for (String ide : imports) {
