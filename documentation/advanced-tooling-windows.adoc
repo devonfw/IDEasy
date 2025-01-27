@@ -12,9 +12,9 @@ But if you need more, here are some ways to get it easily:
 
 https://chocolatey.org/[Chocolatey] is a repository for free and open source software similar to the repositories know from the Linux like apt, apk, pacman, ...
 
-=== Winget
+=== WinGet
 
-Microsoft is also working on a repository for Windows called https://github.com/microsoft/winget-cli[winget].
+Microsoft is also working on a repository for Windows called https://github.com/microsoft/winget-cli[WinGet].
 It is currently in a pre-release state, but is expected to be integrated in the upcoming Windows versions.
 
 == Tabs everywhere
@@ -87,17 +87,17 @@ The include tools like a file renamer, a way to order your windows on the screen
 
 === Sysinternals Tools
 
-A real developer will quickly notice that windows build in tools to analyze processes, network connections, autostarts, etc. are quite poor.
+A real developer will quickly notice that windows build in tools to analyze processes, network connections, AutoStarts, etc. are quite poor.
 So, what you really would like is the https://docs.microsoft.com/en-us/sysinternals/downloads/sysinternals-suite[Sysinternals-Suite].
 You can make process-explorer your https://www.ricksdailytips.com/make-process-explorer-default-task-manager/[default task manager].
-Use autoruns to prevent nasty background things to be started automatically.
-Use tcpview to figure out which process is blocking port 8080, etc.
+Use AutoRuns to prevent nasty background things to be started automatically.
+Use TCPView to figure out which process is blocking port 8080, etc.
 
 === Cope with file locks
 
-Did you ever fail to delete a file or directory that was locked by some process and you did not even know which one it was?
+Did you ever fail to delete a file or directory that was locked by some process, and you did not even know which one it was?
 Then you might love https://www.iobit.com/en/iobit-unlocker.php[IoBit Unlocker].
-Also `ProcessExplorer` from Sysinternal Tools (see above) allows to find locks via `Find` menu option `Find handle or DLL...`.
+Also `ProcessExplorer` from SysInternal Tools (see above) allows to find locks via `Find` menu option `Find handle or DLL...`.
 Here you can paste the path to the locked file and click `Search` to find the process owning the lock and can terminate the process.
 See also https://www.howtogeek.com/128680/HOW-TO-DELETE-MOVE-OR-RENAME-LOCKED-FILES-IN-WINDOWS/[this article].
 
@@ -108,7 +108,7 @@ Do you have to work with Windows?
 Would you also like to have such links in Windows?
 Why not?
 Windows https://www.howtogeek.com/howto/16226/complete-guide-to-symbolic-links-symlinks-on-windows-or-linux/[supports real links] (not shortcuts like in other cases).
-If you even want to have it integrated in Windows explorer you might want to install http://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html[linkshellextension].
+If you even want to have it integrated in Windows explorer you might want to install http://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html[Link Shell Extension].
 However, you might want to disable SmartMove in the http://schinagl.priv.at/nt/hardlinkshellext/hardlinkshellext.html#configuration[configuration] if you face strange performance issues when moving folders.
 
 === Linux
@@ -159,7 +159,7 @@ Convert them to https://en.wikipedia.org/wiki/Trivial_Graph_Format[Trivial Graph
 
 === Up your screen capture game
 
-Capture any part of your screen with a single click, directly upload to dropbox, or run a svn commit all in one go with http://getgreenshot.org/[Greenshot].
+Capture any part of your screen with a single click, directly upload to dropbox, or run a svn commit all in one go with http://getgreenshot.org/[GreenShot].
 Another screen capture tool where you can easily manage and edit your screenshots and also do screen recordings with is https://www.screenpresso.com/download/[Screenpresso].
 
 === Fast Search in Windows
