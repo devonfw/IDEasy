@@ -952,8 +952,8 @@ public abstract class AbstractIdeContext implements IdeContext {
         You will be able to find it online under the following URL:
         """).append(LICENSE_URL);
     if (this.ideRoot != null) {
-      sb.append("\n\nAlso it is included in the documentation that you can find here:\n")
-          .append(this.ideRoot.resolve(FOLDER_IDE).resolve("IDEasy.pdf").toString()).append("\n");
+      sb.append("\n\nAlso it is included in the documentation that you can find here:\n").
+          append(this.ideRoot.resolve(FOLDER_IDE).resolve("IDEasy.pdf").toString()).append("\n");
     }
     info(sb.toString());
     askToContinue("Do you accept these terms of use and all license agreements?");
@@ -984,8 +984,8 @@ public abstract class AbstractIdeContext implements IdeContext {
       } else if (this.ideHome != null) {
         Path ideRootPath = getIdeRootPathFromEnv();
         if (!this.ideRoot.equals(ideRootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
-              ideRootPath, this.ideHome.getFileName(), this.ideRoot);
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPath,
+              this.ideHome.getFileName(), this.ideRoot);
         }
       }
     }
