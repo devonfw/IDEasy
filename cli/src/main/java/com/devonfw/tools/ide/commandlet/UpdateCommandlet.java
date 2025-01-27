@@ -22,10 +22,4 @@ public class UpdateCommandlet extends AbstractUpdateCommandlet {
 
     return "update";
   }
-
-  @Override
-  public void run() {
-
-    super.run();
-  }
 }

@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
+import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.step.Step;
@@ -24,10 +25,13 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   /** {@link StringProperty} for the settings repository URL. */
-  protected final StringProperty settingsRepo;
+  public final StringProperty settingsRepo;
 
-  /** {@link FlagProperty} for skipping installation/updating of tools */
-  protected final FlagProperty skipTools;
+  /** {@link FlagProperty} for skipping installation/updating of tools. */
+  public final FlagProperty skipTools;
+
+  /** {@link FlagProperty} for skipping the setup of git repositories. */
+  public final FlagProperty skipRepositories;
 
   /**
    * The constructor.
@@ -38,7 +42,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     super(context);
     addKeyword(getName());
-    this.skipTools = add(new FlagProperty("--skip-tools", false, null));
+    this.skipTools = add(new FlagProperty("--skip-tools"));
+    this.skipRepositories = add(new FlagProperty("--skip-repositories"));
     this.settingsRepo = new StringProperty("", false, "settingsRepository");
   }
 
@@ -49,11 +54,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     updateConf();
     reloadContext();
 
-    if (this.skipTools.isTrue()) {
-      this.context.info("Skipping installation/update of tools as specified by the user.");
-    } else {
-      updateSoftware();
-    }
+    updateSoftware();
+    updateRepositories();
   }
 
   private void reloadContext() {
@@ -147,9 +149,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   private void updateSoftware() {
 
+    if (this.skipTools.isTrue()) {
+      this.context.info("Skipping installation/update of tools as specified by the user.");
+      return;
+    }
     try (Step step = this.context.newStep("Install or update software")) {
       Set<ToolCommandlet> toolCommandlets = new HashSet<>();
-
       // installed tools in IDE_HOME/software
       List<Path> softwarePaths = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
       for (Path softwarePath : softwarePaths) {
@@ -181,10 +186,20 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         } catch (Exception e) {
           step.error(e, "Installation of {} failed!", toolCommandlet.getName());
         }
-
       }
       step.success();
     }
+  }
+
+  private void updateRepositories() {
+
+    if (this.skipRepositories.isTrue()) {
+      this.context.info("Skipping setup of repositories as specified by the user.");
+      return;
+    }
+    RepositoryCommandlet repositoryCommandlet = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    repositoryCommandlet.reset();
+    repositoryCommandlet.run();
   }
 
 }
