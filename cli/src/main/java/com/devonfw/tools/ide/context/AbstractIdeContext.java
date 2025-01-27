@@ -286,8 +286,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (root == null) {
       return "The environment variable IDE_ROOT is undefined. Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     } else {
-      return "The environment variable IDE_ROOT is pointing to an invalid path " + root
-          + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
+      return "The environment variable IDE_ROOT is pointing to an invalid path " + root + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     }
   }
 
@@ -432,7 +431,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
 
     // check whether the settings path has a .git folder only if its not a symbolic link or junction
-    if (!Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlink()) {
+    if (!Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlinkOrJunction()) {
       error("Settings repository exists but is not a git repository.");
       return null;
     }
@@ -440,9 +439,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     return settingsPath;
   }
 
-  public boolean isSettingsRepositorySymlink() {
+  public boolean isSettingsRepositorySymlinkOrJunction() {
 
     Path settingsPath = getSettingsPath();
+    if (settingsPath == null) {
+      return false;
+    }
     return Files.isSymbolicLink(settingsPath) || getFileAccess().isJunction(settingsPath);
   }
 
@@ -619,8 +621,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @return the {@link #getDefaultExecutionDirectory() default execution directory} in which a command process is
-   * executed.
+   * @return the {@link #getDefaultExecutionDirectory() default execution directory} in which a command process is executed.
    */
   @Override
   public Path getDefaultExecutionDirectory() {
@@ -803,8 +804,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its
-   * {@link Commandlet#getProperties() properties} and will execute it.
+   * Finds the matching {@link Commandlet} to run, applies {@link CliArguments} to its {@link Commandlet#getProperties() properties} and will execute it.
    *
    * @param arguments the {@link CliArgument}.
    * @return the return code of the execution.
@@ -851,10 +851,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet) apply} and
-   * {@link Commandlet#run() run}.
-   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully,
-   * {@code false} otherwise (the {@link Commandlet} did not match and we have to try a different candidate).
+   * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet) apply} and {@link Commandlet#run() run}.
+   * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
+   *     {@link Commandlet} did not match and we have to try a different candidate).
    */
   private ValidationResult applyAndRun(CliArguments arguments, Commandlet cmd) {
 
@@ -889,7 +888,7 @@ public abstract class AbstractIdeContext implements IdeContext {
             if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
                 getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
                     settingsRepository, getSettingsCommitIdPath()))) {
-              if (isSettingsRepositorySymlink()) {
+              if (isSettingsRepositorySymlinkOrJunction()) {
                 interaction(
                     "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.");
 
@@ -1084,11 +1083,10 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   /**
-   * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are
-   * matched. Consider passing a {@link CliArguments#copy() copy} as needed.
+   * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
+   *     {@link CliArguments#copy() copy} as needed.
    * @param cmd the potential {@link Commandlet} to match.
-   * @return the {@link ValidationResult} telling if the {@link CliArguments} can be applied successfully or if
-   * validation errors ocurred.
+   * @return the {@link ValidationResult} telling if the {@link CliArguments} can be applied successfully or if validation errors ocurred.
    */
   public ValidationResult apply(CliArguments arguments, Commandlet cmd) {
 
