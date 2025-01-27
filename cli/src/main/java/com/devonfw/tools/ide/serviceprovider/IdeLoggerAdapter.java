@@ -90,37 +90,56 @@ public class IdeLoggerAdapter implements Logger {
 
   @Override
   public boolean isDebugEnabled() {
-    return loggingContext.debug().isEnabled();
+    if (loggingContext != null) {
+      return loggingContext.debug().isEnabled();
+    } else {
+      return false;
+    }
+
   }
 
   @Override
   public void debug(String s) {
-    loggingContext.debug(s);
+    if (loggingContext != null) {
+      loggingContext.debug(s);
+    }
   }
 
   @Override
   public void debug(String s, Object o) {
-    loggingContext.debug(s, o);
+    if (loggingContext != null) {
+      loggingContext.debug(s, o);
+    }
   }
 
   @Override
   public void debug(String s, Object o, Object o1) {
-    loggingContext.debug(s, o, o1);
+    if (loggingContext != null) {
+      loggingContext.debug(s, o, o1);
+    }
   }
 
   @Override
   public void debug(String s, Object... objects) {
-    loggingContext.debug(s, objects);
+    if (loggingContext != null) {
+      loggingContext.debug(s, objects);
+    }
   }
 
   @Override
   public void debug(String s, Throwable throwable) {
-    loggingContext.debug(s, throwable);
+    if (loggingContext != null) {
+      loggingContext.debug(s, throwable);
+    }
   }
 
   @Override
   public boolean isDebugEnabled(Marker marker) {
-    return loggingContext.debug().isEnabled();
+    if (loggingContext != null) {
+      return loggingContext.debug().isEnabled();
+    } else {
+      return false;
+    }
   }
 
   @Override
@@ -170,7 +189,9 @@ public class IdeLoggerAdapter implements Logger {
 
   @Override
   public void info(String s, Object... objects) {
-    loggingContext.info(s, objects);
+    if (loggingContext != null) {
+      loggingContext.info(s, objects);
+    }
   }
 
   @Override
