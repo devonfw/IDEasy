@@ -142,6 +142,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private NetworkProxy networkProxy;
 
+  /** Context used for logging */
+  public static IdeContext loggingContext;
+
   /**
    * The constructor.
    *
@@ -207,6 +210,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
 
     this.defaultToolRepository = new DefaultToolRepository(this);
+    loggingContext = this;
   }
 
   private Path findIdeRoot(Path ideHomePath) {
