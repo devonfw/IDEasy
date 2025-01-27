@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 
 public class RepositoryCommandletTest extends AbstractIdeContextTest {
 

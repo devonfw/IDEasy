@@ -12,10 +12,10 @@ import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
-import com.devonfw.tools.ide.repo.CustomToolMetadata;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.CustomToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.repository.CustomToolMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -107,8 +107,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   }
 
   /**
-   * Updates the settings repository in IDE_HOME/settings by either cloning if no such repository exists or pulling
-   * if the repository exists then saves the latest current commit ID in the file ".commit.id".
+   * Updates the settings repository in IDE_HOME/settings by either cloning if no such repository exists or pulling if the repository exists then saves the
+   * latest current commit ID in the file ".commit.id".
    */
   protected void updateSettings() {
 

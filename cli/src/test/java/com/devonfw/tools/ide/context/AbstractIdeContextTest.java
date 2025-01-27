@@ -11,7 +11,7 @@ import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.repo.ToolRepositoryMock;
+import com.devonfw.tools.ide.tool.repository.ToolRepositoryMock;
 
 /**
  * Abstract base class for tests that need mocked instances of {@link IdeContext}.

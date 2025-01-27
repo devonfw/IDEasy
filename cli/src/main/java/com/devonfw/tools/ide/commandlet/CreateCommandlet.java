@@ -5,6 +5,7 @@ import java.nio.file.Path;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitUrl;
+import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -113,11 +114,11 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
       String codeRepository = this.settingsRepo.getValue();
       if (codeRepository == null || codeRepository.isBlank()) {
         String message = """
-          No code repository was given after '--code'.
-          Please give the code repository below that includes your settings folder.
-          Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
-          Code repository URL:
-          """;
+            No code repository was given after '--code'.
+            Please give the code repository below that includes your settings folder.
+            Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
+            Code repository URL:
+            """;
         codeRepository = this.context.askForInput(message);
       }
       initializeCodeRepository(codeRepository);

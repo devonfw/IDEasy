@@ -1,8 +1,12 @@
 package com.devonfw.tools.ide.io;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -305,5 +309,20 @@ public interface FileAccess {
    * @see java.nio.file.Files#readString(Path)
    */
   String readFileContent(Path file);
+
+  /**
+   * @param file the {@link Path} to the {@link Properties} file to read.
+   * @return the parsed {@link Properties}.
+   */
+  default Properties readProperties(Path file) {
+
+    Properties properties = new Properties();
+    try (Reader reader = Files.newBufferedReader(file)) {
+      properties.load(reader);
+      return properties;
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read properties file: " + file, e);
+    }
+  }
 
 }
