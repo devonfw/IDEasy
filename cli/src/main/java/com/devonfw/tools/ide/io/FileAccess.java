@@ -306,4 +306,10 @@ public interface FileAccess {
    */
   String readFileContent(Path file);
 
+  /**
+   * @param path that is checked whether it is a junction or not.
+   * @return {@code true} if the given {@link Path} is a junction, false otherwise.
+   */
+  boolean isJunction(Path path);
+
 }

@@ -247,7 +247,7 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  private boolean isJunction(Path path) {
+  public boolean isJunction(Path path) {
 
     if (!SystemInfoImpl.INSTANCE.isWindows()) {
       return false;
