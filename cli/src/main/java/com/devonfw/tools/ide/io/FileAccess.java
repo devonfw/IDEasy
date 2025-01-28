@@ -307,6 +307,12 @@ public interface FileAccess {
   String readFileContent(Path file);
 
   /**
+   * @param content the {@link String} with the text to write to a file.
+   * @param file the {@link Path} to the file where to save.
+   */
+  void writeFileContent(String content, Path file);
+
+  /**
    * @param path that is checked whether it is a junction or not.
    * @return {@code true} if the given {@link Path} is a junction, false otherwise.
    */
