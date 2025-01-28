@@ -143,7 +143,7 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
         // fail fast if assertions are enabled, so developers of IDEasy will find the bug immediately but in productive use better log the error and continue
         assert false : actualMessage;
       }
-    } else if (args != null) {
+    } else if (args != null && args.length > 0) {
       actualMessage = compose(actualMessage, args);
     }
     boolean accept = this.listener.onLog(this.level, actualMessage, message, args, error);
