@@ -169,22 +169,32 @@ public class IdeLoggerAdapter implements Logger {
 
   @Override
   public boolean isInfoEnabled() {
-    return loggingContext.info().isEnabled();
+    if (loggingContext != null) {
+      return loggingContext.info().isEnabled();
+    } else {
+      return false;
+    }
   }
 
   @Override
   public void info(String s) {
-    loggingContext.info(s);
+    if (loggingContext != null) {
+      loggingContext.info(s);
+    }
   }
 
   @Override
   public void info(String s, Object o) {
-    loggingContext.info(s, o);
+    if (loggingContext != null) {
+      loggingContext.info(s, o);
+    }
   }
 
   @Override
   public void info(String s, Object o, Object o1) {
-    loggingContext.info(s, o, o1);
+    if (loggingContext != null) {
+      loggingContext.info(s, o, o1);
+    }
   }
 
   @Override
@@ -291,17 +301,25 @@ public class IdeLoggerAdapter implements Logger {
 
   @Override
   public boolean isErrorEnabled() {
-    return loggingContext.error().isEnabled();
+    if (loggingContext != null) {
+      return loggingContext.error().isEnabled();
+    } else {
+      return false;
+    }
   }
 
   @Override
   public void error(String s) {
-    loggingContext.error(s);
+    if (loggingContext != null) {
+      loggingContext.error(s);
+    }
   }
 
   @Override
   public void error(String s, Object o) {
-    loggingContext.error(s, o);
+    if (loggingContext != null) {
+      loggingContext.error(s, o);
+    }
   }
 
   @Override
@@ -311,17 +329,25 @@ public class IdeLoggerAdapter implements Logger {
 
   @Override
   public void error(String s, Object... objects) {
-    loggingContext.error(s, objects);
+    if (loggingContext != null) {
+      loggingContext.error(s, objects);
+    }
   }
 
   @Override
   public void error(String s, Throwable throwable) {
-    loggingContext.error(s, throwable);
+    if (loggingContext != null) {
+      loggingContext.error(s, throwable);
+    }
   }
 
   @Override
   public boolean isErrorEnabled(Marker marker) {
-    return loggingContext.error().isEnabled();
+    if (loggingContext != null) {
+      return loggingContext.error().isEnabled();
+    } else {
+      return false;
+    }
   }
 
   @Override
