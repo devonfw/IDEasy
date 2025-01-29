@@ -10,19 +10,18 @@ import org.junit.jupiter.api.Test;
 
 class MavenRepositoryTest extends AbstractIdeContextTest {
 
-  IdeTestContext context = newContext(PROJECT_BASIC);
-
-  MavenRepository mavenRepo = new MavenRepository(context);
 
   @Test
   void testGetMetadataWithRelease() {
 
     // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    MavenRepository mavenRepo = new MavenRepository(context);
     String groupId = "com.devonfw.tools.IDEasy";
     String artifactId = "ide-cli";
     VersionIdentifier version = VersionIdentifier.of("2024.04.001-beta");
     String classifier = "windows-x64";
-    String extension = ".tar.gz";
+    String extension = "tar.gz";
 
     // act
     UrlDownloadFileMetadata metadata = mavenRepo.getMetadata(groupId, artifactId, version, classifier, extension);
@@ -35,11 +34,13 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
   void testGetMetadataWithSnapshot() {
 
     // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    MavenRepository mavenRepo = new MavenRepository(context);
     String groupId = "com.devonfw.tools.IDEasy";
     String artifactId = "ide-cli";
     VersionIdentifier version = VersionIdentifier.of("2024.04.001-beta-20240419.123456-1");
     String classifier = "windows-x64";
-    String extension = ".tar.gz";
+    String extension = "tar.gz";
 
     // act
     UrlDownloadFileMetadata metadata = mavenRepo.getMetadata(groupId, artifactId, version, classifier, extension);
@@ -52,6 +53,8 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
   void testGetMetadataWithDefaultExtension() {
 
     // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    MavenRepository mavenRepo = new MavenRepository(context);
     String groupId = "com.devonfw.tools.IDEasy";
     String artifactId = "ide-cli";
     VersionIdentifier version = VersionIdentifier.of("2024.04.001-beta");

@@ -103,14 +103,24 @@ public class UrlMetadata {
    * @return the latest matching {@link VersionIdentifier} for the given {@code tool} and {@code edition}.
    */
   public VersionIdentifier getVersion(String tool, String edition, GenericVersionRange version) {
+    List<VersionIdentifier> versions = getSortedVersions(tool, edition);
+    return resolveVersionPattern(version, versions);
+  }
 
+  /**
+   * Resolves a version pattern against a list of available versions.
+   *
+   * @param version the version pattern to resolve
+   * @param versions the available versions, sorted in descending order
+   * @return the resolved version
+   */
+  public VersionIdentifier resolveVersionPattern(GenericVersionRange version, List<VersionIdentifier> versions) {
     if (version == null) {
       version = VersionIdentifier.LATEST;
     }
     if (!version.isPattern()) {
       return (VersionIdentifier) version;
     }
-    List<VersionIdentifier> versions = getSortedVersions(tool, edition);
     for (VersionIdentifier vi : versions) {
       if (version.contains(vi)) {
         this.context.debug("Resolved version pattern {} to version {}", version, vi);
@@ -118,8 +128,7 @@ public class UrlMetadata {
       }
     }
     throw new CliException(
-        "Could not find any version matching '" + version + "' for tool '" + tool + "' - potentially there are " + versions.size() + " version(s) available in "
-            + getEdition(tool, edition).getPath() + " but none matched!");
+        "Could not find any version matching '" + version + "' - there are " + versions.size() + " version(s) available but none matched!");
   }
 
   /**

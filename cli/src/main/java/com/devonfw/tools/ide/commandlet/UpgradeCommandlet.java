@@ -24,12 +24,6 @@ import java.time.format.DateTimeFormatter;
  */
 public class UpgradeCommandlet extends Commandlet {
 
-  /** Group id of IDEasy. */
-  private static final String IDEASY_GROUP_ID = "com.devonfw.tools.IDEasy";
-
-  /** Artifact Id of IDEasy. */
-  private static final String IDEASY_ARTIFACT_ID = "ide-cli";
-
   /**
    * The constructor.
    *
@@ -48,12 +42,11 @@ public class UpgradeCommandlet extends Commandlet {
   }
 
   /**
-   * Compares two snapshot versions to determine if the latest is newer. Handles versions in the following formats: -
-   * Current version format: "2024.12.002-beta-12_18_02-SNAPSHOT" - Latest version format:
-   * "2025.01.001-beta-20250118.022832-8"
-   *
-   * First compares base versions (e.g. 2024.12.002 with 2025.01.001), then timestamps if base versions are equal.
-   * Returns false if version formats are unexpected to avoid unintended upgrades.
+   * Compares two snapshot versions to determine if the latest is newer. Handles versions in the following formats: - Current version format:
+   * "2024.12.002-beta-12_18_02-SNAPSHOT" - Latest version format: "2025.01.001-beta-20250118.022832-8"
+   * <p>
+   * First compares base versions (e.g. 2024.12.002 with 2025.01.001), then timestamps if base versions are equal. Returns false if version formats are
+   * unexpected to avoid unintended upgrades.
    *
    * @param currentVersion The current snapshot version
    * @param latestVersion The latest snapshot version to compare against
@@ -116,28 +109,35 @@ public class UpgradeCommandlet extends Commandlet {
 
     ToolRepository mavenRepo = this.context.getMavenSoftwareRepository();
     VersionIdentifier currentVersion = VersionIdentifier.of(IdeVersion.get());
-    VersionIdentifier latestVersion = mavenRepo.resolveVersion(IDEASY_GROUP_ID, IDEASY_ARTIFACT_ID, currentVersion);
+    currentVersion = VersionIdentifier.of("2025.01.001-beta-01_21_02-SNAPSHOT");
+    VersionIdentifier configuredVersion;
+    if (currentVersion.toString().contains("SNAPSHOT")) {
+      configuredVersion = VersionIdentifier.LATEST_UNSTABLE;
+    } else {
+      configuredVersion = VersionIdentifier.LATEST;
+    }
+    VersionIdentifier resolvedVersion = mavenRepo.resolveVersion("com.devonfw.tools.IDEasy", "ide-cli", configuredVersion);
 
     boolean upgradeAvailable;
     if (currentVersion.toString().contains("SNAPSHOT")) {
-      upgradeAvailable = isSnapshotNewer(currentVersion.toString(), latestVersion.toString());
+      upgradeAvailable = isSnapshotNewer(currentVersion.toString(), resolvedVersion.toString());
     } else {
-      VersionComparisonResult comparisonResult = currentVersion.compareVersion(latestVersion);
+      VersionComparisonResult comparisonResult = currentVersion.compareVersion(resolvedVersion);
       upgradeAvailable = comparisonResult.isLess();
     }
 
     if (upgradeAvailable) {
-      this.context.info("A newer version is available: " + latestVersion);
+      this.context.info("A newer version is available: " + resolvedVersion);
       try {
         this.context.info("Downloading new version...");
         SystemInfo sys = this.context.getSystemInfo();
         String classifier = sys.getOs() + "-" + sys.getArchitecture();
 
-        Path downloadTarget = mavenRepo.download(IDEASY_GROUP_ID,
-            IDEASY_ARTIFACT_ID,
-            latestVersion,
+        Path downloadTarget = mavenRepo.download("com.devonfw.tools.IDEasy",
+            "ide-cli",
+            resolvedVersion,
             classifier,
-            ".tar.gz");
+            "tar.gz");
 
         Path extractionTarget = this.context.getIdeRoot().resolve(IdeContext.FOLDER_IDE);
         if (this.context.getSystemInfo().isWindows()) {
@@ -145,7 +145,7 @@ public class UpgradeCommandlet extends Commandlet {
         } else {
           this.context.info("Extracting files...");
           this.context.getFileAccess().extract(downloadTarget, extractionTarget);
-          this.context.success("Successfully upgraded to version {}", latestVersion);
+          this.context.success("Successfully upgraded to version {}", resolvedVersion);
         }
       } catch (Exception e) {
         throw new IllegalStateException("Failed to upgrade version.", e);
@@ -158,10 +158,7 @@ public class UpgradeCommandlet extends Commandlet {
   private void handleWindowsUpgrade(Path downloadTarget, Path extractionTarget) throws IOException {
 
     Path scriptPath = createUpgradeScriptForWindows();
-    ProcessContext pc = this.context.newProcess()
-        .errorHandling(ProcessErrorHandling.LOG_WARNING)
-        .executable(scriptPath)
-        .addArgs(downloadTarget, extractionTarget);
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(scriptPath).addArgs(downloadTarget, extractionTarget);
     pc.run(ProcessMode.BACKGROUND_SILENT);
     this.context.success("Upgrade process has been initiated.");
   }

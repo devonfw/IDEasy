@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.repo;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.GenericVersionRange;
@@ -15,26 +16,45 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.io.InputStream;
+import java.lang.Runtime.Version;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Implementation of {@link AbstractToolRepository} for maven-based artifacts.
  */
 public class MavenRepository extends AbstractToolRepository {
 
-  private static final String MAVEN_CENTRAL = "https://repo1.maven.org/maven2";
+  /** Base URL for Maven Central repository */
+  public static final String MAVEN_CENTRAL = "https://repo1.maven.org/maven2";
 
-  private static final String MAVEN_SNAPSHOTS = "https://s01.oss.sonatype.org/content/repositories/snapshots";
+  /** Base URL for Maven Snapshots repository */
+  public static final String MAVEN_SNAPSHOTS = "https://s01.oss.sonatype.org/content/repositories/snapshots";
 
   private static final String MAVEN_METADATA_XML = "maven-metadata.xml";
 
-  private static final String DEFAULT_EXTENSION = ".jar";
-
   private final DocumentBuilder documentBuilder;
 
-  private static final String SNAPSHOT_VERSION_PATTERN = ".*-\\d{8}\\.\\d{6}-\\d+";
+  private static final Map<String, String> TOOL_TO_GROUP_ID = Map.of(
+
+      "ideasy", "com.devonfw.tools.IDEasy",
+      "cobigen", "com.devonfw.cobigen"
+  );
+
+  private String resolveGroupId(String tool) {
+
+    String groupId = TOOL_TO_GROUP_ID.get(tool);
+    if (groupId == null) {
+      throw new UnsupportedOperationException("Tool '" + tool + "' is not supported by Maven repository.");
+    }
+    return groupId;
+  }
+
 
   /**
    * The constructor.
@@ -53,81 +73,64 @@ public class MavenRepository extends AbstractToolRepository {
   }
 
   @Override
-  protected UrlDownloadFileMetadata getMetadata(String groupId, String artifactId, VersionIdentifier version) {
+  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version) {
 
-    return getMetadata(groupId, artifactId, version, null, null);
+    return getMetadata(tool, edition, version, null, null);
   }
 
   @Override
-  protected UrlDownloadFileMetadata getMetadata(String groupId, String artifactId, VersionIdentifier version, String classifier, String extension) {
+  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, String classifier, String type) {
 
-    if (extension == null || extension.isEmpty()) {
-      extension = DEFAULT_EXTENSION;
+    String groupId = resolveGroupId(tool);
+    if (type == null) {
+      type = MvnArtifact.TYPE_JAR;
     }
-
-    String versionStr = version.toString();
-    boolean isSnapshot = versionStr.matches(SNAPSHOT_VERSION_PATTERN);
-    String pathVersion = isSnapshot ?
-        versionStr.replaceAll("-\\d{8}\\.\\d{6}-\\d+", "-SNAPSHOT") :
-        versionStr;
-
-    StringBuilder fileNameBuilder = new StringBuilder()
-        .append(artifactId)
-        .append("-")
-        .append(versionStr);
-
-    if (classifier != null && !classifier.isEmpty()) {
-      fileNameBuilder.append("-").append(classifier);
-    }
-    fileNameBuilder.append(extension);
-
-    String fileName = fileNameBuilder.toString();
-    String baseUrl = isSnapshot ? MAVEN_SNAPSHOTS : MAVEN_CENTRAL;
-    String downloadUrl = baseUrl + "/" + getPath(groupId, artifactId, pathVersion, fileName);
-
-    return new MavenArtifactMetadata(groupId, artifactId, version, downloadUrl, null, null);
+    MvnArtifact mvnArtifact = new MvnArtifact(groupId, edition, version.toString(), type, classifier);
+    return new MavenArtifactMetadata(mvnArtifact, version);
   }
 
 
   @Override
-  public VersionIdentifier resolveVersion(String groupId, String artifactId, GenericVersionRange versionRange) {
+  public VersionIdentifier resolveVersion(String groupId, String artifactId, GenericVersionRange version) {
 
+    String baseUrl;
+    if (version == VersionIdentifier.LATEST_UNSTABLE) {
+      baseUrl = MAVEN_SNAPSHOTS;
+    } else {
+      baseUrl = MAVEN_CENTRAL;
+    }
+    String metadataUrl = baseUrl + "/" + groupId.replace('.', '/') + "/" + artifactId + "/" + MAVEN_METADATA_XML;
+    List<VersionIdentifier> versions = fetchVersions(metadataUrl);
+    // beta versions of maven central are also considered unstable and "*" doesn't match them
+    VersionIdentifier resolvedVersion = this.context.getUrls().resolveVersionPattern(version, versions);
+    if (resolvedVersion.toString().endsWith("-SNAPSHOT")) {
+      String snapshotMetadataUrl = baseUrl + "/" + groupId.replace('.', '/') + "/" +
+          artifactId + "/" + resolvedVersion + "/" + MAVEN_METADATA_XML;
+      return resolveSnapshotVersion(snapshotMetadataUrl, resolvedVersion.toString());
+    }
+    return resolvedVersion;
+  }
+
+  private List<VersionIdentifier> fetchVersions(String metadataUrl) {
     try {
-      String baseUrl = versionRange.toString().endsWith("-SNAPSHOT") ? MAVEN_SNAPSHOTS : MAVEN_CENTRAL;
-      String metadataUrl = baseUrl + "/" + getPath(groupId, artifactId, null, MAVEN_METADATA_XML);
       Document doc = fetchXmlMetadata(metadataUrl);
-
       XPath xpath = XPathFactory.newInstance().newXPath();
       NodeList versions = (NodeList) xpath.evaluate("//versions/version", doc, XPathConstants.NODESET);
 
-      if (versions.getLength() == 0) {
-        throw new IllegalStateException("No versions found in metadata of " + artifactId);
-      }
-
-      VersionIdentifier latestVersion = null;
+      List<VersionIdentifier> versionList = new ArrayList<>();
       for (int i = 0; i < versions.getLength(); i++) {
-        VersionIdentifier version = VersionIdentifier.of(versions.item(i).getTextContent());
-        if (latestVersion == null || latestVersion.compareVersion(version).isLess()) {
-          latestVersion = version;
-        }
+        versionList.add(VersionIdentifier.of(versions.item(i).getTextContent()));
       }
-
-      if (latestVersion.toString().endsWith("-SNAPSHOT")) {
-        return VersionIdentifier.of(resolveSnapshotVersion(groupId, artifactId, latestVersion.toString()));
-      }
-
-      return latestVersion;
+      Collections.sort(versionList, Comparator.reverseOrder());
+      return versionList;
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to resolve version for " + groupId + ":" + artifactId, e);
+      throw new IllegalStateException("Failed to fetch versions from " + metadataUrl, e);
     }
   }
 
-  private String resolveSnapshotVersion(String groupId, String artifactId, String baseVersion) {
-
+  private VersionIdentifier resolveSnapshotVersion(String metadataUrl, String baseVersion) {
     try {
-      String metadataUrl = MAVEN_SNAPSHOTS + "/" + getPath(groupId, artifactId, baseVersion, MAVEN_METADATA_XML);
       Document doc = fetchXmlMetadata(metadataUrl);
-
       XPath xpath = XPathFactory.newInstance().newXPath();
       String timestamp = (String) xpath.evaluate("//timestamp", doc, XPathConstants.STRING);
       String buildNumber = (String) xpath.evaluate("//buildNumber", doc, XPathConstants.STRING);
@@ -136,7 +139,8 @@ public class MavenRepository extends AbstractToolRepository {
         throw new IllegalStateException("Missing timestamp or buildNumber in snapshot metadata");
       }
 
-      return baseVersion.replace("-SNAPSHOT", "") + "-" + timestamp + "-" + buildNumber;
+      String version = baseVersion.replace("-SNAPSHOT", "-" + timestamp + "-" + buildNumber);
+      return VersionIdentifier.of(version);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to resolve snapshot version for " + baseVersion, e);
     }
@@ -152,12 +156,6 @@ public class MavenRepository extends AbstractToolRepository {
     } catch (Exception e) {
       throw new IllegalStateException("Failed to fetch XML metadata from " + url, e);
     }
-  }
-
-  private String getPath(String groupId, String artifactId, String version, String fileName) {
-
-    String basePath = groupId.replace('.', '/') + "/" + artifactId;
-    return version != null ? basePath + "/" + version + "/" + fileName : basePath + "/" + fileName;
   }
 
   @Override

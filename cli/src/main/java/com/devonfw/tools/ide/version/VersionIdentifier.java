@@ -11,6 +11,9 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   /** {@link VersionIdentifier} "*" that will resolve to the latest stable version. */
   public static final VersionIdentifier LATEST = VersionIdentifier.of("*");
 
+  /** {@link VersionIdentifier} "*!" that will resolve to the latest snapshot. */
+  public static final VersionIdentifier LATEST_UNSTABLE = VersionIdentifier.of("*!");
+
   private final VersionSegment start;
 
   private final VersionLetters developmentPhase;
