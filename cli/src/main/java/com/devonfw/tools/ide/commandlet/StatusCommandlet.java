@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -42,7 +43,7 @@ public class StatusCommandlet extends Commandlet {
     boolean hasLegacyProperties = false;
     while (variables != null) {
       Path legacyProperties = variables.getLegacyPropertiesFilePath();
-      if (legacyProperties != null) {
+      if (legacyProperties != null && Files.exists(legacyProperties)) {
         hasLegacyProperties = true;
         this.context.warning("Found legacy properties {}", legacyProperties);
       }
@@ -55,11 +56,13 @@ public class StatusCommandlet extends Commandlet {
   }
 
   private void logSettingsGitStatus() {
-    Path settingsPath = this.context.getSettingsPath();
+    Path settingsPath = this.context.getSettingsGitRepository();
     if (settingsPath != null) {
       GitContext gitContext = this.context.getGitContext();
-      if (gitContext.isRepositoryUpdateAvailable(settingsPath)) {
-        this.context.warning("Your settings are not up-to-date, please run 'ide update'.");
+      if (gitContext.isRepositoryUpdateAvailable(settingsPath, this.context.getSettingsCommitIdPath())) {
+        if (!this.context.isSettingsRepositorySymlinkOrJunction()) {
+          this.context.warning("Your settings are not up-to-date, please run 'ide update'.");
+        }
       } else {
         this.context.success("Your settings are up-to-date.");
       }
@@ -79,5 +82,11 @@ public class StatusCommandlet extends Commandlet {
     } else {
       this.context.warning("You are offline. Check your internet connection and potential proxy settings.");
     }
+  }
+
+  @Override
+  public boolean isIdeRootRequired() {
+
+    return false;
   }
 }

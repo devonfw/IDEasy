@@ -3,10 +3,9 @@
 
   <modelVersion>4.0.0</modelVersion>
   <parent>
-    <groupId>com.devonfw.tools</groupId>
-    <artifactId>devonfw-docgen-pdf</artifactId>
-    <version>2023.04.001</version>
-    <relativePath/>
+    <groupId>com.devonfw.tools.IDEasy.dev</groupId>
+    <artifactId>ide</artifactId>
+    <version>dev-SNAPSHOT</version>
   </parent>
   <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>ide-doc</artifactId>
@@ -16,18 +15,245 @@
   <description>Documentation for IDEasy (Tool for automation of development environments)</description>
 
   <properties>
+    <docgen.asciidoc.source>${basedir}</docgen.asciidoc.source>
+    <docgen.asciidoc.target>${basedir}/target/asciidoc</docgen.asciidoc.target>
     <docgen.asciidoc.page>IDEasy</docgen.asciidoc.page>
     <docgen.asciidoc.extension>adoc</docgen.asciidoc.extension>
+    <docgen.generated.docs>${basedir}/target/generated-docs</docgen.generated.docs>
+    <docgen.docsource>${docgen.asciidoc.page}.${docgen.asciidoc.extension}</docgen.docsource>
+    <docgen.images.dir>images</docgen.images.dir>
+    <docgen.highlighter>coderay</docgen.highlighter>
+    <docgen.headerFooter>true</docgen.headerFooter>
+    <docgen.preserveDirectories>true</docgen.preserveDirectories>
+    <docgen.linkcss>true</docgen.linkcss>
+    <docgen.toc>right</docgen.toc>
+    <docgen.icons>font</docgen.icons>
+    <docgen.idseparator>-</docgen.idseparator>
+    <docgen.backend>pdf</docgen.backend>
+    <docgen.output.format>pdf</docgen.output.format>
+    <docgen.eruby>erb</docgen.eruby>
+    <buildtime>${maven.build.timestamp}</buildtime>
+    <maven.build.timestamp.format>yyyy-MM-dd_HH.mm.ss</maven.build.timestamp.format>
+    <asciidoctor.maven.plugin.version>1.6.0</asciidoctor.maven.plugin.version>
+    <asciidoctorj.pdf.version>1.5.0-alpha.18</asciidoctorj.pdf.version>
+    <jruby.version>9.2.6.0</jruby.version>
+    <asciidoctor.skip>false</asciidoctor.skip>
+    <flatten.mode>resolveCiFriendliesOnly</flatten.mode>
     <revision>dev-SNAPSHOT</revision>
   </properties>
 
   <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-antrun-plugin</artifactId>
+        <version>3.1.0</version>
+        <dependencies>
+          <dependency>
+            <groupId>ant-contrib</groupId>
+            <artifactId>ant-contrib</artifactId>
+            <version>1.0b3</version>
+            <exclusions>
+              <exclusion>
+                <groupId>ant</groupId>
+                <artifactId>ant</artifactId>
+              </exclusion>
+            </exclusions>
+          </dependency>
+          <dependency>
+            <groupId>org.apache.ant</groupId>
+            <artifactId>ant-nodeps</artifactId>
+            <version>1.8.1</version>
+          </dependency>
+          <dependency>
+            <groupId>org.beanshell</groupId>
+            <artifactId>bsh</artifactId>
+            <version>2.0b5</version>
+          </dependency>
+        </dependencies>
+        <executions>
+          <execution>
+            <id>pre-process-asciidoc</id>
+            <phase>process-resources</phase>
+            <configuration>
+              <skip>${asciidoctor.skip}</skip>
+              <target>
+                <taskdef resource="net/sf/antcontrib/antlib.xml"/>
+
+                <for param="asciidoc-file">
+                  <path>
+                    <fileset dir="${docgen.asciidoc.source}" casesensitive="yes">
+                      <exclude name="**/target/**"/>
+                      <include name="**/*.${docgen.asciidoc.extension}"/>
+                    </fileset>
+                  </path>
+                  <sequential>
+
+                    <!-- unset variable to ensure it is properly updated in next property and dirname tasks -->
+                    <var name="path_to_copy_to" unset="true"/>
+                    <var name="path_id_prefix" unset="true"/>
+                    <property name="path_id_prefix" value=""/>
+                    <var name="file_path" unset="true"/>
+
+
+                    <property name="path_to_copy_to" value=""/>
+                    <dirname property="file_path" file="@{asciidoc-file}"/>
+
+                    <!-- unset variable to ensure it is properly updated in next basename task -->
+                    <var name="filename" unset="true"/>
+                    <basename property="filename" file="@{asciidoc-file}"/>
+
+                    <var name="norm_prefix" unset="true"/>
+                    <property name="norm_prefix" value=""/>
+
+                    <!-- Remove the path from the root directory until current sourceDirectory to obtain a relative path -->
+                    <script language="beanshell"><![CDATA[
+                      String path = project.getProperty("file_path").replace("\\", "/");
+                      String source = project.getProperty("docgen.asciidoc.source").replace("\\", "/");
+                      path = path.replace(source, "");
+                      if(path.startsWith("/")) {
+                        path = path.replaceFirst("/", "");
+                      }
+                      project.setProperty("path_to_copy_to", path);
+                      if(!path.isEmpty()) {
+                      project.setProperty("path_id_prefix", path + "_");
+                      } else {
+                        project.setProperty("path_id_prefix", "");
+                      }
+
+                      String filename = project.getProperty("filename");
+                      String normalizedPrefix = (path + "/" + filename).replace("/", "_");
+                      if( normalizedPrefix.startsWith("_")) normalizedPrefix=normalizedPrefix.substring(1);
+                      project.setProperty("norm_prefix", normalizedPrefix);
+                    ]]></script>
+
+                    <copy file="@{asciidoc-file}" todir="${docgen.asciidoc.target}/${path_to_copy_to}"
+                      encoding="${project.build.sourceEncoding}" outputencoding="${project.reporting.outputEncoding}"
+                      verbose="true">
+                      <filterchain>
+                        <tokenfilter>
+                          <linetokenizer/>
+                          <!-- make anchors unique by prefixing with filename -->
+                          <replaceregex pattern="\[\[" replace="[[${norm_prefix}_" flags="g"/>
+                          <!-- insert top-level anchor for file so links to this entire file work after being resolved as xref -->
+                          <replaceregex pattern="^(=) " replace="[[${norm_prefix}_top]]${line.separator}\1 " flags="g"/>
+                          <!-- automatically generate anchors for (sub-)sections -->
+                          <replaceregex pattern="^(==+) (.*)" replace="[[${norm_prefix}_\2]]${line.separator}\1 \2" flags="g"/>
+
+                          <!-- fix xref/link with empty linktext to use target as linktext (AsciiDoc default) -->
+                          <replaceregex pattern="xref:([^\[]*)\[\]" replace="xref:\1[\1]" flags="g"/>
+                          <replaceregex pattern="link:([^\[]*)\[\]" replace="link:\1[\1]" flags="g"/>
+
+                          <!-- fix xrefs to also include filename prefix -->
+                          <replaceregex pattern="xref:([^#\[]+)\[" replace="xref:${norm_prefix}_\1[" flags="g"/>
+                          <!-- fix relative links with anchor to xref inter document ref -->
+                          <replaceregex pattern="link:([^#:]+)#([^\[]*)\[" replace="xref:${path_id_prefix}\1_\2[" flags="g"/>
+                          <!-- fix relative links without anchor to xref document ref -->
+                          <replaceregex pattern="link:([^:\[]+)(#|\[)" replace="xref:${path_id_prefix}\1_top\2" flags="g"/>
+
+                          <!-- normalize (generated) anchors to not contain special characters -->
+                          <scriptfilter language="beanshell" byline="true" setbeans="true"><![CDATA[
+                            String text = self.getToken();
+                            if (text.startsWith("[[")) {
+                              int end = text.indexOf("]]");
+                              if (end > 0) {
+                                String content = text.substring(2, end).trim().toLowerCase().replaceAll("[?¿!¡':()&/“”`\"\\[\\]#]", "").replace(' ', '-');
+                                self.setToken("[[" + content + "]]" + text.substring(end + 2));
+                              }
+                            }
+                          ]]></scriptfilter>
+                          <!-- resolve maven variables -->
+                          <replaceregex pattern="\$\{project\.version\}" replace="${project.version}" flags="g"/>
+                          <replaceregex pattern="\$\{project\.artifactId\}" replace="${project.artifactId}" flags="g"/>
+                          <replaceregex pattern="\$\{buildtime\}" replace="${buildtime}" flags="g"/>
+                        </tokenfilter>
+                      </filterchain>
+                    </copy>
+                  </sequential>
+                </for>
+
+                <!-- Copy further AsciiDoc resources -->
+                <copy todir="${docgen.asciidoc.target}" encoding="${project.build.sourceEncoding}">
+                  <path>
+                    <fileset dir="${docgen.asciidoc.source}">
+                      <exclude name="**/*.${docgen.asciidoc.extension}"/>
+                      <exclude name="**/target/**"/>
+                      <exclude name="**/pom.xml"/>
+                      <exclude name="**/${docgen.images.dir}/**/*"/>
+                    </fileset>
+                  </path>
+                </copy>
+
+                <!-- Check all the directories with images (list received as argument) -->
+                <for list="${docgen.images.dir}" param="receiveddir">
+                  <sequential>
+                    <!-- For each directory check its subfolders and copy them -->
+                    <for param="imagesdir">
+                      <path>
+                        <dirset dir="${docgen.asciidoc.source}" casesensitive="yes">
+                          <include name="**/@{receiveddir}/**"/>
+                        </dirset>
+                      </path>
+                      <sequential>
+                        <!-- Copy the resources -->
+                        <copy todir="${docgen.asciidoc.target}/@{receiveddir}">
+                          <path>
+                            <fileset dir="@{imagesdir}">
+                              <include name="**/*"/>
+                            </fileset>
+                          </path>
+                        </copy>
+                      </sequential>
+                    </for>
+                  </sequential>
+                </for>
+              </target>
+            </configuration>
+            <goals>
+              <goal>run</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
         <groupId>org.asciidoctor</groupId>
         <artifactId>asciidoctor-maven-plugin</artifactId>
         <version>${asciidoctor.maven.plugin.version}</version>
+        <dependencies>
+          <dependency>
+            <groupId>org.asciidoctor</groupId>
+            <artifactId>asciidoctorj-pdf</artifactId>
+            <version>${asciidoctorj.pdf.version}</version>
+          </dependency>
+          <dependency>
+            <groupId>org.jruby</groupId>
+            <artifactId>jruby-complete</artifactId>
+            <version>${jruby.version}</version>
+          </dependency>
+        </dependencies>
         <configuration>
+          <skip>${asciidoctor.skip}</skip>
+          <sourceDirectory>${docgen.asciidoc.target}</sourceDirectory>
+          <sourceDocumentName>${docgen.docsource}</sourceDocumentName>
+          <imagesDir>${docgen.generated.docs}</imagesDir>
+          <backend>${docgen.backend}</backend>
+          <outputDirectory>${docgen.generated.docs}</outputDirectory>
+          <sourceHighlighter>${docgen.highlighter}</sourceHighlighter>
+          <headerFooter>${docgen.headerFooter}</headerFooter>
+          <preserveDirectories>${docgen.preserveDirectories}</preserveDirectories>
+          <eruby>${docgen.eruby}</eruby>
+          <attributes>
+            <allow-uri-read/>
+            <icons>${docgen.icons}</icons>
+            <pagenums/>
+            <experimental/>
+            <toc>${docgen.toc}</toc>
+            <baseDir>./</baseDir>
+            <linkcss>${docgen.linkcss}</linkcss>
+            <idprefix/>
+            <idseparator>${docgen.idseparator}</idseparator>
+          </attributes>
           <logHandler>
             <outputToConsole>false</outputToConsole>
             <failIf>
@@ -35,6 +261,39 @@
             </failIf>
           </logHandler>
         </configuration>
+        <executions>
+          <execution>
+            <id>generate-doc</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>process-asciidoc</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.6.0</version>
+        <executions>
+          <execution>
+            <id>attach-doc</id>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <phase>package</phase>
+            <configuration>
+              <skipAttach>${asciidoctor.skip}</skipAttach>
+              <artifacts>
+                <artifact>
+                  <file>${docgen.generated.docs}/${docgen.asciidoc.page}.${docgen.output.format}</file>
+                  <type>${docgen.output.format}</type>
+                </artifact>
+              </artifacts>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
     </plugins>
   </build>

@@ -15,9 +15,6 @@ public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
   /** Ending time of an {@link IdeProgressBar}. */
   private Instant end;
 
-  /** The task name of an {@link IdeProgressBar}. */
-  private final String name;
-
   /** The total span of an {@link IdeProgressBar}. */
   private long total;
 
@@ -27,13 +24,14 @@ public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
   /**
    * The constructor.
    *
-   * @param name the task name.
-   * @param max maximum length of the bar.
+   * @param title the {@link #getTitle() title}.
+   * @param maxSize the {@link #getMaxSize() maximum size}.
+   * @param unitName the {@link #getUnitName() unit name}.
+   * @param unitSize the {@link #getUnitSize() unit size}.
    */
-  public IdeProgressBarTestImpl(String name, long max) {
-    super(max);
+  public IdeProgressBarTestImpl(String title, long maxSize, String unitName, long unitSize) {
+    super(title, maxSize, unitName, unitSize);
     this.start = Instant.now();
-    this.name = name;
     this.eventList = new ArrayList<>();
   }
 
@@ -56,8 +54,8 @@ public class IdeProgressBarTestImpl extends AbstractIdeProgressBar {
       this.end = Instant.now();
     }
 
-    if (getMaxLength() != -1) {
-      assert this.total == getMaxLength();
+    if (getMaxSize() != -1) {
+      assert this.total == getMaxSize();
     }
   }
 

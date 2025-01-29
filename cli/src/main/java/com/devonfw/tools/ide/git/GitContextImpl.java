@@ -1,17 +1,19 @@
 package com.devonfw.tools.ide.git;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.variable.IdeVariables;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * Implements the {@link GitContext}.
@@ -59,6 +61,21 @@ public class GitContextImpl implements GitContext {
   }
 
   @Override
+  public boolean isRepositoryUpdateAvailable(Path repository, Path trackedCommitIdPath) {
+
+    verifyGitInstalled();
+    String trackedCommitId;
+    try {
+      trackedCommitId = Files.readString(trackedCommitIdPath);
+    } catch (IOException e) {
+      return false;
+    }
+
+    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
+    return !trackedCommitId.equals(remoteCommitId);
+  }
+
+  @Override
   public void pullOrCloneAndResetIfNeeded(GitUrl gitUrl, Path repository, String remoteName) {
 
     pullOrCloneIfNeeded(gitUrl, repository);
@@ -89,8 +106,8 @@ public class GitContextImpl implements GitContext {
   /**
    * Handles errors which occurred during git pull.
    *
-   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where git
-   * will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
+   * @param targetRepository the {@link Path} to the target folder where the git repository should be cloned or pulled. It is not the parent directory where
+   *     git will by default create a sub-folder by default on clone but the * final folder that will contain the ".git" subfolder.
    * @param result the {@link ProcessResult} to evaluate.
    */
   private void handleErrors(Path targetRepository, ProcessResult result) {
@@ -165,7 +182,9 @@ public class GitContextImpl implements GitContext {
     if (remote == null) {
       remote = determineRemote(repository);
     }
-    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", remote, branch);
+
+    ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT_CAPTURE, "fetch", Objects.requireNonNullElse(remote, "origin"), branch);
+
     if (!result.isSuccessful()) {
       this.context.warning("Git fetch for '{}/{} failed.'.", remote, branch);
     }
@@ -239,7 +258,7 @@ public class GitContextImpl implements GitContext {
     Path binaryGitPath = this.context.getPath().findBinary(git);
     if (git == binaryGitPath) {
       String message = "Could not find a git installation. We highly recommend installing git since most of our actions require git to work properly!";
-      throw new IllegalStateException(message);
+      throw new CliException(message);
     }
     this.context.trace("Git is installed");
   }
@@ -288,6 +307,24 @@ public class GitContextImpl implements GitContext {
         .directory(directory);
     processContext.addArgs(args);
     return processContext.run(mode);
+  }
+
+  @Override
+  public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
+
+    if ((repository == null) || (trackedCommitIdPath == null)) {
+      this.context.warning("Invalid usage of saveCurrentCommitId with null value");
+      return;
+    }
+    this.context.trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
+    String currentCommitId = runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
+    if (currentCommitId != null) {
+      try {
+        Files.writeString(trackedCommitIdPath, currentCommitId);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to save commit ID", e);
+      }
+    }
   }
 }
 

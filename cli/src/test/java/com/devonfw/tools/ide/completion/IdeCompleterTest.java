@@ -32,6 +32,17 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   }
 
   /**
+   * Test of 1st level auto-completion (commandlet name). Here we test the special case of the {@link com.devonfw.tools.ide.commandlet.VersionCommandlet} that
+   * has a long-option style.
+   */
+  @Test
+  public void testIdeCompleterBatch() {
+
+    this.reader.setCompleter(newCompleter());
+    assertBuffer("--batch ", new TestBuffer("--b").tab());
+  }
+
+  /**
    * Test of 2nd level auto-completion with tool property of {@link com.devonfw.tools.ide.commandlet.InstallCommandlet}.
    */
   @Test
@@ -92,7 +103,7 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
   public void testIdeCompleterPreventsOptionsAfterCommandWithMinus() {
 
     this.reader.setCompleter(newCompleter());
-    assertBuffer("get-version -", new TestBuffer("get-version -").tab().tab());
+    assertBuffer("get-version --configured ", new TestBuffer("get-version -").tab().tab());
     assertBuffer("get-version - ", new TestBuffer("get-version - ").tab().tab());
 
   }
@@ -117,6 +128,36 @@ public class IdeCompleterTest extends AutocompletionReaderTestSupport {
 
     this.reader.setCompleter(newCompleter());
     assertBuffer("get-version mvn ", new TestBuffer("get-version mv").tab().tab());
+  }
+
+  /**
+   * Test of completion of options after commandlets.
+   */
+  @Test
+  public void testIdeCompleterWithOptionAfterCommandletWorks() {
+
+    this.reader.setCompleter(newCompleter());
+    assertBuffer("env --bash ", new TestBuffer("env --ba").tab().tab());
+  }
+
+  /**
+   * Test of completion of repository.
+   */
+  @Test
+  public void testIdeCompleterWithRepository() {
+
+    this.reader.setCompleter(newCompleter());
+    assertBuffer("repository setup ", new TestBuffer("repository ").tab().tab());
+  }
+
+  /**
+   * Test of completion of options and arguments after commandlets.
+   */
+  @Test
+  public void testIdeCompleterWithOptionAndArguments() {
+
+    this.reader.setCompleter(newCompleter());
+    assertBuffer("get-version --configured ", new TestBuffer("get-version --c").tab().tab());
   }
 
   private IdeCompleter newCompleter() {

@@ -1,19 +1,11 @@
 package com.devonfw.tools.ide.commandlet;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.nio.file.Files;
-import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
@@ -48,7 +40,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     uninstallCommandlet.run();
     // assert
     assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled " + npm),
-        IdeLogEntry.ofWarning("An installed version of " + dotnet + " does not exist"));
+        IdeLogEntry.ofWarning("Couldn't uninstall " + dotnet + " because we could not find an installation"));
     assertThat(context.getSoftwarePath().resolve(npm)).doesNotExist();
   }
 
@@ -65,35 +57,25 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     // act
     uninstallCommandlet.run();
     // assert
-    assertThat(context).logAtWarning().hasMessage("An installed version of " + eclipse + " does not exist");
+    assertThat(context).logAtWarning().hasMessage("Couldn't uninstall " + eclipse + " because we could not find an installation");
     assertThat(Files.notExists(context.getSoftwarePath().resolve(eclipse)));
   }
 
   @Test
-  public void testUninstallCommandletRun_ThrowsException() {
+  public void testUninstallCommandletRun() {
 
     // arrange
-    FileAccessImpl mockFileAccess = mock(FileAccessImpl.class);
-    IdeTestContext mockContext = mock(IdeTestContext.class);
     IdeTestContext context = newContext(PROJECT_BASIC);
-    Path softwarePath = context.getSoftwarePath();
 
-    when(mockContext.getFileAccess()).thenReturn(mockFileAccess);
-
-    when(mockContext.getCommandletManager()).thenReturn(new CommandletManagerImpl(mockContext));
-    when(mockContext.getSoftwarePath()).thenReturn(softwarePath);
-
-    doThrow(new IllegalStateException("Couldn't uninstall")).when(mockFileAccess).delete(any());
-    CommandletManager commandletManager = getCommandletManager(mockContext);
+    CommandletManager commandletManager = getCommandletManager(context);
     UninstallCommandlet uninstallCommandlet = commandletManager.getCommandlet(UninstallCommandlet.class);
     Npm npmCommandlet = commandletManager.getCommandlet(Npm.class);
     uninstallCommandlet.tools.addValue(npmCommandlet);
 
     // act
     uninstallCommandlet.run();
-
     //assert
-    verify(mockContext).error("Couldn't uninstall npm");
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled npm"));
   }
 
   private CommandletManager getCommandletManager(IdeTestContext context) {

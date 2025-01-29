@@ -1,9 +1,10 @@
 package com.devonfw.tools.ide.merge.xmlmerger;
 
+import java.io.BufferedWriter;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -24,17 +25,17 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.merge.FileMerger;
 import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
-import com.devonfw.tools.ide.merge.xmlmerger.model.MergeElement;
 
 /**
  * {@link FileMerger} for XML files.
  */
-public class XmlMerger extends FileMerger {
+public class XmlMerger extends FileMerger implements XmlMergeSupport {
 
   private static final DocumentBuilder DOCUMENT_BUILDER;
 
   private static final TransformerFactory TRANSFORMER_FACTORY;
 
+  /** The namespace URI for this XML merger. */
   public static final String MERGE_NS_URI = "https://github.com/devonfw/IDEasy/merge";
 
   static {
@@ -48,6 +49,11 @@ public class XmlMerger extends FileMerger {
     }
   }
 
+  /**
+   * The constructor.
+   *
+   * @param context the {@link IdeContext}.
+   */
   public XmlMerger(IdeContext context) {
 
     super(context);
@@ -56,93 +62,72 @@ public class XmlMerger extends FileMerger {
   @Override
   protected void doMerge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
 
-    Document document = null;
-    Path template = setup;
-    Path target = workspace;
+    XmlMergeDocument workspaceDocument = null;
     boolean updateFileExists = Files.exists(update);
-    if (Files.exists(workspace)) {
+    boolean workspaceFileExists = Files.exists(workspace);
+    if (workspaceFileExists) {
       if (!updateFileExists) {
         return; // nothing to do ...
       }
-      document = load(workspace);
+      workspaceDocument = load(workspace);
     } else if (Files.exists(setup)) {
-      document = load(setup);
-      target = setup;
+      workspaceDocument = loadAndResolve(setup, resolver);
     }
+    Document resultDocument = null;
     if (updateFileExists) {
-      template = update;
-      if (document == null) {
-        document = load(update);
+      XmlMergeDocument templateDocument = loadAndResolve(update, resolver);
+      if (workspaceDocument == null) {
+        resultDocument = templateDocument.getDocument();
       } else {
-        Document updateDocument = load(update);
-        merge(updateDocument, document, template, target);
+        resultDocument = merge(templateDocument, workspaceDocument);
+        if ((resultDocument == null) && !workspaceFileExists) {
+          // if the merge failed due to incompatible roots and we have no workspace file
+          // then at least we should take the resolved setup file as result
+          resultDocument = workspaceDocument.getDocument();
+        }
       }
+    } else if (workspaceDocument != null) {
+      resultDocument = workspaceDocument.getDocument();
     }
-    if (document != null) {
-      resolve(document, resolver, false, template);
-      save(document, workspace);
+    if (resultDocument != null) {
+      XmlMergeDocument result = new XmlMergeDocument(resultDocument, workspace);
+      XmlMergeSupport.removeMergeNsAttributes(result);
+      save(result);
     }
-    return;
   }
 
   /**
    * Merges the source document with the target document.
    *
-   * @param sourceDocument The {@link Document} representing the source xml file.
-   * @param targetDocument The {@link Document} representing the target xml file.
-   * @param source {@link Path} to the source document.
-   * @param target {@link Path} to the target document.
+   * @param templateDocument the {@link XmlMergeDocument} representing the template xml file from the settings.
+   * @param workspaceDocument the {@link XmlMergeDocument} of the actual source XML file (typically from the workspace of the real IDE) to merge with the
+   *     {@code templateDocument}.
+   * @return the merged {@link Document}.
    */
-  public void merge(Document sourceDocument, Document targetDocument, Path source, Path target) {
+  public Document merge(XmlMergeDocument templateDocument, XmlMergeDocument workspaceDocument) {
 
-    this.context.debug("Merging {} with {} ...", source.getFileName().toString(), target.getFileName().toString());
-    MergeElement sourceRoot = new MergeElement(sourceDocument.getDocumentElement(), source);
-    MergeElement targetRoot = new MergeElement(targetDocument.getDocumentElement(), target);
-
-    if (areRootsCompatible(sourceRoot, targetRoot)) {
-      MergeStrategy strategy = sourceRoot.getMergingStrategy();
+    Document resultDocument;
+    Path source = templateDocument.getPath();
+    Path template = workspaceDocument.getPath();
+    this.context.debug("Merging {} into {} ...", template, source);
+    Element templateRoot = templateDocument.getRoot();
+    QName templateQName = XmlMergeSupport.getQualifiedName(templateRoot);
+    Element workspaceRoot = workspaceDocument.getRoot();
+    QName workspaceQName = XmlMergeSupport.getQualifiedName(workspaceRoot);
+    if (templateQName.equals(workspaceQName)) {
+      XmlMergeStrategy strategy = XmlMergeSupport.getMergeStrategy(templateRoot);
       if (strategy == null) {
-        strategy = MergeStrategy.KEEP; // default strategy used as fallback
+        strategy = XmlMergeStrategy.COMBINE; // default strategy used as fallback
       }
-      strategy.merge(sourceRoot, targetRoot, new ElementMatcher(this.context));
+      ElementMatcher elementMatcher = new ElementMatcher(this.context);
+      strategy.merge(templateRoot, workspaceRoot, elementMatcher);
+      resultDocument = workspaceDocument.getDocument();
     } else {
-      this.context.warning("Root elements do not match. Skipping merge operation.");
+      this.context.error("Cannot merge XML template {} with root {} into XML file {} with root {} as roots do not match.", templateDocument.getPath(),
+          templateQName, workspaceDocument.getPath(), workspaceQName);
+      return null;
     }
-  }
-
-  /**
-   * Checks the compatibility (tagname and namespaceURI) of the given root elements to be merged.
-   *
-   * @param sourceRoot the {@link MergeElement} representing the root element of the source document.
-   * @param targetRoot the {@link MergeElement} representing the root element of the target document.
-   * @return {@code true} when the roots are compatible, otherwise {@code false}.
-   */
-  private boolean areRootsCompatible(MergeElement sourceRoot, MergeElement targetRoot) {
-
-    Element sourceElement = sourceRoot.getElement();
-    Element targetElement = targetRoot.getElement();
-
-    // Check if tag names match
-    if (!sourceElement.getTagName().equals(targetElement.getTagName())) {
-      this.context.warning("Names of root elements of {} and {} don't match. Found {} and {}",
-          sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(),
-          sourceElement.getTagName(), targetElement.getTagName());
-      return false;
-    }
-
-    // Check if namespace URIs match (if they exist)
-    String sourceNs = sourceElement.getNamespaceURI();
-    String targetNs = targetElement.getNamespaceURI();
-    if (sourceNs != null || targetNs != null) {
-      if (!Objects.equals(sourceNs, targetNs)) {
-        this.context.warning("URI of root elements of {} and {} don't match. Found {} and {}",
-            sourceRoot.getDocumentPath(), targetRoot.getDocumentPath(),
-            sourceNs, targetNs);
-        return false;
-      }
-    }
-
-    return true;
+    return resultDocument;
   }
 
   @Override
@@ -151,26 +136,49 @@ public class XmlMerger extends FileMerger {
     if (!Files.exists(workspace) || !Files.exists(update)) {
       return;
     }
-    Document updateDocument = load(update);
-    Document workspaceDocument = load(workspace);
-    resolve(updateDocument, variables, true, workspace.getFileName());
-    MergeStrategy strategy = MergeStrategy.OVERRIDE;
-    MergeElement sourceRoot = new MergeElement(workspaceDocument.getDocumentElement(), workspace);
-    MergeElement targetRoot = new MergeElement(updateDocument.getDocumentElement(), update);
-    strategy.merge(sourceRoot, targetRoot, null);
-    save(updateDocument, update);
-    this.context.debug("Saved changes in {} to {}", workspace.getFileName(), update);
+    throw new UnsupportedOperationException("not implemented!");
   }
 
-  public Document load(Path file) {
+  /**
+   * {@link #load(Path) Loads} and {@link #resolveDocument(XmlMergeDocument, EnvironmentVariables, boolean) resolves} XML from the given file.
+   *
+   * @param file the {@link Path} to the XML file.
+   * @param variables the {@link EnvironmentVariables}.
+   * @return the loaded {@link XmlMergeDocument}.
+   */
+  public XmlMergeDocument loadAndResolve(Path file, EnvironmentVariables variables) {
+
+    XmlMergeDocument document = load(file);
+    resolveDocument(document, variables, false);
+    return document;
+  }
+
+  /**
+   * @param file the {@link Path} to the XML file.
+   * @return the loaded {@link XmlMergeDocument}.
+   */
+  public XmlMergeDocument load(Path file) {
 
     try (InputStream in = Files.newInputStream(file)) {
-      return DOCUMENT_BUILDER.parse(in);
+      Document document = DOCUMENT_BUILDER.parse(in);
+      return new XmlMergeDocument(document, file);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to load XML from: " + file, e);
     }
   }
 
+  /**
+   * @param document the XML {@link XmlMergeDocument} to save.
+   */
+  public void save(XmlMergeDocument document) {
+
+    save(document.getDocument(), document.getPath());
+  }
+
+  /**
+   * @param document the XML {@link Document} to save.
+   * @param file the {@link Path} to the file where to save the XML.
+   */
   public void save(Document document, Path file) {
 
     ensureParentDirectoryExists(file);
@@ -179,13 +187,13 @@ public class XmlMerger extends FileMerger {
       transformer.setOutputProperty(OutputKeys.INDENT, "yes");
       transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
       transformer.setOutputProperty(OutputKeys.ENCODING, "UTF-8");
-      transformer.setOutputProperty(OutputKeys.STANDALONE, "no");
       transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "no");
 
       // Workaround:
       // Remove whitespace from the target document before saving, because if target XML Document is already formatted
       // then indent 2 keeps adding empty lines for nothing, and if we don't use indentation then appending/ overriding
       // isn't properly formatted.
+      // https://bugs.openjdk.org/browse/JDK-8262285
       removeWhitespace(document.getDocumentElement());
 
       DOMSource source = new DOMSource(document);
@@ -201,58 +209,132 @@ public class XmlMerger extends FileMerger {
     NodeList children = node.getChildNodes();
     for (int i = 0; i < children.getLength(); i++) {
       Node child = children.item(i);
-      if (child.getNodeType() == Node.TEXT_NODE) {
+      short nodeType = child.getNodeType();
+      if (nodeType == Node.TEXT_NODE) {
         if (child.getTextContent().trim().isEmpty()) {
           node.removeChild(child);
           i--;
         }
-      } else {
+      } else if (nodeType == Node.ELEMENT_NODE) {
         removeWhitespace(child);
       }
     }
   }
 
-  private void resolve(Document document, EnvironmentVariables resolver, boolean inverse, Object src) {
+  private void resolveDocument(XmlMergeDocument document, EnvironmentVariables variables, boolean inverse) {
 
-    NodeList nodeList = document.getElementsByTagName("*");
+    NodeList nodeList = document.getAllElements();
     for (int i = 0; i < nodeList.getLength(); i++) {
       Element element = (Element) nodeList.item(i);
-      resolve(element, resolver, inverse, src);
+      resolveElement(element, variables, inverse, document.getPath());
     }
   }
 
-  private void resolve(Element element, EnvironmentVariables variables, boolean inverse, Object src) {
+  private void resolveElement(Element element, EnvironmentVariables variables, boolean inverse, Object src) {
 
-    resolve(element.getAttributes(), variables, inverse, src);
+    resolveAttributes(element.getAttributes(), variables, inverse, src);
     NodeList nodeList = element.getChildNodes();
-
     for (int i = 0; i < nodeList.getLength(); i++) {
       Node node = nodeList.item(i);
-      if (node instanceof Text text) {
-        String value = text.getNodeValue();
-        String resolvedValue;
-        if (inverse) {
-          resolvedValue = variables.inverseResolve(value, src);
-        } else {
-          resolvedValue = variables.resolve(value, src, this.legacySupport);
-        }
-        text.setNodeValue(resolvedValue);
+      if (XmlMergeSupport.isTextual(node)) {
+        resolveValue(node, variables, inverse, src);
       }
     }
   }
 
-  private void resolve(NamedNodeMap attributes, EnvironmentVariables variables, boolean inverse, Object src) {
+  private void resolveAttributes(NamedNodeMap attributes, EnvironmentVariables variables, boolean inverse, Object src) {
 
     for (int i = 0; i < attributes.getLength(); i++) {
       Attr attribute = (Attr) attributes.item(i);
-      String value = attribute.getValue();
-      String resolvedValue;
-      if (inverse) {
-        resolvedValue = variables.inverseResolve(value, src);
-      } else {
-        resolvedValue = variables.resolve(value, src, this.legacySupport);
-      }
-      attribute.setValue(resolvedValue);
+      resolveValue(attribute, variables, inverse, src);
     }
   }
+
+  private void resolveValue(Node node, EnvironmentVariables variables, boolean inverse, Object src) {
+    String value = node.getNodeValue();
+    String resolvedValue;
+    if (inverse) {
+      resolvedValue = variables.inverseResolve(value, src);
+    } else {
+      resolvedValue = variables.resolve(value, src, this.legacySupport);
+    }
+    node.setNodeValue(resolvedValue);
+  }
+
+  @Override
+  protected boolean doUpgrade(Path workspaceFile) throws Exception {
+
+    DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+    DocumentBuilder builder = factory.newDocumentBuilder();
+    Document document = builder.parse(workspaceFile.toFile());
+    checkForXmlNamespace(document, workspaceFile);
+    boolean modified = updateWorkspaceXml(document.getDocumentElement());
+    if (modified) {
+      TransformerFactory transformerFactory = TransformerFactory.newInstance();
+      Transformer transformer = transformerFactory.newTransformer();
+      DOMSource source = new DOMSource(document);
+      try (BufferedWriter writer = Files.newBufferedWriter(workspaceFile)) {
+        StreamResult result = new StreamResult(writer);
+        transformer.transform(source, result);
+      }
+    }
+    return modified;
+  }
+
+  private boolean updateWorkspaceXml(Element element) {
+
+    boolean modified = false;
+    NamedNodeMap attributes = element.getAttributes();
+    if (attributes != null) {
+      for (int i = 0; i < attributes.getLength(); i++) {
+        Node node = attributes.item(i);
+        if (node instanceof Attr attribute) {
+          String value = attribute.getValue();
+          String migratedValue = upgradeWorkspaceContent(value);
+          if (!migratedValue.equals(value)) {
+            modified = true;
+            attribute.setValue(migratedValue);
+          }
+        }
+      }
+    }
+
+    NodeList childNodes = element.getChildNodes();
+    for (int i = 0; i < childNodes.getLength(); i++) {
+      Node childNode = childNodes.item(i);
+      boolean childModified = false;
+      if (childNode instanceof Element childElement) {
+        childModified = updateWorkspaceXml(childElement);
+      } else if (childNode instanceof Text childText) {
+        String text = childText.getTextContent();
+        String migratedText = upgradeWorkspaceContent(text);
+        childModified = !migratedText.equals(text);
+        if (childModified) {
+          childText.setTextContent(migratedText);
+        }
+      }
+      if (childModified) {
+        modified = true;
+      }
+    }
+    return modified;
+  }
+
+  private void checkForXmlNamespace(Document document, Path workspaceFile) {
+
+    NamedNodeMap attributes = document.getDocumentElement().getAttributes();
+    if (attributes != null) {
+      for (int i = 0; i < attributes.getLength(); i++) {
+        Node node = attributes.item(i);
+        String uri = node.getNamespaceURI();
+        if (MERGE_NS_URI.equals(uri)) {
+          return;
+        }
+      }
+    }
+    this.context.warning(
+        "The XML file {} does not contain the XML merge namespace and seems outdated. For details see:\n"
+            + "https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc#xml-merger", workspaceFile);
+  }
+
 }

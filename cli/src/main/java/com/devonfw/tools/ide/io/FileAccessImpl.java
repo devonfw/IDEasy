@@ -11,7 +11,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystemException;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
@@ -25,17 +27,15 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.jar.JarEntry;
-import java.util.jar.JarInputStream;
 import java.util.stream.Stream;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
@@ -62,6 +62,8 @@ public class FileAccessImpl implements FileAccess {
   private static final String WINDOWS_FILE_LOCK_WARNING =
       "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
           + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
+
+  private static final Map<String, String> FS_ENV = Map.of("encoding", "UTF-8");
 
   private final IdeContext context;
 
@@ -96,8 +98,11 @@ public class FileAccessImpl implements FileAccess {
         HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
         HttpClient client = createHttpClient(url);
         HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-        if (response.statusCode() == 200) {
+        int statusCode = response.statusCode();
+        if (statusCode == 200) {
           downloadFileWithProgressBar(url, target, response);
+        } else {
+          throw new IllegalStateException("Download failed with status code " + statusCode);
         }
       } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
         throw new IllegalArgumentException("Unsupported download URL: " + url);
@@ -126,7 +131,7 @@ public class FileAccessImpl implements FileAccess {
   private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(-1);
-    informAboutMissingContentLength(contentLength, url, null);
+    informAboutMissingContentLength(contentLength, url);
 
     byte[] data = new byte[1024];
     boolean fileComplete = false;
@@ -135,7 +140,7 @@ public class FileAccessImpl implements FileAccess {
     try (InputStream body = response.body();
         FileOutputStream fileOutput = new FileOutputStream(target.toFile());
         BufferedOutputStream bufferedOut = new BufferedOutputStream(fileOutput, data.length);
-        IdeProgressBar pb = this.context.prepareProgressBar("Downloading", contentLength)) {
+        IdeProgressBar pb = this.context.newProgressBarForDownload(contentLength)) {
       while (!fileComplete) {
         count = body.read(data);
         if (count <= 0) {
@@ -160,14 +165,10 @@ public class FileAccessImpl implements FileAccess {
   private void copyFileWithProgressBar(Path source, Path target) throws IOException {
 
     try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
-      long size;
-      size = getFileSize(source);
-
-      informAboutMissingContentLength(size, null, source);
+      long size = getFileSize(source);
       byte[] buf = new byte[1024];
-      int readBytes;
-
-      try (IdeProgressBar pb = this.context.prepareProgressBar("Copying", size)) {
+      try (IdeProgressBar pb = this.context.newProgressbarForCopying(size)) {
+        int readBytes;
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
           if (size > 0) {
@@ -180,17 +181,10 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  private void informAboutMissingContentLength(long contentLength, String url, Path path) {
+  private void informAboutMissingContentLength(long contentLength, String url) {
 
-    String source;
     if (contentLength < 0) {
-      if (path != null) {
-        source = path.toString();
-      } else {
-        source = url;
-      }
-      this.context.warning("Content-Length was not provided by download/copy source: {}.",
-          source);
+      this.context.warning("Content-Length was not provided by download from {}", url);
     }
   }
 
@@ -247,14 +241,13 @@ public class FileAccessImpl implements FileAccess {
         throw new IllegalStateException("Failed to read and hash file " + file, e);
       }
       byte[] digestBytes = md.digest();
-      String checksum = HexUtil.toHexString(digestBytes);
-      return checksum;
+      return HexUtil.toHexString(digestBytes);
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException("No such hash algorithm " + UrlChecksum.HASH_ALGORITHM, e);
     }
   }
 
-  private boolean isJunction(Path path) {
+  public boolean isJunction(Path path) {
 
     if (!SystemInfoImpl.INSTANCE.isWindows()) {
       return false;
@@ -274,20 +267,30 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void backup(Path fileOrFolder) {
 
-    if (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder)) {
+    if ((fileOrFolder != null) && (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder))) {
       delete(fileOrFolder);
-    } else {
-      // fileOrFolder is a directory
-      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_BACKUPS);
+    } else if ((fileOrFolder != null) && Files.exists(fileOrFolder)) {
       LocalDateTime now = LocalDateTime.now();
-      String date = DateTimeUtil.formatDate(now);
+      String date = DateTimeUtil.formatDate(now, true);
       String time = DateTimeUtil.formatTime(now);
-      Path backupDatePath = backupPath.resolve(date);
-      mkdirs(backupDatePath);
-      Path target = backupDatePath.resolve(fileOrFolder.getFileName().toString() + "_" + time);
+      String filename = fileOrFolder.getFileName().toString();
+      Path backupPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_BACKUPS).resolve(date).resolve(time + "_" + filename);
+      backupPath = appendParentPath(backupPath, fileOrFolder.getParent(), 2);
+      mkdirs(backupPath);
+      Path target = backupPath.resolve(filename);
       this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
       move(fileOrFolder, target);
+    } else {
+      this.context.trace("Backup of {} skipped as the path does not exist.", fileOrFolder);
     }
+  }
+
+  private static Path appendParentPath(Path path, Path parent, int max) {
+
+    if ((parent == null) || (max <= 0)) {
+      return path;
+    }
+    return appendParentPath(path, parent.getParent(), max - 1).resolve(parent.getFileName());
   }
 
   @Override
@@ -307,7 +310,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void copy(Path source, Path target, FileCopyMode mode) {
+  public void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener) {
 
     if (mode != FileCopyMode.COPY_TREE_CONTENT) {
       // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy
@@ -318,32 +321,40 @@ public class FileAccessImpl implements FileAccess {
       // Therefore we need to add the filename (foldername) of "source" to the "target" path before.
       // For the rare cases, where we want to copy the content of a folder (cp -r source/* target) we support
       // it via the COPY_TREE_CONTENT mode.
-      target = target.resolve(source.getFileName());
+      Path fileName = source.getFileName();
+      if (fileName != null) { // if filename is null, we are copying the root of a (virtual filesystem)
+        target = target.resolve(fileName.toString());
+      }
     }
     boolean fileOnly = mode.isFileOnly();
-    if (fileOnly) {
-      this.context.debug("Copying file {} to {}", source, target);
+    String operation = mode.getOperation();
+    if (mode.isExtract()) {
+      this.context.debug("Starting to {} to {}", operation, target);
     } else {
-      this.context.debug("Copying {} recursively to {}", source, target);
+      if (fileOnly) {
+        this.context.debug("Starting to {} file {} to {}", operation, source, target);
+      } else {
+        this.context.debug("Starting to {} {} recursively to {}", operation, source, target);
+      }
     }
     if (fileOnly && Files.isDirectory(source)) {
       throw new IllegalStateException("Expected file but found a directory to copy at " + source);
     }
     if (mode.isFailIfExists()) {
       if (Files.exists(target)) {
-        throw new IllegalStateException("Failed to copy " + source + " to already existing target " + target);
+        throw new IllegalStateException("Failed to " + operation + " " + source + " to already existing target " + target);
       }
     } else if (mode == FileCopyMode.COPY_TREE_OVERRIDE_TREE) {
       delete(target);
     }
     try {
-      copyRecursive(source, target, mode);
+      copyRecursive(source, target, mode, listener);
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to copy " + source + " to " + target, e);
+      throw new IllegalStateException("Failed to " + operation + " " + source + " to " + target, e);
     }
   }
 
-  private void copyRecursive(Path source, Path target, FileCopyMode mode) throws IOException {
+  private void copyRecursive(Path source, Path target, FileCopyMode mode, PathCopyListener listener) throws IOException {
 
     if (Files.isDirectory(source)) {
       mkdirs(target);
@@ -351,15 +362,17 @@ public class FileAccessImpl implements FileAccess {
         Iterator<Path> iterator = childStream.iterator();
         while (iterator.hasNext()) {
           Path child = iterator.next();
-          copyRecursive(child, target.resolve(child.getFileName()), mode);
+          copyRecursive(child, target.resolve(child.getFileName().toString()), mode, listener);
         }
       }
+      listener.onCopy(source, target, true);
     } else if (Files.exists(source)) {
       if (mode.isOverrideFile()) {
         delete(target);
       }
-      this.context.trace("Copying {} to {}", source, target);
+      this.context.trace("Starting to {} {} to {}", mode.getOperation(), source, target);
       Files.copy(source, target);
+      listener.onCopy(source, target, false);
     } else {
       throw new IOException("Path " + source + " does not exist.");
     }
@@ -554,24 +567,12 @@ public class FileAccessImpl implements FileAccess {
         this.context.trace("Determined file extension {}", extension);
       }
       switch (extension) {
-        case "zip" -> {
-          extractZip(archiveFile, tmpDir);
-        }
-        case "jar" -> {
-          extractJar(archiveFile, tmpDir);
-        }
-        case "dmg" -> {
-          extractDmg(archiveFile, tmpDir);
-        }
-        case "msi" -> {
-          extractMsi(archiveFile, tmpDir);
-        }
-        case "pkg" -> {
-          extractPkg(archiveFile, tmpDir);
-        }
-        default -> {
-          throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + archiveFile);
-        }
+        case "zip" -> extractZip(archiveFile, tmpDir);
+        case "jar" -> extractJar(archiveFile, tmpDir);
+        case "dmg" -> extractDmg(archiveFile, tmpDir);
+        case "msi" -> extractMsi(archiveFile, tmpDir);
+        case "pkg" -> extractPkg(archiveFile, tmpDir);
+        default -> throw new IllegalStateException("Unknown archive format " + extension + ". Can not extract " + archiveFile);
       }
     }
     Path properInstallDir = getProperInstallationSubDirOf(tmpDir, archiveFile);
@@ -614,7 +615,40 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractZip(Path file, Path targetDir) {
 
-    extractZipArchive(file, targetDir);
+    this.context.info("Extracting ZIP file {} to {}", file, targetDir);
+    URI uri = URI.create("jar:" + file.toUri());
+    try (FileSystem fs = FileSystems.newFileSystem(uri, FS_ENV)) {
+      long size = 0;
+      for (Path root : fs.getRootDirectories()) {
+        size += getFileSizeRecursive(root);
+      }
+      try (final IdeProgressBar progressBar = this.context.newProgressbarForExtracting(size)) {
+        for (Path root : fs.getRootDirectories()) {
+          copy(root, targetDir, FileCopyMode.EXTRACT, (s, t, d) -> onFileCopiedFromZip(s, t, d, progressBar));
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void onFileCopiedFromZip(Path source, Path target, boolean directory, IdeProgressBar progressBar) {
+
+    if (directory) {
+      return;
+    }
+    if (!context.getSystemInfo().isWindows()) {
+      try {
+        Object attribute = Files.getAttribute(source, "zip:permissions");
+        if (attribute instanceof Set<?> permissionSet) {
+          Files.setPosixFilePermissions(target, (Set<PosixFilePermission>) permissionSet);
+        }
+      } catch (Exception e) {
+        context.error(e, "Failed to transfer zip permissions for {}", target);
+      }
+    }
+    progressBar.stepBy(getFileSize(target));
   }
 
   @Override
@@ -626,29 +660,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractJar(Path file, Path targetDir) {
 
-    this.context.trace("Unpacking JAR {} to {}", file, targetDir);
-    try (JarInputStream jis = new JarInputStream(Files.newInputStream(file)); IdeProgressBar pb = getProgressbarForUnpacking(
-        getFileSize(file))) {
-      JarEntry entry;
-      while ((entry = jis.getNextJarEntry()) != null) {
-        Path entryPath = targetDir.resolve(entry.getName()).toAbsolutePath();
-
-        if (!entryPath.startsWith(targetDir)) {
-          throw new IOException("Preventing path traversal attack from " + entry.getName() + " to " + entryPath);
-        }
-
-        if (entry.isDirectory()) {
-          Files.createDirectories(entryPath);
-        } else {
-          Files.createDirectories(entryPath.getParent());
-          Files.copy(jis, entryPath);
-        }
-        pb.stepBy(entry.getCompressedSize());
-        jis.closeEntry();
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to extract JAR " + file + " to " + targetDir, e);
-    }
+    extractZip(file, targetDir);
   }
 
   /**
@@ -661,7 +673,6 @@ public class FileAccessImpl implements FileAccess {
     permissions &= 0b111111111;
 
     StringBuilder permissionStringBuilder = new StringBuilder("rwxrwxrwx");
-
     for (int i = 0; i < 9; i++) {
       int mask = 1 << i;
       char currentChar = ((permissions & mask) != 0) ? permissionStringBuilder.charAt(8 - i) : '-';
@@ -671,11 +682,13 @@ public class FileAccessImpl implements FileAccess {
     return permissionStringBuilder.toString();
   }
 
-  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream> unpacker) {
+  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream<?>> unpacker) {
 
-    this.context.trace("Unpacking archive {} to {}", file, targetDir);
-    try (InputStream is = Files.newInputStream(file); ArchiveInputStream ais = unpacker.apply(is); IdeProgressBar pb = getProgressbarForUnpacking(
-        getFileSize(file))) {
+    this.context.info("Extracting TAR file {} to {}", file, targetDir);
+    try (InputStream is = Files.newInputStream(file);
+        ArchiveInputStream<?> ais = unpacker.apply(is);
+        IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
+
       ArchiveEntry entry = ais.getNextEntry();
       boolean isTar = ais instanceof TarArchiveInputStream;
       while (entry != null) {
@@ -708,37 +721,10 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  private void extractZipArchive(Path file, Path targetDir) {
-
-    this.context.trace("Unpacking archive {} to {}", file, targetDir);
-    try (FileInputStream fis = new FileInputStream(file.toFile()); ZipInputStream zis = new ZipInputStream(fis); IdeProgressBar pb = getProgressbarForUnpacking(
-        getFileSize(file))) {
-      ZipEntry entry = zis.getNextEntry();
-      while (entry != null) {
-        Path entryName = Path.of(entry.getName());
-        Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
-        if (!entryPath.startsWith(targetDir)) {
-          throw new IOException("Preventing path traversal attack from " + entryName + " to " + entryPath);
-        }
-        if (entry.isDirectory()) {
-          mkdirs(entryPath);
-        } else {
-          // ensure the file can also be created if directory entry was missing or out of order...
-          mkdirs(entryPath.getParent());
-          Files.copy(zis, entryPath);
-        }
-        pb.stepBy(entry.getCompressedSize());
-        zis.closeEntry();
-        entry = zis.getNextEntry();
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
-    }
-  }
-
   @Override
   public void extractDmg(Path file, Path targetDir) {
 
+    this.context.info("Extracting DMG file {} to {}", file, targetDir);
     assert this.context.getSystemInfo().isMac();
 
     Path mountPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_UPDATES).resolve(IdeContext.FOLDER_VOLUME);
@@ -760,6 +746,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractMsi(Path file, Path targetDir) {
 
+    this.context.info("Extracting MSI file {} to {}", file, targetDir);
     this.context.newProcess().executable("msiexec").addArgs("/a", file, "/qn", "TARGETDIR=" + targetDir).run();
     // msiexec also creates a copy of the MSI
     Path msiCopy = targetDir.resolve(file.getFileName());
@@ -769,6 +756,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void extractPkg(Path file, Path targetDir) {
 
+    this.context.info("Extracting PKG file {} to {}", file, targetDir);
     Path tmpDirPkg = createTempDir("ide-pkg-");
     ProcessContext pc = this.context.newProcess();
     // we might also be able to use cpio from commons-compression instead of external xar...
@@ -853,17 +841,8 @@ public class FileAccessImpl implements FileAccess {
     return null;
   }
 
-  /**
-   * @param sizeFile the size of archive
-   * @return prepared progressbar for unpacking
-   */
-  private IdeProgressBar getProgressbarForUnpacking(long sizeFile) {
-
-    return this.context.prepareProgressBar("Unpacking", sizeFile);
-  }
-
   @Override
-  public List<Path> listChildren(Path dir, Predicate<Path> filter) {
+  public List<Path> listChildrenMapped(Path dir, Function<Path, Path> filter) {
 
     if (!Files.isDirectory(dir)) {
       return List.of();
@@ -873,9 +852,14 @@ public class FileAccessImpl implements FileAccess {
       Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
         Path child = iterator.next();
-        if (filter.test(child)) {
-          this.context.trace("Accepted file {}", child);
-          children.add(child);
+        Path filteredChild = filter.apply(child);
+        if (filteredChild != null) {
+          if (filteredChild == child) {
+            this.context.trace("Accepted file {}", child);
+          } else {
+            this.context.trace("Accepted file {} and mapped to {}", child, filteredChild);
+          }
+          children.add(filteredChild);
         } else {
           this.context.trace("Ignoring file {} according to filter", child);
         }
@@ -892,15 +876,33 @@ public class FileAccessImpl implements FileAccess {
     return listChildren(dir, f -> true).isEmpty();
   }
 
-  /**
-   * Gets the file size of a provided file path.
-   *
-   * @param path of the file.
-   * @return the file size.
-   */
-  protected long getFileSize(Path path) {
+  private long getFileSize(Path file) {
 
-    return path.toFile().length();
+    try {
+      return Files.size(file);
+    } catch (IOException e) {
+      this.context.warning(e.getMessage(), e);
+      return 0;
+    }
+  }
+
+  private long getFileSizeRecursive(Path path) {
+
+    long size = 0;
+    if (Files.isDirectory(path)) {
+      try (Stream<Path> childStream = Files.list(path)) {
+        Iterator<Path> iterator = childStream.iterator();
+        while (iterator.hasNext()) {
+          Path child = iterator.next();
+          size += getFileSizeRecursive(child);
+        }
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to iterate children of folder " + path, e);
+      }
+    } else {
+      size += getFileSize(path);
+    }
+    return size;
   }
 
   @Override
@@ -920,53 +922,81 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void makeExecutable(Path filePath) {
-    if (SystemInfoImpl.INSTANCE.isWindows()) {
-      return;
-    }
+  public void makeExecutable(Path file, boolean confirm) {
 
-    if (Files.exists(filePath)) {
-      // Read the current file permissions
-      Set<PosixFilePermission> perms;
+    if (Files.exists(file)) {
+      if (SystemInfoImpl.INSTANCE.isWindows()) {
+        this.context.trace("Windows does not have executable flags hence omitting for file {}", file);
+        return;
+      }
       try {
-        perms = Files.getPosixFilePermissions(filePath);
+        // Read the current file permissions
+        Set<PosixFilePermission> existingPermissions = Files.getPosixFilePermissions(file);
+
+        // Add execute permission for all users
+        Set<PosixFilePermission> executablePermissions = new HashSet<>(existingPermissions);
+        boolean update = false;
+        update |= executablePermissions.add(PosixFilePermission.OWNER_EXECUTE);
+        update |= executablePermissions.add(PosixFilePermission.GROUP_EXECUTE);
+        update |= executablePermissions.add(PosixFilePermission.OTHERS_EXECUTE);
+
+        if (update) {
+          if (confirm) {
+            boolean yesContinue = this.context.question(
+                "We want to execute " + file.getFileName() + " but this command seems to lack executable permissions!\n"
+                    + "Most probably the tool vendor did forgot to add x-flags in the binary release package.\n"
+                    + "Before running the command, we suggest to set executable permissions to the file:\n"
+                    + file + "\n"
+                    + "For security reasons we ask for your confirmation so please check this request.\n"
+                    + "Changing permissions from " + PosixFilePermissions.toString(existingPermissions) + " to " + PosixFilePermissions.toString(
+                    executablePermissions) + ".\n"
+                    + "Do you confirm to make the command executable before running it?");
+            if (!yesContinue) {
+              return;
+            }
+          }
+          this.context.debug("Setting executable flags for file {}", file);
+          // Set the new permissions
+          Files.setPosixFilePermissions(file, executablePermissions);
+        } else {
+          this.context.trace("Executable flags already present so no need to set them for file {}", file);
+        }
       } catch (IOException e) {
         throw new RuntimeException(e);
       }
-
-      if (perms != null) {
-        // Add execute permission for all users
-        perms.add(PosixFilePermission.OWNER_EXECUTE);
-        perms.add(PosixFilePermission.GROUP_EXECUTE);
-        perms.add(PosixFilePermission.OTHERS_EXECUTE);
-
-        // Set the new permissions
-        try {
-          Files.setPosixFilePermissions(filePath, perms);
-        } catch (IOException e) {
-          throw new RuntimeException(e);
-        }
-      }
     } else {
-      this.context.warning("Cannot set executable flag on file that does not exist: {}", filePath);
+      this.context.warning("Cannot set executable flag on file that does not exist: {}", file);
     }
   }
 
   @Override
-  public void touch(Path filePath) {
+  public void touch(Path file) {
 
-    if (Files.exists(filePath)) {
+    if (Files.exists(file)) {
       try {
-        Files.setLastModifiedTime(filePath, FileTime.fromMillis(System.currentTimeMillis()));
+        Files.setLastModifiedTime(file, FileTime.fromMillis(System.currentTimeMillis()));
       } catch (IOException e) {
-        throw new IllegalStateException("Could not update modification-time of " + filePath, e);
+        throw new IllegalStateException("Could not update modification-time of " + file, e);
       }
     } else {
       try {
-        Files.createFile(filePath);
+        Files.createFile(file);
       } catch (IOException e) {
-        throw new IllegalStateException("Could not create empty file " + filePath, e);
+        throw new IllegalStateException("Could not create empty file " + file, e);
       }
+    }
+  }
+
+  @Override
+  public String readFileContent(Path file) {
+
+    this.context.trace("Reading content of file from {}", file);
+    try {
+      String content = Files.readString(file);
+      this.context.trace("Read content of file {} as {}", file, content);
+      return content;
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read file " + file, e);
     }
   }
 }

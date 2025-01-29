@@ -28,7 +28,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
   protected static final Path TEST_PROJECTS = TEST_RESOURCES.resolve("ide-projects");
 
   // will not use eclipse-target like done in maven via eclipse profile...
-  private static final Path TEST_PROJECTS_COPY = Path.of("target/test-projects");
+  protected static final Path TEST_PROJECTS_COPY = Path.of("target/test-projects");
 
   /** Chunk size to use for progress bars **/
   private static final int CHUNK_SIZE = 1024;
@@ -122,8 +122,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
     List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
     assertThat(eventList).hasSize(chunkCount + 1);
     // extra case for unknown file size (indefinite progress bar)
-    if (progressBar.getMaxLength() != -1L) {
-      assertThat(progressBar.getMaxLength()).isEqualTo(maxSize);
+    if (progressBar.getMaxSize() != -1L) {
+      assertThat(progressBar.getMaxSize()).isEqualTo(maxSize);
     }
     return eventList;
   }
