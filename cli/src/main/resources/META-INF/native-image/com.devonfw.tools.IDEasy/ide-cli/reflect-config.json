@@ -1,0 +1,20 @@
+[
+  {
+    "name": "com.sun.org.apache.xpath.internal.functions.FuncNormalizeSpace",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  },
+  {
+    "name": "com.sun.org.apache.xpath.internal.functions.FuncLocalPart",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]
