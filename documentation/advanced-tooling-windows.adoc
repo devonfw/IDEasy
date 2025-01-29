@@ -12,9 +12,9 @@ But if you need more, here are some ways to get it easily:
 
 https://chocolatey.org/[Chocolatey] is a repository for free and open source software similar to the repositories know from the Linux like apt, apk, pacman, ...
 
-=== Winget
+=== WinGet
 
-Microsoft is also working on a repository for Windows called https://github.com/microsoft/winget-cli[winget].
+Microsoft is also working on a repository for Windows called https://github.com/microsoft/winget-cli[WinGet].
 It is currently in a pre-release state, but is expected to be integrated in the upcoming Windows versions.
 
 == Tabs everywhere
@@ -28,7 +28,7 @@ This nice feature can be added to many other tools.
 
 === Tabs for Windows Explorer
 
-Since Windows 11 the Windows Exporer supports Tabs.
+Since Windows 11 the Windows Explorer supports Tabs.
 
 .Tabs in Windows Explorer
 image::images/tools-tabs-explorer.png["tabs in windows explorer"]
@@ -48,7 +48,7 @@ If you want to use different shells like CMD, Powershell, git-bash, WSL, SSH, et
 .Tabs for multiple shells inside one window
 image::images/WindowsTerminal.png["Shells inside Windows-Terminal"]
 
-For perfect integration, you should (re-)insall `git` after Windows-Terminal has been installed and check the option `Add a Git Bash Profile to Windows Terminal` or follow the https://www.timschaeps.be/post/adding-git-bash-to-windows-terminal/[manual integration].
+For perfect integration, you should (re-)install `git` after Windows-Terminal has been installed and check the option `Add a Git Bash Profile to Windows Terminal` or follow the https://www.timschaeps.be/post/adding-git-bash-to-windows-terminal/[manual integration].
 
 .Integration of git-bash into Windows-Terminal
 image::https://linuxhint.com/wp-content/uploads/2022/09/add-git-bash-windows-terminal-05.png["Intergate git-bash into Windows-Terminal"]
@@ -78,7 +78,7 @@ Just install http://www.7-zip.org/[7zip] and forget about windows build-in ZIP s
 
 Do you want to paste something from the clipboard but meanwhile you had to copy something else?
 On Windows 11 just press [Win][v] to open a popup with the history of your clipboard.
-I you still want more you might try http://ditto-cp.sourceforge.net/[ditto].
+If you still want more you might try http://ditto-cp.sourceforge.net/[ditto].
 
 === PowerToys
 
@@ -87,17 +87,17 @@ The include tools like a file renamer, a way to order your windows on the screen
 
 === Sysinternals Tools
 
-A real developer will quickly notice that windows build in tools to analyze processes, network connections, autostarts, etc. are quite poor.
+A real developer will quickly notice that windows build in tools to analyze processes, network connections, AutoStarts, etc. are quite poor.
 So, what you really would like is the https://docs.microsoft.com/en-us/sysinternals/downloads/sysinternals-suite[Sysinternals-Suite].
 You can make process-explorer your https://www.ricksdailytips.com/make-process-explorer-default-task-manager/[default task manager].
-Use autoruns to prevent nasty background things to be started automatically.
-Use tcpview to figure out which process is blocking port 8080, etc.
+Use AutoRuns to prevent nasty background things to be started automatically.
+Use TCPView to figure out which process is blocking port 8080, etc.
 
 === Cope with file locks
 
-Did you ever fail to delete a file or directory that was locked by some process and you did not even know which one it was?
+Did you ever fail to delete a file or directory that was locked by some process, and you did not even know which one it was?
 Then you might love https://www.iobit.com/en/iobit-unlocker.php[IoBit Unlocker].
-Also `ProcessExplorer` from Sysinternal Tools (see above) allows to find locks via `Find` menu option `Find handle or DLL...`.
+Also `ProcessExplorer` from SysInternal Tools (see above) allows to find locks via `Find` menu option `Find handle or DLL...`.
 Here you can paste the path to the locked file and click `Search` to find the process owning the lock and can terminate the process.
 See also https://www.howtogeek.com/128680/HOW-TO-DELETE-MOVE-OR-RENAME-LOCKED-FILES-IN-WINDOWS/[this article].
 
@@ -108,14 +108,14 @@ Do you have to work with Windows?
 Would you also like to have such links in Windows?
 Why not?
 Windows https://www.howtogeek.com/howto/16226/complete-guide-to-symbolic-links-symlinks-on-windows-or-linux/[supports real links] (not shortcuts like in other cases).
-If you even want to have it integrated in windows explorer you might want to install http://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html[linkshellextension].
+If you even want to have it integrated in Windows explorer you might want to install http://schinagl.priv.at/nt/hardlinkshellext/linkshellextension.html[Link Shell Extension].
 However, you might want to disable SmartMove in the http://schinagl.priv.at/nt/hardlinkshellext/hardlinkshellext.html#configuration[configuration] if you face strange performance issues when moving folders.
 
 === Linux
 
 Windows contains the Windows Subsystem for Linux (WSL) that allows you to easily run a linux inside your Windows operating system.
 Unlike running a full-fledged VM this is very lightweight and fast.
-Simply go to Windows Store and install Ubunutu with a few clicks.
+Simply go to Windows Store and install Ubuntu with a few clicks.
 You can even run it in a tab in Windows Terminal.
 
 Also get used to use bash. Git for Windows ships with the MINGW based git-bash.
@@ -128,7 +128,7 @@ This allows you to install ssh with ssh-agent and all the Linux tools you love (
 === X11
 
 Do you want to connect via SSH and need to open an X11 app from the server?
-Do you want to see the GUI on your windows desktop?
+Do you want to see the GUI on your Windows desktop?
 No problem: Install https://sourceforge.net/projects/vcxsrv/[VcXsrv].
 
 === Keyboard Freak
@@ -145,7 +145,7 @@ For the example (« and ») you can simply use this script to get started:
 
 First, just press `[ctrl][<]` and `[ctrl][>]` (`[ctrl][shift][<]`).
 Next, create shortcuts to launch your IDE, to open your favorite tool, etc.
-If you like a GUI to easily configure the scrips, that comes with a lot of extensions preinstalled, you should have a look at https://activaid.telgkamp.de/[Ac'tive Aid].
+If you like a GUI to easily configure the scrips, that comes with a lot of extensions preinstalled, you should have a look at https://activaid.telgkamp.de/[Ac'tiveAid].
 
 === Paint anywhere on your desktop
 
@@ -159,7 +159,7 @@ Convert them to https://en.wikipedia.org/wiki/Trivial_Graph_Format[Trivial Graph
 
 === Up your screen capture game
 
-Capture any part of your screen with a single click, directly upload to dropbox, or run a svn commit all in one go with http://getgreenshot.org/[Greenshot].
+Capture any part of your screen with a single click, directly upload to dropbox, or run a svn commit all in one go with http://getgreenshot.org/[GreenShot].
 Another screen capture tool where you can easily manage and edit your screenshots and also do screen recordings with is https://www.screenpresso.com/download/[Screenpresso].
 
 === Fast Search in Windows
