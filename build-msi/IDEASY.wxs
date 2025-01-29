@@ -65,7 +65,7 @@
       />
 
     <InstallExecuteSequence>
-      <Custom Action="RunSetupAction" Condition="NOT Installed" After="InstallFiles" />
+      <Custom Action="RunSetupAction" Condition="NOT Installed" Before="InstallFinalize" />
       <Custom Action='RunUninstallAction' Condition="Installed AND NOT UPGRADINGPRODUCTCODE" After="InstallInitialize" />
     </InstallExecuteSequence>
 
