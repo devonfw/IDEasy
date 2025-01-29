@@ -32,7 +32,7 @@ msiexec /i .\IDEASY.msi /l*v install.log
 
 This will create a verbose log file (`install.log`) that can help diagnose installation issues.
 
-A pre-built MSI file (IDEASY_TEST.msi) is also included for testing without the need to build it yourself.
+A pre-built MSI file (IDEASY.msi) is also included for testing without the need to build it yourself.
 
 == Additional Notes
 

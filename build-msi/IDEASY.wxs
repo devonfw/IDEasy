@@ -1,6 +1,6 @@
 <?define name = "IDEasy"?>
 <?define version = "1.0.0"?>
-<?define publisher = "devonfw-ide"?>
+<?define publisher = "IDEasy"?>
 <?define guid = "ba3ad5c0-94e9-42c3-9374-efaaddd3b967"?>
 
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
@@ -38,9 +38,31 @@
       <Directory Id="INSTALLFOLDER" Name="projects" />  
     </Directory>
 
+
+    <!-- Specifying setup.bat script-->
+    <SetProperty
+      Id="RunSetupAction"
+      Value="&quot;[INSTALLFOLDER]_ide\setup.bat&quot; -b"
+      Before="RunSetupAction"
+      Sequence="execute"
+      />
+
     <!-- Specifying custom actions-->
-    <CustomAction Id="RunSetupAction" Directory="INSTALLFOLDER" ExeCommand="[INSTALLFOLDER]_ide\setup.bat -b" Execute="deferred" Return="check" />
-    <CustomAction Id="RunUninstallAction" Directory="INSTALLFOLDER" ExeCommand="[INSTALLFOLDER]_ide\ideeasy uninstall" Execute="deferred" Return="ignore" />
+    <CustomAction
+      Id="RunSetupAction"
+      BinaryRef="Wix4UtilCA_X64"
+      DllEntry="WixQuietExec"
+      Execute="deferred"
+      Impersonate="yes"
+      Return="check"
+      />
+
+    <CustomAction
+      Id="RunUninstallAction"
+      Directory="INSTALLFOLDER"
+      ExeCommand="[INSTALLFOLDER]_ide\ideeasy uninstall"
+      Execute="deferred" Return="ignore"
+      />
 
     <InstallExecuteSequence>
       <Custom Action="RunSetupAction" Condition="NOT Installed" After="InstallFiles" />
