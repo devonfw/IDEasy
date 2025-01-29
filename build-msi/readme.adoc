@@ -39,4 +39,6 @@ A pre-built MSI file (IDEASY_TEST.msi) is also included for testing without the 
 - Ensure that all dependencies and required WiX extensions are correctly installed.
 - Verify the generated MSI file to confirm that all components are included as expected.
 - Use the log file for troubleshooting any issues encountered during installation.
-- use CMD or Powershell
+- Use CMD or Powershell
+- Create a folder `msi-setup` inside the `buil-msi`.
+The content of that folder will be moved during installation
