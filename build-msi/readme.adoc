@@ -1,0 +1,46 @@
+:toc: macro
+toc::[]
+
+== Building IDEASY MSI Package
+
+=== Prerequisites
+
+Ensure you have the following installed:
+
+- .NET SDK 6.0 or later
+- dotnet (also possible via ideasy)
+- Wixtoolset v.4 `dotnet tool install --global wix`
+
+=== Steps to Build the MSI Package
+
+1. **Add the necessary WiX extensions**
+
+   ```sh
+   wix extension add WixToolset.UI.wixext
+   wix extension add WixToolset.Util.wixext
+   ```
+
+2. **Build the MSI package**
+
+   ```sh
+   wix build .\ideasy-wix.wxs -ext WixToolset.UI.wixext/<version> -ext WixToolset.Util.wixext
+   ```
+
+== Debugging Installation Issues
+
+To debug the installation process and capture detailed logs, use the following command:
+
+```sh
+msiexec /i IDEASY.msi /l*v install.log
+```
+
+This will create a verbose log file (`install.log`) that can help diagnose installation issues.
+
+A pre-built MSI file (IDEASY_TEST.msi) is also included for testing without the need to build it yourself.
+
+== Additional Notes
+
+- Ensure that all dependencies and required WiX extensions are correctly installed.
+- Verify the generated MSI file to confirm that all components are included as expected.
+- Use the log file for troubleshooting any issues encountered during installation.
+- use CMD or Powershell
