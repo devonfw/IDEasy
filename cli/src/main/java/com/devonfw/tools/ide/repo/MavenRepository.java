@@ -82,6 +82,7 @@ public class MavenRepository extends AbstractToolRepository {
   protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, String classifier, String type) {
 
     String groupId = resolveGroupId(tool);
+    String artifactId = edition;
     if (type == null) {
       type = MvnArtifact.TYPE_JAR;
     }
@@ -91,8 +92,10 @@ public class MavenRepository extends AbstractToolRepository {
 
 
   @Override
-  public VersionIdentifier resolveVersion(String groupId, String artifactId, GenericVersionRange version) {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version) {
 
+    String groupId = resolveGroupId(tool);
+    String artifactId = edition;
     String baseUrl;
     if (version == VersionIdentifier.LATEST_UNSTABLE) {
       baseUrl = MAVEN_SNAPSHOTS;

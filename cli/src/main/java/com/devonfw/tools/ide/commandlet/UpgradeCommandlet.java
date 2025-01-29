@@ -109,14 +109,13 @@ public class UpgradeCommandlet extends Commandlet {
 
     ToolRepository mavenRepo = this.context.getMavenSoftwareRepository();
     VersionIdentifier currentVersion = VersionIdentifier.of(IdeVersion.get());
-    currentVersion = VersionIdentifier.of("2025.01.001-beta-01_21_02-SNAPSHOT");
     VersionIdentifier configuredVersion;
     if (currentVersion.toString().contains("SNAPSHOT")) {
       configuredVersion = VersionIdentifier.LATEST_UNSTABLE;
     } else {
       configuredVersion = VersionIdentifier.LATEST;
     }
-    VersionIdentifier resolvedVersion = mavenRepo.resolveVersion("com.devonfw.tools.IDEasy", "ide-cli", configuredVersion);
+    VersionIdentifier resolvedVersion = mavenRepo.resolveVersion("ideasy", "ide-cli", configuredVersion);
 
     boolean upgradeAvailable;
     if (currentVersion.toString().contains("SNAPSHOT")) {
@@ -133,7 +132,7 @@ public class UpgradeCommandlet extends Commandlet {
         SystemInfo sys = this.context.getSystemInfo();
         String classifier = sys.getOs() + "-" + sys.getArchitecture();
 
-        Path downloadTarget = mavenRepo.download("com.devonfw.tools.IDEasy",
+        Path downloadTarget = mavenRepo.download("ideasy",
             "ide-cli",
             resolvedVersion,
             classifier,
