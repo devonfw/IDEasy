@@ -17,7 +17,7 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     MavenRepository mavenRepo = new MavenRepository(context);
-    String groupId = "com.devonfw.tools.IDEasy";
+    String groupId = "ideasy";
     String artifactId = "ide-cli";
     VersionIdentifier version = VersionIdentifier.of("2024.04.001-beta");
     String classifier = "windows-x64";
@@ -36,7 +36,7 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     MavenRepository mavenRepo = new MavenRepository(context);
-    String groupId = "com.devonfw.tools.IDEasy";
+    String groupId = "ideasy";
     String artifactId = "ide-cli";
     VersionIdentifier version = VersionIdentifier.of("2024.04.001-beta-20240419.123456-1");
     String classifier = "windows-x64";
@@ -55,7 +55,7 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     MavenRepository mavenRepo = new MavenRepository(context);
-    String groupId = "com.devonfw.tools.IDEasy";
+    String groupId = "ideasy";
     String artifactId = "ide-cli";
     VersionIdentifier version = VersionIdentifier.of("2024.04.001-beta");
     String classifier = "windows-x64";

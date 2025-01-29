@@ -42,7 +42,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
    * @param version the {@link VersionIdentifier} to download.
    * @return the resolved {@link UrlDownloadFileMetadata}.
    */
-  abstract protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version);
+  protected abstract UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version);
 
   protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, String classifier, String extension) {
 
