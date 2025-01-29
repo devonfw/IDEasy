@@ -1,15 +1,10 @@
 #!/bin/bash
 
-function createFile() {
-  local fileName=$1
-  touch "$fileName"
-  echo "Created ${fileName}"
-}
-
 function createFileIfNotExists() {
-  local fileName=$1
-  if [ ! -f "${fileName}" ]; then
-    createFile "$fileName"
+  local configFile=$1
+  if [ ! -f "${configFile}" ]; then
+    touch "${configFile}"
+    echo "Created ${configFile}"
   fi
 }
 
@@ -30,13 +25,19 @@ function doSetupInConfigFile() {
 
 cd "$(dirname "${BASH_SOURCE:-$0}")" || exit 255
 if [ "${PWD/*\//}" != "_ide" ]; then
-  echo -e "\033[93mInvalid installation path $PWD - you need to install IDEasy to a folder named '_ide'.\033[39m" >&2
+  echo -e "\033[93mInvalid installation path $PWD - you need to rename '${PWD/*\//}' to '_ide'.\033[39m" >&2
   exit 1
 fi
 echo "Setting up IDEasy in ${PWD}"
 cd ..
+if [ "${PWD/*\//}" != "projects" ]; then
+  echo -e "\033[93mInvalid IDE_ROOT path $PWD - you need to rename '${PWD/*\//}' to 'projects'.\033[39m" >&2
+  exit 1
+fi
 export IDE_ROOT=${PWD}
-source "$IDE_ROOT/_ide/functions"
+source "$IDE_ROOT/_ide/functions" || exit 255
+# enforce license agreement
+ide -v || exit 255
 
 doSetupInConfigFile ~/.bashrc
 doSetupInConfigFile ~/.zshrc

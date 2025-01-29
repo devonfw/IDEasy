@@ -160,6 +160,6 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
    */
   private void assertLogoMessage(IdeTestContext context) {
 
-    assertThat(context).logAtInfo().hasMessage(HelpCommandlet.LOGO);
+    assertThat(context).logAtInfo().hasMessage(IdeContext.LOGO);
   }
 }

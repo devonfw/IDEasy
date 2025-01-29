@@ -6,6 +6,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,6 +22,7 @@ import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
 import com.devonfw.tools.ide.commandlet.CommandletManagerImpl;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
+import com.devonfw.tools.ide.commandlet.EnvironmentCommandlet;
 import com.devonfw.tools.ide.commandlet.HelpCommandlet;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.completion.CompletionCandidate;
@@ -55,6 +57,7 @@ import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
+import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
@@ -66,6 +69,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 public abstract class AbstractIdeContext implements IdeContext {
 
   private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
+
+  private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
 
   private final IdeStartContextImpl startContext;
 
@@ -216,6 +221,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   private Path getIdeRootPathFromEnv() {
+
     String root = getSystem().getEnv(IdeVariables.IDE_ROOT.getName());
     if (root != null) {
       Path rootPath = Path.of(root);
@@ -275,6 +281,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   private String getMessageIdeRootNotFound() {
+
     String root = getSystem().getEnv("IDE_ROOT");
     if (root == null) {
       return "The environment variable IDE_ROOT is undefined. Please reinstall IDEasy or manually repair IDE_ROOT variable.";
@@ -295,7 +302,6 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     return new SystemPath(this);
   }
-
 
   private boolean isIdeHome(Path dir) {
 
@@ -424,13 +430,22 @@ public abstract class AbstractIdeContext implements IdeContext {
       return null;
     }
 
-    // check whether the settings path has a .git folder only if its not a symbolic link
-    if (!Files.exists(settingsPath.resolve(".git")) && !Files.isSymbolicLink(settingsPath)) {
+    // check whether the settings path has a .git folder only if its not a symbolic link or junction
+    if (!Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlinkOrJunction()) {
       error("Settings repository exists but is not a git repository.");
       return null;
     }
 
     return settingsPath;
+  }
+
+  public boolean isSettingsRepositorySymlinkOrJunction() {
+
+    Path settingsPath = getSettingsPath();
+    if (settingsPath == null) {
+      return false;
+    }
+    return Files.isSymbolicLink(settingsPath) || getFileAccess().isJunction(settingsPath);
   }
 
   @Override
@@ -552,6 +567,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @Override
   public boolean isSkipUpdatesMode() {
+
     return this.startContext.isSkipUpdatesMode();
   }
 
@@ -578,6 +594,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   private void configureNetworkProxy() {
+
     if (this.networkProxy == null) {
       this.networkProxy = new NetworkProxy(this);
       this.networkProxy.configure();
@@ -868,11 +885,23 @@ public abstract class AbstractIdeContext implements IdeContext {
           }
           Path settingsRepository = getSettingsGitRepository();
           if (settingsRepository != null) {
-            if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) ||
-                (getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()))) {
-              interaction("Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
+            if (getGitContext().isRepositoryUpdateAvailable(settingsRepository, getSettingsCommitIdPath()) || (
+                getGitContext().fetchIfNeeded(settingsRepository) && getGitContext().isRepositoryUpdateAvailable(
+                    settingsRepository, getSettingsCommitIdPath()))) {
+              if (isSettingsRepositorySymlinkOrJunction()) {
+                interaction(
+                    "Updates are available for the settings repository. Please pull the latest changes by yourself or by calling \"ide -f update\" to apply them.");
+
+              } else {
+                interaction(
+                    "Updates are available for the settings repository. If you want to apply the latest changes, call \"ide update\"");
+              }
             }
           }
+        }
+        boolean success = ensureLicenseAgreement(cmd);
+        if (!success) {
+          return ValidationResultValid.get();
         }
         cmd.run();
       } finally {
@@ -886,7 +915,69 @@ public abstract class AbstractIdeContext implements IdeContext {
     return result;
   }
 
+  private boolean ensureLicenseAgreement(Commandlet cmd) {
+
+    if (isTest()) {
+      return true; // ignore for tests
+    }
+    getFileAccess().mkdirs(this.userHomeIde);
+    Path licenseAgreement = this.userHomeIde.resolve(FILE_LICENSE_AGREEMENT);
+    if (Files.isRegularFile(licenseAgreement)) {
+      return true; // success, license already accepted
+    }
+    if (cmd instanceof EnvironmentCommandlet) {
+      // if the license was not accepted, "$(ideasy env --bash)" that is written into a variable prevents the user from seeing the question he is asked
+      // in such situation the user could not open a bash terminal anymore and gets blocked what would really annoy the user so we exit here without doing or
+      // printing anything anymore in such case.
+      return false;
+    }
+    boolean logLevelInfoDisabled = !this.startContext.info().isEnabled();
+    if (logLevelInfoDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INFO, true);
+    }
+    boolean logLevelInteractionDisabled = !this.startContext.interaction().isEnabled();
+    if (logLevelInteractionDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INTERACTION, true);
+    }
+    StringBuilder sb = new StringBuilder(1180);
+    sb.append(LOGO).append("""
+        Welcome to IDEasy!
+        This product (with its included 3rd party components) is open-source software and can be used free (also commercially).
+        It supports automatic download and installation of arbitrary 3rd party tools.
+        By default only open-source 3rd party tools are used (downloaded, installed, executed).
+        But if explicitly configured, also commercial software that requires an additional license may be used.
+        This happens e.g. if you configure "ultimate" edition of IntelliJ or "docker" edition of Docker (Docker Desktop).
+        You are solely responsible for all risks implied by using this software.
+        Before using IDEasy you need to read and accept the license agreement with all involved licenses.
+        You will be able to find it online under the following URL:
+        """).append(LICENSE_URL);
+    if (this.ideRoot != null) {
+      sb.append("\n\nAlso it is included in the documentation that you can find here:\n").
+          append(this.ideRoot.resolve(FOLDER_IDE).resolve("IDEasy.pdf").toString()).append("\n");
+    }
+    info(sb.toString());
+    askToContinue("Do you accept these terms of use and all license agreements?");
+
+    sb.setLength(0);
+    LocalDateTime now = LocalDateTime.now();
+    sb.append("On ").append(DateTimeUtil.formatDate(now, false)).append(" at ").append(DateTimeUtil.formatTime(now))
+        .append(" you accepted the IDEasy license.\n").append(LICENSE_URL);
+    try {
+      Files.writeString(licenseAgreement, sb);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to save license agreement!", e);
+    }
+    if (logLevelInfoDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INFO, false);
+    }
+    if (logLevelInteractionDisabled) {
+      this.startContext.setLogLevel(IdeLogLevel.INTERACTION, false);
+    }
+    return true;
+  }
+
   private void verifyIdeRoot() {
+
     if (!isTest()) {
       if (this.ideRoot == null) {
         warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");
@@ -906,6 +997,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @return the {@link List} of {@link CompletionCandidate}s to suggest.
    */
   public List<CompletionCandidate> complete(CliArguments arguments, boolean includeContextOptions) {
+
     CompletionCandidateCollector collector = new CompletionCandidateCollectorDefault(this);
     if (arguments.current().isStart()) {
       arguments.next();
@@ -933,6 +1025,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   private void completeCommandlet(CliArguments arguments, Commandlet cmd, CompletionCandidateCollector collector) {
+
     trace("Trying to match arguments for auto-completion for commandlet {}", cmd.getName());
     Iterator<Property<?>> valueIterator = cmd.getValues().iterator();
     valueIterator.next(); // skip first property since this is the keyword property that already matched to find the commandlet
@@ -988,7 +1081,6 @@ public abstract class AbstractIdeContext implements IdeContext {
       currentArgument = arguments.current();
     }
   }
-
 
   /**
    * @param arguments the {@link CliArguments} to apply. Will be {@link CliArguments#next() consumed} as they are matched. Consider passing a
@@ -1108,6 +1200,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @Override
   public WindowsPathSyntax getPathSyntax() {
+
     return this.pathSyntax;
   }
 
@@ -1131,6 +1224,7 @@ public abstract class AbstractIdeContext implements IdeContext {
    * Reloads this context and re-initializes the {@link #getVariables() variables}.
    */
   public void reload() {
+
     this.variables = null;
     this.customToolRepository = null;
   }
