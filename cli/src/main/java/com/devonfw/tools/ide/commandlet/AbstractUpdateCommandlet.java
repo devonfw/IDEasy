@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -196,13 +197,23 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   private void createStartScripts() {
 
     List<String> ides = IdeVariables.CREATE_START_SCRIPTS.get(this.context);
+    if (ides == null) {
+      this.context.info("Variable CREATE_START_SCRIPTS is undefined - skipping start script creation.");
+      return;
+    }
     for (String ide : ides) {
-      createStartScript(ide);
+      ToolCommandlet tool = this.context.getCommandletManager().getToolCommandlet(ide);
+      if (tool == null) {
+        this.context.error("Undefined IDE '{}' configured in variable CREATE_START_SCRIPTS.");
+      } else {
+        createStartScript(ide);
+      }
     }
   }
 
   private void createStartScript(String ide) {
 
+    this.context.info("Creating start scripts for {}", ide);
     Path workspaces = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES);
     try (Stream<Path> childStream = Files.list(workspaces)) {
       Iterator<Path> iterator = childStream.iterator();
@@ -212,6 +223,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           createStartScript(ide, child.getFileName().toString());
         }
       }
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to list children of directory " + workspaces, e);
     }
   }
 
@@ -238,9 +251,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           + "popd\r\n";
     } else {
       scriptContent = "#!/usr/bin/env bash\n"
-          + "cd \$(dirname \"\${0}\")\n"
+          + "cd \"$(dirname \"$0\")\"\n"
           + "cd workspaces/" + workspace + "\n"
-          + "ide " + ide;
+          + "ide " + ide + "\n";
     }
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.writeFileContent(scriptContent, scriptPath);
