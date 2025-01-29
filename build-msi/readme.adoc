@@ -15,14 +15,14 @@ Ensure you have the following installed:
 
 1. **Add the necessary WiX extensions**
 
-   ```sh
+   ```
    wix extension add WixToolset.UI.wixext
    wix extension add WixToolset.Util.wixext
    ```
 
 2. **Build the MSI package**
 
-   ```sh
+   ```
    wix build .\ideasy-wix.wxs -ext WixToolset.UI.wixext/<version> -ext WixToolset.Util.wixext
    ```
 
@@ -30,7 +30,7 @@ Ensure you have the following installed:
 
 To debug the installation process and capture detailed logs, use the following command:
 
-```sh
+```
 msiexec /i IDEASY.msi /l*v install.log
 ```
 
