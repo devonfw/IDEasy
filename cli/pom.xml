@@ -246,6 +246,8 @@
               <buildArgs>
                 <arg>--enable-url-protocols=http,https</arg>
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
+                <arg>-H:IncludeResourceBundles=com.sun.org.apache.xml.internal.res.XMLErrorResources,com.sun.org.apache.xerces.internal.impl.msg.XMLMessages
+                </arg>
               </buildArgs>
             </configuration>
           </plugin>
