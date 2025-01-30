@@ -1,17 +1,14 @@
 package com.devonfw.tools.ide.repo;
 
-
-import org.junit.jupiter.api.Test;
-
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+import org.junit.jupiter.api.Test;
 
 class MavenRepositoryTest extends AbstractIdeContextTest {
-
 
   @Test
   void testGetMetadataWithRelease() {
@@ -50,7 +47,8 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(metadata.getUrls()).containsExactly(
-        "https://s01.oss.sonatype.org/content/repositories/snapshots/com/devonfw/tools/IDEasy/ide-cli/2024.04.001-beta-SNAPSHOT/ide-cli-2024.04.001-beta-20240419.123456-1-windows-x64.tar.gz");
+        "https://s01.oss.sonatype.org/content/repositories/snapshots/com/devonfw/tools/IDEasy/ide-cli/2024.04.001-beta-SNAPSHOT/ide-cli-2024.04.001-beta-20240419.123456-1-"
+            + os + "-" + arch + ".tar.gz");
   }
 
 }
