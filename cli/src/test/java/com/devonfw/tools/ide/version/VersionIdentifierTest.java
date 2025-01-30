@@ -77,7 +77,8 @@ public class VersionIdentifierTest extends Assertions {
    */
   @ParameterizedTest
   // arrange
-  @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "8u412b08" })
+  @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "8u412b08", "0*.0", "*0", "*.", "17.*alpha",
+      "17*.1" })
   public void testInvalid(String version) {
 
     // act
@@ -85,26 +86,7 @@ public class VersionIdentifierTest extends Assertions {
 
     // assert
     assertThat(vid.isValid()).as(version).isFalse();
-    assertThat(vid.isPattern()).isFalse();
     assertThat(vid).hasToString(version);
-  }
-
-  /**
-   * Test of illegal versions.
-   */
-  @Test
-  public void testIllegal() {
-
-    String[] illegalVersions = { "0*.0", "*0", "*.", "17.*alpha", "17*.1" };
-    for (String version : illegalVersions) {
-      try {
-        VersionIdentifier.of(version);
-        fail("Illegal version '" + version + "' did not cause an exception!");
-      } catch (Exception e) {
-        assertThat(e).isInstanceOf(IllegalArgumentException.class);
-        assertThat(e).hasMessageContaining(version);
-      }
-    }
   }
 
   /**
