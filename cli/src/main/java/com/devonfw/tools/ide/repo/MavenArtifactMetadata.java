@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.repo;
 
+import java.util.Collections;
+import java.util.Set;
+
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * {@link UrlDownloadFileMetadata} representing Metadata of a maven artifact.
@@ -22,17 +22,25 @@ public class MavenArtifactMetadata implements UrlDownloadFileMetadata {
 
   private final SystemArchitecture arch;
 
-  MavenArtifactMetadata(MvnArtifact mvnArtifact, VersionIdentifier version) {
+  MavenArtifactMetadata(MvnArtifact mvnArtifact) {
 
-    this(mvnArtifact, version, null, null);
+    this(mvnArtifact, null, null);
   }
 
-  MavenArtifactMetadata(MvnArtifact mvnArtifact, VersionIdentifier version, OperatingSystem os, SystemArchitecture arch) {
+  MavenArtifactMetadata(MvnArtifact mvnArtifact, OperatingSystem os, SystemArchitecture arch) {
 
     this.mvnArtifact = mvnArtifact;
-    this.version = version;
+    this.version = VersionIdentifier.of(mvnArtifact.getVersion());
     this.os = os;
     this.arch = arch;
+  }
+
+  /**
+   * @return the {@link MvnArtifact}.
+   */
+  public MvnArtifact getMvnArtifact() {
+
+    return this.mvnArtifact;
   }
 
   @Override

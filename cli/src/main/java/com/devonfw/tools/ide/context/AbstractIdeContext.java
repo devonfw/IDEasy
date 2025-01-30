@@ -64,8 +64,6 @@ import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
-import javax.tools.Tool;
-
 /**
  * Abstract base implementation of {@link IdeContext}.
  */
@@ -361,7 +359,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public ToolRepository getMavenSoftwareRepository() {
+  public MavenRepository getMavenSoftwareRepository() {
 
     return this.mavenRepository;
   }
@@ -451,6 +449,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     return settingsPath;
   }
 
+  @Override
   public boolean isSettingsRepositorySymlinkOrJunction() {
 
     Path settingsPath = getSettingsPath();

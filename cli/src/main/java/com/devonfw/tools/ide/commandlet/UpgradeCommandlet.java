@@ -1,28 +1,25 @@
 package com.devonfw.tools.ide.commandlet;
 
-import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.repo.MavenRepository;
-import com.devonfw.tools.ide.repo.ToolRepository;
-import com.devonfw.tools.ide.version.IdeVersion;
-import com.devonfw.tools.ide.version.VersionComparisonResult;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.repo.MavenRepository;
+import com.devonfw.tools.ide.version.IdeVersion;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link Commandlet} to upgrade the version of IDEasy
  */
 public class UpgradeCommandlet extends Commandlet {
+
+  private static final VersionIdentifier LATEST_SNAPSHOT = VersionIdentifier.of("*-SNAPSHOT");
+  public static final String IDEASY = "ideasy";
 
   /**
    * The constructor.
@@ -107,40 +104,31 @@ public class UpgradeCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    ToolRepository mavenRepo = this.context.getMavenSoftwareRepository();
-    VersionIdentifier currentVersion = VersionIdentifier.of(IdeVersion.get());
+    String version = IdeVersion.get();
+    if (IdeVersion.VERSION_UNDEFINED.equals(version)) {
+      this.context.warning("You are using IDEasy version {} what indicates local development - skipping upgrade.", version);
+      return;
+    }
+    VersionIdentifier currentVersion = VersionIdentifier.of(version);
+    MavenRepository mavenRepo = this.context.getMavenSoftwareRepository();
     VersionIdentifier configuredVersion;
-    if (currentVersion.toString().contains("SNAPSHOT")) {
-      configuredVersion = VersionIdentifier.LATEST_UNSTABLE;
+    if (version.contains("SNAPSHOT")) {
+      configuredVersion = LATEST_SNAPSHOT;
     } else {
       configuredVersion = VersionIdentifier.LATEST;
     }
-    VersionIdentifier resolvedVersion = mavenRepo.resolveVersion("ideasy", "ide-cli", configuredVersion);
+    this.context.debug("Trying to determine the latest version of IDEasy ({})", configuredVersion);
+    VersionIdentifier resolvedVersion = mavenRepo.resolveVersion(IDEASY, IDEASY, configuredVersion);
 
-    boolean upgradeAvailable;
-    if (currentVersion.toString().contains("SNAPSHOT")) {
-      upgradeAvailable = isSnapshotNewer(currentVersion.toString(), resolvedVersion.toString());
-    } else {
-      VersionComparisonResult comparisonResult = currentVersion.compareVersion(resolvedVersion);
-      upgradeAvailable = comparisonResult.isLess();
-    }
-
+    boolean upgradeAvailable = resolvedVersion.isGreater(currentVersion);
     if (upgradeAvailable) {
-      this.context.info("A newer version is available: " + resolvedVersion);
+      this.context.info("Upgrading IDEasy from version {} to {}", version, resolvedVersion);
       try {
         this.context.info("Downloading new version...");
-        SystemInfo sys = this.context.getSystemInfo();
-        String classifier = sys.getOs() + "-" + sys.getArchitecture();
-
-        Path downloadTarget = mavenRepo.download("ideasy",
-            "ide-cli",
-            resolvedVersion,
-            classifier,
-            "tar.gz");
-
+        Path downloadTarget = mavenRepo.download(IDEASY, IDEASY, resolvedVersion);
         Path extractionTarget = this.context.getIdeRoot().resolve(IdeContext.FOLDER_IDE);
         if (this.context.getSystemInfo().isWindows()) {
-          handleWindowsUpgrade(downloadTarget, extractionTarget);
+          handleUpgradeOnWindows(downloadTarget, extractionTarget);
         } else {
           this.context.info("Extracting files...");
           this.context.getFileAccess().extract(downloadTarget, extractionTarget);
@@ -150,26 +138,18 @@ public class UpgradeCommandlet extends Commandlet {
         throw new IllegalStateException("Failed to upgrade version.", e);
       }
     } else {
-      this.context.info("You are already on the latest version.");
+      this.context.info("Your have IDEasy {} installed what is already the latest version.", version);
     }
   }
 
-  private void handleWindowsUpgrade(Path downloadTarget, Path extractionTarget) throws IOException {
+  private void handleUpgradeOnWindows(Path downloadTarget, Path extractionTarget) throws IOException {
 
-    Path scriptPath = createUpgradeScriptForWindows();
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.LOG_WARNING).executable(scriptPath).addArgs(downloadTarget, extractionTarget);
+    ProcessContext pc = this.context.newProcess().executable("bash")
+        .addArgs("-c",
+            "'sleep 10;tar xvfz \"" + WindowsPathSyntax.MSYS.format(downloadTarget) + "\" -C \"" + WindowsPathSyntax.MSYS.format(extractionTarget) + "\"'");
     pc.run(ProcessMode.BACKGROUND_SILENT);
-    this.context.success("Upgrade process has been initiated.");
-  }
-
-  private Path createUpgradeScriptForWindows() throws IOException {
-
-    Path scriptPath = this.context.getIdeRoot().resolve("upgrade.bat");
-    String scriptContent = "@echo off\n" +
-        "ping -n 4 127.0.0.1 > nul\n" +
-        "C:\\Windows\\System32\\tar.exe -xzf \"%~1\" -C \"%~2\"\n" +
-        "del \"%~f0\"";
-    Files.write(scriptPath, scriptContent.getBytes(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-    return scriptPath;
+    this.context.interaction("To prevent windows file locking errors, "
+        + "we perform an asynchronous upgrade in background now.\n"
+        + "Please wait a minute for the upgrade to complete before running IDEasy commands.");
   }
 }

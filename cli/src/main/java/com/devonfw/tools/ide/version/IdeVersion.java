@@ -8,6 +8,9 @@ import java.util.jar.Manifest;
  */
 public final class IdeVersion {
 
+  /** The fallback version used if the version is undefined (in local development). */
+  public static final String VERSION_UNDEFINED = "SNAPSHOT";
+
   private static final IdeVersion INSTANCE = new IdeVersion();
 
   private final String version;
@@ -21,7 +24,7 @@ public final class IdeVersion {
     super();
     String v = getClass().getPackage().getImplementationVersion();
     if (v == null) {
-      v = "SNAPSHOT";
+      v = VERSION_UNDEFINED;
     }
     this.version = v;
   }

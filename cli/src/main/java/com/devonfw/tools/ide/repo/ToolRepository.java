@@ -46,24 +46,7 @@ public interface ToolRepository {
    * @param version the {@link #resolveVersion(String, String, GenericVersionRange) resolved} {@link VersionIdentifier}.
    * @return the {@link Path} to the downloaded software package.
    */
-  default Path download(String tool, String edition, VersionIdentifier version) {
-
-    return download(tool, edition, version, null, null);
-  }
-
-  /**
-   * Will download the requested software specified by the given arguments. If that software is already available in the download-cache it will be returned
-   * right away. Otherwise it will be downloaded and put into the download-cache. Additionally the checksum of the file is verified according to the
-   * possibilities and strategy of the {@link ToolRepository}.
-   *
-   * @param tool the name of the tool.
-   * @param edition the edition of the tool.
-   * @param version the {@link #resolveVersion(String, String, GenericVersionRange) resolved} {@link VersionIdentifier}.
-   * @param classifier (OS + Arch) of the tool.
-   * @param extension of the file to be downloaded, will default to ".jar" if null.
-   * @return the {@link Path} to the downloaded software package.
-   */
-   Path download(String tool, String edition, VersionIdentifier version, String classifier, String extension);
+  Path download(String tool, String edition, VersionIdentifier version);
 
   /**
    * @param tool the name of the tool.

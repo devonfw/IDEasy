@@ -277,7 +277,7 @@ public interface IdeContext extends IdeStartContext {
   /**
    * @return the {@link MavenRepository}.
    */
-  ToolRepository getMavenSoftwareRepository();
+  MavenRepository getMavenSoftwareRepository();
 
   /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different

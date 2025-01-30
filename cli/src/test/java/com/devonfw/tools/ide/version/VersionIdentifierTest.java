@@ -167,6 +167,7 @@ public class VersionIdentifierTest extends Assertions {
     assertThat(pattern.matches(VersionIdentifier.of("17.alpha7"))).isFalse();
     assertThat(pattern.matches(VersionIdentifier.of("17.beta2"))).isFalse();
     assertThat(pattern.matches(VersionIdentifier.of("17-SNAPSHOT"))).isFalse();
+    assertThat(pattern.matches(VersionIdentifier.of("18.0"))).isFalse();
     pattern = VersionIdentifier.of("17.*");
     assertThat(pattern.isValid()).isFalse();
     assertThat(pattern.isPattern()).isTrue();

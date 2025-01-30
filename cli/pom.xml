@@ -6,7 +6,6 @@
     <groupId>com.devonfw.tools.IDEasy.dev</groupId>
     <artifactId>ide</artifactId>
     <version>dev-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
   <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>ide-cli</artifactId>
