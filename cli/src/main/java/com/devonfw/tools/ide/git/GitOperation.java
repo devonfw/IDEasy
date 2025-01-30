@@ -155,7 +155,9 @@ public enum GitOperation {
     }
     if (!hasGitDirectory) {
       if (isRequireGitFolder()) {
-        context.warning("Missing .git folder in {}.", targetRepository);
+        if (context.getSettingsGitRepository() == null) {
+          context.warning("Missing .git folder in {}.", targetRepository);
+        }
       } else {
         logEnforceGitOperationBecauseGitFolderNotPresent(targetRepository, context);
       }
