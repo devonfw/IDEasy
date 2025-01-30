@@ -114,8 +114,10 @@ public class UpgradeCommandlet extends Commandlet {
     VersionIdentifier configuredVersion;
     if (version.contains("SNAPSHOT")) {
       configuredVersion = LATEST_SNAPSHOT;
-    } else {
+    } else if (currentVersion.getDevelopmentPhase().isStable()) {
       configuredVersion = VersionIdentifier.LATEST;
+    } else {
+      configuredVersion = VersionIdentifier.LATEST_UNSTABLE;
     }
     this.context.debug("Trying to determine the latest version of IDEasy ({})", configuredVersion);
     VersionIdentifier resolvedVersion = mavenRepo.resolveVersion(IDEASY, IDEASY, configuredVersion);
