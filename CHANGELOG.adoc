@@ -2,6 +2,14 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.01.003
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/993[#993] Creation of start scripts for IDEs
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/20?closed=1[milestone 2025.01.003].
+
 == 2025.01.002
 
 Release with important bugfixes:
