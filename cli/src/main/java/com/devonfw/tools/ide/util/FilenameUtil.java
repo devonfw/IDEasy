@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.util;
 
+import java.nio.file.Path;
 import java.util.Locale;
 
 /**
@@ -10,6 +11,43 @@ public final class FilenameUtil {
   private FilenameUtil() {
 
     // construction forbidden
+  }
+
+  /**
+   * @param path the {@link Path} to the file or directory.
+   * @return the filename.
+   */
+  public static String getFilename(Path path) {
+
+    if (path == null) {
+      return null;
+    }
+    Path filename = path.getFileName();
+    if (filename == null) {
+      return null;
+    }
+    return filename.toString();
+  }
+
+  /**
+   * @param path the {@link Path} to the file or directory.
+   * @return the filename excluding a potential {@link #getExtension(String) extension}.
+   */
+  public static String getFilenameWithoutExtension(Path path) {
+
+    String filename = getFilename(path);
+    if (filename == null) {
+      return null;
+    }
+    String result = filename;
+    int lastDot = filename.lastIndexOf('.');
+    if (lastDot > 0) {
+      result = filename.substring(0, lastDot);
+      if (result.endsWith(".tar")) {
+        result = result.substring(0, result.length() - 4);
+      }
+    }
+    return result;
   }
 
   /**

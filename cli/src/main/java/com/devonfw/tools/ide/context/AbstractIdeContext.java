@@ -50,12 +50,12 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.Property;
-import com.devonfw.tools.ide.repo.CustomToolRepository;
-import com.devonfw.tools.ide.repo.CustomToolRepositoryImpl;
-import com.devonfw.tools.ide.repo.DefaultToolRepository;
-import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.step.StepImpl;
+import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
+import com.devonfw.tools.ide.tool.repository.CustomToolRepositoryImpl;
+import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.validation.ValidationResult;
@@ -77,6 +77,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   private Path ideHome;
 
   private final Path ideRoot;
+
+  private final Path ideInstallationPath;
 
   private Path confPath;
 
@@ -187,18 +189,19 @@ public abstract class AbstractIdeContext implements IdeContext {
     setCwd(workingDirectory, workspace, currentDir);
 
     if (this.ideRoot == null) {
+      this.ideInstallationPath = null;
       this.toolRepositoryPath = null;
       this.urlsPath = null;
       this.tempPath = null;
       this.tempDownloadPath = null;
       this.softwareRepositoryPath = null;
     } else {
-      Path ideBase = this.ideRoot.resolve(FOLDER_IDE);
-      this.toolRepositoryPath = ideBase.resolve("software");
-      this.urlsPath = ideBase.resolve("urls");
-      this.tempPath = ideBase.resolve("tmp");
+      this.ideInstallationPath = this.ideRoot.resolve(FOLDER_IDE_INSTALLATION);
+      this.toolRepositoryPath = this.ideInstallationPath.resolve("software");
+      this.urlsPath = this.ideInstallationPath.resolve("urls");
+      this.tempPath = this.ideInstallationPath.resolve("tmp");
       this.tempDownloadPath = this.tempPath.resolve(FOLDER_DOWNLOADS);
-      this.softwareRepositoryPath = ideBase.resolve(FOLDER_SOFTWARE);
+      this.softwareRepositoryPath = this.ideInstallationPath.resolve(FOLDER_SOFTWARE);
       if (Files.isDirectory(this.tempPath)) {
         // TODO delete all files older than 1 day here...
       } else {
@@ -264,7 +267,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     } else {
       this.userHome = Path.of(getSystem().getProperty("user.home"));
     }
-    this.userHomeIde = this.userHome.resolve(".ide");
+    this.userHomeIde = this.userHome.resolve(FOLDER_DOT_IDE);
     this.downloadPath = this.userHome.resolve("Downloads/ide");
 
     this.path = computeSystemPath();
@@ -382,6 +385,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   public Path getIdeRoot() {
 
     return this.ideRoot;
+  }
+
+  @Override
+  public Path getIdeInstallationPath() {
+
+    return this.ideInstallationPath;
   }
 
   @Override
@@ -953,7 +962,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         """).append(LICENSE_URL);
     if (this.ideRoot != null) {
       sb.append("\n\nAlso it is included in the documentation that you can find here:\n").
-          append(this.ideRoot.resolve(FOLDER_IDE).resolve("IDEasy.pdf").toString()).append("\n");
+          append(this.ideInstallationPath.resolve("IDEasy.pdf").toString()).append("\n");
     }
     info(sb.toString());
     askToContinue("Do you accept these terms of use and all license agreements?");

@@ -36,6 +36,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   /** The commandline arguments to pass to the tool. */
   public final StringProperty arguments;
 
+  private Path executionDirectory;
+
   private MacOsHelper macOsHelper;
 
   /**
@@ -87,6 +89,22 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * @return the execution directory where the tool will be executed. Will be {@code null} by default leading to execution in the users current working
+   *     directory where IDEasy was called.
+   * @see #setExecutionDirectory(Path)
+   */
+  public Path getExecutionDirectory() {
+    return this.executionDirectory;
+  }
+
+  /**
+   * @param executionDirectory the new value of {@link #getExecutionDirectory()}.
+   */
+  public void setExecutionDirectory(Path executionDirectory) {
+    this.executionDirectory = executionDirectory;
+  }
+
+  /**
    * @return the {@link EnvironmentVariables#getToolVersion(String) tool version}.
    */
   public VersionIdentifier getConfiguredVersion() {
@@ -116,7 +134,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param edition the edition.
    * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted if same as tool.
    */
-  protected final static String getToolWithEdition(String tool, String edition) {
+  protected static String getToolWithEdition(String tool, String edition) {
 
     if (tool.equals(edition)) {
       return tool;
@@ -164,6 +182,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
     install(true, pc);
+    if (this.executionDirectory != null) {
+      pc.directory(this.executionDirectory);
+    }
     configureToolBinary(pc, processMode, errorHandling);
     configureToolArgs(pc, processMode, errorHandling, args);
     return pc.run(processMode);
@@ -486,4 +507,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     context.getFileAccess().makeExecutable(bashFile);
   }
 
+  @Override
+  public void reset() {
+    super.reset();
+    this.executionDirectory = null;
+  }
 }

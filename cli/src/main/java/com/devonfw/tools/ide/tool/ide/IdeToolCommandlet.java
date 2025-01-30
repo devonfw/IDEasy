@@ -92,4 +92,14 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
       }
     }
   }
+
+  /**
+   * Imports the repository specified by the given {@link Path} into the IDE managed by this {@link IdeToolCommandlet}.
+   *
+   * @param repositoryPath the {@link Path} to the repository directory to import.
+   */
+  public void importRepository(Path repositoryPath) {
+
+    throw new UnsupportedOperationException("Repository import is not yet implemented for IDE " + this.tool);
+  }
 }

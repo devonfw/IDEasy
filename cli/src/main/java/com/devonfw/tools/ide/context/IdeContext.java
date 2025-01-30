@@ -18,10 +18,10 @@ import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.repo.CustomToolRepository;
-import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -52,8 +52,17 @@ public interface IdeContext extends IdeStartContext {
   /**
    * The base folder name of the IDE inside IDE_ROOT. Intentionally starting with an underscore and not a dot (to prevent effects like OS hiding, maven
    * filtering, .gitignore, etc.).
+   *
+   * @see #getIdeInstallationPath()
    */
-  String FOLDER_IDE = "_ide";
+  String FOLDER_IDE_INSTALLATION = "_ide";
+
+  /**
+   * The name of the hidden folder for IDE configuration in the users home directory or status information in the IDE_HOME directory.
+   *
+   * @see #getUserHomeIde()
+   */
+  String FOLDER_DOT_IDE = ".ide";
 
   /** The name of the updates folder for temporary data and backup. */
   String FOLDER_UPDATES = "updates";
@@ -117,6 +126,11 @@ public interface IdeContext extends IdeStartContext {
    * user as needed.
    */
   String FOLDER_UPDATE = "update";
+
+  /**
+   * The name of the folder inside {@link #FOLDER_IDE_INSTALLATION _ide} folder containing internal resources and scripts of IDEasy.
+   */
+  String FOLDER_INTERNAL = "internal";
 
   /** The file where the installed software version is written to as plain text. */
   String FILE_SOFTWARE_VERSION = ".ide.software.version";
@@ -293,6 +307,13 @@ public interface IdeContext extends IdeStartContext {
    * @see com.devonfw.tools.ide.variable.IdeVariables#IDE_ROOT
    */
   Path getIdeRoot();
+
+  /**
+   * @return the {@link Path} to the {@link #FOLDER_IDE_INSTALLATION IDE installation}.
+   * @see #getIdeRoot()
+   * @see #FOLDER_IDE_INSTALLATION
+   */
+  Path getIdeInstallationPath();
 
   /**
    * @return the current working directory ("user.dir"). This is the directory where the user's shell was located when the IDE CLI was invoked.

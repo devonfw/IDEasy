@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.tool;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.repo.CustomToolMetadata;
+import com.devonfw.tools.ide.tool.repository.CustomToolMetadata;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
