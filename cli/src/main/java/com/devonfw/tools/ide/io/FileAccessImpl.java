@@ -993,10 +993,28 @@ public class FileAccessImpl implements FileAccess {
     this.context.trace("Reading content of file from {}", file);
     try {
       String content = Files.readString(file);
-      this.context.trace("Read content of file {} as {}", file, content);
+      this.context.trace("Read content of length {} from file {}", content.length(), file);
       return content;
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read file " + file, e);
+    }
+  }
+
+  @Override
+  public void writeFileContent(String content, Path file) {
+
+    if (content == null) {
+      content = "";
+    }
+    this.context.trace("Writing content with length {} to file {}", content.length(), file);
+    if (Files.exists(file)) {
+      this.context.info("Overriding content of file {}", file);
+    }
+    try {
+      Files.writeString(file, content);
+      this.context.trace("Wrote content to file {}", file);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to write file " + file, e);
     }
   }
 }

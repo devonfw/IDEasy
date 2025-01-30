@@ -1,16 +1,20 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
 import com.devonfw.tools.ide.step.Step;
@@ -58,6 +62,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     updateSoftware();
     updateRepositories();
+    createStartScripts();
   }
 
   private void reloadContext() {
@@ -202,6 +207,72 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     RepositoryCommandlet repositoryCommandlet = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
     repositoryCommandlet.reset();
     repositoryCommandlet.run();
+  }
+
+  private void createStartScripts() {
+
+    List<String> ides = IdeVariables.CREATE_START_SCRIPTS.get(this.context);
+    if (ides == null) {
+      this.context.info("Variable CREATE_START_SCRIPTS is undefined - skipping start script creation.");
+      return;
+    }
+    for (String ide : ides) {
+      ToolCommandlet tool = this.context.getCommandletManager().getToolCommandlet(ide);
+      if (tool == null) {
+        this.context.error("Undefined IDE '{}' configured in variable CREATE_START_SCRIPTS.");
+      } else {
+        createStartScript(ide);
+      }
+    }
+  }
+
+  private void createStartScript(String ide) {
+
+    this.context.info("Creating start scripts for {}", ide);
+    Path workspaces = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES);
+    try (Stream<Path> childStream = Files.list(workspaces)) {
+      Iterator<Path> iterator = childStream.iterator();
+      while (iterator.hasNext()) {
+        Path child = iterator.next();
+        if (Files.isDirectory(child)) {
+          createStartScript(ide, child.getFileName().toString());
+        }
+      }
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to list children of directory " + workspaces, e);
+    }
+  }
+
+  private void createStartScript(String ide, String workspace) {
+
+    Path ideHome = this.context.getIdeHome();
+    String scriptName = ide + "-" + workspace;
+    boolean windows = this.context.getSystemInfo().isWindows();
+    if (windows) {
+      scriptName = scriptName + ".bat";
+    } else {
+      scriptName = scriptName + ".sh";
+    }
+    Path scriptPath = ideHome.resolve(scriptName);
+    if (Files.exists(scriptPath)) {
+      return;
+    }
+    String scriptContent;
+    if (windows) {
+      scriptContent = "@echo off\r\n"
+          + "pushd %~dp0\r\n"
+          + "cd workspaces/" + workspace + "\r\n"
+          + "call ide " + ide + "\r\n"
+          + "popd\r\n";
+    } else {
+      scriptContent = "#!/usr/bin/env bash\n"
+          + "cd \"$(dirname \"$0\")\"\n"
+          + "cd workspaces/" + workspace + "\n"
+          + "ide " + ide + "\n";
+    }
+    FileAccess fileAccess = this.context.getFileAccess();
+    fileAccess.writeFileContent(scriptContent, scriptPath);
+    fileAccess.makeExecutable(scriptPath);
   }
 
 }
