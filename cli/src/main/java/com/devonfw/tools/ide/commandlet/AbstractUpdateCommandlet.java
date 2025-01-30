@@ -107,8 +107,8 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   }
 
   /**
-   * Updates the settings repository in IDE_HOME/settings by either cloning if no such repository exists or pulling
-   * if the repository exists then saves the latest current commit ID in the file ".commit.id".
+   * Updates the settings repository in IDE_HOME/settings by either cloning if no such repository exists or pulling if the repository exists then saves the
+   * latest current commit ID in the file ".commit.id".
    */
   protected void updateSettings() {
 
@@ -150,6 +150,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     try (Step step = this.context.newStep("Install or update software")) {
       Set<ToolCommandlet> toolCommandlets = new HashSet<>();
 
+      //TODO: shift method to retrieve installed tools to parent class
       // installed tools in IDE_HOME/software
       List<Path> softwarePaths = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
       for (Path softwarePath : softwarePaths) {

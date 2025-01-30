@@ -130,4 +130,24 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
 
     return path.toString().replace('\\', '/');
   }
+
+  @Test
+  public void testSetEnvironmentVariablesInLocalTools() {
+    //given
+    IdeTestContext context = newContext(PROJECT_BASIC);
+//    IdeTestContextMock context = IdeTestContextMock.get();
+
+//    EnvironmentVariablesPropertiesMock mockVariables = new EnvironmentVariablesPropertiesMock(null, EnvironmentVariablesType.SETTINGS, context);
+//    mockVariables.set("JAVA_HOME", "/projects/myproject", false);
+//    mockVariables.set("JAVA_VERSION", "21", false);
+//    EnvironmentVariables variables = mockVariables.resolved();
+
+//    context.getVariables().set("testTool", "testTool");
+
+    //when
+    context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class).run();
+
+    //then
+    assertThat(context.getVariables().findVariable("JAVA_HOME")).isEqualTo("test");
+  }
 }

@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.variable;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 
@@ -52,8 +53,6 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
   VariableDefinitionString DOCKER_EDITION = new VariableDefinitionString("DOCKER_EDITION", null, c -> "rancher");
 
-  /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
-
   /** {@link VariableDefinition} for default build options of mvn */
   VariableDefinitionString MVN_BUILD_OPTS = new VariableDefinitionString("MVN_BUILD_OPTS", null, c -> "clean install");
 
@@ -75,6 +74,9 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() PROJECT_NAME}. */
   VariableDefinitionString PROJECT_NAME = new VariableDefinitionString("PROJECT_NAME", null, c -> c.getProjectName());
 
+  /** {@link VariableDefinition} for version of java */
+  VariableDefinitionPath JAVA_HOME = new VariableDefinitionPath("JAVA_HOME", null, c -> Path.of(c.getIdeHome().toString(), "/software/java"), true, false);
+
   /** Preferred Git protocol (HTTPS/SSH) as defined by {@link GitUrlSyntax}. */
   VariableDefinitionEnum<GitUrlSyntax> PREFERRED_GIT_PROTOCOL = new VariableDefinitionEnum<>("PREFERRED_GIT_PROTOCOL", null, GitUrlSyntax.class,
       c -> GitUrlSyntax.DEFAULT);
@@ -92,7 +94,7 @@ public interface IdeVariables {
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, CREATE_START_SCRIPTS,
       IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, GRADLE_BUILD_OPTS, YARN_BUILD_OPTS, JASYPT_OPTS, MAVEN_ARGS,
-      PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
+      PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL, JAVA_HOME);
 
   /**
    * @param name the name of the requested {@link VariableDefinition}.

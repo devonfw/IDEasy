@@ -23,7 +23,7 @@ public final class EnvironmentVariablesSystem extends EnvironmentVariablesMap {
   }
 
   @Override
-  protected Map<String, String> getVariables() {
+  public Map<String, String> getVariables() {
 
     return this.context.getSystem().getEnv();
   }
@@ -36,5 +36,4 @@ public final class EnvironmentVariablesSystem extends EnvironmentVariablesMap {
 
     return new EnvironmentVariablesSystem(context);
   }
-
 }
