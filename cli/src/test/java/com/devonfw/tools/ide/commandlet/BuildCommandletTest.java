@@ -30,7 +30,8 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     buildCommandlet.run();
     assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully installed java in version 17.0.10_7"),
         IdeLogEntry.ofSuccess("Successfully installed mvn in version 3.9.6"),
-        IdeLogEntry.ofInfo("mvn clean compile"));
+        IdeLogEntry.ofInfo("mvn clean compile")
+        );
   }
 
   /**
@@ -46,6 +47,7 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     buildCommandlet.arguments.addValue("install");
     buildCommandlet.run();
     assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully installed java in version 17.0.10_7"),
+        IdeLogEntry.ofDebug("Tool mvn has 1 other tool(s) as dependency"),
         IdeLogEntry.ofSuccess("Successfully installed mvn in version 3.9.6"),
         IdeLogEntry.ofInfo("mvn clean install"));
   }
