@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.repo.CustomToolRepository;
+import com.devonfw.tools.ide.repo.MavenRepository;
 import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
@@ -272,6 +273,11 @@ public interface IdeContext extends IdeStartContext {
    * @return the {@link CustomToolRepository}.
    */
   CustomToolRepository getCustomToolRepository();
+
+  /**
+   * @return the {@link MavenRepository}.
+   */
+  ToolRepository getMavenSoftwareRepository();
 
   /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different

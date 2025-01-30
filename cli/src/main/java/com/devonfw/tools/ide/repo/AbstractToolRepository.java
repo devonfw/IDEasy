@@ -44,10 +44,17 @@ public abstract class AbstractToolRepository implements ToolRepository {
    */
   protected abstract UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version);
 
-  @Override
-  public Path download(String tool, String edition, VersionIdentifier version) {
+  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, String classifier, String extension) {
 
-    UrlDownloadFileMetadata metadata = getMetadata(tool, edition, version);
+    return getMetadata(tool, edition, version);
+  }
+
+
+
+  @Override
+  public Path download(String tool, String edition, VersionIdentifier version, String classifier, String extension) {
+
+    UrlDownloadFileMetadata metadata = getMetadata(tool, edition, version, classifier, extension);
     VersionIdentifier resolvedVersion = metadata.getVersion();
     Set<String> urlCollection = metadata.getUrls();
     if (context.isOffline()) {

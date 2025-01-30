@@ -93,6 +93,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new BuildCommandlet(context));
     add(new InstallPluginCommandlet(context));
     add(new UninstallPluginCommandlet(context));
+    add(new UpgradeCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));
