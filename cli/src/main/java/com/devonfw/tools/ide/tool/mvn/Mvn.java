@@ -65,11 +65,13 @@ public class Mvn extends PluginBasedCommandlet {
     super(context, "mvn", Set.of(Tag.JAVA, Tag.BUILD));
   }
 
+  /**
+   * no longer needed since dependencies.json is used
+   */
+  @Deprecated
   @Override
   protected void installDependencies() {
 
-    // TODO create mvn/mvn/dependencies.json file in ide-urls and delete this method
-    getCommandlet(Java.class).install();
   }
 
   @Override
