@@ -29,6 +29,8 @@ public class Eclipse extends IdeToolCommandlet {
 
   // version must correspond to eclipse-import.xml
   private static final String GROOVY_VERSION = "3.0.23";
+
+  /** Eclipse CLI option for Java virtual machine arguments. */
   public static final String VMARGS = "-vmargs";
 
   private boolean groovyInstalled;

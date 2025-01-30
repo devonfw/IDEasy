@@ -30,6 +30,11 @@ final class RepositoryProperties {
     this(file, context, context.getFileAccess().readProperties(file));
   }
 
+  /**
+   * @param file the {@link Path} to the properties file.
+   * @param context the {@link IdeContext}.
+   * @param properties the actual {@link Properties} loaded from the file.
+   */
   RepositoryProperties(Path file, IdeContext context, Properties properties) {
     super();
     this.file = file;
@@ -101,6 +106,8 @@ final class RepositoryProperties {
 
     String legacyImportProperty = getLegacyProperty(RepositoryConfig.PROPERTY_ECLIPSE, RepositoryConfig.PROPERTY_IMPORT);
     if ("import".equals(legacyImportProperty)) {
+      this.context.warning("Property {} is deprecated and should be replaced with {} (invert key and value).", RepositoryConfig.PROPERTY_ECLIPSE,
+          RepositoryConfig.PROPERTY_IMPORT);
       return Set.of("eclipse");
     } else {
       return Set.of();
