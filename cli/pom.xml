@@ -247,6 +247,7 @@
               <buildArgs>
                 <arg>--enable-url-protocols=http,https</arg>
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
+                <arg>-march=compatibility</arg>
               </buildArgs>
             </configuration>
           </plugin>

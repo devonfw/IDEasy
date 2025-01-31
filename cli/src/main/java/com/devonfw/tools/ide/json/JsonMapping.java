@@ -1,11 +1,11 @@
 package com.devonfw.tools.ide.json;
 
-import com.devonfw.tools.ide.repo.CustomToolJson;
-import com.devonfw.tools.ide.repo.CustomToolJsonDeserializer;
-import com.devonfw.tools.ide.repo.CustomToolJsonSerializer;
-import com.devonfw.tools.ide.repo.CustomToolsJson;
-import com.devonfw.tools.ide.repo.CustomToolsJsonDeserializer;
-import com.devonfw.tools.ide.repo.CustomToolsJsonSerializer;
+import com.devonfw.tools.ide.tool.repository.CustomToolJson;
+import com.devonfw.tools.ide.tool.repository.CustomToolJsonDeserializer;
+import com.devonfw.tools.ide.tool.repository.CustomToolJsonSerializer;
+import com.devonfw.tools.ide.tool.repository.CustomToolsJson;
+import com.devonfw.tools.ide.tool.repository.CustomToolsJsonDeserializer;
+import com.devonfw.tools.ide.tool.repository.CustomToolsJsonSerializer;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
