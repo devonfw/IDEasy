@@ -9,7 +9,8 @@ import com.devonfw.tools.ide.environment.VariableSource;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 
 /**
- * Implementation of {@link EnvironmentContext}. This class collects environment variables of all installed local tools.
+ * Implementation of {@link EnvironmentContext}. This class collects {@link EnvironmentVariables} and sets them in the {@link EnvironmentContext}, if not
+ * already existent.
  */
 public class EnvironmentVariableCollectorContext implements EnvironmentContext {
 
@@ -23,7 +24,7 @@ public class EnvironmentVariableCollectorContext implements EnvironmentContext {
    * The constructor.
    *
    * @param environmentVariables A Map of {@link EnvironmentVariables} that will be added to the {@link EnvironmentContext}.
-   * @param variableSource Describes where the {@link EnvironmentVariables} come from.
+   * @param variableSource Describes {@link VariableSource} of the {@link EnvironmentVariables}.
    * @param pathSyntax The {@link WindowsPathSyntax} determines the format of a path for the output.
    */
   public EnvironmentVariableCollectorContext(Map<String, VariableLine> environmentVariables, VariableSource variableSource, WindowsPathSyntax pathSyntax) {
