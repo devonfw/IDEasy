@@ -18,6 +18,8 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_BUILD = "build";
 
+  private static final String JAVA_VERSION = "17.0.10_7";
+
   /**
    * Tests a {@link com.devonfw.tools.ide.tool.mvn.Mvn} build without arguments and expects defaults to be taken from ide.properties.
    */
@@ -29,7 +31,7 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     context.setCwd(context.getWorkspacePath().resolve("mvn"), context.getWorkspacePath().toString(), context.getIdeHome());
     buildCommandlet.run();
     assertThat(context).log().hasEntries(IdeLogEntry.ofDebug("Tool mvn has 1 other tool(s) as dependency"),
-        IdeLogEntry.ofSuccess("Successfully installed java in version 17.0.10_7"),
+        IdeLogEntry.ofSuccess("Successfully installed java in version " + JAVA_VERSION),
         IdeLogEntry.ofSuccess("Successfully installed mvn in version 3.9.6"),
         IdeLogEntry.ofInfo("mvn clean compile"));
   }
@@ -46,7 +48,7 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     buildCommandlet.arguments.addValue("clean");
     buildCommandlet.arguments.addValue("install");
     buildCommandlet.run();
-    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully installed java in version 17.0.10_7"),
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully installed java in version " + JAVA_VERSION),
         IdeLogEntry.ofSuccess("Successfully installed mvn in version 3.9.6"),
         IdeLogEntry.ofInfo("mvn clean install"));
   }
@@ -63,7 +65,7 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
     buildCommandlet.arguments.addValue("task1");
     buildCommandlet.arguments.addValue("task2");
     buildCommandlet.run();
-    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully installed java in version 17.0.10_7"),
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully installed java in version " + JAVA_VERSION),
         IdeLogEntry.ofSuccess("Successfully installed gradle in version 8.7"),
         IdeLogEntry.ofInfo("gradle task1 task2"));
   }
