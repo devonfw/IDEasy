@@ -13,8 +13,6 @@ import com.devonfw.tools.ide.context.IdeTestContext;
  */
 public class GradleTest extends AbstractIdeContextTest {
 
-//*insert
-
   private static final String PROJECT_GRADLE = "gradle";
   private static final String GRADLE_VERSION = "8.7";
 
