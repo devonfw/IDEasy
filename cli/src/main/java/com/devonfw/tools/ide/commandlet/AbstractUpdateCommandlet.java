@@ -152,7 +152,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     try (Step step = this.context.newStep("Install or update software")) {
       Set<ToolCommandlet> toolCommandlets = new HashSet<>();
 
-      //TODO: shift method to retrieve installed tools to parent class
       // installed tools in IDE_HOME/software
       List<Path> softwarePaths = this.context.getFileAccess().listChildren(this.context.getSoftwarePath(), Files::isDirectory);
       for (Path softwarePath : softwarePaths) {
