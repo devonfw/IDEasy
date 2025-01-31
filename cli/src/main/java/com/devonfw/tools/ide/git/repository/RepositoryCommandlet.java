@@ -100,7 +100,7 @@ public class RepositoryCommandlet extends Commandlet {
     if (Files.isDirectory(repositoryPath.resolve(GitContext.GIT_FOLDER))) {
       this.context.info("Repository {} already exists at {}", repositoryId, repositoryPath);
       if (!this.context.isForceMode()) {
-        this.context.info("Ignoring repository {} - use --force to rerun setup.", repositoryId, repositoryPath);
+        this.context.info("Ignoring repository {} - use --force to rerun setup.", repositoryId);
         return;
       }
     }
