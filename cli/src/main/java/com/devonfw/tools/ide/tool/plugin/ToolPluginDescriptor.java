@@ -1,8 +1,5 @@
 package com.devonfw.tools.ide.tool.plugin;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Locale;
 import java.util.Properties;
@@ -32,27 +29,22 @@ public record ToolPluginDescriptor(String id, String name, String url, boolean a
 
   /**
    * @param propertiesFile the {@link Path} to the plugin {@link Properties} file.
-   * @param logger the {@link IdeLogger}.
+   * @param context the {@link IdeContext}.
    * @param needUrl - {@code true} if {@link ToolPluginDescriptor#url () URL} needs to be present and a warning shall be logged if missing, {@code false}
    *     otherwise.
    * @return the loaded {@link ToolPluginDescriptor}.
    */
-  public static ToolPluginDescriptor of(Path propertiesFile, IdeLogger logger, boolean needUrl) {
+  public static ToolPluginDescriptor of(Path propertiesFile, IdeContext context, boolean needUrl) {
 
-    Properties properties = new Properties();
     String name = propertiesFile.getFileName().toString();
     name = name.substring(0, name.length() - IdeContext.EXT_PROPERTIES.length());
-    try (Reader reader = Files.newBufferedReader(propertiesFile)) {
-      properties.load(reader);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to load properties " + propertiesFile, e);
-    }
+    Properties properties = context.getFileAccess().readProperties(propertiesFile);
     String id = getString(properties, "id", "plugin_id");
     String url = getString(properties, "url", "plugin_url");
     if (needUrl && ((url == null) || url.isBlank())) {
-      logger.warning("Missing plugin URL in {}", propertiesFile);
+      context.warning("Missing plugin URL in {}", propertiesFile);
     }
-    boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile, logger);
+    boolean active = getBoolean(properties, "active", "plugin_active", propertiesFile, context);
     String tagsCsv = getString(properties, "tags", "plugin_tags");
     Set<Tag> tags = Tag.parseCsv(tagsCsv);
     return new ToolPluginDescriptor(id, name, url, active, tags);
