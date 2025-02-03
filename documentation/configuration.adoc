@@ -1,6 +1,5 @@
 :toc:
 toc::[]
-:doctype: book
 
 = Configuration
 
