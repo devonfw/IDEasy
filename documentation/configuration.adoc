@@ -44,7 +44,7 @@ Please only tweak configurations that you need to change and be aware:
 
 > High flexibility comes with great responsibility.
 
-So please only configure and override that are needed and that you can manage and take responsibility for.
+So please only configure and override what is needed and what you can manage and take responsibility for.
 Some users override and tweak configurations just by random trial & error experiments, then forget about it and later complain if something that they broke is not working.
 Use `ide -d env` to check your configured variables and see where they are coming from.
 
