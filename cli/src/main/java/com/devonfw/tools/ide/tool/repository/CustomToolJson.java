@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.repo;
+package com.devonfw.tools.ide.tool.repository;
 
 import com.devonfw.tools.ide.os.OperatingSystem;
 

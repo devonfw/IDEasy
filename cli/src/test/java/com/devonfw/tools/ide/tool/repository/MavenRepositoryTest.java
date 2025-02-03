@@ -1,4 +1,6 @@
-package com.devonfw.tools.ide.repo;
+package com.devonfw.tools.ide.tool.repository;
+
+import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
@@ -6,7 +8,6 @@ import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-import org.junit.jupiter.api.Test;
 
 class MavenRepositoryTest extends AbstractIdeContextTest {
 

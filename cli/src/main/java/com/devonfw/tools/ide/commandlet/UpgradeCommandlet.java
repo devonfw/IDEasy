@@ -1,17 +1,17 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.repo.MavenRepository;
+import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * {@link Commandlet} to upgrade the version of IDEasy
@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class UpgradeCommandlet extends Commandlet {
 
   private static final VersionIdentifier LATEST_SNAPSHOT = VersionIdentifier.of("*-SNAPSHOT");
+
   public static final String IDEASY = "ideasy";
 
   /**
@@ -53,8 +54,7 @@ public class UpgradeCommandlet extends Commandlet {
 
     try {
       // Validate input formats
-      if (currentVersion == null || latestVersion == null || !currentVersion.contains("-") || !latestVersion.contains(
-          "-")) {
+      if (currentVersion == null || latestVersion == null || !currentVersion.contains("-") || !latestVersion.contains("-")) {
         return false;
       }
 
@@ -92,8 +92,7 @@ public class UpgradeCommandlet extends Commandlet {
           DateTimeFormatter.ofPattern("yyyyMMddHHmm"));
 
       // Parse latest date/time (format: YYYYMMDD.HHMMSS)
-      LocalDateTime latestTime = LocalDateTime.parse(latestTimestampParts[0] + "000000",
-          DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+      LocalDateTime latestTime = LocalDateTime.parse(latestTimestampParts[0] + "000000", DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
       return latestTime.isAfter(currentTime);
     } catch (Exception e) {
@@ -128,7 +127,7 @@ public class UpgradeCommandlet extends Commandlet {
       try {
         this.context.info("Downloading new version...");
         Path downloadTarget = mavenRepo.download(IDEASY, IDEASY, resolvedVersion);
-        Path extractionTarget = this.context.getIdeRoot().resolve(IdeContext.FOLDER_IDE);
+        Path extractionTarget = this.context.getIdeRoot().resolve(IdeContext.FOLDER_IDE_INSTALLATION);
         if (this.context.getSystemInfo().isWindows()) {
           handleUpgradeOnWindows(downloadTarget, extractionTarget);
         } else {
@@ -146,12 +145,10 @@ public class UpgradeCommandlet extends Commandlet {
 
   private void handleUpgradeOnWindows(Path downloadTarget, Path extractionTarget) throws IOException {
 
-    ProcessContext pc = this.context.newProcess().executable("bash")
-        .addArgs("-c",
-            "'sleep 10;tar xvfz \"" + WindowsPathSyntax.MSYS.format(downloadTarget) + "\" -C \"" + WindowsPathSyntax.MSYS.format(extractionTarget) + "\"'");
+    ProcessContext pc = this.context.newProcess().executable("bash").addArgs("-c",
+        "'sleep 10;tar xvfz \"" + WindowsPathSyntax.MSYS.format(downloadTarget) + "\" -C \"" + WindowsPathSyntax.MSYS.format(extractionTarget) + "\"'");
     pc.run(ProcessMode.BACKGROUND_SILENT);
-    this.context.interaction("To prevent windows file locking errors, "
-        + "we perform an asynchronous upgrade in background now.\n"
+    this.context.interaction("To prevent windows file locking errors, " + "we perform an asynchronous upgrade in background now.\n"
         + "Please wait a minute for the upgrade to complete before running IDEasy commands.");
   }
 }
