@@ -8,6 +8,8 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/993[#993] Creation of start scripts for IDEs
 * https://github.com/devonfw/IDEasy/pull/1003[#1003] graalvm compatibility mode to make x86-64 releases work on arm-64
+* https://github.com/devonfw/IDEasy/issues/954[#954] Improve repository support
+* https://github.com/devonfw/IDEasy/issues/993[#993] Creation of start scripts for IDEs
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/20?closed=1[milestone 2025.01.003].
 
