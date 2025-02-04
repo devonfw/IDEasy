@@ -36,8 +36,10 @@ public class EnvironmentVariableCollectorContext implements EnvironmentContext {
 
   @Override
   public EnvironmentContext withEnvVar(String key, String value) {
-    if (this.pathSyntax != null && !this.environmentVariables.containsKey(key)) {
+    if (this.pathSyntax != null) {
       value = pathSyntax.normalize(value);
+    }
+    if (!this.environmentVariables.containsKey(key)) {
       environmentVariables.put(key, VariableLine.of(true, key, value, variableSource));
     }
     return this;
