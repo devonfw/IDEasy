@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.repo;
+package com.devonfw.tools.ide.tool.repository;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
