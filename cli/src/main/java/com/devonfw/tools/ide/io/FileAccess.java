@@ -1,8 +1,13 @@
 package com.devonfw.tools.ide.io;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -307,9 +312,43 @@ public interface FileAccess {
   String readFileContent(Path file);
 
   /**
+   * @param content the {@link String} with the text to write to a file.
+   * @param file the {@link Path} to the file where to save.
+   */
+  void writeFileContent(String content, Path file);
+
+  /**
    * @param path that is checked whether it is a junction or not.
    * @return {@code true} if the given {@link Path} is a junction, false otherwise.
    */
   boolean isJunction(Path path);
+
+  /**
+   * @param file the {@link Path} to the {@link Properties} file to read.
+   * @return the parsed {@link Properties}.
+   */
+  default Properties readProperties(Path file) {
+
+    Properties properties = new Properties();
+    try (Reader reader = Files.newBufferedReader(file)) {
+      properties.load(reader);
+      return properties;
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read properties file: " + file, e);
+    }
+  }
+
+  /**
+   * @param properties the {@link Properties} to save.
+   * @param file the {@link Path} to the file where to save the properties.
+   */
+  default void writeProperties(Properties properties, Path file) {
+
+    try (Writer writer = Files.newBufferedWriter(file)) {
+      properties.store(writer, null);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to save properties file during tests.", e);
+    }
+  }
 
 }

@@ -209,17 +209,32 @@ public interface Step extends AutoCloseable {
 
   /**
    * @param stepCode the {@link Runnable} to {@link Runnable#run() execute} for this {@link Step}.
+   * @return {@code true} on success, {@code false} on error.
    */
-  default void run(Runnable stepCode) {
+  default boolean run(Runnable stepCode) {
+
+    return run(stepCode, false);
+  }
+
+  /**
+   * @param stepCode the {@link Runnable} to {@link Runnable#run() execute} for this {@link Step}.
+   * @param rethrow - {@code true} to rethrow a potential {@link Throwable error}.
+   * @return {@code true} on success, {@code false} on error (if {@code rethrow} is {@code false}).
+   */
+  default boolean run(Runnable stepCode, boolean rethrow) {
 
     try {
       stepCode.run();
       if (getSuccess() == null) {
         success();
       }
+      return true;
     } catch (RuntimeException | Error e) {
       error(e);
-      throw e;
+      if (rethrow) {
+        throw e;
+      }
+      return false;
     } finally {
       close();
     }

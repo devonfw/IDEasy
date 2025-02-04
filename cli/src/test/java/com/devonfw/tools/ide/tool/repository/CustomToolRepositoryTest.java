@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.repo;
+package com.devonfw.tools.ide.tool.repository;
 
 import org.assertj.core.api.Assertions;
 
