@@ -10,8 +10,8 @@ import java.util.Set;
 import java.util.regex.Matcher;
 
 import com.devonfw.tools.ide.common.Tag;
-import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -20,6 +20,7 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
+import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.variable.VariableSyntax;
 
 /**
@@ -165,7 +166,7 @@ public class Mvn extends PluginBasedCommandlet {
 
     ProcessContext pc = this.context.newProcess().executable("mvn");
     pc.addArgs("--encrypt-password", input);
-    pc.addArg(getDsettingsSecurityProperty());
+    pc.addArg(getSettingsSecurityProperty());
     ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
 
     String encryptedPassword = result.getOut().get(0);
@@ -206,6 +207,9 @@ public class Mvn extends PluginBasedCommandlet {
     return "-h";
   }
 
+  /**
+   * @return the {@link Path} to the folder with the maven configuration templates.
+   */
   public Path getMavenTemplatesFolder() {
 
     Path templatesFolder = this.context.getSettingsTemplatePath();
@@ -226,6 +230,10 @@ public class Mvn extends PluginBasedCommandlet {
     return templatesConfMvnFolder;
   }
 
+  /**
+   * @param legacy - {@code true} to enforce legacy fallback creation, {@code false} otherwise.
+   * @return the {@link Path} to the maven configuration folder (where "settings.xml" can be found).
+   */
   public Path getMavenConfFolder(boolean legacy) {
 
     Path confPath = this.context.getConfPath();
@@ -244,6 +252,9 @@ public class Mvn extends PluginBasedCommandlet {
     return mvnConfigFolder;
   }
 
+  /**
+   * @return the maven arguments (MVN_ARGS).
+   */
   public String getMavenArgs() {
     Path mavenConfFolder = getMavenConfFolder(false);
     Path mvnSettingsFile = mavenConfFolder.resolve(Mvn.SETTINGS_FILE);
@@ -251,10 +262,41 @@ public class Mvn extends PluginBasedCommandlet {
       return null;
     }
     String settingsPath = mvnSettingsFile.toString();
-    return "-s " + settingsPath + " " + getDsettingsSecurityProperty();
+    return "-s " + settingsPath + " " + getSettingsSecurityProperty();
   }
 
-  private String getDsettingsSecurityProperty() {
+  private String getSettingsSecurityProperty() {
     return "-Dsettings.security=" + this.context.getMavenRepository().getParent().resolve(SETTINGS_SECURITY_FILE).toString().replace("\\", "\\\\");
+  }
+
+  /**
+   * @return the {@link Path} to the local maven repository.
+   */
+  public Path getLocalRepository() {
+    return IdeVariables.M2_REPO.get(this.context);
+  }
+
+  /**
+   * @param artifact the {@link MvnArtifact}.
+   */
+  public void downloadArtifact(MvnArtifact artifact) {
+
+    this.context.newStep("Download artifact " + artifact).run(() -> {
+      runTool("dependency:get", "-Dartifact=" + artifact.getKey());
+    });
+  }
+
+  /**
+   * @param artifact the {@link MvnArtifact}.
+   * @return the {@link Path} to the {@link MvnArtifact} that was downloaded if not already present.
+   */
+  public Path getOrDownloadArtifact(MvnArtifact artifact) {
+
+    Path artifactPath = getLocalRepository().resolve(artifact.getPath());
+    if (!Files.exists(artifactPath)) {
+      downloadArtifact(artifact);
+      assert (Files.exists(artifactPath));
+    }
+    return artifactPath;
   }
 }

@@ -10,8 +10,8 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogger;
-import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 
 /**
  * Internal helper class for MacOS workarounds.

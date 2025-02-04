@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.repo;
+package com.devonfw.tools.ide.tool.repository;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
