@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -7,11 +12,6 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.io.IOException;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 /**
  * {@link Commandlet} to upgrade the version of IDEasy
@@ -109,7 +109,7 @@ public class UpgradeCommandlet extends Commandlet {
       return;
     }
     VersionIdentifier currentVersion = VersionIdentifier.of(version);
-    MavenRepository mavenRepo = this.context.getMavenSoftwareRepository();
+    MavenRepository mavenRepo = this.context.getMavenToolRepository();
     VersionIdentifier configuredVersion;
     if (version.contains("SNAPSHOT")) {
       configuredVersion = LATEST_SNAPSHOT;

@@ -362,7 +362,7 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public MavenRepository getMavenSoftwareRepository() {
+  public MavenRepository getMavenToolRepository() {
 
     return this.mavenRepository;
   }

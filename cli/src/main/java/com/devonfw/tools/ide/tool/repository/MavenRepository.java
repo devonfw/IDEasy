@@ -44,6 +44,22 @@ public class MavenRepository extends AbstractToolRepository {
       "gcviewer", new MvnArtifact("com.github.chewiebug", "gcviewer", "*")
   );
 
+  /**
+   * The constructor.
+   *
+   * @param context the owning {@link IdeContext}.
+   */
+  public MavenRepository(IdeContext context) {
+
+    super(context);
+    try {
+      DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+      this.documentBuilder = factory.newDocumentBuilder();
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to create XML document builder", e);
+    }
+  }
+
   private MavenArtifactMetadata resolveArtifact(String tool, String edition, VersionIdentifier version) {
 
     String key = tool;
@@ -77,22 +93,6 @@ public class MavenRepository extends AbstractToolRepository {
       artifact = artifact.withVersion(version.toString());
     }
     return new MavenArtifactMetadata(artifact, os, arch);
-  }
-
-  /**
-   * The constructor.
-   *
-   * @param context the owning {@link IdeContext}.
-   */
-  public MavenRepository(IdeContext context) {
-
-    super(context);
-    try {
-      DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-      this.documentBuilder = factory.newDocumentBuilder();
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to create XML document builder", e);
-    }
   }
 
   @Override
@@ -133,10 +133,15 @@ public class MavenRepository extends AbstractToolRepository {
   }
 
   private List<VersionIdentifier> fetchVersions(String metadataUrl) {
+
+    Document metadata = fetchXmlMetadata(metadataUrl);
+    return fetchVersions(metadata, metadataUrl);
+  }
+
+  List<VersionIdentifier> fetchVersions(Document metadata, String source) {
     try {
-      Document doc = fetchXmlMetadata(metadataUrl);
       XPath xpath = XPathFactory.newInstance().newXPath();
-      NodeList versions = (NodeList) xpath.evaluate("//versions/version", doc, XPathConstants.NODESET);
+      NodeList versions = (NodeList) xpath.evaluate("//versions/version", metadata, XPathConstants.NODESET);
 
       List<VersionIdentifier> versionList = new ArrayList<>();
       for (int i = 0; i < versions.getLength(); i++) {
@@ -145,16 +150,20 @@ public class MavenRepository extends AbstractToolRepository {
       versionList.sort(Comparator.reverseOrder());
       return versionList;
     } catch (Exception e) {
-      throw new IllegalStateException("Failed to fetch versions from " + metadataUrl, e);
+      throw new IllegalStateException("Failed to fetch versions from " + source, e);
     }
   }
 
   private VersionIdentifier resolveSnapshotVersion(String metadataUrl, String baseVersion) {
+    Document metadata = fetchXmlMetadata(metadataUrl);
+    return resolveSnapshotVersion(metadata, baseVersion);
+  }
+
+  VersionIdentifier resolveSnapshotVersion(Document metadata, String baseVersion) {
     try {
-      Document doc = fetchXmlMetadata(metadataUrl);
       XPath xpath = XPathFactory.newInstance().newXPath();
-      String timestamp = (String) xpath.evaluate("//timestamp", doc, XPathConstants.STRING);
-      String buildNumber = (String) xpath.evaluate("//buildNumber", doc, XPathConstants.STRING);
+      String timestamp = (String) xpath.evaluate("//timestamp", metadata, XPathConstants.STRING);
+      String buildNumber = (String) xpath.evaluate("//buildNumber", metadata, XPathConstants.STRING);
 
       if (timestamp.isEmpty() || buildNumber.isEmpty()) {
         throw new IllegalStateException("Missing timestamp or buildNumber in snapshot metadata");

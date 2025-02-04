@@ -291,7 +291,7 @@ public interface IdeContext extends IdeStartContext {
   /**
    * @return the {@link MavenRepository}.
    */
-  MavenRepository getMavenSoftwareRepository();
+  MavenRepository getMavenToolRepository();
 
   /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different
@@ -568,9 +568,9 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
-   * @return the String value for the variable M2_REPO, or falls back to the default USER_HOME/.m2 location if called outside an IDEasy installation.
+   * @return the {@link Path} pointing to the maven configuration directory (where "settings.xml" or "settings-security.xml" are located).
    */
-  default Path getMavenRepository() {
+  default Path getMavenConfigurationFolder() {
 
     if (getIdeHome() != null) {
       Path confPath = getConfPath();
@@ -584,7 +584,7 @@ public interface IdeContext extends IdeStartContext {
           m2Folder = getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
         }
       }
-      return m2Folder.resolve("repository");
+      return m2Folder;
     }
     return null;
   }
