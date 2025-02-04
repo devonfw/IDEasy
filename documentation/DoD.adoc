@@ -28,7 +28,7 @@ In case you see `This branch has conflicts that must be resolved` instead, you n
 Very simple conflicts may be resolved in the browser on github.
 But as a general recommendation you should resolve the conflicts locally with proper merge tool support and rerun tests before you push the merged changes.
 * [ ] You followed all link:coding-conventions.adoc[coding conventions]
-* [ ] You have already added the issue implemented by your PR in https://github.com/devonfw/ide/blob/master/CHANGELOG.adoc[CHANGELOG.adoc] to the next open release (see milestones or https://github.com/devonfw/IDEasy/blob/main/.mvn/maven.config[maven.config]).
+* [ ] You have already added the issue implemented by your PR in https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc[CHANGELOG.adoc] to the next open release (see milestones or https://github.com/devonfw/IDEasy/blob/main/.mvn/maven.config[maven.config]).
 If there is no issue for your PR consider creating it or directly link the PR itself.
 Please note that the CHANGELOG shall only reflect public changes relevant for end-users.
 So e.g. if we implement a story and then add another PR as bugfix or improvement to the same story before the bug was ever released, we do not need to document this in the CHANGELOG to avoid spam and confusion.
