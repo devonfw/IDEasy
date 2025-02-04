@@ -23,10 +23,11 @@ public class ToolDependenciesTest extends AbstractUrlModelTest {
     IdeContext context = newContext();
 
     // act
-    Collection<ToolDependency> dependencies = context.getDefaultToolRepository().findDependencies("tomcat", "tomcat", VersionIdentifier.of("11.0.0"));
+    Collection<com.devonfw.tools.ide.url.model.file.json.ToolDependency> dependencies = context.getDefaultToolRepository()
+        .findDependencies("tomcat", "tomcat", VersionIdentifier.of("11.0.0"));
 
     // assert
-    assertThat(dependencies).containsExactly(new ToolDependency("java", VersionRange.of("[17,)")));
+    assertThat(dependencies).containsExactly(new com.devonfw.tools.ide.url.model.file.json.ToolDependency("java", VersionRange.of("[17,)")));
   }
 
   @Test
@@ -36,10 +37,12 @@ public class ToolDependenciesTest extends AbstractUrlModelTest {
     IdeContext context = newContext();
 
     // act
-    Collection<ToolDependency> dependencies = context.getDefaultToolRepository().findDependencies("tomcat", "undefined", VersionIdentifier.of("11.0.0"));
+    Collection<com.devonfw.tools.ide.url.model.file.json.ToolDependency> dependencies = context.getDefaultToolRepository()
+        .findDependencies("tomcat", "undefined", VersionIdentifier.of("11.0.0"));
 
     // assert
-    assertThat(dependencies).containsExactly(new ToolDependency("this-is-the-wrong-file-only-for-testing", VersionRange.of("[1.0,2.0]")));
+    assertThat(dependencies).containsExactly(
+        new com.devonfw.tools.ide.url.model.file.json.ToolDependency("this-is-the-wrong-file-only-for-testing", VersionRange.of("[1.0,2.0]")));
   }
 
   @Test
@@ -49,7 +52,8 @@ public class ToolDependenciesTest extends AbstractUrlModelTest {
     IdeContext context = newContext();
 
     // act
-    Collection<ToolDependency> dependencies = context.getDefaultToolRepository().findDependencies("mvn", "undefined", VersionIdentifier.of("3.9.0"));
+    Collection<com.devonfw.tools.ide.url.model.file.json.ToolDependency> dependencies = context.getDefaultToolRepository()
+        .findDependencies("mvn", "undefined", VersionIdentifier.of("3.9.0"));
 
     // assert
     assertThat(dependencies).containsExactly(new ToolDependency("java", VersionRange.of("[8,)")));

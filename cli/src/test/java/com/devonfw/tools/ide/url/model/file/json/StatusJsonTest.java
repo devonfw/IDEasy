@@ -7,7 +7,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 /**
- * Test of {@link StatusJson}.
+ * Test of {@link com.devonfw.tools.ide.url.model.file.json.StatusJson}.
  */
 public class StatusJsonTest extends Assertions {
 
