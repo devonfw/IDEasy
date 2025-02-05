@@ -1,4 +1,4 @@
-package com.devonfw.urls.tool.python;
+package com.devonfw.tools.ide.url.tool.python;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;

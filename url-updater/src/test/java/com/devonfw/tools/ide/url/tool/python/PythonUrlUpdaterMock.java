@@ -1,6 +1,5 @@
-package com.devonfw.urls.tool.python;
+package com.devonfw.tools.ide.url.tool.python;
 
-import com.devonfw.tools.ide.url.tool.python.PythonUrlUpdater;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**

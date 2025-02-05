@@ -1,4 +1,4 @@
-package com.devonfw.urls.tool.pip;
+package com.devonfw.tools.ide.url.tool.pip;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
@@ -16,8 +16,6 @@ import com.devonfw.tools.ide.url.model.file.json.StatusJson;
 import com.devonfw.tools.ide.url.model.file.json.UrlStatus;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.tool.AbstractUrlUpdaterTest;
-import com.devonfw.tools.ide.url.tool.pip.PipUrlUpdater;
-import com.devonfw.tools.ide.url.tool.pip.PipUrlUpdaterMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
