@@ -46,6 +46,9 @@ namespace CustomActionValidation
                 return ActionResult.Success;
             }
 
+            // Set again to 1 when path is valid
+            session["INSTALLFOLDER_VALID"] = "1";
+
             return ActionResult.Success;
         }
 
