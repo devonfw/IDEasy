@@ -1,0 +1,12 @@
+﻿<!--
+This file contains the declaration of all the localizable strings.
+-->
+<WixLocalization xmlns="http://wixtoolset.org/schemas/v4/wxl" Culture="en-US">
+
+  <String Id="DowngradeError" Value="A newer version of [ProductName] is already installed." />
+  <String Id="InvalidDirDlg_Title" Value="[ProductName]-Setup" />
+  <String Id="InvalidDirDlgText" Value="[VALIDATION_ERROR]" />
+  <String Id="InvalidDirDlgIcon" Value="WixUI_Ico_Info" />
+  <String Id="InvalidDirDlgIconTooltip" Value="Informationssymbol" />
+
+</WixLocalization>
