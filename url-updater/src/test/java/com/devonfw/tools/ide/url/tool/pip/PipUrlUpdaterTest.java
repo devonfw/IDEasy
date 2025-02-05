@@ -8,7 +8,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import java.nio.file.Path;
 import java.time.Instant;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -54,13 +53,13 @@ public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
     Path versionsPath = tempDir.resolve(toolName).resolve(editionName).resolve(versionName);
 
     // then
-    Assertions.assertThat(versionsPath.resolve("status.json")).exists();
+    assertThat(versionsPath.resolve("status.json")).exists();
 
     StatusJson statusJson = retrieveStatusJson(urlRepository, toolName, editionName, versionName);
     UrlStatus urlStatus = statusJson.getOrCreateUrlStatus(statusUrl);
     Instant successTimestamp = urlStatus.getSuccess().getTimestamp();
 
-    Assertions.assertThat(successTimestamp).isNotNull();
+    assertThat(successTimestamp).isNotNull();
 
   }
 }
