@@ -97,9 +97,9 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("INTELLIJ_EDITION=\"ultimate\""), //
         IdeLogEntry.ofProcessable("JAVA_VERSION=\"17*\""), //
         IdeLogEntry.ofProcessable("export M2_REPO=\"" + context.getUserHome() + "/.m2/repository\""), //
-        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + softwarePath + "\\mvn\""),
+        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + softwarePath + java.nio.file.FileSystems.getDefault().getSeparator() + "mvn\""),
         IdeLogEntry.ofProcessable("MVN_VERSION=\"3.9.1\""), //
-        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + softwarePath + "\\npm\""), //
+        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + softwarePath + java.nio.file.FileSystems.getDefault().getSeparator() + "npm\""), //
         new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export PATH=", true), //
         IdeLogEntry.ofProcessable("SOME=\"some-${UNDEFINED}\""), //
         IdeLogEntry.ofProcessable("TEST_ARGS1=\" user1 settings1 workspace1 conf1\""), //
