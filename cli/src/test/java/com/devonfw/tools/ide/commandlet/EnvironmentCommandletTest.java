@@ -62,9 +62,10 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("WORKSPACE_PATH=\"" + normalize(context.getWorkspacePath()) + "\""), //
 
         IdeLogEntry.ofDebug("from TOOL@" + softwarePath + ":"), //
-        IdeLogEntry.ofProcessable("export JAVA_HOME=\"" + context.getSoftwarePath() + "\\java\""), //
-        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + context.getSoftwarePath() + "\\mvn\""), //
-        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + context.getSoftwarePath() + "\\npm\"") //
+        IdeLogEntry.ofProcessable(
+            "export JAVA_HOME=\"" + context.getSoftwarePath() + java.nio.file.FileSystems.getDefault().getSeparator() + "java\""), //
+        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + context.getSoftwarePath() + java.nio.file.FileSystems.getDefault().getSeparator() + "mvn\""), //
+        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + context.getSoftwarePath() + java.nio.file.FileSystems.getDefault().getSeparator() + "npm\"") //
     );
   }
 
