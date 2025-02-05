@@ -2,18 +2,16 @@
 
   <?foreach WIXUIARCH in X86;X64;A64 ?>
   <Fragment>
-
 	  <UI Id="WixUI_InstallDirCustom_$(WIXUIARCH)">
 		
       <Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="WixUIValidatePath_$(WIXUIARCH)" Order="1" />
 	  <Publish Dialog="BrowseDlg" Control="OK" Event="DoAction" Value="OwnValidationCA" Order="2" />
 	  <Publish Dialog="BrowseDlg" Control="OK" Event="SpawnDialog" Value="InvalidDirDlg" Order="3" Condition="WIXUI_INSTALLDIR_VALID=&quot;1&quot; AND INSTALLFOLDER_VALID=&quot;1&quot;" />
       
-	
 	  <Publish Dialog="InstallDirDlg" Control="Next" Event="DoAction" Value="WixUIValidatePath_$(WIXUIARCH)" Order="1" />
 	  <Publish Dialog="InstallDirDlg" Control="Next" Event="DoAction" Value="OwnValidationCA" Order="2" />
-      <Publish Dialog="InstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3" Condition="WIXUI_INSTALLDIR_VALID&lt;&gt;&quot;1&quot;" />
-	  <Publish Dialog="InstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="4" Condition="INSTALLFOLDER_VALID&lt;&gt;&quot;1&quot;" />
+	  <Publish Dialog="InstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="3" Condition="WIXUI_INSTALLDIR_VALID&lt;&gt;&quot;1&quot; or INSTALLFOLDER_VALID&lt;&gt;&quot;1&quot;" />
+	<!-- <Publish Dialog="InstallDirDlg" Control="Next" Event="SpawnDialog" Value="InvalidDirDlg" Order="4" Condition="INSTALLFOLDER_VALID&lt;&gt;&quot;1&quot;" />-->
 	  <Publish Dialog="InstallDirDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="5" Condition="WIXUI_INSTALLDIR_VALID=&quot;1&quot; AND INSTALLFOLDER_VALID=&quot;1&quot;" />
 
 	  <Publish Dialog="LicenseAgreementDlg" Control="Print" Event="DoAction" Value="WixUIPrintEula_$(WIXUIARCH)" />
