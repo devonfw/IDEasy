@@ -10,11 +10,10 @@ import java.util.List;
 import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -139,41 +138,45 @@ public class MavenRepository extends AbstractToolRepository {
   }
 
   List<VersionIdentifier> fetchVersions(Document metadata, String source) {
-    try {
-      XPath xpath = XPathFactory.newInstance().newXPath();
-      NodeList versions = (NodeList) xpath.evaluate("//versions/version", metadata, XPathConstants.NODESET);
-
-      List<VersionIdentifier> versionList = new ArrayList<>();
-      for (int i = 0; i < versions.getLength(); i++) {
-        versionList.add(VersionIdentifier.of(versions.item(i).getTextContent()));
-      }
-      versionList.sort(Comparator.reverseOrder());
-      return versionList;
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to fetch versions from " + source, e);
+    Element versioning = getFirstChildElement(metadata.getDocumentElement(), "versioning", source);
+    Element versions = getFirstChildElement(versioning, "versions", source);
+    NodeList versionsChildren = versions.getElementsByTagName("version");
+    int length = versionsChildren.getLength();
+    List<VersionIdentifier> versionList = new ArrayList<>(length);
+    for (int i = 0; i < length; i++) {
+      versionList.add(VersionIdentifier.of(versionsChildren.item(i).getTextContent()));
     }
+    versionList.sort(Comparator.reverseOrder());
+    return versionList;
   }
 
   private VersionIdentifier resolveSnapshotVersion(String metadataUrl, String baseVersion) {
     Document metadata = fetchXmlMetadata(metadataUrl);
-    return resolveSnapshotVersion(metadata, baseVersion);
+    return resolveSnapshotVersion(metadata, baseVersion, metadataUrl);
   }
 
-  VersionIdentifier resolveSnapshotVersion(Document metadata, String baseVersion) {
-    try {
-      XPath xpath = XPathFactory.newInstance().newXPath();
-      String timestamp = (String) xpath.evaluate("//timestamp", metadata, XPathConstants.STRING);
-      String buildNumber = (String) xpath.evaluate("//buildNumber", metadata, XPathConstants.STRING);
+  VersionIdentifier resolveSnapshotVersion(Document metadata, String baseVersion, String source) {
+    Element versioning = getFirstChildElement(metadata.getDocumentElement(), "versioning", source);
+    Element snapshot = getFirstChildElement(versioning, "snapshot", source);
+    String timestamp = getFirstChildElement(snapshot, "timestamp", source).getTextContent();
+    String buildNumber = getFirstChildElement(snapshot, "buildNumber", source).getTextContent();
+    String version = baseVersion.replace("-SNAPSHOT", "-" + timestamp + "-" + buildNumber);
+    return VersionIdentifier.of(version);
+  }
 
-      if (timestamp.isEmpty() || buildNumber.isEmpty()) {
-        throw new IllegalStateException("Missing timestamp or buildNumber in snapshot metadata");
+  private Element getFirstChildElement(Element element, String tag, Object source) {
+
+    NodeList children = element.getChildNodes();
+    int length = children.getLength();
+    for (int i = 0; i < length; i++) {
+      Node node = children.item(i);
+      if (node instanceof Element child) {
+        if (child.getTagName().equals(tag)) {
+          return child;
+        }
       }
-
-      String version = baseVersion.replace("-SNAPSHOT", "-" + timestamp + "-" + buildNumber);
-      return VersionIdentifier.of(version);
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to resolve snapshot version for " + baseVersion, e);
     }
+    throw new IllegalStateException("Failed to resolve snapshot version - element " + tag + " not found in " + source);
   }
 
   private Document fetchXmlMetadata(String url) {

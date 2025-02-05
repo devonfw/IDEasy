@@ -166,7 +166,7 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
             + os + "-" + arch + ".tar.gz");
   }
 
-  /** Test of {@link MavenRepository#resolveSnapshotVersion(Document, String)}. */
+  /** Test of {@link MavenRepository#resolveSnapshotVersion(Document, String, String)}. */
   @Test
   void testResolveSnapshotVersion() {
 
@@ -176,7 +176,7 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
     Document metadata = parseXml(XML_SNAPSNOT_METADATA);
 
     // act
-    VersionIdentifier version = mavenRepository.resolveSnapshotVersion(metadata, "2025.02.001-beta-SNAPSHOT");
+    VersionIdentifier version = mavenRepository.resolveSnapshotVersion(metadata, "2025.02.001-beta-SNAPSHOT", "testdata");
 
     // assert
     assertThat(version).hasToString("2025.02.001-beta-20250204.023111-1");
