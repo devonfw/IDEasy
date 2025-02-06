@@ -16,6 +16,7 @@ public class VersionRangeTest extends Assertions {
     checkVersionRange("[1.2,3]", "1.2", "3", BoundaryType.CLOSED);
     checkVersionRange("1,)", "1", null, BoundaryType.RIGHT_OPEN);
     checkVersionRange("[1,)", "1", null, BoundaryType.RIGHT_OPEN);
+    checkVersionRange("[1, )", "1", null, BoundaryType.RIGHT_OPEN);
     checkVersionRange("(1.2,3.4", "1.2", "3.4", BoundaryType.LEFT_OPEN);
     checkVersionRange("(1.2,3.4]", "1.2", "3.4", BoundaryType.LEFT_OPEN);
     checkVersionRange("1.2,3.4)", "1.2", "3.4", BoundaryType.RIGHT_OPEN);
