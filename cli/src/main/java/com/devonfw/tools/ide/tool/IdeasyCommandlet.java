@@ -65,7 +65,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
     if (IdeVersion.isUndefined()) {
       this.context.warning("You are using IDEasy version {} what indicates local development - skipping upgrade.", IdeVersion.getVersionString());
-      // return false;
+      return false;
     }
     return super.install(silent);
   }
