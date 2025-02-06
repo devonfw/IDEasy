@@ -426,9 +426,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       //use default location
       destination = EnvironmentVariablesFiles.SETTINGS;
     }
-    if (!Files.exists(this.context.getUrls().getEdition(getName(), edition).getPath())) {
-      this.context.warning("Edition {} seems to be invalid", edition);
 
+    if (!getToolRepository().getSortedEditions(this.tool).contains(edition)) {
+      this.context.warning("Edition {} seems to be invalid", edition);
     }
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
