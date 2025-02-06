@@ -53,16 +53,17 @@ public interface FileAccess {
 
   /**
    * @param file the {@link Path} to compute the checksum of.
-   * @return the computed checksum (SHA-266).
+   * @param hashAlgorithm the hash algorithm (e.g. SHA-266).
+   * @return the computed hash checksum as hex {@link String}.
    */
-  String checksum(Path file);
+  String checksum(Path file, String hashAlgorithm);
 
   /**
    * Moves the given {@link Path} to the backup.
    *
    * @param fileOrFolder the {@link Path} to move to the backup (soft-deletion).
    */
-  void backup(Path fileOrFolder);
+  Path backup(Path fileOrFolder);
 
   /**
    * @param source the source {@link Path file or folder} to move.

@@ -79,7 +79,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final Path ideRoot;
 
-  private final Path ideInstallationPath;
+  private final Path idePath;
 
   private Path confPath;
 
@@ -192,19 +192,19 @@ public abstract class AbstractIdeContext implements IdeContext {
     setCwd(workingDirectory, workspace, currentDir);
 
     if (this.ideRoot == null) {
-      this.ideInstallationPath = null;
+      this.idePath = null;
       this.toolRepositoryPath = null;
       this.urlsPath = null;
       this.tempPath = null;
       this.tempDownloadPath = null;
       this.softwareRepositoryPath = null;
     } else {
-      this.ideInstallationPath = this.ideRoot.resolve(FOLDER_IDE_INSTALLATION);
-      this.toolRepositoryPath = this.ideInstallationPath.resolve("software");
-      this.urlsPath = this.ideInstallationPath.resolve("urls");
-      this.tempPath = this.ideInstallationPath.resolve("tmp");
+      this.idePath = this.ideRoot.resolve(FOLDER_UNDERSCORE_IDE);
+      this.toolRepositoryPath = this.idePath.resolve("software");
+      this.urlsPath = this.idePath.resolve("urls");
+      this.tempPath = this.idePath.resolve("tmp");
       this.tempDownloadPath = this.tempPath.resolve(FOLDER_DOWNLOADS);
-      this.softwareRepositoryPath = this.ideInstallationPath.resolve(FOLDER_SOFTWARE);
+      this.softwareRepositoryPath = this.idePath.resolve(FOLDER_SOFTWARE);
       if (Files.isDirectory(this.tempPath)) {
         // TODO delete all files older than 1 day here...
       } else {
@@ -398,9 +398,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public Path getIdeInstallationPath() {
+  public Path getIdePath() {
 
-    return this.ideInstallationPath;
+    return this.idePath;
   }
 
   @Override
@@ -973,7 +973,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         """).append(LICENSE_URL);
     if (this.ideRoot != null) {
       sb.append("\n\nAlso it is included in the documentation that you can find here:\n").
-          append(this.ideInstallationPath.resolve("IDEasy.pdf").toString()).append("\n");
+          append(this.idePath.resolve("IDEasy.pdf").toString()).append("\n");
     }
     info(sb.toString());
     askToContinue("Do you accept these terms of use and all license agreements?");

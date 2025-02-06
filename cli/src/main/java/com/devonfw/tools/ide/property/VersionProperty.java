@@ -9,6 +9,7 @@ import com.devonfw.tools.ide.completion.CompletionCandidate;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.validation.PropertyValidator;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionSegment;
@@ -79,11 +80,10 @@ public class VersionProperty extends Property<VersionIdentifier> {
           return;
         }
       }
-      List<VersionIdentifier> versions = context.getUrls()
-          .getSortedVersions(tool.getName(), tool.getConfiguredEdition());
+      ToolRepository toolRepository = tool.getToolRepository();
+      List<VersionIdentifier> versions = toolRepository.getSortedVersions(tool.getName(), tool.getConfiguredEdition(), tool);
       int size = versions.size();
-      String[] sortedCandidates = IntStream.rangeClosed(1, size).mapToObj(i -> versions.get(size - i).toString())
-          .toArray(String[]::new);
+      String[] sortedCandidates = IntStream.rangeClosed(1, size).mapToObj(i -> versions.get(size - i).toString()).toArray(String[]::new);
       collector.addAllMatches(text, sortedCandidates, this, commandlet);
       List<CompletionCandidate> candidates = collector.getCandidates();
       Collections.reverse(candidates);

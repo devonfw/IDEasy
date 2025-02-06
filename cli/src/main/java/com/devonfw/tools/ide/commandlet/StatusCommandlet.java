@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 
 /**
  * {@link Commandlet} to print a status report about IDEasy.
@@ -36,6 +37,7 @@ public class StatusCommandlet extends Commandlet {
     logOnlineStatus();
     logSettingsGitStatus();
     logSettingsLegacyStatus();
+    new IdeasyCommandlet(this.context).checkIfUpdateIsAvailable();
   }
 
   private void logSettingsLegacyStatus() {

@@ -7,6 +7,7 @@ import java.util.Iterator;
 import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -30,14 +31,14 @@ public class ToolRepositoryMock extends DefaultToolRepository {
   }
 
   @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version) {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
 
-    return super.resolveVersion(tool, edition, version);
+    return super.resolveVersion(tool, edition, version, toolCommandlet);
 
   }
 
   @Override
-  public Path download(String tool, String edition, VersionIdentifier version) {
+  public Path download(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
 
     Path editionFolder = this.repositoryFolder.resolve(tool).resolve(edition);
     Path versionFolder = editionFolder.resolve(version.toString());

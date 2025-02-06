@@ -1,26 +1,25 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
+import java.io.IOException;
+import java.nio.file.Path;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /**
  * {@link Commandlet} to upgrade the version of IDEasy
  */
 public class UpgradeCommandlet extends Commandlet {
 
-  private static final VersionIdentifier LATEST_SNAPSHOT = VersionIdentifier.of("*-SNAPSHOT");
-
-  public static final String IDEASY = "ideasy";
+  private static final String IDEASY = "ideasy";
 
   /**
    * The constructor.
@@ -50,7 +49,7 @@ public class UpgradeCommandlet extends Commandlet {
    * @param latestVersion The latest snapshot version to compare against
    * @return true if latestVersion is newer than currentVersion, false otherwise or if formats are invalid
    */
-  protected boolean isSnapshotNewer(String currentVersion, String latestVersion) {
+  private boolean isSnapshotNewer(String currentVersion, String latestVersion) {
 
     try {
       // Validate input formats
@@ -103,31 +102,35 @@ public class UpgradeCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    String version = IdeVersion.get();
-    if (IdeVersion.VERSION_UNDEFINED.equals(version)) {
-      this.context.warning("You are using IDEasy version {} what indicates local development - skipping upgrade.", version);
-      return;
-    }
-    VersionIdentifier currentVersion = VersionIdentifier.of(version);
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(this.context);
+    ideasy.install(false);
+  }
+
+  private void oldCode() {
+
     MavenRepository mavenRepo = this.context.getMavenToolRepository();
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(this.context);
+    String version = IdeVersion.getVersionString();
+    VersionIdentifier currentVersion = VersionIdentifier.of(version);
     VersionIdentifier configuredVersion;
     if (version.contains("SNAPSHOT")) {
-      configuredVersion = LATEST_SNAPSHOT;
+      configuredVersion = VersionIdentifier.LATEST; //LATEST_SNAPSHOT;
     } else if (currentVersion.getDevelopmentPhase().isStable()) {
       configuredVersion = VersionIdentifier.LATEST;
     } else {
       configuredVersion = VersionIdentifier.LATEST_UNSTABLE;
     }
+    VersionIdentifier versionIdentifier = ideasy.getToolRepository().resolveVersion(ideasy.getName(), ideasy.getName(), configuredVersion, ideasy);
     this.context.debug("Trying to determine the latest version of IDEasy ({})", configuredVersion);
-    VersionIdentifier resolvedVersion = mavenRepo.resolveVersion(IDEASY, IDEASY, configuredVersion);
+    VersionIdentifier resolvedVersion = mavenRepo.resolveVersion(IDEASY, IDEASY, configuredVersion, null);
 
     boolean upgradeAvailable = resolvedVersion.isGreater(currentVersion);
     if (upgradeAvailable) {
       this.context.info("Upgrading IDEasy from version {} to {}", version, resolvedVersion);
       try {
         this.context.info("Downloading new version...");
-        Path downloadTarget = mavenRepo.download(IDEASY, IDEASY, resolvedVersion);
-        Path extractionTarget = this.context.getIdeRoot().resolve(IdeContext.FOLDER_IDE_INSTALLATION);
+        Path downloadTarget = mavenRepo.download(IDEASY, IDEASY, resolvedVersion, null);
+        Path extractionTarget = this.context.getIdeRoot().resolve(IdeContext.FOLDER_UNDERSCORE_IDE);
         if (this.context.getSystemInfo().isWindows()) {
           handleUpgradeOnWindows(downloadTarget, extractionTarget);
         } else {
@@ -141,6 +144,7 @@ public class UpgradeCommandlet extends Commandlet {
     } else {
       this.context.info("Your have IDEasy {} installed what is already the latest version.", version);
     }
+
   }
 
   private void handleUpgradeOnWindows(Path downloadTarget, Path extractionTarget) throws IOException {

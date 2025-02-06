@@ -6,6 +6,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
+import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -16,21 +17,30 @@ public class MavenArtifactMetadata implements UrlDownloadFileMetadata {
 
   private final MvnArtifact mvnArtifact;
 
+  private final String tool;
+
+  private final String edition;
+
   private final VersionIdentifier version;
+
+  private final UrlChecksums checksums;
 
   private final OperatingSystem os;
 
   private final SystemArchitecture arch;
 
-  MavenArtifactMetadata(MvnArtifact mvnArtifact) {
+  MavenArtifactMetadata(MvnArtifact mvnArtifact, String tool, String edition, UrlChecksums checksums) {
 
-    this(mvnArtifact, null, null);
+    this(mvnArtifact, tool, edition, checksums, null, null);
   }
 
-  MavenArtifactMetadata(MvnArtifact mvnArtifact, OperatingSystem os, SystemArchitecture arch) {
+  MavenArtifactMetadata(MvnArtifact mvnArtifact, String tool, String edition, UrlChecksums checksums, OperatingSystem os, SystemArchitecture arch) {
 
     this.mvnArtifact = mvnArtifact;
     this.version = VersionIdentifier.of(mvnArtifact.getVersion());
+    this.tool = tool;
+    this.edition = edition;
+    this.checksums = checksums;
     this.os = os;
     this.arch = arch;
   }
@@ -46,13 +56,13 @@ public class MavenArtifactMetadata implements UrlDownloadFileMetadata {
   @Override
   public String getTool() {
 
-    return this.mvnArtifact.getGroupId();
+    return this.tool;
   }
 
   @Override
   public String getEdition() {
 
-    return this.mvnArtifact.getArtifactId();
+    return this.edition;
   }
 
   @Override
@@ -80,8 +90,14 @@ public class MavenArtifactMetadata implements UrlDownloadFileMetadata {
   }
 
   @Override
-  public String getChecksum() {
+  public UrlChecksums getChecksums() {
 
-    return null;
+    return this.checksums;
+  }
+
+  @Override
+  public String toString() {
+
+    return this.mvnArtifact.toString();
   }
 }

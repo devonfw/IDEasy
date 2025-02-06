@@ -47,7 +47,6 @@ import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.util.HexUtil;
@@ -227,24 +226,25 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public String checksum(Path file) {
+  public String checksum(Path file, String hashAlgorithm) {
 
+    MessageDigest md;
     try {
-      MessageDigest md = MessageDigest.getInstance(UrlChecksum.HASH_ALGORITHM);
-      byte[] buffer = new byte[1024];
-      try (InputStream is = Files.newInputStream(file); DigestInputStream dis = new DigestInputStream(is, md)) {
-        int read = 0;
-        while (read >= 0) {
-          read = dis.read(buffer);
-        }
-      } catch (Exception e) {
-        throw new IllegalStateException("Failed to read and hash file " + file, e);
-      }
-      byte[] digestBytes = md.digest();
-      return HexUtil.toHexString(digestBytes);
+      md = MessageDigest.getInstance(hashAlgorithm);
     } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException("No such hash algorithm " + UrlChecksum.HASH_ALGORITHM, e);
+      throw new IllegalStateException("No such hash algorithm " + hashAlgorithm, e);
     }
+    byte[] buffer = new byte[1024];
+    try (InputStream is = Files.newInputStream(file); DigestInputStream dis = new DigestInputStream(is, md)) {
+      int read = 0;
+      while (read >= 0) {
+        read = dis.read(buffer);
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to read and hash file " + file, e);
+    }
+    byte[] digestBytes = md.digest();
+    return HexUtil.toHexString(digestBytes);
   }
 
   public boolean isJunction(Path path) {
@@ -265,7 +265,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void backup(Path fileOrFolder) {
+  public Path backup(Path fileOrFolder) {
 
     if ((fileOrFolder != null) && (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder))) {
       delete(fileOrFolder);
@@ -280,9 +280,11 @@ public class FileAccessImpl implements FileAccess {
       Path target = backupPath.resolve(filename);
       this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
       move(fileOrFolder, target);
+      return target;
     } else {
       this.context.trace("Backup of {} skipped as the path does not exist.", fileOrFolder);
     }
+    return fileOrFolder;
   }
 
   private static Path appendParentPath(Path path, Path parent, int max) {
@@ -478,7 +480,7 @@ public class FileAccessImpl implements FileAccess {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to adapt source for source (" + source + ") target (" + targetLink + ") and relative (" + relative + ")", e);
     }
-    this.context.trace("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative", targetLink, adaptedSource);
+    this.context.debug("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative", targetLink, adaptedSource);
 
     try {
       deleteLinkIfExists(targetLink);

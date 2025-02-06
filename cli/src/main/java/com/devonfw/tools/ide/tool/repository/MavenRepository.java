@@ -2,11 +2,15 @@ package com.devonfw.tools.ide.tool.repository;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -19,9 +23,15 @@ import org.w3c.dom.NodeList;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
+import com.devonfw.tools.ide.tool.mvn.MvnBasedLocalToolCommandlet;
+import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
+import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
+import com.devonfw.tools.ide.url.model.file.UrlGenericChecksumType;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
+import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -35,6 +45,8 @@ public class MavenRepository extends AbstractToolRepository {
 
   /** Base URL for Maven Snapshots repository */
   public static final String MAVEN_SNAPSHOTS = "https://s01.oss.sonatype.org/content/repositories/snapshots";
+
+  private final Path localMavenRepository;
 
   private final DocumentBuilder documentBuilder;
 
@@ -51,6 +63,7 @@ public class MavenRepository extends AbstractToolRepository {
   public MavenRepository(IdeContext context) {
 
     super(context);
+    this.localMavenRepository = IdeVariables.M2_REPO.get(this.context);
     try {
       DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
       this.documentBuilder = factory.newDocumentBuilder();
@@ -59,16 +72,37 @@ public class MavenRepository extends AbstractToolRepository {
     }
   }
 
-  private MavenArtifactMetadata resolveArtifact(String tool, String edition, VersionIdentifier version) {
+  @Override
+  public String getId() {
 
-    String key = tool;
-    if (!tool.equals(edition)) {
-      key = tool + ":" + edition;
+    return "maven";
+  }
+
+  private MvnArtifact resolveArtifact(String tool, String edition, ToolCommandlet toolCommandlet) {
+    MvnArtifact artifact;
+    if (toolCommandlet instanceof MvnBasedLocalToolCommandlet mvnBasedTool) {
+      artifact = mvnBasedTool.getArtifact(edition);
+    } else {
+      String key = tool;
+      if (!tool.equals(edition)) {
+        key = tool + ":" + edition;
+      }
+      artifact = TOOL_MAP.get(key);
+      if (artifact == null) {
+        throw new UnsupportedOperationException("Tool '" + key + "' is not supported by Maven repository.");
+      }
     }
-    MvnArtifact artifact = TOOL_MAP.get(key);
-    if (artifact == null) {
-      throw new UnsupportedOperationException("Tool '" + key + "' is not supported by Maven repository.");
-    }
+    return artifact;
+  }
+
+  /**
+   * @param artifact the {@link MvnArtifact} to resolve.
+   * @param tool the {@link MavenArtifactMetadata#getTool() tool name}.
+   * @param edition the {@link MavenArtifactMetadata#getEdition() tool edition}.
+   * @param version the {@link MavenArtifactMetadata#getVersion() tool version}.
+   * @return the resolved {@link MavenArtifactMetadata}.
+   */
+  public MavenArtifactMetadata resolveArtifact(MvnArtifact artifact, String tool, String edition, VersionIdentifier version) {
     OperatingSystem os = null;
     SystemArchitecture arch = null;
     String classifier = artifact.getClassifier();
@@ -88,29 +122,49 @@ public class MavenRepository extends AbstractToolRepository {
       }
       artifact = artifact.withClassifier(resolvedClassifier);
     }
+    UrlChecksums chekcsums = null;
     if (version != null) {
       artifact = artifact.withVersion(version.toString());
+      chekcsums = new UrlLazyChecksums(artifact);
     }
-    return new MavenArtifactMetadata(artifact, os, arch);
+    return new MavenArtifactMetadata(artifact, tool, edition, chekcsums, os, arch);
+  }
+
+  private UrlGenericChecksum getChecksum(MvnArtifact artifact, String hashAlgorithm) {
+
+    MvnArtifact checksumArtifact = artifact.withType(artifact.getType() + "." + hashAlgorithm.toLowerCase(Locale.ROOT));
+    Path checksumFile = getDownloadedArtifact(checksumArtifact, null);
+    String checksum = this.context.getFileAccess().readFileContent(checksumFile).trim();
+    return new UrlGenericChecksumType(checksum, hashAlgorithm, checksumFile);
+  }
+
+  private Path getDownloadedArtifact(MvnArtifact artifact, UrlChecksums checksums) {
+
+    Path file = this.localMavenRepository.resolve(artifact.getPath());
+    if (!Files.exists(file)) {
+      this.context.getFileAccess().mkdirs(file.getParent());
+      download(artifact.getDownloadUrl(), file, artifact.getVersion(), checksums);
+    }
+    return file;
   }
 
   @Override
-  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version) {
+  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
 
-    return resolveArtifact(tool, edition, version);
+    MvnArtifact artifact = resolveArtifact(tool, edition, toolCommandlet);
+    return resolveArtifact(artifact, tool, edition, version);
   }
 
 
   @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version) {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
 
-    MavenArtifactMetadata artifactMetadata = resolveArtifact(tool, edition, null);
-    MvnArtifact artifact = artifactMetadata.getMvnArtifact();
+    MvnArtifact artifact = resolveArtifact(tool, edition, toolCommandlet);
     return resolveVersion(artifact, version);
   }
 
   /**
-   * @param artifact the {@link MvnArtifact} to resolve. Should not have a version set.
+   * @param artifact the {@link MvnArtifact} to resolve. {@link MvnArtifact#getVersion() Version} should be undefined ("*").
    * @param version the {@link GenericVersionRange} to resolve.
    * @return the resolved {@link VersionIdentifier}.
    */
@@ -121,8 +175,8 @@ public class MavenRepository extends AbstractToolRepository {
     if (versionString.startsWith("*")) {
       artifact = artifact.withVersion(versionString);
     }
-    List<VersionIdentifier> versions = fetchVersions(artifact.getDownloadUrl());
-    VersionIdentifier resolvedVersion = this.context.getUrls().resolveVersionPattern(version, versions);
+    List<VersionIdentifier> versions = fetchVersions(artifact);
+    VersionIdentifier resolvedVersion = VersionIdentifier.resolveVersionPattern(version, versions, this.context);
     versionString = resolvedVersion.toString();
     if (versionString.endsWith("-SNAPSHOT")) {
       artifact = artifact.withVersion(versionString);
@@ -131,8 +185,9 @@ public class MavenRepository extends AbstractToolRepository {
     return resolvedVersion;
   }
 
-  private List<VersionIdentifier> fetchVersions(String metadataUrl) {
+  private List<VersionIdentifier> fetchVersions(MvnArtifact artifact) {
 
+    String metadataUrl = artifact.withMavenMetadata().getDownloadUrl();
     Document metadata = fetchXmlMetadata(metadataUrl);
     return fetchVersions(metadata, metadataUrl);
   }
@@ -164,6 +219,45 @@ public class MavenRepository extends AbstractToolRepository {
     return VersionIdentifier.of(version);
   }
 
+  @Override
+  public List<String> getSortedEditions(String tool) {
+
+    return List.of(tool);
+  }
+
+  @Override
+  public List<VersionIdentifier> getSortedVersions(String tool, String edition, ToolCommandlet toolCommandlet) {
+
+    MvnArtifact artifact = resolveArtifact(tool, edition, toolCommandlet);
+    return fetchVersions(artifact);
+  }
+
+  @Override
+  public Collection<ToolDependency> findDependencies(String groupId, String artifactId, VersionIdentifier version) {
+
+    // We could read POM here and find dependencies but we do not want to reimplement maven here.
+    // For our use-case we only download bundled packages from maven central so we do KISS for now.
+    return Collections.emptyList();
+  }
+
+  @Override
+  public Path download(UrlDownloadFileMetadata metadata) {
+
+    if (metadata instanceof MavenArtifactMetadata mvnMetadata) {
+      return download(mvnMetadata);
+    }
+    return super.download(metadata);
+  }
+
+  /**
+   * @param metadata the {@link MavenArtifactMetadata}.
+   * @return the {@link Path} to the downloaded artifact.
+   */
+  public Path download(MavenArtifactMetadata metadata) {
+
+    return getDownloadedArtifact(metadata.getMvnArtifact(), metadata.getChecksums());
+  }
+
   private Element getFirstChildElement(Element element, String tag, Object source) {
 
     NodeList children = element.getChildNodes();
@@ -191,17 +285,32 @@ public class MavenRepository extends AbstractToolRepository {
     }
   }
 
-  @Override
-  public String getId() {
+  private class UrlLazyChecksums implements UrlChecksums {
 
-    return "maven";
+    private final MvnArtifact artifact;
+
+    private volatile List<UrlGenericChecksum> checksums;
+
+    public UrlLazyChecksums(MvnArtifact artifact) {
+
+      super();
+      this.artifact = artifact;
+    }
+
+    @Override
+    public Iterator<UrlGenericChecksum> iterator() {
+
+      if (this.checksums == null) {
+        synchronized (this) {
+          if (this.checksums == null) {
+            UrlGenericChecksum md5 = getChecksum(this.artifact, "MD5");
+            UrlGenericChecksum sha1 = getChecksum(this.artifact, "SHA1");
+            this.checksums = List.of(md5, sha1);
+          }
+        }
+      }
+      return this.checksums.iterator();
+    }
   }
 
-  @Override
-  public Collection<ToolDependency> findDependencies(String groupId, String artifactId, VersionIdentifier version) {
-
-    // We could read POM here and find dependencies but we do not want to reimplement maven here.
-    // For our use-case we only download bundled packages from maven central so we do KISS for now.
-    return Collections.emptyList();
-  }
 }

@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.environment.IdeSystem;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
+import com.devonfw.tools.ide.io.IdeProgressBarNone;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -51,12 +52,19 @@ public interface IdeContext extends IdeStartContext {
   String FOLDER_CONF = "conf";
 
   /**
-   * The base folder name of the IDE inside IDE_ROOT. Intentionally starting with an underscore and not a dot (to prevent effects like OS hiding, maven
-   * filtering, .gitignore, etc.).
+   * The nane of the folder inside IDE_ROOT reserved for IDEasy. Intentionally starting with an underscore and not a dot to prevent effects like OS hiding,
+   * maven filtering, .gitignore and to distinguish from {@link #FOLDER_DOT_IDE}.
+   *
+   * @see #getIdePath()
+   */
+  String FOLDER_UNDERSCORE_IDE = "_ide";
+
+  /**
+   * The name of the folder inside {@link #FOLDER_UNDERSCORE_IDE} with the current IDEasy installation.
    *
    * @see #getIdeInstallationPath()
    */
-  String FOLDER_IDE_INSTALLATION = "_ide";
+  String FOLDER_INSTALLATION = "installation";
 
   /**
    * The name of the hidden folder for IDE configuration in the users home directory or status information in the IDE_HOME directory.
@@ -129,7 +137,7 @@ public interface IdeContext extends IdeStartContext {
   String FOLDER_UPDATE = "update";
 
   /**
-   * The name of the folder inside {@link #FOLDER_IDE_INSTALLATION _ide} folder containing internal resources and scripts of IDEasy.
+   * The name of the folder inside {@link #FOLDER_UNDERSCORE_IDE _ide} folder containing internal resources and scripts of IDEasy.
    */
   String FOLDER_INTERNAL = "internal";
 
@@ -315,11 +323,19 @@ public interface IdeContext extends IdeStartContext {
   Path getIdeRoot();
 
   /**
-   * @return the {@link Path} to the {@link #FOLDER_IDE_INSTALLATION IDE installation}.
+   * @return the {@link Path} to the {@link #FOLDER_UNDERSCORE_IDE}.
    * @see #getIdeRoot()
-   * @see #FOLDER_IDE_INSTALLATION
+   * @see #FOLDER_UNDERSCORE_IDE
    */
-  Path getIdeInstallationPath();
+  Path getIdePath();
+
+  /**
+   * @return the {@link Path} to the
+   */
+  default Path getIdeInstallationPath() {
+
+    return getIdePath().resolve(FOLDER_INSTALLATION);
+  }
 
   /**
    * @return the current working directory ("user.dir"). This is the directory where the user's shell was located when the IDE CLI was invoked.
@@ -505,7 +521,10 @@ public interface IdeContext extends IdeStartContext {
    */
   default IdeProgressBar newProgressBarInMib(String title, long size) {
 
-    return newProgressBar(title, size, "MiB", 1048576);
+    if ((size > 0) && (size < 1024)) {
+      return new IdeProgressBarNone(title, size, IdeProgressBar.UNIT_NAME_MB, IdeProgressBar.UNIT_SIZE_MB);
+    }
+    return newProgressBar(title, size, IdeProgressBar.UNIT_NAME_MB, IdeProgressBar.UNIT_SIZE_MB);
   }
 
   /**

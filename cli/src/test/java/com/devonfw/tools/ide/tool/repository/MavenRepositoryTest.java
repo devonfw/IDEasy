@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.repository;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Iterator;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -14,7 +15,10 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
+import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 class MavenRepositoryTest extends AbstractIdeContextTest {
@@ -114,6 +118,9 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
       </metadata>
       """;
 
+  /** Set to {@code true} to include checksum verification. However, this requires online access to maven. */
+  private static final boolean CHECK_MAVEN_CHECKSUMS = false;
+
   private static final DocumentBuilder DOCUMENT_BUILDER;
 
   static {
@@ -133,16 +140,36 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
     MavenRepository mavenRepo = new MavenRepository(context);
     String tool = "ideasy";
     String edition = tool;
-    VersionIdentifier version = VersionIdentifier.of("2024.04.001-beta");
+    VersionIdentifier version = VersionIdentifier.of("2025.01.001-beta");
     OperatingSystem os = context.getSystemInfo().getOs();
     SystemArchitecture arch = context.getSystemInfo().getArchitecture();
+    ToolCommandlet toolCommandlet = null;
 
+    // this triggers maven download of checksums. Should we fake the checksum files into mocked maven repo in arrange phase?
     // act
-    UrlDownloadFileMetadata metadata = mavenRepo.getMetadata(tool, edition, version);
+    UrlDownloadFileMetadata metadata = mavenRepo.getMetadata(tool, edition, version, toolCommandlet);
 
     // assert
     assertThat(metadata.getUrls()).containsExactly(
-        "https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/2024.04.001-beta/ide-cli-2024.04.001-beta-" + os + "-" + arch + ".tar.gz");
+        "https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/2025.01.001-beta/ide-cli-2025.01.001-beta-" + os + "-" + arch + ".tar.gz");
+    assertThat(metadata.getTool()).isEqualTo(tool);
+    assertThat(metadata.getEdition()).isEqualTo(edition);
+    assertThat(metadata.getOs()).isSameAs(os);
+    assertThat(metadata.getArch()).isSameAs(arch);
+    assertThat(metadata.getVersion()).isEqualTo(version);
+    if (CHECK_MAVEN_CHECKSUMS) {
+      UrlChecksums checksums = metadata.getChecksums();
+      Iterator<UrlGenericChecksum> iterator = checksums.iterator();
+      assertThat(iterator.hasNext()).isTrue();
+      UrlGenericChecksum md5 = iterator.next();
+      assertThat(md5.getHashAlgorithm()).isEqualTo("MD5");
+      assertThat(md5.getChecksum()).isEqualTo("d77670c1649b8ce226f9c642f4fb90cc");
+      assertThat(iterator.hasNext()).isTrue();
+      UrlGenericChecksum sha1 = iterator.next();
+      assertThat(sha1.getHashAlgorithm()).isEqualTo("SHA1");
+      assertThat(sha1.getChecksum()).isEqualTo("d38472e3281093ff1b54481bde838393f136a39c");
+      assertThat(iterator.hasNext()).isFalse();
+    }
   }
 
   @Test
@@ -153,17 +180,36 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
     MavenRepository mavenRepo = new MavenRepository(context);
     String tool = "ideasy";
     String edition = tool;
-    VersionIdentifier version = VersionIdentifier.of("2024.04.001-beta-20240419.123456-1");
+    VersionIdentifier version = VersionIdentifier.of("2025.01.001-beta-20250121.023134-9");
     OperatingSystem os = context.getSystemInfo().getOs();
     SystemArchitecture arch = context.getSystemInfo().getArchitecture();
+    ToolCommandlet toolCommandlet = null;
 
     // act
-    UrlDownloadFileMetadata metadata = mavenRepo.getMetadata(tool, edition, version);
+    UrlDownloadFileMetadata metadata = mavenRepo.getMetadata(tool, edition, version, toolCommandlet);
 
     // assert
     assertThat(metadata.getUrls()).containsExactly(
-        "https://s01.oss.sonatype.org/content/repositories/snapshots/com/devonfw/tools/IDEasy/ide-cli/2024.04.001-beta-SNAPSHOT/ide-cli-2024.04.001-beta-20240419.123456-1-"
+        "https://s01.oss.sonatype.org/content/repositories/snapshots/com/devonfw/tools/IDEasy/ide-cli/2025.01.001-beta-SNAPSHOT/ide-cli-2025.01.001-beta-20250121.023134-9-"
             + os + "-" + arch + ".tar.gz");
+    assertThat(metadata.getTool()).isEqualTo(tool);
+    assertThat(metadata.getEdition()).isEqualTo(edition);
+    assertThat(metadata.getOs()).isSameAs(os);
+    assertThat(metadata.getArch()).isSameAs(arch);
+    assertThat(metadata.getVersion()).isEqualTo(version);
+    if (CHECK_MAVEN_CHECKSUMS) {
+      UrlChecksums checksums = metadata.getChecksums();
+      Iterator<UrlGenericChecksum> iterator = checksums.iterator();
+      assertThat(iterator.hasNext()).isTrue();
+      UrlGenericChecksum md5 = iterator.next();
+      assertThat(md5.getHashAlgorithm()).isEqualTo("MD5");
+      assertThat(md5.getChecksum()).isEqualTo("f174d6eb28d77621cada8e51e8c0c2e0");
+      assertThat(iterator.hasNext()).isTrue();
+      UrlGenericChecksum sha1 = iterator.next();
+      assertThat(sha1.getHashAlgorithm()).isEqualTo("SHA1");
+      assertThat(sha1.getChecksum()).isEqualTo("9e15d3a440b61e79614357837e533d1517639a1d");
+      assertThat(iterator.hasNext()).isFalse();
+    }
   }
 
   /** Test of {@link MavenRepository#resolveSnapshotVersion(Document, String, String)}. */

@@ -52,7 +52,7 @@ public final class HelpCommandlet extends Commandlet {
 
     this.context.printLogo();
     NlsBundle bundle = NlsBundle.of(this.context);
-    this.context.success(bundle.get("version-banner"), IdeVersion.get());
+    this.context.success(bundle.get("version-banner"), IdeVersion.getVersionString());
     Commandlet cmd = this.commandlet.getValue();
     if (cmd == null) {
       this.context.info(bundle.get("usage") + " ide [option]* [[commandlet] [arg]*]");
