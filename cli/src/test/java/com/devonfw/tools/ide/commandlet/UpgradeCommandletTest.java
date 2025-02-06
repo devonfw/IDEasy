@@ -10,9 +10,14 @@ class UpgradeCommandletTest extends AbstractIdeContextTest {
   @Test
   public void testSnapshotVersionComparisons() {
 
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    UpgradeCommandlet uc = context.getCommandletManager().getCommandlet(UpgradeCommandlet.class);
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    UpgradeCommandlet upgrade = context.getCommandletManager().getCommandlet(UpgradeCommandlet.class);
 
-    // TODO
+    // act
+    upgrade.run();
+
+    // assert
+    assertThat(context).logAtWarning().hasMessage("You are using IDEasy version SNAPSHOT what indicates local development - skipping upgrade.");
   }
 }
