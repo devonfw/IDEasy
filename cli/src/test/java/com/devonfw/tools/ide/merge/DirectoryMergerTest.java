@@ -10,6 +10,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
 
 /**
  * Test of {@link DirectoryMerger}.
@@ -57,13 +58,14 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     Path namePath = workspaceDir.resolve(".name");
     // to check overwrite for Text files
     Files.createFile(namePath);
+    FileAccess fileAccess = context.getFileAccess();
 
     // act
     merger.merge(setup, update, context.getVariables(), workspaceDir);
 
     // assert
     Path mainPrefsFile = workspaceDir.resolve("main.prefs");
-    Properties mainPrefs = propertiesMerger.load(mainPrefsFile);
+    Properties mainPrefs = fileAccess.readProperties(mainPrefsFile);
     assertThat(mainPrefs).containsOnly(JAVA_VERSION, JAVA_HOME, THEME, UI);
     Path jsonFolder = workspaceDir.resolve("json");
     assertThat(jsonFolder).isDirectory();
@@ -91,7 +93,7 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     Path configFolder = workspaceDir.resolve("config");
     assertThat(configFolder).isDirectory();
     Path indentFile = configFolder.resolve("indent.properties");
-    Properties indent = propertiesMerger.load(indentFile);
+    Properties indent = fileAccess.readProperties(indentFile);
     assertThat(indent).containsOnly(INDENTATION);
     assertThat(configFolder.resolve("layout.xml")).hasContent("""
         <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -110,13 +112,13 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     UI_HACKED.apply(mainPrefs);
     THEME_HACKED.apply(mainPrefs);
     INDENTATION_HACKED.apply(mainPrefs);
-    propertiesMerger.save(mainPrefs, mainPrefsFile);
+    fileAccess.writeProperties(mainPrefs, mainPrefsFile);
 
     // act
     merger.merge(setup, update, context.getVariables(), workspaceDir);
 
     // assert
-    mainPrefs = propertiesMerger.load(mainPrefsFile);
+    mainPrefs = fileAccess.readProperties(mainPrefsFile);
     assertThat(mainPrefs).containsOnly(JAVA_VERSION, JAVA_HOME, THEME_HACKED, UI_HACKED, EDITOR, INDENTATION_HACKED);
 
     assertThat(namePath).hasContent("project - main\ntest");
