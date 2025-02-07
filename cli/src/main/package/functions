@@ -85,7 +85,7 @@ if [ "${0/*\//}" = "zsh" ]; then
 fi
 
 if ! command -v ideasy &> /dev/null; then
-  export PATH="${PATH}:${IDE_ROOT}/_ide/bin"
+  export PATH="${PATH}:${IDE_ROOT}/_ide/installation/bin"
 fi
 
 complete -F _ide_completion ide

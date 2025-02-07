@@ -148,6 +148,9 @@
             </goals>
             <configuration>
               <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <delimiters>
+                <delimiter>$[*]</delimiter>
+              </delimiters>
               <resources>
                 <!--
                   Maven filtering can resolve ${...} variables in resource files.
