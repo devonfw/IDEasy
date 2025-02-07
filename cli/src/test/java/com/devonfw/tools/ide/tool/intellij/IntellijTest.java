@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.tool.intellij;
 
-import java.io.IOException;
-
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -25,11 +23,10 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if the {@link Intellij} can be installed properly.
    *
    * @param os String of the OS to use.
-   * @throws IOException if reading the content of the mocked plugin fails
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijInstall(String os) throws IOException {
+  public void testIntellijInstall(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -51,11 +48,10 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if the {@link Intellij} can be installed properly, and a plugin can be installed separately afterward.
    *
    * @param os String of the OS to use.
-   * @throws IOException if reading the content of the mocked plugin fails
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijInstallPluginAfterwards(String os) throws IOException {
+  public void testIntellijInstallPluginAfterwards(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -74,11 +70,10 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if the {@link Intellij} can be installed properly, and a plugin can be uninstalled afterward.
    *
    * @param os String of the OS to use.
-   * @throws IOException if reading the content of the mocked plugin fails
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijUninstallPluginAfterwards(String os) throws IOException {
+  public void testIntellijUninstallPluginAfterwards(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -102,11 +97,10 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if {@link Intellij IntelliJ IDE} can be run.
    *
    * @param os String of the OS to use.
-   * @throws IOException if reading the content of the mocked plugin fails
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijRun(String os) throws IOException {
+  public void testIntellijRun(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -127,11 +121,10 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if {@link Intellij IntelliJ IDE} can install plugins with custom url.
    *
    * @param os String of the OS to use.
-   * @throws IOException if reading the content of the mocked plugin fails
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijPluginInstallWithCustomRepoUrl(String os) throws IOException {
+  public void testIntellijPluginInstallWithCustomRepoUrl(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
@@ -151,11 +144,10 @@ public class IntellijTest extends AbstractIdeContextTest {
    * Tests if {@link InstallPluginCommandlet} can install intellij plugins with custom url.
    *
    * @param os String of the OS to use.
-   * @throws IOException if reading the content of the mocked plugin fails
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijInstallPluginWithCustomRepoUrl(String os) throws IOException {
+  public void testIntellijInstallPluginWithCustomRepoUrl(String os) {
 
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
