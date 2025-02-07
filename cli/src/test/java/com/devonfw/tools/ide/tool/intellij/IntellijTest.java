@@ -1,8 +1,6 @@
 package com.devonfw.tools.ide.tool.intellij;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -34,7 +32,6 @@ public class IntellijTest extends AbstractIdeContextTest {
   public void testIntellijInstall(String os) throws IOException {
 
     // arrange
-    setupMockedPlugin(true);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
@@ -61,14 +58,13 @@ public class IntellijTest extends AbstractIdeContextTest {
   public void testIntellijInstallPluginAfterwards(String os) throws IOException {
 
     // arrange
-    setupMockedPlugin(false);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
 
     // act
     commandlet.install();
-    commandlet.installPlugin(commandlet.getPlugins().getById("mockedPlugin"), this.context.newStep("Install plugin MockedPlugin"));
+    commandlet.installPlugin(commandlet.getPlugins().getById("activePlugin"), this.context.newStep("Install plugin activePlugin"));
 
     // assert
     checkInstallation(this.context);
@@ -85,7 +81,6 @@ public class IntellijTest extends AbstractIdeContextTest {
   public void testIntellijUninstallPluginAfterwards(String os) throws IOException {
 
     // arrange
-    setupMockedPlugin(true);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
@@ -97,7 +92,7 @@ public class IntellijTest extends AbstractIdeContextTest {
     checkInstallation(this.context);
 
     // act
-    commandlet.uninstallPlugin(commandlet.getPlugins().getById("mockedPlugin"));
+    commandlet.uninstallPlugin(commandlet.getPlugins().getById("activePlugin"));
 
     //assert
     assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).doesNotExist();
@@ -114,7 +109,6 @@ public class IntellijTest extends AbstractIdeContextTest {
   public void testIntellijRun(String os) throws IOException {
 
     // arrange
-    setupMockedPlugin(true);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
@@ -140,7 +134,6 @@ public class IntellijTest extends AbstractIdeContextTest {
   public void testIntellijPluginInstallWithCustomRepoUrl(String os) throws IOException {
 
     // arrange
-    setupMockedPluginWithCustomToolUrl();
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     Intellij commandlet = new Intellij(this.context);
@@ -165,17 +158,16 @@ public class IntellijTest extends AbstractIdeContextTest {
   public void testIntellijInstallPluginWithCustomRepoUrl(String os) throws IOException {
 
     // arrange
-    setupMockedPluginWithCustomToolUrl();
     SystemInfo systemInfo = SystemInfoMock.of(os);
     this.context.setSystemInfo(systemInfo);
     InstallPluginCommandlet commandlet = context.getCommandletManager().getCommandlet(InstallPluginCommandlet.class);
     commandlet.tool.setValueAsString("intellij", context);
-    commandlet.plugin.setValueAsString("MockedPlugin", context);
+    commandlet.plugin.setValueAsString("ActivePlugin", context);
     // act
     commandlet.run();
 
     // assert
-    assertThat(context).logAtSuccess().hasEntries("Successfully ended step 'Install plugin: MockedPlugin'.");
+    assertThat(context).logAtSuccess().hasEntries("Successfully ended step 'Install plugin: ActivePlugin'.");
   }
 
   private void checkInstallation(IdeTestContext context) {
@@ -183,21 +175,7 @@ public class IntellijTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
     assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
         "Successfully installed intellij in version 2023.3.3");
-    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin MockedPlugin'.");
-  }
-
-  private void setupMockedPlugin(boolean mockedPluginActive) throws IOException {
-
-    String content = "plugin_id=mockedPlugin\nplugin_active=" + mockedPluginActive;
-    Files.write(this.context.getSettingsPath().resolve("intellij").resolve("plugins").resolve("MockedPlugin.properties"),
-        content.getBytes(StandardCharsets.UTF_8));
-  }
-
-  private void setupMockedPluginWithCustomToolUrl() throws IOException {
-
-    String content = "plugin_id=mockedPlugin\nplugin_active=true\nplugin_url=http://customRepo";
-    Files.write(this.context.getSettingsPath().resolve("intellij").resolve("plugins").resolve("MockedPlugin.properties"),
-        content.getBytes(StandardCharsets.UTF_8));
+    assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin'.");
   }
 
 }
