@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -31,6 +33,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -1003,8 +1006,11 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void writeFileContent(String content, Path file) {
+  public void writeFileContent(String content, Path file, boolean createParentDir) {
 
+    if (createParentDir) {
+      mkdirs(file.getParent());
+    }
     if (content == null) {
       content = "";
     }
@@ -1017,6 +1023,31 @@ public class FileAccessImpl implements FileAccess {
       this.context.trace("Wrote content to file {}", file);
     } catch (IOException e) {
       throw new RuntimeException("Failed to write file " + file, e);
+    }
+  }
+
+  @Override
+  public void readProperties(Path file, Properties properties) {
+
+    try (Reader reader = Files.newBufferedReader(file)) {
+      properties.load(reader);
+      this.context.debug("Successfully loaded {} properties from {}", properties.size(), file);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read properties file: " + file, e);
+    }
+  }
+
+  @Override
+  public void writeProperties(Properties properties, Path file, boolean createParentDir) {
+
+    if (createParentDir) {
+      mkdirs(file.getParent());
+    }
+    try (Writer writer = Files.newBufferedWriter(file)) {
+      properties.store(writer, null); // do not get confused - Java still writes a date/time header that cannot be omitted
+      this.context.debug("Successfully saved {} properties to {}", properties.size(), file);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to save properties file during tests.", e);
     }
   }
 }

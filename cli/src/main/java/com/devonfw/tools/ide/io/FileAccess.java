@@ -1,9 +1,6 @@
 package com.devonfw.tools.ide.io;
 
-import java.io.IOException;
 import java.io.Reader;
-import java.io.Writer;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
 import java.util.List;
@@ -316,7 +313,18 @@ public interface FileAccess {
    * @param content the {@link String} with the text to write to a file.
    * @param file the {@link Path} to the file where to save.
    */
-  void writeFileContent(String content, Path file);
+  default void writeFileContent(String content, Path file) {
+
+    writeFileContent(content, file, false);
+  }
+
+  /**
+   * @param content the {@link String} with the text to write to a file.
+   * @param file the {@link Path} to the file where to save.
+   * @param createParentDir if {@code true}, the parent directory will created if it does not already exist, {@code false} otherwise (fail if parent does
+   *     not exist).
+   */
+  void writeFileContent(String content, Path file, boolean createParentDir);
 
   /**
    * @param path that is checked whether it is a junction or not.
@@ -329,15 +337,16 @@ public interface FileAccess {
    * @return the parsed {@link Properties}.
    */
   default Properties readProperties(Path file) {
-
     Properties properties = new Properties();
-    try (Reader reader = Files.newBufferedReader(file)) {
-      properties.load(reader);
-      return properties;
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to read properties file: " + file, e);
-    }
+    readProperties(file, properties);
+    return properties;
   }
+
+  /**
+   * @param file the {@link Path} to the {@link Properties} file to read.
+   * @param properties the existing {@link Properties} to {@link Properties#load(Reader) load} into.
+   */
+  void readProperties(Path file, Properties properties);
 
   /**
    * @param properties the {@link Properties} to save.
@@ -345,11 +354,17 @@ public interface FileAccess {
    */
   default void writeProperties(Properties properties, Path file) {
 
-    try (Writer writer = Files.newBufferedWriter(file)) {
-      properties.store(writer, null);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to save properties file during tests.", e);
-    }
+    writeProperties(properties, file, false);
   }
+
+
+  /**
+   * @param properties the {@link Properties} to save.
+   * @param file the {@link Path} to the file where to save the properties.
+   * @param createParentDir if {@code true}, the parent directory will created if it does not already exist, {@code false} otherwise (fail if parent does
+   *     not exist).
+   */
+  void writeProperties(Properties properties, Path file, boolean createParentDir);
+
 
 }
