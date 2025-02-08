@@ -73,6 +73,7 @@ else
     fi
     INSTALL_ROOT="$ROOT_FOLDER"
   fi
+  INSTALL_ROOT="${INSTALL_ROOT%\/}"
   IDE_ROOT="$INSTALL_ROOT/projects"
 fi
 SPECIAL_CHARS="${IDE_ROOT//[\/a-zA-Z0-9]/}"
@@ -97,6 +98,7 @@ if [ "${OSTYPE}" = "msys" ]; then
 else
   ln -s "$INSTALL_DIR" "$LINK_DIR"
 fi
+export IDE_ROOT
 source "$LINK_DIR/functions" || doFail "Installation of IDEasy is inconsistent!"
 # enforce license agreement
 ide -v || doFail "You must agree to the license in order to install IDEasy!"
