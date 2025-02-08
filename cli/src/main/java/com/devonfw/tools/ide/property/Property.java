@@ -407,8 +407,8 @@ public abstract class Property<V> {
           success = assignValueAsString(arg.get(), context, commandlet);
         }
       }
-      args.next();
     }
+    args.next();
     return success;
   }
 

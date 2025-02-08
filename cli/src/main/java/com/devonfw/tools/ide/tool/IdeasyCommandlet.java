@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool;
 import java.nio.file.Path;
 import java.util.Set;
 
+import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
@@ -17,16 +18,17 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
   private static final MvnArtifact ARTIFACT = MvnArtifact.ofIdeasyCli("*!", "tar.gz", "${os}-${arch}");
 
-  private static final VersionIdentifier LATEST_SNAPSHOT = VersionIdentifier.of("*-SNAPSHOT");
+  private final UpgradeMode mode;
 
   /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
    */
-  public IdeasyCommandlet(IdeContext context) {
+  public IdeasyCommandlet(IdeContext context, UpgradeMode mode) {
 
     super(context, "ideasy", ARTIFACT, Set.of(Tag.PRODUCTIVITY, Tag.IDE));
+    this.mode = mode;
   }
 
   @Override
@@ -44,14 +46,19 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   @Override
   public VersionIdentifier getConfiguredVersion() {
 
-    if (IdeVersion.getVersionString().contains("SNAPSHOT")) {
-      return LATEST_SNAPSHOT;
+    UpgradeMode upgradeMode = this.mode;
+    if (upgradeMode == null) {
+      if (IdeVersion.getVersionString().contains("SNAPSHOT")) {
+        upgradeMode = UpgradeMode.SNAPSHOT;
+      } else {
+        if (IdeVersion.getVersionIdentifier().getDevelopmentPhase().isStable()) {
+          upgradeMode = UpgradeMode.STABLE;
+        } else {
+          upgradeMode = UpgradeMode.UNSTABLE;
+        }
+      }
     }
-    if (IdeVersion.getVersionIdentifier().getDevelopmentPhase().isStable()) {
-      return VersionIdentifier.LATEST;
-    } else {
-      return VersionIdentifier.LATEST_UNSTABLE;
-    }
+    return upgradeMode.getVersion();
   }
 
   @Override

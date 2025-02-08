@@ -1146,7 +1146,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
       boolean matches = currentProperty.apply(arguments, this, cmd, null);
-      if (!matches && currentArgument.isCompletion()) {
+      if (!matches) {
         ValidationState state = new ValidationState(null);
         state.addErrorMessage("No matching property found");
         return state;
