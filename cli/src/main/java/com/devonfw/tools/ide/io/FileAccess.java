@@ -60,6 +60,7 @@ public interface FileAccess {
    * Moves the given {@link Path} to the backup.
    *
    * @param fileOrFolder the {@link Path} to move to the backup (soft-deletion).
+   * @return the {@link Path} in the backup where the given {@link Path} was moved to.
    */
   Path backup(Path fileOrFolder);
 
