@@ -5,97 +5,115 @@ toc::[]
 
 `IDEasy` has build-in functionality to configure your IDE.
 This allows to merge and manage complex configurations.
+It is called `configurator` or also `workspace merger` and described in this section.
 
 == How to use
 
 The easiest way is that you do not care.
 When you launch the IDE of your choice (e.g. via `ide eclipse`, `ide intellij`, `ide vscode`), this will happen automatically.
+If all is configured to your needs, then you have nothing to do.
+Only if some specific configuration should be tweaked, you need to read on and figure out where to change or add what.
 
 == How it works
 
-For every supported IDE we distinguish the following file structures:
+For every supported IDE we merge templates from a `workspace` folder in the order specified in link:configuration.adoc[configuration].
+Here you will find the configuration templates in the following subfolders:
 
-1. _workspace_
+* _setup_
 +
-The actual configuration location of the tool itself.
-We configure the tool to relocate this to a specific workspace (so by default `workspaces/main/`).
-2. _setup_
-+
-A configuration location with the configuration only used during the link:setup.adoc[setup]: `settings/«ide»/workspace/setup`.
-Contains settings to setup a link:workspaces.adoc[workspace].
+A configuration location with the configuration only used to setup a link:workspaces.adoc[workspace].
 After that the user remains control over these settings.
-3. _update_
+So this is the place for recommendations that do not get in the way.
+* _update_
 +
-A configuration location with the configuration used to update and override: `settings/«ide»/workspace/update`.
-Contains settings that are overridden with every update and enforced for every team member.
-If a developer manually changes such configuration setting, it will be reset on the next time the IDE gets started.
+A configuration location with the configuration used to update and override.
+Contains settings that are overridden with every update and therefore enforced.
+If you manually change such configuration setting in the settings/preferences UI of your IDE, it will be reset on the next time the IDE gets started.
 
-The configurator will recursively traverse the directory structure of 2. and 3. together.
-For each located file `«relative-path»/«file»` it will create or update 1. according to the following rules:
+The configurator will recursively traverse the directory structure of these `setup` and `update` folders together.
+For each located file `«relative-path»/«file»` it will create or update such file in the current link:workspaces.adoc[workspace] (by default `workspaces/main/`) according to the following rules:
 
-* If `«relative-path»/«file»` is present in 1. (workspace) it will be loaded and used as basis.
-* Otherwise if `«relative-path»/«file»` is present in 2. (setup) it will be loaded and used as basis.
-* If `«relative-path»/«file»` is present in 3. (update) it will be loaded and merged with the current basis.
+* If `«relative-path»/«file»` is present in the current workspace it will be loaded and used as basis.
+* Otherwise if `«relative-path»/«file»` is present in `setup` it will be loaded and used as basis.
+* If `«relative-path»/«file»` is present in `update` it will be loaded and merged with the current basis.
 * Variables in the from `$[«variable-name»]` get resolved if `«variable-name»` is defined.
 Please note that in devonfw-ide the syntax was `${«variable-name»}` and legacy support for this can be enabled/disabled.
 However, this clashes with the variable syntax already used by IDE tools like Eclipse, IntelliJ, etc.
 Therefore this was changed in IDEasy and the new syntax should be used to avoid problems.
-* If this caused any change the result is written to `«relative-path»/«file»` in 1. (workspace).
+* If this caused any change the result is written to `«relative-path»/«file»` in the current workspace.
 
 In other words this means:
 
-* When your workspace configuration is initially created, 1. is empty.
-Hence, settings from 2. are used and merged with 3.
-* Settings in 2. are therefore used as initial defaults and suggestions but can be changed by the end-user (developer).
-Hence, use 2. for things such as themes, UI tweaks, etc.
-Once the workspace is configured 2. typically is not relevant anymore.
-* Settings in 3. are applied on every update.
-By default this happens every time you start your IDE, these settings are managed by the `settings` and in control of the `configurator`.
+* When your workspace configuration is initially created, it is empty.
+Hence, settings from `setup` are used and merged with `update`.
+* Settings in `setup` are therefore used as initial defaults and suggestions but can be changed by the end-user (developer).
+Hence, use `setup` for things such as themes, UI tweaks, etc.
+Once the workspace is configured `setup` is typically not relevant anymore.
+* Settings in `update` are applied on every restart of your IDE.
 If the user modifies such settings and reopens his IDE his changes are reverted.
-Hence, use 3. for things such as code-formatters, compiler options, paths to tools shipped with `IDEasy`, etc. that should be consistent and homogeneous for every team-member.
+These such settings are managed and enforced for the project.
+Hence, use `update` for things such as code-formatters, compiler options, paths to tools shipped with `IDEasy`, etc. that should be consistent and homogeneous for every team-member.
 
 == How to customize
 
-The settings for your ide are located in `settings/«ide»/workspace` where you find the `setup` (2.) and `update` (3.) sub-folders.
-E.g. for Eclipse the most relevant settings can be found in `settings/eclipse/workspace/update/.metadata/.plugins/org.eclipse.core.runtime/.settings`.
-Of course you could manually edit these settings with a text editor.
-However, this requires a lot of knowledge.
-As we want to provide a great user-experience with `IDEasy` you can also do the following:
+Unless you are already an expert and know where to tweak what, we recommend the following workflow to customize and tailor the IDE configuration to your needs:
 
-* Launch the IDE to configure (e.g. `ide intellij`).
-* In case of a non-trivial tweak you may first create a backup copy of the IDE configuration in `workspaces/main` (for IntelliJ in `.intelij` and `.idea` subfolders and for eclipse in `.metadata`).
-* Do the desired modification of the configuration via the GUI of your IDE (Preferences dialog).
-* Exit your IDE and wait untill it is shutdown
-* Call `ws-reverse` command for your IDE (e.g. `ide intellij ws-reverse`) - ensure you do this in the same workspace where you launched and tweaked the config (without intermediate `cd` commands).
-* Review the changes to your link:settings.adoc[settings] with a git and diff tool of your choice (e.g. call `git diff`).
-* If all looks as expected commit these changes and push them - consider using a feature branch and ask a colleague to test these changes before you apply this to the main branch.
-* In case you could not find the expected changes, you may have tweaked a property that is not yet managed.
-Therefore, you can try again with `ws-reverse-add` instead of `ws-reverse` (e.g. `ide eclipse ws-reverse-add`) but be aware to revert undesired changes.
-Be sure not to add undesired settings that should not be managed.
-* In case your changes are in an entirely new configuration file that is currently not managed, you can simply diff the current workspace folder with the previously created backup copy using a recursive diff tool (such as winmerge or maybe just `diff -R`).
-Once you figured out the relevant change from that diff, you can manually apply it to the according `«ide»/workspace/update` folder in your `ide-settings` git repository.
+* Create a backup of your current IDE configuration.
+This can be found in your current workspace (typically `$IDE_HOME/workspaces/main`) in according hidden subfolders.
+For Eclipse that subfolder is named `.metadata` for Visual-Studio-Code this is `.vscode` and for Intellij it is `.idea` *and* `.intellij`.
+For Eclipse please also note from `.metadata` you only need the `.plugins` subfolder and the major configurations of interest are typically in `.metadata/.plugins/org.eclipse.core.runtime/.settings/`.
+And for IntelliJ, from the `.intellij` you only need the `config` subfolder and the major configurations are typically in `.intellij/config/options`.
+* Start your IDE in the same workspace (e.g. `ide intellij`, before that use `icd -w «myworkspace»` if you are not working in `main` workspace).
+* Open the preferences or settings of your IDE and do the desired changes.
+* Exit your IDE again.
+* Create another backup of your current IDE configuration to a different folder (see first point).
+* Use a recursive merge tool (e.g. WinMerge) to compare the two backups and see what has actually been changed in the configuration files.
+* Once you have identified the correct path to the file containing the desired change and also the change itself inside the file, find the according file as a configuration template.
+This should typically be found in `$IDE_HOME/settings/«ide»/workspace/update` at the same relative path.
+In case there is no such configuration template file existing at all, you need to create it by copying the file from the second backup to your configuration location.
+Be wise to make your choice whether to put that into `setup` or `update`.
+* Now compare the file from the workspace with your template file and change your template to include the desired change.
+* Replace absolute paths and other configurable things using according variable expressions.
+E.g. replace `C:\Projects\myproject\software\mvn\bin\mvn` with `$[IDE_HOME]/software/mvn/bin/mvn`.
+* Test your changes by opening your IDE again (ideally in another workspace) and verify that the desired setting is now properly configured.
+If that does not work, rework your changes.
+First thing is to check the updated configuration file in that workspace and see if it contains the expected change.
+If you cannot directly see the problem, continue the steps above to figure out what went wrong.
+* After you completed changes to configuration template(s) in your link:settings.adoc[settings], commit them and share them with your team.
+Consider to follow feature-branches and pull-requests in larger teams for QA of such changes.
 
 == XML Merger
 
-The XML Merger in `IDEasy` is a tool designed to merge XML documents using different strategies.
+For workspace files in XML format we implemented a powerful XML Merger in `IDEasy`.
 It allows control over how elements are combined, overridden, or kept intact during the merge process.
-This merger is mainly used to merge incoming IDE configuration files changes from ide-settings into the workspace.
+Especially IntelliJ uses a lot of XML configuration files.
+
+=== Namespace declaration
+
+In order to use the XML merger, it is necessary to declare the merge namespace in the root element like this:
+
+```xml
+<root xmlns:merge="https://github.com/devonfw/IDEasy/merge">
+  <!-- ... child elements here ... -->
+</root>
+```
+
+Do not worry: Everything related to this namespace will only exist in your template file and will be omitted in the merged file in your workspace.
 
 === Merging Strategies
 
-The merger supports three main strategies, which can be specified for each element using the `merge:strategy` attribute:
+The XML merger supports the following strategies, which can be specified for each element using the `merge:strategy` attribute:
 
-* `COMBINE`: This strategy combines the source and target elements.
+* `combine`: This strategy combines the source and target elements.
 It overrides text nodes and attributes, and recursively applies the process to child elements.
 If a source element exists in the target document, they are combined; otherwise, the source element is appended.
-* `OVERRIDE`: This strategy replaces the target element with the source element, without considering child elements.
+* `override`: This strategy replaces the target element with the source element, without considering child elements.
 If the element exists in the target, it is overridden; otherwise, it is appended.
-* `KEEP`: This strategy keeps the existing target element intact if the source element exists in the target document.
+* `keep`: This strategy keeps the existing target element intact if the source element exists in the target document.
 If the source element doesn't exist in the target, it is appended.
 
-It is not necessary to provide a `merge:strategy` for each element, strategies are inherited to child elements.
+The default strategy is `combine` and every element without a `merge:strategy` will inherit the strategy from its parent.
 So you only need to configure a `merge:strategy` for an element if it shall be different from its parent.
-The default if nothing is configured for the root element is `COMBINE`.
 
 === Element Identification
 
@@ -106,7 +124,7 @@ The `merge:id` can be set to one of the following:
 * An attribute name prefixed with @ (e.g., `@id`, `@name`)
 * The string `name()` to match by element name
 * The string `text()` to match by text content
-* A full XPath expression (e.g., `../element[@attr=’value’]` or `/root/element[@attr=’value’]`)
+* A full XPath expression (see e.g. https://github.com/devonfw/ide-settings/blob/9551c1a222b64e958cdf1e8b01a952fa537241a6/intellij/workspace/update/.intellij/config/options/jdk.table.xml#L4[this advanced example])
 
 For each first occurrence of an element the provided value of `merge:id` is saved and then later used for elements with the same name (qualified tag name), so it is enough to provide a `merge:id` for each element only once, unless you want it to change later in the document.
 
@@ -114,23 +132,16 @@ If no `merge:id` was provided, the merger uses the following strategy as default
 
 * If no attributes are present at all, use the qualified tag name
 * If an `id` attribute is present use it (`@id`)
-* Otherwise if a `name` attribute is present use it (`@name`)
-* Otherwise you will get an error and need to adjust your template.
+* Otherwise, if a `name` attribute is present use it (`@name`)
+* Otherwise, if only a single attribute is present, that one will be used.
+* Else, you will get an error and need to adjust your template.
 
-In Eclipse and IntelliJ, elements are usually identified by either the `id` or `name` attribute, which means we could just omit `merge:id` in these cases.
+Since the defaults apply for most cases, you typically do not need to explicitly configure `merge:id` (convention over configuration).
 
-=== Namespace declaration
+=== Examples
 
-In order to use this tool, it is necessary to declare the merge namespace in the root element like this:
+Examples for the XML merger can be found in the following places:
 
-[source,xml]
-----
-<root xmlns:merge="https://github.com/devonfw/IDEasy/merge">
-// some elements
-</root>
-----
-
-=== Namespace declaration
-
-A good example of a XML template with merge configuration can be found https://github.com/devonfw/IDEasy/blob/main/cli/src/test/resources/xmlmerger/intellijWorkspace/source.xml[here].
-More examples are link:https://github.com/devonfw/IDEasy/tree/main/cli/src/test/resources/xmlmerger[here].
+* our https://github.com/devonfw/IDEasy/tree/main/cli/src/test/resources/xmlmerger[test resources].
+* https://github.com/devonfw/ide-settings/tree/main/intellij/workspace/update/.intellij/config/options[IntelliJ options folder]
+* https://github.com/devonfw/ide-settings/tree/main/intellij/workspace/update/.idea[IntelliJ .idea folder]
