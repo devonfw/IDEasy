@@ -4,6 +4,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -23,6 +24,7 @@ import org.w3c.dom.NodeList;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.mvn.MvnBasedLocalToolCommandlet;
@@ -46,12 +48,16 @@ public class MavenRepository extends AbstractToolRepository {
   /** Base URL for Maven Snapshots repository */
   public static final String MAVEN_SNAPSHOTS = "https://s01.oss.sonatype.org/content/repositories/snapshots";
 
+  private static final Duration METADATA_CACHE_DURATION_RELEASE = Duration.ofHours(1);
+
+  private static final Duration METADATA_CACHE_DURATION_SNAPSHOT = Duration.ofMinutes(5);
+
   private final Path localMavenRepository;
 
   private final DocumentBuilder documentBuilder;
 
   private static final Map<String, MvnArtifact> TOOL_MAP = Map.of(
-      "ideasy", MvnArtifact.ofIdeasyCli("*", "tar.gz", "${os}-${arch}"),
+      "ideasy", IdeasyCommandlet.ARTIFACT,
       "gcviewer", new MvnArtifact("com.github.chewiebug", "gcviewer", "*")
   );
 
@@ -141,11 +147,25 @@ public class MavenRepository extends AbstractToolRepository {
   private Path getDownloadedArtifact(MvnArtifact artifact, UrlChecksums checksums) {
 
     Path file = this.localMavenRepository.resolve(artifact.getPath());
-    if (!Files.exists(file)) {
+    if (isNotUpToDateInLocalRepo(file)) {
       this.context.getFileAccess().mkdirs(file.getParent());
       download(artifact.getDownloadUrl(), file, artifact.getVersion(), checksums);
     }
     return file;
+  }
+
+  private boolean isNotUpToDateInLocalRepo(Path file) {
+    if (!Files.exists(file)) {
+      return true;
+    }
+    if (file.getFileName().toString().equals(MvnArtifact.MAVEN_METADATA_XML)) {
+      Duration cacheDuration = METADATA_CACHE_DURATION_RELEASE;
+      if (file.getParent().getFileName().toString().endsWith("-SNAPSHOT")) {
+        cacheDuration = METADATA_CACHE_DURATION_SNAPSHOT;
+      }
+      return !this.context.getFileAccess().isFileAgeRecent(file, cacheDuration);
+    }
+    return false;
   }
 
   @Override

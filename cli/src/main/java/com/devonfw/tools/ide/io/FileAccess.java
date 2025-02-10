@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.io;
 import java.io.Reader;
 import java.nio.file.Path;
 import java.nio.file.attribute.PosixFilePermission;
+import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -367,4 +368,17 @@ public interface FileAccess {
   void writeProperties(Properties properties, Path file, boolean createParentDir);
 
 
+  /**
+   * @param path the {@link Path} to get the age from the modification time.
+   * @return the age of the file as {@link Duration} from now to the modification time of the file.
+   */
+  public Duration getFileAge(Path path);
+
+  /**
+   * @param path the {@link Path} to check.
+   * @param cacheDuration the {@link Duration} to consider as recent.
+   * @return {@code true} if the given {@link Path} exists and is recent enough (its {@link #getFileAge(Path) age} is not greater than the given
+   *     {@link Duration}), {@code false} otherwise.
+   */
+  boolean isFileAgeRecent(Path path, Duration cacheDuration);
 }

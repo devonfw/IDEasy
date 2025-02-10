@@ -16,7 +16,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
-  private static final MvnArtifact ARTIFACT = MvnArtifact.ofIdeasyCli("*!", "tar.gz", "${os}-${arch}");
+  /** The {@link MvnArtifact} for IDEasy. */
+  public static final MvnArtifact ARTIFACT = MvnArtifact.ofIdeasyCli("*!", "tar.gz", "${os}-${arch}");
 
   private final UpgradeMode mode;
 

@@ -27,6 +27,7 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -1049,5 +1050,32 @@ public class FileAccessImpl implements FileAccess {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to save properties file during tests.", e);
     }
+  }
+
+  @Override
+  public Duration getFileAge(Path path) {
+    if (Files.exists(path)) {
+      try {
+        long currentTime = System.currentTimeMillis();
+        long fileModifiedTime = Files.getLastModifiedTime(path).toMillis();
+        return Duration.ofMillis(currentTime - fileModifiedTime);
+      } catch (IOException e) {
+        this.context.warning().log(e, "Could not get modification-time of {}.", path);
+      }
+    } else {
+      this.context.debug("Path {} is missing - skipping modification-time and file age check.", path);
+    }
+    return null;
+  }
+
+  @Override
+  public boolean isFileAgeRecent(Path path, Duration cacheDuration) {
+
+    Duration age = getFileAge(path);
+    if (age == null) {
+      return false;
+    }
+    context.debug("The path {} was last updated {} ago and caching duration is {}.", path, age, cacheDuration);
+    return (age.toMillis() <= cacheDuration.toMillis());
   }
 }
