@@ -95,7 +95,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext(PROJECT_BASIC, path, false, IdeLogLevel.INFO);
+    IdeTestContext context = newContext(ENVIRONMENT_COMMANDLET, path, false, IdeLogLevel.INFO);
     context.setSystemInfo(SystemInfoMock.MAC_ARM64);
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
     Path softwarePath = context.getSoftwarePath();
@@ -113,6 +113,8 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("IDE_HOME=\"" + normalize(context.getIdeHome()) + "\""), //
         IdeLogEntry.ofProcessable("IDE_TOOLS=\"mvn,eclipse\""), //
         IdeLogEntry.ofProcessable("INTELLIJ_EDITION=\"ultimate\""), //
+        IdeLogEntry.ofProcessable(
+            "export JAVA_HOME=\"" + context.getSoftwarePath() + java.nio.file.FileSystems.getDefault().getSeparator() + "java\""), //
         IdeLogEntry.ofProcessable("JAVA_VERSION=\"17*\""), //
         IdeLogEntry.ofProcessable("export M2_REPO=\"" + context.getUserHome() + "/.m2/repository\""), //
         IdeLogEntry.ofProcessable("export MVN_HOME=\"" + softwarePath + java.nio.file.FileSystems.getDefault().getSeparator() + "mvn\""),
