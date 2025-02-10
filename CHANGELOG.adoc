@@ -6,7 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/925[#925] IDEasy can not handle a faulty definition of JAVA_HOME
+* https://github.com/devonfw/IDEasy/issues/925[#925]: IDEasy can not handle a faulty definition of JAVA_HOME
 
 == 2025.01.003
 
