@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -40,7 +41,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).log().hasEntriesWithNothingElseInBetween( //
-        IdeLogEntry.ofDebug("from USER@" + userProperties.toString() + ":"), //
+        IdeLogEntry.ofDebug("from USER@" + userProperties + ":"), //
         IdeLogEntry.ofProcessable("DOCKER_EDITION=\"docker\""), //
         IdeLogEntry.ofProcessable("FOO=\"foo-bar-some-${UNDEFINED}\""), //
 
@@ -81,9 +82,9 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
 
         IdeLogEntry.ofDebug("from TOOL@" + softwarePath + ":"), //
         IdeLogEntry.ofProcessable(
-            "export JAVA_HOME=\"" + context.getSoftwarePath() + java.nio.file.FileSystems.getDefault().getSeparator() + "java\""), //
-        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + context.getSoftwarePath() + java.nio.file.FileSystems.getDefault().getSeparator() + "mvn\""), //
-        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + context.getSoftwarePath() + java.nio.file.FileSystems.getDefault().getSeparator() + "npm\"") //
+            "export JAVA_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "java\""), //
+        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "mvn\""), //
+        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "npm\"") //
     );
   }
 
@@ -114,12 +115,12 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("IDE_TOOLS=\"mvn,eclipse\""), //
         IdeLogEntry.ofProcessable("INTELLIJ_EDITION=\"ultimate\""), //
         IdeLogEntry.ofProcessable(
-            "export JAVA_HOME=\"" + context.getSoftwarePath() + java.nio.file.FileSystems.getDefault().getSeparator() + "java\""), //
+            "export JAVA_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "java\""), //
         IdeLogEntry.ofProcessable("JAVA_VERSION=\"17*\""), //
         IdeLogEntry.ofProcessable("export M2_REPO=\"" + context.getUserHome() + "/.m2/repository\""), //
-        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + softwarePath + java.nio.file.FileSystems.getDefault().getSeparator() + "mvn\""),
+        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + softwarePath + FileSystems.getDefault().getSeparator() + "mvn\""),
         IdeLogEntry.ofProcessable("MVN_VERSION=\"3.9.1\""), //
-        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + softwarePath + java.nio.file.FileSystems.getDefault().getSeparator() + "npm\""), //
+        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + softwarePath + FileSystems.getDefault().getSeparator() + "npm\""), //
         new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export PATH=", true), //
         IdeLogEntry.ofProcessable("SOME=\"some-${UNDEFINED}\""), //
         IdeLogEntry.ofProcessable("TEST_ARGS1=\" user1 settings1 workspace1 conf1\""), //
