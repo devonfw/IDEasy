@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -42,6 +43,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
+import com.devonfw.tools.ide.migration.IdeMigrator;
 import com.devonfw.tools.ide.network.NetworkProxy;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
@@ -63,6 +65,7 @@ import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Abstract base implementation of {@link IdeContext}.
@@ -166,10 +169,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     } else {
       workingDirectory = workingDirectory.toAbsolutePath();
     }
+    this.cwd = workingDirectory;
     // detect IDE_HOME and WORKSPACE
     Path currentDir = workingDirectory;
     String name1 = "";
     String name2 = "";
+    Path ideRootPath = getIdeRootPathFromEnv();
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
@@ -184,6 +189,10 @@ public abstract class AbstractIdeContext implements IdeContext {
         name1 = currentDir.getName(nameCount - 1).toString();
       }
       currentDir = currentDir.getParent();
+      if ((ideRootPath != null) && (ideRootPath.equals(currentDir))) {
+        // prevent that during tests we traverse to the real IDE project of IDEasy developer
+        currentDir = null;
+      }
     }
 
     // detection completed, initializing variables
@@ -227,7 +236,10 @@ public abstract class AbstractIdeContext implements IdeContext {
     return ideRootPath;
   }
 
-  private Path getIdeRootPathFromEnv() {
+  /**
+   * @return the {@link #getIdeRoot() IDE_ROOT} from the system environment.
+   */
+  protected Path getIdeRootPathFromEnv() {
 
     String root = getSystem().getEnv(IdeVariables.IDE_ROOT.getName());
     if (root != null) {
@@ -392,6 +404,30 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public VersionIdentifier getProjectVersion() {
+
+    if (this.ideHome != null) {
+      Path versionFile = this.ideHome.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+      if (Files.exists(versionFile)) {
+        String version = this.fileAccess.readFileContent(versionFile).trim();
+        return VersionIdentifier.of(version);
+      }
+    }
+    return IdeMigrator.START_VERSION;
+  }
+
+  @Override
+  public void setProjectVersion(VersionIdentifier version) {
+
+    if (this.ideHome == null) {
+      throw new IllegalStateException("IDE_HOME not available!");
+    }
+    Objects.requireNonNull(version);
+    Path versionFile = this.ideHome.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    this.fileAccess.writeFileContent(version.toString(), versionFile);
+  }
+
+  @Override
   public Path getIdeRoot() {
 
     return this.ideRoot;
@@ -443,18 +479,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   public Path getSettingsGitRepository() {
 
     Path settingsPath = getSettingsPath();
-
-    if (settingsPath == null) {
-      error("No settings repository was found.");
-      return null;
-    }
-
     // check whether the settings path has a .git folder only if its not a symbolic link or junction
     if (!Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlinkOrJunction()) {
       error("Settings repository exists but is not a git repository.");
       return null;
     }
-
     return settingsPath;
   }
 

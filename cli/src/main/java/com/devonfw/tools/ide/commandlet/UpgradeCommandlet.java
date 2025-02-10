@@ -40,7 +40,10 @@ public class UpgradeCommandlet extends Commandlet {
   public void run() {
 
     IdeasyCommandlet ideasy = new IdeasyCommandlet(this.context, this.mode.getValue());
-    ideasy.install(false);
+    boolean updateInstalled = ideasy.install(false);
+    if (updateInstalled) {
+      this.context.interaction("It is recommended to run 'ide update' on your IDEasy projects now.");
+    }
   }
 
 }

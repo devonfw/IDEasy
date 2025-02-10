@@ -26,6 +26,7 @@ import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Interface for interaction with the user allowing to input and output information.
@@ -313,6 +314,16 @@ public interface IdeContext extends IdeStartContext {
    * @see com.devonfw.tools.ide.variable.IdeVariables#PROJECT_NAME
    */
   String getProjectName();
+
+  /**
+   * @return the IDEasy version the {@link #getIdeHome() current project} was created with or migrated to.
+   */
+  VersionIdentifier getProjectVersion();
+
+  /**
+   * @param version the new value of {@link #getProjectVersion()}.
+   */
+  void setProjectVersion(VersionIdentifier version);
 
   /**
    * @return the {@link Path} to the IDE installation root directory. This is the top-level folder where the {@link #getIdeHome() IDE instances} are located as

@@ -264,4 +264,25 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     this.testCommandletManager.add(commandlet);
   }
 
+  @Override
+  protected Path getIdeRootPathFromEnv() {
+
+    Path workingDirectory = getCwd();
+    Path root = Path.of("").toAbsolutePath();
+    if (root.getRoot().equals(workingDirectory.getRoot())) {
+      Path relative = root.relativize(workingDirectory);
+      int nameCount = relative.getNameCount();
+      if ((nameCount >= 4) && relative.getName(0).toString().contains("target") && relative.getName(1).toString().equals("test-projects")) {
+        int rest = nameCount - 2;
+        Path ideRoot = workingDirectory;
+        while (rest > 0) {
+          ideRoot = ideRoot.getParent();
+          rest--;
+        }
+        return ideRoot;
+      }
+    }
+    return null;
+  }
+
 }
