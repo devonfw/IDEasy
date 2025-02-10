@@ -28,7 +28,6 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(ENVIRONMENT_COMMANDLET, path, false);
     context.setSystemInfo(SystemInfoMock.LINUX_X64);
     context.getSystem().setProperty("JAVA_HOME", "${USER_HOME}/not_existing");
-//    context.set
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
     Path userProperties = context.getUserHomeIde().resolve("ide.properties");
     Path settingsIdeProperties = context.getSettingsPath().resolve("ide.properties");
