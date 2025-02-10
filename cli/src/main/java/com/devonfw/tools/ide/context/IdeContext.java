@@ -53,7 +53,7 @@ public interface IdeContext extends IdeStartContext {
   String FOLDER_CONF = "conf";
 
   /**
-   * The nane of the folder inside IDE_ROOT reserved for IDEasy. Intentionally starting with an underscore and not a dot to prevent effects like OS hiding,
+   * The name of the folder inside IDE_ROOT reserved for IDEasy. Intentionally starting with an underscore and not a dot to prevent effects like OS hiding,
    * maven filtering, .gitignore and to distinguish from {@link #FOLDER_DOT_IDE}.
    *
    * @see #getIdePath()
