@@ -15,11 +15,11 @@ function doSetupInConfigFile() {
   if [ "${OSTYPE}" != "cygwin" ] && [ "${OSTYPE}" != "msys" ]; then
     if ! grep -q "export IDE_ROOT=" "${cfg}"
     then
-     echo "export IDE_ROOT=\"${IDE_ROOT}\"" >> "${cfg}"
+     echo -e "\nexport IDE_ROOT=\"${IDE_ROOT}\"" >> "${cfg}"
     fi
   fi
   if ! grep -q 'source "$IDE_ROOT/_ide/installation/functions"' "${cfg}"; then
-    echo 'source "$IDE_ROOT/_ide/installation/functions"' >> "${cfg}"
+    echo -e '\nsource "$IDE_ROOT/_ide/installation/functions"' >> "${cfg}"
   fi
 }
 
