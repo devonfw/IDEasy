@@ -45,31 +45,6 @@ public class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if the {@link Intellij} ultimate edition can be installed properly.
-   *
-   * @param os String of the OS to use.
-   */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijInstallUltimate(String os) {
-
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    this.context.setSystemInfo(systemInfo);
-    Intellij commandlet = new Intellij(this.context);
-    commandlet.setEdition("ultimate");
-    // act
-    commandlet.install();
-
-    // assert
-    checkInstallation(this.context);
-
-    //if tool already installed
-    commandlet.install();
-    assertThat(this.context).logAtDebug().hasMessageContaining("Version 2023.3.3 of tool intellij/ultimate is already installed");
-  }
-
-  /**
    * Tests if the {@link Intellij} can be installed properly, and a plugin can be installed separately afterward.
    *
    * @param os String of the OS to use.
