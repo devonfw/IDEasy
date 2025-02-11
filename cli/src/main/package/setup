@@ -69,7 +69,7 @@ else
   if [ "${OSTYPE}" = "msys" ] && [ "${PWD##$HOME}" = "$PWD" ]; then
     ROOT_FOLDER="${PWD%${PWD#/*/}}"
     if [ "${ROOT_FOLDER/[a-z]}" != "//" ]; then
-      doFail "Your root folder is $ROOT_FOLDER what is not a windows drive letter.\nChoose a different installation directory!"
+      doFail "Your root folder is $ROOT_FOLDER which is not a windows drive letter.\nChoose a different installation directory!"
     fi
     INSTALL_ROOT="$ROOT_FOLDER"
   fi
