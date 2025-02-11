@@ -1,11 +1,23 @@
 package com.devonfw.tools.ide.migration.v2025;
 
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.migration.IdeVersionMigration;
 import com.devonfw.tools.ide.os.WindowsHelper;
 
+/**
+ * Migration for 2025.02.001-beta.
+ */
 public class Mig202502001 extends IdeVersionMigration {
 
+  /**
+   * The constructor.
+   */
   public Mig202502001() {
 
     super("2025.02.001-beta");
@@ -14,8 +26,57 @@ public class Mig202502001 extends IdeVersionMigration {
   @Override
   public void run(IdeContext context) {
 
+    cleanupBashAndZshRc(context);
+    cleanupWindowsPath(context);
+  }
+
+  private static void cleanupBashAndZshRc(IdeContext context) {
+
+    cleanupShellRc(context, ".bashrc");
+    cleanupShellRc(context, ".zshrc");
+  }
+
+  private static void cleanupShellRc(IdeContext context, String filename) {
+
+    Path rcFile = context.getUserHome().resolve(filename);
+    FileAccess fileAccess = context.getFileAccess();
+    List<String> lines = fileAccess.readFileLines(rcFile);
+    if (lines == null) {
+      return;
+    }
+    // since it is unspecified if the returned List may be immutable we want to get sure
+    lines = new ArrayList<>(lines);
+    Iterator<String> iterator = lines.iterator();
+    int removeCount = 0;
+    while (iterator.hasNext()) {
+      String line = iterator.next();
+      if (isObsoleteRcLine(line.trim())) {
+        context.info("Removing obsolete line from {}: {}", filename, line);
+        iterator.remove();
+        removeCount++;
+      }
+    }
+    if (removeCount > 0) {
+      fileAccess.writeFileLines(lines, rcFile);
+    }
+  }
+
+  private static boolean isObsoleteRcLine(String line) {
+    if (line.startsWith("alias ide=")) {
+      return true;
+    } else if (line.equals("ide")) {
+      return true;
+    } else if (line.equals("ide init")) {
+      return true;
+    } else if (line.equals("source \"$IDE_ROOT/_ide/functions\"")) {
+      return true;
+    }
+    return false;
+  }
+
+  private static void cleanupWindowsPath(IdeContext context) {
     if (context.getSystemInfo().isWindows()) {
-      WindowsHelper helper = new WindowsHelper(context);
+      WindowsHelper helper = WindowsHelper.get(context);
       String userPath = helper.getUserEnvironmentValue("PATH");
       if (userPath == null) {
         context.warning("Could not read user PATH from registry!");

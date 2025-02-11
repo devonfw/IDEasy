@@ -19,6 +19,8 @@ import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.WindowsHelper;
+import com.devonfw.tools.ide.os.WindowsHelperMock;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
@@ -145,6 +147,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public void setSystem(IdeSystem system) {
 
     this.system = system;
+  }
+
+  @Override
+  public WindowsHelper createWindowsHelper() {
+
+    return new WindowsHelperMock();
   }
 
   @Override

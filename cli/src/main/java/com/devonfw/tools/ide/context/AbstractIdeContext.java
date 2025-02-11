@@ -47,6 +47,8 @@ import com.devonfw.tools.ide.migration.IdeMigrator;
 import com.devonfw.tools.ide.network.NetworkProxy;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.os.WindowsHelper;
+import com.devonfw.tools.ide.os.WindowsHelperImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
@@ -149,6 +151,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   protected IdeSystem system;
 
   private NetworkProxy networkProxy;
+
+  private WindowsHelper windowsHelper;
 
   /**
    * The constructor.
@@ -1267,6 +1271,25 @@ public abstract class AbstractIdeContext implements IdeContext {
   public IdeStartContextImpl getStartContext() {
 
     return startContext;
+  }
+
+  /**
+   * @return the {@link WindowsHelper}.
+   */
+  public final WindowsHelper getWindowsHelper() {
+
+    if (this.windowsHelper == null) {
+      this.windowsHelper = createWindowsHelper();
+    }
+    return this.windowsHelper;
+  }
+
+  /**
+   * @return the new {@link WindowsHelper} instance.
+   */
+  protected WindowsHelper createWindowsHelper() {
+
+    return new WindowsHelperImpl(this);
   }
 
   /**

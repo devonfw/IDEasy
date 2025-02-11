@@ -323,10 +323,40 @@ public interface FileAccess {
   /**
    * @param content the {@link String} with the text to write to a file.
    * @param file the {@link Path} to the file where to save.
-   * @param createParentDir if {@code true}, the parent directory will created if it does not already exist, {@code false} otherwise (fail if parent does
+   * @param createParentDir if {@code true}, the parent directory will be created if it does not already exist, {@code false} otherwise (fail if parent does
    *     not exist).
    */
   void writeFileContent(String content, Path file, boolean createParentDir);
+
+  /**
+   * Like {@link #readFileContent(Path)} but giving one {@link String} per line of text. It will not allow to preserve line endings (CRLF vs. LF).
+   *
+   * @param file the {@link Path} to the file to read.
+   * @return the content of the specified file (in UTF-8 encoding) as {@link List} of {@link String}s per line of text.
+   */
+  List<String> readFileLines(Path file);
+
+  /**
+   * Like {@link #writeFileContent(String, Path)} but taking a {@link List} with one {@link String} per line of text. It will always use LF as newline character
+   * independent of the operating system.
+   *
+   * @param lines the {@link List} of {@link String}s per line of text.
+   * @param file the {@link Path} to the file where to save.
+   */
+  default void writeFileLines(List<String> lines, Path file) {
+    writeFileLines(lines, file, false);
+  }
+
+  /**
+   * Like {@link #writeFileContent(String, Path, boolean)} but taking a {@link List} with one {@link String} per line of text. It will always use LF as newline
+   * character independent of the operating system.
+   *
+   * @param lines the {@link List} of {@link String}s per line of text.
+   * @param file the {@link Path} to the file where to save.
+   * @param createParentDir if {@code true}, the parent directory will be created if it does not already exist, {@code false} otherwise (fail if parent does
+   *     not exist).
+   */
+  void writeFileLines(List<String> lines, Path file, boolean createParentDir);
 
   /**
    * @param path that is checked whether it is a junction or not.

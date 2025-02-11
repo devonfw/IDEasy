@@ -1028,6 +1028,44 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
+  public List<String> readFileLines(Path file) {
+
+    this.context.trace("Reading content of file from {}", file);
+    if (!Files.exists(file)) {
+      this.context.warning("File {} does not exist", file);
+      return null;
+    }
+    try {
+      List<String> content = Files.readAllLines(file);
+      this.context.trace("Completed reading {} lines from file {}", content.size(), file);
+      return content;
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read file " + file, e);
+    }
+  }
+
+  @Override
+  public void writeFileLines(List<String> content, Path file, boolean createParentDir) {
+
+    if (createParentDir) {
+      mkdirs(file.getParent());
+    }
+    if (content == null) {
+      content = List.of();
+    }
+    this.context.trace("Writing content with {} lines to file {}", content.size(), file);
+    if (Files.exists(file)) {
+      this.context.debug("Overriding content of file {}", file);
+    }
+    try {
+      Files.write(file, content);
+      this.context.trace("Wrote content to file {}", file);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to write file " + file, e);
+    }
+  }
+
+  @Override
   public void readProperties(Path file, Properties properties) {
 
     try (Reader reader = Files.newBufferedReader(file)) {

@@ -58,7 +58,7 @@ if "%USER_PATH%" == "" (
   pause
   setx PATH "%IDE_ROOT%\_ide\installation\bin"
 ) else (
-  setx PATH "%USER_PATH%;%IDE_ROOT%\_ide\installation\bin"
+  setx PATH "%IDE_ROOT%\_ide\installation\bin;%USER_PATH%"
 )
 echo %_fBGreen%Setup of IDEasy completed%_RESET%
 if not "%1%" == "-b" (
