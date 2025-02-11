@@ -49,7 +49,7 @@ echo Adding %IDE_ROOT%\_ide\installation\bin to your users system PATH
 if "%USER_PATH%" == "" (
   echo %_fBYellow%ATTENTION:
   echo Your user specific PATH variable seems to be empty.
-  echo You can double check this by pressing [Windows][r] and launch the programm SystemPropertiesAdvanced.
+  echo You can double check this by pressing [Windows][r] and launch the program SystemPropertiesAdvanced.
   echo Then click on 'Environment variables' and check if 'PATH' is set in in the 'user variables' from the upper list.
   echo In case 'PATH' is defined there non-empty and you get this message, please abort and give us feedback:
   echo https://github.com/devonfw/IDEasy/issues
