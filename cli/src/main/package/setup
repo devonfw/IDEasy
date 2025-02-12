@@ -94,7 +94,7 @@ mkdir -p "$INSTALL_DIR" || doFail "Failed to install IDEasy - check write permis
 cp -r bin functions system internal "$INSTALL_DIR/" || doFail "Failed to copy IDEasy installation files!"
 cp setup* IDEasy.pdf "$INSTALL_DIR/"
 if [ "${OSTYPE}" = "msys" ]; then
-  "cmd //c 'mklink /d /j $(cygpath -w "$LINK_DIR") $(cygpath -w "$INSTALL_DIR")'" || doFail "Failed to create junction from $INSTALL_DIR to $LINK_DIR"
+  cmd //c "mklink /d /j $(cygpath -w $LINK_DIR) $(cygpath -w $INSTALL_DIR)" || doFail "Failed to create junction from $INSTALL_DIR to $LINK_DIR"
 else
   ln -s "$INSTALL_DIR" "$LINK_DIR"
 fi
