@@ -1,34 +1,41 @@
-﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
-	<Package Name="IDEasy" Manufacturer="TODO Manufacturer" Version="1.0.0.0" UpgradeCode="1848091f-6184-451b-ba4c-097662e2cfaa">
+﻿<?define ProductName = "IDEasy" ?>
+<?define Manufacturer = "devonfw" ?>
+<?define ProductVersion = "1.0.0" ?>
+<?define UpgradeCode = "1848091f-6184-451b-ba4c-097662e2cfaa" ?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+	<Package Name="$(var.ProductName)" Manufacturer="$(var.Manufacturer)" Version="$(var.ProductVersion)" UpgradeCode="$(var.UpgradeCode)">
     <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
 
 		<Feature Id="main">
-			<!-- Include the whole setup folder for windows -->
+			<!-- Include files that has to be installed -->
 			<Files Include="msi-setup\**" />
 		</Feature>
 
-		<!-- Specifying a license file -->
+		<!-- Embedd .cab file with setup folder inside -->
+		<MediaTemplate EmbedCab="yes" />
+
+		<!-- Specifying license and bitmap files -->
 		<WixVariable Id="WixUILicenseRtf" Value=".\assets\LICENSE.rtf" />
-		<!-- Specifying bitmaps for UI -->
 		<WixVariable Id="WixUIBannerBmp" Value=".\assets\banner.bmp" />
 		<WixVariable Id="WixUIDialogBmp" Value=".\assets\dialog.bmp" />
 
-		<!-- Embedd .cab cabinett file with setup folder inside -->
-		<MediaTemplate EmbedCab="yes" />
-
-		<!-- Custom Action for own INSTALLFOLDER validation in c#-->
-		<Binary Id="OwnValidationDll" SourceFile="CustomActionValidation.CA.dll"/>
-		<CustomAction Id="OwnValidationCA" BinaryRef="OwnValidationDll" DllEntry="ValidatePath" Execute="immediate" Impersonate="yes" Return="check" />
-		<!-- Speciying Property Elements to keep track of validation return-->
-		<Property Id="INSTALLFOLDER_VALID" Value="1" />
-		<Property Id="VALIDATION_ERROR" Value="-" />
-
-		<!-- Specifying default directory shown in InstallDirDlg UI-->
+		<!-- Specifying Directories and Properties for installation location selection-->
+		<Property Id="INSTALLTYPE" Value="ROOT" />
+		
 		<Directory Id="ROOTDIRECTORY">
 			<Directory Id="INSTALLFOLDER" Name="projects" />
 		</Directory>
+		
+		<Property Id="USERFOLDER" >
+			<DirectorySearch Id="userProfileSearch" Depth="0" Path="[%USERPROFILE]" />
+		</Property>
 
-		<!-- Specifying setup.bat script-->
+		<Directory Id="USERFOLDER" >
+			<Directory Id="USERHOMEFOLDER" Name="projects" />
+		</Directory>
+
+		<!-- Execution of setup.bat script-->
 		<SetProperty
 			Id="RunSetupAction"
 			Value="&quot;[INSTALLFOLDER]_ide\setup.bat&quot; -b"
@@ -36,7 +43,7 @@
 			Sequence="execute"
 			/>
 
-		<!-- Specifying custom actions-->
+		<!-- Needed for quiet execution of scripts-->
 		<CustomAction
 			Id="RunSetupAction"
 			BinaryRef="Wix4UtilCA_X64"
@@ -46,15 +53,14 @@
 			Return="ignore"
 			/>
 			
-		<!-- Specifying custom actions-->
 		<CustomAction
 			Id="RunUninstallAction"
 			Directory="INSTALLFOLDER"
-			ExeCommand="[SOURCEDIR]scripts/path_validation.bat"
+			ExeCommand="[SOURCEDIR]scripts/uninstall.bat"
 			Execute="deferred" Return="ignore"
 		/>
 
-		<!-- Specifying Custom Actions trigger points in installation-->
+		<!-- Specifying when Custom Actions should run -->
 		<InstallExecuteSequence>
 			<Custom Action="RunSetupAction" Condition="NOT Installed" Before="InstallFinalize" />
 			<Custom Action='RunUninstallAction' Condition="Installed AND NOT UPGRADINGPRODUCTCODE" After="InstallInitialize" />

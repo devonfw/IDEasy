@@ -7,7 +7,6 @@
     <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2" />
     <PackageReference Include="WixToolset.Util.wixext" Version="5.0.2" />
     <WixSourceFiles Include="WixUI_OwnSetup.wxs" />
-	<WixSourceFiles Include="Folders.wxs" />
   </ItemGroup>
   <Target Name="Build">
     <Candle Include="@(WixSourceFiles)" />
