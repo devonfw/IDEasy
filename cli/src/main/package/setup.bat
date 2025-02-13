@@ -41,7 +41,7 @@ if %ERRORLEVEL% neq 0 (
   pause
   exit /b %ERRORLEVEL%
 )
-for /F "tokens=2* delims= " %%f IN ('reg query HKCU\Environment /v IDE_ROOT ^| findstr /i IDE_ROOT') do set IDE_ROOT=%%g
+for /F "tokens=2* delims= " %%f IN ('reg query HKCU\Environment /v PATH ^| findstr /i PATH') do set USER_PATH=%%g
 if "%USER_PATH:~-1,1%" == ";" (
   set "USER_PATH=%USER_PATH:~0,-1%"
 )
