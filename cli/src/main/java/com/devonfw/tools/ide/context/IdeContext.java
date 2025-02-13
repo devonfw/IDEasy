@@ -341,7 +341,8 @@ public interface IdeContext extends IdeStartContext {
   Path getIdePath();
 
   /**
-   * @return the {@link Path} to the
+   * @return the {@link Path} to the {@link #FOLDER_INSTALLATION installation} folder of IDEasy. This is a link to the (latest) installed release of IDEasy. On
+   *     upgrade a new release is installed and the link is switched to the new release.
    */
   default Path getIdeInstallationPath() {
 

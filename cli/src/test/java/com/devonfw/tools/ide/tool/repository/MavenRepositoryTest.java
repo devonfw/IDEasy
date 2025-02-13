@@ -21,6 +21,9 @@ import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+/**
+ * Test of {@link MavenRepository}.
+ */
 class MavenRepositoryTest extends AbstractIdeContextTest {
 
   private static final String XML_SNAPSNOT_METADATA = """
