@@ -76,7 +76,7 @@ else
   INSTALL_ROOT="${INSTALL_ROOT%\/}"
   IDE_ROOT="$INSTALL_ROOT/projects"
 fi
-SPECIAL_CHARS="${IDE_ROOT//[\/a-zA-Z0-9]/}"
+SPECIAL_CHARS="${IDE_ROOT//[\/a-zA-Z0-9-_.]/}"
 if [ "$SPECIAL_CHARS" != "" ]; then
   doFail "Your installation directory $IDE_ROOT is invalid since it contains special characters: $SPECIAL_CHARS\nChoose a different installation directory!"
 fi
