@@ -484,7 +484,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     Path settingsPath = getSettingsPath();
     // check whether the settings path has a .git folder only if its not a symbolic link or junction
-    if (!Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlinkOrJunction()) {
+    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlinkOrJunction()) {
       error("Settings repository exists but is not a git repository.");
       return null;
     }
