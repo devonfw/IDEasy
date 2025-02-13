@@ -29,7 +29,7 @@ This makes it scale from a single developer up to teams with hundreds of develop
 * *Customizable* +
 You can integrate any tool you need on your local machine.
 Most development tools are supported out of the box and if you want you get security updates automatically without manual maintenance.
-You can even add link:software.adoc#custom[custom tools] on your own to integrate tools that are not supported out of the box (including closed-source, proprietary or commercial software) as long as you care about the terms and licenses of these tools.
+You can even add link:software.adoc#custom-tools[custom tools] on your own to integrate tools that are not supported out of the box (including closed-source, proprietary or commercial software) as long as you care about the terms and licenses of these tools.
 * *Multi-platform* +
 It supports and works on all major platforms: Windows, Mac and Linux.
 * *Multi-tenancy* +
@@ -41,7 +41,7 @@ You can create and update new workspaces with a few clicks e.g. for different su
 You can see the workspace name in the title-bar of your IDE so you do not get confused and work on the right workspace.
 * *Free* +
 `IDEasy` is free and open-source software.
-See link:license.adoc[LICENSE] for details.
+See link:LICENSE.adoc[LICENSE] for details.
 
 == IDEs
 
