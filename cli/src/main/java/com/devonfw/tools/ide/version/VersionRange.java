@@ -71,19 +71,31 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
   public boolean contains(VersionIdentifier version) {
 
     if (this.min != null) {
-      VersionComparisonResult compareMin = version.compareVersion(this.min);
-      if (compareMin.isLess()) {
-        return false;
-      } else if (compareMin.isEqual() && this.boundaryType.isLeftExclusive() && !version.isPattern()) {
-        return false;
+      if (version.isPattern()) {
+        if (!version.matches(this.min)) {
+          return false;
+        }
+      } else {
+        VersionComparisonResult compareMin = version.compareVersion(this.min);
+        if (compareMin.isLess()) {
+          return false;
+        } else if (compareMin.isEqual() && this.boundaryType.isLeftExclusive() && !version.isPattern()) {
+          return false;
+        }
       }
     }
     if (this.max != null) {
-      VersionComparisonResult compareMax = version.compareVersion(this.max);
-      if (compareMax.isGreater()) {
-        return false;
-      } else if (compareMax.isEqual() && this.boundaryType.isRightExclusive() && !version.isPattern()) {
-        return false;
+      if (version.isPattern()) {
+        if (version.matches(this.max)) {
+          return false;
+        }
+      } else {
+        VersionComparisonResult compareMax = version.compareVersion(this.max);
+        if (compareMax.isGreater()) {
+          return false;
+        } else if (compareMax.isEqual() && this.boundaryType.isRightExclusive() && !version.isPattern()) {
+          return false;
+        }
       }
     }
     return true;
