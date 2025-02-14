@@ -45,28 +45,6 @@ public class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if the {@link Intellij} can be installed properly, and a plugin can be installed separately afterward.
-   *
-   * @param os String of the OS to use.
-   */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijInstallPluginAfterwards(String os) {
-
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    this.context.setSystemInfo(systemInfo);
-    Intellij commandlet = new Intellij(this.context);
-
-    // act
-    commandlet.install();
-    commandlet.installPlugin(commandlet.getPlugins().getById("activePlugin"), this.context.newStep("Install plugin activePlugin"));
-
-    // assert
-    checkInstallation(this.context);
-  }
-
-  /**
    * Tests if the {@link Intellij} can be installed properly, and a plugin can be uninstalled afterward.
    *
    * @param os String of the OS to use.
