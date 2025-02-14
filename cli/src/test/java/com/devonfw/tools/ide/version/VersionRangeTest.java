@@ -109,9 +109,12 @@ public class VersionRangeTest extends Assertions {
     checkContainsNot("(11,22)", "10*");
     checkContains("(11,22)", "11*");
     checkContains("(11,22)", "11.0*");
-    checkContains("(11,22)", "22*");
-    checkContains("(11,22)", "22.*");
+    checkContains("(11,22)", "21.99*");
+    checkContainsNot("(11,22)", "22*");
+    checkContainsNot("(11,22)", "22.*");
     checkContainsNot("(11,22)", "23*");
+    checkContains("(11,22)", "21.99*");
+    checkContains("[22,)", "*");
   }
 
   private void checkContains(String range, String version) {
