@@ -8,6 +8,7 @@ import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
+import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
  * {@link Commandlet} to create a new IDEasy instance
@@ -61,6 +62,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     initializeProject(newProjectPath);
     this.context.setIdeHome(newProjectPath);
     super.run();
+    this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
     this.context.success("Successfully created new project '{}'.", newProjectName);
   }
 

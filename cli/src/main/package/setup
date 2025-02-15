@@ -9,37 +9,106 @@ function createFileIfNotExists() {
 }
 
 function doSetupInConfigFile() {
-  local cfg=$1
+  local cfg="$1"
   createFileIfNotExists "${cfg}"
   echo "Configuring IDEasy in ${cfg}."
   if [ "${OSTYPE}" != "cygwin" ] && [ "${OSTYPE}" != "msys" ]; then
     if ! grep -q "export IDE_ROOT=" "${cfg}"
     then
-     echo "export IDE_ROOT=\"${IDE_ROOT}\"" >> "${cfg}"
+     echo -e "\nexport IDE_ROOT=\"${IDE_ROOT}\"" >> "${cfg}"
     fi
   fi
-  if ! grep -q 'source "$IDE_ROOT/_ide/functions"' "${cfg}"; then
-    echo 'source "$IDE_ROOT/_ide/functions"' >> "${cfg}"
+  if ! grep -q 'source "$IDE_ROOT/_ide/installation/functions"' "${cfg}"; then
+    echo -e '\nsource "$IDE_ROOT/_ide/installation/functions"' >> "${cfg}"
   fi
 }
 
+function doRequireFile() {
+  local file="$1"
+  if [ ! -f "$file" ]; then
+    doFail "Your installation is broken - missing $file"
+  fi
+}
+
+function doRequireExecutable() {
+  local file="$1"
+  doRequireFile "$file"
+  if [ ! -x "$file" ]; then
+    chmod a+x "$file" || doFail "Failed to set executable flags for $file"
+  fi
+}
+
+function doSuccess() {
+  echo -e "\033[92m$*\033[39m"
+}
+
+function doWarning() {
+  echo -e "\033[93m$*\033[39m"
+}
+
+function doFail() {
+  echo -e "\033[91m$*\033[39m" >&2
+  exit 1
+}
+
 cd "$(dirname "${BASH_SOURCE:-$0}")" || exit 255
-if [ "${PWD/*\//}" != "_ide" ]; then
-  echo -e "\033[93mInvalid installation path $PWD - you need to rename '${PWD/*\//}' to '_ide'.\033[39m" >&2
-  exit 1
+for file in bin/ideasy*; do
+  doRequireExecutable "$file"
+done
+doRequireFile functions
+if [ "$IDE_ROOT" != "" ]; then
+  if [ "${OSTYPE}" = "msys" ]; then
+    IDE_ROOT="$(cygpath "$IDE_ROOT")"
+  fi
+  if [ ! -d "$IDE_ROOT" ]; then
+    doFail "Your configured installation directory $IDE_ROOT does not exist!"
+  fi
+  IDE_ROOT="${IDE_ROOT%\/}"
+else
+  INSTALL_ROOT="$HOME"
+  if [ "${OSTYPE}" = "msys" ] && [ "${PWD##$HOME}" = "$PWD" ]; then
+    ROOT_FOLDER="${PWD%${PWD#/*/}}"
+    if [ "${ROOT_FOLDER/[a-z]}" != "//" ]; then
+      doFail "Your root folder is $ROOT_FOLDER which is not a windows drive letter.\nChoose a different installation directory!"
+    fi
+    INSTALL_ROOT="$ROOT_FOLDER"
+  fi
+  INSTALL_ROOT="${INSTALL_ROOT%\/}"
+  IDE_ROOT="$INSTALL_ROOT/projects"
 fi
-echo "Setting up IDEasy in ${PWD}"
-cd ..
-if [ "${PWD/*\//}" != "projects" ]; then
-  echo -e "\033[93mInvalid IDE_ROOT path $PWD - you need to rename '${PWD/*\//}' to 'projects'.\033[39m" >&2
-  exit 1
+SPECIAL_CHARS="${IDE_ROOT//[\/a-zA-Z0-9-_.]/}"
+if [ "$SPECIAL_CHARS" != "" ]; then
+  doFail "Your installation directory $IDE_ROOT is invalid since it contains special characters: $SPECIAL_CHARS\nChoose a different installation directory!"
 fi
-export IDE_ROOT=${PWD}
-source "$IDE_ROOT/_ide/functions" || exit 255
+echo "Setting up IDEasy in ${PWD} with IDE_ROOT=$IDE_ROOT"
+LINK_DIR="$IDE_ROOT/_ide/installation"
+if [ -d "$LINK_DIR" ]; then
+  doFail "Directory $LINK_DIR already exists - IDEasy is already installed so use 'ide update' command instead!"
+fi
+SOFTWARE_DIR="$IDE_ROOT/_ide/software"
+if [ -d "$SOFTWARE_DIR" ]; then
+  doWarning "ATTENTION: Directory $SOFTWARE_DIR already exists - looks like IDEasy was already installed before!"
+fi
+INSTALL_DIR=$IDE_ROOT/_ide/software/maven/ideasy/ideasy/$[project.version]
+mkdir -p "$INSTALL_DIR" || doFail "Failed to install IDEasy - check write permissions!"
+cp -r bin functions system internal "$INSTALL_DIR/" || doFail "Failed to copy IDEasy installation files!"
+cp setup* IDEasy.pdf "$INSTALL_DIR/"
+if [ "${OSTYPE}" = "msys" ]; then
+  cmd //c "mklink /d /j $(cygpath -w $LINK_DIR) $(cygpath -w $INSTALL_DIR)" || doFail "Failed to create junction from $INSTALL_DIR to $LINK_DIR"
+else
+  ln -s "$INSTALL_DIR" "$LINK_DIR"
+fi
+export IDE_ROOT
+source "$LINK_DIR/functions" || doFail "Installation of IDEasy is inconsistent!"
 # enforce license agreement
-ide -v || exit 255
+ide -v || doFail "You must agree to the license in order to install IDEasy!"
 
 doSetupInConfigFile ~/.bashrc
 doSetupInConfigFile ~/.zshrc
 
-echo -e "\033[93mATTENTION: IDEasy has been setup for your shells but you need to start a new shell to make it work.\nOnly if you invoked this setup script by sourcing it, you are able to run 'ide' and 'icd' commands without starting a new shell.\n\033[39m" >&2
+if [ "${OSTYPE}" = "msys" ]; then
+  echo "Setting IDE_ROOT=$IDE_ROOT in Windows system environment variables."
+  setx IDE_ROOT "$(cygpath -w "$IDE_ROOT")"
+fi
+doSuccess "IDEasy has been installed successfully on your system."
+doWarning "IDEasy has been setup for your shells but you need to start a new shell to make it work.\nOnly if you invoked this setup script by sourcing it, you are able to run 'ide' and 'icd' commands without starting a new shell.\n"

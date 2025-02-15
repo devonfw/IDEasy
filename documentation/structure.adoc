@@ -9,11 +9,16 @@ The directory layout of your `IDEasy` will look like this:
 ----
 / projects (link:variables.adoc[$IDE_ROOT])
 ├──/ _ide/
-|  ├──/ bin/
-|  |  ├──/ ide
-|  |  └──/ ideasy[.exe]
+|  ├──/ installation/
+|  |  ├──/ bin/
+|  |  |  ├──/ ide
+|  |  |  └──/ ideasy[.exe]
+|  |  ├──/ internal/
+|  |  ├──/ link:system.adoc[system]/
+|  |  ├── functions
+|  |  ├── IDEasy-doc.pdf
+|  |  └── setup[.bat]
 |  ├──/ link:software.adoc[software]/
-|  ├──/ link:system.adoc[system]/
 |  ├──/ tmp/
 |  └──/ urls/
 └──/ my-project (link:variables.adoc[$IDE_HOME])
@@ -22,7 +27,6 @@ The directory layout of your `IDEasy` will look like this:
    ├──/ link:settings.adoc[settings]/
    ├──/ link:software.adoc[software]/
    ├──/ link:workspaces.adoc[workspaces]/
-   └── IDEasy-doc.pdf
 ----
 
 The elements of the above structure are described in the individual sections.

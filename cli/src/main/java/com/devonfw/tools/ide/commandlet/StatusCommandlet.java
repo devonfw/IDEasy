@@ -6,6 +6,9 @@ import java.nio.file.Path;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.migration.IdeMigrator;
+import com.devonfw.tools.ide.tool.IdeasyCommandlet;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link Commandlet} to print a status report about IDEasy.
@@ -34,8 +37,12 @@ public class StatusCommandlet extends Commandlet {
 
     this.context.logIdeHomeAndRootStatus();
     logOnlineStatus();
-    logSettingsGitStatus();
-    logSettingsLegacyStatus();
+    if (this.context.getIdeHome() != null) {
+      logSettingsGitStatus();
+      logSettingsLegacyStatus();
+      logMigrationStatus();
+      new IdeasyCommandlet(this.context, null).checkIfUpdateIsAvailable();
+    }
   }
 
   private void logSettingsLegacyStatus() {
@@ -57,7 +64,11 @@ public class StatusCommandlet extends Commandlet {
 
   private void logSettingsGitStatus() {
     Path settingsPath = this.context.getSettingsGitRepository();
-    if (settingsPath != null) {
+    if (settingsPath == null) {
+      if (this.context.getIdeHome() != null) {
+        this.context.error("No settings repository was found.");
+      }
+    } else {
       GitContext gitContext = this.context.getGitContext();
       if (gitContext.isRepositoryUpdateAvailable(settingsPath, this.context.getSettingsCommitIdPath())) {
         if (!this.context.isSettingsRepositorySymlinkOrJunction()) {
@@ -81,6 +92,17 @@ public class StatusCommandlet extends Commandlet {
       this.context.success("You are online.");
     } else {
       this.context.warning("You are offline. Check your internet connection and potential proxy settings.");
+    }
+  }
+
+  private void logMigrationStatus() {
+
+    IdeMigrator migrator = new IdeMigrator();
+    VersionIdentifier projectVersion = this.context.getProjectVersion();
+    VersionIdentifier targetVersion = migrator.getTargetVersion();
+    if (projectVersion.isLess(targetVersion)) {
+      this.context.interaction("Your project is on IDEasy version {} and needs an update to version {}!\nPlease run 'ide update' to migrate your project",
+          projectVersion, targetVersion);
     }
   }
 

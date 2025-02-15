@@ -264,7 +264,7 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   private String getSettingsSecurityProperty() {
-    return "-Dsettings.security=" + this.context.getMavenRepository().getParent().resolve(SETTINGS_SECURITY_FILE).toString().replace("\\", "\\\\");
+    return "-Dsettings.security=" + this.context.getMavenConfigurationFolder().resolve(SETTINGS_SECURITY_FILE).toString().replace("\\", "\\\\");
   }
 
   /**

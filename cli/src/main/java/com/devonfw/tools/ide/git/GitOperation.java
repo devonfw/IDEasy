@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.git;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -164,28 +163,12 @@ public enum GitOperation {
       return true; // technically this is an error that will be triggered by fetch method
     }
     Path timestampFilePath = gitDirectory.resolve(this.timestampFilename);
-    if (Files.exists(timestampFilePath)) {
-      long currentTime = System.currentTimeMillis();
-      try {
-        long fileModifiedTime = Files.getLastModifiedTime(timestampFilePath).toMillis();
-        // Check if the file modification time is older than the delta threshold
-        Duration lastFileUpdateDuration = Duration.ofMillis(currentTime - fileModifiedTime);
-        context.debug("In git repository {} the timestamp file {} was last updated {} ago and caching duration in {}.", targetRepository,
-            timestampFilename, lastFileUpdateDuration, this.cacheDuration);
-        if ((lastFileUpdateDuration.toMillis() > this.cacheDuration.toMillis())) {
-          context.debug("Will need to do git {} on {} because last fetch is some time ago.", this.name, targetRepository);
-          return true;
-        } else {
-          context.debug("Skipping git {} on {} because last fetch was just recently to avoid overhead.", this.name,
-              targetRepository);
-          return false;
-        }
-      } catch (IOException e) {
-        context.warning().log(e, "Could not update modification-time of {}. Will have to do git {}.", timestampFilePath, this.name);
-        return true;
-      }
+    if (context.getFileAccess().isFileAgeRecent(timestampFilePath, this.cacheDuration)) {
+      context.debug("Skipping git {} on {} because last fetch was just recently to avoid overhead.", this.name,
+          targetRepository);
+      return false;
     } else {
-      context.debug("Will need to do git {} on {} because {} is missing.", this.name, targetRepository, timestampFilename);
+      context.debug("Will need to do git {} on {} because last fetch was some time ago.", this.name, targetRepository);
       return true;
     }
   }
