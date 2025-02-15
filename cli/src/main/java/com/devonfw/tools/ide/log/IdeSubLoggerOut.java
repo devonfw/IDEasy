@@ -17,6 +17,7 @@ public class IdeSubLoggerOut extends AbstractIdeSubLogger {
    * @param out the {@link Appendable} to {@link Appendable#append(CharSequence) write} log messages to.
    * @param colored - {@code true} for colored output according to {@link IdeLogLevel}, {@code false} otherwise.
    * @param minLogLevel the minimum log level (threshold).
+   * @param listener the {@link IdeLogListener} to listen to.
    */
   public IdeSubLoggerOut(IdeLogLevel level, Appendable out, boolean colored, IdeLogLevel minLogLevel, IdeLogListener listener) {
 

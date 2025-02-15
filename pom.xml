@@ -41,6 +41,7 @@
     <module>documentation</module>
     <module>cli</module>
     <module>gui</module>
+    <module>url-updater</module>
   </modules>
 
   <build>
