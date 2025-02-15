@@ -103,7 +103,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       this.context.success("Your version of IDEasy is {} what is the latest released version.", installedVersion);
       return false;
     } else {
-      this.context.interaction("Your version if IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
+      this.context.interaction("Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
           + "ide upgrade", installedVersion, latestVersion);
       return true;
     }
