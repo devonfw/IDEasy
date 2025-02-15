@@ -21,6 +21,6 @@ class UpgradeCommandletTest extends AbstractIdeContextTest {
     upgrade.run();
 
     // assert
-    assertThat(context).logAtWarning().hasMessage("You are using IDEasy version SNAPSHOT what indicates local development - skipping upgrade.");
+    assertThat(context).logAtWarning().hasMessage("You are using IDEasy version SNAPSHOT which indicates local development - skipping upgrade.");
   }
 }

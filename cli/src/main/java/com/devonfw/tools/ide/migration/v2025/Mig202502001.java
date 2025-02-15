@@ -11,7 +11,7 @@ import com.devonfw.tools.ide.migration.IdeVersionMigration;
 import com.devonfw.tools.ide.os.WindowsHelper;
 
 /**
- * Migration for 2025.02.001-beta.
+ * Migration for 2025.02.001-beta. Removes old entries of IDEasy without "installation" folder from Windows PATH and old entries from .bashrc and .zshrc.
  */
 public class Mig202502001 extends IdeVersionMigration {
 
