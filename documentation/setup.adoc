@@ -22,12 +22,26 @@ The latest release of `IDEasy` can be downloaded from https://github.com/devonfw
 
 == Install
 
-Create a central folder `projects` folder (on Windows use `C:\projects` or `D:\projects`, on Linux or Mac use `~/projects` but ensure your home path does not contain space or other special characters).
-Inside this folder, create a sub-folder named `_ide` and extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to this new folder (e.g. `C:\projects\_ide`).
-Run the command `setup` in this folder (on windows double clicking on `setup.bat`).
+Extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to a new folder and run `setup` in this folder (on windows double-click on `setup.bat`).
+
 To get started read the link:usage.adoc[usage].
 After the installation process, you can create a new project by typing: `ide create <project>`, replace `<project>` with your project name.
 Switch to the project folder e.g. `cd <project>` and install or configure tools for your project as needed.
+
+=== Tweak installation location
+
+The easiest way is to use your $HOME directory as installation target (e.g. by extracting the download inside `~/Downloads`).
+In case your $HOME path contains whitespaces or special characters or you want to have your installation on a different partition (e.g. with more disc-space), special care is required.
+On windows simply create top-level folder like `projects` on the drive you want to install to (e.g. `D:`) and extract and install from there.
+On Linux or Mac you should always install to `~/projects` but you may create a `projects` folder on a partition of your choice and create a symlink to it:
+
+```bash
+mkdir projects
+ln -s $PWD/projects ~/projects
+cd ~/projects
+tar xvfz ~/Downloads/ide-cli-*.tar.gz
+source setup
+```
 
 NOTE: We are planning to create a installer that will guide users through the installation process but this is not yet released.
 
@@ -56,9 +70,12 @@ You have to delete this folder manually as we do not want to be responsible for 
 
 == Testing SNAPSHOT releases
 
+You can find the latest IDEasy SNAPSHOT releases https://s01.oss.sonatype.org/content/repositories/snapshots/com/devonfw/tools/IDEasy/ide-cli/[here].
+
 Whenever a story in `IDEasy` is completed by merging a https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests[PR], our https://github.com/features/actions[github actions] will build a new SNAPSHOT release and on success deploy it to nexus on OSSRH.
-You can therefore find the latest IDEasy SNAPSHOT releases https://s01.oss.sonatype.org/content/repositories/snapshots/com/devonfw/tools/IDEasy/ide-cli/[here].
-Simply choose the latest SNAPSHOT version folder and then inside the `*.tar.gz` file for the latest version.
+Simply choose the latest SNAPSHOT version folder and then inside that version folder the `*.tar.gz` file for the latest version and your target platform.
+Please open the download link in a new tab to make the download start properly.
+
 Once downloaded, you can proceed as with official releases (see xref:install[install]).
 
 If you test the latest SNAPSHOT please also give feedback to bug or feature tickets to let us know if things are working or not.

@@ -9,6 +9,7 @@ import java.util.Map;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
@@ -19,7 +20,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * Service to {@link #getEdition(String, String) load} an {@link UrlEdition} to get access to its versions.
  */
-public class UrlMetadata {
+public class UrlMetadata implements AbstractUrlMetadata {
 
   private final IdeContext context;
 
@@ -48,14 +49,10 @@ public class UrlMetadata {
   public UrlEdition getEdition(String tool, String edition) {
 
     UrlTool urlTool = this.repository.getOrCreateChild(tool);
-    UrlEdition urlEdition = urlTool.getOrCreateChild(edition);
-    return urlEdition;
+    return urlTool.getOrCreateChild(edition);
   }
 
-  /**
-   * @param tool the name of the {@link UrlTool}.
-   * @return the sorted {@link List} of {@link String editions} .
-   */
+  @Override
   public List<String> getSortedEditions(String tool) {
 
     List<String> list = new ArrayList<>();
@@ -71,12 +68,8 @@ public class UrlMetadata {
     return Collections.unmodifiableList(list);
   }
 
-  /**
-   * @param tool the name of the {@link UrlTool}.
-   * @param edition the name of the {@link UrlEdition}.
-   * @return the {@link List} of {@link VersionIdentifier}s sorted descending so the latest version comes first and the oldest comes last.
-   */
-  public List<VersionIdentifier> getSortedVersions(String tool, String edition) {
+  @Override
+  public List<VersionIdentifier> getSortedVersions(String tool, String edition, ToolCommandlet toolCommandlet) {
 
     String key = tool + "/" + edition;
     return this.toolEdition2VersionMap.computeIfAbsent(key, k -> computeSortedVersions(tool, edition));
@@ -91,7 +84,7 @@ public class UrlMetadata {
       VersionIdentifier versionIdentifier = urlVersion.getVersionIdentifier();
       list.add(versionIdentifier);
     }
-    Collections.sort(list, Comparator.reverseOrder());
+    list.sort(Comparator.reverseOrder());
     return Collections.unmodifiableList(list);
   }
 
@@ -100,26 +93,13 @@ public class UrlMetadata {
    * @param edition the name of the {@link UrlEdition}.
    * @param version the {@link GenericVersionRange} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for
    *     the latest version.
+   * @param toolCommandlet the {@link ToolCommandlet}.
    * @return the latest matching {@link VersionIdentifier} for the given {@code tool} and {@code edition}.
    */
-  public VersionIdentifier getVersion(String tool, String edition, GenericVersionRange version) {
-
-    if (version == null) {
-      version = VersionIdentifier.LATEST;
-    }
-    if (!version.isPattern()) {
-      return (VersionIdentifier) version;
-    }
-    List<VersionIdentifier> versions = getSortedVersions(tool, edition);
-    for (VersionIdentifier vi : versions) {
-      if (version.contains(vi)) {
-        this.context.debug("Resolved version pattern {} to version {}", version, vi);
-        return vi;
-      }
-    }
-    throw new CliException(
-        "Could not find any version matching '" + version + "' for tool '" + tool + "' - potentially there are " + versions.size() + " version(s) available in "
-            + getEdition(tool, edition).getPath() + " but none matched!");
+  @Override
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
+    List<VersionIdentifier> versions = getSortedVersions(tool, edition, toolCommandlet);
+    return VersionIdentifier.resolveVersionPattern(version, versions, this.context);
   }
 
   /**
@@ -127,11 +107,12 @@ public class UrlMetadata {
    * @param edition the name of the {@link UrlEdition}.
    * @param version the {@link GenericVersionRange} to match. May be a {@link VersionIdentifier#isPattern() pattern}, a specific version or {@code null} for
    *     the latest version.
+   * @param toolCommandlet the {@link ToolCommandlet}.
    * @return the latest matching {@link UrlVersion} for the given {@code tool} and {@code edition}.
    */
-  public UrlVersion getVersionFolder(String tool, String edition, GenericVersionRange version) {
+  public UrlVersion getVersionFolder(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
 
-    VersionIdentifier resolvedVersion = getVersion(tool, edition, version);
+    VersionIdentifier resolvedVersion = resolveVersion(tool, edition, version, toolCommandlet);
     UrlVersion urlVersion = getEdition(tool, edition).getChild(resolvedVersion.toString());
     if (urlVersion == null) {
       throw new CliException("Version " + version + " for tool " + tool + " does not exist in edition " + edition + ".");

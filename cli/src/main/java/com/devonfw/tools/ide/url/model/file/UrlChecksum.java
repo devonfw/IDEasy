@@ -5,14 +5,16 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.Iterator;
 import java.util.Objects;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
+import com.devonfw.tools.ide.util.SingleElementIterator;
 
 /**
  * {@link AbstractUrlFile} for the checksum of a binary download file.
  */
-public class UrlChecksum extends AbstractUrlFile<UrlVersion> {
+public class UrlChecksum extends AbstractUrlFile<UrlVersion> implements UrlGenericChecksum, UrlChecksums {
 
   /** The file extension of the checksum file (including the dot). */
   public static final String EXTENSION = ".sha256";
@@ -33,9 +35,7 @@ public class UrlChecksum extends AbstractUrlFile<UrlVersion> {
     super(parent, name);
   }
 
-  /**
-   * @return the checksum as {@link String} (hex-representation).
-   */
+  @Override
   public String getChecksum() {
 
     load(false);
@@ -52,6 +52,12 @@ public class UrlChecksum extends AbstractUrlFile<UrlVersion> {
     }
     this.checksum = checksum;
     this.modified = true;
+  }
+
+  @Override
+  public String getHashAlgorithm() {
+
+    return HASH_ALGORITHM;
   }
 
   @Override
@@ -81,4 +87,11 @@ public class UrlChecksum extends AbstractUrlFile<UrlVersion> {
       throw new IllegalStateException("Failed to save file " + path, e);
     }
   }
+
+  @Override
+  public Iterator<UrlGenericChecksum> iterator() {
+
+    return new SingleElementIterator<>(this);
+  }
+
 }
