@@ -26,6 +26,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public abstract class AbstractToolRepository implements ToolRepository {
 
+  private static final int MAX_TEMP_DOWNLOADS = 9;
+  
   /** The owning {@link IdeContext}. */
   protected final IdeContext context;
 
@@ -214,7 +216,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
     while (Files.exists(tmpDownloadFile)) {
       tmpDownloadFile = tmpDownloads.resolve(filename + "." + i);
       i++;
-      if (i > 9) {
+      if (i > MAX_TEMP_DOWNLOADS) {
         throw new IllegalStateException("Too many downloads of the same file: " + tmpDownloadFile);
       }
     }
