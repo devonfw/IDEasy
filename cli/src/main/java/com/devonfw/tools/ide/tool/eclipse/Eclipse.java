@@ -17,7 +17,6 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
-import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
@@ -77,13 +76,6 @@ public class Eclipse extends IdeToolCommandlet {
       pc.addArg("-consoleLog").addArg("-nosplash");
     }
     super.configureToolArgs(pc, processMode, errorHandling, args);
-  }
-
-  @Override
-  protected void installDependencies() {
-
-    // TODO create eclipse/eclipse/dependencies.json file in ide-urls and delete this method
-    getCommandlet(Java.class).install();
   }
 
   @Override
