@@ -168,7 +168,7 @@ public enum GitOperation {
           targetRepository);
       return false;
     } else {
-      context.debug("Will need to do git {} on {} because last fetch is some time ago.", this.name, targetRepository);
+      context.debug("Will need to do git {} on {} because last fetch was some time ago.", this.name, targetRepository);
       return true;
     }
   }
