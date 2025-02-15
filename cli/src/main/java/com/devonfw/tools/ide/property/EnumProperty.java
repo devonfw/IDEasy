@@ -8,6 +8,8 @@ import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * {@link Property} with {@link #getValueType() value type} {@link Boolean}.
+ *
+ * @param <V> type of the {@link Enum} {@link #getValue() value}.
  */
 public class EnumProperty<V extends Enum<V>> extends Property<V> {
 
@@ -19,6 +21,7 @@ public class EnumProperty<V extends Enum<V>> extends Property<V> {
    * @param name the {@link #getName() property name}.
    * @param required the {@link #isRequired() required flag}.
    * @param alias the {@link #getAlias() property alias}.
+   * @param valueType the {@link #getValueType() value type}.
    */
   public EnumProperty(String name, boolean required, String alias, Class<V> valueType) {
 

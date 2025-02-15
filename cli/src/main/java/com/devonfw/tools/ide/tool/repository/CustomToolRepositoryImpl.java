@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.GenericVersionRange;
@@ -97,7 +98,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   }
 
   @Override
-  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version) {
+  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
 
     CustomToolMetadata customTool = getCustomTool(tool);
     if (!version.equals(customTool.getVersion())) {
@@ -119,7 +120,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   }
 
   @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version) {
+  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
 
     CustomToolMetadata customTool = getCustomTool(tool);
     VersionIdentifier customToolVersion = customTool.getVersion();
@@ -127,6 +128,13 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
       throw new IllegalStateException(customTool + " does not satisfy version to install " + version);
     }
     return customToolVersion;
+  }
+
+  @Override
+  public List<VersionIdentifier> getSortedVersions(String tool, String edition, ToolCommandlet toolCommandlet) {
+
+    CustomToolMetadata customTool = getCustomTool(tool);
+    return List.of(customTool.getVersion());
   }
 
   @Override
@@ -139,6 +147,12 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   public Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version) {
 
     return Collections.emptyList();
+  }
+
+  @Override
+  public List<String> getSortedEditions(String tool) {
+
+    return List.of(tool);
   }
 
   /**

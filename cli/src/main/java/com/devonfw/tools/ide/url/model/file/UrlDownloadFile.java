@@ -177,12 +177,12 @@ public class UrlDownloadFile extends AbstractUrlFile<UrlVersion> implements UrlD
   }
 
   @Override
-  public String getChecksum() {
+  public UrlChecksums getChecksums() {
 
     UrlChecksum checksum = getParent().getChecksum(getName());
     if (checksum == null) {
-      return null;
+      return UrlGenericChecksums.EMPTY;
     }
-    return checksum.getChecksum();
+    return checksum;
   }
 }

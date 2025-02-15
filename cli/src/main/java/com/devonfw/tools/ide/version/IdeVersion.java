@@ -4,13 +4,18 @@ import java.util.jar.Attributes.Name;
 import java.util.jar.Manifest;
 
 /**
- * Class to {@link #get()} the current version of this IDE product.
+ * Class to {@link #getVersionString()} the current version of this IDE product.
  */
 public final class IdeVersion {
+
+  /** The fallback version used if the version is undefined (in local development). */
+  public static final String VERSION_UNDEFINED = "SNAPSHOT";
 
   private static final IdeVersion INSTANCE = new IdeVersion();
 
   private final String version;
+
+  private final VersionIdentifier versionIdentifier;
 
   // most simple solution would be maven filtering but that is kind of tricky for java files
   // http://www.mojohaus.org/templating-maven-plugin/examples/source-filtering.html
@@ -21,9 +26,10 @@ public final class IdeVersion {
     super();
     String v = getClass().getPackage().getImplementationVersion();
     if (v == null) {
-      v = "SNAPSHOT";
+      v = VERSION_UNDEFINED;
     }
     this.version = v;
+    this.versionIdentifier = VersionIdentifier.of(v);
   }
 
   private String getValue(Manifest manifest, Name name) {
@@ -32,12 +38,27 @@ public final class IdeVersion {
   }
 
   /**
-   * @return the current version of this IDE product.
+   * @return the current version of this IDE product as {@link String}.
    */
-  public static String get() {
+  public static String getVersionString() {
 
-    // return VERSION;
     return INSTANCE.version;
+  }
+
+  /**
+   * @return the current version of this IDE product as {@link VersionIdentifier}.
+   */
+  public static VersionIdentifier getVersionIdentifier() {
+
+    return INSTANCE.versionIdentifier;
+  }
+
+  /**
+   * @return {@code true} if the {@link #getVersionString() current version} is {@link #VERSION_UNDEFINED undefined}, {@code false} otherwise.
+   */
+  public static boolean isUndefined() {
+
+    return VERSION_UNDEFINED.equals(INSTANCE.version);
   }
 
 }

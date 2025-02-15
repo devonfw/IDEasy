@@ -1,6 +1,11 @@
 package com.devonfw.tools.ide.version;
 
+import java.util.List;
 import java.util.Objects;
+
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.log.IdeLogger;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 
 /**
  * Data-type to represent a {@link VersionIdentifier} in a structured way and allowing {@link #compareVersion(VersionIdentifier) comparison} of
@@ -10,6 +15,9 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
 
   /** {@link VersionIdentifier} "*" that will resolve to the latest stable version. */
   public static final VersionIdentifier LATEST = VersionIdentifier.of("*");
+
+  /** {@link VersionIdentifier} "*!" that will resolve to the latest snapshot. */
+  public static final VersionIdentifier LATEST_UNSTABLE = VersionIdentifier.of("*!");
 
   private final VersionSegment start;
 
@@ -45,6 +53,33 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
     }
     this.developmentPhase = dev;
     this.valid = isValid && hasPositiveNumber;
+  }
+
+  /**
+   * Resolves a version pattern against a list of available versions.
+   *
+   * @param version the version pattern to resolve
+   * @param versions the
+   *     {@link com.devonfw.tools.ide.tool.repository.ToolRepository#getSortedVersions(String, String, ToolCommandlet) available versions, sorted in descending
+   *     order}.
+   * @param logger the {@link IdeLogger}.
+   * @return the resolved version
+   */
+  public static VersionIdentifier resolveVersionPattern(GenericVersionRange version, List<VersionIdentifier> versions, IdeLogger logger) {
+    if (version == null) {
+      version = LATEST;
+    }
+    if (!version.isPattern()) {
+      return (VersionIdentifier) version;
+    }
+    for (VersionIdentifier vi : versions) {
+      if (version.contains(vi)) {
+        logger.debug("Resolved version pattern {} to version {}", version, vi);
+        return vi;
+      }
+    }
+    throw new CliException(
+        "Could not find any version matching '" + version + "' - there are " + versions.size() + " version(s) available but none matched!");
   }
 
   /**

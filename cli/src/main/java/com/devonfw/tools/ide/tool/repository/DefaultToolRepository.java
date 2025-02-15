@@ -1,18 +1,18 @@
 package com.devonfw.tools.ide.tool.repository;
 
 import java.util.Collection;
+import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
-import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependencies;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -37,21 +37,12 @@ public class DefaultToolRepository extends AbstractToolRepository {
   }
 
   @Override
-  public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version) {
+  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
 
     UrlMetadata metadata = this.context.getUrls();
-    UrlVersion urlVersion = metadata.getVersionFolder(tool, edition, version);
-    return urlVersion.getVersionIdentifier();
-  }
-
-  @Override
-  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version) {
-
-    UrlMetadata metadata = this.context.getUrls();
-    UrlVersion urlVersion = metadata.getVersionFolder(tool, edition, version);
+    UrlVersion urlVersion = metadata.getVersionFolder(tool, edition, version, toolCommandlet);
     SystemInfo sys = this.context.getSystemInfo();
-    UrlDownloadFile urls = urlVersion.getMatchingUrls(sys.getOs(), sys.getArchitecture());
-    return urls;
+    return urlVersion.getMatchingUrls(sys.getOs(), sys.getArchitecture());
   }
 
   @Override
@@ -67,5 +58,17 @@ public class DefaultToolRepository extends AbstractToolRepository {
       this.context.trace("Found dependencies in {}", dependencies);
     }
     return dependencies.findDependencies(version, this.context);
+  }
+
+  @Override
+  public List<String> getSortedEditions(String tool) {
+
+    return this.context.getUrls().getSortedEditions(tool);
+  }
+
+  @Override
+  public List<VersionIdentifier> getSortedVersions(String tool, String edition, ToolCommandlet toolCommandlet) {
+
+    return this.context.getUrls().getSortedVersions(tool, edition, toolCommandlet);
   }
 }

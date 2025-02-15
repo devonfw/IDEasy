@@ -42,9 +42,9 @@ public class PgAdmin extends GlobalToolCommandlet {
   private List<PackageManagerCommand> getPackageManagerCommandsInstall() {
 
     String edition = getConfiguredEdition();
-    ToolRepository toolRepository = this.context.getDefaultToolRepository();
+    ToolRepository toolRepository = getToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
-    String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion).toString();
+    String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this).toString();
 
     PackageManagerCommand packageManagerCommand = new PackageManagerCommand(PackageManager.APT, List.of(
         "curl -fsS https://www.pgadmin.org/static/packages_pgadmin_org.pub | "

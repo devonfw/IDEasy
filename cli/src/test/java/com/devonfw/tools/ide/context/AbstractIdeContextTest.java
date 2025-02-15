@@ -96,8 +96,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
     }
     Path userDir = ideRoot.resolve(projectPath);
     ToolRepositoryMock toolRepository = null;
-    Path repositoryFolder = ideRoot.resolve("repository");
     IdeTestContext context = new IdeTestContext(userDir, logLevel);
+    Path repositoryFolder = ideRoot.resolve("repository");
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(context, repositoryFolder);
       context.setDefaultToolRepository(toolRepository);
