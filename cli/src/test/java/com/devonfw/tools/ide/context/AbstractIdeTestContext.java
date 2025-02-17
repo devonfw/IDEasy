@@ -293,4 +293,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     return null;
   }
 
+  public void setUserEnvironmentVariable(String userEnvironmentVariable) {
+
+  }
 }
