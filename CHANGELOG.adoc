@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/982[#982]: Ability for user specific IDE configuration
+* https://github.com/devonfw/IDEasy/issues/925[#925]: IDEasy can not handle a faulty definition of JAVA_HOME
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/21?closed=1[milestone 2025.02.001].
 

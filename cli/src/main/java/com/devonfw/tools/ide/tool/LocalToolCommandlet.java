@@ -409,7 +409,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
    *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
    */
-  protected void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
     String pathVariable = this.tool.toUpperCase(Locale.ROOT) + "_HOME";
     environmentContext.withEnvVar(pathVariable, toolInstallation.linkDir().toString());
@@ -417,5 +417,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       environmentContext.withPathEntry(toolInstallation.binDir());
     }
   }
+
 
 }

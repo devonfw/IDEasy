@@ -10,6 +10,8 @@ import com.devonfw.tools.ide.context.IdeTestContext;
  */
 public class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
+  private static final String ENVIRONMENT_PROJECT = "environment";
+
   /**
    * Test of {@link EnvironmentVariables#resolve(String, Object)} with self referencing variables.
    */
@@ -18,7 +20,7 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
+    IdeTestContext context = newContext(ENVIRONMENT_PROJECT, path, false);
     EnvironmentVariables variables = context.getVariables();
 
     // act
