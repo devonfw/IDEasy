@@ -15,7 +15,6 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
-import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
@@ -60,14 +59,6 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
     super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
     environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString());
-  }
-
-  @Override
-  protected void installDependencies() {
-
-    // TODO create intellij/intellij/dependencies.json file in ide-urls and delete this method
-    // TODO create intellij/ultimate/dependencies.json file in ide-urls and delete this method
-    getCommandlet(Java.class).install();
   }
 
   @Override
