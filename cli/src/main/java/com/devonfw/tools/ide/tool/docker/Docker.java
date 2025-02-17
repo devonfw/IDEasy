@@ -55,9 +55,9 @@ public class Docker extends GlobalToolCommandlet {
   private List<PackageManagerCommand> getPackageManagerCommandsInstall() {
 
     String edition = getConfiguredEdition();
-    ToolRepository toolRepository = this.context.getDefaultToolRepository();
+    ToolRepository toolRepository = getToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
-    String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion).toString();
+    String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this).toString();
 
     List<PackageManagerCommand> pmCommands = new ArrayList<>();
     pmCommands.add(new PackageManagerCommand(PackageManager.ZYPPER, Arrays.asList(

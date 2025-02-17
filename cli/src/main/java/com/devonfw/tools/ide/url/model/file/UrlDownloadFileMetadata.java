@@ -44,6 +44,6 @@ public interface UrlDownloadFileMetadata {
   /**
    * @return the expected checksum of the download package or {@code null} if not available.
    */
-  String getChecksum();
+  UrlChecksums getChecksums();
 
 }

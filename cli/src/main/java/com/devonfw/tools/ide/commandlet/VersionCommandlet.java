@@ -41,6 +41,6 @@ public class VersionCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    this.context.level(IdeLogLevel.PROCESSABLE).log(IdeVersion.get());
+    this.context.level(IdeLogLevel.PROCESSABLE).log(IdeVersion.getVersionString());
   }
 }
