@@ -7,6 +7,8 @@ Before a pull request (PR) for IDEasy is ready for review, this _definition of d
 Please note that external contributors are not strictly required to address all of these points as we love to get contributions and do not want to scare people from contributing with too many constraints.
 However, chances to get your change merged quickly are higher if you address all the following points.
 
+* [ ] For commits follow our link:IDEasy-contribution-rules-and-guidelines.adoc#commit[commit guidelines]
+* [ ] Before you push your changes, please run `mvn test` (or even better `mvn clean test`) to ensure build and tests are successful.
 * [ ] Your PR and the issue follows our best-practices:
 ** [ ] PR title is of the form `#«issue-id»: «brief summary»` (e.g. `#921: fixed setup.bat`).
 ** [ ] PR top-level comment summarizes what has been done and contains link to addressed issue(s).
