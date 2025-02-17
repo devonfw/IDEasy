@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
+import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -23,7 +24,7 @@ public final class CustomToolMetadata implements UrlDownloadFileMetadata {
 
   private final String url;
 
-  private final String checksum;
+  private final UrlChecksums checksums;
 
   private final String repositoryUrl;
 
@@ -35,11 +36,11 @@ public final class CustomToolMetadata implements UrlDownloadFileMetadata {
    * @param os the {@link #getOs() OS}.
    * @param arch the {@link #getArch()  architecture}.
    * @param url the {@link #getUrl() download URL}.
-   * @param checksum the {@link #getChecksum() checksum}.
+   * @param checksums the {@link #getChecksums() checksum}.
    * @param repositoryUrl the {@link #getRepositoryUrl() repository URL}.
    */
   public CustomToolMetadata(String tool, String versionString, OperatingSystem os, SystemArchitecture arch,
-      String url, String checksum, String repositoryUrl) {
+      String url, UrlChecksums checksums, String repositoryUrl) {
 
     super();
     this.tool = tool;
@@ -47,7 +48,7 @@ public final class CustomToolMetadata implements UrlDownloadFileMetadata {
     this.os = os;
     this.arch = arch;
     this.url = url;
-    this.checksum = checksum;
+    this.checksums = checksums;
     this.repositoryUrl = repositoryUrl;
   }
 
@@ -78,9 +79,9 @@ public final class CustomToolMetadata implements UrlDownloadFileMetadata {
   }
 
   @Override
-  public String getChecksum() {
+  public UrlChecksums getChecksums() {
 
-    return this.checksum;
+    return this.checksums;
   }
 
   @Override
