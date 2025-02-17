@@ -17,7 +17,7 @@ However, chances to get your change merged quickly are higher if you address all
 ** [ ] Issue is set to `In Progress` and assigned to you (should actually be done before you start your implementation).
 See also https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[here].
 ** [ ] Milestones are typically assigned by PO (Jörg) but have to be set before issues and PRs get closed.
-In case your issue is only addressed by a change in `ide-mirrors`/`ide-urls` or in `ide-settings` repository, please already assign the according milestone (switch to `closed` tab under `Milestone`).
+In case your issue is only addressed by a change in `ide-mirrors`/`ide-urls` or in `ide-settings` repository, please already assign the according milestone.
 * [ ] All checks have passed.
 Otherwise, if a check failed (red cross) you need to click the `Details` link, read the logs and fix the problem.
 ** [ ] The build and all automated tests succeeded.
