@@ -1,10 +1,10 @@
 :toc:
 toc::[]
 
-= software
+= Software
 
 The `software` folder contains the third party tools for your IDE such as maven, npm, java, dotnet, etc.
-However, `IDEasy` only maintains symbolic links here that point to a local xref:repository[].
+However, `IDEasy` only maintains symbolic links in the `software` folder inside $IDE_HOME pointing to a local xref:repository[].
 
 == Repository
 
@@ -19,7 +19,7 @@ Therefore, you can run `ide cleanup` to find and release old tool versions and f
 
 == Custom Tools
 
-In some cases, a project might need a (proprietary) tools that are not directly supported by `IDEasy`.
+In some cases, a project might need (proprietary) tools that are not directly supported by `IDEasy`.
 As a solution for this need, `IDEasy` let's you configure custom tools via `settings/ide-custom-tools.json`.
 The following example illustrates how to configure custom tools:
 
@@ -48,4 +48,4 @@ This will download and extract the following content to your `software` folder:
 * `https://some-file-server.company.com/projects/my-project/jboss-eap/7.1.4.GA/jboss-eap-7.1.4.GA.tgz`
 * `https://some-file-server.company.com/projects/my-project/firefox/70.0.1/firefox-70.0.1-windows-x64.tgz`
 
-Please note that if you are not using windows, the `-windows` suffix will be `-mac` or `-linux` and instead of `x64` you could get `arm` (e.g. for Mac M1+ CPU).
+Please note that if you are not using windows, the `-windows` suffix will be `-mac` or `-linux` and instead of `x64` you could get `arm64` (e.g. for Mac M1+ CPU).

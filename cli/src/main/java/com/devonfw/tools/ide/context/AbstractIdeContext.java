@@ -13,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -42,9 +43,12 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
+import com.devonfw.tools.ide.migration.IdeMigrator;
 import com.devonfw.tools.ide.network.NetworkProxy;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
+import com.devonfw.tools.ide.os.WindowsHelper;
+import com.devonfw.tools.ide.os.WindowsHelperImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessContextImpl;
@@ -55,6 +59,7 @@ import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
+import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -62,6 +67,7 @@ import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Abstract base implementation of {@link IdeContext}.
@@ -78,7 +84,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final Path ideRoot;
 
-  private final Path ideInstallationPath;
+  private final Path idePath;
 
   private Path confPath;
 
@@ -130,6 +136,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private CustomToolRepository customToolRepository;
 
+  private MavenRepository mavenRepository;
+
   private DirectoryMerger workspaceMerger;
 
   protected UrlMetadata urlMetadata;
@@ -143,6 +151,8 @@ public abstract class AbstractIdeContext implements IdeContext {
   protected IdeSystem system;
 
   private NetworkProxy networkProxy;
+
+  private WindowsHelper windowsHelper;
 
   /**
    * The constructor.
@@ -163,10 +173,12 @@ public abstract class AbstractIdeContext implements IdeContext {
     } else {
       workingDirectory = workingDirectory.toAbsolutePath();
     }
+    this.cwd = workingDirectory;
     // detect IDE_HOME and WORKSPACE
     Path currentDir = workingDirectory;
     String name1 = "";
     String name2 = "";
+    Path ideRootPath = getIdeRootPathFromEnv();
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
@@ -181,6 +193,10 @@ public abstract class AbstractIdeContext implements IdeContext {
         name1 = currentDir.getName(nameCount - 1).toString();
       }
       currentDir = currentDir.getParent();
+      if ((ideRootPath != null) && (ideRootPath.equals(currentDir))) {
+        // prevent that during tests we traverse to the real IDE project of IDEasy developer
+        currentDir = null;
+      }
     }
 
     // detection completed, initializing variables
@@ -189,19 +205,19 @@ public abstract class AbstractIdeContext implements IdeContext {
     setCwd(workingDirectory, workspace, currentDir);
 
     if (this.ideRoot == null) {
-      this.ideInstallationPath = null;
+      this.idePath = null;
       this.toolRepositoryPath = null;
       this.urlsPath = null;
       this.tempPath = null;
       this.tempDownloadPath = null;
       this.softwareRepositoryPath = null;
     } else {
-      this.ideInstallationPath = this.ideRoot.resolve(FOLDER_IDE_INSTALLATION);
-      this.toolRepositoryPath = this.ideInstallationPath.resolve("software");
-      this.urlsPath = this.ideInstallationPath.resolve("urls");
-      this.tempPath = this.ideInstallationPath.resolve("tmp");
+      this.idePath = this.ideRoot.resolve(FOLDER_UNDERSCORE_IDE);
+      this.toolRepositoryPath = this.idePath.resolve("software");
+      this.urlsPath = this.idePath.resolve("urls");
+      this.tempPath = this.idePath.resolve("tmp");
       this.tempDownloadPath = this.tempPath.resolve(FOLDER_DOWNLOADS);
-      this.softwareRepositoryPath = this.ideInstallationPath.resolve(FOLDER_SOFTWARE);
+      this.softwareRepositoryPath = this.idePath.resolve(FOLDER_SOFTWARE);
       if (Files.isDirectory(this.tempPath)) {
         // TODO delete all files older than 1 day here...
       } else {
@@ -210,6 +226,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
 
     this.defaultToolRepository = new DefaultToolRepository(this);
+    this.mavenRepository = new MavenRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -223,7 +240,10 @@ public abstract class AbstractIdeContext implements IdeContext {
     return ideRootPath;
   }
 
-  private Path getIdeRootPathFromEnv() {
+  /**
+   * @return the {@link #getIdeRoot() IDE_ROOT} from the system environment.
+   */
+  protected Path getIdeRootPathFromEnv() {
 
     String root = getSystem().getEnv(IdeVariables.IDE_ROOT.getName());
     if (root != null) {
@@ -358,6 +378,12 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public MavenRepository getMavenToolRepository() {
+
+    return this.mavenRepository;
+  }
+
+  @Override
   public CustomToolRepository getCustomToolRepository() {
 
     if (this.customToolRepository == null) {
@@ -382,15 +408,39 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public VersionIdentifier getProjectVersion() {
+
+    if (this.ideHome != null) {
+      Path versionFile = this.ideHome.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+      if (Files.exists(versionFile)) {
+        String version = this.fileAccess.readFileContent(versionFile).trim();
+        return VersionIdentifier.of(version);
+      }
+    }
+    return IdeMigrator.START_VERSION;
+  }
+
+  @Override
+  public void setProjectVersion(VersionIdentifier version) {
+
+    if (this.ideHome == null) {
+      throw new IllegalStateException("IDE_HOME not available!");
+    }
+    Objects.requireNonNull(version);
+    Path versionFile = this.ideHome.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    this.fileAccess.writeFileContent(version.toString(), versionFile);
+  }
+
+  @Override
   public Path getIdeRoot() {
 
     return this.ideRoot;
   }
 
   @Override
-  public Path getIdeInstallationPath() {
+  public Path getIdePath() {
 
-    return this.ideInstallationPath;
+    return this.idePath;
   }
 
   @Override
@@ -433,21 +483,15 @@ public abstract class AbstractIdeContext implements IdeContext {
   public Path getSettingsGitRepository() {
 
     Path settingsPath = getSettingsPath();
-
-    if (settingsPath == null) {
-      error("No settings repository was found.");
-      return null;
-    }
-
     // check whether the settings path has a .git folder only if its not a symbolic link or junction
-    if (!Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlinkOrJunction()) {
+    if ((settingsPath != null) && !Files.exists(settingsPath.resolve(".git")) && !isSettingsRepositorySymlinkOrJunction()) {
       error("Settings repository exists but is not a git repository.");
       return null;
     }
-
     return settingsPath;
   }
 
+  @Override
   public boolean isSettingsRepositorySymlinkOrJunction() {
 
     Path settingsPath = getSettingsPath();
@@ -962,7 +1006,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         """).append(LICENSE_URL);
     if (this.ideRoot != null) {
       sb.append("\n\nAlso it is included in the documentation that you can find here:\n").
-          append(this.ideInstallationPath.resolve("IDEasy.pdf").toString()).append("\n");
+          append(this.idePath.resolve("IDEasy.pdf").toString()).append("\n");
     }
     info(sb.toString());
     askToContinue("Do you accept these terms of use and all license agreements?");
@@ -1135,7 +1179,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
       boolean matches = currentProperty.apply(arguments, this, cmd, null);
-      if (!matches && currentArgument.isCompletion()) {
+      if (!matches) {
         ValidationState state = new ValidationState(null);
         state.addErrorMessage("No matching property found");
         return state;
@@ -1227,6 +1271,25 @@ public abstract class AbstractIdeContext implements IdeContext {
   public IdeStartContextImpl getStartContext() {
 
     return startContext;
+  }
+
+  /**
+   * @return the {@link WindowsHelper}.
+   */
+  public final WindowsHelper getWindowsHelper() {
+
+    if (this.windowsHelper == null) {
+      this.windowsHelper = createWindowsHelper();
+    }
+    return this.windowsHelper;
+  }
+
+  /**
+   * @return the new {@link WindowsHelper} instance.
+   */
+  protected WindowsHelper createWindowsHelper() {
+
+    return new WindowsHelperImpl(this);
   }
 
   /**
