@@ -8,10 +8,16 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
@@ -598,6 +604,72 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     fileAccess.extract(downloadArchive, installationPath, this::postExtract, extract);
     // assert
     assertThat(targetPath).exists();
+  }
+
+  /**
+   * Tests if a tgz archive with a sub folder can be extracted to a target folder properly.
+   *
+   * @param tempDir temporary directory to use.
+   * @throws IOException when a file could not be created.
+   */
+  @Test
+  public void testExtractTgzArchive(@TempDir Path tempDir) throws IOException {
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    FileAccessImpl fileAccess = new FileAccessImpl(context);
+    Path downloadedTgz = tempDir.resolve("downloaded.tgz");
+    fileAccess.touch(downloadedTgz);
+    try (GzipCompressorOutputStream gzipOut = new GzipCompressorOutputStream(Files.newOutputStream(downloadedTgz, StandardOpenOption.WRITE));
+        TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzipOut)) {
+
+      // Create a subfolder entry
+      TarArchiveEntry subfolderEntry = new TarArchiveEntry("subfolder/");
+      subfolderEntry.setMode(TarArchiveEntry.DEFAULT_DIR_MODE);
+      tarOut.putArchiveEntry(subfolderEntry);
+      tarOut.closeArchiveEntry();
+
+      // Add a file to the subfolder
+      TarArchiveEntry fileEntry = new TarArchiveEntry("subfolder/testfile2.txt");
+      fileEntry.setSize(12);
+      tarOut.putArchiveEntry(fileEntry);
+      tarOut.write("Hello World2".getBytes());
+      tarOut.closeArchiveEntry();
+
+      // create a file in the root of the archive
+      TarArchiveEntry entry = new TarArchiveEntry("testfile.txt");
+      entry.setSize(11);
+      tarOut.putArchiveEntry(entry);
+      tarOut.write("Hello World".getBytes());
+      tarOut.closeArchiveEntry();
+    }
+    Path installationPath = tempDir.resolve("installation");
+    // act
+    fileAccess.extractTar(downloadedTgz, installationPath, TarCompression.GZ);
+    // assert
+    assertThat(installationPath.resolve("testfile.txt")).exists();
+    assertThat(installationPath.resolve("subfolder").resolve("testfile2.txt")).exists();
+  }
+
+  /**
+   * Tests if a file can be found within a list of folders.
+   *
+   * @param tempDir temporary directory to use.
+   */
+  @Test
+  public void testFindExistingFileInFolders(@TempDir Path tempDir) {
+    IdeContext context = IdeTestContextMock.get();
+    FileAccessImpl fileAccess = new FileAccessImpl(context);
+    Path subfolder1 = tempDir.resolve("subfolder1");
+    fileAccess.mkdirs(subfolder1);
+    fileAccess.touch(subfolder1.resolve("testfile"));
+    Path subfolder2 = tempDir.resolve("subfolder2");
+    fileAccess.mkdirs(subfolder2);
+    fileAccess.touch(subfolder2.resolve("targetfile"));
+    List<Path> pathList = new ArrayList<>();
+    pathList.add(subfolder1);
+    pathList.add(subfolder2);
+    Path foundFile = fileAccess.findExistingFile("targetfile", pathList);
+    assertThat(foundFile).exists();
   }
 
   private void postExtract(Path path) {
