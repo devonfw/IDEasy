@@ -71,7 +71,7 @@ public class Tomcat extends LocalToolCommandlet {
   }
 
   @Override
-  protected void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
     environmentContext.withEnvVar("CATALINA_HOME", toolInstallation.linkDir().toString());
