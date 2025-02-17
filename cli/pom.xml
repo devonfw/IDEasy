@@ -6,7 +6,6 @@
     <groupId>com.devonfw.tools.IDEasy.dev</groupId>
     <artifactId>ide</artifactId>
     <version>dev-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
   <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>ide-cli</artifactId>
@@ -149,6 +148,9 @@
             </goals>
             <configuration>
               <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <delimiters>
+                <delimiter>$[*]</delimiter>
+              </delimiters>
               <resources>
                 <!--
                   Maven filtering can resolve ${...} variables in resource files.
@@ -246,8 +248,9 @@
               <imageName>${imageName}</imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=http,https</arg>
-                <arg>--initialize-at-build-time=org.apache.commons</arg>
                 <arg>-march=compatibility</arg>
+                <arg>--initialize-at-build-time=org.apache.commons</arg>
+                <arg>-H:IncludeResourceBundles=com.sun.org.apache.xml.internal.res.XMLErrorResources,com.sun.org.apache.xerces.internal.impl.msg.XMLMessages</arg>
               </buildArgs>
             </configuration>
           </plugin>
