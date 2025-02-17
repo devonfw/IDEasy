@@ -1,8 +1,10 @@
 package com.devonfw.tools.ide.variable;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitUrlSyntax;
 
 /**
@@ -44,10 +46,10 @@ public interface IdeVariables {
   VariableDefinitionVersion MVN_VERSION = new VariableDefinitionVersion("MVN_VERSION", "MAVEN_VERSION");
 
   /** {@link VariableDefinition} arguments for maven to locate the settings file. */
-  VariableDefinitionString MAVEN_ARGS = new VariableDefinitionString("MAVEN_ARGS", null, c -> c.getMavenArgs(), false, true);
+  VariableDefinitionString MAVEN_ARGS = new VariableDefinitionString("MAVEN_ARGS", null, IdeContext::getMavenArgs, false, true);
 
   /** {@link VariableDefinition} arguments for maven to set the m2 repo location. */
-  VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, c -> c.getMavenRepository(), false, true);
+  VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, IdeVariables::getMavenRepositoryPath, false, true);
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
   VariableDefinitionString DOCKER_EDITION = new VariableDefinitionString("DOCKER_EDITION", null, c -> "rancher");
@@ -115,5 +117,13 @@ public interface IdeVariables {
       return name.equals(variableDefinition.getLegacyName());
     }
     return false;
+  }
+
+  private static Path getMavenRepositoryPath(IdeContext context) {
+    Path mvnConf = context.getMavenConfigurationFolder();
+    if (mvnConf == null) {
+      return null;
+    }
+    return mvnConf.resolve("repository");
   }
 }

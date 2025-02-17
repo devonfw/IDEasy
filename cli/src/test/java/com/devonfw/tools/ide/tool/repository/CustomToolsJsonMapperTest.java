@@ -109,7 +109,7 @@ public class CustomToolsJsonMapperTest extends Assertions {
     assertThat(customToolMetadata.get(0).getOs()).isEqualTo(os);
     assertThat(customToolMetadata.get(0).getArch()).isEqualTo(arch);
     assertThat(customToolMetadata.get(0).getUrl()).isEqualTo(url);
-    assertThat(customToolMetadata.get(0).getChecksum()).isNull();
+    assertThat(customToolMetadata.get(0).getChecksums()).isNull();
     assertThat(customToolMetadata.get(0).getRepositoryUrl()).isEqualTo(repositoryUrl);
 
     assertThat(customToolMetadata.get(1).getTool()).isEqualTo(name1);
@@ -118,7 +118,7 @@ public class CustomToolsJsonMapperTest extends Assertions {
     assertThat(customToolMetadata.get(1).getArch()).isEqualTo(arch1);
     // assert that url was properly created
     assertThat(customToolMetadata.get(1).getUrl()).isEqualTo(checkOsArchUrl);
-    assertThat(customToolMetadata.get(1).getChecksum()).isNull();
+    assertThat(customToolMetadata.get(1).getChecksums()).isNull();
     assertThat(customToolMetadata.get(1).getRepositoryUrl()).isEqualTo(repositoryUrl1);
   }
 }
