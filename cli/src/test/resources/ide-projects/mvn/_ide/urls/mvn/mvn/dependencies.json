@@ -1,0 +1,14 @@
+{
+  "[4.0,)": [
+    {
+      "tool": "java",
+      "versionRange": "[17,)"
+    }
+  ],
+  "[3.0,4.0)": [
+    {
+      "tool": "java",
+      "versionRange": "[8,)"
+    }
+  ]
+}
