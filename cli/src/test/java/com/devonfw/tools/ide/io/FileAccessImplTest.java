@@ -579,4 +579,29 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
   }
 
+  /**
+   * Tests if extract was called with disabled extract param, the archive will be moved.
+   *
+   * @param tempDir temporary directory to use.
+   */
+  @Test
+  public void testDisabledExtractMovesArchive(@TempDir Path tempDir) {
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    FileAccessImpl fileAccess = new FileAccessImpl(context);
+    Path downloadArchive = tempDir.resolve("downloaded.zip");
+    fileAccess.touch(downloadArchive);
+    Path installationPath = tempDir.resolve("installation");
+    Path targetPath = installationPath.resolve("downloaded.zip");
+    boolean extract = false;
+    // act
+    fileAccess.extract(downloadArchive, installationPath, this::postExtract, extract);
+    // assert
+    assertThat(targetPath).exists();
+  }
+
+  private void postExtract(Path path) {
+  }
+
+
 }
