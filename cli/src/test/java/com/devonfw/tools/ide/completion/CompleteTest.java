@@ -10,14 +10,14 @@ import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.IdeContextTest;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 
 /**
  * Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion}.
  */
-public class CompleteTest extends IdeContextTest {
+public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for empty input. */
   @Test
