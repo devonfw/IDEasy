@@ -20,7 +20,7 @@ Ensure you have the following installed:
 
 2. **Build the MSI package**
 
-   wix build Package.wxs WixUI_OwnSetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
+   wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
 
 == Debugging Installation Issues
 
@@ -32,16 +32,12 @@ msiexec /i IDEASY.msi /l*v install.log
 
 This will create a verbose log file (`install.log`) that can help diagnose installation issues.
 
-A pre-built MSI file (ideasy.msi) is also included for testing without the need to build it yourself.
-
 == Additional Notes
 
 - Ensure that all dependencies and required WiX extensions are correctly installed.
 - Verify the generated MSI file to confirm that all components are included as expected.
 - Use the log file for troubleshooting any issues encountered during installation.
 - Use CMD or Powershell
-- Create a folder `msi-setup` inside the `build-msi` that contains the installation files.
-The content of that folder will be moved during installation
 
 == Files
 
@@ -51,12 +47,22 @@ This file serves as the entry point for the Windows installation process.
 It defines custom actions, properties, and the installation logic.
 Additionally, it specifies which files should be installed during the process.
 
-Here you can define what files should be included in the installation.
+Here you can define what files should be included in the installation:
 
 			<Files Include="cli\target\package\**" />
 
+Here you define the script that will be executed after installation:
 
-link:WixUI_OwnSetup.wxs[WixUI_OwnSetup.wxs]
+      <SetProperty
+            Id="RunSetupAction"
+            Value="&quot;[INSTALLFOLDER]_ide\setup.bat&quot; -b"
+            Before="RunSetupAction"
+            Sequence="execute"
+            />
+
+
+
+link:WixUI_IDEasySetup.wxs[WixUI_IDEasySetup.wxs]
 
 This file contains all elements related to the UI for the installation.
 You can configure the sequence of UI dialogs, add triggers for custom actions based on UI elements and customize dialogs like the InstallPathDlg, where users can choose their preferred installation directory.
