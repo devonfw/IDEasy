@@ -1,22 +1,22 @@
 :toc: macro
 toc::[]
 
-== Building IDEASY MSI Package with WixToolSet v4
+== Building IDEASY MSI Package with WixToolSet v5
 
 === Prerequisites
 
 Ensure you have the following installed:
 
 - .NET SDK 6.0 or later
-- dotnet (also possible via ideasy)
-- Wixtoolset v.4 `dotnet tool install --global wix`
+- dotnet (supported by IDEasy itself)
+- Wixtoolset v.5 `dotnet tool install --global wix --version 5.0.2`
 
 === Steps to Build the MSI Package
 
 1. **Add the necessary WiX extensions**
 
-   wix extension add WixToolset.UI.wixext
-   wix extension add WixToolset.Util.wixext
+   wix extension add WixToolset.UI.wixext/5.0.2
+   wix extension add WixToolset.Util.wixext/5.0.2
 
 2. **Build the MSI package**
 
@@ -50,6 +50,11 @@ link:Package.wxs[Package.wxs]
 This file serves as the entry point for the Windows installation process.
 It defines custom actions, properties, and the installation logic.
 Additionally, it specifies which files should be installed during the process.
+
+Here you can define what files should be included in the installation.
+
+			<Files Include="cli\target\package\**" />
+
 
 link:WixUI_OwnSetup.wxs[WixUI_OwnSetup.wxs]
 
