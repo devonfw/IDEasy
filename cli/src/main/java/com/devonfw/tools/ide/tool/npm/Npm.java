@@ -26,13 +26,6 @@ public class Npm extends LocalToolCommandlet {
   }
 
   @Override
-  protected void installDependencies() {
-
-    // TODO create npm/npm/dependencies.json file in ide-urls and delete this method
-    getCommandlet(Node.class).install();
-  }
-
-  @Override
   protected void postExtract(Path extractedDir) {
 
     FileAccess fileAccess = this.context.getFileAccess();
