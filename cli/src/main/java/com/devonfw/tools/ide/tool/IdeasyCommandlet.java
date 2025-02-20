@@ -312,7 +312,6 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       ideRoot = installRoot.resolve(IdeContext.FOLDER_PROJECTS);
     } else {
       assert (Files.isDirectory(ideRoot)) : "IDE_ROOT directory does not exist!";
-      // assert (ideRoot.getFileName().toString().equals(IdeContext.FOLDER_PROJECTS)) : "IDE_ROOT should point to projects folder!";
     }
     return ideRoot;
   }
