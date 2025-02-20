@@ -2,31 +2,31 @@
   {
     "ref": "refs/tags/2.7.22",
     "node_id": "MDM6UmVmNjc4MDc2NzpyZWZzL3RhZ3MvMi43LjIy",
-    "url": "https://api.github.com/repos/aws/aws-cli/git/refs/tags/2.7.22",
+    "url": "${testbaseurl}/repos/aws/aws-cli/git/refs/tags/2.7.22",
     "object": {
       "sha": "9c35fe49b1d5620e0c1fa9de8e2dc129e983428e",
       "type": "tag",
-      "url": "https://api.github.com/repos/aws/aws-cli/git/tags/9c35fe49b1d5620e0c1fa9de8e2dc129e983428e"
+      "url": "${testbaseurl}/repos/aws/aws-cli/git/tags/9c35fe49b1d5620e0c1fa9de8e2dc129e983428e"
     }
   },
   {
     "ref": "refs/tags/2.7.23",
     "node_id": "MDM6UmVmNjc4MDc2NzpyZWZzL3RhZ3MvMi43LjIz",
-    "url": "https://api.github.com/repos/aws/aws-cli/git/refs/tags/2.7.23",
+    "url": "${testbaseurl}/repos/aws/aws-cli/git/refs/tags/2.7.23",
     "object": {
       "sha": "7a6d67fecfa29d433ff54f9600f84ef6b7537dcf",
       "type": "tag",
-      "url": "https://api.github.com/repos/aws/aws-cli/git/tags/7a6d67fecfa29d433ff54f9600f84ef6b7537dcf"
+      "url": "${testbaseurl}/repos/aws/aws-cli/git/tags/7a6d67fecfa29d433ff54f9600f84ef6b7537dcf"
     }
   },
   {
     "ref": "refs/tags/2.7.24",
     "node_id": "MDM6UmVmNjc4MDc2NzpyZWZzL3RhZ3MvMi43LjI0",
-    "url": "https://api.github.com/repos/aws/aws-cli/git/refs/tags/2.7.24",
+    "url": "${testbaseurl}/repos/aws/aws-cli/git/refs/tags/2.7.24",
     "object": {
       "sha": "544732f08cd7f8a725f62248189fcc8a14fb0253",
       "type": "tag",
-      "url": "https://api.github.com/repos/aws/aws-cli/git/tags/544732f08cd7f8a725f62248189fcc8a14fb0253"
+      "url": "${testbaseurl}/repos/aws/aws-cli/git/tags/544732f08cd7f8a725f62248189fcc8a14fb0253"
     }
   }
 ]
