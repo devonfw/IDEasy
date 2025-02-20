@@ -46,6 +46,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   private TestCommandletManager testCommandletManager;
 
+  private Path ideRoot;
+
+  private boolean ideRootSet;
+
+  private Path urlsPath;
+
   /**
    * The constructor.
    *
@@ -214,6 +220,33 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
     requireMutable();
     this.userHome = dummyUserHome;
+  }
+
+  @Override
+  public Path getIdeRoot() {
+
+    if (this.ideRootSet) {
+      return this.ideRoot;
+    }
+    return super.getIdeRoot();
+  }
+
+  /**
+   * @param ideRoot the new value of {@link #getIdeRoot()}.
+   */
+  public void setIdeRoot(Path ideRoot) {
+
+    this.ideRoot = ideRoot;
+    this.ideRootSet = true;
+  }
+
+  @Override
+  public Path getUrlsPath() {
+
+    if (this.urlsPath == null) {
+      return super.getUrlsPath();
+    }
+    return this.urlsPath;
   }
 
   /**

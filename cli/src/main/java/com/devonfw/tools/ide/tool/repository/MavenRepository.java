@@ -40,13 +40,16 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * Implementation of {@link AbstractToolRepository} for maven-based artifacts.
  */
-public class MavenRepository extends AbstractToolRepository {
+public final class MavenRepository extends AbstractToolRepository {
 
   /** Base URL for Maven Central repository */
   public static final String MAVEN_CENTRAL = "https://repo1.maven.org/maven2";
 
   /** Base URL for Maven Snapshots repository */
   public static final String MAVEN_SNAPSHOTS = "https://s01.oss.sonatype.org/content/repositories/snapshots";
+
+  /** The {@link #getId() repository ID}. */
+  public static final String ID = "maven";
 
   private static final Duration METADATA_CACHE_DURATION_RELEASE = Duration.ofHours(1);
 
@@ -81,7 +84,7 @@ public class MavenRepository extends AbstractToolRepository {
   @Override
   public String getId() {
 
-    return "maven";
+    return ID;
   }
 
   private MvnArtifact resolveArtifact(String tool, String edition, ToolCommandlet toolCommandlet) {
