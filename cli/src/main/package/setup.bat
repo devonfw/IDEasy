@@ -41,25 +41,6 @@ if %ERRORLEVEL% neq 0 (
   pause
   exit /b %ERRORLEVEL%
 )
-for /F "tokens=2* delims= " %%f IN ('reg query HKCU\Environment /v PATH ^| findstr /i PATH') do set USER_PATH=%%g
-if "%USER_PATH:~-1,1%" == ";" (
-  set "USER_PATH=%USER_PATH:~0,-1%"
-)
-echo Adding %IDE_ROOT%\_ide\installation\bin to your users system PATH
-if "%USER_PATH%" == "" (
-  echo %_fBYellow%ATTENTION:
-  echo Your user specific PATH variable seems to be empty.
-  echo You can double check this by pressing [Windows][r] and launch the program SystemPropertiesAdvanced.
-  echo Then click on 'Environment variables' and check if 'PATH' is set in in the 'user variables' from the upper list.
-  echo In case 'PATH' is defined there non-empty and you get this message, please abort and give us feedback:
-  echo https://github.com/devonfw/IDEasy/issues
-  echo Otherwise all is correct and you can continue by pressing enter.
-  echo %_RESET%
-  pause
-  setx PATH "%IDE_ROOT%\_ide\installation\bin"
-) else (
-  setx PATH "%IDE_ROOT%\_ide\installation\bin;%USER_PATH%"
-)
 echo %_fBGreen%Setup of IDEasy completed%_RESET%
 if not "%1%" == "-b" (
   pause

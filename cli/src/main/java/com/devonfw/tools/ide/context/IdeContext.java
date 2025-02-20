@@ -43,11 +43,14 @@ public interface IdeContext extends IdeStartContext {
   /** The name of the workspaces folder. */
   String FOLDER_WORKSPACES = "workspaces";
 
-  /** The name of the settings folder. */
+  /** The name of the {@link #getSettingsPath() settings} folder. */
   String FOLDER_SETTINGS = "settings";
 
-  /** The name of the software folder. */
+  /** The name of the {@link #getSoftwarePath() software} folder. */
   String FOLDER_SOFTWARE = "software";
+
+  /** The name of the {@link #getUrlsPath() urls} folder. */
+  String FOLDER_URLS = "urls";
 
   /** The name of the conf folder for project specific user configurations. */
   String FOLDER_CONF = "conf";
@@ -162,6 +165,9 @@ public interface IdeContext extends IdeStartContext {
 
   /** Legacy folder name used as compatibility fallback if {@link #FOLDER_TEMPLATES} does not exist. */
   String FOLDER_LEGACY_TEMPLATES = "devon";
+
+  /** The default folder name for {@link #getIdeRoot() IDE_ROOT}. */
+  String FOLDER_PROJECTS = "projects";
 
   /** The filename of the configuration file in the settings for this {@link CustomToolRepository}. */
   String FILE_CUSTOM_TOOLS = "ide-custom-tools.json";
