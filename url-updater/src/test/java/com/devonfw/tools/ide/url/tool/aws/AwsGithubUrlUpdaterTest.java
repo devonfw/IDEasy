@@ -40,6 +40,7 @@ public class AwsGithubUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   public void testAwsGithubUrlUpdater(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
 
+    // arrange
     stubFor(get(urlMatching("/repos/.*")).willReturn(aResponse().withStatus(200)
         .withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("github-tags.json")))));
 
@@ -48,9 +49,10 @@ public class AwsGithubUrlUpdaterTest extends AbstractUrlUpdaterTest {
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     AwsGithubUrlUpdaterMock updater = new AwsGithubUrlUpdaterMock(wmRuntimeInfo);
 
-    // when
+    // act
     updater.update(urlRepository);
 
+    // assert
     assertThat(tempDir.resolve("aws").resolve("aws").resolve("2.7.22").resolve("status.json")).exists();
 
   }
