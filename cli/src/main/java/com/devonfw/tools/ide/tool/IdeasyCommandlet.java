@@ -190,7 +190,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
           this.context.warning("ATTENTION:\n"
               + "Your user specific PATH variable seems to be empty.\n"
               + "You can double check this by pressing [Windows][r] and launch the program SystemPropertiesAdvanced.\n"
-              + "Then click on 'Environment variables' and check if 'PATH' is set in in the 'user variables' from the upper list.\n"
+              + "Then click on 'Environment variables' and check if 'PATH' is set in the 'user variables' from the upper list.\n"
               + "In case 'PATH' is defined there non-empty and you get this message, please abort and give us feedback:\n"
               + "https://github.com/devonfw/IDEasy/issues\n"
               + "Otherwise all is correct and you can continue.");
