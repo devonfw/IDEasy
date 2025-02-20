@@ -137,6 +137,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   /**
    * Initial installation of IDEasy.
    *
+   * @param cwd the {@link Path} to the current working directory.
    * @see com.devonfw.tools.ide.commandlet.InstallCommandlet
    */
   public void installIdeasy(Path cwd) {
