@@ -266,7 +266,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     if (extraLine != null) {
       lines.add(extraLine);
     }
-    if (this.context.getSystemInfo().isWindows()) {
+    if (!this.context.getSystemInfo().isWindows()) {
       lines.add("export IDE_ROOT=\"" + WindowsPathSyntax.MSYS.format(ideRoot) + "\"");
     }
     lines.add(BASH_CODE_SOURCE_FUNCTIONS);
