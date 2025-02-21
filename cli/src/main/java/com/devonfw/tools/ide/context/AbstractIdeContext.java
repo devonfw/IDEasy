@@ -271,6 +271,11 @@ public abstract class AbstractIdeContext implements IdeContext {
     return "You are not inside an IDE installation: " + this.cwd;
   }
 
+  private String getMessageIdeHomeNotSet() {
+
+    return "IDE_HOME not set. ";
+  }
+
   private String getMessageIdeRootNotFound() {
 
     String root = getSystem().getEnv("IDE_ROOT");
@@ -737,8 +742,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (this.ideRoot != null) {
       success("IDE_ROOT is set to {}", this.ideRoot);
     }
+
     if (this.ideHome == null) {
-      warning(getMessageIdeHomeNotFound());
+      if (this.getIdeRootPathFromEnv() != null && this.getIdeRootPathFromEnv().equals(this.ideRoot)) {
+        warning(getMessageIdeHomeNotSet());
+      } else {
+        warning(getMessageIdeHomeNotFound());
+      }
     } else {
       success("IDE_HOME is set to {}", this.ideHome);
     }
