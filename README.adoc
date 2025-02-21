@@ -52,8 +52,7 @@ All you need before installing IDEasy is https://git-scm.com/download/[git].
 Download the latest version of `IDEasy` from https://github.com/devonfw/IDEasy/releases[here] and install it.
 
 NOTE: We are working on an installer (see e.g. https://github.com/devonfw/IDEasy/issues/420[#420]) that will guide you thorugh the installation.
-Currently, if extract the `tar.gz` file for your platform (OS and architecture) in your home directory (e.g. `~/Downloads`), IDEasy will be installed in `~/projects`.
-In case you are on windows and want to use a different drive (e.g. due to disc-space) simply extract to that drive (e.g. running `setup.bat` from `D:/tmp` will install to `D:/projects`).
+To tweak the installation location (e.g. use a drive or partition with more disc-space) see https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc#tweak-installation-location.
 
 === Create projects
 
