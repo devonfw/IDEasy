@@ -55,7 +55,7 @@ Here you define the script that will be executed after installation:
 
       <SetProperty
             Id="RunSetupAction"
-            Value="&quot;[INSTALLFOLDER]_ide\setup.bat&quot; -b"
+            Value="&quot;[INSTALLFOLDER]_ide\bin\ideasy.exe&quot; -f install"
             Before="RunSetupAction"
             Sequence="execute"
             />
