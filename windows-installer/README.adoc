@@ -15,6 +15,7 @@ Ensure you have the following installed:
 
 1. **Add the necessary WiX extensions**
 
+   cd windows-installer
    wix extension add WixToolset.UI.wixext/5.0.2
    wix extension add WixToolset.Util.wixext/5.0.2
 
@@ -55,12 +56,10 @@ Here you define the script that will be executed after installation:
 
       <SetProperty
             Id="RunSetupAction"
-            Value="&quot;[INSTALLFOLDER]_ide\bin\ideasy.exe&quot; -f install"
+            Value="&quot;[INSTALLFOLDER]bin\ideasy.exe&quot; -f install"
             Before="RunSetupAction"
             Sequence="execute"
             />
-
-
 
 link:WixUI_IDEasySetup.wxs[WixUI_IDEasySetup.wxs]
 

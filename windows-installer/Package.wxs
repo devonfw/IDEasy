@@ -38,7 +38,7 @@
 		<!-- Execution of setup.bat script-->
 		<SetProperty
 			Id="RunSetupAction"
-			Value="&quot;[INSTALLFOLDER]_ide\setup.bat&quot; -b"
+			Value="&quot;[INSTALLFOLDER]bin\ideasy.exe&quot; -f install"
 			Before="RunSetupAction"
 			Sequence="execute"
 			/>
@@ -56,7 +56,7 @@
 		<CustomAction
 			Id="RunUninstallAction"
 			Directory="INSTALLFOLDER"
-			ExeCommand="&quot;[SOURCEDIR]uninstall.bat&quot;"
+			ExeCommand="&quot;[SOURCEDIR]bin\ideasy.exe&quot; uninstall"
 			Execute="deferred" Return="ignore"
 		/>
 
