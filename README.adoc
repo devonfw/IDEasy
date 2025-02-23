@@ -50,11 +50,9 @@ All you need before installing IDEasy is https://git-scm.com/download/[git].
 === Install
 
 Download the latest version of `IDEasy` from https://github.com/devonfw/IDEasy/releases[here] and install it.
-(You can find all Releases in https://repo.maven.apache.org/maven2/com/devonfw/tools/IDEasy/ide-cli/[Maven Central])
 
 NOTE: We are working on an installer (see e.g. https://github.com/devonfw/IDEasy/issues/420[#420]) that will guide you thorugh the installation.
-Currently you need to create an `projects/_ide` in your home directory or on `C:\` or `D:`, extract the downloaded archive directly into that `_ide` folder and run the `setup` script (`setup.bat` on Windows).
-To install an update manually, you just need to extract the new archive content into that `_ide` folder (e.g. with 7-Zip) overwriting all existing files.
+To tweak the installation location (e.g. use a drive or partition with more disc-space) see https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc#tweak-installation-location.
 
 === Create projects
 
