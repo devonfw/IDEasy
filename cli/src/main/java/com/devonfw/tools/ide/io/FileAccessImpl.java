@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
@@ -25,12 +27,14 @@ import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -47,7 +51,6 @@ import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.util.HexUtil;
@@ -227,24 +230,25 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public String checksum(Path file) {
+  public String checksum(Path file, String hashAlgorithm) {
 
+    MessageDigest md;
     try {
-      MessageDigest md = MessageDigest.getInstance(UrlChecksum.HASH_ALGORITHM);
-      byte[] buffer = new byte[1024];
-      try (InputStream is = Files.newInputStream(file); DigestInputStream dis = new DigestInputStream(is, md)) {
-        int read = 0;
-        while (read >= 0) {
-          read = dis.read(buffer);
-        }
-      } catch (Exception e) {
-        throw new IllegalStateException("Failed to read and hash file " + file, e);
-      }
-      byte[] digestBytes = md.digest();
-      return HexUtil.toHexString(digestBytes);
+      md = MessageDigest.getInstance(hashAlgorithm);
     } catch (NoSuchAlgorithmException e) {
-      throw new IllegalStateException("No such hash algorithm " + UrlChecksum.HASH_ALGORITHM, e);
+      throw new IllegalStateException("No such hash algorithm " + hashAlgorithm, e);
     }
+    byte[] buffer = new byte[1024];
+    try (InputStream is = Files.newInputStream(file); DigestInputStream dis = new DigestInputStream(is, md)) {
+      int read = 0;
+      while (read >= 0) {
+        read = dis.read(buffer);
+      }
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to read and hash file " + file, e);
+    }
+    byte[] digestBytes = md.digest();
+    return HexUtil.toHexString(digestBytes);
   }
 
   public boolean isJunction(Path path) {
@@ -265,7 +269,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void backup(Path fileOrFolder) {
+  public Path backup(Path fileOrFolder) {
 
     if ((fileOrFolder != null) && (Files.isSymbolicLink(fileOrFolder) || isJunction(fileOrFolder))) {
       delete(fileOrFolder);
@@ -280,9 +284,11 @@ public class FileAccessImpl implements FileAccess {
       Path target = backupPath.resolve(filename);
       this.context.info("Creating backup by moving {} to {}", fileOrFolder, target);
       move(fileOrFolder, target);
+      return target;
     } else {
       this.context.trace("Backup of {} skipped as the path does not exist.", fileOrFolder);
     }
+    return fileOrFolder;
   }
 
   private static Path appendParentPath(Path path, Path parent, int max) {
@@ -478,7 +484,7 @@ public class FileAccessImpl implements FileAccess {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to adapt source for source (" + source + ") target (" + targetLink + ") and relative (" + relative + ")", e);
     }
-    this.context.trace("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative", targetLink, adaptedSource);
+    this.context.debug("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative", targetLink, adaptedSource);
 
     try {
       deleteLinkIfExists(targetLink);
@@ -993,10 +999,121 @@ public class FileAccessImpl implements FileAccess {
     this.context.trace("Reading content of file from {}", file);
     try {
       String content = Files.readString(file);
-      this.context.trace("Read content of file {} as {}", file, content);
+      this.context.trace("Completed reading {} character(s) from file {}", content.length(), file);
       return content;
     } catch (IOException e) {
       throw new IllegalStateException("Failed to read file " + file, e);
     }
+  }
+
+  @Override
+  public void writeFileContent(String content, Path file, boolean createParentDir) {
+
+    if (createParentDir) {
+      mkdirs(file.getParent());
+    }
+    if (content == null) {
+      content = "";
+    }
+    this.context.trace("Writing content with {} character(s) to file {}", content.length(), file);
+    if (Files.exists(file)) {
+      this.context.info("Overriding content of file {}", file);
+    }
+    try {
+      Files.writeString(file, content);
+      this.context.trace("Wrote content to file {}", file);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to write file " + file, e);
+    }
+  }
+
+  @Override
+  public List<String> readFileLines(Path file) {
+
+    this.context.trace("Reading content of file from {}", file);
+    if (!Files.exists(file)) {
+      this.context.warning("File {} does not exist", file);
+      return null;
+    }
+    try {
+      List<String> content = Files.readAllLines(file);
+      this.context.trace("Completed reading {} lines from file {}", content.size(), file);
+      return content;
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read file " + file, e);
+    }
+  }
+
+  @Override
+  public void writeFileLines(List<String> content, Path file, boolean createParentDir) {
+
+    if (createParentDir) {
+      mkdirs(file.getParent());
+    }
+    if (content == null) {
+      content = List.of();
+    }
+    this.context.trace("Writing content with {} lines to file {}", content.size(), file);
+    if (Files.exists(file)) {
+      this.context.debug("Overriding content of file {}", file);
+    }
+    try {
+      Files.write(file, content);
+      this.context.trace("Wrote content to file {}", file);
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to write file " + file, e);
+    }
+  }
+
+  @Override
+  public void readProperties(Path file, Properties properties) {
+
+    try (Reader reader = Files.newBufferedReader(file)) {
+      properties.load(reader);
+      this.context.debug("Successfully loaded {} properties from {}", properties.size(), file);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to read properties file: " + file, e);
+    }
+  }
+
+  @Override
+  public void writeProperties(Properties properties, Path file, boolean createParentDir) {
+
+    if (createParentDir) {
+      mkdirs(file.getParent());
+    }
+    try (Writer writer = Files.newBufferedWriter(file)) {
+      properties.store(writer, null); // do not get confused - Java still writes a date/time header that cannot be omitted
+      this.context.debug("Successfully saved {} properties to {}", properties.size(), file);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to save properties file during tests.", e);
+    }
+  }
+
+  @Override
+  public Duration getFileAge(Path path) {
+    if (Files.exists(path)) {
+      try {
+        long currentTime = System.currentTimeMillis();
+        long fileModifiedTime = Files.getLastModifiedTime(path).toMillis();
+        return Duration.ofMillis(currentTime - fileModifiedTime);
+      } catch (IOException e) {
+        this.context.warning().log(e, "Could not get modification-time of {}.", path);
+      }
+    } else {
+      this.context.debug("Path {} is missing - skipping modification-time and file age check.", path);
+    }
+    return null;
+  }
+
+  @Override
+  public boolean isFileAgeRecent(Path path, Duration cacheDuration) {
+
+    Duration age = getFileAge(path);
+    if (age == null) {
+      return false;
+    }
+    context.debug("The path {} was last updated {} ago and caching duration is {}.", path, age, cacheDuration);
+    return (age.toMillis() <= cacheDuration.toMillis());
   }
 }

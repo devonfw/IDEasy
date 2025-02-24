@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="project" default="default">
+  <property environment="env"/>
+  <path id="groovycp">
+    <pathelement location="${env.M2_REPO}/org/codehaus/groovy/groovy-ant/3.0.23/groovy-ant-3.0.23.jar"/>
+    <pathelement location="${env.M2_REPO}/org/codehaus/groovy/groovy/3.0.23/groovy-3.0.23.jar"/>
+  </path>
+  <taskdef name="groovy" classname="org.codehaus.groovy.ant.Groovy">
+    <classpath refid="groovycp"/>
+  </taskdef>
+  <target name="default">
+    <groovy src="${env.IDE_ROOT}/_ide/internal/eclipse-import.groovy"/>
+  </target>
+</project>

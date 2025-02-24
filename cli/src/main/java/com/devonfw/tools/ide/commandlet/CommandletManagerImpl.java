@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
@@ -93,6 +94,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new BuildCommandlet(context));
     add(new InstallPluginCommandlet(context));
     add(new UninstallPluginCommandlet(context));
+    add(new UpgradeCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));

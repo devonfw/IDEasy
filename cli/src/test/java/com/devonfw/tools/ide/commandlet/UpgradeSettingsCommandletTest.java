@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.repo.CustomToolJson;
-import com.devonfw.tools.ide.repo.CustomToolsJson;
-import com.devonfw.tools.ide.repo.CustomToolsJsonMapper;
+import com.devonfw.tools.ide.tool.repository.CustomToolJson;
+import com.devonfw.tools.ide.tool.repository.CustomToolsJson;
+import com.devonfw.tools.ide.tool.repository.CustomToolsJsonMapper;
 
 /**
  * Integration test of {@link UpgradeSettingsCommandlet} .
@@ -79,7 +79,7 @@ public class UpgradeSettingsCommandletTest extends AbstractIdeContextTest {
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/templates/conf/ide.properties")).exists();
     assertThat(UPGRADE_SETTINGS_PATH.resolve("settings/templates/conf/mvn/settings.xml")).exists();
   }
-  
+
   private void verifyUpdateWorkspaceTemplates() {
     // arrange
     UpgradeSettingsCommandlet upgradeSettingsCommandlet = new UpgradeSettingsCommandlet(context);

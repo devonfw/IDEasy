@@ -3,12 +3,18 @@ package com.devonfw.tools.ide.commandlet;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Test of {@link UpdateCommandlet}.
@@ -31,6 +37,25 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(context.getConfPath()).exists();
     assertThat(context.getSoftwarePath().resolve("java")).exists();
     assertThat(context.getSoftwarePath().resolve("mvn")).exists();
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = { "", "eclipse", "intellij", "eclipse,intellij", "intellij , vscode", "eclipse, intellij,vscode" })
+  public void testIdeUpdateCreatesStartScripts(String createStartScripts) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    EnvironmentVariables settings = context.getVariables().getByType(EnvironmentVariablesType.SETTINGS);
+    settings.set(IdeVariables.CREATE_START_SCRIPTS.getName(), createStartScripts);
+    settings.save();
+    UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+    String[] activeIdes = Arrays.stream(createStartScripts.split(",")).map(String::trim).filter(ide -> !ide.isEmpty()).toArray(String[]::new);
+    // act
+    uc.run();
+
+    // assert
+    assertThat(context).logAtSuccess().hasMessage("Successfully updated settings repository.");
+    verifyStartScriptsForAllWorkspacesAndAllIdes(context, activeIdes);
   }
 
   @Test

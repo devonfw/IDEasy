@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.ide;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
@@ -60,27 +61,17 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
    */
   protected void configureWorkspace() {
 
-    Path settingsWorkspaceFolder = this.context.getSettingsPath().resolve(this.tool)
-        .resolve(IdeContext.FOLDER_WORKSPACE);
-    Path genericWorkspaceFolder = this.context.getSettingsPath().resolve(IdeContext.FOLDER_WORKSPACE);
-    Path workspaceUpdateFolder = genericWorkspaceFolder.resolve(IdeContext.FOLDER_UPDATE);
-    Path workspaceSetupFolder = genericWorkspaceFolder.resolve(IdeContext.FOLDER_SETUP);
     FileAccess fileAccess = this.context.getFileAccess();
-    if (!fileAccess.isExpectedFolder(settingsWorkspaceFolder)) {
-      return;
-    }
-    Path setupFolder = settingsWorkspaceFolder.resolve(IdeContext.FOLDER_SETUP);
-    Path updateFolder = settingsWorkspaceFolder.resolve(IdeContext.FOLDER_UPDATE);
-    if (!fileAccess.isExpectedFolder(setupFolder) && !fileAccess.isExpectedFolder(updateFolder)) {
-      return;
-    }
-    Path ideWorkspacePath = this.context.getWorkspacePath();
-    if (!fileAccess.isExpectedFolder(ideWorkspacePath)) {
+    Path workspaceFolder = this.context.getWorkspacePath();
+    if (!fileAccess.isExpectedFolder(workspaceFolder)) {
+      this.context.warning("Current workspace does not exist: {}", workspaceFolder);
       return; // should actually never happen...
     }
-    try (Step step = this.context.newStep("Configuring workspace " + ideWorkspacePath.getFileName() + " for IDE " + this.tool)) {
-      int errors = this.context.getWorkspaceMerger().merge(workspaceSetupFolder, workspaceUpdateFolder, this.context.getVariables(), ideWorkspacePath);
-      errors += this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), ideWorkspacePath);
+    try (Step step = this.context.newStep("Configuring workspace " + workspaceFolder.getFileName() + " for IDE " + this.tool)) {
+      int errors = 0;
+      errors = mergeWorkspace(this.context.getUserHomeIde(), workspaceFolder, errors);
+      errors = mergeWorkspace(this.context.getSettingsPath(), workspaceFolder, errors);
+      errors = mergeWorkspace(this.context.getConfPath(), workspaceFolder, errors);
       if (errors == 0) {
         step.success();
       } else {
@@ -91,5 +82,35 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
             "In order to prevent you from being blocked, you can start your IDE anyhow but some configuration may not be in sync.");
       }
     }
+  }
+
+  private int mergeWorkspace(Path configFolder, Path workspaceFolder, int errors) {
+
+    int result = errors;
+    result = mergeWorkspaceSingle(configFolder.resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, result);
+    result = mergeWorkspaceSingle(configFolder.resolve(this.tool).resolve(IdeContext.FOLDER_WORKSPACE), workspaceFolder, result);
+    return result;
+  }
+
+  private int mergeWorkspaceSingle(Path templatesFolder, Path workspaceFolder, int errors) {
+
+    Path setupFolder = templatesFolder.resolve(IdeContext.FOLDER_SETUP);
+    Path updateFolder = templatesFolder.resolve(IdeContext.FOLDER_UPDATE);
+    if (!Files.isDirectory(setupFolder) && !Files.isDirectory(updateFolder)) {
+      this.context.trace("Skipping empty or non-existing workspace template folder {}.", templatesFolder);
+      return errors;
+    }
+    this.context.debug("Merging workspace templates from {}...", templatesFolder);
+    return errors + this.context.getWorkspaceMerger().merge(setupFolder, updateFolder, this.context.getVariables(), workspaceFolder);
+  }
+
+  /**
+   * Imports the repository specified by the given {@link Path} into the IDE managed by this {@link IdeToolCommandlet}.
+   *
+   * @param repositoryPath the {@link Path} to the repository directory to import.
+   */
+  public void importRepository(Path repositoryPath) {
+
+    throw new UnsupportedOperationException("Repository import is not yet implemented for IDE " + this.tool);
   }
 }

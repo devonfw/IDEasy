@@ -5,14 +5,15 @@ toc::[]
 
 `IDEasy` aims to be highly configurable and flexible.
 The configuration of the link:cli.adoc[ide] command and environment variables takes place via `ide.properties` files.
-The following list shows these configuration files in the order they are loaded so files can override variables from files above in the list:
+The following list shows these configuration folders in the order they are loaded so files can override configurations:
 
-1. build in defaults (for `JAVA_HOME`, `MAVEN_ARGS`, etc.)
-2. `~/.ide/ide.properties` - user specific global defaults (on Windows in `%USERPROFILE%/.ide/ide.properties`)
-3. `https://github.com/devonfw/ide-settings/blob/main/ide.properties[settings/ide.properties]` (`settings/ide.properties`) - project specific configurations from link:settings.adoc[settings].
-4. `workspaces/${WORKSPACE}/ide.properties` - optional workspace specific configurations (especially helpful in projects using docker).
-5. `https://github.com/devonfw/ide-settings/blob/main/templates/conf/ide.properties[conf/ide.properties]` - user specific configurations (e.g. `M2_REPO=~/.m2/repository`).
-During setup this file is created by copying a template from `settings/template/conf/ide.properties`.
+1. build in defaults (for `MAVEN_ARGS`, `IDE_TOOLS`, etc.)
+2. `~/.ide/` - user specific global defaults (on Windows in `%USERPROFILE%/.ide/`)
+3. `https://github.com/devonfw/ide-settings/blob/main/[settings/]` - project specific configurations from link:settings.adoc[settings].
+4. `workspaces/${WORKSPACE}/` - optional workspace specific configurations.
+5. `https://github.com/devonfw/ide-settings/blob/main/templates/conf/[conf/]` - project specific user configuration such as `conf/mvn/settings.xml`.
+You may also override things like `M2_REPO=~/.m2/repository` in `conf/ide.properties`.
+During setup this folder is created by copying templates from `settings/templates/conf/`.
 
 == ide.properties
 
@@ -31,17 +32,26 @@ This will unset the specified variable
 * `variable_name=~/some/path/and.file`
 +
 Tilde is resolved to your personal home directory on any OS including windows.
-* `array_variable=(value1 value2 value3)`
+* `array_variable=value1,value2,value3`
 +
-This will only work properly in bash worlds but as no arrays are used in CMD world of `IDEasy` it does not hurt on windows.
+See link:variables.adoc[variables] for candidates that support array values.
 * Please never surround values with quotes (`var="value"`)
 * This format is similar to Java `*.properties` but does not support advanced features as unicode literals, multi-lined values, etc.
 
 In order to know what to configure, have a look at the available link:variables.adoc[variables].
 
-Please only tweak configurations that you need to change and take according responsibility.
-There is a price to pay for flexibility, which means you have to be careful what you do.
+Please only tweak configurations that you need to change and be aware:
 
-Further, you can configure maven via `conf/.m2/settings.xml`.
-To configure your IDE such as Eclipse, IntelliJ, or VSCode you can tweak the link:settings.adoc[settings].
+> High flexibility comes with great responsibility.
 
+So please only configure and override what is needed and what you can manage and take responsibility for.
+Some users override and tweak configurations just by random trial & error experiments, then forget about it and later complain if something that they broke is not working.
+Use `ide -d env` to check your configured variables and see where they are coming from.
+
+== IDE workspace configuration
+
+To configure your IDE (e.g. Eclipse, IntelliJ, or VSCode) workspace configuration templates are merged into your workspace by the link:configurator.adoc[configurator].
+The configuration templates are honored in the configuration order documented above except that here workspaces (4.) are not supported.
+For each supported location a `workspace` subfolder is considered and with priority also a potential `«ide»/workspace` folder.
+Almost every configuration should be done in `settings`.
+Further details can be found in link:configurator.adoc[configurator].
