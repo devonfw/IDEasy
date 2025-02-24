@@ -266,14 +266,9 @@ public abstract class AbstractIdeContext implements IdeContext {
     return "IDE environment variables have been set for " + this.ideHome + " in workspace " + this.workspaceName;
   }
 
-  private String getMessageIdeHomeNotFound() {
+  private String getMessageNotInsideIdeProject() {
 
-    return "You are not inside an IDE installation: " + this.cwd;
-  }
-
-  private String getMessageIdeHomeNotSet() {
-
-    return "IDE_HOME not set. ";
+    return "You are not inside an IDE project: " + this.cwd;
   }
 
   private String getMessageIdeRootNotFound() {
@@ -742,13 +737,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (this.ideRoot != null) {
       success("IDE_ROOT is set to {}", this.ideRoot);
     }
-
     if (this.ideHome == null) {
-      if (this.getIdeRootPathFromEnv() != null && this.getIdeRootPathFromEnv().equals(this.ideRoot)) {
-        warning(getMessageIdeHomeNotSet());
-      } else {
-        warning(getMessageIdeHomeNotFound());
-      }
+      warning(getMessageNotInsideIdeProject());
     } else {
       success("IDE_HOME is set to {}", this.ideHome);
     }
@@ -928,7 +918,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (result.isValid()) {
       debug("Running commandlet {}", cmd);
       if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
-        throw new CliException(getMessageIdeHomeNotFound(), ProcessResult.NO_IDE_HOME);
+        throw new CliException(getMessageNotInsideIdeProject(), ProcessResult.NO_IDE_HOME);
       } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
         throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
       }
