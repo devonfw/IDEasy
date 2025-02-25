@@ -98,7 +98,7 @@ In Eclipse, move and select by word as described above does not work.
 Even worse, the most important shortcut does not work: `Control` + `Space` for code completion (content assist).
 You can manually redefine the key bindings in `Preferences` under `General > Keys`.
 However, with multiple IDE installations and workspaces this will quickly get tedious.
-Therefore, you can `Export` and `Import` specific `Preferences` such as `Keys Preferences` to/from a `*.epf` (Eclipse PreFerences) file.
+Therefore, you can `Export` and `Import` specific `Preferences` such as `Keys Preferences` to/from a `*.epf` (Eclipse Preferences) file.
 We have done all this for you so you can just import the file located in `system/mac/keyboard/Eclipse/eclipse-mac-keybindings.epf` into your Eclipse.
 Happy coding.
 

@@ -58,7 +58,7 @@ Then you can delete the `projects` folder if there is no project data left that 
 `IDEasy` is designed to be *non-invasive* to your operating system and computer.
 Therefore it is not "installed" on your system in a classical way.
 Instead you just create a folder and extract the xref:download[downloaded] archive to it.
-All the other softwares remain locally in your IDEasy folder.
+All the other software remain locally in your IDEasy folder.
 However, there are the following excuses (what is reverted by `ide uninstall`):
 
 * The `ide` alias is added to your shell config (`~/.bashrc` and `~/.zshrc`, search for: `alias ide=`).
