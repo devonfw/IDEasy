@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<application>
+  <component name="AdvancedSettings">
+    <option name="settings">
+      <map>
+        <entry key="promote.suggested.refactoring.in.editor" value="true"/>
+        <entry key="ide.open.readme.md.on.startup" value="false"/>
+      </map>
+    </option>
+  </component>
+</application>
