@@ -12,7 +12,6 @@
 			<Files Include="..\cli\target\package\**" />
 		</Feature>
 
-		<!-- Embedd .cab file with setup folder inside -->
 		<MediaTemplate EmbedCab="yes" />
 
 		<!-- Specifying license and bitmap files -->
@@ -35,34 +34,41 @@
 			<Directory Id="USERHOMEFOLDER" Name="projects\_ide" />
 		</Directory>
 
-		<!-- Execution of setup.bat script-->
+		<!-- Execution of install command-->
 		<SetProperty
-			Id="RunSetupAction"
+			Id="RunInstallAction"
 			Value="&quot;[INSTALLFOLDER]bin\ideasy.exe&quot; -f install"
-			Before="RunSetupAction"
+			Before="RunInstallAction"
 			Sequence="execute"
 			/>
-
-		<!-- Needed for quiet execution of scripts-->
 		<CustomAction
-			Id="RunSetupAction"
+			Id="RunInstallAction"
 			BinaryRef="Wix4UtilCA_X64"
 			DllEntry="WixQuietExec"
 			Execute="deferred"
 			Impersonate="yes"
-			Return="ignore"
+			Return="check"
 			/>
-			
-		<CustomAction
-			Id="RunUninstallAction"
-			Directory="INSTALLFOLDER"
-			ExeCommand="&quot;[SOURCEDIR]bin\ideasy.exe&quot; uninstall"
-			Execute="deferred" Return="ignore"
-		/>
+
+    <!-- Execution of uninstall command-->
+    <SetProperty
+      Id="RunUninstallAction"
+      Value="&quot;[INSTALLFOLDER]bin\ideasy.exe&quot; uninstall"
+      Before="RunUninstallAction"
+      Sequence="execute"
+      />
+    <CustomAction
+      Id="RunUninstallAction"
+      BinaryRef="Wix4UtilCA_X64"
+      DllEntry="WixQuietExec"
+      Execute="deferred"
+      Impersonate="yes"
+      Return="check"
+      />
 
 		<!-- Specifying when Custom Actions should run -->
 		<InstallExecuteSequence>
-			<Custom Action="RunSetupAction" Condition="NOT Installed" Before="InstallFinalize" />
+			<Custom Action="RunInstallAction" Condition="NOT Installed" Before="InstallFinalize" />
 			<Custom Action='RunUninstallAction' Condition="Installed AND NOT UPGRADINGPRODUCTCODE" After="InstallInitialize" />
 		</InstallExecuteSequence>
 

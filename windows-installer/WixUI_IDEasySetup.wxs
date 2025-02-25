@@ -36,8 +36,8 @@
             <Publish Dialog="LicenseAgreementDlg" Control="Back" Event="NewDialog" Value="WelcomeDlg" />
             <Publish Dialog="LicenseAgreementDlg" Control="Next" Event="NewDialog" Value="InstallPathDlg" Condition="LicenseAccepted = &quot;1&quot;" />
 
-			<Publish Dialog="InstallPathDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg" />
-			<Publish Dialog="InstallPathDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="2" />
+            <Publish Dialog="InstallPathDlg" Control="Back" Event="NewDialog" Value="LicenseAgreementDlg" />
+            <Publish Dialog="InstallPathDlg" Control="Next" Event="NewDialog" Value="VerifyReadyDlg" Order="2" />
 			
             <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="InstallPathDlg" Order="1" Condition="NOT Installed" />
             <Publish Dialog="VerifyReadyDlg" Control="Back" Event="NewDialog" Value="MaintenanceTypeDlg" Order="2" Condition="Installed AND NOT PATCH" />
