@@ -60,7 +60,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     Path newFolder = folder.resolve(newName);
     if (fileManager.isExpectedFolder(legacyFolder)) {
       try {
-        if (fileManager.exists(newFolder)) {
+        if (!fileManager.exists(newFolder)) {
           fileManager.move(legacyFolder, newFolder);
           this.context.success("Successfully renamed folder '{}' to '{}' in {}.", legacyName, newName, folder);
         }
