@@ -37,7 +37,7 @@
 		<!-- Execution of install command-->
 		<SetProperty
 			Id="RunInstallAction"
-			Value="&quot;[%SystemFolder]cmd.exe&quot; /c &quot;[INSTALLFOLDER]setup.bat -b&quot;"
+			Value="&quot;[%SystemFolder]cmd.exe&quot; /c &quot;[INSTALLFOLDER]bin\ideasy.exe -f install&quot;"
 			Before="RunInstallAction"
 			Sequence="execute"
 			/>
@@ -47,13 +47,13 @@
 			DllEntry="WixQuietExec"
 			Execute="deferred"
 			Impersonate="yes"
-			Return="ignore"
+			Return="check"
 			/>
 
     <!-- Execution of uninstall command-->
     <SetProperty
       Id="RunUninstallAction"
-      Value="&quot;[POWERSHELLEXE]&quot; /c &quot;[INSTALLFOLDER]bin\ideasy.exe&quot; -f uninstall"
+			Value="&quot;[%SystemFolder]cmd.exe&quot; /c &quot;[INSTALLFOLDER]bin\ideasy.exe -f uninstall&quot;"
       Before="RunUninstallAction"
       Sequence="execute"
       />
@@ -63,7 +63,7 @@
       DllEntry="WixQuietExec"
       Execute="deferred"
       Impersonate="yes"
-      Return="ignore"
+      Return="check"
       />
 
 		<!-- Specifying when Custom Actions should run -->
