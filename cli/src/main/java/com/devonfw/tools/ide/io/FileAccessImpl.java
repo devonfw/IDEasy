@@ -220,6 +220,11 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
+  public boolean exists(Path file) {
+    return Files.exists(file);
+  }
+
+  @Override
   public boolean isExpectedFolder(Path folder) {
 
     if (Files.isDirectory(folder)) {
