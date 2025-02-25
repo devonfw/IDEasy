@@ -41,8 +41,8 @@ public class StatusCommandlet extends Commandlet {
       logSettingsGitStatus();
       logSettingsLegacyStatus();
       logMigrationStatus();
-      new IdeasyCommandlet(this.context, null).checkIfUpdateIsAvailable();
     }
+    new IdeasyCommandlet(this.context, null).checkIfUpdateIsAvailable();
   }
 
   private void logSettingsLegacyStatus() {
