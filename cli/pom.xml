@@ -19,6 +19,7 @@
     <jline.version>3.24.1</jline.version>
     <jansi.version>2.4.1</jansi.version>
     <jackson.version>2.18.2</jackson.version>
+    <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
   </properties>
 
   <dependencies>
@@ -210,6 +211,27 @@
               </execution>
             </executions>
           </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>${build.helper.maven.plugin.version}</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.basedir}/windows-installer/ideasy-${revision}-windows-x64.msi</file>
+                      <type>msi</type>
+                      <classifier>installer</classifier>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
         </plugins>
       </build>
     </profile>
@@ -250,7 +272,8 @@
                 <arg>--enable-url-protocols=http,https</arg>
                 <arg>-march=compatibility</arg>
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
-                <arg>-H:IncludeResourceBundles=com.sun.org.apache.xml.internal.res.XMLErrorResources,com.sun.org.apache.xerces.internal.impl.msg.XMLMessages</arg>
+                <arg>-H:IncludeResourceBundles=com.sun.org.apache.xml.internal.res.XMLErrorResources,com.sun.org.apache.xerces.internal.impl.msg.XMLMessages
+                </arg>
               </buildArgs>
             </configuration>
           </plugin>
