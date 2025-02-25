@@ -9,7 +9,7 @@
 
 		<Feature Id="main">
 			<!-- Include files that has to be installed -->
-			<Files Include="..\cli\target\package\**" />
+			<Files Include="msi-files\**" />
 		</Feature>
 
 		<MediaTemplate EmbedCab="yes" />
@@ -23,7 +23,7 @@
 		<Property Id="INSTALLTYPE" Value="ROOT" />
 		
 		<Directory Id="ROOTDIRECTORY">
-			<Directory Id="INSTALLFOLDER" Name="projects\_ide" />
+			<Directory Id="INSTALLFOLDER" Name="projects\_ide"/>
 		</Directory>
 		
 		<Property Id="USERFOLDER" >
@@ -37,7 +37,7 @@
 		<!-- Execution of install command-->
 		<SetProperty
 			Id="RunInstallAction"
-			Value="&quot;[INSTALLFOLDER]bin\ideasy.exe&quot; -f install"
+			Value="&quot;[%SystemFolder]cmd.exe&quot; /c &quot;[INSTALLFOLDER]setup.bat -b&quot;"
 			Before="RunInstallAction"
 			Sequence="execute"
 			/>
@@ -47,13 +47,13 @@
 			DllEntry="WixQuietExec"
 			Execute="deferred"
 			Impersonate="yes"
-			Return="check"
+			Return="ignore"
 			/>
 
     <!-- Execution of uninstall command-->
     <SetProperty
       Id="RunUninstallAction"
-      Value="&quot;[INSTALLFOLDER]bin\ideasy.exe&quot; uninstall"
+      Value="&quot;[POWERSHELLEXE]&quot; /c &quot;[INSTALLFOLDER]bin\ideasy.exe&quot; -f uninstall"
       Before="RunUninstallAction"
       Sequence="execute"
       />
@@ -63,7 +63,7 @@
       DllEntry="WixQuietExec"
       Execute="deferred"
       Impersonate="yes"
-      Return="check"
+      Return="ignore"
       />
 
 		<!-- Specifying when Custom Actions should run -->
