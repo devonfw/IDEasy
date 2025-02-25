@@ -101,7 +101,7 @@
       <!-- required for advanced mocking -->
       <groupId>net.bytebuddy</groupId>
       <artifactId>byte-buddy</artifactId>
-      <version>1.14.15</version>
+      <version>1.17.1</version>
       <scope>test</scope>
     </dependency>
     <!-- required for XML assertion (XmlMergerTest) -->
