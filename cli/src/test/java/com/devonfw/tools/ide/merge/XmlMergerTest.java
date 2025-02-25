@@ -57,9 +57,10 @@ class XmlMergerTest extends AbstractIdeContextTest {
     EnvironmentVariables variables = mockVariables.resolved();
     XmlMerger merger = new XmlMerger(context);
     // act
-    merger.merge(null, sourcePath, variables, targetPath);
+    int errors = merger.merge(null, sourcePath, variables, targetPath);
     // assert
     XmlAssert.assertThat(targetPath).and(resultPath.toFile()).areIdentical();
+    assertThat(errors).isZero();
   }
 
   private static Stream<Path> xmlMergerTestCases() throws IOException {

@@ -1,0 +1,9 @@
+<application>
+  <component name="AdvancedSettings">
+    <option name="settings">
+      <map>
+        <entry key="promote.suggested.refactoring.in.editor" value="true"/>
+      </map>
+    </option>
+  </component>
+</application>
