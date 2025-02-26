@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
+import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.mvn.MvnBasedLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.MavenRepository;
@@ -363,13 +364,24 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     removeFromShellRc(ZSHRC, ideRoot);
     Path idePath = this.context.getIdePath();
     uninstallIdeasyWindowsEnv(ideRoot);
-    this.context.info("Finally deleting {}", idePath);
-    this.context.getFileAccess().delete(idePath); // TODO prevent Windows file locks
+    uninstallIdeasyIdePath(idePath);
     this.context.success("IDEasy has been uninstalled from your system.");
     this.context.interaction("ATTENTION:\n"
         + "In order to prevent data-loss, we do not delete your projects and git repositories!\n"
         + "To entirely get rid of IDEasy, also check your IDE_ROOT folder at:\n"
         + "{}", ideRoot);
+  }
+
+  private void uninstallIdeasyIdePath(Path idePath) {
+    if (this.context.getSystemInfo().isWindows()) {
+      this.context.newProcess().executable("bash").addArgs("-c",
+          "'sleep 10;rm -rf \"" + WindowsPathSyntax.MSYS.format(idePath) + "\"").run(ProcessMode.BACKGROUND_SILENT);
+      this.context.interaction("To prevent windows file locking errors, we perform an asynchronous deletion of {} in background now.\n"
+          + "Please close all terminals and wait a minute for the deletion to complete before running other commands.", idePath);
+    } else {
+      this.context.info("Finally deleting {}", idePath);
+      this.context.getFileAccess().delete(idePath);
+    }
   }
 
   private void uninstallIdeasyWindowsEnv(Path ideRoot) {
