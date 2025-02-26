@@ -23,11 +23,6 @@ public class Python extends LocalToolCommandlet {
     super(context, "python", Set.of(Tag.PYTHON));
   }
 
-  @Override
-  public void printHelp(NlsBundle bundle) {
-
-    this.context.info("For a list of supported options and arguments, use \"python --help\"");
-  }
 
   @Override
   protected boolean isIgnoreSoftwareRepo() {
