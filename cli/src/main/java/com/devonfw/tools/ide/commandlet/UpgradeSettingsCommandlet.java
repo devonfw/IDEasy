@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.function.Function;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -59,7 +60,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     if (fileAccess.isExpectedFolder(legacyFolder)) {
       try {
         if (!fileAccess.exists(newFolder)) {
-          fileAccess.move(legacyFolder, newFolder);
+          fileAccess.move(legacyFolder, newFolder, StandardCopyOption.REPLACE_EXISTING);
           this.context.success("Successfully renamed folder '{}' to '{}' in {}.", legacyName, newName, folder);
         }
       } catch (IllegalStateException e) {

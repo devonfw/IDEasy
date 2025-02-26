@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.io;
 
 import java.io.Reader;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
 import java.time.Duration;
 import java.util.List;
@@ -73,8 +74,9 @@ public interface FileAccess {
   /**
    * @param source the source {@link Path file or folder} to move.
    * @param targetDir the {@link Path} with the directory to move {@code source} into.
+   * @param copyOptions the {@link java.nio.file.CopyOption} which specify how the move should be done
    */
-  void move(Path source, Path targetDir);
+  void move(Path source, Path targetDir, StandardCopyOption... copyOptions);
 
   /**
    * Creates a symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a Windows junction, it will be replaced. In case of

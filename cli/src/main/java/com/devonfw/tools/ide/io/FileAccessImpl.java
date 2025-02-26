@@ -306,11 +306,11 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void move(Path source, Path targetDir) {
+  public void move(Path source, Path targetDir, StandardCopyOption... copyOptions) {
 
     this.context.trace("Moving {} to {}", source, targetDir);
     try {
-      Files.move(source, targetDir, StandardCopyOption.REPLACE_EXISTING);
+      Files.move(source, targetDir, copyOptions);
     } catch (IOException e) {
       String fileType = Files.isSymbolicLink(source) ? "symlink" : isJunction(source) ? "junction" : Files.isDirectory(source) ? "directory" : "file";
       String message = "Failed to move " + fileType + ": " + source + " to " + targetDir + ".";
