@@ -375,7 +375,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   private void uninstallIdeasyIdePath(Path idePath) {
     if (this.context.getSystemInfo().isWindows()) {
       this.context.newProcess().executable("bash").addArgs("-c",
-          "'sleep 10;rm -rf \"" + WindowsPathSyntax.MSYS.format(idePath) + "\"").run(ProcessMode.BACKGROUND_SILENT);
+          "sleep 10 && rm -rf \"" + WindowsPathSyntax.MSYS.format(idePath) + "\"").run(ProcessMode.BACKGROUND);
       this.context.interaction("To prevent windows file locking errors, we perform an asynchronous deletion of {} in background now.\n"
           + "Please close all terminals and wait a minute for the deletion to complete before running other commands.", idePath);
     } else {
