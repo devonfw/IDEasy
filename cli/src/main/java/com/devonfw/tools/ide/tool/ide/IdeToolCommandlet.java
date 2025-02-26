@@ -7,6 +7,8 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -45,9 +47,25 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
   @Override
   public final void run() {
-
+    // TODO: add plugin install here, initialize processContext
     configureWorkspace();
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+    install(true, pc);
+    Path pluginsInstallationPath = getPluginsInstallationPath();
+    FileAccess fileAccess = this.context.getFileAccess();
+    // checks if the edition marker file name is the same as the installed edition and if not, deletes the plugin folder to trigger a re-installation of all plugins
+    if (!Files.exists(retrieveEditionMarkerFilePath(getName()))) {
+      fileAccess.delete(pluginsInstallationPath);
+      createEditionMarkerFile();
+    }
+    fileAccess.mkdirs(pluginsInstallationPath);
+    installPlugins(pc);
     super.run();
+  }
+
+  private void installPlugins(ProcessContext pc) {
+    // TODO: call original installPlugins method and check marker files
+    installPlugins(getPlugins().getPlugins(), pc);
   }
 
   @Override

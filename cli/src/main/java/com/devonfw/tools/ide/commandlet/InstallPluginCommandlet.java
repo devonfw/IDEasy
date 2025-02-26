@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.property.PluginProperty;
 import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.step.Step;
@@ -43,10 +45,11 @@ public class InstallPluginCommandlet extends Commandlet {
   public void run() {
     ToolCommandlet commandlet = this.tool.getValue();
     String plugin = this.plugin.getValue();
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
 
     if (commandlet instanceof PluginBasedCommandlet cmd) {
       try (Step step = context.newStep("Install plugin: " + plugin)) {
-        cmd.installPlugin(cmd.getPlugin(plugin), step);
+        cmd.installPlugin(cmd.getPlugin(plugin), step, pc);
       }
     } else {
       context.warning("Tool {} does not support installation of plugins.", commandlet.getName());

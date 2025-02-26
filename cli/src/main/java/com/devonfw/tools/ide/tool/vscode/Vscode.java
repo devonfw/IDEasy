@@ -17,6 +17,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
@@ -45,44 +46,54 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
+  public void installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
-    doInstallPlugins(List.of(plugin));
+    doInstallPlugins(List.of(plugin), pc);
     step.success();
   }
 
   @Override
-  protected void installPlugins(Collection<ToolPluginDescriptor> plugins) {
+  protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
 
     List<ToolPluginDescriptor> pluginsToInstall = new ArrayList<>();
     List<ToolPluginDescriptor> pluginsToRecommend = new ArrayList<>();
 
     for (ToolPluginDescriptor plugin : plugins) {
       if (plugin.active()) {
-        pluginsToInstall.add(plugin);
+        if (Files.exists(retrievePluginMarkerFilePath(plugin))) {
+          this.context.debug("Markerfile for IDE: {} and active plugin: {} already exists.", getName(), plugin.name());
+        } else {
+          pluginsToInstall.add(plugin);
+        }
       } else {
         pluginsToRecommend.add(plugin);
       }
     }
     doAddRecommendations(pluginsToRecommend);
-    doInstallPlugins(pluginsToInstall);
+    doInstallPlugins(pluginsToInstall, pc);
 
   }
 
-  private void doInstallPlugins(List<ToolPluginDescriptor> pluginsToInstall) {
-
-    List<String> extensionsCommands = new ArrayList<>();
+  private void doInstallPlugins(List<ToolPluginDescriptor> pluginsToInstall, ProcessContext pc) {
 
     if (pluginsToInstall.isEmpty()) {
       this.context.info("No plugins to be installed");
     } else {
 
       for (ToolPluginDescriptor plugin : pluginsToInstall) {
+        List<String> extensionsCommands = new ArrayList<>();
         extensionsCommands.add("--install-extension");
         extensionsCommands.add(plugin.id());
+        ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.THROW_ERR, pc, extensionsCommands.toArray(String[]::new));
+        if (result.isSuccessful()) {
+          createPluginMarkerFile(plugin);
+        } else {
+          this.context.warning("An error occurred while installing plugin: {}", plugin.name());
+        }
       }
     }
-    runTool(ProcessMode.DEFAULT, null, extensionsCommands.toArray(new String[0]));
+    // TODO: move into loop and check result before adding marker file
+//    ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.THROW_ERR, pc, extensionsCommands.toArray(String[]::new));
   }
 
   private void doAddRecommendations(List<ToolPluginDescriptor> recommendations) {

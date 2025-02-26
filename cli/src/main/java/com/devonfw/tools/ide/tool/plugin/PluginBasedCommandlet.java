@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
@@ -97,37 +98,81 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
     super.postInstall(newlyInstalled);
     if (newlyInstalled) {
-      Path pluginsInstallationPath = getPluginsInstallationPath();
-      FileAccess fileAccess = this.context.getFileAccess();
-      fileAccess.delete(pluginsInstallationPath);
-      fileAccess.mkdirs(pluginsInstallationPath);
-      installPlugins(getPlugins().getPlugins());
+//      Path pluginsInstallationPath = getPluginsInstallationPath();
+//      FileAccess fileAccess = this.context.getFileAccess();
+//      fileAccess.delete(pluginsInstallationPath);
+//      fileAccess.mkdirs(pluginsInstallationPath);
+//      createEditionMarkerFile();
     }
-    // else ? check all plugins are installed, retry failed plugin installations ?
+  }
+
+  public void createEditionMarkerFile() {
+    Path pluginsPath = retrieveEditionMarkerFilePath(getName());
+    FileAccess fileAccess = this.context.getFileAccess();
+    fileAccess.mkdirs(this.context.getPluginsPath().resolve(getName()));
+    fileAccess.touch(pluginsPath);
+  }
+
+  /**
+   * @param toolName the tool name to search for.
+   * @return Path to the edition marker file.
+   */
+  public Path retrieveEditionMarkerFilePath(String toolName) {
+    return this.context.getPluginsPath().resolve(toolName).resolve("." + getInstalledEdition());
   }
 
   /**
    * Method to install active plugins or to handle install for inactive plugins
    *
    * @param plugins as {@link Collection} of plugins to install.
+   * @param pc the {@link ProcessContext} to use.
    */
-  protected void installPlugins(Collection<ToolPluginDescriptor> plugins) {
+  protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
     for (ToolPluginDescriptor plugin : plugins) {
       if (plugin.active()) {
-        try (Step step = this.context.newStep("Install plugin " + plugin.name())) {
-          installPlugin(plugin, step);
+        if (Files.exists(retrievePluginMarkerFilePath(plugin))) {
+          this.context.debug("Markerfile for IDE: {} and active plugin: {} already exists.", getName(), plugin.name());
+        } else {
+          try (Step step = this.context.newStep("Install plugin " + plugin.name())) {
+            installPlugin(plugin, step, pc);
+            createPluginMarkerFile(plugin);
+          }
         }
       } else {
-        handleInstall4InactivePlugin(plugin);
+        if (Files.exists(retrievePluginMarkerFilePath(plugin))) {
+          this.context.debug("Markerfile for IDE: {} and inactive plugin: {} already exists.", getName(), plugin.name());
+        } else {
+          handleInstall4InactivePlugin(plugin);
+        }
       }
     }
   }
 
   /**
+   * @param plugin the {@link ToolPluginDescriptor plugin} to search for.
+   * @return Path to the plugin marker file.
+   */
+  public Path retrievePluginMarkerFilePath(ToolPluginDescriptor plugin) {
+    return this.context.getIdeHome().resolve(".ide").resolve("plugin." + getName() + "." + plugin.name());
+  }
+
+  /**
+   * Creates a marker file for a plugin in $IDE_HOME/.ide/plugin.«ide».«plugin-name»
+   *
+   * @param plugin the {@link ToolPluginDescriptor plugin} for which the marker file should be created.
+   */
+  public void createPluginMarkerFile(ToolPluginDescriptor plugin) {
+    Path hiddenIdePath = this.context.getIdeHome().resolve(".ide");
+    this.context.getFileAccess().mkdirs(hiddenIdePath);
+    this.context.getFileAccess().touch(hiddenIdePath.resolve("plugin." + getName() + "." + plugin.name()));
+  }
+
+  /**
    * @param plugin the {@link ToolPluginDescriptor} to install.
    * @param step the {@link Step} for the plugin installation.
+   * @param pc the {@link ProcessContext} to use.
    */
-  public abstract void installPlugin(ToolPluginDescriptor plugin, Step step);
+  public abstract void installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc);
 
   /**
    * @param plugin the {@link ToolPluginDescriptor} to uninstall.

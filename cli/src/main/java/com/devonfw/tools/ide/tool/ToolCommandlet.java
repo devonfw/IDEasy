@@ -178,12 +178,26 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param processMode the {@link ProcessMode}. Should typically be {@link ProcessMode#DEFAULT} or {@link ProcessMode#BACKGROUND}.
    * @param toolVersion the explicit {@link GenericVersionRange version} to run. Typically {@code null} to run the
    *     {@link #getConfiguredVersion() configured version}. Otherwise, the specified version will be used (from the software repository, if not compatible).
+   * @param errorHandling the {@link ProcessErrorHandling}.
    * @param args the command-line arguments to run the tool.
+   * @return the {@link ProcessResult result}.
    */
   public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
 
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
     install(true, pc);
+    return runTool(processMode, errorHandling, pc, args);
+  }
+
+  /**
+   * @param processMode the {@link ProcessMode}. Should typically be {@link ProcessMode#DEFAULT} or {@link ProcessMode#BACKGROUND}.
+   * @param errorHandling the {@link ProcessErrorHandling}.
+   * @param pc the {@link ProcessContext}.
+   * @param args the command-line arguments to run the tool.
+   * @return the {@link ProcessResult result}.
+   */
+  public ProcessResult runTool(ProcessMode processMode, ProcessErrorHandling errorHandling, ProcessContext pc, String... args) {
+
     if (this.executionDirectory != null) {
       pc.directory(this.executionDirectory);
     }

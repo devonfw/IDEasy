@@ -90,7 +90,7 @@ public class IntellijTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    checkInstallation(this.context);
+    checkRun(this.context);
     assertThat(commandlet.getToolBinPath().resolve("intellijtest")).hasContent(
         "intellij " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
   }
@@ -110,7 +110,7 @@ public class IntellijTest extends AbstractIdeContextTest {
     Intellij commandlet = new Intellij(this.context);
 
     // act
-    commandlet.install();
+    commandlet.run();
 
     // assert
     checkInstallation(this.context);
@@ -145,6 +145,10 @@ public class IntellijTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
     assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
         "Successfully installed intellij in version 2023.3.3");
+  }
+
+  private void checkRun(IdeTestContext context) {
+    checkInstallation(context);
     assertThat(context).logAtDebug().hasEntries("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin'.");
   }

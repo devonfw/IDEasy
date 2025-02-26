@@ -28,4 +28,39 @@ public class IdeToolCommandletTest extends AbstractIdeContextTest {
     assertThat(workspace.resolve(".intellij/config/idea.key")).exists();
     assertThat(workspace.resolve("user.properties")).exists().content().contains("ijversion=2023.3.3");
   }
+
+  @Test
+  public void testCheckPluginInstallation() {
+    // arrange
+    IdeContext context = newContext("intellij");
+    Path workspace = context.getWorkspacePath();
+
+    // act
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+    commandlet.run();
+    // assert
+
+    assertThat(commandlet.retrieveEditionMarkerFilePath(commandlet.getName())).exists();
+    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
+  }
+
+  @Test
+  public void testCheckEditionConflictInstallation() {
+    // arrange
+    IdeContext context = newContext("intellij");
+    Path workspace = context.getWorkspacePath();
+
+    // act
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+    commandlet.run();
+    // assert
+
+    assertThat(commandlet.retrieveEditionMarkerFilePath(commandlet.getName())).exists();
+    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
+
+    commandlet.setEdition("ultimate");
+    commandlet.run();
+
+    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
+  }
 }

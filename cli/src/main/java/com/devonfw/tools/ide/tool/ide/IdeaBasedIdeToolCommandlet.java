@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.os.MacOsHelper;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
@@ -35,7 +36,8 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
+  // TODO: Check if this is still needed, because Intellij is overriding this already and using a different approach
+  public void installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
     String downloadUrl = getDownloadUrl(plugin);
 
     String pluginId = plugin.id();
