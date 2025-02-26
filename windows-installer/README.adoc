@@ -21,7 +21,7 @@ Ensure you have the following installed:
 
 2. **Build the MSI package**
 
-   wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
+   wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -d ProductVersion=${current.version} -o ideasy.msi
 
 == Debugging Installation Issues
 
@@ -50,7 +50,7 @@ Additionally, it specifies which files should be installed during the process.
 
 Here you can define what files should be included in the installation:
 
-			<Files Include="cli\target\package\**" />
+			<Files Include="msi-files\**" />
 
 Here you define the script that will be executed after installation:
 

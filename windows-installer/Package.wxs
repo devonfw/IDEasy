@@ -17,7 +17,6 @@
 		<!-- Specifying license and bitmap files -->
 		<WixVariable Id="WixUILicenseRtf" Value=".\assets\LICENSE.rtf" />
 		<WixVariable Id="WixUIBannerBmp" Value=".\assets\banner.bmp" />
-		<WixVariable Id="WixUIDialogBmp" Value=".\assets\dialog.bmp" />
 
 		<!-- Specifying Directories and Properties for installation location selection-->
 		<Property Id="INSTALLTYPE" Value="ROOT" />
