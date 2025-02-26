@@ -84,19 +84,11 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private final Path ideRoot;
 
-  private final Path idePath;
-
   private Path confPath;
 
   protected Path settingsPath;
 
   private Path settingsCommitIdPath;
-
-  private Path softwarePath;
-
-  private Path softwareExtraPath;
-
-  private final Path softwareRepositoryPath;
 
   protected Path pluginsPath;
 
@@ -104,17 +96,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private String workspaceName;
 
-  protected Path urlsPath;
-
-  private final Path tempPath;
-
-  private final Path tempDownloadPath;
-
   private Path cwd;
 
   private Path downloadPath;
-
-  private final Path toolRepositoryPath;
 
   protected Path userHome;
 
@@ -204,24 +188,12 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     setCwd(workingDirectory, workspace, currentDir);
 
-    if (this.ideRoot == null) {
-      this.idePath = null;
-      this.toolRepositoryPath = null;
-      this.urlsPath = null;
-      this.tempPath = null;
-      this.tempDownloadPath = null;
-      this.softwareRepositoryPath = null;
-    } else {
-      this.idePath = this.ideRoot.resolve(FOLDER_UNDERSCORE_IDE);
-      this.toolRepositoryPath = this.idePath.resolve("software");
-      this.urlsPath = this.idePath.resolve("urls");
-      this.tempPath = this.idePath.resolve("tmp");
-      this.tempDownloadPath = this.tempPath.resolve(FOLDER_DOWNLOADS);
-      this.softwareRepositoryPath = this.idePath.resolve(FOLDER_SOFTWARE);
-      if (Files.isDirectory(this.tempPath)) {
+    if (this.ideRoot != null) {
+      Path tempDownloadPath = getTempDownloadPath();
+      if (Files.isDirectory(tempDownloadPath)) {
         // TODO delete all files older than 1 day here...
       } else {
-        this.fileAccess.mkdirs(this.tempDownloadPath);
+        this.fileAccess.mkdirs(tempDownloadPath);
       }
     }
 
@@ -265,16 +237,12 @@ public abstract class AbstractIdeContext implements IdeContext {
       this.workspacePath = null;
       this.confPath = null;
       this.settingsPath = null;
-      this.softwarePath = null;
-      this.softwareExtraPath = null;
       this.pluginsPath = null;
     } else {
       this.workspacePath = this.ideHome.resolve(FOLDER_WORKSPACES).resolve(this.workspaceName);
       this.confPath = this.ideHome.resolve(FOLDER_CONF);
       this.settingsPath = this.ideHome.resolve(FOLDER_SETTINGS);
       this.settingsCommitIdPath = this.ideHome.resolve(IdeContext.SETTINGS_COMMIT_ID);
-      this.softwarePath = this.ideHome.resolve(FOLDER_SOFTWARE);
-      this.softwareExtraPath = this.softwarePath.resolve(FOLDER_EXTRA);
       this.pluginsPath = this.ideHome.resolve(FOLDER_PLUGINS);
     }
     if (isTest()) {
@@ -298,9 +266,9 @@ public abstract class AbstractIdeContext implements IdeContext {
     return "IDE environment variables have been set for " + this.ideHome + " in workspace " + this.workspaceName;
   }
 
-  private String getMessageIdeHomeNotFound() {
+  private String getMessageNotInsideIdeProject() {
 
-    return "You are not inside an IDE installation: " + this.cwd;
+    return "You are not inside an IDE project: " + this.cwd;
   }
 
   private String getMessageIdeRootNotFound() {
@@ -440,7 +408,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public Path getIdePath() {
 
-    return this.idePath;
+    Path myIdeRoot = getIdeRoot();
+    if (myIdeRoot == null) {
+      return null;
+    }
+    return myIdeRoot.resolve(FOLDER_UNDERSCORE_IDE);
   }
 
   @Override
@@ -452,13 +424,21 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public Path getTempPath() {
 
-    return this.tempPath;
+    Path idePath = getIdePath();
+    if (idePath == null) {
+      return null;
+    }
+    return idePath.resolve("tmp");
   }
 
   @Override
   public Path getTempDownloadPath() {
 
-    return this.tempDownloadPath;
+    Path tmp = getTempPath();
+    if (tmp == null) {
+      return null;
+    }
+    return tmp.resolve(FOLDER_DOWNLOADS);
   }
 
   @Override
@@ -516,19 +496,30 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public Path getSoftwarePath() {
 
-    return this.softwarePath;
+    if (this.ideHome == null) {
+      return null;
+    }
+    return this.ideHome.resolve(FOLDER_SOFTWARE);
   }
 
   @Override
   public Path getSoftwareExtraPath() {
 
-    return this.softwareExtraPath;
+    Path softwarePath = getSoftwarePath();
+    if (softwarePath == null) {
+      return null;
+    }
+    return softwarePath.resolve(FOLDER_EXTRA);
   }
 
   @Override
   public Path getSoftwareRepositoryPath() {
 
-    return this.softwareRepositoryPath;
+    Path idePath = getIdePath();
+    if (idePath == null) {
+      return null;
+    }
+    return idePath.resolve(FOLDER_SOFTWARE);
   }
 
   @Override
@@ -558,13 +549,21 @@ public abstract class AbstractIdeContext implements IdeContext {
   @Override
   public Path getUrlsPath() {
 
-    return this.urlsPath;
+    Path idePath = getIdePath();
+    if (idePath == null) {
+      return null;
+    }
+    return idePath.resolve(FOLDER_URLS);
   }
 
   @Override
   public Path getToolRepositoryPath() {
 
-    return this.toolRepositoryPath;
+    Path idePath = getIdePath();
+    if (idePath == null) {
+      return null;
+    }
+    return idePath.resolve(FOLDER_SOFTWARE);
   }
 
   @Override
@@ -587,7 +586,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.urlMetadata == null) {
       if (!isTest()) {
-        getGitContext().pullOrCloneAndResetIfNeeded(IDE_URLS_GIT, this.urlsPath, null);
+        getGitContext().pullOrCloneAndResetIfNeeded(IDE_URLS_GIT, getUrlsPath(), null);
       }
       this.urlMetadata = new UrlMetadata(this);
     }
@@ -739,7 +738,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       success("IDE_ROOT is set to {}", this.ideRoot);
     }
     if (this.ideHome == null) {
-      warning(getMessageIdeHomeNotFound());
+      warning(getMessageNotInsideIdeProject());
     } else {
       success("IDE_HOME is set to {}", this.ideHome);
     }
@@ -919,7 +918,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (result.isValid()) {
       debug("Running commandlet {}", cmd);
       if (cmd.isIdeHomeRequired() && (this.ideHome == null)) {
-        throw new CliException(getMessageIdeHomeNotFound(), ProcessResult.NO_IDE_HOME);
+        throw new CliException(getMessageNotInsideIdeProject(), ProcessResult.NO_IDE_HOME);
       } else if (cmd.isIdeRootRequired() && (this.ideRoot == null)) {
         throw new CliException(getMessageIdeRootNotFound(), ProcessResult.NO_IDE_ROOT);
       }
@@ -1006,7 +1005,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         """).append(LICENSE_URL);
     if (this.ideRoot != null) {
       sb.append("\n\nAlso it is included in the documentation that you can find here:\n").
-          append(this.idePath.resolve("IDEasy.pdf").toString()).append("\n");
+          append(getIdePath().resolve("IDEasy.pdf").toString()).append("\n");
     }
     info(sb.toString());
     askToContinue("Do you accept these terms of use and all license agreements?");

@@ -13,16 +13,15 @@ Please note that we are trying to minimize any potential side-effect from `IDEas
 [options="header"]
 |=======================
 |*Variable*|*Value*|*Meaning*
-|`IDE_ROOT`|e.g. `/projects/` or `C:\projects`|The installation root directory of `IDEasy` - see link:structure.adoc[structure] for details.
+|`IDE_ROOT`|e.g. `~/projects/` or `C:\projects`|The installation root directory of `IDEasy` - see link:structure.adoc[structure] for details.
 |`IDE_HOME`|e.g. `/projects/my-project`|The top level directory of your `IDEasy` project.
-|`IDE_OPTIONS`|`-`|General options that will be applied to each call of `IDEasy`. Should typically be used for JVM options like link:proxy-support.adoc[proxy-support].
-|`PATH`|`$IDE_HOME/software/java:...:$PATH`|You system path is adjusted by `ide` link:cli.adoc[command].
-|`HOME_DIR`|`~`|The platform independent home directory of the current user. In some edge-cases (e.g. in cygwin) this differs from `~` to ensure a central home directory for the user on a single machine in any context or environment.
+|`IDE_OPTIONS`| |General options that will be applied to each call of `IDEasy`. Should typically be used for JVM options like link:proxy-support.adoc[proxy-support].
+|`PATH`|`$IDE_HOME/software/«tool»:...:$PATH`|You system path is adjusted by `ide` link:cli.adoc[command].
 |`IDE_TOOLS`|`(java mvn node npm)`|List of tools that should be installed by default on project creation.
-|`CREATE_START_SCRIPTS`|`(eclipse vscode)`|List of IDEs that shall be used by developers in the project and therefore start-scripts are created on setup.
+|`CREATE_START_SCRIPTS`| |List of IDEs that shall be used by developers in the project and therefore start-scripts are created on setup. E.g. `(eclipse intellij vscode)`
 |*`WORKSPACE`*|`main`|The link:workspaces.adoc[workspace] you are currently in. Defaults to `main` if you are not inside a link:workspaces.adoc[workspace]. Never set this variable in any `ide.properties` file.
 |`WORKSPACE_PATH`|`$IDE_HOME/workspaces/$WORKSPACE`|Absolute path to current link:workspaces.adoc[workspace]. Never set this variable in any `ide.properties` file.
-|*`JAVA_HOME`*|`$IDE_HOME/software/java`|Path to JDK
+|*`«TOOL»_HOME`*|`$IDE_HOME/software/«tool»`|Path to «tool»
 |*`M2_REPO`*|`$IDE_HOME/conf/mvn/repository`|Path to your local maven repository. For projects without high security demands, you may change this to the maven default `~/.m2/repository` and share your repository among multiple projects.
 |*`MVN_HOME`*|`$IDE_HOME/software/mvn`|Path to Maven
 |*`MAVEN_ARGS`*|`-s $IDE_HOME/conf/mvn/settings.xml`|Maven arguments. This variable is set just if the `settings.xml` file in link:conf.adoc[conf] is found.
@@ -30,8 +29,9 @@ Please note that we are trying to minimize any potential side-effect from `IDEas
 |*`GRAALVM_HOME`*|`$IDE_HOME/software/extra/graalvm`|Path to GraalVM
 |*`IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED`*|`true`|Enable/disable legacy support for devonfw-ide link:configurator.adoc[configuration templates] in IDE workspace folders.
 |`ECLIPSE_VMARGS`|`-Xms128M -Xmx768M -XX:MaxPermSize=256M`|JVM options for Eclipse
-|`«TOOL»_EDITION`|`-`|The edition of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_EDITION`, `INTELLIJ_EDITION` or `DOCKER_EDITION`)
-|`«TOOL»_VERSION`|`-`|The version of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_VERSION` or `MVN_VERSION`).
-|`«TOOL»_BUILD_OPTS`|e.g.`clean install`|The arguments provided to the build-tool `«TOOL»` in order to run a build.
-|`«TOOL»_RELEASE_OPTS`|e.g.`clean deploy -Dchangelist= -Pdeploy`|The arguments provided to the build-tool `«TOOL»` in order to perform a release build.
+|`PREFERRED_GIT_PROTOCOL`| |Allows to enforce a specific protocol for git. Options are `git` (for SSH) and `https`. If set any git URL will automatically be converted to the preferred protocol before IDEasy clones it. This option should only be set for individual users in `$IDE_HOME/conf/ide.properties` or `~/.ide/ide.properties` (and not in shared `settings`).
+|`«TOOL»_EDITION`|`«tool»`|The edition of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_EDITION`, `INTELLIJ_EDITION` or `DOCKER_EDITION`). Default of `DOCKER_EDITION` is `rancher`.
+|`«TOOL»_VERSION`|`*`|The version of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_VERSION` or `MVN_VERSION`).
+|`«TOOL»_BUILD_OPTS`| |The arguments provided to the build-tool `«TOOL»` in order to run a build. E.g.`clean install`
+|`«TOOL»_RELEASE_OPTS`| |The arguments provided to the build-tool `«TOOL»` in order to perform a release build. E.g.`clean deploy -Dchangelist= -Pdeploy`
 |=======================
