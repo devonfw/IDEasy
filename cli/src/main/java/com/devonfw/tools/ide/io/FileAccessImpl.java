@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFilePermission;
@@ -309,7 +310,7 @@ public class FileAccessImpl implements FileAccess {
 
     this.context.trace("Moving {} to {}", source, targetDir);
     try {
-      Files.move(source, targetDir);
+      Files.move(source, targetDir, StandardCopyOption.REPLACE_EXISTING);
     } catch (IOException e) {
       String fileType = Files.isSymbolicLink(source) ? "symlink" : isJunction(source) ? "junction" : Files.isDirectory(source) ? "directory" : "file";
       String message = "Failed to move " + fileType + ": " + source + " to " + targetDir + ".";

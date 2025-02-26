@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Function;
 
@@ -55,7 +54,6 @@ public class UpgradeSettingsCommandlet extends Commandlet {
 
   private void updateLegacyFolder(Path folder, String legacyName, String newName) {
     FileAccess fileAccess = this.context.getFileAccess();
-
     Path legacyFolder = folder.resolve(legacyName);
     Path newFolder = folder.resolve(newName);
     if (fileAccess.isExpectedFolder(legacyFolder)) {
@@ -73,15 +71,16 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   private void updateWorkspaceTemplates() {
     this.context.info("Updating workspace templates (replace legacy variables and change variable syntax)...");
 
+    FileAccess fileAccess = this.context.getFileAccess();
     DirectoryMerger merger = this.context.getWorkspaceMerger();
     Path settingsDir = this.context.getSettingsPath();
     Path workspaceDir = settingsDir.resolve(IdeContext.FOLDER_WORKSPACE);
-    if (Files.isDirectory(workspaceDir)) {
+    if (fileAccess.isExpectedFolder(workspaceDir)) {
       merger.upgrade(workspaceDir);
     }
-    this.context.getFileAccess().listChildrenMapped(settingsDir, child -> {
+    fileAccess.listChildrenMapped(settingsDir, child -> {
       Path childWorkspaceDir = child.resolve(IdeContext.FOLDER_WORKSPACE);
-      if (Files.isDirectory(childWorkspaceDir)) {
+      if (fileAccess.isExpectedFolder(childWorkspaceDir)) {
         merger.upgrade(childWorkspaceDir);
       }
       return null;
@@ -106,8 +105,9 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       }
       environmentVariables = environmentVariables.getParent();
     }
+    FileAccess fileAccess = this.context.getFileAccess();
     Path templatePropertiesDir = this.context.getSettingsTemplatePath().resolve(IdeContext.FOLDER_CONF);
-    if (Files.exists(templatePropertiesDir)) {
+    if (fileAccess.exists(templatePropertiesDir)) {
       EnvironmentVariablesPropertiesFile environmentVariablesProperties = new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.CONF,
           templatePropertiesDir, null, this.context);
       updateProperties(environmentVariablesProperties);
