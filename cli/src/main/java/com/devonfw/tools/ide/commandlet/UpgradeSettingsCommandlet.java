@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.io.FileAccessImpl;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.repository.CustomToolsJson;
@@ -54,14 +54,14 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   }
 
   private void updateLegacyFolder(Path folder, String legacyName, String newName) {
-    FileAccessImpl fileManager = new FileAccessImpl(context);
+    FileAccess fileAccess = this.context.getFileAccess();
 
     Path legacyFolder = folder.resolve(legacyName);
     Path newFolder = folder.resolve(newName);
-    if (fileManager.isExpectedFolder(legacyFolder)) {
+    if (fileAccess.isExpectedFolder(legacyFolder)) {
       try {
-        if (!fileManager.exists(newFolder)) {
-          fileManager.move(legacyFolder, newFolder);
+        if (!fileAccess.exists(newFolder)) {
+          fileAccess.move(legacyFolder, newFolder);
           this.context.success("Successfully renamed folder '{}' to '{}' in {}.", legacyName, newName, folder);
         }
       } catch (IllegalStateException e) {
