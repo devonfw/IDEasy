@@ -13,7 +13,6 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.java.Java;
 
 /**
  * {@link ToolCommandlet} for <a href="https://www.oracle.com/java/technologies/jdk-mission-control.html">JDK Mission Control</a>, An advanced set of tools for
@@ -29,13 +28,6 @@ public class Jmc extends LocalToolCommandlet {
   public Jmc(IdeContext context) {
 
     super(context, "jmc", Set.of(Tag.JAVA, Tag.ANALYSE));
-  }
-
-  @Override
-  protected void installDependencies() {
-
-    // TODO create jmc/jmc/dependencies.json file in ide-urls and delete this method
-    getCommandlet(Java.class).install();
   }
 
   @Override
