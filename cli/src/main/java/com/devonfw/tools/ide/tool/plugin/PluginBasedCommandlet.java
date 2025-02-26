@@ -11,6 +11,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
@@ -97,13 +98,19 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   protected void postInstall(boolean newlyInstalled) {
 
     super.postInstall(newlyInstalled);
-    if (newlyInstalled) {
-//      Path pluginsInstallationPath = getPluginsInstallationPath();
-//      FileAccess fileAccess = this.context.getFileAccess();
-//      fileAccess.delete(pluginsInstallationPath);
-//      fileAccess.mkdirs(pluginsInstallationPath);
-//      createEditionMarkerFile();
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+    Path pluginsInstallationPath = getPluginsInstallationPath();
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (!Files.exists(retrieveEditionMarkerFilePath(getName()))) {
+      fileAccess.delete(pluginsInstallationPath);
+      createEditionMarkerFile();
     }
+    fileAccess.mkdirs(pluginsInstallationPath);
+    installPlugins(pc);
+  }
+
+  private void installPlugins(ProcessContext pc) {
+    installPlugins(getPlugins().getPlugins(), pc);
   }
 
   public void createEditionMarkerFile() {

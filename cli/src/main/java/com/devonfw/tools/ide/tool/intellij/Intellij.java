@@ -73,7 +73,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     if (customRepo) {
       args.add(plugin.url());
     }
-    ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.LOG_WARNING, pc, args.toArray(new String[0]));
+    ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.LOG_WARNING, pc, args.toArray(String[]::new));
     if (result.isSuccessful()) {
       step.success();
       createPluginMarkerFile(plugin);

@@ -83,6 +83,7 @@ public class Vscode extends IdeToolCommandlet {
       for (ToolPluginDescriptor plugin : pluginsToInstall) {
         List<String> extensionsCommands = new ArrayList<>();
         extensionsCommands.add("--install-extension");
+        extensionsCommands.add("--force");
         extensionsCommands.add(plugin.id());
         ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.THROW_ERR, pc, extensionsCommands.toArray(String[]::new));
         if (result.isSuccessful()) {

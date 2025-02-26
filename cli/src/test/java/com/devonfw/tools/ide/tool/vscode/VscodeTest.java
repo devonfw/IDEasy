@@ -38,17 +38,7 @@ public class VscodeTest extends AbstractIdeContextTest {
     vscodeCommandlet.run();
 
     // assert
-    checkRun(context);
-  }
-
-  private void checkRun(IdeTestContext context) {
     checkInstallation(context);
-    //check plugins folder
-    assertThat(context.getIdeHome().resolve("plugins").resolve("vscode")).exists();
-
-    //check Recommendations
-    assertThat(context.getWorkspacePath().resolve(".vscode").resolve("extensions.json")).exists()
-        .hasContent("{\"recommendations\":[\"esbenp.prettier-vscode\",\"mockedPlugin2\"]}");
   }
 
   private void checkInstallation(IdeTestContext context) {
@@ -58,5 +48,12 @@ public class VscodeTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed vscode in version 1.92.1");
+
+    //check plugins folder
+    assertThat(context.getIdeHome().resolve("plugins").resolve("vscode")).exists();
+
+    //check Recommendations
+    assertThat(context.getWorkspacePath().resolve(".vscode").resolve("extensions.json")).exists()
+        .hasContent("{\"recommendations\":[\"esbenp.prettier-vscode\",\"mockedPlugin2\"]}");
   }
 }
