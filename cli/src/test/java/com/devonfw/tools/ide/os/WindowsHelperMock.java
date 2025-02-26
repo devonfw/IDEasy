@@ -28,6 +28,12 @@ public class WindowsHelperMock implements WindowsHelper {
   }
 
   @Override
+  public void removeUserEnvironmentValue(String key) {
+
+    this.env.remove(key);
+  }
+
+  @Override
   public String getUserEnvironmentValue(String key) {
 
     return this.env.getProperty(key);
