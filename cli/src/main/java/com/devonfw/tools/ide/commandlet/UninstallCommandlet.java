@@ -32,6 +32,12 @@ public class UninstallCommandlet extends Commandlet {
   }
 
   @Override
+  public boolean isIdeRootRequired() {
+
+    return this.tools.getValueCount() > 0;
+  }
+
+  @Override
   public void run() {
 
     int valueCount = this.tools.getValueCount();
