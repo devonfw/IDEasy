@@ -20,7 +20,7 @@
 		<WixVariable Id="WixUILicenseRtf" Value=".\assets\LICENSE.rtf" />
 		<WixVariable Id="WixUIBannerBmp" Value=".\assets\banner.bmp" />
 
-		<Property Id="INSTALLTYPE" Value="HOME" />
+		<Property Id="INSTALLTYPE" Value="USERHOME" />
 	  <Property Id="USERFOLDER" >
 			<DirectorySearch Id="userProfileSearch" Depth="0" Path="[%USERPROFILE]" />
 		</Property>

@@ -66,20 +66,19 @@
 				<Control Id="BannerLine" Type="Line" X="0" Y="44" Width="370" Height="0" />
 				<Control Id="BottomLine" Type="Line" X="0" Y="234" Width="370" Height="0" />
 
-				<!-- Radio Buttons to select the ROOT or USERHOME folder -->
+				<!-- Radio Buttons to select USERHOME or CUSTOM folder -->
 				<Control Id="InstallLocationText" Type="Text" X="20" Y="60" Width="250" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.SelectInstallLocationText)" />
 				<Control Id="InstallLocation" Type="RadioButtonGroup" Property="INSTALLTYPE" X="20" Y="75" Width="280" Height="40">
 					<RadioButtonGroup Property="INSTALLTYPE">
-						<RadioButton Value="HOME" Text="!(loc.InstallHomeOption)" X="20" Y="0" Width="260" Height="20" />
-					  <!-- Drive selector e.g C: -->
-            <RadioButton Value="ROOT" Text="!(loc.InstallRootOption)" X="20" Y="20" Width="260" Height="20" />
+						<RadioButton Value="USERHOME" Text="!(loc.InstallUserHomeOption)" X="20" Y="0" Width="260" Height="20" />
+            <RadioButton Value="CUSTOM" Text="!(loc.InstallCustomOption)" X="20" Y="20" Width="260" Height="20" />
 					</RadioButtonGroup>
 				</Control>
 
-				<Control Id="VolumeSelectorText" Type="Text" X="40" Y="120" Width="250" Height="15" Transparent="yes" NoPrefix="yes" Text="!(loc.SelectRootDriveText)" />
-        <Control Id="VolumeSelector" Type="VolumeSelectCombo" X="40" Y="135" Width="40" Height="40" Fixed="yes" Remote="yes" Property="ROOTDIRECTORY" Text="!(loc.SelectRootDrive)" />
+				<Control Id="VolumeSelectorText" Type="Text" X="40" Y="120" Width="250" Height="15" Transparent="yes" NoPrefix="yes" HideCondition="INSTALLTYPE=&quot;USERHOME&quot;" ShowCondition="INSTALLTYPE=&quot;CUSTOM&quot;" Text="!(loc.SelectCustomDriveText)" />
+        <Control Id="VolumeSelector" Type="VolumeSelectCombo" X="40" Y="135" Width="40" Height="40" Fixed="yes" Remote="yes" HideCondition="INSTALLTYPE=&quot;USERHOME&quot;" ShowCondition="INSTALLTYPE=&quot;CUSTOM&quot;" Property="ROOTDIRECTORY" Text="!(loc.SelectCustomDrive)" />
 				<Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" >
-				  <Publish Event="DoAction" Value="SetIDE_ROOT" Condition="INSTALLTYPE=&quot;ROOT&quot;" Order="1" />
+				  <Publish Event="DoAction" Value="SetIDE_ROOT" Condition="INSTALLTYPE=&quot;CUSTOM&quot;" Order="1" />
 				  <Publish Event="DoAction" Value="SetTEMP_FOLDER" Order="2" />
 				</Control>
 				<Control Id="Back" Type="PushButton" X="180" Y="243" Width="56" Height="17" Text="!(loc.WixUIBack)" />
