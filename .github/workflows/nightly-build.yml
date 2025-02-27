@@ -44,6 +44,7 @@ jobs:
           mkdir -p windows-installer/msi-files
           cp documentation/target/generated-docs/IDEasy.pdf windows-installer/msi-files
           cp -r cli/target/package/* windows-installer/msi-files
+          cp cli/target/ideasy.exe windows-installer/msi-files/bin
           cd windows-installer
           dotnet tool install --global wix --version 5.0.2
           wix extension add WixToolset.UI.wixext/5.0.2
