@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 
@@ -36,7 +37,8 @@ public class WindowsHelperImpl implements WindowsHelper {
 
   @Override
   public void removeUserEnvironmentValue(String key) {
-    ProcessResult result = this.context.newProcess().executable("reg").addArgs("delete", HKCU_ENVIRONMENT, "/v", key, "/f").run(ProcessMode.DEFAULT_CAPTURE);
+    ProcessResult result = this.context.newProcess().executable("reg").addArgs("delete", HKCU_ENVIRONMENT, "/v", key, "/f")
+        .errorHandling(ProcessErrorHandling.LOG_WARNING).run(ProcessMode.DEFAULT_CAPTURE);
     if (result.isSuccessful()) {
       this.context.debug("Removed environment variable {}", key);
     } else {
