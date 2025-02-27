@@ -276,7 +276,7 @@
                 <configuration>
                   <tasks>
                     <move file="${project.basedir}/target/msi/ideasy.msi"
-                      tofile="${project.basedir}/target/${project.artifactId}-${revision}.msi"/>
+                      tofile="${project.basedir}/target/${project.artifactId}-${revision}-windows-x64.msi"/>
                   </tasks>
                 </configuration>
               </execution>
@@ -294,7 +294,7 @@
                 <configuration>
                   <artifacts>
                     <artifact>
-                      <file>${project.basedir}/target/${project.artifactId}-${revision}.msi</file>
+                      <file>${project.basedir}/target/${project.artifactId}-${revision}-windows-x64.msi</file>
                       <type>msi</type>
                     </artifact>
                   </artifacts>
