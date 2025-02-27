@@ -104,13 +104,16 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     if (!Files.exists(retrieveEditionMarkerFilePath(getName()))) {
       this.context.debug("Matching edition marker file for {} was not found, re-installing plugins", getInstalledEdition());
       fileAccess.delete(pluginsInstallationPath);
-      List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(".ide"), Files::isRegularFile);
-      for (Path path : markerFiles) {
-        if (path.getFileName().toString().startsWith("plugin." + getName())) {
-          this.context.debug("Plugin marker file {} got deleted.", path);
-          fileAccess.delete(path);
+      if (this.context.getIdeHome() != null) {
+        List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(".ide"), Files::isRegularFile);
+        for (Path path : markerFiles) {
+          if (path.getFileName().toString().startsWith("plugin." + getName())) {
+            this.context.debug("Plugin marker file {} got deleted.", path);
+            fileAccess.delete(path);
+          }
         }
       }
+
       createEditionMarkerFile();
     }
     fileAccess.mkdirs(pluginsInstallationPath);
@@ -121,11 +124,16 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     installPlugins(getPlugins().getPlugins(), pc);
   }
 
+  /**
+   * Creates a marker file for an installed edition.
+   */
   public void createEditionMarkerFile() {
-    Path pluginsPath = retrieveEditionMarkerFilePath(getName());
-    FileAccess fileAccess = this.context.getFileAccess();
-    fileAccess.mkdirs(this.context.getPluginsPath().resolve(getName()));
-    fileAccess.touch(pluginsPath);
+    if (this.context.getPluginsPath() != null) {
+      Path pluginsPath = retrieveEditionMarkerFilePath(getName());
+      FileAccess fileAccess = this.context.getFileAccess();
+      fileAccess.mkdirs(this.context.getPluginsPath().resolve(getName()));
+      fileAccess.touch(pluginsPath);
+    }
   }
 
   /**
@@ -133,7 +141,10 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    * @return Path to the edition marker file.
    */
   public Path retrieveEditionMarkerFilePath(String toolName) {
-    return this.context.getPluginsPath().resolve(toolName).resolve("." + getInstalledEdition());
+    if (this.context.getPluginsPath() != null) {
+      return this.context.getPluginsPath().resolve(toolName).resolve("." + getInstalledEdition());
+    }
+    return null;
   }
 
   /**
@@ -145,7 +156,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
     for (ToolPluginDescriptor plugin : plugins) {
       if (plugin.active()) {
-        if (Files.exists(retrievePluginMarkerFilePath(plugin))) {
+        if (retrievePluginMarkerFilePath(plugin) != null && Files.exists(retrievePluginMarkerFilePath(plugin))) {
           this.context.debug("Markerfile for IDE: {} and active plugin: {} already exists.", getName(), plugin.name());
         } else {
           try (Step step = this.context.newStep("Install plugin " + plugin.name())) {
@@ -154,7 +165,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
           }
         }
       } else {
-        if (Files.exists(retrievePluginMarkerFilePath(plugin))) {
+        if (retrievePluginMarkerFilePath(plugin) != null && Files.exists(retrievePluginMarkerFilePath(plugin))) {
           this.context.debug("Markerfile for IDE: {} and inactive plugin: {} already exists.", getName(), plugin.name());
         } else {
           handleInstall4InactivePlugin(plugin);
@@ -168,7 +179,10 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    * @return Path to the plugin marker file.
    */
   public Path retrievePluginMarkerFilePath(ToolPluginDescriptor plugin) {
-    return this.context.getIdeHome().resolve(".ide").resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name());
+    if (this.context.getIdeHome() != null) {
+      return this.context.getIdeHome().resolve(".ide").resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name());
+    }
+    return null;
   }
 
   /**
@@ -177,9 +191,11 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    * @param plugin the {@link ToolPluginDescriptor plugin} for which the marker file should be created.
    */
   public void createPluginMarkerFile(ToolPluginDescriptor plugin) {
-    Path hiddenIdePath = this.context.getIdeHome().resolve(".ide");
-    this.context.getFileAccess().mkdirs(hiddenIdePath);
-    this.context.getFileAccess().touch(hiddenIdePath.resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name()));
+    if (this.context.getIdeHome() != null) {
+      Path hiddenIdePath = this.context.getIdeHome().resolve(".ide");
+      this.context.getFileAccess().mkdirs(hiddenIdePath);
+      this.context.getFileAccess().touch(hiddenIdePath.resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name()));
+    }
   }
 
   /**

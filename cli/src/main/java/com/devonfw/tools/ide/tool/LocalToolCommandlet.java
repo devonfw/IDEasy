@@ -315,6 +315,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   @Override
   public String getInstalledEdition() {
 
+    if (this.context.getSoftwarePath() == null) {
+      return "";
+    }
     return getInstalledEdition(this.context.getSoftwarePath().resolve(this.tool));
   }
 
