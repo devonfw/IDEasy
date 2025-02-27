@@ -16,7 +16,7 @@
 
   <properties>
     <mainClass>com.devonfw.ide.gui.AppLauncher</mainClass>
-    <javafx.version>21</javafx.version>
+    <javafx.version>25-ea+5</javafx.version>
     <testfx.version>4.0.18</testfx.version>
     <javafx.maven.plugin.version>0.0.8</javafx.maven.plugin.version>
   </properties>
