@@ -36,7 +36,7 @@
 		<!-- Execution of install command-->
 		<SetProperty
 			Id="RunInstallAction"
-			Value="&quot;[%SystemFolder]cmd.exe&quot; /c &quot;[INSTALLFOLDER]bin\ideasy.exe -f install&quot;"
+			Value="&quot;[%SystemFolder]cmd.exe&quot; /c &quot;[INSTALLFOLDER]setup.bat -b&quot;"
 			Before="RunInstallAction"
 			Sequence="execute"
 			/>
