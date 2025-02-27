@@ -37,6 +37,27 @@ jobs:
         with:
           name: natives-${{ matrix.os }}
           path: cli/target/ideasy*
+      - name: Build MSI with WixToolSet
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          cd documentation
+          mvn -B -ntp clean install
+          cd ..
+          mkdir -p windows-installer/msi-files
+          cp documentation/target/generated-docs/IDEasy.pdf windows-installer/msi-files
+          cp -r cli/target/package/* windows-installer/msi-files
+          cd windows-installer
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add WixToolset.UI.wixext/5.0.2
+          wix extension add WixToolset.Util.wixext/5.0.2
+          wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
+      - name: Upload MSI
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi
+          path: windows-installer/ideasy.msi
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to Maven Central.
   # The version number for the next build will be incremented automatically.
@@ -62,7 +83,6 @@ jobs:
       - name: Download natives and build project
         uses: actions/download-artifact@v4
         with:
-          pattern: natives-*
           path: ./cli/target/
       - name: Create assemblies and publish to Apache Maven Central
         run: |
@@ -78,7 +98,7 @@ jobs:
           git tag -a "release/${next_version}" -m "tagged version ${next_version}"
           export GPG_TTY=$TTY
           mkdir -p ./cli/target/
-          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,deploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
+          mvn --settings .mvn/settings.xml -B -ntp deploy -Passembly,msi,deploy -Dgpg.pin.entry.mode=loopback -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }}
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
@@ -102,6 +122,7 @@ jobs:
           git push --tags
           noDotVersion="${current_version//.}"
           gh release create "release/${current_version}" ./cli/target/*.tar.gz --title "${current_version}" --notes "# Download
+          * Windows-MSI: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}.msi
           * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-windows-x64.tar.gz
           * Mac(arm): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac-arm.tar.gz
           * Mac(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac-x64.tar.gz

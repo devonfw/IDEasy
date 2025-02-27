@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/420[#420]: Add MSI Build and Deployment
 * https://github.com/devonfw/IDEasy/issues/1061[#1061]: Mac: no such file or directory: /_ide/installation/functions
 * https://github.com/devonfw/IDEasy/issues/38[#38]: Implement ToolCommandlet for Python
 
