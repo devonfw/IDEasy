@@ -147,7 +147,9 @@ public class ProcessContextGitMock implements ProcessContext {
       }
     }
     this.arguments.clear();
-    return new ProcessResultImpl("git", command.toString(), exitCode, this.outputMessages);
+    List<OutputMessage> outputMessagesCopy = List.copyOf(this.outputMessages);
+    this.outputMessages.clear();
+    return new ProcessResultImpl("git", command.toString(), exitCode, outputMessagesCopy);
   }
 
 }
