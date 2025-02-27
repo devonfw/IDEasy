@@ -15,6 +15,11 @@ public interface WindowsHelper {
   void setUserEnvironmentValue(String key, String value);
 
   /**
+   * @param key the name of the environment variable to remove.
+   */
+  void removeUserEnvironmentValue(String key);
+
+  /**
    * @param key the name of the environment variable.
    * @return the value of the environment variable in the users context.
    */
