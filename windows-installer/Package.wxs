@@ -1,0 +1,78 @@
+﻿<?define ProductName = "IDEasy" ?>
+<?define Manufacturer = "devonfw" ?>
+<?define ProductVersion = "1.0.0" ?>
+<?define UpgradeCode = "1848091f-6184-451b-ba4c-097662e2cfaa" ?>
+
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+	<Package Name="$(var.ProductName)" Manufacturer="$(var.Manufacturer)" Version="$(var.ProductVersion)" UpgradeCode="$(var.UpgradeCode)">
+    <MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
+
+		<Feature Id="main">
+			<!-- Include files that has to be installed -->
+			<Files Include="msi-files\**" />
+		</Feature>
+
+		<MediaTemplate EmbedCab="yes" />
+
+		<!-- Specifying license and bitmap files -->
+		<WixVariable Id="WixUILicenseRtf" Value=".\assets\LICENSE.rtf" />
+		<WixVariable Id="WixUIBannerBmp" Value=".\assets\banner.bmp" />
+
+		<!-- Specifying Directories and Properties for installation location selection-->
+		<Property Id="INSTALLTYPE" Value="ROOT" />
+		
+		<Directory Id="ROOTDIRECTORY">
+			<Directory Id="INSTALLFOLDER" Name="projects\_ide"/>
+		</Directory>
+		
+		<Property Id="USERFOLDER" >
+			<DirectorySearch Id="userProfileSearch" Depth="0" Path="[%USERPROFILE]" />
+		</Property>
+
+		<Directory Id="USERFOLDER" >
+			<Directory Id="USERHOMEFOLDER" Name="projects\_ide" />
+		</Directory>
+
+		<!-- Execution of install command-->
+		<SetProperty
+			Id="RunInstallAction"
+			Value="&quot;[%SystemFolder]cmd.exe&quot; /c &quot;[INSTALLFOLDER]setup.bat -b&quot;"
+			Before="RunInstallAction"
+			Sequence="execute"
+			/>
+		<CustomAction
+			Id="RunInstallAction"
+			BinaryRef="Wix4UtilCA_X64"
+			DllEntry="WixQuietExec"
+			Execute="deferred"
+			Impersonate="yes"
+			Return="check"
+			/>
+
+    <!-- Execution of uninstall command-->
+    <SetProperty
+      Id="RunUninstallAction"
+			Value="&quot;[%SystemFolder]cmd.exe&quot; /c &quot;%IDE_ROOT%\_ide\installation\bin\ideasy.exe -f uninstall&quot;"
+      Before="RunUninstallAction"
+      Sequence="execute"
+      />
+    <CustomAction
+      Id="RunUninstallAction"
+      BinaryRef="Wix4UtilCA_X64"
+      DllEntry="WixQuietExec"
+      Execute="deferred"
+      Impersonate="yes"
+      Return="ignore"
+      />
+
+		<!-- Specifying when Custom Actions should run -->
+		<InstallExecuteSequence>
+			<Custom Action="RunInstallAction" Condition="NOT Installed" Before="InstallFinalize" />
+			<Custom Action='RunUninstallAction' Condition="Installed AND NOT UPGRADINGPRODUCTCODE" After="InstallInitialize" />
+		</InstallExecuteSequence>
+
+		<!-- Custom UI Reference -->
+		<ui:WixUI Id="WixUI_InstallDirCustom" InstallDirectory="INSTALLFOLDER" />
+		
+  </Package>
+</Wix>
