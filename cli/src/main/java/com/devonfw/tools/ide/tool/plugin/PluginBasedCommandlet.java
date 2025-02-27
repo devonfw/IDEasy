@@ -102,7 +102,15 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     Path pluginsInstallationPath = getPluginsInstallationPath();
     FileAccess fileAccess = this.context.getFileAccess();
     if (!Files.exists(retrieveEditionMarkerFilePath(getName()))) {
+      this.context.debug("Matching edition marker file for {} was not found, re-installing plugins", getInstalledEdition());
       fileAccess.delete(pluginsInstallationPath);
+      List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(".ide"), Files::isRegularFile);
+      for (Path path : markerFiles) {
+        if (path.getFileName().toString().startsWith("plugin." + getName())) {
+          this.context.debug("Plugin marker file {} got deleted.", path);
+          fileAccess.delete(path);
+        }
+      }
       createEditionMarkerFile();
     }
     fileAccess.mkdirs(pluginsInstallationPath);
@@ -160,7 +168,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    * @return Path to the plugin marker file.
    */
   public Path retrievePluginMarkerFilePath(ToolPluginDescriptor plugin) {
-    return this.context.getIdeHome().resolve(".ide").resolve("plugin." + getName() + "." + plugin.name());
+    return this.context.getIdeHome().resolve(".ide").resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name());
   }
 
   /**
@@ -171,7 +179,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   public void createPluginMarkerFile(ToolPluginDescriptor plugin) {
     Path hiddenIdePath = this.context.getIdeHome().resolve(".ide");
     this.context.getFileAccess().mkdirs(hiddenIdePath);
-    this.context.getFileAccess().touch(hiddenIdePath.resolve("plugin." + getName() + "." + plugin.name()));
+    this.context.getFileAccess().touch(hiddenIdePath.resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name()));
   }
 
   /**
