@@ -10,9 +10,9 @@
 		<Feature Id="main">
 			<!-- Include files that has to be installed -->
 			<Files Include="msi-files\**" />
-      <Component Id="setEnv" Directory="INSTALLFOLDER" Guid="1014136b-a934-47db-bf69-5da949b2528b">
+      <Component Id="setEnv" Directory="INSTALLFOLDER" Guid="8bea8575-87ca-4847-8b8b-202b6e34901e">
         <CreateFolder/>
-        <Environment Id="IdeRoot" Name="IDE_ROOT" Value="[IDE_ROOT]" Permanent="yes" Part="last" Action="set" System="no" />
+        <Environment Id="IdeRoot" Name="IDE_ROOT" Value="[IDE_ROOT]" Permanent="yes" Action="set" System="no" />
       </Component>
 		</Feature>
 
@@ -30,12 +30,12 @@
 		<Directory Id="ROOTDIRECTORY" />
 
     <CustomAction Id="SetIDE_ROOT" Property="IDE_ROOT" Value="[ROOTDIRECTORY]projects" Execute="immediate" Return="check" />
-    <CustomAction Id="SetTEMP_FOLDER" Property="INSTALLFOLDER" Value="[IDE_ROOT]\temp\ideasy" Execute="immediate" Return="check" />
+    <CustomAction Id="SetTEMP_FOLDER" Property="INSTALLFOLDER" Value="[IDE_ROOT]\_ide\temp\ideasy" Execute="immediate" Return="check" />
 
 		<!-- Execution of install command-->
 		<SetProperty
 			Id="RunInstallAction"
-			Value="&quot;[%SystemFolder]cmd.exe&quot; /c &quot;[INSTALLFOLDER]setup.bat -b&quot;"
+			Value="&quot;[%SystemFolder]cmd.exe&quot; /c &quot;cd /d &quot;[INSTALLFOLDER]&quot; &amp;&amp; bin\ideasy.exe -f install&quot;"
 			Before="RunInstallAction"
 			Sequence="execute"
 			/>
@@ -72,6 +72,5 @@
 
 		<!-- Custom UI Reference -->
 		<ui:WixUI Id="WixUI_InstallDirCustom" InstallDirectory="INSTALLFOLDER" />
-		
   </Package>
 </Wix>
