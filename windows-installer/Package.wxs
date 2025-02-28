@@ -30,7 +30,7 @@
 		<Directory Id="ROOTDIRECTORY" />
 
     <CustomAction Id="SetIDE_ROOT" Property="IDE_ROOT" Value="[ROOTDIRECTORY]projects" Execute="immediate" Return="check" />
-    <CustomAction Id="SetTEMP_FOLDER" Property="INSTALLFOLDER" Value="[IDE_ROOT]\_ide\temp\ideasy" Execute="immediate" Return="check" />
+    <CustomAction Id="SetTEMP_FOLDER" Property="INSTALLFOLDER" Value="[IDE_ROOT]\_ide\tmp\ideasy" Execute="immediate" Return="check" />
 
 		<!-- Execution of install command-->
 		<SetProperty
