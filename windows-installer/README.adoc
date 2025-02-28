@@ -21,14 +21,14 @@ Ensure you have the following installed:
 
 2. **Build the MSI package**
 
-   wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -d ProductVersion=${current.version} -o ideasy.msi
+   wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
 
 == Debugging Installation Issues
 
 To debug the installation process and capture detailed logs, use the following command:
 
 ```
-msiexec /i IDEASY.msi /l*v install.log
+msiexec /i IDEASY.msi /l*vx install.log
 ```
 
 This will create a verbose log file (`install.log`) that can help diagnose installation issues.
