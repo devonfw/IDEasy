@@ -45,7 +45,7 @@
 			DllEntry="WixQuietExec"
 			Execute="deferred"
 			Impersonate="yes"
-			Return="ignore"
+			Return="check"
 			/>
 
     <!-- Execution of uninstall command-->
