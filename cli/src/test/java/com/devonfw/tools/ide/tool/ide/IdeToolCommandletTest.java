@@ -32,17 +32,19 @@ public class IdeToolCommandletTest extends AbstractIdeContextTest {
     assertThat(workspace.resolve("user.properties")).exists().content().contains("ijversion=2023.3.3");
   }
 
+  /**
+   * Tests if after the installation of intellij the expected plugin marker file is existing.
+   */
   @Test
   public void testCheckPluginInstallation() {
     // arrange
     IdeContext context = newContext("intellij");
-    Path workspace = context.getWorkspacePath();
 
     // act
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
     commandlet.run();
-    // assert
 
+    // assert
     assertThat(commandlet.retrieveEditionMarkerFilePath(commandlet.getName())).exists();
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
   }

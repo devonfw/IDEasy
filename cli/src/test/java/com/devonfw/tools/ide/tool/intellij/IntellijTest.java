@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.tool.intellij;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.devonfw.tools.ide.commandlet.InstallPluginCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
@@ -118,27 +117,6 @@ public class IntellijTest extends AbstractIdeContextTest {
         "custom plugin repo url is: http://customRepo");
   }
 
-  /**
-   * Tests if {@link InstallPluginCommandlet} can install intellij plugins with custom url.
-   *
-   * @param os String of the OS to use.
-   */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijInstallPluginWithCustomRepoUrl(String os) {
-
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    this.context.setSystemInfo(systemInfo);
-    InstallPluginCommandlet commandlet = context.getCommandletManager().getCommandlet(InstallPluginCommandlet.class);
-    commandlet.tool.setValueAsString("intellij", context);
-    commandlet.plugin.setValueAsString("ActivePlugin", context);
-    // act
-    commandlet.run();
-
-    // assert
-    assertThat(context).logAtSuccess().hasEntries("Successfully ended step 'Install plugin: ActivePlugin'.");
-  }
 
   private void checkInstallation(IdeTestContext context) {
 

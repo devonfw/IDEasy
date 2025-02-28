@@ -93,8 +93,6 @@ public class Vscode extends IdeToolCommandlet {
         }
       }
     }
-    // TODO: move into loop and check result before adding marker file
-//    ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.THROW_ERR, pc, extensionsCommands.toArray(String[]::new));
   }
 
   private void doAddRecommendations(List<ToolPluginDescriptor> recommendations) {

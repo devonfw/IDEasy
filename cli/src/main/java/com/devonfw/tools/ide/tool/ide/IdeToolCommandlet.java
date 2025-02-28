@@ -45,9 +45,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
   @Override
   public final void run() {
-    // TODO: add plugin install here, initialize processContext
     configureWorkspace();
-
     super.run();
   }
 
