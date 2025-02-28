@@ -781,7 +781,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void delete(Path path) {
 
-    if (!Files.exists(path)) {
+    if (!Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
       this.context.trace("Deleting {} skipped as the path does not exist.", path);
       return;
     }
