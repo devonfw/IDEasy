@@ -206,6 +206,16 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   public abstract void installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc);
 
   /**
+   * @param plugin the {@link ToolPluginDescriptor} to install.
+   * @param step the {@link Step} for the plugin installation.
+   */
+  public void installPlugin(ToolPluginDescriptor plugin, final Step step) {
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+    install(true, pc);
+    installPlugin(plugin, step, pc);
+  }
+
+  /**
    * @param plugin the {@link ToolPluginDescriptor} to uninstall.
    */
   public void uninstallPlugin(ToolPluginDescriptor plugin) {
