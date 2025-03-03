@@ -29,7 +29,7 @@ Please note that we are trying to minimize any potential side-effect from `IDEas
 |*`GRAALVM_HOME`*|`$IDE_HOME/software/extra/graalvm`|Path to GraalVM
 |*`IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED`*|`true`|Enable/disable legacy support for devonfw-ide link:configurator.adoc[configuration templates] in IDE workspace folders.
 |`ECLIPSE_VMARGS`|`-Xms128M -Xmx768M -XX:MaxPermSize=256M`|JVM options for Eclipse
-|`PREFERRED_GIT_PROTOCOL`| |Allows to enforce a specific protocol for git. Options are `git` (for SSH) and `https`. If set any git URL will automatically be converted to the preferred protocol before IDEasy clones it. This option should only be set for individual users in `$IDE_HOME/conf/ide.properties` or `~/.ide/ide.properties` (and not in shared `settings`).
+|`PREFERRED_GIT_PROTOCOL`| |Allows to enforce a specific protocol for git. Options are `ssh` (for SSH) and `https`. If set any git URL will automatically be converted to the preferred protocol before IDEasy clones it. This option should only be set for individual users in `$IDE_HOME/conf/ide.properties` or `~/.ide/ide.properties` (and not in shared `settings`).
 |`«TOOL»_EDITION`|`«tool»`|The edition of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_EDITION`, `INTELLIJ_EDITION` or `DOCKER_EDITION`). Default of `DOCKER_EDITION` is `rancher`.
 |`«TOOL»_VERSION`|`*`|The version of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_VERSION` or `MVN_VERSION`).
 |`«TOOL»_BUILD_OPTS`| |The arguments provided to the build-tool `«TOOL»` in order to run a build. E.g.`clean install`
