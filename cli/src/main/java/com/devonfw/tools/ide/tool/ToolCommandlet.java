@@ -256,8 +256,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
   public boolean install(boolean silent) {
-
-    return install(silent, EnvironmentContext.getEmpty());
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+    return install(silent, pc);
   }
 
   /**

@@ -75,7 +75,8 @@ public class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
     public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
 
       // skip installation but trigger postInstall to test mocked plugin installation
-      postInstall(true);
+      ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+      postInstall(true, pc);
       return new ProcessResultImpl(this.tool, this.tool, 0, List.of());
     }
 

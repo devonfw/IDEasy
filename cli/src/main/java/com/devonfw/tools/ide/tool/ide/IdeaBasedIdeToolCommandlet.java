@@ -20,6 +20,10 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
+/**
+ * {@link IdeToolCommandlet} for IDEA based commandlets like: {@link com.devonfw.tools.ide.tool.intellij.Intellij IntelliJ} and
+ * {@link com.devonfw.tools.ide.tool.androidstudio.AndroidStudio Android Studio}.
+ */
 public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
 
   private static final String BUILD_FILE = "build.txt";

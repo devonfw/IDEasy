@@ -95,10 +95,9 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   }
 
   @Override
-  protected void postInstall(boolean newlyInstalled) {
+  protected void postInstall(boolean newlyInstalled, ProcessContext pc) {
 
-    super.postInstall(newlyInstalled);
-    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+    super.postInstall(newlyInstalled, pc);
     Path pluginsInstallationPath = getPluginsInstallationPath();
     FileAccess fileAccess = this.context.getFileAccess();
     if (!Files.exists(retrieveEditionMarkerFilePath(getName()))) {

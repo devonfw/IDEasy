@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
@@ -68,6 +69,18 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   @Override
   public boolean install(boolean silent, EnvironmentContext environmentContext) {
+    return install(silent, (ProcessContext) environmentContext);
+  }
+
+  /**
+   * Installs or updates the managed {@link #getName() tool}.
+   *
+   * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
+   * @param processContext the {@link ProcessContext} used to
+   *     {@link LocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
+   * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
+   */
+  public boolean install(boolean silent, ProcessContext processContext) {
 
     installDependencies();
     VersionIdentifier configuredVersion = getConfiguredVersion();
@@ -76,13 +89,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
     try {
       // install configured version of our tool in the software repository if not already installed
-      ToolInstallation installation = installTool(configuredVersion, environmentContext);
+      ToolInstallation installation = installTool(configuredVersion, processContext);
 
       // check if we already have this version installed (linked) locally in IDE_HOME/software
       VersionIdentifier resolvedVersion = installation.resolvedVersion();
       if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation())
           || (configuredVersion.matches(installedVersion) && context.isSkipUpdatesMode())) {
-        return toolAlreadyInstalled(silent, installedVersion, step);
+        return toolAlreadyInstalled(silent, installedVersion, step, processContext);
       }
       if (!isIgnoreSoftwareRepo()) {
         // we need to link the version or update the link.
@@ -95,7 +108,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         fileAccess.symlink(installation.linkDir(), toolPath);
       }
       this.context.getPath().setPath(this.tool, installation.binDir());
-      postInstall(true);
+      postInstall(true, processContext);
       if (installedVersion == null) {
         step.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
       } else {
@@ -116,8 +129,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *
    * @param newlyInstalled {@code true} if the tool was installed or updated (at least link to software folder was created/updated), {@code false} otherwise
    *     (configured version was already installed and nothing changed).
+   * @param pc the {@link ProcessContext} to use.
    */
-  protected void postInstall(boolean newlyInstalled) {
+  protected void postInstall(boolean newlyInstalled, ProcessContext pc) {
 
     if (newlyInstalled) {
       postInstall();
@@ -132,11 +146,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // nothing to do by default
   }
 
-  private boolean toolAlreadyInstalled(boolean silent, VersionIdentifier installedVersion, Step step) {
+  private boolean toolAlreadyInstalled(boolean silent, VersionIdentifier installedVersion, Step step, ProcessContext pc) {
     if (!silent) {
       this.context.info("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
     }
-    postInstall(false);
+    postInstall(false, pc);
     step.success();
     return false;
   }
