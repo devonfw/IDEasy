@@ -28,7 +28,6 @@ public class Java extends LocalToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
-    environmentContext.withEnvVar("JAVA_HOME", toolInstallation.linkDir().toString());
   }
 
   @Override
