@@ -125,7 +125,7 @@ jobs:
           git push --tags
           noDotVersion="${current_version//.}"
           gh release create "release/${current_version}" ./cli/target/*.tar.gz --title "${current_version}" --notes "# Download
-          * Windows-MSI: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}.msi
+          * Windows-MSI: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-windows-x64.msi
           * Windows: https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-windows-x64.tar.gz
           * Mac(arm): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac-arm.tar.gz
           * Mac(x64): https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/${current_version}/ide-cli-${current_version}-mac-x64.tar.gz
