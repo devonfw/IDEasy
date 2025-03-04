@@ -27,7 +27,7 @@ For varabiles check the documentation of https://github.com/devonfw/ide/blob/mas
 == Backward compatibility
 
 IDEasy is designed backward compatible to devonfw-ide.
-That means if will still read `devon.properties` if present and no `ide.properties` are found instead.
+That means we will still read `devon.properties` if present and no `ide.properties` are found instead.
 Also it honors legacy variable names from devonfw-ide like `DEVON_IDE_TOOLS` or `DEVON_IDE_CUSTOM_TOOLS`.
 Also workspace templates are still supported even with legacy syntax to emulate the behaviour of devonfw-ide in IDEasy.
 
