@@ -38,7 +38,6 @@ import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.model.report.UrlUpdaterReport;
-import com.devonfw.tools.ide.url.tool.pip.PipUrlUpdater;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.HexUtil;
 
@@ -364,7 +363,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * Checks if the content type was not of type text (this method is required because {@link PipUrlUpdater} returns text and needs to be overridden)
+   * Checks if the content type was not of type text (this method is required because {@link com.devonfw.tools.ide.url.tool.pip.PipUrlUpdater} returns text and
+   * needs to be overridden)
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
