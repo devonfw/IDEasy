@@ -20,4 +20,4 @@ jobs:
           cd cli
           mkdir ../ide-urls
           mvn -B -ntp -Dstyle.color=always -DskipTests install
-          mvn -B -ntp -Dstyle.color=always -DskipTests exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="../ide-urls PT5H30M pip"
+          mvn -B -ntp -Dstyle.color=always -DskipTests exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="../ide-urls PT1S pip"
