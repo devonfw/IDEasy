@@ -221,11 +221,6 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public boolean exists(Path file) {
-    return Files.exists(file);
-  }
-
-  @Override
   public boolean isExpectedFolder(Path folder) {
 
     if (Files.isDirectory(folder)) {
@@ -781,7 +776,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void delete(Path path) {
 
-    if (!Files.exists(path)) {
+    if (!Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
       this.context.trace("Deleting {} skipped as the path does not exist.", path);
       return;
     }
