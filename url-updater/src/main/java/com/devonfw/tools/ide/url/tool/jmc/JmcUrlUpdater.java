@@ -26,11 +26,17 @@ public class JmcUrlUpdater extends GithubUrlUpdater {
     return "jmc-build";
   }
 
+  @Override
+  protected String getBaseUrl() {
+
+    return GITHUB_BASE_URL;
+  }
+
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = "https://github.com/adoptium/jmc-build/releases/download/${version}/org.openjdk.jmc-${version}-";
+    String baseUrl = getBaseUrl() + "/adoptium/jmc-build/releases/download/${version}/org.openjdk.jmc-${version}-";
 
     doAddVersion(urlVersion, baseUrl + "win32.win32.x86_64.zip", WINDOWS);
     doAddVersion(urlVersion, baseUrl + "macosx.cocoa.x86_64.tar.gz", MAC);

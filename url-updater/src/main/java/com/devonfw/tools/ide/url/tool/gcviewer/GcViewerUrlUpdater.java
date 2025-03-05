@@ -8,6 +8,8 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
  */
 public class GcViewerUrlUpdater extends GithubUrlUpdater {
 
+  private static final String BASE_URL = "https://sourceforge.net";
+
   @Override
   protected String getTool() {
 
@@ -17,7 +19,7 @@ public class GcViewerUrlUpdater extends GithubUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    doAddVersion(urlVersion, "https://sourceforge.net/projects/gcviewer/files/gcviewer-${version}.jar");
+    doAddVersion(urlVersion, getBaseUrl() + "/projects/gcviewer/files/gcviewer-${version}.jar");
   }
 
   @Override
@@ -30,6 +32,12 @@ public class GcViewerUrlUpdater extends GithubUrlUpdater {
   protected String getGithubRepository() {
 
     return "GCViewer";
+  }
+
+  @Override
+  protected String getBaseUrl() {
+
+    return BASE_URL;
   }
 
   @Override

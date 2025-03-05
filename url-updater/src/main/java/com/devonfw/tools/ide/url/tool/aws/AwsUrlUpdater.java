@@ -29,9 +29,7 @@ public class AwsUrlUpdater extends GithubUrlUpdater {
     return "aws-cli";
   }
 
-  /**
-   * @return the base url.
-   */
+  @Override
   protected String getBaseUrl() {
     return BASE_URL;
   }

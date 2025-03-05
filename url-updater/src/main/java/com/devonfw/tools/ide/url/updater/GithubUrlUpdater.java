@@ -6,9 +6,14 @@ import com.devonfw.tools.ide.github.GithubTag;
 import com.devonfw.tools.ide.github.GithubTags;
 
 /**
- * {@link JsonUrlUpdater} for github projects.
+ * {@link JsonUrlUpdater} for GitHub projects.
  */
 public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, GithubTag> {
+
+  /**
+   * The default GitHub base url.
+   */
+  protected static final String GITHUB_BASE_URL = "https://github.com";
 
   @Override
   protected String doGetVersionUrl() {
@@ -41,4 +46,9 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, Github
 
     return jsonObject;
   }
+
+  /**
+   * @return the base url.
+   */
+  protected abstract String getBaseUrl();
 }
