@@ -8,6 +8,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/910[#910]: Cannot update Intellij on Linux - FileAlreadyExistsException
 * https://github.com/devonfw/IDEasy/issues/38[#38]: Implement ToolCommandlet for Python
+* https://github.com/devonfw/IDEasy/issues/38[#353]: Implement ToolCommandlet for pip
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/23?closed=1[milestone 2025.03.001].
 
