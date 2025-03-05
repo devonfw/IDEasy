@@ -41,10 +41,4 @@ public class GraalVm extends LocalToolCommandlet {
     return "java";
   }
 
-  @Override
-  public void postInstall() {
-
-    super.postInstall();
-  }
-
 }
