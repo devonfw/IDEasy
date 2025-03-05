@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.python;
+package com.devonfw.tools.ide.url.tool.python;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

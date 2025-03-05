@@ -2,8 +2,6 @@ package com.devonfw.tools.ide.url.tool.java;
 
 import java.util.Collection;
 
-import com.devonfw.tools.ide.tool.java.JavaJsonObject;
-import com.devonfw.tools.ide.tool.java.JavaJsonVersion;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 

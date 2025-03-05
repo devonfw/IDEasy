@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.java;
+package com.devonfw.tools.ide.url.tool.java;
 
 import com.devonfw.tools.ide.json.JsonVersionItem;
 import com.fasterxml.jackson.annotation.JsonProperty;

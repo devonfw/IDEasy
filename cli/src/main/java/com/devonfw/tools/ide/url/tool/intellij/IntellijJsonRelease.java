@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.intellij;
+package com.devonfw.tools.ide.url.tool.intellij;
 
 import java.util.Map;
 

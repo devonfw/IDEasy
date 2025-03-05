@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.java;
+package com.devonfw.tools.ide.url.tool.java;
 
 import java.util.List;
 

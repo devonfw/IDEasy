@@ -7,9 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.tool.python.PythonFile;
-import com.devonfw.tools.ide.tool.python.PythonJsonObject;
-import com.devonfw.tools.ide.tool.python.PythonRelease;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.fasterxml.jackson.core.JsonProcessingException;
