@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.androidstudio;
 
 import java.util.List;
 
+import com.devonfw.tools.ide.url.tool.androidstudio.AndroidJsonItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**

@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.intellij;
 
 import java.util.List;
 
+import com.devonfw.tools.ide.url.tool.intellij.IntellijJsonDownloadsItem;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
