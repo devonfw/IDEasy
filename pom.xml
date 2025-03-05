@@ -20,6 +20,9 @@
     <github.repository>IDEasy</github.repository>
     <ide_version>${revision}</ide_version>
     <java.version>21</java.version>
+    <maven.compiler.source>21</maven.compiler.source>
+    <maven.compiler.target>21</maven.compiler.target>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <jline.version>3.24.1</jline.version>
     <jansi.version>2.4.1</jansi.version>
     <jackson.version>2.18.2</jackson.version>
