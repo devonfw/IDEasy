@@ -1,8 +1,6 @@
 name: Update URLS
 on:
   workflow_dispatch:
-  schedule:
-    - cron: '0 3 * * *'
 jobs:
   updateURLS:
     runs-on: ubuntu-latest
