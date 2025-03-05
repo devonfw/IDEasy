@@ -24,18 +24,5 @@ jobs:
       - name: Build and run url updater
         run: |
           cd cli
-          mvn -B -ntp -Dstyle.color=always install
-          mvn -B -ntp -Dstyle.color=always exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="../ide-urls PT5H30M pip"
-      - name: Commit and push to ide-urls
-        run: |
-          cd ide-urls
-          git config --global user.name ${{ secrets.BUILD_USER }}
-          git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
-          if [ "$(git status -z)" = "" ]
-          then
-            echo "No changes, nothing to commit."
-          else
-            git add .
-            git commit -m "Update urls"
-            git push
-          fi
+          mvn -B -ntp -Dstyle.color=always -DskipTests install
+          mvn -B -ntp -Dstyle.color=always -DskipTests exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="../ide-urls PT5H30M pip"
