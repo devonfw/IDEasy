@@ -27,12 +27,11 @@ import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.UrlUpdater;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test of {@link UrlUpdater} using wiremock to simulate network downloads.
+ * Test of {@link com.devonfw.tools.ide.url.updater.UrlUpdater} using wiremock to simulate network downloads.
  */
 @WireMockTest
 public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
@@ -43,7 +42,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/UrlUpdaterTest";
 
   /**
-   * Tests if the {@link UrlUpdater} can automatically add a missing OS (in this case the linux_x64)
+   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} can automatically add a missing OS (in this case the linux_x64)
    *
    * @param tempDir Temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
@@ -255,7 +254,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Tests if the {@link UrlUpdater} will fail resolving a server with a Content-Type:text header response.
+   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} will fail resolving a server with a Content-Type:text header response.
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
