@@ -18,5 +18,6 @@ jobs:
       - name: Build and run url updater
         run: |
           cd cli
+          mkdir ../ide-urls
           mvn -B -ntp -Dstyle.color=always -DskipTests install
           mvn -B -ntp -Dstyle.color=always -DskipTests exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="../ide-urls PT5H30M pip"
