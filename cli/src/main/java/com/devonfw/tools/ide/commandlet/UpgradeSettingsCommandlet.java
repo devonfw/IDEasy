@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.function.Function;
@@ -59,7 +60,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     Path newFolder = folder.resolve(newName);
     if (fileAccess.isExpectedFolder(legacyFolder)) {
       try {
-        if (!fileAccess.exists(newFolder)) {
+        if (!Files.exists(newFolder)) {
           fileAccess.move(legacyFolder, newFolder, StandardCopyOption.REPLACE_EXISTING);
           this.context.success("Successfully renamed folder '{}' to '{}' in {}.", legacyName, newName, folder);
         }
@@ -106,9 +107,8 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       }
       environmentVariables = environmentVariables.getParent();
     }
-    FileAccess fileAccess = this.context.getFileAccess();
     Path templatePropertiesDir = this.context.getSettingsTemplatePath().resolve(IdeContext.FOLDER_CONF);
-    if (fileAccess.exists(templatePropertiesDir)) {
+    if (Files.exists(templatePropertiesDir)) {
       EnvironmentVariablesPropertiesFile environmentVariablesProperties = new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.CONF,
           templatePropertiesDir, null, this.context);
       updateProperties(environmentVariablesProperties);

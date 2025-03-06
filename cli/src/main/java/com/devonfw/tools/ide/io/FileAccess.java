@@ -45,12 +45,6 @@ public interface FileAccess {
   boolean isFile(Path file);
 
   /**
-   * @param file the {@link Path} to check.
-   * @return {@code true} if the given {@code file} points to an existing file, {@code false} otherwise (the given {@link Path} does not exist
-   */
-  boolean exists(Path file);
-
-  /**
    * @param folder the {@link Path} to check.
    * @return {@code true} if the given {@code folder} points to an existing directory, {@code false} otherwise (a warning is logged in this case).
    */
