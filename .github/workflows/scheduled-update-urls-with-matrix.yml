@@ -1,0 +1,19 @@
+name: Update URLs
+run-name: Nightly update of URLs
+
+# Controls when the workflow will run
+on:
+  workflow_dispatch:
+
+jobs:
+  # Update URLS from matrix (list)
+  IDEasy-update-urls:
+    strategy:
+      matrix:
+        tool-name: [ pip ]
+      fail-fast: false
+    uses: ./../.github/workflows/update-url.yml@main
+    with:
+      tool-name: ${{ matrix.tool-name }}
+    secrets: inherit
+

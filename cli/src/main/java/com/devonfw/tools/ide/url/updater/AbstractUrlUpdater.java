@@ -739,6 +739,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
     String[] existingVersions = edition.getChildNames().toArray(i -> new String[i]);
     for (String version : existingVersions) {
       UrlVersion urlVersion = edition.getChild(version);
+      if (isTimeoutExpired()) {
+        logger.info("HLO: break :-))");
+        break;
+      }
       if (urlVersion != null) {
         UrlStatusFile urlStatusFile = urlVersion.getOrCreateStatus();
         StatusJson statusJson = urlStatusFile.getStatusJson();
