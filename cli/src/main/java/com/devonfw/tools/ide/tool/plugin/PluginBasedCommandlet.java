@@ -179,7 +179,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   public Path retrievePluginMarkerFilePath(ToolPluginDescriptor plugin) {
     if (this.context.getIdeHome() != null) {
-      return this.context.getIdeHome().resolve(".ide").resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name());
+      return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name());
     }
     return null;
   }
