@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
  */
 public class AwsUrlUpdater extends GithubUrlUpdater {
 
-  private static final String BASE_URL = "https://awscli.amazonaws.com/";
+  private static final String BASE_URL = "https://awscli.amazonaws.com";
 
   @Override
   protected String getTool() {
@@ -60,12 +60,12 @@ public class AwsUrlUpdater extends GithubUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     String baseUrl = getBaseUrl();
-    boolean ok = doAddVersion(urlVersion, baseUrl + "AWSCLIV2-${version}.msi", OperatingSystem.WINDOWS);
+    boolean ok = doAddVersion(urlVersion, baseUrl + "/AWSCLIV2-${version}.msi", OperatingSystem.WINDOWS);
     if (!ok) {
       return;
     }
-    doAddVersion(urlVersion, baseUrl + "awscli-exe-linux-x86_64-${version}.zip", OperatingSystem.LINUX);
-    doAddVersion(urlVersion, baseUrl + "AWSCLIV2-${version}.pkg", OperatingSystem.MAC);
+    doAddVersion(urlVersion, baseUrl + "/awscli-exe-linux-x86_64-${version}.zip", OperatingSystem.LINUX);
+    doAddVersion(urlVersion, baseUrl + "/AWSCLIV2-${version}.pkg", OperatingSystem.MAC);
   }
 
 }

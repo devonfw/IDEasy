@@ -7,8 +7,6 @@ import com.devonfw.tools.ide.url.model.folder.UrlVersion;
  */
 public class GraalVmOracleUrlUpdater extends GraalVmUrlUpdater {
 
-  private static final String BASE_URL = "https://github.com";
-
   @Override
   protected String getEdition() {
 
@@ -34,6 +32,6 @@ public class GraalVmOracleUrlUpdater extends GraalVmUrlUpdater {
   @Override
   protected String getBaseUrl() {
 
-    return BASE_URL;
+    return GITHUB_BASE_URL;
   }
 }
