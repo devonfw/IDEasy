@@ -191,7 +191,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   public void createPluginMarkerFile(ToolPluginDescriptor plugin) {
     if (this.context.getIdeHome() != null) {
-      Path hiddenIdePath = this.context.getIdeHome().resolve(".ide");
+      Path hiddenIdePath = this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE);
       this.context.getFileAccess().mkdirs(hiddenIdePath);
       this.context.getFileAccess().touch(hiddenIdePath.resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name()));
     }
