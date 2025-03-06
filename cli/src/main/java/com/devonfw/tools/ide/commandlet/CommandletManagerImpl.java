@@ -40,7 +40,6 @@ import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
-import com.devonfw.tools.ide.tool.rewrite.Rewrite;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.tomcat.Tomcat;
@@ -102,7 +101,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Node(context));
     add(new Npm(context));
     add(new Mvn(context));
-    add(new Rewrite(context));
+    add(new RefactorCommandlet(context));
     add(new GcViewer(context));
     add(new Gradle(context));
     add(new Eclipse(context));
