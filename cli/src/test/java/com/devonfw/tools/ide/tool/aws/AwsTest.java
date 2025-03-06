@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.aws;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -94,22 +93,6 @@ public class AwsTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("aws/.ide.software.version")).exists().hasContent("2.24.15");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed aws in version 2.24.15");
     assertThat(context.getConfPath().resolve(PROJECT_AWS)).exists();
-  }
-
-  
-  @Disabled
-  @Test
-  public void testAwsInstallLinux() {
-
-    // arrange
-    context.setSystemInfo(SystemInfoMock.of("linux"));
-    Aws awsCommandlet = new Aws(context);
-
-    // act
-    awsCommandlet.install();
-
-    // assert
-    checkInstallation(context);
   }
 
 }
