@@ -51,11 +51,16 @@ public class AwsTest extends AbstractIdeContextTest {
 
   /**
    * Tests if the environment variables are correctly set after {@link Aws} is installed.
+   *
+   * @param os String of the OS to use.
    */
-  @Test
-  public void testAwsSetEnvironment() {
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac" })
+  public void testAwsSetEnvironment(String os) {
 
     // arrange
+    SystemInfo systemInfo = SystemInfoMock.of(os);
+    context.setSystemInfo(systemInfo);
     Aws awsCommandlet = new Aws(context);
     EnvironmentCommandlet envCommandlet = new EnvironmentCommandlet(context);
 
@@ -64,10 +69,18 @@ public class AwsTest extends AbstractIdeContextTest {
     envCommandlet.run();
 
     // assert
-    assertThat(context).log().hasEntries( //
-        IdeLogEntry.ofProcessable("AWS_CONFIG_FILE=" + context.getConfPath().resolve(PROJECT_AWS).resolve("config")), //
-        IdeLogEntry.ofProcessable("AWS_SHARED_CREDENTIALS_FILE=" + context.getConfPath().resolve(PROJECT_AWS).resolve("credentials"))
-    );
+    if (os.equals("mac")) {
+      assertThat(context).log().hasEntries(
+          IdeLogEntry.ofProcessable("export AWS_CONFIG_FILE=\"" + context.getConfPath().resolve(PROJECT_AWS).resolve("config") + "\""), //
+          IdeLogEntry.ofProcessable("export AWS_SHARED_CREDENTIALS_FILE=\"" + context.getConfPath().resolve(PROJECT_AWS).resolve("credentials") + "\"")
+      );
+    } else {
+      assertThat(context).log().hasEntries(
+          IdeLogEntry.ofProcessable("AWS_CONFIG_FILE=" + context.getConfPath().resolve(PROJECT_AWS).resolve("config")), //
+          IdeLogEntry.ofProcessable("AWS_SHARED_CREDENTIALS_FILE=" + context.getConfPath().resolve(PROJECT_AWS).resolve("credentials"))
+      );
+    }
+
   }
 
   /**
