@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/654[#654]: Improve plugin support
 * https://github.com/devonfw/IDEasy/issues/38[#38]: Implement ToolCommandlet for Python
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/23?closed=1[milestone 2025.03.001].
@@ -17,7 +18,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/420[#420]: Add MSI Build and Deployment
 * https://github.com/devonfw/IDEasy/issues/1061[#1061]: Mac: no such file or directory: /_ide/installation/functions
 * https://github.com/devonfw/IDEasy/issues/789[#789]: Add support to uninstall
-* https://github.com/devonfw/IDEasy/issues/654[#654]: Improve plugin support
 * https://github.com/devonfw/IDEasy/issues/1065[#1065]: NullPointerException in MavenRepository.getDownloadedArtifact
 * https://github.com/devonfw/IDEasy/issues/1060[#1060]: Command "ide status" doesn't show information about a pending upgrade when started outside of project
 
