@@ -25,8 +25,9 @@ public class ExamplePluginBasedCommandlet extends PluginBasedCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
     step.success();
+    return true;
   }
 }

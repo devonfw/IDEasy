@@ -45,7 +45,6 @@ public class IdeToolCommandletTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(commandlet.retrieveEditionMarkerFilePath(commandlet.getName())).exists();
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
   }
 
@@ -64,7 +63,6 @@ public class IdeToolCommandletTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(commandlet.retrieveEditionMarkerFilePath(commandlet.getName())).exists();
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
     assertThat(context.getPluginsPath().resolve("intellij").resolve(".intellij")).exists();
 
@@ -73,11 +71,8 @@ public class IdeToolCommandletTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(context.getPluginsPath().resolve("intellij").resolve(".intellij")).doesNotExist();
-    assertThat(context).logAtDebug().hasEntries("Matching edition marker file for ultimate was not found, re-installing plugins");
     assertThat(context).logAtDebug()
         .hasEntries("Plugin marker file " + context.getIdeHome().resolve(".ide").resolve("plugin.intellij.intellij.ActivePlugin") + " got deleted.");
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
-    assertThat(context.getPluginsPath().resolve("intellij").resolve(".ultimate")).exists();
   }
 }

@@ -100,20 +100,15 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
     super.postInstall(newlyInstalled, pc);
     Path pluginsInstallationPath = getPluginsInstallationPath();
     FileAccess fileAccess = this.context.getFileAccess();
-    if (!Files.exists(retrieveEditionMarkerFilePath(getName()))) {
-      this.context.debug("Matching edition marker file for {} was not found, re-installing plugins", getInstalledEdition());
+    if (newlyInstalled) {
       fileAccess.delete(pluginsInstallationPath);
-      if (this.context.getIdeHome() != null) {
-        List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(".ide"), Files::isRegularFile);
-        for (Path path : markerFiles) {
-          if (path.getFileName().toString().startsWith("plugin." + getName())) {
-            this.context.debug("Plugin marker file {} got deleted.", path);
-            fileAccess.delete(path);
-          }
+      List<Path> markerFiles = fileAccess.listChildren(this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE), Files::isRegularFile);
+      for (Path path : markerFiles) {
+        if (path.getFileName().toString().startsWith("plugin." + getName())) {
+          this.context.debug("Plugin marker file {} got deleted.", path);
+          fileAccess.delete(path);
         }
       }
-
-      createEditionMarkerFile();
     }
     fileAccess.mkdirs(pluginsInstallationPath);
     installPlugins(pc);
@@ -121,29 +116,6 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
 
   private void installPlugins(ProcessContext pc) {
     installPlugins(getPlugins().getPlugins(), pc);
-  }
-
-  /**
-   * Creates a marker file for an installed edition.
-   */
-  public void createEditionMarkerFile() {
-    if (this.context.getPluginsPath() != null) {
-      Path pluginsPath = retrieveEditionMarkerFilePath(getName());
-      FileAccess fileAccess = this.context.getFileAccess();
-      fileAccess.mkdirs(this.context.getPluginsPath().resolve(getName()));
-      fileAccess.touch(pluginsPath);
-    }
-  }
-
-  /**
-   * @param toolName the tool name to search for.
-   * @return Path to the edition marker file.
-   */
-  public Path retrieveEditionMarkerFilePath(String toolName) {
-    if (this.context.getPluginsPath() != null) {
-      return this.context.getPluginsPath().resolve(toolName).resolve("." + getInstalledEdition());
-    }
-    return null;
   }
 
   /**
@@ -159,8 +131,10 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
           this.context.debug("Markerfile for IDE: {} and active plugin: {} already exists.", getName(), plugin.name());
         } else {
           try (Step step = this.context.newStep("Install plugin " + plugin.name())) {
-            installPlugin(plugin, step, pc);
-            createPluginMarkerFile(plugin);
+            boolean result = installPlugin(plugin, step, pc);
+            if (result) {
+              createPluginMarkerFile(plugin);
+            }
           }
         }
       } else {
@@ -179,7 +153,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   public Path retrievePluginMarkerFilePath(ToolPluginDescriptor plugin) {
     if (this.context.getIdeHome() != null) {
-      return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE).resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name());
+      return this.context.getIdeHome().resolve(IdeContext.FOLDER_DOT_IDE)
+          .resolve("plugin" + "." + getName() + "." + getInstalledEdition() + "." + plugin.name());
     }
     return null;
   }
@@ -201,8 +176,9 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    * @param plugin the {@link ToolPluginDescriptor} to install.
    * @param step the {@link Step} for the plugin installation.
    * @param pc the {@link ProcessContext} to use.
+   * @return boolean true if the installation of the plugin succeeded, false if not.
    */
-  public abstract void installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc);
+  public abstract boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc);
 
   /**
    * @param plugin the {@link ToolPluginDescriptor} to install.

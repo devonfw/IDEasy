@@ -63,7 +63,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, final Step step, ProcessContext pc) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, final Step step, ProcessContext pc) {
 
     // In case of plugins with a custom repo url
     boolean customRepo = plugin.url() != null;
@@ -75,10 +75,12 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     }
     ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.LOG_WARNING, pc, args.toArray(String[]::new));
     if (result.isSuccessful()) {
+      this.context.success("Successfully installed plugin: {}", plugin.name());
       step.success();
-      createPluginMarkerFile(plugin);
+      return true;
     } else {
       step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
+      return false;
     }
   }
 

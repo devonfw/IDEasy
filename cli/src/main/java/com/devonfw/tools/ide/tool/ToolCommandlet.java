@@ -264,11 +264,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * Installs or updates the managed {@link #getName() tool}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @param environmentContext the {@link EnvironmentContext} used to
+   * @param processContext the {@link ProcessContext} used to
    *     {@link LocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
-  public abstract boolean install(boolean silent, EnvironmentContext environmentContext);
+  public abstract boolean install(boolean silent, ProcessContext processContext);
 
   /**
    * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.

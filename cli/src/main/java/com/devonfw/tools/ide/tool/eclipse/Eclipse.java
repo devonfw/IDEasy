@@ -85,22 +85,22 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
     ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, pc, "-application", "org.eclipse.equinox.p2.director",
         "-repository", plugin.url(), "-installIU", plugin.id());
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
+          this.context.success("Successfully installed plugin: {}", plugin.name());
           step.success();
-          createPluginMarkerFile(plugin);
-          return;
+          return true;
         }
       }
     }
-
     result.log(IdeLogLevel.DEBUG, context, IdeLogLevel.ERROR);
     step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
+    return false;
   }
 
   @Override

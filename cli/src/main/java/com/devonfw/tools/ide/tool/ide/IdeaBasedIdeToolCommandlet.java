@@ -41,7 +41,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
 
   @Override
   // TODO: Check if this is still needed, because Intellij is overriding this already and using a different approach
-  public void installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
     String downloadUrl = getDownloadUrl(plugin);
 
     String pluginId = plugin.id();
@@ -59,6 +59,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
       extractDownloadedPlugin(fileAccess, downloadedFile, pluginId);
 
       step.success();
+      return true;
     } catch (IOException e) {
       step.error(e);
       throw new IllegalStateException("Failed to process installation of plugin: " + pluginId, e);

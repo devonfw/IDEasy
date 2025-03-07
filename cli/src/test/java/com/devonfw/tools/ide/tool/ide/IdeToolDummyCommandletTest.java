@@ -38,6 +38,7 @@ public class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
 
     AbstractIdeTestContext context = new IdeSlf4jContext();
     context.setPluginsPath(tempDir);
+    context.setIdeHome(tempDir);
     context.setSettingsPath(Path.of("src/test/resources/settings/dummy"));
     IdeToolDummyCommandlet dummyCommandlet = new IdeToolDummyCommandlet(context, "dummy", Set.of(Tag.IDE));
 
@@ -81,10 +82,11 @@ public class IdeToolDummyCommandletTest extends AbstractIdeContextTest {
     }
 
     @Override
-    public void installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
+    public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
       this.installedPlugins.add(plugin);
       step.success("Dummy plugin " + plugin.name() + " installed.");
+      return true;
     }
 
   }
