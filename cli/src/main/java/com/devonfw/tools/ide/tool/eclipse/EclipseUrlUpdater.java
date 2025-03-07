@@ -14,6 +14,7 @@ import com.devonfw.tools.ide.version.VersionSegment;
 public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
 
   private static final String[] MIRRORS = {
+      "https://download.eclipse.org/technology/epp/downloads",
       "https://archive.eclipse.org/technology/epp/downloads",
       "https://ftp.osuosl.org/pub/eclipse/technology/epp/downloads" };
 
