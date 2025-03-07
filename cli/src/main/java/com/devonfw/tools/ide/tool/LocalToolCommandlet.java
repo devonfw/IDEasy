@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
@@ -88,7 +89,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         // we need to link the version or update the link.
         Path toolPath = getToolPath();
         FileAccess fileAccess = this.context.getFileAccess();
-        if (Files.exists(toolPath)) {
+        if (Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
           fileAccess.backup(toolPath);
         }
         fileAccess.mkdirs(toolPath.getParent());
