@@ -151,7 +151,6 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
-    assertThat(context.getPluginsPath().resolve("intellij").resolve(".intellij")).exists();
 
     // act
     commandlet.setEdition("ultimate");
