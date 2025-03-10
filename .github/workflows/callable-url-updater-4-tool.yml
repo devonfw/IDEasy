@@ -1,4 +1,4 @@
-name: Scheduled Update URLs
+name: Callable url updater for tool
 run-name: Nightly update of URLs
 
 # Controls when the workflow will run

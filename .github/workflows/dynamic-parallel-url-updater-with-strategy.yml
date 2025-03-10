@@ -1,0 +1,114 @@
+name: Dynamic parallel URL update (strategy matrix)
+run-name: Nightly update of URLs
+
+# Controls when the workflow will run
+on:
+  workflow_dispatch:
+
+  #schedule:
+  #  - cron: '56 09   * * *'
+
+jobs:
+  #Execute unit tests for updater only once
+  testUpdater:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ide
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Build and run url updater
+        run: |
+          cd cli
+          mvn -B -ntp -DskipTests -Dstyle.color=always install
+
+  # Create list of tools dynamically
+  create-tool-list:
+    name: create-tool-list
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+    steps:
+      - name: Checkout ide
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: PWD
+        run: |
+          pwd
+      - name: Create-Urls-4-test
+        run: |
+          cd cli/..
+          pwd
+          mkdir ide-urls
+          mkdir ide-urls/pip
+          mkdir ide-urls/jasypt
+          mkdir ide-urls/eclipse
+          mkdir ide-urls/eclipse/cpp
+          pwd
+          cd ide-urls/eclipse/
+          ls -l
+      - name: Set Matrix
+        id: set-matrix
+        #         echo "name=matrix::$(ls -lRd * | grep '^d' | gawk '{printf("%s, ",$9)}' | sed -e 's/,\ *$//')"  >> $GITHUB_OUTPUT
+        # echo "matrix=${{for i in `find -maxdepth 2 -type d`; do echo `basename $i`; done | grep -v "^\." | sort -u | awk 'BEGIN{printf("\047[")} {printf("%s, ",$1)}' | sed -e "s/,\ *$/]'/"}}" >> $GITHUB_OUTPUT
+        # matrix=${{'[cpp,eclipse]'}}  >> $GITHUB_OUTPUT
+        #        pwd
+        #        cd cli/../ide-urls
+        #        for i in `find -maxdepth 2 -type d`; do echo `basename $i`; done | grep -v "^\." | sort -u | awk 'BEGIN{printf("\047[")} {printf("%s, ",$1)}' | sed -e "s/,\ *$/]'/"
+        #        echo "matrix=${{env.TOOLS}}"
+        # echo "matrix=${{env.TOOLS}}" >> $GITHUB_OUTPUT
+
+        #run: echo "matrix=$(jq -cr '@json' <<< "${{ env.TOOLS }}")" >> $GITHUB_OUTPUT
+        #run: echo "::set-output name=matrix::{[{\"cpp\"}, {\"jasypt\"}]}"
+        run: | #echo "::set-output name=matrix::{\"tools\":[{\"tool\":\"eclipse\"},{\"tool\":\"jmc\"}]}" 
+          toolsAsJson=$(for i in `find ide-urls/. -maxdepth 2 -type d`; do echo `basename $i`; done | grep -v "^\." | sort -u | awk 'BEGIN{printf("{\"tools\":[")} {printf("{\"tool\":\"%s\"},",$1)}' | sed -e "s/,\ *$/]}/")
+          echo $toolsAsJson
+          echo "::set-output name=matrix::`echo $toolsAsJson`"
+        # HINWEIS: Funktioniert nur, wenn die tools initial mindestens 1x bereits heruntergeladen wurden.
+        # Optional: Parameter beim manuellen Aufruf, der mit der eine Liste übergeben werden kann.
+        #    * 3 Scripte
+        #         1. zentrales callable script mit input-Parameter. (nutzt matrix)
+        #         2. Aufrufer-Script für Erstellen der Matrix aus Input-Parametern
+        #         3. Aufrufer-Script zum dynamischen Ermitteln der bereits existierenden Tools
+
+
+  # Update URLS from matrix (list)
+  IDEasy-update-urls:
+    runs-on: ubuntu-latest
+    needs: [ testUpdater, create-tool-list ]
+    strategy:
+      matrix:
+        ${{ fromJson(needs.create-tool-list.outputs.matrix) }}
+      fail-fast: false
+    steps:
+      - name: Checkout ide
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Build and run url updater
+        run: |
+          toolName=${{ matrix.tools }}
+          echo "ToolName: [$toolName]"
+          if [ "$toolName" != null ] && [ ! -z "$toolName" ] 
+          then
+            cd cli
+            mkdir ../ide-urls
+            mvn -B -ntp -Dstyle.color=always -DskipTests install          
+            mvn -B -ntp -Dstyle.color=always -DskipTests exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="../ide-urls PT1M $toolName"
+          else
+            echo "ERROR: Updater not startet due tool-name is null or empty"
+          fi
