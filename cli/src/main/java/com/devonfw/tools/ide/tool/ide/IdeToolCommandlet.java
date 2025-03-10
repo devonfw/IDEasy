@@ -45,7 +45,6 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
   @Override
   public final void run() {
-
     configureWorkspace();
     super.run();
   }

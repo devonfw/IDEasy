@@ -27,6 +27,20 @@ public class VscodeTest extends AbstractIdeContextTest {
     checkInstallation(context);
   }
 
+  @Test
+  public void testVscodeRun() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+    Vscode vscodeCommandlet = new Vscode(context);
+
+    // install
+    vscodeCommandlet.run();
+
+    // assert
+    checkInstallation(context);
+  }
+
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("vscode/bin/code.cmd")).exists().hasContent("@echo test for windows");

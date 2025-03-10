@@ -14,11 +14,11 @@ import com.devonfw.tools.ide.os.WindowsPathSyntax;
  */
 public class EnvironmentVariableCollectorContext implements EnvironmentContext {
 
-  private Map<String, VariableLine> environmentVariables;
+  private final Map<String, VariableLine> environmentVariables;
 
-  private VariableSource variableSource;
+  private final VariableSource variableSource;
 
-  private WindowsPathSyntax pathSyntax;
+  private final WindowsPathSyntax pathSyntax;
 
   /**
    * The constructor.

@@ -17,6 +17,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
@@ -45,44 +46,56 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
-    doInstallPlugins(List.of(plugin));
-    step.success();
+    List<String> extensionsCommands = new ArrayList<>();
+    extensionsCommands.add("--force");
+    extensionsCommands.add("--install-extension");
+    extensionsCommands.add(plugin.id());
+    ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.THROW_ERR, pc, extensionsCommands.toArray(String[]::new));
+    if (result.isSuccessful()) {
+      this.context.success("Successfully installed plugin: {}", plugin.name());
+      step.success();
+      return true;
+    } else {
+      this.context.warning("An error occurred while installing plugin: {}", plugin.name());
+      return false;
+    }
   }
 
   @Override
-  protected void installPlugins(Collection<ToolPluginDescriptor> plugins) {
+  protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
 
     List<ToolPluginDescriptor> pluginsToInstall = new ArrayList<>();
     List<ToolPluginDescriptor> pluginsToRecommend = new ArrayList<>();
 
-    for (ToolPluginDescriptor plugin : plugins) {
-      if (plugin.active()) {
-        pluginsToInstall.add(plugin);
+    Step step = this.context.newStep(true, "Install plugins for " + this.tool);
+    try {
+      for (ToolPluginDescriptor plugin : plugins) {
+        if (plugin.active()) {
+          pluginsToInstall.add(plugin);
+        } else {
+          pluginsToRecommend.add(plugin);
+        }
+      }
+      if (pluginsToInstall.isEmpty()) {
+        this.context.info("No plugins to be installed");
       } else {
-        pluginsToRecommend.add(plugin);
+        for (ToolPluginDescriptor plugin : pluginsToInstall) {
+          boolean result = installPlugin(plugin, step, pc);
+          if (result) {
+            createPluginMarkerFile(plugin);
+          }
+        }
       }
+      doAddRecommendations(pluginsToRecommend);
+    } catch (RuntimeException e) {
+      step.error(e, true);
+      throw e;
+    } finally {
+      step.close();
     }
-    doAddRecommendations(pluginsToRecommend);
-    doInstallPlugins(pluginsToInstall);
 
-  }
-
-  private void doInstallPlugins(List<ToolPluginDescriptor> pluginsToInstall) {
-
-    List<String> extensionsCommands = new ArrayList<>();
-
-    if (pluginsToInstall.isEmpty()) {
-      this.context.info("No plugins to be installed");
-    } else {
-
-      for (ToolPluginDescriptor plugin : pluginsToInstall) {
-        extensionsCommands.add("--install-extension");
-        extensionsCommands.add(plugin.id());
-      }
-    }
-    runTool(ProcessMode.DEFAULT, null, extensionsCommands.toArray(new String[0]));
   }
 
   private void doAddRecommendations(List<ToolPluginDescriptor> recommendations) {
