@@ -160,7 +160,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * {@link com.devonfw.tools.ide.commandlet.Commandlet}.
    *
    * @param version the {@link GenericVersionRange} requested to be installed.
-   * @param processContext the {@link EnvironmentContext} used to
+   * @param processContext the {@link ProcessContext} used to
    *     {@link #setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
    * @return the {@link ToolInstallation} matching the given {@code version}.
    */
@@ -174,7 +174,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * {@link com.devonfw.tools.ide.commandlet.Commandlet}.
    *
    * @param version the {@link GenericVersionRange} requested to be installed.
-   * @param processContext the {@link EnvironmentContext} used to
+   * @param processContext the {@link ProcessContext} used to
    *     {@link #setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
    * @param edition the specific {@link #getConfiguredEdition() edition} to install.
    * @return the {@link ToolInstallation} matching the given {@code version}.
@@ -241,7 +241,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * Install this tool as dependency of another tool.
    *
    * @param version the required {@link VersionRange}. See {@link ToolDependency#versionRange()}.
-   * @param processContext the {@link EnvironmentContext}.
+   * @param processContext the {@link ProcessContext}.
    * @return {@code true} if the tool was newly installed, {@code false} otherwise (installation was already present).
    */
   public boolean installAsDependency(VersionRange version, ProcessContext processContext) {

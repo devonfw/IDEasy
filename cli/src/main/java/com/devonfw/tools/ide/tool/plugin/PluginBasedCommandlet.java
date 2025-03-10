@@ -141,7 +141,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
         if (retrievePluginMarkerFilePath(plugin) != null && Files.exists(retrievePluginMarkerFilePath(plugin))) {
           this.context.debug("Markerfile for IDE: {} and inactive plugin: {} already exists.", getName(), plugin.name());
         } else {
-          handleInstall4InactivePlugin(plugin);
+          handleInstallForInactivePlugin(plugin);
         }
       }
     }
@@ -242,7 +242,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   /**
    * @param plugin the in{@link ToolPluginDescriptor#active() active} {@link ToolPluginDescriptor} that is skipped for regular plugin installation.
    */
-  protected void handleInstall4InactivePlugin(ToolPluginDescriptor plugin) {
+  protected void handleInstallForInactivePlugin(ToolPluginDescriptor plugin) {
 
     this.context.debug("Omitting installation of inactive plugin {} ({}).", plugin.name(), plugin.id());
   }
