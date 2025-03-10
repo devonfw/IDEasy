@@ -12,6 +12,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.devonfw.tools.ide.log.IdeLogLevel;
+
 /**
  * Interface that gives access to various operations on files.
  */
@@ -49,6 +51,13 @@ public interface FileAccess {
    * @return {@code true} if the given {@code folder} points to an existing directory, {@code false} otherwise (a warning is logged in this case).
    */
   boolean isExpectedFolder(Path folder);
+
+  /**
+   * @param folder the {@link Path} to check.
+   * @param logLevel the {@link IdeLogLevel} to use in case the folder does not exist
+   * @return {@code true} if the given {@code folder} points to an existing directory, {@code false} otherwise.
+   */
+  boolean isExpectedFolder(Path folder, IdeLogLevel logLevel);
 
   /**
    * @param file the {@link Path} to compute the checksum of.

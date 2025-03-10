@@ -7,6 +7,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -63,7 +64,7 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
     FileAccess fileAccess = this.context.getFileAccess();
     Path workspaceFolder = this.context.getWorkspacePath();
-    if (!fileAccess.isExpectedFolder(workspaceFolder)) {
+    if (!fileAccess.isExpectedFolder(workspaceFolder, IdeLogLevel.DEBUG)) {
       this.context.warning("Current workspace does not exist: {}", workspaceFolder);
       return; // should actually never happen...
     }
