@@ -17,7 +17,6 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -178,7 +177,7 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
     Path mavenPlugin = this.getToolPath().resolve("lib/ext/" + plugin.name() + ".jar");
     this.context.getFileAccess().download(plugin.url(), mavenPlugin);
@@ -186,9 +185,11 @@ public class Mvn extends PluginBasedCommandlet {
     if (Files.exists(mavenPlugin)) {
       this.context.success("Successfully added {} to {}", plugin.name(), mavenPlugin.toString());
       step.success();
+      return true;
     } else {
       step.error("Plugin {} has wrong properties\n" //
           + "Please check the plugin properties file in {}", mavenPlugin.getFileName(), mavenPlugin.toAbsolutePath());
+      return false;
     }
   }
 

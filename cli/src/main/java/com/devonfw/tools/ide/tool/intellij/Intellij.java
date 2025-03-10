@@ -8,6 +8,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
@@ -62,7 +63,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, final Step step) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, final Step step, ProcessContext pc) {
 
     // In case of plugins with a custom repo url
     boolean customRepo = plugin.url() != null;
@@ -72,11 +73,14 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     if (customRepo) {
       args.add(plugin.url());
     }
-    ProcessResult result = runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.LOG_WARNING, args.toArray(new String[0]));
+    ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.LOG_WARNING, pc, args.toArray(String[]::new));
     if (result.isSuccessful()) {
+      this.context.success("Successfully installed plugin: {}", plugin.name());
       step.success();
+      return true;
     } else {
       step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
+      return false;
     }
   }
 
