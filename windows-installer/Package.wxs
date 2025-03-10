@@ -35,7 +35,7 @@
 		<!-- Execution of install command-->
 		<SetProperty
 			Id="RunInstallAction"
-			Value='"[%SystemFolder]cmd.exe" /c "if not exists [%USERPROFILE]\.ide mkdir [%USERPROFILE]\.ide &amp;&amp; echo On %date% at %time% you accepted the IDEasy License. https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc > [%USERPROFILE]\.ide\.license.agreement &amp;&amp; cd /d [INSTALLFOLDER] &amp;&amp; bin\ideasy.exe -f install > install.log"'
+			Value='"[%SystemFolder]cmd.exe" /c "if not exist [%USERPROFILE]\.ide mkdir [%USERPROFILE]\.ide &amp;&amp; echo On %date% at %time% you accepted the IDEasy License. https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc > [%USERPROFILE]\.ide\.license.agreement &amp;&amp; cd /d [INSTALLFOLDER] &amp;&amp; bin\ideasy.exe -f install > install.log"'
 			Before="RunInstallAction"
 			Sequence="execute"
 			/>
