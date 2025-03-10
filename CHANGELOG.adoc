@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1111[#1111]: MSI Installer hangs because it does not create .license.agreement
 * https://github.com/devonfw/IDEasy/issues/910[#910]: Cannot update Intellij on Linux - FileAlreadyExistsException
 * https://github.com/devonfw/IDEasy/issues/38[#38]: Implement ToolCommandlet for Python
 * https://github.com/devonfw/IDEasy/issues/38[#353]: Implement ToolCommandlet for pip
