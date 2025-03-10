@@ -51,7 +51,7 @@
     <!-- Execution of uninstall command-->
     <SetProperty
       Id="RunUninstallAction"
-			Value='"[%SystemFolder]cmd.exe" /c "[%IDE_ROOT]\_ide\installation\bin\ideasy.exe -f uninstall > [%IDE_ROOT]\uninstall.log"'
+			Value='"[%SystemFolder]cmd.exe" /c "mkdir [%USERPROFILE]\.ide &amp;&amp; echo On %date% you accepted the IDEasy License. > [%USERPROFILE]\.ide\.license.agreement &amp;&amp; [%IDE_ROOT]\_ide\installation\bin\ideasy.exe -f uninstall > [%IDE_ROOT]\uninstall.log"'
       Before="RunUninstallAction"
       Sequence="execute"
       />
