@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.jasypt;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -101,8 +102,18 @@ public class Jasypt extends LocalToolCommandlet {
       arguments.addAll(Arrays.asList(jasyptOptions));
     }
 
-    Java java = getCommandlet(Java.class);
-    java.runTool(arguments.toArray(i -> new String[i]));
+    String javaHome = System.getenv("JAVA_HOME");
+    ProcessBuilder processBuilder = new ProcessBuilder("java", "-version");
+    processBuilder.environment().put("JAVA_HOME",javaHome);
+
+    try{
+      Process process = processBuilder.start();
+      int exitCode = process.waitFor();
+      System.out.println("Process ended with exit code: " + exitCode);
+    }
+    catch(IOException | InterruptedException e){
+        e.printStackTrace();
+    }
   }
 
   private Path resolveJasyptJarPath() {
