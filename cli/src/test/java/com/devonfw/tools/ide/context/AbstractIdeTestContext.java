@@ -19,6 +19,8 @@ import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.WindowsHelper;
+import com.devonfw.tools.ide.os.WindowsHelperMock;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
@@ -43,6 +45,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   private ProcessContext mockContext;
 
   private TestCommandletManager testCommandletManager;
+
+  private Path ideRoot;
+
+  private boolean ideRootSet;
+
+  private Path urlsPath;
 
   /**
    * The constructor.
@@ -148,6 +156,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
+  public WindowsHelper createWindowsHelper() {
+
+    return new WindowsHelperMock();
+  }
+
+  @Override
   protected SystemPath computeSystemPath() {
 
     EnvironmentVariables systemVars = getVariables().getByType(EnvironmentVariablesType.SYSTEM);
@@ -208,6 +222,33 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     this.userHome = dummyUserHome;
   }
 
+  @Override
+  public Path getIdeRoot() {
+
+    if (this.ideRootSet) {
+      return this.ideRoot;
+    }
+    return super.getIdeRoot();
+  }
+
+  /**
+   * @param ideRoot the new value of {@link #getIdeRoot()}.
+   */
+  public void setIdeRoot(Path ideRoot) {
+
+    this.ideRoot = ideRoot;
+    this.ideRootSet = true;
+  }
+
+  @Override
+  public Path getUrlsPath() {
+
+    if (this.urlsPath == null) {
+      return super.getUrlsPath();
+    }
+    return this.urlsPath;
+  }
+
   /**
    * @param urlsPath the mocked {@link #getUrlsPath() urls path}.
    */
@@ -262,6 +303,27 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       setCommandletManager(new TestCommandletManager(this));
     }
     this.testCommandletManager.add(commandlet);
+  }
+
+  @Override
+  protected Path getIdeRootPathFromEnv() {
+
+    Path workingDirectory = getCwd();
+    Path root = Path.of("").toAbsolutePath();
+    if (root.getRoot().equals(workingDirectory.getRoot())) {
+      Path relative = root.relativize(workingDirectory);
+      int nameCount = relative.getNameCount();
+      if ((nameCount >= 4) && relative.getName(0).toString().contains("target") && relative.getName(1).toString().equals("test-projects")) {
+        int rest = nameCount - 2;
+        Path ideRoot = workingDirectory;
+        while (rest > 0) {
+          ideRoot = ideRoot.getParent();
+          rest--;
+        }
+        return ideRoot;
+      }
+    }
+    return null;
   }
 
 }

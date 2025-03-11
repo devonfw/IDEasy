@@ -16,6 +16,7 @@ public class VersionRangeTest extends Assertions {
     checkVersionRange("[1.2,3]", "1.2", "3", BoundaryType.CLOSED);
     checkVersionRange("1,)", "1", null, BoundaryType.RIGHT_OPEN);
     checkVersionRange("[1,)", "1", null, BoundaryType.RIGHT_OPEN);
+    checkVersionRange("[1, )", "1", null, BoundaryType.RIGHT_OPEN);
     checkVersionRange("(1.2,3.4", "1.2", "3.4", BoundaryType.LEFT_OPEN);
     checkVersionRange("(1.2,3.4]", "1.2", "3.4", BoundaryType.LEFT_OPEN);
     checkVersionRange("1.2,3.4)", "1.2", "3.4", BoundaryType.RIGHT_OPEN);
@@ -108,9 +109,12 @@ public class VersionRangeTest extends Assertions {
     checkContainsNot("(11,22)", "10*");
     checkContains("(11,22)", "11*");
     checkContains("(11,22)", "11.0*");
-    checkContains("(11,22)", "22*");
-    checkContains("(11,22)", "22.*");
+    checkContains("(11,22)", "21.99*");
+    checkContainsNot("(11,22)", "22*");
+    checkContainsNot("(11,22)", "22.*");
     checkContainsNot("(11,22)", "23*");
+    checkContains("(11,22)", "21.99*");
+    checkContains("[22,)", "*");
   }
 
   private void checkContains(String range, String version) {

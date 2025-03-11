@@ -39,6 +39,7 @@ import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
+import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
@@ -94,6 +95,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new BuildCommandlet(context));
     add(new InstallPluginCommandlet(context));
     add(new UninstallPluginCommandlet(context));
+    add(new UpgradeCommandlet(context));
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));
@@ -123,6 +125,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new GraalVm(context));
     add(new PgAdmin(context));
     add(new LazyDocker(context));
+    add(new Python(context));
   }
 
   /**

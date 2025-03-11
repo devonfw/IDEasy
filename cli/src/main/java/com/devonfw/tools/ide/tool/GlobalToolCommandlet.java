@@ -10,7 +10,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -116,7 +115,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent, EnvironmentContext environmentContext) {
+  public boolean install(boolean silent, ProcessContext processContext) {
 
     Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
     // if force mode is enabled, go through with the installation even if the tool is already installed
@@ -128,10 +127,10 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
     String edition = getConfiguredEdition();
     ToolRepository toolRepository = this.context.getDefaultToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
-    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion);
+    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this);
     // download and install the global tool
     FileAccess fileAccess = this.context.getFileAccess();
-    Path target = toolRepository.download(this.tool, edition, resolvedVersion);
+    Path target = toolRepository.download(this.tool, edition, resolvedVersion, this);
     Path executable = target;
     Path tmpDir = null;
     boolean extract = isExtract();

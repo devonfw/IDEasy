@@ -4,9 +4,11 @@ toc::[]
 = Definition of Done
 
 Before a pull request (PR) for IDEasy is ready for review, this _definition of done_ (DoD) should be satisfied.
-Please note that external contributors are not strictly required to address all of these points as we love to get contributions and do not want to scare people from contributing with too much constraints.
+Please note that external contributors are not strictly required to address all of these points as we love to get contributions and do not want to scare people from contributing with too many constraints.
 However, chances to get your change merged quickly are higher if you address all the following points.
 
+* [ ] For commits follow our link:IDEasy-contribution-rules-and-guidelines.adoc#commit[commit guidelines]
+* [ ] Before you push your changes, please run `mvn test` (or even better `mvn clean test`) to ensure build and tests are successful.
 * [ ] Your PR and the issue follows our best-practices:
 ** [ ] PR title is of the form `#«issue-id»: «brief summary»` (e.g. `#921: fixed setup.bat`).
 ** [ ] PR top-level comment summarizes what has been done and contains link to addressed issue(s).
@@ -15,17 +17,17 @@ However, chances to get your change merged quickly are higher if you address all
 ** [ ] Issue is set to `In Progress` and assigned to you (should actually be done before you start your implementation).
 See also https://github.com/devonfw/IDEasy/blob/main/documentation/IDEasy-contribution-rules-and-guidelines.adoc[here].
 ** [ ] Milestones are typically assigned by PO (Jörg) but have to be set before issues and PRs get closed.
-In case your issue is only addressed by a change in `ide-mirrors`/`ide-urls` or in `ide-settings` repository, please already assign the according milestone (switch to `closed` tab under `Milestone`).
+In case your issue is only addressed by a change in `ide-mirrors`/`ide-urls` or in `ide-settings` repository, please already assign the according milestone.
 * [ ] All checks have passed.
 Otherwise, if a check failed (red cross) you need to click the `Details` link, read the logs and fix the problem.
 ** [ ] The build and all automated tests succeeded.
-If failed and you clicked on `Details` add read the logs to find the error.
+If failed, and you clicked on `Details` add read the logs to find the error.
 ** [ ] The contributors license agreement (CLA) is signed by all contributors of the PR.
 ** [ ] Git-Guardian did not report any security issue
 * [ ] The feature branch of the PR is up-to-date with the `main` branch.
 If you see `This branch is out-of-date with the base branch` in the PR click the `Update branch` button to fix (or manually merge with the `main` from upstream locally and push your changes).
 In case you see `This branch has conflicts that must be resolved` instead, you need to resolve conflicts.
-Very simple conflicts may be resolved in the browser on github.
+Very simple conflicts may be resolved in the browser on GitHub.
 But as a general recommendation you should resolve the conflicts locally with proper merge tool support and rerun tests before you push the merged changes.
 * [ ] You followed all link:coding-conventions.adoc[coding conventions]
 * [ ] You have already added the issue implemented by your PR in https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc[CHANGELOG.adoc] to the next open release (see milestones or https://github.com/devonfw/IDEasy/blob/main/.mvn/maven.config[maven.config]).
@@ -42,10 +44,10 @@ There are very few tools as exception to this rule like `Docker` that extend `Gl
 Note: If a tool reads configuration files from the users home directory this is not given as two IDEasy projects using the same tool then would read the same config so one installation would influence the other.
 ** [ ] The help page displays information about the commandlet and its properties (CLI parameters) explaining how to use it properly.
 There are no warnings logged in the help output (like `Could not find key 'cmd-gcviewer' in ResourceBundle nls.Ide.properties`).
-Therefore add proper help texts for all supported languages https://github.com/devonfw/IDEasy/tree/main/cli/src/main/resources/nls[here].
+Therefore, add proper help texts for all supported languages https://github.com/devonfw/IDEasy/tree/main/cli/src/main/resources/nls[here].
 ** [ ] The new tool is added to the table of tools in https://github.com/devonfw/ide/blob/master/documentation/LICENSE.asciidoc#license[LICENSE.asciidoc] with its according license.
 If that license is not yet included, the full license text needs to be added.
 ** [ ] The new commandlet installs potential dependencies automatically (e.g. `getCommandlet(«DependentTool».class).install()` in overridden `install` method).
 ** [ ] The variables `«TOOL»_VERSION` and `«TOOL»_EDITION` are honored by your commandlet so if present that edition and version will be downloaded and installed (happens by default but important if you implement custom installation logic).
 ** [ ] The new commandlet is tested on all platforms it is available for.
-Assuming you are using Windows, testing for Linux can be done with WSL or Virtual Box and for MacOS we have a virtual cloud instance.
+Assuming you are using Windows, testing for Linux can be done with WSL or Virtual Box and for macOS we have a virtual cloud instance.

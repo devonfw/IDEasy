@@ -17,7 +17,6 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
-import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
@@ -80,34 +79,28 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  protected void installDependencies() {
-
-    // TODO create eclipse/eclipse/dependencies.json file in ide-urls and delete this method
-    getCommandlet(Java.class).install();
-  }
-
-  @Override
   protected boolean isPluginUrlNeeded() {
 
     return true;
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
-    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, null, ProcessErrorHandling.LOG_WARNING, "-application", "org.eclipse.equinox.p2.director",
+    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, pc, "-application", "org.eclipse.equinox.p2.director",
         "-repository", plugin.url(), "-installIU", plugin.id());
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
+          this.context.success("Successfully installed plugin: {}", plugin.name());
           step.success();
-          return;
+          return true;
         }
       }
     }
-
     result.log(IdeLogLevel.DEBUG, context, IdeLogLevel.ERROR);
     step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
+    return false;
   }
 
   @Override

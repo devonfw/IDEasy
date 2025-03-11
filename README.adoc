@@ -29,17 +29,9 @@ See link:documentation/features.adoc[features].
 
 == Status
 
-NOTE: Currently IDEasy is in beta state so it is not yet considered to be production ready. Do not use it with large teams or otherwise do not blame us if your team gets blocked by a bug.
-
-We are planning to go out of beta beginning of 2025.
-However, this will only include support for Windows while official Linux and Mac support will come later in 2025 (see e.g. bug https://github.com/devonfw/IDEasy/issues/589[#589] or https://github.com/devonfw/IDEasy/issues/451[#451]).
-Further, you should contact us if you plan to use IDEasy in your project with a real developer team.
-We will have a look at your demands and can give you the latest insights about features working stable and edge-cases that might still cause problems.
-Do not expect reasoable support if you started with IDEasy in 2024 with a large team but without getting in touch.
+Currently we focused on support for Windows while official Linux and Mac support are still a little bit work in progress (see e.g. bug https://github.com/devonfw/IDEasy/issues/589[#589] or https://github.com/devonfw/IDEasy/issues/451[#451]).
+Further, we still recommend that you should contact us if you plan to use IDEasy in your project with a larger developer team.
 We surely try to fix bugs as soon as possible but we do not work extra shifts or prioritize your issues if you are blocked and we never promised any help before.
-Also, if you are currently working with devonfw-ide, please stay patient.
-You can surely do a pilot where one developer tries to work with IDEasy in your devonfw-ide project and see if all works fine or better.
-But unless we update this status and officially annouce that devonfw-ide shall be replaced with IDEasy you should not push this ahead with your developer teams.
 
 == Setup
 
@@ -50,11 +42,9 @@ All you need before installing IDEasy is https://git-scm.com/download/[git].
 === Install
 
 Download the latest version of `IDEasy` from https://github.com/devonfw/IDEasy/releases[here] and install it.
-(You can find all Releases in https://repo.maven.apache.org/maven2/com/devonfw/tools/IDEasy/ide-cli/[Maven Central])
 
 NOTE: We are working on an installer (see e.g. https://github.com/devonfw/IDEasy/issues/420[#420]) that will guide you thorugh the installation.
-Currently you need to create an `projects/_ide` in your home directory or on `C:\` or `D:`, extract the downloaded archive directly into that `_ide` folder and run the `setup` script (`setup.bat` on Windows).
-To install an update manually, you just need to extract the new archive content into that `_ide` folder (e.g. with 7-Zip) overwriting all existing files.
+To tweak the installation location (e.g. use a drive or partition with more disc-space) see https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc#tweak-installation-location.
 
 === Create projects
 

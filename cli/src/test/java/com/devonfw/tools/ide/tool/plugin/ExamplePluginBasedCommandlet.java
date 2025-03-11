@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 
 /**
@@ -24,8 +25,9 @@ public class ExamplePluginBasedCommandlet extends PluginBasedCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
     step.success();
+    return true;
   }
 }

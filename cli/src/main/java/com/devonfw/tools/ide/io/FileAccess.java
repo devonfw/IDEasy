@@ -1,11 +1,10 @@
 package com.devonfw.tools.ide.io;
 
-import java.io.IOException;
 import java.io.Reader;
-import java.io.Writer;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.PosixFilePermission;
+import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
@@ -53,22 +52,25 @@ public interface FileAccess {
 
   /**
    * @param file the {@link Path} to compute the checksum of.
-   * @return the computed checksum (SHA-266).
+   * @param hashAlgorithm the hash algorithm (e.g. SHA-266).
+   * @return the computed hash checksum as hex {@link String}.
    */
-  String checksum(Path file);
+  String checksum(Path file, String hashAlgorithm);
 
   /**
    * Moves the given {@link Path} to the backup.
    *
    * @param fileOrFolder the {@link Path} to move to the backup (soft-deletion).
+   * @return the {@link Path} in the backup where the given {@link Path} was moved to.
    */
-  void backup(Path fileOrFolder);
+  Path backup(Path fileOrFolder);
 
   /**
    * @param source the source {@link Path file or folder} to move.
    * @param targetDir the {@link Path} with the directory to move {@code source} into.
+   * @param copyOptions the {@link java.nio.file.CopyOption} which specify how the move should be done
    */
-  void move(Path source, Path targetDir);
+  void move(Path source, Path targetDir, StandardCopyOption... copyOptions);
 
   /**
    * Creates a symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a Windows junction, it will be replaced. In case of
@@ -315,7 +317,48 @@ public interface FileAccess {
    * @param content the {@link String} with the text to write to a file.
    * @param file the {@link Path} to the file where to save.
    */
-  void writeFileContent(String content, Path file);
+  default void writeFileContent(String content, Path file) {
+
+    writeFileContent(content, file, false);
+  }
+
+  /**
+   * @param content the {@link String} with the text to write to a file.
+   * @param file the {@link Path} to the file where to save.
+   * @param createParentDir if {@code true}, the parent directory will be created if it does not already exist, {@code false} otherwise (fail if parent does
+   *     not exist).
+   */
+  void writeFileContent(String content, Path file, boolean createParentDir);
+
+  /**
+   * Like {@link #readFileContent(Path)} but giving one {@link String} per line of text. It will not allow to preserve line endings (CRLF vs. LF).
+   *
+   * @param file the {@link Path} to the file to read.
+   * @return the content of the specified file (in UTF-8 encoding) as {@link List} of {@link String}s per line of text.
+   */
+  List<String> readFileLines(Path file);
+
+  /**
+   * Like {@link #writeFileContent(String, Path)} but taking a {@link List} with one {@link String} per line of text. It will always use LF as newline character
+   * independent of the operating system.
+   *
+   * @param lines the {@link List} of {@link String}s per line of text.
+   * @param file the {@link Path} to the file where to save.
+   */
+  default void writeFileLines(List<String> lines, Path file) {
+    writeFileLines(lines, file, false);
+  }
+
+  /**
+   * Like {@link #writeFileContent(String, Path, boolean)} but taking a {@link List} with one {@link String} per line of text. It will always use LF as newline
+   * character independent of the operating system.
+   *
+   * @param lines the {@link List} of {@link String}s per line of text.
+   * @param file the {@link Path} to the file where to save.
+   * @param createParentDir if {@code true}, the parent directory will be created if it does not already exist, {@code false} otherwise (fail if parent does
+   *     not exist).
+   */
+  void writeFileLines(List<String> lines, Path file, boolean createParentDir);
 
   /**
    * @param path that is checked whether it is a junction or not.
@@ -328,15 +371,16 @@ public interface FileAccess {
    * @return the parsed {@link Properties}.
    */
   default Properties readProperties(Path file) {
-
     Properties properties = new Properties();
-    try (Reader reader = Files.newBufferedReader(file)) {
-      properties.load(reader);
-      return properties;
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to read properties file: " + file, e);
-    }
+    readProperties(file, properties);
+    return properties;
   }
+
+  /**
+   * @param file the {@link Path} to the {@link Properties} file to read.
+   * @param properties the existing {@link Properties} to {@link Properties#load(Reader) load} into.
+   */
+  void readProperties(Path file, Properties properties);
 
   /**
    * @param properties the {@link Properties} to save.
@@ -344,11 +388,30 @@ public interface FileAccess {
    */
   default void writeProperties(Properties properties, Path file) {
 
-    try (Writer writer = Files.newBufferedWriter(file)) {
-      properties.store(writer, null);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to save properties file during tests.", e);
-    }
+    writeProperties(properties, file, false);
   }
 
+
+  /**
+   * @param properties the {@link Properties} to save.
+   * @param file the {@link Path} to the file where to save the properties.
+   * @param createParentDir if {@code true}, the parent directory will created if it does not already exist, {@code false} otherwise (fail if parent does
+   *     not exist).
+   */
+  void writeProperties(Properties properties, Path file, boolean createParentDir);
+
+
+  /**
+   * @param path the {@link Path} to get the age from the modification time.
+   * @return the age of the file as {@link Duration} from now to the modification time of the file.
+   */
+  public Duration getFileAge(Path path);
+
+  /**
+   * @param path the {@link Path} to check.
+   * @param cacheDuration the {@link Duration} to consider as recent.
+   * @return {@code true} if the given {@link Path} exists and is recent enough (its {@link #getFileAge(Path) age} is not greater than the given
+   *     {@link Duration}), {@code false} otherwise.
+   */
+  boolean isFileAgeRecent(Path path, Duration cacheDuration);
 }
