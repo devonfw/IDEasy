@@ -99,14 +99,6 @@ public class Jasypt extends LocalToolCommandlet {
     ProcessBuilder processBuilder = new ProcessBuilder("java", "-version");
     processBuilder.environment().put("JAVA_HOME",javaHome);
 
-    try{
-      Process process = processBuilder.start();
-      int exitCode = process.waitFor();
-      System.out.println("Process ended with exit code: " + exitCode);
-    }
-    catch(IOException | InterruptedException e){
-        e.printStackTrace();
-    }
   }
 
   private Path resolveJasyptJarPath() {
