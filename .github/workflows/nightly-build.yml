@@ -23,13 +23,41 @@ jobs:
       - name: Build native image
         shell: bash
         run: |
+          maven_config="$(cat .mvn/maven.config)"
+          current_version="${maven_config/#*-Drevision=}"
+          current_version="${current_version/ */}"
+          current_version="${current_version/-SNAPSHOT/-$(date +%m_%d_%H)-SNAPSHOT}"
           cd cli
-          mvn -B -ntp -Pnative -DskipTests=true compile
+          mvn -B -ntp -Pnative -DskipTests=true -Drevision=${current_version} package
       - name: Upload native image
         uses: actions/upload-artifact@v4
         with:
           name: natives-${{ matrix.os }}
           path: cli/target/ideasy*
+      - name: Build MSI with WixToolSet
+        if: runner.os == 'Windows'
+        shell: bash
+        run: |
+          cd documentation
+          mvn -B -ntp clean install
+          cd ..
+          mkdir -p windows-installer/msi-files
+          cp documentation/target/generated-docs/IDEasy.pdf windows-installer/msi-files
+          cp -r cli/target/package/* windows-installer/msi-files
+          rm -rf windows-installer/msi-files/system/mac
+          rm -rf windows-installer/msi-files/system/linux
+          cp cli/target/ideasy.exe windows-installer/msi-files/bin
+          cd windows-installer
+          dotnet tool install --global wix --version 5.0.2
+          wix extension add WixToolset.UI.wixext/5.0.2
+          wix extension add WixToolset.Util.wixext/5.0.2
+          wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
+      - name: Upload MSI
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v4
+        with:
+          name: msi
+          path: windows-installer/ideasy.msi
 
   # Downloads all native image artifacts to cli/target and builds the project using assemblies for final deployment to OSSRH Nexus
   deploy:
@@ -48,10 +76,9 @@ jobs:
       - name: Download natives and build project
         uses: actions/download-artifact@v4
         with:
-          pattern: natives-*
           path: ./cli/target/
       - name: Deploy to OSSRH nexus
         env:
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -Passembly,deploy deploy
+        run: mvn --settings .mvn/settings.xml -DskipTests=true -Darchetype.test.skip=true -Dgpg.skip=true -Dstyle.color=always -B -ntp -Passembly,msi,deploy deploy

@@ -31,7 +31,7 @@ as well as https://www.baeldung.com/java-custom-truststore[truststore settings] 
 E.g. if you do not want to rely on the proxy environment variables above, you can also make this explicitly:
 
 ```
-export IDE_OPTIONS="-Dhttps.proxyHost=proxy.host.com -Dhttps.proxyPort=8443
+export IDE_OPTIONS="-Dhttps.proxyHost=proxy.host.com -Dhttps.proxyPort=8443"
 ```
 
 === Authentication
@@ -40,7 +40,7 @@ In some cases your network proxy may require authentication.
 Then you need to manually configure your account details like in the following example:
 
 ```
-export IDE_OPTIONS="-Dhttp.proxyUser=$USERNAME -Dhttp.proxyPassword=«password»"
+export IDE_OPTIONS="-Dhttps.proxyUser=$USERNAME -Dhttps.proxyPassword=«password»"
 ```
 
 === Truststore

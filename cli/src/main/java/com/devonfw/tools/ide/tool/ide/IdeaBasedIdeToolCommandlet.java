@@ -7,6 +7,9 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -14,11 +17,13 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessErrorHandling;
-import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
+/**
+ * {@link IdeToolCommandlet} for IDEA based commandlets like: {@link com.devonfw.tools.ide.tool.intellij.Intellij IntelliJ} and
+ * {@link com.devonfw.tools.ide.tool.androidstudio.AndroidStudio Android Studio}.
+ */
 public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
 
   private static final String BUILD_FILE = "build.txt";
@@ -35,14 +40,8 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   }
 
   @Override
-  protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
-
-    super.configureToolArgs(pc, processMode, errorHandling, args);
-    pc.addArg(this.context.getWorkspacePath());
-  }
-
-  @Override
-  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
+  // TODO: Check if this is still needed, because Intellij is overriding this already and using a different approach
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
     String downloadUrl = getDownloadUrl(plugin);
 
     String pluginId = plugin.id();
@@ -60,6 +59,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
       extractDownloadedPlugin(fileAccess, downloadedFile, pluginId);
 
       step.success();
+      return true;
     } catch (IOException e) {
       step.error(e);
       throw new IllegalStateException("Failed to process installation of plugin: " + pluginId, e);
@@ -68,6 +68,13 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
         context.getFileAccess().delete(tmpDir);
       }
     }
+  }
+
+  @Override
+  public void runTool(String... args) {
+    List<String> extendedArgs = new ArrayList<>(Arrays.asList(args));
+    extendedArgs.add(this.context.getWorkspacePath().toString());
+    super.runTool(extendedArgs.toArray(new String[0]));
   }
 
   /**

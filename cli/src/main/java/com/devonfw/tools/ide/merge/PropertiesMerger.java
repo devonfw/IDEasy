@@ -1,18 +1,14 @@
 package com.devonfw.tools.ide.merge;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Properties;
 import java.util.Set;
 
-import org.jline.utils.Log;
-
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.SortedProperties;
+import com.devonfw.tools.ide.io.FileAccess;
 
 /**
  * Implementation of {@link FileMerger} for {@link Properties} files.
@@ -32,67 +28,26 @@ public class PropertiesMerger extends FileMerger {
   @Override
   protected void doMerge(Path setup, Path update, EnvironmentVariables resolver, Path workspace) {
 
+    FileAccess fileAccess = this.context.getFileAccess();
     SortedProperties properties = new SortedProperties();
     boolean updateFileExists = Files.exists(update);
     Path template = setup;
     if (Files.exists(workspace)) {
       if (!updateFileExists) {
-        Log.trace("Nothing to do as update file does not exist: {}", update);
+        this.context.trace("Nothing to do as update file does not exist: {}", update);
         return; // nothing to do ...
       }
-      load(properties, workspace);
+      fileAccess.readProperties(workspace, properties);
     } else if (Files.exists(setup)) {
-      load(properties, setup);
+      fileAccess.readProperties(setup, properties);
     }
     if (updateFileExists) {
-      load(properties, update);
+      fileAccess.readProperties(update, properties);
       template = update;
     }
     resolve(properties, resolver, template.toString());
-    save(properties, workspace);
-    Log.trace("Saved merged properties to: {}", workspace);
-  }
-
-  /**
-   * @param file the {@link Path} to load.
-   * @return the loaded {@link Properties}.
-   */
-  public static Properties load(Path file) {
-
-    Properties properties = new Properties();
-    load(properties, file);
-    return properties;
-  }
-
-  /**
-   * @param file the {@link Path} to load.
-   * @return the loaded {@link Properties}.
-   */
-  public static Properties loadIfExists(Path file) {
-
-    Properties properties = new Properties();
-    if (file != null) {
-      if (Files.exists(file)) {
-        load(properties, file);
-      } else {
-        Log.trace("Properties file does not exist: {}", file);
-      }
-    }
-    return properties;
-  }
-
-  /**
-   * @param properties the existing {@link Properties} instance.
-   * @param file the properties {@link Path} to load.
-   */
-  public static void load(Properties properties, Path file) {
-
-    Log.trace("Loading properties file: {}", file);
-    try (Reader reader = Files.newBufferedReader(file)) {
-      properties.load(reader);
-    } catch (IOException e) {
-      throw new IllegalStateException("Could not load properties from file: " + file, e);
-    }
+    fileAccess.writeProperties(properties, workspace, true);
+    this.context.trace("Saved merged properties to: {}", workspace);
   }
 
   private void resolve(Properties properties, EnvironmentVariables variables, Object src) {
@@ -104,35 +59,21 @@ public class PropertiesMerger extends FileMerger {
     }
   }
 
-  /**
-   * @param properties the {@link Properties} to save.
-   * @param file the {@link Path} to save to.
-   */
-  public static void save(Properties properties, Path file) {
-
-    Log.trace("Saving properties file: {}", file);
-    ensureParentDirectoryExists(file);
-    try (Writer writer = Files.newBufferedWriter(file)) {
-      properties.store(writer, null);
-    } catch (IOException e) {
-      throw new IllegalStateException("Could not write properties to file: " + file, e);
-    }
-  }
-
   @Override
   public void inverseMerge(Path workspace, EnvironmentVariables variables, boolean addNewProperties, Path update) {
 
     if (!Files.exists(workspace)) {
-      Log.trace("Workspace file does not exist: {}", workspace);
+      this.context.trace("Workspace file does not exist: {}", workspace);
       return;
     }
     if (!Files.exists(update)) {
-      Log.trace("Update file does not exist: {}", update);
+      this.context.trace("Update file does not exist: {}", update);
       return;
     }
     Object src = workspace.getFileName();
-    Properties updateProperties = load(update);
-    Properties workspaceProperties = load(workspace);
+    FileAccess fileAccess = this.context.getFileAccess();
+    Properties updateProperties = fileAccess.readProperties(update);
+    Properties workspaceProperties = fileAccess.readProperties(workspace);
     SortedProperties mergedProperties = new SortedProperties();
     mergedProperties.putAll(updateProperties);
     boolean updated = false;
@@ -152,11 +93,16 @@ public class PropertiesMerger extends FileMerger {
       }
     }
     if (updated) {
-      save(mergedProperties, update);
-      Log.debug("Saved changes from: {} to: {}", workspace.getFileName(), update);
+      fileAccess.writeProperties(mergedProperties, update);
+      this.context.debug("Saved changes from: {} to: {}", workspace.getFileName(), update);
     } else {
-      Log.trace("No changes for: {}", update);
+      this.context.trace("No changes for: {}", update);
     }
   }
 
+  @Override
+  protected boolean doUpgrade(Path workspaceFile) throws Exception {
+
+    return doUpgradeTextContent(workspaceFile);
+  }
 }

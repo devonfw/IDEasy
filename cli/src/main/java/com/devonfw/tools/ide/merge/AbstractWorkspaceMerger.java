@@ -8,8 +8,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * {@link WorkspaceMerger} responsible for a single type of {@link Path}.
- *
- * @since 3.0.0
  */
 public abstract class AbstractWorkspaceMerger implements WorkspaceMerger {
 

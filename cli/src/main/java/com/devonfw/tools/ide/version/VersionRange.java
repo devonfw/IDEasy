@@ -70,6 +70,10 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
   @Override
   public boolean contains(VersionIdentifier version) {
 
+    VersionSegment start = version.getStart();
+    if ((start.getNumber() == -1) && start.isPattern()) {
+      return true; // * and *! are always contained
+    }
     if (this.min != null) {
       VersionComparisonResult compareMin = version.compareVersion(this.min);
       if (compareMin.isLess()) {
@@ -82,7 +86,7 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
       VersionComparisonResult compareMax = version.compareVersion(this.max);
       if (compareMax.isGreater()) {
         return false;
-      } else if (compareMax.isEqual() && this.boundaryType.isRightExclusive() && !version.isPattern()) {
+      } else if (compareMax.isEqual() && this.boundaryType.isRightExclusive()) {
         return false;
       }
     }
@@ -174,11 +178,11 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
       max = min;
     } else {
       String minString = value.substring(0, index);
-      if (!minString.isEmpty()) {
+      if (!minString.isBlank()) {
         min = VersionIdentifier.of(minString);
       }
       String maxString = value.substring(index + 1);
-      if (!maxString.isEmpty()) {
+      if (!maxString.isBlank()) {
         max = VersionIdentifier.of(maxString);
       }
     }

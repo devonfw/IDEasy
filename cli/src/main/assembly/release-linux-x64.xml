@@ -7,15 +7,16 @@
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
   <files>
-	<file>
-		<source>${settings.localRepository}/com/devonfw/tools/IDEasy/ide-doc/${project.version}/ide-doc-${project.version}.pdf</source>
-		<destName>IDEasy.pdf</destName>
-	</file>
+    <file>
+      <source>${settings.localRepository}/com/devonfw/tools/IDEasy/ide-doc/${project.version}/ide-doc-${project.version}.pdf</source>
+      <destName>IDEasy.pdf</destName>
+    </file>
   </files>
   <fileSets>
     <fileSet>
       <directory>${project.build.directory}/natives-ubuntu-latest</directory>
       <outputDirectory>./bin</outputDirectory>
+      <fileMode>0755</fileMode>
       <includes>
         <include>${imageName}</include>
       </includes>

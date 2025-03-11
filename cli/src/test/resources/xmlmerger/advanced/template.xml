@@ -1,0 +1,9 @@
+<application xmlns:merge="https://github.com/devonfw/IDEasy/merge">
+  <component name="AdvancedSettings">
+    <option name="settings">
+      <map>
+        <entry merge:id="@key" key="ide.open.readme.md.on.startup" value="false"/>
+      </map>
+    </option>
+  </component>
+</application>

@@ -56,13 +56,6 @@ public class Jasypt extends LocalToolCommandlet {
   }
 
   @Override
-  protected void installDependencies() {
-
-    // TODO create jasypt/jasypt/dependencies.json file in ide-urls and delete this method
-    getCommandlet(Java.class).install();
-  }
-
-  @Override
   protected boolean isExtract() {
 
     return false;

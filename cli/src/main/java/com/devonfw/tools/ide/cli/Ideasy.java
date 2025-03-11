@@ -20,21 +20,28 @@ public final class Ideasy {
   private AbstractIdeContext context;
 
   /**
-   * The actual main method of the CLI program.
-   *
-   * @param args the command-line arguments.
+   * The default constructor.
    */
-  public static void main(String... args) {
+  public Ideasy() {
+    super();
+  }
 
-    int exitStatus = new Ideasy().run(args);
-    System.exit(exitStatus);
+  /**
+   * The constructor.
+   *
+   * @param context the predefined {@link IdeContext} for testing.
+   */
+  Ideasy(AbstractIdeContext context) {
+
+    super();
+    this.context = context;
   }
 
   private IdeContext context() {
 
     if (this.context == null) {
       // fallback in case of exception before initialization
-      this.context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
+      return new IdeContextConsole(IdeLogLevel.INFO, null, false);
     }
     return this.context;
   }
@@ -52,10 +59,9 @@ public final class Ideasy {
       exitStatus = runOrThrow(args);
     } catch (CliException error) {
       exitStatus = error.getExitCode();
-      if (context().level(IdeLogLevel.DEBUG).isEnabled()) {
-        context().error(error, error.getMessage());
-      } else {
-        context().error(error.getMessage());
+      String errorMessage = error.getMessage();
+      if ((errorMessage != null) && !errorMessage.isBlank()) {
+        context().error(errorMessage);
       }
     } catch (Throwable error) {
       exitStatus = 255;
@@ -85,11 +91,11 @@ public final class Ideasy {
   public int runOrThrow(String... args) {
 
     CliArguments arguments = new CliArguments(args);
-    this.context = initContext(arguments);
+    initContext(arguments);
     return this.context.run(arguments);
   }
 
-  private AbstractIdeContext initContext(CliArguments arguments) {
+  private void initContext(CliArguments arguments) {
 
     ContextCommandlet contextCommandlet = new ContextCommandlet();
     while (arguments.hasNext()) {
@@ -111,8 +117,21 @@ public final class Ideasy {
       }
     }
     contextCommandlet.run();
-    IdeStartContextImpl startContext = contextCommandlet.getStartContext();
-    return new IdeContextConsole(startContext);
+    if (this.context == null) {
+      IdeStartContextImpl startContext = contextCommandlet.getStartContext();
+      this.context = new IdeContextConsole(startContext);
+    }
+  }
+
+  /**
+   * The actual main method of the CLI program.
+   *
+   * @param args the command-line arguments.
+   */
+  public static void main(String... args) {
+
+    int exitStatus = new Ideasy().run(args);
+    System.exit(exitStatus);
   }
 
 }
