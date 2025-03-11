@@ -58,7 +58,10 @@ public abstract class AbstractUrlFolder<C extends UrlArtifactWithParent<?>> exte
   public C getChild(String name) {
 
     load(false);
-    return name.equals("*") ? this.childMap.get("latest") : this.childMap.get(name);
+    if (name.equals("*")) {
+      return this.childMap.get("latest");
+    }
+    return this.childMap.get(name);
   }
 
   @Override
