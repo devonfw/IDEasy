@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.context;
 import java.nio.file.Path;
 
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLoggerSlf4j;
+import com.devonfw.tools.ide.log.IdeSubLoggerOut;
 
 /**
  * Implementation of {@link IdeContext} for testing.
@@ -26,7 +26,7 @@ public class IdeSlf4jContext extends AbstractIdeTestContext {
    */
   public IdeSlf4jContext(Path workingDirectory) {
 
-    super(new IdeStartContextImpl(IdeLogLevel.TRACE, IdeSubLoggerSlf4j::new), workingDirectory);
+    super(new IdeStartContextImpl(IdeLogLevel.TRACE, level -> new IdeSubLoggerOut(level, null, true, IdeLogLevel.TRACE, null)), workingDirectory);
   }
 
 }
