@@ -2,13 +2,21 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.03.002
+
+Release with new features and bugfixes:
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/24?closed=1[milestone 2025.03.002].
+
 == 2025.03.001
 
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1111[#1111]: MSI Installer hangs because it does not create .license.agreement
 * https://github.com/devonfw/IDEasy/issues/910[#910]: Cannot update Intellij on Linux - FileAlreadyExistsException
+* https://github.com/devonfw/IDEasy/issues/654[#654]: Improve plugin support
 * https://github.com/devonfw/IDEasy/issues/38[#38]: Implement ToolCommandlet for Python
+* https://github.com/devonfw/IDEasy/issues/740[#740]: Create devonfw-ide to IDEasy settings migration guide
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/23?closed=1[milestone 2025.03.001].
 
