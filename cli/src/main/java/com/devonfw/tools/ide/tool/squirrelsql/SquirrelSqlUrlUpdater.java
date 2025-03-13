@@ -7,7 +7,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * {@link GithubUrlUpdater} for SquirrelSQL
  */
-public class SquirrelUrlUpdater extends GithubUrlUpdater {
+public class SquirrelSqlUrlUpdater extends GithubUrlUpdater {
 
   public static final VersionIdentifier MIN_SQUIRRELSQL_VID = VersionIdentifier.of("4.4.0");
 
