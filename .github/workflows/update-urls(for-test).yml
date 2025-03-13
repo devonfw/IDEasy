@@ -1,0 +1,33 @@
+name: Update Urls (callable)
+run-name: ${{ github.actor }} executes url update on ${{ github.ref_name }} 🚀
+
+on:
+  workflow_dispatch:
+
+  workflow_call:
+    inputs:
+      tool-name:
+        required: false
+        type: string
+
+jobs:
+  updateURLS:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout ide
+        uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: 17
+          distribution: 'temurin'
+          cache: 'maven'
+      - name: Build and run url updater
+        run: |
+          toolName="${{ inputs.tool-name }}"
+          cd cli
+          mkdir ../ide-urls
+          mvn -B -ntp -Dstyle.color=always -DskipTests install
+          mvn -B -ntp -Dstyle.color=always -DskipTests exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="../ide-urls PT5H30M $toolName"

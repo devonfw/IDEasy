@@ -7,6 +7,7 @@
 .*
 !.gitignore
 !.gitkeep
+!.github
 !.editorconfig
 !.ide.software.version
 !.devon.software.version
@@ -14,6 +15,7 @@
 !.anyedit.properties
 !.ide.properties
 !.templateengine
+!.yml
 target/
 eclipse-target/
 generated/
