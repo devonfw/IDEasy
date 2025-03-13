@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root xmlns:merge="https://github.com/devonfw/IDEasy/merge" merge:strategy="combine">
+  <newElement name="elem2" attr1="value2" merge:id="@name">Some text</newElement>
+</root>

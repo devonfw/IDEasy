@@ -17,8 +17,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
 
   private IdeProgressBarConsole newProgressBar(long maxSize) {
     SystemInfo systemInfo = SystemInfoImpl.INSTANCE;
-    IdeProgressBarConsole progressBarConsole = new IdeProgressBarConsole(systemInfo, "downloading", maxSize);
-    return progressBarConsole;
+    return new IdeProgressBarConsole(systemInfo, IdeProgressBar.TITLE_DOWNLOADING, maxSize, "MB", 1_000_000);
   }
 
   @Test
@@ -67,7 +66,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(progressBarConsole.getProgressBar().isIndefinite()).isEqualTo(false);
-    assertThat(progressBarConsole.getMaxLength()).isEqualTo(maxSize);
+    assertThat(progressBarConsole.getMaxSize()).isEqualTo(maxSize);
     assertThat(progressBarConsole.getCurrentProgress()).isEqualTo(maxSize);
   }
 
@@ -83,7 +82,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(progressBarConsole.getProgressBar().isIndefinite()).isEqualTo(false);
-    assertThat(progressBarConsole.getMaxLength()).isEqualTo(maxSize);
+    assertThat(progressBarConsole.getMaxSize()).isEqualTo(maxSize);
     assertThat(progressBarConsole.getCurrentProgress()).isEqualTo(maxSize);
   }
 
@@ -100,7 +99,7 @@ public class IdeProgressBarConsoleTest extends AbstractIdeContextTest {
     // act
     progressBarConsole.close();
     // assert
-    assertThat(progressBarConsole.getMaxLength()).isEqualTo(maxSize);
+    assertThat(progressBarConsole.getMaxSize()).isEqualTo(maxSize);
   }
 
   @Test

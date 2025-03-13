@@ -11,18 +11,22 @@ import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.IdeSystem;
+import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
+import com.devonfw.tools.ide.io.IdeProgressBarNone;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.repo.CustomToolRepository;
-import com.devonfw.tools.ide.repo.ToolRepository;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
+import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * Interface for interaction with the user allowing to input and output information.
@@ -39,20 +43,39 @@ public interface IdeContext extends IdeStartContext {
   /** The name of the workspaces folder. */
   String FOLDER_WORKSPACES = "workspaces";
 
-  /** The name of the settings folder. */
+  /** The name of the {@link #getSettingsPath() settings} folder. */
   String FOLDER_SETTINGS = "settings";
 
-  /** The name of the software folder. */
+  /** The name of the {@link #getSoftwarePath() software} folder. */
   String FOLDER_SOFTWARE = "software";
+
+  /** The name of the {@link #getUrlsPath() urls} folder. */
+  String FOLDER_URLS = "urls";
 
   /** The name of the conf folder for project specific user configurations. */
   String FOLDER_CONF = "conf";
 
   /**
-   * The base folder name of the IDE inside IDE_ROOT. Intentionally starting with an underscore and not a dot (to prevent effects like OS hiding, maven
-   * filtering, .gitignore, etc.).
+   * The name of the folder inside IDE_ROOT reserved for IDEasy. Intentionally starting with an underscore and not a dot to prevent effects like OS hiding,
+   * maven filtering, .gitignore and to distinguish from {@link #FOLDER_DOT_IDE}.
+   *
+   * @see #getIdePath()
    */
-  String FOLDER_IDE = "_ide";
+  String FOLDER_UNDERSCORE_IDE = "_ide";
+
+  /**
+   * The name of the folder inside {@link #FOLDER_UNDERSCORE_IDE} with the current IDEasy installation.
+   *
+   * @see #getIdeInstallationPath()
+   */
+  String FOLDER_INSTALLATION = "installation";
+
+  /**
+   * The name of the hidden folder for IDE configuration in the users home directory or status information in the IDE_HOME directory.
+   *
+   * @see #getUserHomeIde()
+   */
+  String FOLDER_DOT_IDE = ".ide";
 
   /** The name of the updates folder for temporary data and backup. */
   String FOLDER_UPDATES = "updates";
@@ -117,11 +140,19 @@ public interface IdeContext extends IdeStartContext {
    */
   String FOLDER_UPDATE = "update";
 
+  /**
+   * The name of the folder inside {@link #FOLDER_UNDERSCORE_IDE _ide} folder containing internal resources and scripts of IDEasy.
+   */
+  String FOLDER_INTERNAL = "internal";
+
   /** The file where the installed software version is written to as plain text. */
   String FILE_SOFTWARE_VERSION = ".ide.software.version";
 
   /** The file where the installed software version is written to as plain text. */
   String FILE_LEGACY_SOFTWARE_VERSION = ".devon.software.version";
+
+  /** The file for the license agreement. */
+  String FILE_LICENSE_AGREEMENT = ".license.agreement";
 
   /** The file extension for a {@link java.util.Properties} file. */
   String EXT_PROPERTIES = ".properties";
@@ -135,6 +166,26 @@ public interface IdeContext extends IdeStartContext {
   /** Legacy folder name used as compatibility fallback if {@link #FOLDER_TEMPLATES} does not exist. */
   String FOLDER_LEGACY_TEMPLATES = "devon";
 
+  /** The default folder name for {@link #getIdeRoot() IDE_ROOT}. */
+  String FOLDER_PROJECTS = "projects";
+
+  /** The filename of the configuration file in the settings for this {@link CustomToolRepository}. */
+  String FILE_CUSTOM_TOOLS = "ide-custom-tools.json";
+
+  /**
+   * file containing the current local commit hash of the settings repository.
+   */
+  String SETTINGS_COMMIT_ID = ".commit.id";
+
+  /** The IDEasy ASCII logo. */
+  String LOGO = """
+      __       ___ ___  ___
+      ╲ ╲     |_ _|   ╲| __|__ _ ____ _
+       > >     | || |) | _|/ _` (_-< || |
+      /_/ ___ |___|___/|___╲__,_/__/╲_, |
+         |___|                       |__/
+      """.replace('╲', '\\');
+
   /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
    */
@@ -147,6 +198,14 @@ public interface IdeContext extends IdeStartContext {
    * @return {@code true} if we are currently online (Internet access is available), {@code false} otherwise.
    */
   boolean isOnline();
+
+  /**
+   * Print the IDEasy {@link #LOGO logo}.
+   */
+  default void printLogo() {
+
+    info(LOGO);
+  }
 
   /**
    * Asks the user for a single string input.
@@ -245,6 +304,11 @@ public interface IdeContext extends IdeStartContext {
   CustomToolRepository getCustomToolRepository();
 
   /**
+   * @return the {@link MavenRepository}.
+   */
+  MavenRepository getMavenToolRepository();
+
+  /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different
    *     isolated projects.
    * @see com.devonfw.tools.ide.variable.IdeVariables#IDE_HOME
@@ -258,12 +322,38 @@ public interface IdeContext extends IdeStartContext {
   String getProjectName();
 
   /**
+   * @return the IDEasy version the {@link #getIdeHome() current project} was created with or migrated to.
+   */
+  VersionIdentifier getProjectVersion();
+
+  /**
+   * @param version the new value of {@link #getProjectVersion()}.
+   */
+  void setProjectVersion(VersionIdentifier version);
+
+  /**
    * @return the {@link Path} to the IDE installation root directory. This is the top-level folder where the {@link #getIdeHome() IDE instances} are located as
    *     sub-folder. There is a reserved ".ide" folder where central IDE data is stored such as the {@link #getUrlsPath() download metadata} and the central
    *     software repository.
    * @see com.devonfw.tools.ide.variable.IdeVariables#IDE_ROOT
    */
   Path getIdeRoot();
+
+  /**
+   * @return the {@link Path} to the {@link #FOLDER_UNDERSCORE_IDE}.
+   * @see #getIdeRoot()
+   * @see #FOLDER_UNDERSCORE_IDE
+   */
+  Path getIdePath();
+
+  /**
+   * @return the {@link Path} to the {@link #FOLDER_INSTALLATION installation} folder of IDEasy. This is a link to the (latest) installed release of IDEasy. On
+   *     upgrade a new release is installed and the link is switched to the new release.
+   */
+  default Path getIdeInstallationPath() {
+
+    return getIdePath().resolve(FOLDER_INSTALLATION);
+  }
 
   /**
    * @return the current working directory ("user.dir"). This is the directory where the user's shell was located when the IDE CLI was invoked.
@@ -346,9 +436,45 @@ public interface IdeContext extends IdeStartContext {
   Path getUserHomeIde();
 
   /**
-   * @return the {@link Path} to the {@code settings} folder with the cloned git repository containing the project configuration.
+   * @return the {@link Path} to the {@link #FOLDER_SETTINGS settings} folder with the cloned git repository containing the project configuration.
    */
   Path getSettingsPath();
+
+  /**
+   * @return the {@link Path} to the {@link #FOLDER_REPOSITORIES repositories} folder with legacy fallback if not present or {@code null} if not found.
+   */
+  default Path getRepositoriesPath() {
+
+    Path settingsPath = getSettingsPath();
+    if (settingsPath == null) {
+      return null;
+    }
+    Path repositoriesPath = settingsPath.resolve(IdeContext.FOLDER_REPOSITORIES);
+    if (Files.isDirectory(repositoriesPath)) {
+      return repositoriesPath;
+    }
+    Path legacyRepositoriesPath = settingsPath.resolve(IdeContext.FOLDER_LEGACY_REPOSITORIES);
+    if (Files.isDirectory(legacyRepositoriesPath)) {
+      return legacyRepositoriesPath;
+    }
+    return null;
+  }
+
+  /**
+   * @return the {@link Path} to the {@code settings} folder with the cloned git repository containing the project configuration only if the settings repository
+   *     is in fact a git repository.
+   */
+  Path getSettingsGitRepository();
+
+  /**
+   * @return {@code true} if the settings repository is a symlink or a junction.
+   */
+  boolean isSettingsRepositorySymlinkOrJunction();
+
+  /**
+   * @return the {@link Path} to the file containing the last tracked commit Id of the settings repository.
+   */
+  Path getSettingsCommitIdPath();
 
   /**
    * @return the {@link Path} to the templates folder inside the {@link #getSettingsPath() settings}. The relative directory structure in this templates folder
@@ -398,13 +524,53 @@ public interface IdeContext extends IdeStartContext {
   ProcessContext newProcess();
 
   /**
-   * Prepares the {@link IdeProgressBar} initializes task name and maximum size as well as the behaviour and style.
-   *
-   * @param taskName name of the task.
-   * @param size of the content.
-   * @return {@link IdeProgressBar} to use.
+   * @param title the {@link IdeProgressBar#getTitle() title}.
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum size}.
+   * @param unitName the {@link IdeProgressBar#getUnitName() unit name}.
+   * @param unitSize the {@link IdeProgressBar#getUnitSize() unit size}.
+   * @return the new {@link IdeProgressBar} to use.
    */
-  IdeProgressBar prepareProgressBar(String taskName, long size);
+  IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize);
+
+  /**
+   * @param title the {@link IdeProgressBar#getTitle() title}.
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum size} in bytes.
+   * @return the new {@link IdeProgressBar} to use.
+   */
+  default IdeProgressBar newProgressBarInMib(String title, long size) {
+
+    if ((size > 0) && (size < 1024)) {
+      return new IdeProgressBarNone(title, size, IdeProgressBar.UNIT_NAME_MB, IdeProgressBar.UNIT_SIZE_MB);
+    }
+    return newProgressBar(title, size, IdeProgressBar.UNIT_NAME_MB, IdeProgressBar.UNIT_SIZE_MB);
+  }
+
+  /**
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum size} in bytes.
+   * @return the new {@link IdeProgressBar} for copy.
+   */
+  default IdeProgressBar newProgressBarForDownload(long size) {
+
+    return newProgressBarInMib(IdeProgressBar.TITLE_DOWNLOADING, size);
+  }
+
+  /**
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum size} in bytes.
+   * @return the new {@link IdeProgressBar} for extracting.
+   */
+  default IdeProgressBar newProgressbarForExtracting(long size) {
+
+    return newProgressBarInMib(IdeProgressBar.TITLE_EXTRACTING, size);
+  }
+
+  /**
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum size} in bytes.
+   * @return the new {@link IdeProgressBar} for copy.
+   */
+  default IdeProgressBar newProgressbarForCopying(long size) {
+
+    return newProgressBarInMib(IdeProgressBar.TITLE_COPYING, size);
+  }
 
   /**
    * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
@@ -439,25 +605,28 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
-   * @return the String value for the variable M2_REPO, or falls back to the default USER_HOME/.m2 location if called outside an IDEasy installation.
+   * @return the {@link Path} pointing to the maven configuration directory (where "settings.xml" or "settings-security.xml" are located).
    */
-  default Path getMavenRepository() {
+  default Path getMavenConfigurationFolder() {
 
-    if (getIdeHome() != null) {
-      Path confPath = getConfPath();
-      Path m2Folder = confPath.resolve(Mvn.MVN_CONFIG_FOLDER);
-      if (!Files.isDirectory(m2Folder)) {
+    Path confPath = getConfPath();
+    Path mvnConfFolder = null;
+    if (confPath != null) {
+      mvnConfFolder = confPath.resolve(Mvn.MVN_CONFIG_FOLDER);
+      if (!Files.isDirectory(mvnConfFolder)) {
         Path m2LegacyFolder = confPath.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
         if (Files.isDirectory(m2LegacyFolder)) {
-          m2Folder = m2LegacyFolder;
+          mvnConfFolder = m2LegacyFolder;
         } else {
-          // fallback to USER_HOME/.m2 folder
-          m2Folder = getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
+          mvnConfFolder = null; // see fallback below
         }
       }
-      return m2Folder.resolve("repository");
     }
-    return null;
+    if (mvnConfFolder == null) {
+      // fallback to USER_HOME/.m2 folder
+      mvnConfFolder = getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
+    }
+    return mvnConfFolder;
   }
 
   /**
@@ -544,5 +713,10 @@ public interface IdeContext extends IdeStartContext {
    * @return the {@link WindowsPathSyntax} used for {@link Path} conversion or {@code null} for no such conversion (typically if not on Windows).
    */
   WindowsPathSyntax getPathSyntax();
+
+  /**
+   * logs the status of {@link #getIdeHome() IDE_HOME} and {@link #getIdeRoot() IDE_ROOT}.
+   */
+  void logIdeHomeAndRootStatus();
 
 }

@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.util;
 
+import java.nio.file.Path;
+
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +29,16 @@ public class FilenameUtilTest extends Assertions {
     assertThat(FilenameUtil.getExtension("https://server.com/folder.zip/file")).isNull();
     assertThat(FilenameUtil.getExtension("https://server.com/folder.zip/app.dmg")).isEqualTo("dmg");
     assertThat(FilenameUtil.getExtension("https://server.com/folder.zip/file.tar.bz2")).isEqualTo("tar.bz2");
+  }
+
+  /**
+   * Test of {@link FilenameUtil#getFilenameWithoutExtension(Path)}
+   */
+  @Test
+  public void testGetFilenameWithoutExtension() {
+
+    assertThat(FilenameUtil.getFilenameWithoutExtension(Path.of("foo/bar.some/file.name.extension"))).isEqualTo("file.name");
+    assertThat(FilenameUtil.getFilenameWithoutExtension(Path.of("foo/bar.some/file.name.tar.gz"))).isEqualTo("file.name");
   }
 
 }

@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfoMock;
@@ -16,6 +16,8 @@ import com.devonfw.tools.ide.os.SystemInfoMock;
  */
 public class EnvironmentCommandletTest extends AbstractIdeContextTest {
 
+  private static final String ENVIRONMENT_COMMANDLET = "environment";
+
   /**
    * Test of {@link EnvironmentCommandlet} run with DEBUG logging (partitioning per type/source).
    */
@@ -23,19 +25,23 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
   public void testRunDebugLogging() {
 
     // arrange
-    String path = "project/workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
+    String path = "project/workspaces/foo-test";
+    IdeTestContext context = newContext(ENVIRONMENT_COMMANDLET, path, false);
     context.setSystemInfo(SystemInfoMock.LINUX_X64);
+    context.getSystem().setProperty("JAVA_HOME", "${USER_HOME}/not_existing");
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
     Path userProperties = context.getUserHomeIde().resolve("ide.properties");
     Path settingsIdeProperties = context.getSettingsPath().resolve("ide.properties");
     Path confIdeProperties = context.getConfPath().resolve("ide.properties");
     Path workspaceIdeProperties = context.getWorkspacePath().resolve("ide.properties");
+    Path softwarePath = context.getSoftwarePath();
+
     // act
     env.run();
+
     // assert
     assertThat(context).log().hasEntriesWithNothingElseInBetween( //
-        IdeLogEntry.ofDebug("from USER@" + userProperties.toString() + ":"), //
+        IdeLogEntry.ofDebug("from USER@" + userProperties + ":"), //
         IdeLogEntry.ofProcessable("DOCKER_EDITION=\"docker\""), //
         IdeLogEntry.ofProcessable("FOO=\"foo-bar-some-${UNDEFINED}\""), //
 
@@ -72,7 +78,13 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("export M2_REPO=\"" + context.getUserHome() + "/.m2/repository\""), //
         new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export PATH=", true), //
         IdeLogEntry.ofProcessable("WORKSPACE=\"foo-test\""), //
-        IdeLogEntry.ofProcessable("WORKSPACE_PATH=\"" + normalize(context.getWorkspacePath()) + "\"") //
+        IdeLogEntry.ofProcessable("WORKSPACE_PATH=\"" + normalize(context.getWorkspacePath()) + "\""), //
+
+        IdeLogEntry.ofDebug("from TOOL@" + softwarePath + ":"), //
+        IdeLogEntry.ofProcessable(
+            "export JAVA_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "java\""), //
+        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "mvn\""), //
+        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "npm\"") //
     );
   }
 
@@ -84,15 +96,14 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext(PROJECT_BASIC, path, false, IdeLogLevel.INFO);
+    IdeTestContext context = newContext(ENVIRONMENT_COMMANDLET, path, false, IdeLogLevel.INFO);
     context.setSystemInfo(SystemInfoMock.MAC_ARM64);
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
-    Path userProperties = context.getUserHomeIde().resolve("ide.properties");
-    Path settingsIdeProperties = context.getSettingsPath().resolve("ide.properties");
-    Path confIdeProperties = context.getConfPath().resolve("ide.properties");
-    Path workspaceIdeProperties = context.getWorkspacePath().resolve("ide.properties");
+    Path softwarePath = context.getSoftwarePath();
+
     // act
     env.run();
+
     // assert
     assertThat(context).log().hasEntriesWithNothingElseInBetween( //
         IdeLogEntry.ofProcessable("BAR=\"bar-some-${UNDEFINED}\""), //
@@ -103,9 +114,13 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("IDE_HOME=\"" + normalize(context.getIdeHome()) + "\""), //
         IdeLogEntry.ofProcessable("IDE_TOOLS=\"mvn,eclipse\""), //
         IdeLogEntry.ofProcessable("INTELLIJ_EDITION=\"ultimate\""), //
+        IdeLogEntry.ofProcessable(
+            "export JAVA_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "java\""), //
         IdeLogEntry.ofProcessable("JAVA_VERSION=\"17*\""), //
         IdeLogEntry.ofProcessable("export M2_REPO=\"" + context.getUserHome() + "/.m2/repository\""), //
+        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + softwarePath + FileSystems.getDefault().getSeparator() + "mvn\""),
         IdeLogEntry.ofProcessable("MVN_VERSION=\"3.9.1\""), //
+        IdeLogEntry.ofProcessable("export NPM_HOME=\"" + softwarePath + FileSystems.getDefault().getSeparator() + "npm\""), //
         new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export PATH=", true), //
         IdeLogEntry.ofProcessable("SOME=\"some-${UNDEFINED}\""), //
         IdeLogEntry.ofProcessable("TEST_ARGS1=\" user1 settings1 workspace1 conf1\""), //
@@ -125,18 +140,6 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("WORKSPACE=\"foo-test\""), //
         IdeLogEntry.ofProcessable("WORKSPACE_PATH=\"" + normalize(context.getWorkspacePath()) + "\"") //
     );
-  }
-
-  /**
-   * Test that {@link EnvironmentCommandlet} requires home.
-   */
-  @Test
-  public void testThatHomeIsRequired() {
-
-    // arrange
-    EnvironmentCommandlet env = new EnvironmentCommandlet(IdeTestContextMock.get());
-    // act & assert
-    assertThat(env.isIdeHomeRequired()).isTrue();
   }
 
   private String normalize(Path path) {

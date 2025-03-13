@@ -74,6 +74,12 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   @Override
+  public Path getLegacyPropertiesFilePath() {
+
+    return null;
+  }
+
+  @Override
   public VariableSource getSource() {
 
     if (this.source == null) {
@@ -89,9 +95,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   protected boolean isExported(String name) {
 
     if (this.parent != null) {
-      if (this.parent.isExported(name)) {
-        return true;
-      }
+      return this.parent.isExported(name);
     }
     return false;
   }
@@ -138,13 +142,14 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
   }
 
   /**
-   * @param propertiesFilePath the {@link #getPropertiesFilePath() propertiesFilePath} of the child {@link EnvironmentVariables}.
+   * @param propertiesFolderPath the {@link Path} to the folder containing the {@link #getPropertiesFilePath() properties file} of the child
+   *     {@link EnvironmentVariables}.
    * @param type the {@link #getType() type}.
    * @return the new {@link EnvironmentVariables}.
    */
-  public AbstractEnvironmentVariables extend(Path propertiesFilePath, EnvironmentVariablesType type) {
+  public AbstractEnvironmentVariables extend(Path propertiesFolderPath, EnvironmentVariablesType type) {
 
-    return new EnvironmentVariablesPropertiesFile(this, type, propertiesFilePath, this.context);
+    return new EnvironmentVariablesPropertiesFile(this, type, propertiesFolderPath, null, this.context);
   }
 
   /**
@@ -200,7 +205,7 @@ public abstract class AbstractEnvironmentVariables implements EnvironmentVariabl
     if (context.syntax == null) {
       resolved = resolveWithSyntax(value, source, recursion, resolvedVars, context, VariableSyntax.SQUARE);
       if (context.legacySupport) {
-        resolved = resolveWithSyntax(value, source, recursion, resolvedVars, context, VariableSyntax.CURLY);
+        resolved = resolveWithSyntax(resolved, source, recursion, resolvedVars, context, VariableSyntax.CURLY);
       }
     } else {
       resolved = resolveWithSyntax(value, source, recursion, resolvedVars, context, context.syntax);

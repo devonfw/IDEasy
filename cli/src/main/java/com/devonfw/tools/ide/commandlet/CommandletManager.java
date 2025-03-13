@@ -1,7 +1,10 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.util.Collection;
+import java.util.Iterator;
 
+import com.devonfw.tools.ide.cli.CliArguments;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
@@ -91,5 +94,16 @@ public interface CommandletManager {
     }
     throw new IllegalArgumentException("The commandlet " + name + " is not a LocalToolCommandlet!");
   }
+
+  /**
+   * @param arguments the {@link CliArguments}.
+   * @param collector the optional {@link CompletionCandidateCollector}. Will be {@code null} if no argument {@link CliArguments#isCompletion() completion}
+   *     shall be performed.
+   * @return an {@link Iterator} of the matching {@link Commandlet}(s). Typically empty or containing a single {@link Commandlet}. Only in edge-cases multiple
+   *     {@link Commandlet}s could be found (e.g. if two {@link Commandlet}s exist with the same keyword but with different mandatory properties such as in our
+   *     legacy devonfw-ide "ide get version ..." and "ide get edition ..." - however, we redesigned our CLI to "ide get-version ..." and "ide get-edition ..."
+   *     to simplify this).
+   */
+  Iterator<Commandlet> findCommandlet(CliArguments arguments, CompletionCandidateCollector collector);
 
 }

@@ -9,9 +9,18 @@ To get an initial set of these settings we provide the default https://github.co
 These are also released so you can download the latest stable or any history version at http://search.maven.org/#search|ga|1|a%3A%22devonfw-ide-settings%22[maven central].
 
 To test `IDEasy` or for very small projects you can also use these the latest default settings (just hit return when link:setup.adoc[setup] is asking for the `Settings URL`).
-However, for collaborative projects we strongly encourage you to distribute and maintain the settings via a dedicated and project specific `git` repository.
+However, for collaborative projects we provide two approaches to distribute and maintain the settings:
+
+* Via a dedicated and project specific git repository (recommended approach).
 This gives you the freedom to control and manage the tools with their versions and configurations during the project lifecycle.
 Therefore simply follow the link:usage.adoc#admin[admin usage guide].
+* Via your code repository by including the settings folder directly in your project.
+This allows you to keep settings changes in sync with code changes and manage them in the same pull requests.
+To use this approach:
+** Create a settings folder in your repository root following the structure described below
+** Use `ide create --code <code-repo-url>` to create your project.
+IDEasy will clone your repository and create a symlink to the settings folder.
+Changes to settings can then be committed alongside code changes.
 
 == Structure
 
@@ -43,6 +52,9 @@ The settings folder (see `link:variables.adoc[SETTINGS_PATH]`) has to follow thi
 │  └──/ https://github.com/devonfw/ide-settings/tree/main/vscode/workspace[workspace]
 │     ├──/ https://github.com/devonfw/ide-settings/tree/main/vscode/workspace/setup[setup]
 │     └──/ https://github.com/devonfw/ide-settings/tree/main/vscode/workspace/update[update]
+├──/ https://github.com/devonfw/ide-settings/tree/main/repositories[repositories]
+│  ├──/ ...
+│  └──/ https://github.com/devonfw/ide-settings/blob/main/repositories/README.adoc[README.adoc]
 ├──/ ...
 └── https://github.com/devonfw/ide-settings/blob/main/ide.properties[ide.properties]
 ----

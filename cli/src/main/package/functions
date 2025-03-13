@@ -3,7 +3,7 @@
 function ide() {
   local return_code
   local ide_env
-  if [ $# != 0 ] && [ "$1" != "init" ]; then
+  if [ $# != 0 ]; then
     ideasy ${IDE_OPTIONS} "$@"
     return_code=$?
     if [ $return_code != 0 ]; then
@@ -15,11 +15,10 @@ function ide() {
   if [ $? = 0 ]; then
     eval "${ide_env}"
     if [ $# = 0 ]; then
-      ideasy ${IDE_OPTIONS} status
       echo "IDE environment variables have been set for ${IDE_HOME} in workspace ${WORKSPACE}"
     fi
   fi
-  if [ "${OSTYPE}" = "cygwin" ] && [ "$1" != "init" ]; then
+  if [ "${OSTYPE}" = "cygwin" ] && [ "$#" != 0 ]; then
     echo -e "\033[93m--- WARNING: CYGWIN IS NOT SUPPORTED ---\nCygwin console is not supported by IDEasy.\nConsider using the git terminal instead.\nIf you want to use Cygwin with IDEasy, you will have to configure it yourself.\nA few suggestions and caveats can be found here:\nhttps://github.com/devonfw/IDEasy/blob/main/documentation/cygwin.adoc\n\033[39m"
   fi
 }
@@ -27,16 +26,16 @@ function ide() {
 function icd() {
   if [ $# = 1 ] && [ "${1::1}" != "-" ]; then
     cd $1 || return 1
-    ide init
+    ide
     return
   elif [ $# -gt 2 ]; then
-    echo -e "\033[93mInvalid usage icd $*\033[39m" >&2
+    echo -e "\033[91mInvalid usage icd $*\033[39m" >&2
     return 1  
   fi
   if [ "$1" = "-p" ]; then
     if [ -d "${IDE_ROOT}/$2" ]; then
       cd "${IDE_ROOT}/$2"
-      ide init
+      ide
       return
     else
       echo -e "\033[93mNo such IDE project ${IDE_ROOT}/$2\033[39m" >&2
@@ -44,7 +43,7 @@ function icd() {
     fi
   fi
   if [ ! -d "${IDE_HOME}" ]; then
-    ide init
+    ide
   fi
   if [ $# = 0 ]; then
     if [ -d "${IDE_HOME}" ]; then
@@ -60,7 +59,7 @@ function icd() {
     fi
     if [ -d "${IDE_HOME}/workspaces/${wksp}" ]; then
       cd "${IDE_HOME}/workspaces/${wksp}"
-      ide init
+      ide
       return
     else
       echo -e "\033[93mNo such IDE workspace ${IDE_HOME}/workspaces/${wksp}\033[39m" >&2
@@ -85,10 +84,13 @@ if [ "${0/*\//}" = "zsh" ]; then
   bashcompinit
 fi
 
+if [ "${OSTYPE}" = "msys" ]; then
+  IDE_ROOT="$(cygpath "${IDE_ROOT}")"
+fi
 if ! command -v ideasy &> /dev/null; then
-  export PATH="${PATH}:${IDE_ROOT}/_ide/bin"
+  export PATH="${PATH}:${IDE_ROOT}/_ide/installation/bin"
 fi
 
 complete -F _ide_completion ide
-ide init
+ide
 

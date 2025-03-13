@@ -8,8 +8,6 @@ import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
 /**
  * Implementation of {@link FileMerger} to use as fallback. It can not actually merge but will simply overwrite the files.
- *
- * @since 3.0.0
  */
 public class FallbackMerger extends FileMerger {
 
@@ -39,4 +37,9 @@ public class FallbackMerger extends FileMerger {
     // nothing by default, we could copy the workspace file back to the update file if it exists...
   }
 
+  @Override
+  protected boolean doUpgrade(Path workspaceFile) throws Exception {
+
+    return false;
+  }
 }

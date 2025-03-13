@@ -85,7 +85,7 @@ public abstract class Property<V> {
   }
 
   /**
-   * @return the name of this property.
+   * @return the name of this property. Will be the empty {@link String} for a {@link #isValue() value} property that is not a keyword.
    */
   public String getName() {
 
@@ -253,6 +253,10 @@ public abstract class Property<V> {
     this.value.clear();
   }
 
+  /**
+   * @param value the value to add to the {@link List} of values.
+   * @see #isMultiValued()
+   */
   public void addValue(V value) {
 
     if (!this.multivalued) {
@@ -331,21 +335,35 @@ public abstract class Property<V> {
    */
   public boolean apply(CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
 
+    return apply(this.name, args, context, commandlet, collector);
+  }
+
+  /**
+   * @param normalizedName the {@link #getName() name} or potentially a normalized form of it (see {@link KeywordProperty}).
+   * @param args the {@link CliArguments} already {@link CliArguments#current() pointing} the {@link CliArgument} to apply.
+   * @param context the {@link IdeContext}.
+   * @param commandlet the {@link Commandlet} owning this property.
+   * @param collector the {@link CompletionCandidateCollector}.
+   * @return {@code true} if it matches, {@code false} otherwise.
+   */
+  protected boolean apply(String normalizedName, CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+
     CliArgument argument = args.current();
     if (argument.isCompletion()) {
       int size = collector.getCandidates().size();
-      complete(argument, args, context, commandlet, collector);
-      if (collector.getCandidates().size() > size) { // completions added so complete matched?
-        return true;
-      }
+      complete(normalizedName, argument, args, context, commandlet, collector);
+      return (collector.getCandidates().size() > size);
     }
-    boolean option = isOption();
+    boolean option = normalizedName.startsWith("-");
     if (option && !argument.isOption()) {
+      return false;
+    }
+    if (!option && argument.isOption() && (argument.get().length() > 1) && args.isSplitShortOpts()) {
       return false;
     }
     String argValue = null;
     boolean lookahead = false;
-    if (this.name.isEmpty()) {
+    if (normalizedName.isEmpty()) {
       argValue = argument.get();
     } else {
       if (!matches(argument.getKey())) {
@@ -384,30 +402,31 @@ public abstract class Property<V> {
 
     if (success) {
       if (this.multivalued) {
-
         while (success && args.hasNext()) {
           CliArgument arg = args.next();
           success = assignValueAsString(arg.get(), context, commandlet);
         }
       }
-      args.next();
     }
+    args.next();
     return success;
   }
 
   /**
    * Performs auto-completion for the {@code arg}.
    *
+   * @param normalizedName the {@link #getName() name} or potentially a normalized form of it (see {@link KeywordProperty}).
    * @param argument the {@link CliArgument CLI argument}.
    * @param args the {@link CliArguments}.
    * @param context the {@link IdeContext}.
    * @param commandlet the {@link Commandlet} owning this {@link Property}.
    * @param collector the {@link CompletionCandidateCollector}.
    */
-  protected void complete(CliArgument argument, CliArguments args, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+  protected void complete(String normalizedName, CliArgument argument, CliArguments args, IdeContext context, Commandlet commandlet,
+      CompletionCandidateCollector collector) {
 
     String arg = argument.get();
-    if (this.name.isEmpty()) {
+    if (normalizedName.isEmpty()) {
       int count = collector.getCandidates().size();
       completeValue(arg, context, commandlet, collector);
       if (collector.getCandidates().size() > count) {
@@ -415,8 +434,8 @@ public abstract class Property<V> {
       }
       return;
     }
-    if (this.name.startsWith(arg)) {
-      collector.add(this.name, null, this, commandlet);
+    if (normalizedName.startsWith(arg)) {
+      collector.add(normalizedName, null, this, commandlet);
     }
     if (this.alias != null) {
       if (this.alias.startsWith(arg)) {
@@ -431,7 +450,7 @@ public abstract class Property<V> {
     String value = argument.getValue();
     if (value != null) {
       String key = argument.getKey();
-      if (this.name.equals(key) || Objects.equals(this.alias, key)) {
+      if (normalizedName.equals(key) || Objects.equals(this.alias, key)) {
         completeValue(value, context, commandlet, new CompletionCandidateCollectorAdapter(key + "=", collector));
       }
     }

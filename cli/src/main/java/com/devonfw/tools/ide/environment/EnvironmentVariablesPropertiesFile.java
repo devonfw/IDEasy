@@ -5,7 +5,6 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,13 +26,17 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
 
   private final EnvironmentVariablesType type;
 
-  private Path propertiesFilePath;
+  private final Path propertiesFilePath;
+
+  private final Path legacyPropertiesFilePath;
 
   private final Map<String, String> variables;
 
   private final Set<String> exportedVariables;
 
   private final Set<String> modifiedVariables;
+
+  private Boolean legacyConfiguration;
 
   /**
    * The constructor.
@@ -46,29 +49,80 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
   public EnvironmentVariablesPropertiesFile(AbstractEnvironmentVariables parent, EnvironmentVariablesType type,
       Path propertiesFilePath, IdeContext context) {
 
+    this(parent, type, getParent(propertiesFilePath), propertiesFilePath, context);
+  }
+
+  /**
+   * The constructor.
+   *
+   * @param parent the parent {@link EnvironmentVariables} to inherit from.
+   * @param type the {@link #getType() type}.
+   * @param propertiesFolderPath the {@link Path} to the folder where the properties file is expected.
+   * @param propertiesFilePath the {@link #getSource() source}.
+   * @param context the {@link IdeContext}.
+   */
+  public EnvironmentVariablesPropertiesFile(AbstractEnvironmentVariables parent, EnvironmentVariablesType type, Path propertiesFolderPath,
+      Path propertiesFilePath, IdeContext context) {
+
     super(parent, context);
     Objects.requireNonNull(type);
     assert (type != EnvironmentVariablesType.RESOLVED);
     this.type = type;
-    this.propertiesFilePath = propertiesFilePath;
+    if (propertiesFolderPath == null) {
+      this.propertiesFilePath = null;
+      this.legacyPropertiesFilePath = null;
+    } else {
+      if (propertiesFilePath == null) {
+        this.propertiesFilePath = propertiesFolderPath.resolve(DEFAULT_PROPERTIES);
+      } else {
+        this.propertiesFilePath = propertiesFilePath;
+        assert (propertiesFilePath.getParent().equals(propertiesFolderPath));
+      }
+      Path legacyPropertiesFolderPath = propertiesFolderPath;
+      if (type == EnvironmentVariablesType.USER) {
+        // ~/devon.properties vs. ~/.ide/ide.properties
+        legacyPropertiesFolderPath = propertiesFolderPath.getParent();
+      }
+      this.legacyPropertiesFilePath = legacyPropertiesFolderPath.resolve(LEGACY_PROPERTIES);
+    }
     this.variables = new HashMap<>();
     this.exportedVariables = new HashSet<>();
     this.modifiedVariables = new HashSet<>();
     load();
   }
 
+  private static Path getParent(Path path) {
+
+    if (path == null) {
+      return null;
+    }
+    return path.getParent();
+  }
+
   private void load() {
 
-    if (this.propertiesFilePath == null) {
-      return;
+    boolean success = load(this.propertiesFilePath);
+    if (success) {
+      this.legacyConfiguration = Boolean.FALSE;
+    } else {
+      success = load(this.legacyPropertiesFilePath);
+      if (success) {
+        this.legacyConfiguration = Boolean.TRUE;
+      }
     }
-    if (!Files.exists(this.propertiesFilePath)) {
-      this.context.trace("Properties not found at {}", this.propertiesFilePath);
-      return;
+  }
+
+  private boolean load(Path file) {
+    if (file == null) {
+      return false;
     }
-    this.context.trace("Loading properties from {}", this.propertiesFilePath);
-    boolean legacyProperties = this.propertiesFilePath.getFileName().toString().equals(LEGACY_PROPERTIES);
-    try (BufferedReader reader = Files.newBufferedReader(this.propertiesFilePath)) {
+    if (!Files.exists(file)) {
+      this.context.trace("Properties not found at {}", file);
+      return false;
+    }
+    this.context.trace("Loading properties from {}", file);
+    boolean legacyProperties = file.getFileName().toString().equals(LEGACY_PROPERTIES);
+    try (BufferedReader reader = Files.newBufferedReader(file)) {
       String line;
       do {
         line = reader.readLine();
@@ -86,7 +140,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
             boolean legacyVariable = IdeVariables.isLegacyVariable(name);
             if (legacyVariable && !legacyProperties) {
               this.context.warning("Legacy variable name is used to define variable {} in {} - please cleanup your configuration.", variableLine,
-                  this.propertiesFilePath);
+                  file);
             }
             String oldValue = this.variables.get(migratedName);
             if (oldValue != null) {
@@ -94,10 +148,10 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
               if (legacyVariable) {
                 // if the legacy name was configured we do not want to override the official variable!
                 this.context.warning("Both legacy variable {} and official variable {} are configured in {} - ignoring legacy variable declaration!",
-                    variableDefinition.getLegacyName(), variableDefinition.getName(), this.propertiesFilePath);
+                    variableDefinition.getLegacyName(), variableDefinition.getName(), file);
               } else {
                 this.context.warning("Duplicate variable definition {} with old value '{}' and new value '{}' in {}", name, oldValue, migratedValue,
-                    this.propertiesFilePath);
+                    file);
                 this.variables.put(migratedName, migratedValue);
               }
             } else {
@@ -109,58 +163,39 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
           }
         }
       } while (line != null);
+      return true;
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to load properties from " + this.propertiesFilePath, e);
+      throw new IllegalStateException("Failed to load properties from " + file, e);
     }
   }
 
   @Override
   public void save() {
 
-    if (this.modifiedVariables.isEmpty()) {
+    boolean isLegacy = Boolean.TRUE.equals(this.legacyConfiguration);
+    if (this.modifiedVariables.isEmpty() && !isLegacy) {
       this.context.trace("No changes to save in properties file {}", this.propertiesFilePath);
       return;
     }
-    Path newPropertiesFilePath = this.propertiesFilePath;
-    String propertiesFileName = this.propertiesFilePath.getFileName().toString();
-    Path propertiesParentPath = newPropertiesFilePath.getParent();
 
-    if (LEGACY_PROPERTIES.equals(propertiesFileName)) {
-      newPropertiesFilePath = propertiesParentPath.resolve(DEFAULT_PROPERTIES);
-      this.context.info("Converting legacy properties to {}", newPropertiesFilePath);
+    Path file = this.propertiesFilePath;
+    if (isLegacy) {
+      this.context.info("Converting legacy properties to {}", this.propertiesFilePath);
+      file = this.legacyPropertiesFilePath;
     }
 
-    this.context.getFileAccess().mkdirs(propertiesParentPath);
-    List<VariableLine> lines = new ArrayList<>();
+    List<VariableLine> lines = loadVariableLines(file);
 
-    // Skip reading if the file does not exist
-    if (Files.exists(this.propertiesFilePath)) {
-      try (BufferedReader reader = Files.newBufferedReader(this.propertiesFilePath)) {
-        String line;
-        do {
-          line = reader.readLine();
-          if (line != null) {
-            VariableLine variableLine = VariableLine.of(line, this.context, getSource());
-            lines.add(variableLine);
-          }
-        } while (line != null);
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to load existing properties from " + this.propertiesFilePath, e);
-      }
-    } else {
-      this.context.debug("Properties file {} does not exist, skipping read.", newPropertiesFilePath);
-    }
-
-    try (BufferedWriter writer = Files.newBufferedWriter(newPropertiesFilePath, StandardOpenOption.CREATE,
-        StandardOpenOption.TRUNCATE_EXISTING)) {
+    this.context.getFileAccess().mkdirs(this.propertiesFilePath.getParent());
+    try (BufferedWriter writer = Files.newBufferedWriter(this.propertiesFilePath)) {
       // copy and modify original lines from properties file
       for (VariableLine line : lines) {
         VariableLine newLine = migrateLine(line, true);
         if (newLine == null) {
-          this.context.debug("Removed variable line '{}' from {}", line, newPropertiesFilePath);
+          this.context.debug("Removed variable line '{}' from {}", line, this.propertiesFilePath);
         } else {
           if (newLine != line) {
-            this.context.debug("Changed variable line from '{}' to '{}' in {}", line, newLine, newPropertiesFilePath);
+            this.context.debug("Changed variable line from '{}' to '{}' in {}", line, newLine, this.propertiesFilePath);
           }
           writer.append(newLine.toString());
           writer.append(NEWLINE);
@@ -184,9 +219,31 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
       }
       this.modifiedVariables.clear();
     } catch (IOException e) {
-      throw new IllegalStateException("Failed to save properties to " + newPropertiesFilePath, e);
+      throw new IllegalStateException("Failed to save properties to " + this.propertiesFilePath, e);
     }
-    this.propertiesFilePath = newPropertiesFilePath;
+    this.legacyConfiguration = Boolean.FALSE;
+  }
+
+  private List<VariableLine> loadVariableLines(Path file) {
+    List<VariableLine> lines = new ArrayList<>();
+    if (!Files.exists(file)) {
+      // Skip reading if the file does not exist
+      this.context.debug("Properties file {} does not exist, skipping read.", file);
+      return lines;
+    }
+    try (BufferedReader reader = Files.newBufferedReader(file)) {
+      String line;
+      do {
+        line = reader.readLine();
+        if (line != null) {
+          VariableLine variableLine = VariableLine.of(line, this.context, getSource());
+          lines.add(variableLine);
+        }
+      } while (line != null);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to load existing properties from " + file, e);
+    }
+    return lines;
   }
 
   private VariableLine migrateLine(VariableLine line, boolean saveNotLoad) {
@@ -232,7 +289,7 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
   }
 
   @Override
-  protected boolean isExported(String name) {
+  public boolean isExported(String name) {
 
     if (this.exportedVariables.contains(name)) {
       return true;
@@ -253,6 +310,27 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
   }
 
   @Override
+  public Path getLegacyPropertiesFilePath() {
+
+    return this.legacyPropertiesFilePath;
+  }
+
+  /**
+   * @return {@code Boolean#TRUE} if the current variable state comes from {@link #getLegacyPropertiesFilePath()}, {@code Boolean#FALSE} if state comes from
+   *     {@link #getPropertiesFilePath()}), and {@code null} if neither of these files existed (nothing was loaded).
+   */
+  public Boolean getLegacyConfiguration() {
+
+    return this.legacyConfiguration;
+  }
+
+  @Override
+  public String set(String name, String value) {
+
+    return set(name, value, this.exportedVariables.contains(name));
+  }
+
+  @Override
   public String set(String name, String value, boolean export) {
 
     String oldValue = this.variables.put(name, value);
@@ -269,6 +347,20 @@ public final class EnvironmentVariablesPropertiesFile extends EnvironmentVariabl
       }
     }
     return oldValue;
+  }
+
+  /**
+   * Removes a property.
+   *
+   * @param name name of the property to remove.
+   */
+  public void remove(String name) {
+    String oldValue = this.variables.remove(name);
+    if (oldValue != null) {
+      this.modifiedVariables.add(name);
+      this.exportedVariables.remove(name);
+      this.context.debug("Removed variable name of '{}' in {}", name, this.propertiesFilePath);
+    }
   }
 
 }

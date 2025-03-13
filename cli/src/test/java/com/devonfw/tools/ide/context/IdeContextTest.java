@@ -40,8 +40,8 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(context.getWorkspacePath().resolve("readme")).hasContent("this is the foo-test workspace of basic");
     SystemPath systemPath = IdeVariables.PATH.get(context);
     assertThat(systemPath).isSameAs(context.getPath());
-    String envPath = context.getIdeRoot().resolve("_ide").resolve("bin").toString();
-    assertThat(systemPath.toString()).isNotEqualTo(envPath).endsWith(envPath);
+    String javaPath = context.getSoftwarePath().resolve("java").resolve("bin").toString();
+    assertThat(systemPath.toString()).isNotEqualTo(javaPath).contains(javaPath);
     Path softwarePath = context.getSoftwarePath();
     Path javaBin = softwarePath.resolve("java/bin");
     assertThat(systemPath.getPath("java")).isEqualTo(javaBin);

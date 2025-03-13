@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<root attribute2="bar" xmlns:foo="http://foo.org" foo:attributeFoo="foo">
-  <list>
+<root xmlns:merge="https://github.com/devonfw/IDEasy/merge" attribute2="bar" xmlns:foo="http://foo.org" foo:attributeFoo="foo">
+  <list merge:strategy="override">
     <entry>value2</entry>
     <entry>value3</entry>
   </list>

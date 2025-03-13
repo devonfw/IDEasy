@@ -29,7 +29,7 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
    * Test of {@link HelpCommandlet} does not require home.
    */
   @Test
-  public void testThatHomeIsNotReqired() {
+  public void testThatHomeIsNotRequired() {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
@@ -160,6 +160,6 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
    */
   private void assertLogoMessage(IdeTestContext context) {
 
-    assertThat(context).logAtInfo().hasMessage(HelpCommandlet.LOGO);
+    assertThat(context).logAtInfo().hasMessage(IdeContext.LOGO);
   }
 }

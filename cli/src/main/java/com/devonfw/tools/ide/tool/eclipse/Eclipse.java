@@ -17,13 +17,22 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
-import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.eclipse.org/">Eclipse</a>.
  */
 public class Eclipse extends IdeToolCommandlet {
+
+  // version must correspond to eclipse-import.xml
+  private static final String GROOVY_VERSION = "3.0.23";
+
+  /** Eclipse CLI option for Java virtual machine arguments. */
+  public static final String VMARGS = "-vmargs";
+
+  private boolean groovyInstalled;
 
   /**
    * The constructor.
@@ -38,7 +47,7 @@ public class Eclipse extends IdeToolCommandlet {
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
 
-    if ((processMode == ProcessMode.DEFAULT_CAPTURE) && this.context.getSystemInfo().isWindows()) {
+    if (!processMode.isBackground() && this.context.getSystemInfo().isWindows()) {
       pc.executable(Path.of("eclipsec"));
     } else {
       super.configureToolBinary(pc, processMode, errorHandling);
@@ -48,6 +57,12 @@ public class Eclipse extends IdeToolCommandlet {
   @Override
   protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
 
+    if ((args.length > 0) && !VMARGS.equals(args[0])) {
+      String vmArgs = this.context.getVariables().get("ECLIPSE_VMARGS");
+      if ((vmArgs != null) && !vmArgs.isEmpty()) {
+        pc.addArg(VMARGS).addArg(vmArgs);
+      }
+    }
     // configure workspace location
     pc.addArg("-data").addArg(this.context.getWorkspacePath());
     // use keyring from user home to keep secrets and share across projects and workspaces
@@ -57,17 +72,10 @@ public class Eclipse extends IdeToolCommandlet {
     if (processMode == ProcessMode.BACKGROUND) {
       // to start eclipse as GUI
       pc.addArg("gui").addArg("-showlocation").addArg(this.context.getIdeHome().getFileName());
-    } else if (processMode == ProcessMode.DEFAULT_CAPTURE) {
+    } else {
       pc.addArg("-consoleLog").addArg("-nosplash");
     }
     super.configureToolArgs(pc, processMode, errorHandling, args);
-  }
-
-  @Override
-  protected void installDependencies() {
-
-    // TODO create eclipse/eclipse/dependencies.json file in ide-urls and delete this method
-    getCommandlet(Java.class).install();
   }
 
   @Override
@@ -77,21 +85,22 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
-    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, null, ProcessErrorHandling.LOG_WARNING, "-application", "org.eclipse.equinox.p2.director",
+    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, pc, "-application", "org.eclipse.equinox.p2.director",
         "-repository", plugin.url(), "-installIU", plugin.id());
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
+          this.context.success("Successfully installed plugin: {}", plugin.name());
           step.success();
-          return;
+          return true;
         }
       }
     }
-
     result.log(IdeLogLevel.DEBUG, context, IdeLogLevel.ERROR);
     step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
+    return false;
   }
 
   @Override
@@ -123,4 +132,17 @@ public class Eclipse extends IdeToolCommandlet {
     return false;
   }
 
+  @Override
+  public void importRepository(Path repositoryPath) {
+    if (!this.groovyInstalled) {
+      Mvn maven = this.context.getCommandletManager().getCommandlet(Mvn.class);
+      MvnArtifact groovyAnt = new MvnArtifact("org.codehaus.groovy", "groovy-ant", GROOVY_VERSION);
+      maven.getOrDownloadArtifact(groovyAnt);
+      this.groovyInstalled = true;
+    }
+    // -DdevonImportPath=\"${import_path}\" -DdevonImportWorkingSet=\"${importWorkingSets}\""
+    runTool(ProcessMode.DEFAULT, null, ProcessErrorHandling.THROW_CLI, VMARGS,
+        "-DrepositoryImportPath=\"" + repositoryPath + "\" -DrepositoryImportWorkingSet=\"" + "" + "\"", "-application", "org.eclipse.ant.core.antRunner",
+        "-buildfile", this.context.getIdeInstallationPath().resolve(IdeContext.FOLDER_INTERNAL).resolve("eclipse-import.xml").toString());
+  }
 }

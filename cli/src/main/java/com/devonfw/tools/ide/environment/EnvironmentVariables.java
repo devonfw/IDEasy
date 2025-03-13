@@ -119,6 +119,11 @@ public interface EnvironmentVariables {
   Path getPropertiesFilePath();
 
   /**
+   * @return the {@link Path} to the {@link #LEGACY_PROPERTIES} if they exist for this {@link EnvironmentVariables} or {@code null} otherwise (does not exist).
+   */
+  Path getLegacyPropertiesFilePath();
+
+  /**
    * @return the {@link VariableSource} of this {@link EnvironmentVariables}.
    */
   VariableSource getSource();
@@ -130,6 +135,16 @@ public interface EnvironmentVariables {
   default EnvironmentVariables getParent() {
 
     return null;
+  }
+
+  /**
+   * @param name the {@link com.devonfw.tools.ide.variable.VariableDefinition#getName() name} of the variable to set.
+   * @param value the new {@link #get(String) value} of the variable to set. May be {@code null} to unset the variable.
+   * @return the old variable value.
+   */
+  default String set(String name, String value) {
+
+    throw new UnsupportedOperationException();
   }
 
   /**
@@ -258,5 +273,4 @@ public interface EnvironmentVariables {
 
     return tool.toUpperCase(Locale.ROOT) + "_EDITION";
   }
-
 }

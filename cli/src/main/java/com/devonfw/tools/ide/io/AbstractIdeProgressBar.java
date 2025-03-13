@@ -5,22 +5,59 @@ package com.devonfw.tools.ide.io;
  */
 public abstract class AbstractIdeProgressBar implements IdeProgressBar {
 
+  /** @see #getTitle() */
+  protected final String title;
+
+  /** @see #getMaxSize() */
+  protected final long maxSize;
+
+  /** @see #getUnitName() */
+  protected final String unitName;
+
+  /** @see #getUnitSize() */
+  protected final long unitSize;
+
   private long currentProgress;
 
-  private final long maxLength;
-
   /**
-   * @param maxLength the maximum length of the progress bar.
+   * The constructor.
+   *
+   * @param title the {@link #getTitle() title}.
+   * @param maxSize the {@link #getMaxSize() maximum size}.
+   * @param unitName the {@link #getUnitName() unit name}.
+   * @param unitSize the {@link #getUnitSize() unit size}.
    */
-  public AbstractIdeProgressBar(long maxLength) {
+  public AbstractIdeProgressBar(String title, long maxSize, String unitName, long unitSize) {
 
-    this.maxLength = maxLength;
+    super();
+    this.title = title;
+    this.maxSize = maxSize;
+    this.unitName = unitName;
+    this.unitSize = unitSize;
   }
 
   @Override
-  public long getMaxLength() {
+  public String getTitle() {
 
-    return maxLength;
+    return this.title;
+  }
+
+  @Override
+  public long getMaxSize() {
+
+    return this.maxSize;
+  }
+
+  @Override
+  public String getUnitName() {
+
+    return this.unitName;
+  }
+
+  @Override
+  public long getUnitSize() {
+
+    return this.unitSize;
   }
 
   /**
@@ -38,8 +75,8 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
    */
   protected void stepTo(long stepPosition) {
 
-    if ((this.maxLength > 0) && (stepPosition > this.maxLength)) {
-      stepPosition = this.maxLength; // clip to max avoiding overflow
+    if ((this.maxSize > 0) && (stepPosition > this.maxSize)) {
+      stepPosition = this.maxSize; // clip to max avoiding overflow
     }
     this.currentProgress = stepPosition;
     doStepTo(stepPosition);
@@ -56,11 +93,11 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
   public void stepBy(long stepSize) {
 
     this.currentProgress += stepSize;
-    if (this.maxLength > 0) {
+    if (this.maxSize > 0) {
       // check if maximum overflow
-      if (this.currentProgress > this.maxLength) {
-        this.currentProgress = this.maxLength;
-        stepTo(this.maxLength);
+      if (this.currentProgress > this.maxSize) {
+        this.currentProgress = this.maxSize;
+        stepTo(this.maxSize);
         return;
       }
     }
@@ -76,12 +113,12 @@ public abstract class AbstractIdeProgressBar implements IdeProgressBar {
 
   @Override
   public void close() {
-    if (this.maxLength < 0) {
+    if (this.maxSize < 0) {
       return;
     }
 
-    if (this.currentProgress < this.maxLength) {
-      stepTo(this.maxLength);
+    if (this.currentProgress < this.maxSize) {
+      stepTo(this.maxSize);
     }
   }
 

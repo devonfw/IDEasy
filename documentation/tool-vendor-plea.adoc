@@ -28,8 +28,8 @@ Do not leave your users left in the rain saying "build the release from the sour
 Nowadays platforms like github and others make it easy to automate cross platform builds and publishing releases with the click of a button.
 Tools that tell MacOS users to build the binary manually from the source-code (with complex and maybe vague instructions) should not be considered premium.
 
-Just to give an example https://www.python.org/[Python] is a tool that does not offer binary releases for Linux and makes users to build it from the sources.
-However, worth to mention is that they are continously improving and already added https://www.python.org/downloads/macos/[binaries for MacOS] what is a great progress.
+Just to give an example https://www.python.org/[Python] is a tool that did not offer binary releases for Mac or Linux quite some time ago so users had to build it from the sources.
+We got in touch with the python community and they now provide portable releases for all platforms. Thank you so much!
 
 === Stable and consistent download URLs
 
@@ -63,8 +63,15 @@ But please follow best-practices and common sense and publish them as a new rele
 === Proper file format
 
 On Linux and Mac binaries and scripts need executable permission to be run (`chmod a+x «binary»`).
-Since ZIP files are unable to store such metainformation you should be smart and not use ZIP as file format at least for all other platforms than Windows.
-As a best practice never use ZIP but instead something like `*.tar.gz`.
+Theoretically ZIP files can also store such metadata but this was added to ZIP format very late.
+Also ZIP is commonly used on Windows while other platforms prefer to use TAR-based archives.
+Therefore, many ZIP libraries are not supporting this feature at all or if they do they do it very poor.
+Many users and developers do not even know that ZIP files can actually store file permissions with executable flags.
+We started with apache commons-compress that unfortunetaly is already https://issues.apache.org/jira/browse/COMPRESS-562[buggy on simple extract].
+Then we discovered that `java.util.zip` from JDK https://stackoverflow.com/questions/54654170/what-are-the-extra-bytes-in-the-zipentry-used-for[cannot give reliable access to metadata such as executable flags].
+Finally, we found https://bugs.openjdk.org/browse/JDK-8213082[JDK-8213082] that lead us to the solution but caused many pitfalls and headaches until we came up with a unpacking of ZIP files that reliably preserves file permissions.
+
+As a best practice never use ZIP but instead something like `*.tar.gz` since TAR was designed with POSIX permissions from the start and then things just work.
 
 Unfortunately many famous tools violate this principle and provide ZIP files for Linux and Mac.
 As a result users unzip the package and then get a warm welcome when running the tool:

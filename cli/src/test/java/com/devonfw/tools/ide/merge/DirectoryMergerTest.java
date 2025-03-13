@@ -10,6 +10,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.FileAccess;
 
 /**
  * Test of {@link DirectoryMerger}.
@@ -50,19 +51,21 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = newContext(PROJECT_BASIC, null, false);
     DirectoryMerger merger = context.getWorkspaceMerger();
+    PropertiesMerger propertiesMerger = new PropertiesMerger(context);
     Path templates = Path.of("src/test/resources/templates");
     Path setup = templates.resolve(IdeContext.FOLDER_SETUP);
     Path update = templates.resolve(IdeContext.FOLDER_UPDATE);
     Path namePath = workspaceDir.resolve(".name");
     // to check overwrite for Text files
     Files.createFile(namePath);
+    FileAccess fileAccess = context.getFileAccess();
 
     // act
     merger.merge(setup, update, context.getVariables(), workspaceDir);
 
     // assert
     Path mainPrefsFile = workspaceDir.resolve("main.prefs");
-    Properties mainPrefs = PropertiesMerger.load(mainPrefsFile);
+    Properties mainPrefs = fileAccess.readProperties(mainPrefsFile);
     assertThat(mainPrefs).containsOnly(JAVA_VERSION, JAVA_HOME, THEME, UI);
     Path jsonFolder = workspaceDir.resolve("json");
     assertThat(jsonFolder).isDirectory();
@@ -90,7 +93,7 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     Path configFolder = workspaceDir.resolve("config");
     assertThat(configFolder).isDirectory();
     Path indentFile = configFolder.resolve("indent.properties");
-    Properties indent = PropertiesMerger.load(indentFile);
+    Properties indent = fileAccess.readProperties(indentFile);
     assertThat(indent).containsOnly(INDENTATION);
     assertThat(configFolder.resolve("layout.xml")).hasContent("""
         <?xml version="1.0" encoding="UTF-8" standalone="no"?>
@@ -101,7 +104,7 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
           <bottom>console</bottom>
           <test path="${IDE_HOME}">${IDE_HOME}</test>
         </layout>
-            """.replace("${IDE_HOME}", IDE_HOME));
+        """.replace("${IDE_HOME}", IDE_HOME));
 
     // and arrange
     EDITOR.apply(mainPrefs);
@@ -109,13 +112,13 @@ public class DirectoryMergerTest extends AbstractIdeContextTest {
     UI_HACKED.apply(mainPrefs);
     THEME_HACKED.apply(mainPrefs);
     INDENTATION_HACKED.apply(mainPrefs);
-    PropertiesMerger.save(mainPrefs, mainPrefsFile);
+    fileAccess.writeProperties(mainPrefs, mainPrefsFile);
 
     // act
     merger.merge(setup, update, context.getVariables(), workspaceDir);
 
     // assert
-    mainPrefs = PropertiesMerger.load(mainPrefsFile);
+    mainPrefs = fileAccess.readProperties(mainPrefsFile);
     assertThat(mainPrefs).containsOnly(JAVA_VERSION, JAVA_HOME, THEME_HACKED, UI_HACKED, EDITOR, INDENTATION_HACKED);
 
     assertThat(namePath).hasContent("project - main\ntest");

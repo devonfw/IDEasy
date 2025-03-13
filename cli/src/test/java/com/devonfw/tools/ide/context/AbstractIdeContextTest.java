@@ -2,7 +2,9 @@ package com.devonfw.tools.ide.context;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.assertj.core.api.Assertions;
 
@@ -11,12 +13,14 @@ import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.repo.ToolRepositoryMock;
+import com.devonfw.tools.ide.tool.repository.ToolRepositoryMock;
 
 /**
  * Abstract base class for tests that need mocked instances of {@link IdeContext}.
  */
 public abstract class AbstractIdeContextTest extends Assertions {
+
+  private static final Set<String> IDES = Set.of("eclipse", "intellij", "vscode", "android-studio");
 
   /** {@link #newContext(String) Name of test project} {@value}. */
   protected static final String PROJECT_BASIC = "basic";
@@ -28,7 +32,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
   protected static final Path TEST_PROJECTS = TEST_RESOURCES.resolve("ide-projects");
 
   // will not use eclipse-target like done in maven via eclipse profile...
-  private static final Path TEST_PROJECTS_COPY = Path.of("target/test-projects");
+  protected static final Path TEST_PROJECTS_COPY = Path.of("target/test-projects");
 
   /** Chunk size to use for progress bars **/
   private static final int CHUNK_SIZE = 1024;
@@ -92,8 +96,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
     }
     Path userDir = ideRoot.resolve(projectPath);
     ToolRepositoryMock toolRepository = null;
-    Path repositoryFolder = ideRoot.resolve("repository");
     IdeTestContext context = new IdeTestContext(userDir, logLevel);
+    Path repositoryFolder = ideRoot.resolve("repository");
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(context, repositoryFolder);
       context.setDefaultToolRepository(toolRepository);
@@ -122,8 +126,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
     List<IdeProgressBarTestImpl.ProgressEvent> eventList = progressBar.getEventList();
     assertThat(eventList).hasSize(chunkCount + 1);
     // extra case for unknown file size (indefinite progress bar)
-    if (progressBar.getMaxLength() != -1L) {
-      assertThat(progressBar.getMaxLength()).isEqualTo(maxSize);
+    if (progressBar.getMaxSize() != -1L) {
+      assertThat(progressBar.getMaxSize()).isEqualTo(maxSize);
     }
     return eventList;
   }
@@ -217,4 +221,63 @@ public abstract class AbstractIdeContextTest extends Assertions {
     long restSize = maxSize % CHUNK_SIZE;
     assertProgressBar(context, taskName, maxSize, CHUNK_SIZE, chunkCount, restSize);
   }
+
+  /**
+   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
+   * @param activeIdes the names of the IDE tools (e.g. "intellij", "eclipse").
+   */
+  protected void verifyStartScriptsForAllWorkspacesAndAllIdes(IdeContext context, String... activeIdes) {
+
+    verifyStartScriptsForAllWorkspaces(context, true, activeIdes);
+    Set<String> inactiveIdes = new HashSet<>(IDES);
+    inactiveIdes.removeAll(Set.of(activeIdes));
+    verifyStartScriptsForAllWorkspaces(context, false, inactiveIdes.toArray(String[]::new));
+  }
+
+  /**
+   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
+   * @param ides the names of the IDE tools (e.g. "intellij", "eclipse").
+   */
+  protected void verifyStartScriptsForAllWorkspaces(IdeContext context, String... ides) {
+
+    verifyStartScriptsForAllWorkspaces(context, true, ides);
+  }
+
+  /**
+   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
+   * @param exists - {@code true} to check if the script exists, {@code false} otherwise (check if not exists).
+   * @param ides the names of the IDE tools (e.g. "intellij", "eclipse").
+   */
+  protected void verifyStartScriptsForAllWorkspaces(IdeContext context, boolean exists, String... ides) {
+
+    Path workspaces = context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES);
+    for (String ide : ides) {
+      for (Path workspace : context.getFileAccess().listChildren(workspaces, Files::isDirectory)) {
+        verifyStartScript(context, ide, workspace.getFileName().toString(), exists);
+      }
+    }
+  }
+
+  /**
+   * @param context the {@link IdeContext} that was created via the {@link #newContext(String) newContext} method.
+   * @param ide the name of the IDE tool (e.g. "intellij").
+   * @param workspace the name of the workspace (e.g. "main").
+   * @param exists - {@code true} to check if the script exists, {@code false} otherwise (check if not exists).
+   */
+  protected void verifyStartScript(IdeContext context, String ide, String workspace, boolean exists) {
+
+    String scriptExtension;
+    if (context.getSystemInfo().isWindows()) {
+      scriptExtension = ".bat";
+    } else {
+      scriptExtension = ".sh";
+    }
+    Path scriptPath = context.getIdeHome().resolve(ide + "-" + workspace + scriptExtension);
+    if (exists) {
+      assertThat(scriptPath).exists();
+    } else {
+      assertThat(scriptPath).doesNotExist();
+    }
+  }
+
 }

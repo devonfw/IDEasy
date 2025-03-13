@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -20,6 +21,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -35,6 +37,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /** The commandline arguments to pass to the tool. */
   public final StringProperty arguments;
+
+  private Path executionDirectory;
 
   private MacOsHelper macOsHelper;
 
@@ -67,7 +71,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @return the name of the tool (e.g. "java", "mvn", "npm", "node").
    */
   @Override
-  public String getName() {
+  public final String getName() {
 
     return this.tool;
   }
@@ -84,6 +88,22 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public final Set<Tag> getTags() {
 
     return this.tags;
+  }
+
+  /**
+   * @return the execution directory where the tool will be executed. Will be {@code null} by default leading to execution in the users current working
+   *     directory where IDEasy was called.
+   * @see #setExecutionDirectory(Path)
+   */
+  public Path getExecutionDirectory() {
+    return this.executionDirectory;
+  }
+
+  /**
+   * @param executionDirectory the new value of {@link #getExecutionDirectory()}.
+   */
+  public void setExecutionDirectory(Path executionDirectory) {
+    this.executionDirectory = executionDirectory;
   }
 
   /**
@@ -116,7 +136,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param edition the edition.
    * @return the {@link #getName() tool} with its {@link #getConfiguredEdition() edition}. The edition will be omitted if same as tool.
    */
-  protected final static String getToolWithEdition(String tool, String edition) {
+  protected static String getToolWithEdition(String tool, String edition) {
 
     if (tool.equals(edition)) {
       return tool;
@@ -158,12 +178,29 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param processMode the {@link ProcessMode}. Should typically be {@link ProcessMode#DEFAULT} or {@link ProcessMode#BACKGROUND}.
    * @param toolVersion the explicit {@link GenericVersionRange version} to run. Typically {@code null} to run the
    *     {@link #getConfiguredVersion() configured version}. Otherwise, the specified version will be used (from the software repository, if not compatible).
+   * @param errorHandling the {@link ProcessErrorHandling}.
    * @param args the command-line arguments to run the tool.
+   * @return the {@link ProcessResult result}.
    */
   public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
 
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
     install(true, pc);
+    return runTool(processMode, errorHandling, pc, args);
+  }
+
+  /**
+   * @param processMode the {@link ProcessMode}. Should typically be {@link ProcessMode#DEFAULT} or {@link ProcessMode#BACKGROUND}.
+   * @param errorHandling the {@link ProcessErrorHandling}.
+   * @param pc the {@link ProcessContext}.
+   * @param args the command-line arguments to run the tool.
+   * @return the {@link ProcessResult result}.
+   */
+  public ProcessResult runTool(ProcessMode processMode, ProcessErrorHandling errorHandling, ProcessContext pc, String... args) {
+
+    if (this.executionDirectory != null) {
+      pc.directory(this.executionDirectory);
+    }
     configureToolBinary(pc, processMode, errorHandling);
     configureToolArgs(pc, processMode, errorHandling, args);
     return pc.run(processMode);
@@ -219,19 +256,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
   public boolean install(boolean silent) {
-
-    return install(silent, EnvironmentContext.getEmpty());
+    ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
+    return install(silent, pc);
   }
 
   /**
    * Installs or updates the managed {@link #getName() tool}.
    *
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
-   * @param environmentContext the {@link EnvironmentContext} used to
+   * @param processContext the {@link ProcessContext} used to
    *     {@link LocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
-  public abstract boolean install(boolean silent, EnvironmentContext environmentContext);
+  public abstract boolean install(boolean silent, ProcessContext processContext);
 
   /**
    * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.
@@ -268,11 +305,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public abstract void uninstall();
 
   /**
+   * @return the {@link ToolRepository}.
+   */
+  public ToolRepository getToolRepository() {
+
+    return this.context.getDefaultToolRepository();
+  }
+
+  /**
    * List the available editions of this tool.
    */
   public void listEditions() {
 
-    List<String> editions = this.context.getUrls().getSortedEditions(getName());
+    List<String> editions = getToolRepository().getSortedEditions(getName());
     for (String edition : editions) {
       this.context.info(edition);
     }
@@ -283,7 +328,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public void listVersions() {
 
-    List<VersionIdentifier> versions = this.context.getUrls().getSortedVersions(getName(), getConfiguredEdition());
+    List<VersionIdentifier> versions = getToolRepository().getSortedVersions(getName(), getConfiguredEdition(), this);
     for (VersionIdentifier vi : versions) {
       this.context.info(vi.toString());
     }
@@ -327,8 +372,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public void setVersion(VersionIdentifier version, boolean hint, EnvironmentVariablesFiles destination) {
 
     String edition = getConfiguredEdition();
-    this.context.getUrls()
-        .getVersionFolder(this.tool, edition, version); // CliException is thrown if the version is not existing
+    ToolRepository toolRepository = getToolRepository();
+    VersionIdentifier versionIdentifier = toolRepository.resolveVersion(this.tool, edition, version, this);
+    Objects.requireNonNull(versionIdentifier);
 
     EnvironmentVariables variables = this.context.getVariables();
     if (destination == null) {
@@ -337,7 +383,8 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     }
     EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
     String name = EnvironmentVariables.getToolVersionVariable(this.tool);
-    VersionIdentifier resolvedVersion = this.context.getUrls().getVersion(this.tool, edition, version);
+
+    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
     if (version.isPattern()) {
       this.context.debug("Resolved version {} to {} for tool {}/{}", version, resolvedVersion, this.tool, edition);
     }
@@ -393,9 +440,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       //use default location
       destination = EnvironmentVariablesFiles.SETTINGS;
     }
-    if (!Files.exists(this.context.getUrls().getEdition(getName(), edition).getPath())) {
-      this.context.warning("Edition {} seems to be invalid", edition);
 
+    if (!getToolRepository().getSortedEditions(this.tool).contains(edition)) {
+      this.context.warning("Edition {} seems to be invalid", edition);
     }
     EnvironmentVariables variables = this.context.getVariables();
     EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
@@ -471,21 +518,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
       }
       assert (Files.exists(binFolder));
     }
-    if (this.context.getSystemInfo().isWindows()) {
-      Path batchFile = binFolder.resolve(getName() + ".bat");
-      String batchFileContentStart = "@echo off\nsetlocal\nset SCRIPT_DIR=%~dp0\nstart \"\" \"%SCRIPT_DIR%";
-      String batchFileContentEnd = "\" ";
-      if (background) {
-        batchFileContentEnd += " %*";
-      }
-      try {
-        Files.writeString(batchFile, batchFileContentStart + binary + batchFileContentEnd);
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-      assert (Files.exists(batchFile));
-      context.getFileAccess().makeExecutable(batchFile);
-    }
     Path bashFile = binFolder.resolve(getName());
     String bashFileContentStart = "#!/usr/bin/env bash\n\"$(dirname \"$0\")/";
     String bashFileContentEnd = "\" $@";
@@ -501,4 +533,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     context.getFileAccess().makeExecutable(bashFile);
   }
 
+  @Override
+  public void reset() {
+    super.reset();
+    this.executionDirectory = null;
+  }
 }

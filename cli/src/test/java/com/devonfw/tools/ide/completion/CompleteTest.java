@@ -10,13 +10,14 @@ import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.IdeContextTest;
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.property.KeywordProperty;
 import com.devonfw.tools.ide.property.Property;
 
 /**
  * Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion}.
  */
-public class CompleteTest extends IdeContextTest {
+public class CompleteTest extends AbstractIdeContextTest {
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for empty input. */
   @Test
@@ -28,6 +29,23 @@ public class CompleteTest extends IdeContextTest {
     CliArguments args = CliArguments.ofCompletion("");
     args.next();
     List<String> expectedCandidates = getExpectedCandidates(context, true, includeContextOptions, true);
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, includeContextOptions);
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text))
+        .containsExactly(expectedCandidates.toArray(String[]::new));
+  }
+
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for long option. */
+  @Test
+  public void testCompleteLongOptionBatch() {
+
+    // arrange
+    boolean includeContextOptions = true;
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    CliArguments args = CliArguments.ofCompletion("--b");
+    args.next();
+    List<String> expectedCandidates = List.of("--batch");
     // act
     List<CompletionCandidate> candidates = context.complete(args, includeContextOptions);
     // assert
@@ -75,7 +93,7 @@ public class CompleteTest extends IdeContextTest {
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-f", "-fb", "-fd", "-fo", "-fq",
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-f", "-fb", "-fd", "-fh", "-fo", "-fq",
         "-ft", "-fv");
   }
 
@@ -89,7 +107,7 @@ public class CompleteTest extends IdeContextTest {
     // act
     List<CompletionCandidate> candidates = context.complete(args, true);
     // assert
-    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdoqt", "-fbdoqtv");
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("-fbdoqt", "-fbdoqth", "-fbdoqtv");
   }
 
   /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for input "help", "". */
@@ -120,8 +138,21 @@ public class CompleteTest extends IdeContextTest {
     assertThat(candidates).isEmpty();
   }
 
+  /** Test of {@link AbstractIdeContext#complete(CliArguments, boolean) auto-completion} for an option inside a commandlet. */
+  @Test
+  public void testCompleteCommandletOption() {
+
+    // arrange
+    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    CliArguments args = CliArguments.ofCompletion("get-version", "--c");
+    // act
+    List<CompletionCandidate> candidates = context.complete(args, true);
+    // assert
+    assertThat(candidates.stream().map(CompletionCandidate::text)).containsExactly("--configured");
+  }
+
   private static List<String> getExpectedCandidates(AbstractIdeContext context, boolean commandlets,
-      boolean ctxOptions, boolean addVersionAlias) {
+      boolean ctxOptions, boolean addAlias) {
 
     List<String> expectedCandidates = new ArrayList<>();
     if (ctxOptions) {
@@ -137,9 +168,14 @@ public class CompleteTest extends IdeContextTest {
     if (commandlets) {
       for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
         expectedCandidates.add(cmd.getName());
-      }
-      if (addVersionAlias) {
-        expectedCandidates.add("-v"); // alias for VersionCommandlet (--version)
+        if (addAlias) {
+          Property<?> firstProperty = cmd.getValues().get(0);
+          assert (firstProperty instanceof KeywordProperty);
+          String alias = firstProperty.getAlias();
+          if (alias != null) {
+            expectedCandidates.add(alias);
+          }
+        }
       }
     }
     Collections.sort(expectedCandidates);

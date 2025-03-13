@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.commandlet;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
@@ -18,13 +17,13 @@ public class VersionCommandlet extends Commandlet {
   public VersionCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(new FlagProperty(getName(), true, "-v"));
+    addKeyword("--version", "-v");
   }
 
   @Override
   public String getName() {
 
-    return "--version";
+    return "version";
   }
 
   @Override
@@ -42,6 +41,6 @@ public class VersionCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    this.context.level(IdeLogLevel.PROCESSABLE).log(IdeVersion.get());
+    this.context.level(IdeLogLevel.PROCESSABLE).log(IdeVersion.getVersionString());
   }
 }

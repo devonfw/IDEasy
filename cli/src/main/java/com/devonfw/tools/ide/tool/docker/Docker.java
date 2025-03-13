@@ -8,11 +8,11 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
-import com.devonfw.tools.ide.process.EnvironmentContext;
-import com.devonfw.tools.ide.repo.ToolRepository;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -43,21 +43,21 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent, EnvironmentContext environmentContext) {
+  public boolean install(boolean silent, ProcessContext processContext) {
 
     if (this.context.getSystemInfo().isLinux()) {
       return runWithPackageManager(silent, getPackageManagerCommandsInstall());
     } else {
-      return super.install(silent, environmentContext);
+      return super.install(silent, processContext);
     }
   }
 
   private List<PackageManagerCommand> getPackageManagerCommandsInstall() {
 
     String edition = getConfiguredEdition();
-    ToolRepository toolRepository = this.context.getDefaultToolRepository();
+    ToolRepository toolRepository = getToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
-    String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion).toString();
+    String resolvedVersion = toolRepository.resolveVersion(this.tool, edition, configuredVersion, this).toString();
 
     List<PackageManagerCommand> pmCommands = new ArrayList<>();
     pmCommands.add(new PackageManagerCommand(PackageManager.ZYPPER, Arrays.asList(

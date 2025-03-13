@@ -6,7 +6,13 @@ toc::[]
 == Browser Plugins
 
 There are tons of helpful browser plugins out there and it might be a matter of personal taste what you like to have installed.
-However, as we are heavily using github we want to promote https://github.com/buunguyen/octotree#octotree[octotree].
+The following are explicitly worth to mention:
+
+* https://darkreader.org/[DarkReader] - for developers enjoying dark-mode (and get eye-cancer from white backgrounds)
+* https://www.tampermonkey.net/[TamperMonkey] - even though not recommended to be always on for security reasons this is the ultimate swiss-army-knife of every web-developer.
+* FF only: https://addons.mozilla.org/en-US/firefox/addon/simple-tab-groups/[Simple Tab Groups] - only for power-users that need to manage 100+ open tabs in multi-tenancy contexts (project A, project B, timetracking, travel, etc.).
+
+For the record: HttpsEverywhere is dead since now there is https://www.eff.org/https-everywhere/set-https-default-your-browser[native browser support for HTTPS only].
 
 == Draw Diagrams
 
@@ -20,8 +26,4 @@ Its simplicity allows branching and merging unlike other greedy binary UML data-
 == Git Client
 
 If you are looking for a git client that works cross-platform we recommend to use https://git-fork.com/[Fork].
-
-== Tab Grouping For The Web Browser
-
-https://addons.mozilla.org/en-US/firefox/addon/simple-tab-groups/[Simple Tab Groups] is a Firefox plugin that helps to separate tabs e.g. tabs for projekt A, projekt B, travelplanning or hobbies
 
