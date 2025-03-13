@@ -25,7 +25,7 @@ jobs:
           cache: 'maven'
       - name: Build and run url updater
         run: |
-          mvn -B -ntp -Dstyle.color=always -pl cli -am install
+          mvn -B -ntp -Dstyle.color=always -pl url-updater -am install
           mvn -B -ntp -Dstyle.color=always -pl url-updater exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="../ide-urls PT5H30M"
       - name: Commit and push to ide-urls
         run: |
