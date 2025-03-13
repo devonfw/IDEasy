@@ -280,4 +280,26 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   }
 
+  /**
+   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} will handle the literally latest version of a tool correctly
+   *
+   * @param tempDir Temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  public void testUrlUpdaterWithOnlyLatestVersion(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
+    //given
+    stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+    UrlRepository urlRepository = UrlRepository.load(tempDir);
+    UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
+    updater.setVersion("latest");
+
+    // when
+    updater.update(urlRepository);
+
+    // then
+    Path versionsPath = tempDir.resolve("mocked").resolve("mocked").resolve("latest");
+    assertThat(versionsPath.resolve("status.json")).exists();
+  }
+
 }

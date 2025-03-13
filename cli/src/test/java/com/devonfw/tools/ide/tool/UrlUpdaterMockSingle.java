@@ -13,7 +13,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
  */
 public class UrlUpdaterMockSingle extends UrlUpdaterMock {
 
-  private static final Set<String> versions = new HashSet<>(List.of("1.0"));
+  private static Set<String> versions = new HashSet<>(List.of("1.0"));
 
   /**
    * The constructor
@@ -28,6 +28,15 @@ public class UrlUpdaterMockSingle extends UrlUpdaterMock {
   @Override
   protected Set<String> getVersions() {
     return versions;
+  }
+
+  /**
+   * Enables the possibility to change the version which should be tested.
+   *
+   * @param newVersion the new Version to be set.
+   */
+  protected void setVersion(final String newVersion) {
+    versions = Set.of(newVersion);
   }
 
   @Override

@@ -31,13 +31,13 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
     // get Code for version
     String body = doGetResponseBodyAsString("https://docs.docker.com/desktop/release-notes/");
     String regex = "href=#" + version
-        // .......1.........................................................2.................
-        + ".{8,12}(\r\n|\r|\n).{0,350}href=https://desktop\\.docker\\.com.*?(\\d{5,6}).*\\.exe";
+        // .....................................................(Group.1.)..........
+        + ".{8,12}.{0,350}href=https://desktop\\.docker\\.com.*?(\\d{5,6}).*\\.exe";
     Pattern pattern = Pattern.compile(regex, Pattern.DOTALL);
     Matcher matcher = pattern.matcher(body);
     String code;
     if (matcher.find()) {
-      code = matcher.group(2);
+      code = matcher.group(1);
       boolean success = doAddVersion(urlVersion,
           "https://desktop.docker.com/win/main/amd64/" + code + "/Docker%20Desktop%20Installer.exe", WINDOWS);
       if (!success) {
