@@ -80,6 +80,7 @@ See also our latest video https://vimeo.com/808368450/88d4af9d18[devon ide updat
 * link:documentation/advanced-tooling.adoc[Advanced-tooling]
 * link:documentation/IDEasy-contribution-getting-started.adoc[Contribution]
 * link:documentation/[Documentation]
+* link:https://github.com/devonfw/IDEasy/discussions[FAQs]
 
 == Contribution Guidelines
 
