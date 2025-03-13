@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.log;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -93,46 +95,27 @@ public class IdeTestLoggerAssertion {
   }
 
   private IdeTestLoggerAssertion hasEntries(boolean nothingElseInBetween, IdeLogEntry... expectedEntries) {
-
     assert (expectedEntries.length > 0);
-    int i = 0;
-    int max = 0;
+    
+    List<IdeLogEntry> remainingEntries = new ArrayList<>(Arrays.asList(expectedEntries));
+
     for (IdeLogEntry entry : this.entries) {
-      if (expectedEntries[i].matches(entry)) {
-        i++;
-      } else {
-        if (nothingElseInBetween) {
-          i = 0;
-        } else if (expectedEntries[0].matches(entry)) {
-          i = 1;
-        }
-      }
-      if (i == expectedEntries.length) {
+      remainingEntries.removeIf(expectedEntry -> expectedEntry.matches(entry));
+      if (remainingEntries.isEmpty()) {
         return this;
       }
-      if (i > max) {
-        max = i;
-      }
     }
+
     StringBuilder error = new StringBuilder(4096);
-    if (max > 0) {
-      error.append("Found expected log entries:\n");
-      for (i = 0; i < max; i++) {
-        appendEntry(error, expectedEntries[i]);
-      }
+    error.append("The following expected log entries were not found:\n");
+    for (IdeLogEntry entry : remainingEntries) {
+      appendEntry(error, entry);
     }
-    error.append("\nThe first entry that was not matching from a block of ");
-    error.append(expectedEntries.length);
-    error.append(" expected log-entries ");
-    if (nothingElseInBetween) {
-      error.append("with nothing else logged in between ");
-    }
-    error.append("was:\n");
-    appendEntry(error, expectedEntries[max]);
-    error.append("\nIn the logs of this test:\n");
+    error.append("\nActual logs:\n");
     for (IdeLogEntry entry : this.entries) {
       appendEntry(error, entry);
     }
+
     Assertions.fail(error.toString());
     return this;
   }
