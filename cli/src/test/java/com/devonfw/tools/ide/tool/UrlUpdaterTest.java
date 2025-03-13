@@ -8,7 +8,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
-import com.devonfw.tools.ide.tool.docker.DockerDesktopUrlUpdater;
 import com.devonfw.tools.ide.url.model.file.UrlChecksum;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
@@ -37,17 +35,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  */
 @WireMockTest
 public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
-
-  @Test
-  public void testUpdateDockerUrl() {
-    String testdataRoot = "src/test/resources/UpdateManager/versions";
-    Path repoPath = Paths.get(testdataRoot);
-    UrlRepository urlRepository = UrlRepository.load(repoPath);
-    DockerDesktopUrlUpdater updater = new DockerDesktopUrlUpdater();
-
-    updater.update(urlRepository);
-
-  }
 
   /**
    * Test resource location
@@ -293,12 +280,19 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   }
 
+  /**
+   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} will handle the literally latest version of a tool correctly
+   *
+   * @param tempDir Temporary directory
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
   @Test
   public void testUrlUpdaterWithOnlyLatestVersion(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
     //given
     stubFor(any(urlMatching("/os/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
     UrlRepository urlRepository = UrlRepository.load(tempDir);
-    UrlUpdaterMockLatest updater = new UrlUpdaterMockLatest(wmRuntimeInfo);
+    UrlUpdaterMockSingle updater = new UrlUpdaterMockSingle(wmRuntimeInfo);
+    updater.setVersion("latest");
 
     // when
     updater.update(urlRepository);
