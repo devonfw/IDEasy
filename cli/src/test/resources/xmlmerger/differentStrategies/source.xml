@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<root xmlns:merge="https://github.com/devonfw/IDEasy/merge" merge:strategy="COMBINE">
-  <element name="elem1" attr1="newValue" merge:id="@name"> <!-- strategy inherited from parent!-->
-    <child name="child" attr2="newValue" merge:id="@name">New text</child>
-  </element>
-  <element name="elem2" attr1="newValue" merge:strategy="OVERRIDE">New text</element>
-  <element name="elem3" attr1="newValue" merge:strategy="KEEP"></element>
-</root>

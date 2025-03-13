@@ -15,24 +15,26 @@ import org.slf4j.LoggerFactory;
 import org.xmlunit.assertj3.XmlAssert;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesMock;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
 
+/**
+ * Test of {@link XmlMerger}.
+ */
 class XmlMergerTest extends AbstractIdeContextTest {
 
-  private static Logger LOG = LoggerFactory.getLogger(XmlMergerTest.class);
+  private static final Logger LOG = LoggerFactory.getLogger(XmlMergerTest.class);
 
   private static final Path XML_TEST_RESOURCES = Path.of("src", "test", "resources", "xmlmerger");
 
-  private static final String SOURCE_XML = "source.xml";
+  private static final String SOURCE_XML = "template.xml";
 
   private static final String TARGET_XML = "target.xml";
 
   private static final String RESULT_XML = "result.xml";
-
-  private IdeContext context = newContext(PROJECT_BASIC, null, false);
-
-  private XmlMerger merger = new XmlMerger(this.context);
 
   /**
    * Tests the XML merger functionality across multiple test cases. This test method iterates through all subdirectories in the test resources folder, each
@@ -48,10 +50,17 @@ class XmlMergerTest extends AbstractIdeContextTest {
     Path targetPath = tempDir.resolve(TARGET_XML);
     Path resultPath = folder.resolve(RESULT_XML);
     Files.copy(folder.resolve(TARGET_XML), targetPath, REPLACE_EXISTING);
+    IdeTestContextMock context = IdeTestContextMock.get();
+    EnvironmentVariablesPropertiesMock mockVariables = new EnvironmentVariablesPropertiesMock(null, EnvironmentVariablesType.SETTINGS, context);
+    mockVariables.set("JAVA_HOME", "/projects/myproject", false);
+    mockVariables.set("JAVA_VERSION", "21", false);
+    EnvironmentVariables variables = mockVariables.resolved();
+    XmlMerger merger = new XmlMerger(context);
     // act
-    this.merger.merge(null, sourcePath, this.context.getVariables(), targetPath);
+    int errors = merger.merge(null, sourcePath, variables, targetPath);
     // assert
     XmlAssert.assertThat(targetPath).and(resultPath.toFile()).areIdentical();
+    assertThat(errors).isZero();
   }
 
   private static Stream<Path> xmlMergerTestCases() throws IOException {

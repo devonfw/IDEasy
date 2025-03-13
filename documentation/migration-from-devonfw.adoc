@@ -1,0 +1,64 @@
+= Migration to IDEasy
+
+If you used https://github.com/devonfw/ide[devonfw-ide] for your projects so far, and you want to switch to IDEasy, this page is the right place for you.
+
+== Comparison of IDEasy and devonfw-ide
+
+The following table gives an overview of common CLI calls in both products:
+
+.CLI command comparison
+[options="header"]
+|=======================
+|*devonfw-ide*|*IDEasy*|*Meaning*
+|`devon`|`ide`|Setup environment variables for the current project.
+|`devon ide update`|`ide update`|Pull updates to your settings from git and apply changes to your project.
+|`devon ide update scripts`|`ide upgrade`|Upgrade to the latest product verion. In IDEasy this is a global operation affecting all projects while in devonfw-ide each project had its own "product installation"
+|`devon ide create ...`|`ide create ...`|Create a new project.
+|`devon «tool» setup`|`ide install «tool»`|Install the specified tool.
+|`devon «tool» [args]`|`ide «tool» [args]`|Run the specified tool (install proper version first if not already installed)
+|`devon «tool» version get`|`ide get-version «tool»`|Get (print) the version of the specified tool.
+|`devon «tool» version set «version»`|`ide set-version «tool» «version»`|Set the version of the specified tool to the given version.
+|`devon help`|`ide help`|Print the help.
+|`devon project setup ...`|`ide repository setup ...`|Setup the specified or all (active) code repositories
+|=======================
+
+For varabiles check the documentation of https://github.com/devonfw/ide/blob/master/documentation/variables.asciidoc[variables in devonfw-ide] and https://github.com/devonfw/IDEasy/blob/main/documentation/variables.adoc[variables in IDEasy].
+
+== Backward compatibility
+
+IDEasy is designed backward compatible to devonfw-ide.
+That means we will still read `devon.properties` if present and no `ide.properties` are found instead.
+Also it honors legacy variable names from devonfw-ide like `DEVON_IDE_TOOLS` or `DEVON_IDE_CUSTOM_TOOLS`.
+Also workspace templates are still supported even with legacy syntax to emulate the behaviour of devonfw-ide in IDEasy.
+
+As a result, users can install IDEasy alongside with devonfw-ide and start testing IDEasy in their existing project.
+This is the recommended way to do a pilot test of IDEasy in a larger devonfw-ide project.
+Once some first feedback has been collected and the team is convinced you are ready for the next step.
+
+== Migration to IDEasy
+
+Once you have tested IDEasy and seen its superiour features you want to migrate your project from devonfw-ide to IDEasy.
+Depending on your team size this should be well prepared:
+
+* Start the migration of your settings on a feature branch (see details below)
+* Check that if new developers create the project from scratch all works as expected
+* Check that switching the `settings` to the new feature branch in an existing devonfw-ide setup of your project is working well with IDEasy
+* After all has been tested by pilot users plan the roll out to the entire team
+* Merge the feature branch of your `settings` to the main branch
+* Consider a migration script for your developers to automate the migration that you also test upfront
+* Finally update your instructions in developer manual (wiki) to IDEasy and tell all existing developers to do the migration
+
+=== Migration of settings
+
+In order to fully migrate your project to IDEasy (after installing and testing it with backward compatibility),
+run the following command:
+```
+ide upgrade-settings
+```
+This will migrate all your legacy configuration files (`devon.properties`, etc.) to IDEasy (`ide.properties`, `ide-custom-tools.json`, etc.) automatically.
+It will also log which file was renamed, moved or changed.
+For changes in your settings, you can use git to analyze the diff and review the changes.
+
+To leverage the potential of IDEasy with its https://github.com/devonfw/IDEasy/blob/main/documentation/configurator.adoc[advanced XML merger], consider to manually improve your workspace XML templates (esp. for IntelliJ).
+You may also replace your IntelliJ workspace configuration with the latest state from https://github.com/devonfw/ide-settings/tree/main/intellij/workspace/update[here] and also consider reading our diffs like
+https://github.com/devonfw/ide-settings/commit/5b68aa035a96869861353cf95844a6cdbd26b93c[this commit].

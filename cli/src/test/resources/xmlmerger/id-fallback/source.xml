@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<root xmlns:merge="https://github.com/devonfw/IDEasy/merge" merge:strategy="COMBINE">
-  <element name="name1" attr1="newValue1">New text1</element>
-  <parent id="parent" attr1="newSomething">
-    <child>New Child Text</child>
-  </parent>
-  <special class="id1" merge:id="@class">new special1</special>
-  <special class="id2">new special2</special>
-</root>

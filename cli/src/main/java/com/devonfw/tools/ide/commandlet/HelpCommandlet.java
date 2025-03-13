@@ -19,14 +19,6 @@ import com.devonfw.tools.ide.version.IdeVersion;
  */
 public final class HelpCommandlet extends Commandlet {
 
-  static final String LOGO = """
-      __       ___ ___  ___
-      ╲ ╲     |_ _|   ╲| __|__ _ ____ _
-       > >     | || |) | _|/ _` (_-< || |
-      /_/ ___ |___|___/|___╲__,_/__/╲_, |
-         |___|                       |__/
-      """.replace('╲', '\\');
-
   /** The optional commandlet to get help about. */
   public final CommandletProperty commandlet;
 
@@ -38,7 +30,7 @@ public final class HelpCommandlet extends Commandlet {
   public HelpCommandlet(IdeContext context) {
 
     super(context);
-    addKeyword(getName());
+    addKeyword("--help", "-h");
     this.commandlet = add(new CommandletProperty("", false, "commandlet"));
   }
 
@@ -54,17 +46,13 @@ public final class HelpCommandlet extends Commandlet {
     return false;
   }
 
-  private void printLogo() {
-
-    this.context.info(LOGO);
-  }
 
   @Override
   public void run() {
 
-    printLogo();
+    this.context.printLogo();
     NlsBundle bundle = NlsBundle.of(this.context);
-    this.context.success(bundle.get("version-banner"), IdeVersion.get());
+    this.context.success(bundle.get("version-banner"), IdeVersion.getVersionString());
     Commandlet cmd = this.commandlet.getValue();
     if (cmd == null) {
       this.context.info(bundle.get("usage") + " ide [option]* [[commandlet] [arg]*]");
@@ -132,9 +120,12 @@ public final class HelpCommandlet extends Commandlet {
     Args toolcommandlets = new Args();
     for (Commandlet cmd : this.context.getCommandletManager().getCommandlets()) {
       String key = cmd.getName();
-      String keyword = cmd.getKeyword();
-      if ((keyword != null) && !keyword.equals(key)) {
-        key = key + "(" + keyword + ")";
+      KeywordProperty keyword = cmd.getFirstKeyword();
+      if (keyword != null) {
+        String name = keyword.getName();
+        if (!name.equals(key)) {
+          key = key + "(" + keyword + ")";
+        }
       }
       if (cmd instanceof ToolCommandlet) {
         toolcommandlets.add(key, bundle.get(cmd));

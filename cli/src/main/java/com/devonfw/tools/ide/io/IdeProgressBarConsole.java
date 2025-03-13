@@ -18,15 +18,16 @@ public class IdeProgressBarConsole extends AbstractIdeProgressBar {
    * The constructor.
    *
    * @param systemInfo the {@link SystemInfo}.
-   * @param taskName the {@link ProgressBar} to initialize.
+   * @param title the title (task name or activity) to display in the progress bar.
    * @param maxSize the maximum size of the progress bar.
+   * @param unitName the name of the unit to display in the progress bar.
+   * @param unitSize the size of the unit (e.g. 1000 for kilo, 1000000 for mega).
    */
-  public IdeProgressBarConsole(SystemInfo systemInfo, String taskName, long maxSize) {
+  public IdeProgressBarConsole(SystemInfo systemInfo, String title, long maxSize, String unitName, long unitSize) {
 
-    super(maxSize);
-
+    super(title, maxSize, unitName, unitSize);
     this.systemInfo = systemInfo;
-    this.progressBar = createProgressBar(taskName, maxSize);
+    this.progressBar = createProgressBar();
   }
 
   /**
@@ -34,17 +35,10 @@ public class IdeProgressBarConsole extends AbstractIdeProgressBar {
    */
   protected ProgressBar getProgressBar() {
 
-    return progressBar;
+    return this.progressBar;
   }
 
-  /**
-   * Creates the {@link ProgressBar} initializes task name and maximum size as well as the behaviour and style.
-   *
-   * @param taskName name of the task.
-   * @param size of the content.
-   * @return {@link ProgressBar} to use.
-   */
-  protected ProgressBar createProgressBar(String taskName, long size) {
+  private ProgressBar createProgressBar() {
 
     ProgressBarBuilder pbb = new ProgressBarBuilder();
     String leftBracket, rightBracket, fractionSymbols;
@@ -66,18 +60,18 @@ public class IdeProgressBarConsole extends AbstractIdeProgressBar {
         .rightBracket(rightBracket).block(block).space(' ').fractionSymbols(fractionSymbols).rightSideFractionSymbol(' ')
         .build());
 
-    pbb.setUnit("MiB", 1048576);
-    if (size <= 0) {
-      pbb.setTaskName(taskName + " (unknown size)");
+    pbb.setUnit(this.unitName, this.unitSize);
+    if (this.maxSize <= 0) {
+      pbb.setTaskName(this.title + " (unknown size)");
       pbb.setInitialMax(-1);
       pbb.hideEta();
     } else {
-      pbb.setTaskName(taskName);
+      pbb.setTaskName(this.title);
       pbb.showSpeed();
-      pbb.setInitialMax(size);
+      pbb.setInitialMax(this.maxSize);
     }
     pbb.continuousUpdate();
-    pbb.setUpdateIntervalMillis(1);
+    pbb.setUpdateIntervalMillis(100);
 
     return pbb.build();
   }

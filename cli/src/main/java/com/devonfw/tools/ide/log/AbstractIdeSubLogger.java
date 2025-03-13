@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.log;
 
+import com.devonfw.tools.ide.cli.CliException;
+
 /**
  * Abstract base implementation of {@link IdeSubLogger}.
  */
@@ -137,13 +139,21 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
       return message;
     }
     String actualMessage = message;
-    if (message == null) {
-      if (error == null) {
-        actualMessage = "Internal error: Both message and error is null - nothing to log!";
-        // fail fast if assertions are enabled, so developers of IDEasy will find the bug immediately but in productive use better log the error and continue
-        assert false : actualMessage;
+    if (error != null) {
+      if (isOmitStacktrace(error)) {
+        if (message == null) {
+          actualMessage = error.getMessage();
+        }
+        error = null;
+      } else if (message == null) {
+        actualMessage = error.toString();
       }
-    } else if (args != null) {
+    }
+    if (actualMessage == null) {
+      actualMessage = "Internal error: Both message and error is null - nothing to log!";
+      // fail fast if assertions are enabled, so developers of IDEasy will find the bug immediately but in productive use better log the error and continue
+      assert false : actualMessage;
+    } else if ((args != null) && (args.length > 0)) {
       actualMessage = compose(actualMessage, args);
     }
     boolean accept = this.listener.onLog(this.level, actualMessage, message, args, error);
@@ -152,6 +162,11 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
       doLog(actualMessage, error);
     }
     return actualMessage;
+  }
+
+  private boolean isOmitStacktrace(Throwable error) {
+
+    return (error instanceof CliException);
   }
 
   /**

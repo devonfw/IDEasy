@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root>
+  <element name="elem1" attr1="value1" attr2="newValue">New text</element>
+</root>

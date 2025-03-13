@@ -32,7 +32,7 @@ public class IdeCompleter implements Completer {
   public void complete(LineReader reader, ParsedLine commandLine, List<Candidate> candidates) {
     List<String> words = commandLine.words();
     CliArguments args = CliArguments.ofCompletion(words.toArray(String[]::new));
-    List<CompletionCandidate> completion = this.context.complete(args, false);
+    List<CompletionCandidate> completion = this.context.complete(args, true);
     int i = 0;
     for (CompletionCandidate candidate : completion) {
       candidates.add(new Candidate(candidate.text(), candidate.text(), null, null, null, null, true, i++));

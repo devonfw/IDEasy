@@ -25,5 +25,7 @@ public class IdeToolCommandletTest extends AbstractIdeContextTest {
     context.getCommandletManager().getCommandlet(Intellij.class).run();
     // assert
     assertThat(workspace.resolve(".editorconfig")).exists();
+    assertThat(workspace.resolve(".intellij/config/idea.key")).exists();
+    assertThat(workspace.resolve("user.properties")).exists().content().contains("ijversion=2023.3.3");
   }
 }

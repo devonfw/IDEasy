@@ -71,4 +71,8 @@ public class IdeTestContextAssertion {
     return log(IdeLogLevel.ERROR);
   }
 
+  public IdeTestLoggerAssertion logAtProcessable() {
+    return log(IdeLogLevel.PROCESSABLE);
+  }
+
 }

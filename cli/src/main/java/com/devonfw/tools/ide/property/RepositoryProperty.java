@@ -2,8 +2,9 @@ package com.devonfw.tools.ide.property;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
 
+import com.devonfw.tools.ide.commandlet.Commandlet;
+import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.validation.PropertyValidator;
 
@@ -11,6 +12,8 @@ import com.devonfw.tools.ide.validation.PropertyValidator;
  * Extends {@link FileProperty} for repository properties config file with auto-completion.
  */
 public class RepositoryProperty extends FileProperty {
+
+  public static final String EXTENSION_PROPERTIES = ".properties";
 
   /**
    * The constructor.
@@ -43,22 +46,45 @@ public class RepositoryProperty extends FileProperty {
     if (valueAsString == null) {
       return null;
     }
-
+    Path repositoriesPath = null;
     Path repositoryFile = Path.of(valueAsString);
     if (!Files.exists(repositoryFile)) {
-      Path repositoriesPath = context.getSettingsPath().resolve(IdeContext.FOLDER_REPOSITORIES);
-      Path legacyRepositoriesPath = context.getSettingsPath().resolve(IdeContext.FOLDER_LEGACY_REPOSITORIES);
-      String propertiesFileName = valueAsString;
-      if (!valueAsString.endsWith(".properties")) {
-        propertiesFileName += ".properties";
+      repositoryFile = null;
+      repositoriesPath = context.getRepositoriesPath();
+      if (repositoriesPath != null) {
+        String propertiesFileName = valueAsString;
+        if (!valueAsString.endsWith(EXTENSION_PROPERTIES)) {
+          propertiesFileName += EXTENSION_PROPERTIES;
+        }
+        Path resolvedRepositoriesFile = repositoriesPath.resolve(propertiesFileName);
+        if (Files.exists(resolvedRepositoriesFile)) {
+          repositoryFile = resolvedRepositoriesFile;
+        }
       }
-      repositoryFile = context.getFileAccess().findExistingFile(propertiesFileName,
-          Arrays.asList(repositoriesPath, legacyRepositoriesPath));
     }
     if (repositoryFile == null) {
-      throw new IllegalStateException("Could not find properties file: " + valueAsString);
+      throw new IllegalStateException("Could not find properties file: " + valueAsString + " in " + repositoriesPath);
     }
     return repositoryFile;
+  }
+
+  @Override
+  protected void completeValue(String arg, IdeContext context, Commandlet commandlet, CompletionCandidateCollector collector) {
+
+    Path repositoriesPath = context.getRepositoriesPath();
+    if (repositoriesPath != null) {
+      completeValuesFromFolder(repositoriesPath, arg, context, commandlet, collector);
+    }
+  }
+
+  @Override
+  protected String getPathForCompletion(Path path, IdeContext context, Commandlet commandlet) {
+
+    String filename = path.getFileName().toString();
+    if (filename.endsWith(EXTENSION_PROPERTIES)) {
+      filename = filename.substring(0, filename.length() - EXTENSION_PROPERTIES.length());
+    }
+    return filename;
   }
 
 }

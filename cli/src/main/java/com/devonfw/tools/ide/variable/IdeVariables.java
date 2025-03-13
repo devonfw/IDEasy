@@ -1,9 +1,11 @@
 package com.devonfw.tools.ide.variable;
 
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
 
-import com.devonfw.tools.ide.context.GitUrlSyntax;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.git.GitUrlSyntax;
 
 /**
  * Interface (mis)used to define all the available variables.
@@ -25,9 +27,7 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getPath() PATH}. */
   VariableDefinitionSystemPath PATH = new VariableDefinitionSystemPath("PATH", null, c -> c.getPath(), true, true);
 
-  /**
-   * {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspacePath() WORKSPACE_PATH}.
-   */
+  /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspacePath() WORKSPACE_PATH}. */
   VariableDefinitionPath WORKSPACE_PATH = new VariableDefinitionPath("WORKSPACE_PATH", null, c -> c.getWorkspacePath(), true);
 
   /** {@link VariableDefinition} for list of tools to install by default. */
@@ -44,15 +44,13 @@ public interface IdeVariables {
   VariableDefinitionVersion MVN_VERSION = new VariableDefinitionVersion("MVN_VERSION", "MAVEN_VERSION");
 
   /** {@link VariableDefinition} arguments for maven to locate the settings file. */
-  VariableDefinitionString MAVEN_ARGS = new VariableDefinitionString("MAVEN_ARGS", null, c -> c.getMavenArgs(), false, true);
+  VariableDefinitionString MAVEN_ARGS = new VariableDefinitionString("MAVEN_ARGS", null, IdeContext::getMavenArgs, false, true);
 
   /** {@link VariableDefinition} arguments for maven to set the m2 repo location. */
-  VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, c -> c.getMavenRepository(), false, true);
+  VariableDefinitionPath M2_REPO = new VariableDefinitionPath("M2_REPO", null, IdeVariables::getMavenRepositoryPath, false, true);
 
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
   VariableDefinitionString DOCKER_EDITION = new VariableDefinitionString("DOCKER_EDITION", null, c -> "rancher");
-
-  /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspaceName() WORKSPACE}. */
 
   /** {@link VariableDefinition} for default build options of mvn */
   VariableDefinitionString MVN_BUILD_OPTS = new VariableDefinitionString("MVN_BUILD_OPTS", null, c -> "clean install");
@@ -86,6 +84,9 @@ public interface IdeVariables {
   VariableDefinitionBoolean IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED = new VariableDefinitionBoolean("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED", null,
       c -> Boolean.TRUE);
 
+  /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() DEVON_IDE_CUSTOM_TOOLS}. */
+  VariableDefinitionString DEVON_IDE_CUSTOM_TOOLS = new VariableDefinitionString("DEVON_IDE_CUSTOM_TOOLS");
+
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, CREATE_START_SCRIPTS,
       IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, GRADLE_BUILD_OPTS, YARN_BUILD_OPTS, JASYPT_OPTS, MAVEN_ARGS,
@@ -112,5 +113,13 @@ public interface IdeVariables {
       return name.equals(variableDefinition.getLegacyName());
     }
     return false;
+  }
+
+  private static Path getMavenRepositoryPath(IdeContext context) {
+    Path mvnConf = context.getMavenConfigurationFolder();
+    if (mvnConf == null) {
+      return null;
+    }
+    return mvnConf.resolve("repository");
   }
 }

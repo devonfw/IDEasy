@@ -1,15 +1,22 @@
 package com.devonfw.tools.ide.tool.intellij;
 
-import java.nio.file.Path;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.ide.IdeToolCommandlet;
 import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
-import com.devonfw.tools.ide.tool.java.Java;
+import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
 /**
  * {@link IdeToolCommandlet} for <a href="https://www.jetbrains.com/idea/">IntelliJ</a>.
@@ -33,33 +40,48 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  protected void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+  protected String getBinaryName() {
+
+    if (this.context.getSystemInfo().isWindows()) {
+      return IDEA64_EXE;
+    } else {
+      if (Files.exists(this.getToolBinPath().resolve(IDEA))) {
+        return IDEA;
+      } else if (Files.exists(this.getToolBinPath().resolve(IDEA_BASH_SCRIPT))) {
+        return IDEA_BASH_SCRIPT;
+      } else {
+        return IDEA;
+      }
+    }
+  }
+
+  @Override
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
     super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
     environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString());
   }
 
   @Override
-  protected void installDependencies() {
+  public boolean installPlugin(ToolPluginDescriptor plugin, final Step step, ProcessContext pc) {
 
-    // TODO create intellij/intellij/dependencies.json file in ide-urls and delete this method
-    // TODO create intellij/ultimate/dependencies.json file in ide-urls and delete this method
-    getCommandlet(Java.class).install();
-  }
-
-  @Override
-  protected void postExtract(Path extractedDir) {
-
-    super.postExtract(extractedDir);
-    String binaryName;
-    if (this.context.getSystemInfo().isWindows()) {
-      binaryName = IDEA64_EXE;
-    } else if (this.context.getSystemInfo().isMac()) {
-      binaryName = IDEA;
-    } else {
-      binaryName = IDEA_BASH_SCRIPT;
+    // In case of plugins with a custom repo url
+    boolean customRepo = plugin.url() != null;
+    List<String> args = new ArrayList<>();
+    args.add("installPlugins");
+    args.add(plugin.id());
+    if (customRepo) {
+      args.add(plugin.url());
     }
-    createStartScript(extractedDir, binaryName, true);
+    ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.LOG_WARNING, pc, args.toArray(String[]::new));
+    if (result.isSuccessful()) {
+      this.context.success("Successfully installed plugin: {}", plugin.name());
+      step.success();
+      return true;
+    } else {
+      step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
+      return false;
+    }
   }
 
 }

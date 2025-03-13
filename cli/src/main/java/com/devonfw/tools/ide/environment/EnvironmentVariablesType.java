@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.environment;
 
+import com.devonfw.tools.ide.process.EnvironmentContext;
+import com.devonfw.tools.ide.tool.ToolInstallation;
+
 /**
  * The type of an instance of {@link EnvironmentVariables}.
  *
@@ -36,6 +39,12 @@ public enum EnvironmentVariablesType {
    *
    * @see EnvironmentVariablesResolved
    */
-  RESOLVED
+  RESOLVED,
+
+  /**
+   * Type of {@link EnvironmentVariables} from the virtual
+   * {@link com.devonfw.tools.ide.tool.LocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean) tool environment.
+   */
+  TOOL
 
 }

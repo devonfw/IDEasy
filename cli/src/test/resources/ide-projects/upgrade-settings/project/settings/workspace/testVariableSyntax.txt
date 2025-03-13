@@ -1,0 +1,6 @@
+${DEVON_IDE_HOME}
+This is a test text,this is a test text,this is a test text,this is a test text,
+this is a test text,
+this is a test text,${MAVEN_VERSION}this is a test text,this is a test text,${SETTINGS_PATH}
+maven_settings=${DEVON_IDE_HOME}\conf\.m2\settings.xml
+this is a test text,this is a test text,this is a test text,this is a test text,

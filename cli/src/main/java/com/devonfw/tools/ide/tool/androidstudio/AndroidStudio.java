@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.tool.androidstudio;
 
-import java.nio.file.Path;
+import java.nio.file.Files;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -15,6 +15,12 @@ import com.devonfw.tools.ide.tool.ide.IdeaBasedIdeToolCommandlet;
  */
 public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
 
+  private static final String STUDIO = "studio";
+
+  private static final String STUDIO64_EXE = STUDIO + "64.exe";
+
+  private static final String STUDIO_BASH_SCRIPT = STUDIO + ".sh";
+
   /**
    * The constructor.
    *
@@ -26,24 +32,25 @@ public class AndroidStudio extends IdeaBasedIdeToolCommandlet {
   }
 
   @Override
-  protected void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
+  protected String getBinaryName() {
 
-    super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
-    environmentContext.withEnvVar("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString());
+    if (this.context.getSystemInfo().isWindows()) {
+      return STUDIO64_EXE;
+    } else {
+      if (Files.exists(this.getToolBinPath().resolve(STUDIO))) {
+        return STUDIO;
+      } else if (Files.exists(this.getToolBinPath().resolve(STUDIO_BASH_SCRIPT))) {
+        return STUDIO_BASH_SCRIPT;
+      } else {
+        return STUDIO;
+      }
+    }
   }
 
   @Override
-  protected void postExtract(Path extractedDir) {
+  public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
-    super.postExtract(extractedDir);
-    String binaryName;
-    if (this.context.getSystemInfo().isWindows()) {
-      binaryName = "studio64.exe";
-    } else if (this.context.getSystemInfo().isMac()) {
-      binaryName = "studio";
-    } else {
-      binaryName = "studio.sh";
-    }
-    createStartScript(extractedDir, binaryName, true);
+    super.setEnvironment(environmentContext, toolInstallation, extraInstallation);
+    environmentContext.withEnvVar("STUDIO_PROPERTIES", this.context.getWorkspacePath().resolve("studio.properties").toString());
   }
 }

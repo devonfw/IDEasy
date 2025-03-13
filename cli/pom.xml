@@ -6,7 +6,6 @@
     <groupId>com.devonfw.tools.IDEasy.dev</groupId>
     <artifactId>ide</artifactId>
     <version>dev-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
   </parent>
   <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>ide-cli</artifactId>
@@ -15,11 +14,12 @@
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ideasy</mainClass>
     <imageName>ideasy</imageName>
-    <native.maven.plugin.version>0.10.2</native.maven.plugin.version>
+    <native.maven.plugin.version>0.10.4</native.maven.plugin.version>
     <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
     <jline.version>3.24.1</jline.version>
-    <jansi.version>2.4.0</jansi.version>
-    <jackson.version>2.18.0</jackson.version>
+    <jansi.version>2.4.1</jansi.version>
+    <jackson.version>2.18.2</jackson.version>
+    <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
   </properties>
 
   <dependencies>
@@ -27,7 +27,7 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
-      <version>1.26.0</version>
+      <version>1.27.1</version>
     </dependency>
     <!-- JSON and XML support -->
     <dependency>
@@ -59,13 +59,13 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>2.0.12</version>
+      <version>2.0.17</version>
       <!--optional>true</optional-->
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.5.3</version>
+      <version>1.5.17</version>
       <!--optional>true</optional-->
     </dependency>
     <dependency>
@@ -88,21 +88,21 @@
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.10.0</version>
+      <version>5.15.2</version>
       <scope>test</scope>
     </dependency>
     <!-- Needed for WireMock test support -->
     <dependency>
       <groupId>com.github.tomakehurst</groupId>
       <artifactId>wiremock-jre8</artifactId>
-      <version>2.35.1</version>
+      <version>2.35.2</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <!-- required for advanced mocking -->
       <groupId>net.bytebuddy</groupId>
       <artifactId>byte-buddy</artifactId>
-      <version>1.14.15</version>
+      <version>1.17.1</version>
       <scope>test</scope>
     </dependency>
     <!-- required for XML assertion (XmlMergerTest) -->
@@ -115,7 +115,7 @@
     <dependency>
       <groupId>org.xmlunit</groupId>
       <artifactId>xmlunit-assertj3</artifactId>
-      <version>2.9.1</version>
+      <version>2.10.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -149,6 +149,9 @@
             </goals>
             <configuration>
               <outputDirectory>${project.build.directory}/package</outputDirectory>
+              <delimiters>
+                <delimiter>$[*]</delimiter>
+              </delimiters>
               <resources>
                 <!--
                   Maven filtering can resolve ${...} variables in resource files.
@@ -196,7 +199,7 @@
             <executions>
               <execution>
                 <id>create-distribution</id>
-                <phase>install</phase>
+                <phase>package</phase>
                 <goals>
                   <goal>single</goal>
                 </goals>
@@ -226,7 +229,7 @@
                 <goals>
                   <goal>compile-no-fork</goal>
                 </goals>
-                <phase>compile</phase>
+                <phase>package</phase>
               </execution>
               <execution>
                 <id>test-native</id>
@@ -246,9 +249,59 @@
               <imageName>${imageName}</imageName>
               <buildArgs>
                 <arg>--enable-url-protocols=http,https</arg>
+                <arg>-march=compatibility</arg>
                 <arg>--initialize-at-build-time=org.apache.commons</arg>
+                <arg>-H:IncludeResourceBundles=com.sun.org.apache.xml.internal.res.XMLErrorResources,com.sun.org.apache.xerces.internal.impl.msg.XMLMessages
+                </arg>
               </buildArgs>
             </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>msi</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-antrun-plugin</artifactId>
+            <version>1.8</version>
+            <executions>
+              <execution>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>run</goal>
+                </goals>
+                <configuration>
+                  <tasks>
+                    <move file="${project.basedir}/target/msi/ideasy.msi"
+                      tofile="${project.basedir}/target/${project.artifactId}-${revision}-windows-x64.msi"/>
+                  </tasks>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>${build.helper.maven.plugin.version}</version>
+            <executions>
+              <execution>
+                <goals>
+                  <goal>attach-artifact</goal>
+                </goals>
+                <configuration>
+                  <artifacts>
+                    <artifact>
+                      <file>${project.basedir}/target/${project.artifactId}-${revision}-windows-x64.msi</file>
+                      <type>msi</type>
+                      <classifier>windows-x64</classifier>
+                    </artifact>
+                  </artifacts>
+                </configuration>
+              </execution>
+            </executions>
           </plugin>
         </plugins>
       </build>

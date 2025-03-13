@@ -1,32 +1,3 @@
 #!/bin/bash
-
-function doSetupInConfigFile() {
-  local cfg=$1
-  if [ ! -f "${cfg}" ]; then
-    echo "${cfg} not found - skipping."
-    return
-  fi
-  echo "Configuring IDEasy in ${cfg}."
-  if [ "${OSTYPE}" != "cygwin" ] && [ "${OSTYPE}" != "msys" ]; then
-    if ! grep -q "export IDE_ROOT=" "${cfg}"
-    then
-     echo "export IDE_ROOT=\"${IDE_ROOT}\"" >> "${cfg}"
-    fi
-  fi
-  if ! grep -q 'source "$IDE_ROOT/_ide/functions"' "${cfg}"; then
-    echo 'source "$IDE_ROOT/_ide/functions"' >> "${cfg}"
-    echo "ide init" >> "${cfg}"
-  fi
-}
-
 cd "$(dirname "${BASH_SOURCE:-$0}")" || exit 255
-if [ "${PWD/*\//}" != "_ide" ]; then
-  echo -e "\033[93mInvalid installation path $PWD - you need to install IDEasy to a folder named '_ide'.\033[39m" >&2
-fi
-echo "Setting up IDEasy in ${PWD}"
-cd ..
-export IDE_ROOT=${PWD}
-source "$IDE_ROOT/_ide/functions"
-
-doSetupInConfigFile ~/.bashrc
-doSetupInConfigFile ~/.zshrc
+./bin/ideasy -f install

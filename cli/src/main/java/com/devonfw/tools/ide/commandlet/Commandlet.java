@@ -36,7 +36,7 @@ public abstract class Commandlet {
 
   private Property<?> multiValued;
 
-  private String firstKeyword;
+  private KeywordProperty firstKeyword;
 
   /**
    * The constructor.
@@ -73,7 +73,7 @@ public abstract class Commandlet {
   /**
    * Clear the set values on all properties of the {@link Commandlet#propertiesList}
    */
-  public void clearProperties() {
+  public void reset() {
 
     for (Property<?> property : this.propertiesList) {
       property.clearValue();
@@ -94,21 +94,22 @@ public abstract class Commandlet {
    */
   protected void addKeyword(String keyword) {
 
-    if (this.properties.isEmpty()) {
-      this.firstKeyword = keyword;
-    }
-    add(new KeywordProperty(keyword, true, null));
+    addKeyword(keyword, null);
   }
 
   /**
-   * @param property the keyword {@link Property} to {@link #add(Property) add}.
+   * @param keyword the {@link KeywordProperty keyword} to {@link #add(Property) add}.
+   * @param alias the optional {@link KeywordProperty#getAlias() alias}.
    */
-  protected void addKeyword(Property<?> property) {
+  protected void addKeyword(String keyword, String alias) {
 
-    if (!this.properties.isEmpty()) {
-      throw new IllegalStateException();
+    KeywordProperty property = new KeywordProperty(keyword, true, alias);
+    if (this.firstKeyword == null) {
+      if (!this.properties.isEmpty()) {
+        throw new IllegalStateException(property + " must be first property in " + getClass().getSimpleName());
+      }
+      this.firstKeyword = property;
     }
-    this.firstKeyword = property.getNameOrAlias();
     add(property);
   }
 
@@ -160,7 +161,7 @@ public abstract class Commandlet {
   /**
    * @return the first keyword of this {@link Commandlet}. Typically the same as {@link #getName() name} but may also differ (e.g. "set" vs. "set-version").
    */
-  public String getKeyword() {
+  public KeywordProperty getFirstKeyword() {
 
     return this.firstKeyword;
   }

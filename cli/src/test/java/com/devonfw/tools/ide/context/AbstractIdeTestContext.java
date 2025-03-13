@@ -19,8 +19,10 @@ import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.WindowsHelper;
+import com.devonfw.tools.ide.os.WindowsHelperMock;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.repo.ToolRepository;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
@@ -43,6 +45,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   private ProcessContext mockContext;
 
   private TestCommandletManager testCommandletManager;
+
+  private Path ideRoot;
+
+  private boolean ideRootSet;
+
+  private Path urlsPath;
 
   /**
    * The constructor.
@@ -108,12 +116,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  public IdeProgressBar prepareProgressBar(String taskName, long size) {
+  public IdeProgressBar newProgressBar(String title, long maxSize, String unitName, long unitSize) {
 
-    IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(taskName, size);
-    IdeProgressBarTestImpl duplicate = this.progressBarMap.put(taskName, progressBar);
+    IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(title, maxSize, unitName, unitSize);
+    IdeProgressBarTestImpl duplicate = this.progressBarMap.put(title, progressBar);
     // If we have multiple downloads or unpacking, we may have an existing "Downloading" or "Unpacking" key
-    assert (taskName.equals("Downloading")) || (taskName.equals("Unpacking")) || duplicate == null;
+    assert (title.equals(IdeProgressBar.TITLE_DOWNLOADING)) || (title.equals(IdeProgressBar.TITLE_EXTRACTING)) || duplicate == null;
     return progressBar;
   }
 
@@ -134,7 +142,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public IdeSystemTestImpl getSystem() {
 
     if (this.system == null) {
-      this.system = IdeSystemTestImpl.ofSystemDefaults(this);
+      this.system = new IdeSystemTestImpl(this);
     }
     return (IdeSystemTestImpl) this.system;
   }
@@ -145,6 +153,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   public void setSystem(IdeSystem system) {
 
     this.system = system;
+  }
+
+  @Override
+  public WindowsHelper createWindowsHelper() {
+
+    return new WindowsHelperMock();
   }
 
   @Override
@@ -208,6 +222,33 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     this.userHome = dummyUserHome;
   }
 
+  @Override
+  public Path getIdeRoot() {
+
+    if (this.ideRootSet) {
+      return this.ideRoot;
+    }
+    return super.getIdeRoot();
+  }
+
+  /**
+   * @param ideRoot the new value of {@link #getIdeRoot()}.
+   */
+  public void setIdeRoot(Path ideRoot) {
+
+    this.ideRoot = ideRoot;
+    this.ideRootSet = true;
+  }
+
+  @Override
+  public Path getUrlsPath() {
+
+    if (this.urlsPath == null) {
+      return super.getUrlsPath();
+    }
+    return this.urlsPath;
+  }
+
   /**
    * @param urlsPath the mocked {@link #getUrlsPath() urls path}.
    */
@@ -262,6 +303,27 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       setCommandletManager(new TestCommandletManager(this));
     }
     this.testCommandletManager.add(commandlet);
+  }
+
+  @Override
+  protected Path getIdeRootPathFromEnv() {
+
+    Path workingDirectory = getCwd();
+    Path root = Path.of("").toAbsolutePath();
+    if (root.getRoot().equals(workingDirectory.getRoot())) {
+      Path relative = root.relativize(workingDirectory);
+      int nameCount = relative.getNameCount();
+      if ((nameCount >= 4) && relative.getName(0).toString().contains("target") && relative.getName(1).toString().equals("test-projects")) {
+        int rest = nameCount - 2;
+        Path ideRoot = workingDirectory;
+        while (rest > 0) {
+          ideRoot = ideRoot.getParent();
+          rest--;
+        }
+        return ideRoot;
+      }
+    }
+    return null;
   }
 
 }

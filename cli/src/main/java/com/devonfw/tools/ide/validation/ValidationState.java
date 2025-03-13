@@ -1,19 +1,34 @@
 package com.devonfw.tools.ide.validation;
 
+/**
+ * Implementation of {@link ValidationResult} as a mutable state that can collect errors dynamically.
+ */
 public class ValidationState implements ValidationResult {
+
+  private final String propertyName;
 
   private StringBuilder errorMessage;
 
-  private String propertyName;
+  /**
+   * The default constructor for no property.
+   */
+  public ValidationState() {
+    this(null);
+  }
 
+  /**
+   * @param propertyName the name of the property to validate.
+   */
   public ValidationState(String propertyName) {
     this.propertyName = propertyName;
   }
 
+  @Override
   public boolean isValid() {
     return (this.errorMessage == null);
   }
 
+  @Override
   public String getErrorMessage() {
     if (this.errorMessage == null) {
       return null;
@@ -21,6 +36,9 @@ public class ValidationState implements ValidationResult {
     return this.errorMessage.toString();
   }
 
+  /**
+   * @param error the error message to add to this {@link ValidationState}.
+   */
   public void addErrorMessage(String error) {
     if (this.errorMessage == null) {
       if (this.propertyName == null) {
@@ -37,6 +55,9 @@ public class ValidationState implements ValidationResult {
     this.errorMessage.append(error);
   }
 
+  /**
+   * @param result the {@link ValidationResult} to add to this {@link ValidationState}.
+   */
   public void add(ValidationResult result) {
     if (!result.isValid()) {
       if (this.errorMessage == null) {

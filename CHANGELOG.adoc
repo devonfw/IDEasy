@@ -2,6 +2,95 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.03.002
+
+Release with new features and bugfixes:
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/24?closed=1[milestone 2025.03.002].
+
+== 2025.03.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1111[#1111]: MSI Installer hangs because it does not create .license.agreement
+* https://github.com/devonfw/IDEasy/issues/910[#910]: Cannot update Intellij on Linux - FileAlreadyExistsException
+* https://github.com/devonfw/IDEasy/issues/654[#654]: Improve plugin support
+* https://github.com/devonfw/IDEasy/issues/38[#38]: Implement ToolCommandlet for Python
+* https://github.com/devonfw/IDEasy/issues/740[#740]: Create devonfw-ide to IDEasy settings migration guide
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/23?closed=1[milestone 2025.03.001].
+
+== 2025.02.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/420[#420]: Add MSI Build and Deployment
+* https://github.com/devonfw/IDEasy/issues/1061[#1061]: Mac: no such file or directory: /_ide/installation/functions
+* https://github.com/devonfw/IDEasy/issues/789[#789]: Add support to uninstall
+* https://github.com/devonfw/IDEasy/issues/1065[#1065]: NullPointerException in MavenRepository.getDownloadedArtifact
+* https://github.com/devonfw/IDEasy/issues/1060[#1060]: Command "ide status" doesn't show information about a pending upgrade when started outside of project
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/22?closed=1[milestone 2025.02.002].
+
+== 2025.02.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/982[#982]: Ability for user specific IDE configuration
+* https://github.com/devonfw/IDEasy/issues/925[#925]: IDEasy can not handle a faulty definition of JAVA_HOME
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/21?closed=1[milestone 2025.02.001].
+
+== 2025.01.003
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/993[#993]: Creation of start scripts for IDEs
+* https://github.com/devonfw/IDEasy/pull/1003[#1003]: graalvm compatibility mode to make x86-64 releases work on arm-64
+* https://github.com/devonfw/IDEasy/issues/954[#954]: Improve repository support
+* https://github.com/devonfw/IDEasy/issues/993[#993]: Creation of start scripts for IDEs
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/20?closed=1[milestone 2025.01.003].
+
+== 2025.01.002
+
+Release with important bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/979[#979]: XML Merger: Failed to compile XPath expression
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/19?closed=1[milestone 2025.01.002].
+
+== 2025.01.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/790[#790]: Fix intellij plugin installation
+* https://github.com/devonfw/IDEasy/issues/915[#915]: custom-tools not working
+* https://github.com/devonfw/IDEasy/issues/916[#916]: download is missing status code error handling
+* https://github.com/devonfw/IDEasy/issues/757[#757]: Support to allow settings in code repository
+* https://github.com/devonfw/IDEasy/issues/826[#826]: Fix git settings check when settings folder is empty
+* https://github.com/devonfw/IDEasy/issues/919[#919]: Require user to agree to license
+* https://github.com/devonfw/IDEasy/issues/898[#898]: Improved output of get-version/edition and uninstall/-plugin
+* https://github.com/devonfw/IDEasy/issues/894[#894]: ide.bat not printing if IDEasy was initialized
+* https://github.com/devonfw/IDEasy/issues/759[#759]: Add UpgradeSettingsCommandlet for the upgrade of legacy devonfw-ide settings to IDEasy
+* https://github.com/devonfw/IDEasy/issues/498[#498]: Improvement of XML merger: resolve before merge
+* https://github.com/devonfw/IDEasy/issues/691[#691]: XMLMerger can not handle merge of subnodes properly
+* https://github.com/devonfw/IDEasy/issues/815[#815]: Links within IDEasy.pdf generally do not work
+* https://github.com/devonfw/IDEasy/issues/914[#914]: Setup needs to create .bashrc if not existent
+* https://github.com/devonfw/IDEasy/issues/853[#853]: NPE when trying to auto-complete after ide repository
+* https://github.com/devonfw/IDEasy/issues/734[#734]: Improve ProcessResult: get out and err in order
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/18?closed=1[milestone 2025.01.001].
+
+== 2024.12.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/888[#888]: Removed gu update functionality (needs to be run manually for old versions now).
+* https://github.com/devonfw/IDEasy/issues/885[#885]: Gcviewer starts in foreground fixed
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/17?closed=1[milestone 2024.12.002].
+
 == 2024.12.001
 
 NOTE: ATTENTION: When installing this release as an update, you need to manually remove IDEasy entries from `.bashrc` and if present also `.zshrc`.
@@ -10,17 +99,26 @@ Then run the `setup` and all should work fine.
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/764[#764]: Fix IDEasy in CMD
 * https://github.com/devonfw/IDEasy/issues/774[#774]: HTTP proxy support not working properly
+* https://github.com/devonfw/IDEasy/issues/792[#792]: Honor new variable IDE_OPTIONS in ide command wrapper
 * https://github.com/devonfw/IDEasy/issues/589[#589]: Fix NLS Bundles for Linux and MacOS
 * https://github.com/devonfw/IDEasy/issues/778[#778]: Add icd command
+* https://github.com/devonfw/IDEasy/issues/587[#587]: Checks for git installation before performing git operations
 * https://github.com/devonfw/IDEasy/issues/779[#779]: Consider functions instead of alias
 * https://github.com/devonfw/IDEasy/issues/810[#810]: setup not adding IDEasy to current shell
 * https://github.com/devonfw/IDEasy/issues/782[#782]: Fix IDE_ROOT variable on Linux
 * https://github.com/devonfw/IDEasy/issues/637[#637]: Added option to disable updates
 * https://github.com/devonfw/IDEasy/issues/764[#764]: IDEasy not working properly in CMD
+* https://github.com/devonfw/IDEasy/issues/799[#799]: binaries from zip download lack executable flags
 * https://github.com/devonfw/IDEasy/issues/81[#81]: Implement Toolcommandlet for Kubernetes
+* https://github.com/devonfw/IDEasy/issues/737[#737]: Adds cd command to ide shell
+* https://github.com/devonfw/IDEasy/issues/879[#879]: cannot omit default settings URL in ide create
 * https://github.com/devonfw/IDEasy/issues/758[#758]: Create status commandlet
+* https://github.com/devonfw/IDEasy/issues/824[#824]: ide create «settings-url»&#35;«branch» not working
+* https://github.com/devonfw/IDEasy/issues/875[#875]: lazydocker is not working
 * https://github.com/devonfw/IDEasy/issues/754[#754]: Again messages break processable command output
+* https://github.com/devonfw/IDEasy/issues/737[#739]: Improved error handling to show 'You are not inside an IDE installation' only when relevant.
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/16?closed=1[milestone 2024.12.001].
 
@@ -31,7 +129,8 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/632[#632]: Add .editorconfig to settings workspaces
 * https://github.com/devonfw/IDEasy/issues/415[#415]: Added a message that will inform the user for what process he will need to enter his sudo-password
 * https://github.com/devonfw/IDEasy/issues/708[#708]: Open vscode in workspace path
-* https://github.com/devonfw/IDEasy/issues/608[#608]: Enhanced error messages. Now logs missing command output and error messages
+* https://github.com/devonfw/IDEasy/issues/608[#608]: Enhanced error messages.
+Now logs missing command output and error messages
 * https://github.com/devonfw/IDEasy/issues/715[#715]: Show "cygwin is not supported" message for cygwin users
 * https://github.com/devonfw/IDEasy/issues/745[#745]: Maven install fails with NPE
 
