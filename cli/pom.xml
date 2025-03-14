@@ -14,7 +14,7 @@
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ideasy</mainClass>
     <imageName>ideasy</imageName>
-    <native.maven.plugin.version>0.10.4</native.maven.plugin.version>
+    <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
     <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
     <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
   </properties>
