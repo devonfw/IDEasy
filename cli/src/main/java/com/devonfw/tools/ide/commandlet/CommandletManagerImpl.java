@@ -42,6 +42,7 @@ import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
+import com.devonfw.tools.ide.tool.squirrelsql.SquirrelSql;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.tomcat.Tomcat;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
@@ -108,6 +109,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Terraform(context));
     add(new Oc(context));
     add(new Quarkus(context));
+    add(new SquirrelSql(context));
     add(new Kotlinc(context));
     add(new KotlincNative(context));
     add(new KubeCtl(context));
