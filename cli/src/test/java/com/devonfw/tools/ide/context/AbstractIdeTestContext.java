@@ -325,5 +325,4 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     }
     return null;
   }
-
 }
