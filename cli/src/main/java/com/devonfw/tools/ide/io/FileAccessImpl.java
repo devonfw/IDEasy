@@ -50,6 +50,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -223,10 +224,16 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public boolean isExpectedFolder(Path folder) {
 
+    return isExpectedFolder(folder, IdeLogLevel.WARNING);
+  }
+
+  @Override
+  public boolean isExpectedFolder(Path folder, IdeLogLevel logLevel) {
+
     if (Files.isDirectory(folder)) {
       return true;
     }
-    this.context.warning("Expected folder was not found at {}", folder);
+    this.context.level(logLevel).log("Expected folder was not found at {}", folder);
     return false;
   }
 
