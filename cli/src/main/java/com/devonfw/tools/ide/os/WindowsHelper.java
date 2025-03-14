@@ -40,5 +40,4 @@ public interface WindowsHelper {
     // IdeContext API is already too large
     return ((AbstractIdeContext) context).getWindowsHelper();
   }
-
 }

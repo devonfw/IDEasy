@@ -20,14 +20,13 @@ jobs:
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
-          java-version: 17
+          java-version: 21
           distribution: 'temurin'
           cache: 'maven'
       - name: Build and run url updater
         run: |
-          cd cli
-          mvn -B -ntp -Dstyle.color=always install
-          mvn -B -ntp -Dstyle.color=always exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="../ide-urls PT5H30M"
+          mvn -B -ntp -Dstyle.color=always -pl url-updater -am install
+          mvn -B -ntp -Dstyle.color=always -pl url-updater exec:java -Dexec.mainClass="com.devonfw.tools.ide.url.UpdateInitiator" -Dexec.args="ide-urls PT5H30M"
       - name: Commit and push to ide-urls
         run: |
           cd ide-urls
