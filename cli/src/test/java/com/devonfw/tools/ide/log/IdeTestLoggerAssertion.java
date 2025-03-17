@@ -58,6 +58,16 @@ public class IdeTestLoggerAssertion {
     return fulfillsPredicate(e -> !e.message().contains(message), PredicateMode.MATCH_ALL, "No log message should contain '" + message + "'");
   }
 
+    /**
+   * Asserts that no {@link IdeLogEntry} has an {@link IdeLogEntry#error() error} containing a {@link Throwable} (exception).
+   *
+   * @return this assertion itself for fluent API calls.
+   */
+  public IdeTestLoggerAssertion hasNoEntryWithException() {
+
+    return fulfillsPredicate(e -> e.error() == null, PredicateMode.MATCH_ALL, "No log message should have an exception");
+  }
+
   /**
    * @param messages the expected {@link com.devonfw.tools.ide.log.IdeSubLogger#log(String) log message}s in order.
    * @return this assertion itself for fluent API calls.
