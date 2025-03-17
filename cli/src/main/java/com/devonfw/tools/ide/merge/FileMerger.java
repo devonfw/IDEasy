@@ -49,8 +49,7 @@ public abstract class FileMerger extends AbstractWorkspaceMerger {
     try {
       doMerge(setup, update, variables, workspace);
     } catch (Exception e) {
-      this.context.error(e, "Failed to merge workspace file {} with update template {} and setup file {}!", workspace, update, setup);
-      return 1;
+      this.context.warning("Failed to merge workspace file {} with update template {} and setup file {}!", workspace, update, setup);
     }
     return 0;
   }
