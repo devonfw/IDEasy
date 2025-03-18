@@ -22,7 +22,7 @@ The latest release of `IDEasy` can be downloaded from https://github.com/devonfw
 
 == Install
 
-Extract the contents of the downloaded archive (`ide-cli-adasd.tar.gz`) to a new folder and run `setup` in this folder (on windows double-click on `setup.bat`).
+Extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to a new folder and run `setup` in this folder (on windows double-click on `setup.bat`).
 
 To get started read the link:usage.adoc[usage].
 After the installation process, you can create a new project by typing: `ide create <project>`, replace `<project>` with your project name.
