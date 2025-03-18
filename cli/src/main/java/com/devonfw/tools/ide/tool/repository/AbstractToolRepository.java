@@ -27,7 +27,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public abstract class AbstractToolRepository implements ToolRepository {
 
   private static final int MAX_TEMP_DOWNLOADS = 9;
-  
+
   /** The owning {@link IdeContext}. */
   protected final IdeContext context;
 
@@ -135,7 +135,11 @@ public abstract class AbstractToolRepository implements ToolRepository {
     StringBuilder sb = new StringBuilder(32);
     sb.append(tool);
     sb.append("-");
-    sb.append(version);
+    if (VersionIdentifier.LATEST.equals(version)) {
+      sb.append("latest");
+    } else {
+      sb.append(version);
+    }
     if (!edition.equals(tool)) {
       sb.append("-");
       sb.append(edition);
