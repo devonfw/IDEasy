@@ -4,8 +4,7 @@ import java.io.BufferedWriter;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Set;
+import javax.xml.namespace.QName;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.OutputKeys;
@@ -112,37 +111,22 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
     Path template = workspaceDocument.getPath();
     this.context.debug("Merging {} into {} ...", template, source);
     Element templateRoot = templateDocument.getRoot();
+    QName templateQName = XmlMergeSupport.getQualifiedName(templateRoot);
     Element workspaceRoot = workspaceDocument.getRoot();
-
-    if (templateRoot.getNodeName().equals(workspaceRoot.getNodeName())) {
+    QName workspaceQName = XmlMergeSupport.getQualifiedName(workspaceRoot);
+    if (templateQName.equals(workspaceQName)) {
       XmlMergeStrategy strategy = XmlMergeSupport.getMergeStrategy(templateRoot);
       if (strategy == null) {
         strategy = XmlMergeStrategy.COMBINE; // default strategy used as fallback
       }
-
-      Set<String> seenElements = new HashSet<>();
-
-      NodeList templateChildren = templateRoot.getChildNodes();
-      for (int i = 0; i < templateChildren.getLength(); i++) {
-        Node templateNode = templateChildren.item(i);
-        if (templateNode.getNodeType() == Node.ELEMENT_NODE) {
-          Element templateElement = (Element) templateNode;
-          String elementQName = templateElement.getNodeName();
-
-          if (!seenElements.contains(elementQName)) {
-            strategy.merge(templateElement, workspaceRoot, new ElementMatcher(this.context));
-            seenElements.add(elementQName);
-          }
-        }
-      }
-
+      ElementMatcher elementMatcher = new ElementMatcher(this.context);
+      strategy.merge(templateRoot, workspaceRoot, elementMatcher);
       resultDocument = workspaceDocument.getDocument();
     } else {
-      this.context.error("Cannot merge XML template {} with root {} into XML file {} with root {} as roots do not match.",
-          templateDocument.getPath(), templateRoot.getNodeName(), workspaceDocument.getPath(), workspaceRoot.getNodeName());
+      this.context.error("Cannot merge XML template {} with root {} into XML file {} with root {} as roots do not match.", templateDocument.getPath(),
+          templateQName, workspaceDocument.getPath(), workspaceQName);
       return null;
     }
-
     return resultDocument;
   }
 
