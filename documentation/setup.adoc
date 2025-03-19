@@ -26,7 +26,7 @@ Extract the contents of the downloaded archive (`ide-cli-*.tar.gz`) to a new fol
 
 To get started read the link:usage.adoc[usage].
 After the installation process, you can create a new project by typing in bash: `ide create <project>`, replace `<project>` with your project name.
-Switch to the project folder e.g. `cd <project>` and install or configure tools for your project as needed (for further details see link:project.adoc[here]).
+Switch to the project folder e.g. `cd <project>` and install or configure tools for your project as needed (for further details click link:project.adoc[here]).
 
 === Tweak installation location
 
