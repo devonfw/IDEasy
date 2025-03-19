@@ -45,7 +45,7 @@ public class ElementMatcher {
     } else {
       this.qName2IdMap.putIfAbsent(qName, id);
     }
-    return this.id2ComputerMap.computeIfAbsent(id, i -> new IdComputer(i, context));
+    return this.id2ComputerMap.computeIfAbsent(id, IdComputer::new);
   }
 
   /**
