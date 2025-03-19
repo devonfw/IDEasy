@@ -1,8 +1,13 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -139,6 +144,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       }
       updatePropertiesLegacyEdition(environmentVariables, "INTELLIJ_EDITION_TYPE", "INTELLIJ_EDITION", this::mapLegacyIntellijEdition);
       updatePropertiesLegacyEdition(environmentVariables, "ECLIPSE_EDITION_TYPE", "ECLIPSE_EDITION", this::mapLegacyEclipseEdition);
+      cleanupLegacyProperties();
       environmentVariables.save();
       this.context.getFileAccess().backup(environmentVariables.getLegacyPropertiesFilePath());
     }
@@ -180,5 +186,44 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       }
       environmentVariables.remove(legacyEditionVariable);
     }
+  }
+
+  private void cleanupLegacyProperties() {
+    this.context.info("Cleaning up legacy properties...");
+
+    Path rootDirectory = Paths.get(System.getProperty("user.dir"));
+    try {
+      Files.walk(rootDirectory)
+          .filter(path -> path.getFileName().toString().equals("IDEasy.properties"))
+          .forEach(filePath -> {
+            try {
+              updateProperties(filePath);
+            } catch (IOException e) {
+              this.context.warning("Error processing IDEasy.properties at " + filePath);
+            }
+          });
+    } catch (IOException e) {
+      this.context.warning("Error walking the file tree to find IDEasy.properties.");
+    }
+  }
+
+  private void updateProperties(Path filePath) throws IOException {
+    List<String> lines = Files.readAllLines(filePath);
+    List<String> updatedLines = new ArrayList<>();
+
+    for (String line : lines) {
+      if (line.startsWith("git.url=") || line.startsWith("git-url")) {
+        String gitUrl = line.substring("git.url=".length());
+        updatedLines.add("git_url=" + gitUrl);
+        continue;
+      }
+      if (line.startsWith("eclipse=import")) {
+        updatedLines.add("import=eclipse");
+        continue;
+      }
+      updatedLines.add(line);
+    }
+    Files.write(filePath, updatedLines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+    this.context.success("Successfully updated IDEasy.properties at " + filePath);
   }
 }
