@@ -266,10 +266,10 @@
                   <goal>run</goal>
                 </goals>
                 <configuration>
-                  <tasks>
+                  <target>
                     <move file="${project.basedir}/target/msi/ideasy.msi"
                       tofile="${project.basedir}/target/${project.artifactId}-${revision}-windows-x64.msi"/>
-                  </tasks>
+                  </target>
                 </configuration>
               </execution>
             </executions>
