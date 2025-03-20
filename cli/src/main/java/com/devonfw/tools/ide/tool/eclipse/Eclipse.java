@@ -57,12 +57,6 @@ public class Eclipse extends IdeToolCommandlet {
   @Override
   protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
 
-    if ((args.length > 0) && !VMARGS.equals(args[0])) {
-      String vmArgs = this.context.getVariables().get("ECLIPSE_VMARGS");
-      if ((vmArgs != null) && !vmArgs.isEmpty()) {
-        pc.addArg(VMARGS).addArg(vmArgs);
-      }
-    }
     // configure workspace location
     pc.addArg("-data").addArg(this.context.getWorkspacePath());
     // use keyring from user home to keep secrets and share across projects and workspaces
@@ -76,6 +70,12 @@ public class Eclipse extends IdeToolCommandlet {
       pc.addArg("-consoleLog").addArg("-nosplash");
     }
     super.configureToolArgs(pc, processMode, errorHandling, args);
+    if ((args.length > 0) && !VMARGS.equals(args[0])) {
+      String vmArgs = this.context.getVariables().get("ECLIPSE_VMARGS");
+      if ((vmArgs != null) && !vmArgs.isEmpty()) {
+        pc.addArg(VMARGS).addArg(vmArgs);
+      }
+    }
   }
 
   @Override
