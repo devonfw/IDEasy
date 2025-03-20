@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1153[#1153]: Print SystemInfo in ide status
+* https://github.com/devonfw/IDEasy/issues/1039[#1039]: Update Jasypt commandlet implementation to run Java version from dependencies.json
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/24?closed=1[milestone 2025.03.002].
 
