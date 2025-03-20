@@ -54,7 +54,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    if (!this.context.isSettingsRepositorySymlinkOrJunction() || this.context.isForceMode()) {
+    if (!this.context.isSettingsRepositorySymlinkOrJunction() || this.context.isForceMode() || this.context.isForcePull()) {
       updateSettings();
     }
     updateConf();
@@ -201,6 +201,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   private void updateRepositories() {
 
     if (this.skipRepositories.isTrue()) {
+      if (this.context.isForceRepositories()) {
+        this.context.warning("");
+      }
       this.context.info("Skipping setup of repositories as specified by the user.");
       return;
     }

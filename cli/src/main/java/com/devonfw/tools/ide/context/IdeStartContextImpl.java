@@ -19,6 +19,12 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
 
   private boolean forceMode;
 
+  private boolean forcePull;
+
+  private boolean forcePlugins;
+
+  private boolean forceRepositories;
+
   private boolean batchMode;
 
   private boolean quietMode;
@@ -68,12 +74,54 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     return this.forceMode;
   }
 
+  @Override
+  public boolean isForcePull() {
+
+    return this.forcePull;
+  }
+
+  @Override
+  public boolean isForcePlugins() {
+
+    return this.forcePlugins;
+  }
+
+  @Override
+  public boolean isForceRepositories() {
+
+    return this.forceRepositories;
+  }
+
   /**
    * @param forceMode new value of {@link #isForceMode()}.
    */
   public void setForceMode(boolean forceMode) {
 
     this.forceMode = forceMode;
+  }
+
+  /**
+   * @param forcePull new value of {@link #isForcePull()}.
+   */
+  public void setForcePull(boolean forcePull) {
+
+    this.forcePull = forcePull;
+  }
+
+  /**
+   * @param forcePlugins new value of {@link #isForcePlugins()}.
+   */
+  public void setForcePlugins(boolean forcePlugins) {
+
+    this.forcePlugins = forcePlugins;
+  }
+
+  /**
+   * @param forceRepositories new value of {@link #isForceRepositories()}.
+   */
+  public void setForceRepositories(boolean forceRepositories) {
+
+    this.forceRepositories = forceRepositories;
   }
 
   @Override

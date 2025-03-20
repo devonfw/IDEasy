@@ -27,6 +27,21 @@ public interface IdeStartContext extends IdeLogger {
   boolean isForceMode();
 
   /**
+   * @return {@code true} in case of force pull, {@code false} otherwise.
+   */
+  boolean isForcePull();
+
+  /**
+   * @return {@code true} in case of force plugins, {@code false} otherwise.
+   */
+  boolean isForcePlugins();
+
+  /**
+   * @return {@code true} in case of force repositories, {@code false} otherwise.
+   */
+  boolean isForceRepositories();
+
+  /**
    * @return {@code true} if offline mode is activated (-o/--offline), {@code false} otherwise.
    */
   boolean isOfflineMode();
