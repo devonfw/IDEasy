@@ -43,6 +43,14 @@ public class StatusCommandlet extends Commandlet {
       logSettingsLegacyStatus();
       logMigrationStatus();
     }
+    checkForUpdate();
+  }
+
+  private void checkForUpdate() {
+    if (!this.context.isOnline()) {
+      this.context.warning("Check for newer version of IDEasy is skipped due to no network connectivity.");
+      return;
+    }
     new IdeasyCommandlet(this.context, null).checkIfUpdateIsAvailable();
     logSystemInfo();
   }
