@@ -60,6 +60,7 @@ public enum XmlMergeStrategy {
    * @param matcher the {@link ElementMatcher}.
    */
   public void merge(Element templateElement, Element resultElement, ElementMatcher matcher) {
+    
     try {
       doMerge(templateElement, resultElement, matcher);
     } catch (XmlMergeException e) {
