@@ -191,7 +191,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   private void cleanupLegacyProperties() {
     this.context.info("Cleaning up legacy properties...");
 
-    Path rootDirectory = Paths.get(System.getProperty("user.dir"));
+    Path homeDirectory = this.config.getgetUserHome();
     try {
       Files.walk(rootDirectory)
           .filter(path -> path.getFileName().toString().equals("IDEasy.properties"))
