@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.merge.xmlmerger;
+package com.devonfw.tools.ide.merge.xml;
 
 import java.util.Locale;
 import java.util.function.BiFunction;
@@ -9,7 +9,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
+import com.devonfw.tools.ide.merge.xml.matcher.ElementMatcher;
 
 /**
  * Enum of merge strategies for XML elements.
