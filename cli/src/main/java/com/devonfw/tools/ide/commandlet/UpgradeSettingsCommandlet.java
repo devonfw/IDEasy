@@ -207,7 +207,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     }
   }
 
-  private void updateProperties(Path filePath) throws IOException {
+  private void updateRepositoryPropertiesFile(Path filePath) throws IOException {
     List<String> lines = Files.readAllLines(filePath);
     List<String> updatedLines = new ArrayList<>();
 
