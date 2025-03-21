@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.merge.xmlmerger.matcher;
+package com.devonfw.tools.ide.merge.xml.matcher;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -7,7 +7,7 @@ import javax.xml.namespace.QName;
 import org.w3c.dom.Element;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.merge.xmlmerger.XmlMergeSupport;
+import com.devonfw.tools.ide.merge.xml.XmlMergeSupport;
 
 /**
  * The ElementMatcher class is responsible for matching XML elements in a target document based on the provided update elements.

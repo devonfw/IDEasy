@@ -14,7 +14,7 @@ import org.jline.utils.Log;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
+import com.devonfw.tools.ide.merge.xml.XmlMerger;
 import com.devonfw.tools.ide.util.FilenameUtil;
 
 /**
