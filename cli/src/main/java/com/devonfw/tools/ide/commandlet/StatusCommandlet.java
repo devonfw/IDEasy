@@ -7,6 +7,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.migration.IdeMigrator;
+import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -51,6 +52,13 @@ public class StatusCommandlet extends Commandlet {
       return;
     }
     new IdeasyCommandlet(this.context, null).checkIfUpdateIsAvailable();
+    logSystemInfo();
+  }
+
+  private void logSystemInfo() {
+    SystemInfo systemInfo = this.context.getSystemInfo();
+    this.context.info("Your operating system is {}({})@{} [{}@{}]", systemInfo.getOs(), systemInfo.getOsVersion(), systemInfo.getArchitecture(),
+        systemInfo.getOsName(), systemInfo.getArchitectureName());
   }
 
   private void logSettingsLegacyStatus() {
