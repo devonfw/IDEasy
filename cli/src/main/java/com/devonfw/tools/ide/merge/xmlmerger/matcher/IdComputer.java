@@ -9,6 +9,7 @@ import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.merge.xmlmerger.XmlMergeSupport;
 
 /**
@@ -19,17 +20,23 @@ public class IdComputer {
   /** The value of merge:id that is used to evaluate the xpath expression. */
   private final String id;
 
+  private final IdeContext context;
+
   private static final XPathFactory xPathFactory = XPathFactory.newInstance();
+
+  private final boolean throwExceptionOnMultipleMatches = Boolean.parseBoolean(System.getProperty("throwExceptionOnMultipleMatches", "false"));
+
 
   /**
    * The constructor.
    *
    * @param id the {@link #getId() merge ID}.
    */
-  public IdComputer(String id) {
+  public IdComputer(String id, IdeContext context) {
 
     super();
     this.id = id;
+    this.context = context;
   }
 
   /**
@@ -61,8 +68,14 @@ public class IdComputer {
       } else if (length == 0) {
         return null;
       } else {
-        throw new IllegalStateException(
-            length + " matches found for XPath " + xpathExpr + " in workspace XML at " + XmlMergeSupport.getXPath(workspaceElement, true));
+        if (throwExceptionOnMultipleMatches) {
+          throw new IllegalStateException(
+              length + " matches found for XPath " + xpathExpr + " in workspace XML at " + XmlMergeSupport.getXPath(workspaceElement, true));
+        } else {
+          this.context.warning("Matches found: {} matches for XPath {} in workspace XML at {}",
+              length, xpathExpr, XmlMergeSupport.getXPath(workspaceElement, true));
+        }
+        return (Element) nodeList.item(0);
       }
     } catch (XPathExpressionException e) {
       throw new IllegalStateException("Failed to compile XPath expression " + xpath, e);
