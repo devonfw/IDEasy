@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.merge;
+package com.devonfw.tools.ide.merge.xml;
 
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -15,11 +16,11 @@ import org.slf4j.LoggerFactory;
 import org.xmlunit.assertj3.XmlAssert;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesMock;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
-import com.devonfw.tools.ide.merge.xmlmerger.XmlMerger;
 
 /**
  * Test of {@link XmlMerger}.
@@ -66,5 +67,28 @@ class XmlMergerTest extends AbstractIdeContextTest {
   private static Stream<Path> xmlMergerTestCases() throws IOException {
 
     return Files.list(XML_TEST_RESOURCES).filter(Files::isDirectory);
+  }
+
+  @Test
+  void testFailOnAmbiguousMerge(@TempDir Path tempDir) throws Exception {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    EnvironmentVariables variables = context.getVariables();
+    variables.getByType(EnvironmentVariablesType.CONF).set("FAIL_ON_AMBIGOUS_MERGE", "true");
+    XmlMerger merger = new XmlMerger(context);
+    Path folder = XML_TEST_RESOURCES.resolve("ambiguous-id");
+    Path sourcePath = folder.resolve(SOURCE_XML);
+    Path targetPath = tempDir.resolve(TARGET_XML);
+    Files.copy(folder.resolve(TARGET_XML), targetPath, REPLACE_EXISTING);
+    // act
+    assertThatThrownBy(() -> {
+      merger.doMerge(null, sourcePath, variables, targetPath);
+    })
+        // assert
+        .hasRootCauseInstanceOf(IllegalStateException.class).hasRootCauseMessage(
+            "2 matches found for XPath configuration[@default='true' and @type='JUnit'] in workspace XML at /project[@version='4']/component[@name='RunManager' @selected='Application.IDEasy']");
+    ;
+
   }
 }

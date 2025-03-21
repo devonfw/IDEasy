@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="RunManager" selected="Application.IDEasy">
+    <configuration default="true" type="JUnit" factoryName="JUnit">
+      <shortenClasspath name="broken"/>
+      <option name="METHOD_NAME" value=""/>
+      <option name="TEST_OBJECT" value="class"/>
+    </configuration>
+    <!-- For our test we have this block duplicated -->
+    <configuration default="true" type="JUnit" factoryName="JUnit">
+      <shortenClasspath name="ARGS_FILE"/>
+      <option name="METHOD_NAME" value=""/>
+      <option name="TEST_OBJECT" value="class"/>
+    </configuration>
+  </component>
+</project>

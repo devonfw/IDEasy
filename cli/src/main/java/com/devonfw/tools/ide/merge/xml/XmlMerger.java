@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.merge.xmlmerger;
+package com.devonfw.tools.ide.merge.xml;
 
 import java.io.BufferedWriter;
 import java.io.InputStream;
@@ -24,7 +24,7 @@ import org.w3c.dom.Text;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.merge.FileMerger;
-import com.devonfw.tools.ide.merge.xmlmerger.matcher.ElementMatcher;
+import com.devonfw.tools.ide.merge.xml.matcher.ElementMatcher;
 
 /**
  * {@link FileMerger} for XML files.

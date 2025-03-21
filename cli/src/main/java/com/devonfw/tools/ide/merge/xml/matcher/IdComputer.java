@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.merge.xmlmerger.matcher;
+package com.devonfw.tools.ide.merge.xml.matcher;
 
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
@@ -10,12 +10,15 @@ import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.merge.xmlmerger.XmlMergeSupport;
+import com.devonfw.tools.ide.merge.xml.XmlMergeSupport;
 
 /**
  * The IdComputer class is responsible for building XPath expressions and evaluating those expressions to match elements in a target document.
  */
 public class IdComputer {
+
+  /** Name of the {@link com.devonfw.tools.ide.environment.EnvironmentVariables variable} to fail on ambiguous merge. */
+  public static final String FAIL_ON_AMBIGOUS_MERGE = "FAIL_ON_AMBIGOUS_MERGE";
 
   /** The value of merge:id that is used to evaluate the xpath expression. */
   private final String id;
@@ -23,9 +26,6 @@ public class IdComputer {
   private final IdeContext context;
 
   private static final XPathFactory xPathFactory = XPathFactory.newInstance();
-
-  private final boolean throwExceptionOnMultipleMatches = Boolean.parseBoolean(System.getProperty("throwExceptionOnMultipleMatches", "false"));
-
 
   /**
    * The constructor.
@@ -68,12 +68,11 @@ public class IdComputer {
       } else if (length == 0) {
         return null;
       } else {
-        if (throwExceptionOnMultipleMatches) {
-          throw new IllegalStateException(
-              length + " matches found for XPath " + xpathExpr + " in workspace XML at " + XmlMergeSupport.getXPath(workspaceElement, true));
+        String message = length + " matches found for XPath " + xpathExpr + " in workspace XML at " + XmlMergeSupport.getXPath(workspaceElement, true);
+        if ("true".equals(this.context.getVariables().get(FAIL_ON_AMBIGOUS_MERGE))) {
+          throw new IllegalStateException(message);
         } else {
-          this.context.warning("Matches found: {} matches for XPath {} in workspace XML at {}",
-              length, xpathExpr, XmlMergeSupport.getXPath(workspaceElement, true));
+          this.context.warning(message);
         }
         return (Element) nodeList.item(0);
       }
