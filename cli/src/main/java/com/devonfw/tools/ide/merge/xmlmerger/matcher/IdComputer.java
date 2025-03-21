@@ -72,7 +72,8 @@ public class IdComputer {
           throw new IllegalStateException(
               length + " matches found for XPath " + xpathExpr + " in workspace XML at " + XmlMergeSupport.getXPath(workspaceElement, true));
         } else {
-          this.context.warning(length + " matches found for XPath " + xpathExpr + " in workspace XML at " + XmlMergeSupport.getXPath(workspaceElement, true));
+          this.context.warning("Matches found: {} matches for XPath {} in workspace XML at {}",
+              length, xpathExpr, XmlMergeSupport.getXPath(workspaceElement, true));
         }
         return (Element) nodeList.item(0);
       }
