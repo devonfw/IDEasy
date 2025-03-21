@@ -29,7 +29,7 @@ See link:documentation/features.adoc[features].
 
 == Status
 
-Currently we focused on support for Windows while official Linux and Mac support are still a little bit work in progress (see e.g. bug https://github.com/devonfw/IDEasy/issues/589[#589] or https://github.com/devonfw/IDEasy/issues/451[#451]).
+Currently we focused on support for Windows while official Linux and Mac support are still a little bit work in progress (see e.g. bug https://github.com/devonfw/IDEasy/issues/451[#451]).
 Further, we still recommend that you should contact us if you plan to use IDEasy in your project with a larger developer team.
 We surely try to fix bugs as soon as possible but we do not work extra shifts or prioritize your issues if you are blocked and we never promised any help before.
 
