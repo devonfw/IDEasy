@@ -224,6 +224,6 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       updatedLines.add(line);
     }
     Files.write(filePath, updatedLines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-    this.context.success("Successfully updated IDEasy.properties at " + filePath);
+    this.context.success("Successfully updated repository configuration file {}", filePath);
   }
 }
