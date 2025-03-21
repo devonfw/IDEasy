@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.merge.xmlmerger;
 
 import java.util.Locale;
 import java.util.function.BiFunction;
-import java.util.logging.Logger;
 
 import org.w3c.dom.Attr;
 import org.w3c.dom.DOMException;
@@ -61,13 +60,12 @@ public enum XmlMergeStrategy {
    * @param matcher the {@link ElementMatcher}.
    */
   public void merge(Element templateElement, Element resultElement, ElementMatcher matcher) {
-    Logger logger = Logger.getLogger(XmlMergeStrategy.class.getName());
     try {
       doMerge(templateElement, resultElement, matcher);
     } catch (XmlMergeException e) {
-      logger.warning("XML Merge Exception: " + e.getMessage());
+      throw e;
     } catch (RuntimeException e) {
-      logger.warning("Merge strategy " + this + " failed on " + XmlMergeSupport.getXPath(templateElement, true) + ": " + e.getMessage());
+      throw new XmlMergeException("Merge strategy " + this + " failed on " + XmlMergeSupport.getXPath(templateElement, true), e);
     }
   }
 
