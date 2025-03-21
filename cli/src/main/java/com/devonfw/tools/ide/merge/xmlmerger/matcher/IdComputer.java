@@ -24,6 +24,9 @@ public class IdComputer {
 
   private static final XPathFactory xPathFactory = XPathFactory.newInstance();
 
+  private final boolean throwExceptionOnMultipleMatches = Boolean.parseBoolean(System.getProperty("throwExceptionOnMultipleMatches", "false"));
+
+
   /**
    * The constructor.
    *
@@ -65,7 +68,12 @@ public class IdComputer {
       } else if (length == 0) {
         return null;
       } else {
-        this.context.warning(length + " matches found for XPath " + xpathExpr + " in workspace XML at " + XmlMergeSupport.getXPath(workspaceElement, true));
+        if (throwExceptionOnMultipleMatches) {
+          throw new IllegalStateException(
+              length + " matches found for XPath " + xpathExpr + " in workspace XML at " + XmlMergeSupport.getXPath(workspaceElement, true));
+        } else {
+          this.context.warning(length + " matches found for XPath " + xpathExpr + " in workspace XML at " + XmlMergeSupport.getXPath(workspaceElement, true));
+        }
         return (Element) nodeList.item(0);
       }
     } catch (XPathExpressionException e) {
