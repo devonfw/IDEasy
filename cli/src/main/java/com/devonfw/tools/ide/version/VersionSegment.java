@@ -52,8 +52,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     super();
     this.separator = separator;
     this.letters = VersionLetters.of(letters);
-    if (!pattern.isEmpty() && !PATTERN_MATCH_ANY_STABLE_VERSION.equals(pattern)
-        && !PATTERN_MATCH_ANY_VERSION.equals(pattern)) {
+    if (!pattern.isEmpty() && !PATTERN_MATCH_ANY_STABLE_VERSION.equals(pattern) && !PATTERN_MATCH_ANY_VERSION.equals(pattern)) {
       throw new IllegalArgumentException("Invalid pattern: " + pattern);
     }
     this.pattern = pattern;
@@ -70,8 +69,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       this.number = Integer.parseInt(this.digits);
     }
     if (EMPTY != null) {
-      assert (!this.letters.isEmpty() || !this.digits.isEmpty() || !this.separator.isEmpty()
-          || !this.pattern.isEmpty());
+      assert (!this.letters.isEmpty() || !this.digits.isEmpty() || !this.separator.isEmpty() || !this.pattern.isEmpty());
     }
   }
 
@@ -85,12 +83,12 @@ public class VersionSegment implements VersionObject<VersionSegment> {
 
   /**
    * @return the letters or the empty {@link String} ("") for none. In canonical {@link VersionIdentifier}s letters indicate the development phase (e.g. "pre",
-   *     "rc", "alpha", "beta", "milestone", "test", "dev", "SNAPSHOT", etc.). However, letters are technically any
-   *     {@link Character#isLetter(char) letter characters} and may also be something like a code-name (e.g. "Cupcake", "Donut", "Eclair", "Froyo",
-   *     "Gingerbread", "Honeycomb", "Ice Cream Sandwich", "Jelly Bean" in case of Android internals). Please note that in such case it is impossible to
-   *     properly decide which version is greater than another versions. To avoid mistakes, the comparison supports a strict mode that will let the comparison
-   *     fail in such case. However, by default (e.g. for {@link Comparable#compareTo(Object)}) the default {@link String#compareTo(String) string comparison}
-   *     (lexicographical) is used to ensure a natural order.
+   * "rc", "alpha", "beta", "milestone", "test", "dev", "SNAPSHOT", etc.). However, letters are technically any
+   * {@link Character#isLetter(char) letter characters} and may also be something like a code-name (e.g. "Cupcake", "Donut", "Eclair", "Froyo", "Gingerbread",
+   * "Honeycomb", "Ice Cream Sandwich", "Jelly Bean" in case of Android internals). Please note that in such case it is impossible to properly decide which
+   * version is greater than another versions. To avoid mistakes, the comparison supports a strict mode that will let the comparison fail in such case. However,
+   * by default (e.g. for {@link Comparable#compareTo(Object)}) the default {@link String#compareTo(String) string comparison} (lexicographical) is used to
+   * ensure a natural order.
    * @see #getPhase()
    */
   public String getLettersString() {
@@ -108,7 +106,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
 
   /**
    * @return the {@link VersionPhase} for the {@link #getLettersString() letters}. Will be {@link VersionPhase#UNDEFINED} if unknown and hence never
-   *     {@code null}.
+   * {@code null}.
    * @see #getLettersString()
    */
   public VersionPhase getPhase() {
@@ -118,8 +116,8 @@ public class VersionSegment implements VersionObject<VersionSegment> {
 
   /**
    * @return the digits or the empty {@link String} ("") for none. This is the actual {@link #getNumber() number} part of this {@link VersionSegment}. So the
-   *     {@link VersionIdentifier} "1.0.001" will have three segments: The first one with "1" as digits, the second with "0" as digits, and a third with "001"
-   *     as digits. You can get the same value via {@link #getNumber()} but this {@link String} representation will preserve leading zeros.
+   * {@link VersionIdentifier} "1.0.001" will have three segments: The first one with "1" as digits, the second with "0" as digits, and a third with "001" as
+   * digits. You can get the same value via {@link #getNumber()} but this {@link String} representation will preserve leading zeros.
    */
   public String getDigits() {
 
@@ -136,7 +134,7 @@ public class VersionSegment implements VersionObject<VersionSegment> {
 
   /**
    * @return the potential pattern that is {@link #PATTERN_MATCH_ANY_STABLE_VERSION}, {@link #PATTERN_MATCH_ANY_VERSION}, or for no pattern the empty
-   *     {@link String}.
+   * {@link String}.
    */
   public String getPattern() {
 
@@ -230,10 +228,16 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       }
     }
 
-    if (this.number < other.number) {
-      return VersionComparisonResult.LESS;
-    } else if (this.number > other.number) {
-      return VersionComparisonResult.GREATER;
+    if (this.number != other.number) {
+      if ((this.number < 0) && isPattern()) {
+        return VersionComparisonResult.LESS_UNSAFE;
+      } else if ((other.number < 0) && other.isPattern()) {
+        return VersionComparisonResult.GREATER_UNSAFE;
+      } else if (this.number < other.number) {
+        return VersionComparisonResult.LESS;
+      } else {
+        return VersionComparisonResult.GREATER;
+      }
     } else if (this.separator.equals(other.separator)) {
       return VersionComparisonResult.EQUAL;
     } else {
@@ -292,9 +296,9 @@ public class VersionSegment implements VersionObject<VersionSegment> {
 
   /**
    * @return the {@link VersionLetters} that represent a {@link VersionLetters#isDevelopmentPhase() development phase} searching from this
-   *     {@link VersionSegment} to all {@link #getNextOrNull() next segments}. Will be {@link VersionPhase#NONE} if no
-   *     {@link VersionPhase#isDevelopmentPhase() development phase} was found and {@link VersionPhase#UNDEFINED} if multiple
-   *     {@link VersionPhase#isDevelopmentPhase() development phase}s have been found.
+   * {@link VersionSegment} to all {@link #getNextOrNull() next segments}. Will be {@link VersionPhase#NONE} if no
+   * {@link VersionPhase#isDevelopmentPhase() development phase} was found and {@link VersionPhase#UNDEFINED} if multiple
+   * {@link VersionPhase#isDevelopmentPhase() development phase}s have been found.
    * @see VersionIdentifier#getDevelopmentPhase()
    */
   protected VersionLetters getDevelopmentPhase() {

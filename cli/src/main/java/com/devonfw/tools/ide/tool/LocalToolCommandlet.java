@@ -1,14 +1,5 @@
 package com.devonfw.tools.ide.tool;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.util.Collection;
-import java.util.Locale;
-import java.util.Set;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -21,6 +12,15 @@ import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.util.Collection;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * {@link ToolCommandlet} that is installed locally into the IDEasy.
@@ -82,8 +82,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
       // check if we already have this version installed (linked) locally in IDE_HOME/software
       VersionIdentifier resolvedVersion = installation.resolvedVersion();
-      if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation())
-          || (configuredVersion.matches(installedVersion) && context.isSkipUpdatesMode())) {
+      if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation()) || (configuredVersion.matches(installedVersion)
+        && context.isSkipUpdatesMode())) {
         return toolAlreadyInstalled(silent, installedVersion, step, processContext);
       }
       if (!isIgnoreSoftwareRepo()) {
@@ -96,7 +96,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         fileAccess.mkdirs(toolPath.getParent());
         fileAccess.symlink(installation.linkDir(), toolPath);
       }
-      this.context.getPath().setPath(this.tool, installation.binDir());
+      Path binDir = installation.binDir();
+      if (binDir != null) {
+        this.context.getPath().setPath(this.tool, binDir);
+      }
       postInstall(true, processContext);
       if (installedVersion == null) {
         step.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
@@ -117,7 +120,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * This method is called after a tool was requested to be installed or updated.
    *
    * @param newlyInstalled {@code true} if the tool was installed or updated (at least link to software folder was created/updated), {@code false} otherwise
-   *     (configured version was already installed and nothing changed).
+   * (configured version was already installed and nothing changed).
    * @param pc the {@link ProcessContext} to use.
    */
   protected void postInstall(boolean newlyInstalled, ProcessContext pc) {
@@ -136,6 +139,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   private boolean toolAlreadyInstalled(boolean silent, VersionIdentifier installedVersion, Step step, ProcessContext pc) {
+
     if (!silent) {
       this.context.info("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
     }
@@ -148,7 +152,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * Determines whether this tool should be installed directly in the software folder or in the software repository.
    *
    * @return {@code true} if the tool should be installed directly in the software folder, ignoring the central software repository; {@code false} if the tool
-   *     should be installed in the central software repository (default behavior).
+   * should be installed in the central software repository (default behavior).
    */
   protected boolean isIgnoreSoftwareRepo() {
 
@@ -161,7 +165,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *
    * @param version the {@link GenericVersionRange} requested to be installed.
    * @param processContext the {@link ProcessContext} used to
-   *     {@link #setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
+   * {@link #setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
    * @return the {@link ToolInstallation} matching the given {@code version}.
    */
   public ToolInstallation installTool(GenericVersionRange version, ProcessContext processContext) {
@@ -175,11 +179,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *
    * @param version the {@link GenericVersionRange} requested to be installed.
    * @param processContext the {@link ProcessContext} used to
-   *     {@link #setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
+   * {@link #setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
    * @param edition the specific {@link #getConfiguredEdition() edition} to install.
    * @return the {@link ToolInstallation} matching the given {@code version}.
    */
-  public ToolInstallation installTool(GenericVersionRange version, ProcessContext processContext, String edition) {
+  protected ToolInstallation installTool(GenericVersionRange version, ProcessContext processContext, String edition) {
 
     // if version is a VersionRange, we are not called from install() but directly from installAsDependency() due to a version conflict of a dependency
     boolean extraInstallation = (version instanceof VersionRange);
@@ -234,6 +238,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @return the {@link Path} to the downloaded release file.
    */
   protected Path downloadTool(String edition, ToolRepository toolRepository, VersionIdentifier resolvedVersion) {
+
     return toolRepository.download(this.tool, edition, resolvedVersion, this);
   }
 
@@ -253,18 +258,19 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     } else {
       if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
-            "Cannot satisfy dependency to " + this.tool + " in version " + version + " since it is conflicting with configured version " + configuredVersion
-                + " and this tool does not support the software repository.");
+          "Cannot satisfy dependency to " + this.tool + " in version " + version + " since it is conflicting with configured version " + configuredVersion
+            + " and this tool does not support the software repository.");
       }
       this.context.info(
-          "Configured version of tool {} is {} but does not match version to install {} - need to use different version from software repository.",
-          this.tool, configuredVersion, version);
+        "Configured version of tool {} is {} but does not match version to install {} - need to use different version from software repository.", this.tool,
+        configuredVersion, version);
     }
     ToolInstallation toolInstallation = installTool(version, processContext);
     return toolInstallation.newInstallation();
   }
 
   private void installToolDependencies(VersionIdentifier version, String edition, ProcessContext processContext) {
+
     Collection<ToolDependency> dependencies = getToolRepository().findDependencies(this.tool, edition, version);
     String toolWithEdition = getToolWithEdition(this.tool, edition);
     int size = dependencies.size();
@@ -325,8 +331,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent directory of the real path corresponding
-   *     to the passed {@link Path path} must be the name of the edition.
+   * @param toolPath the installation {@link Path} where to find currently installed tool. The name of the parent directory of the real path corresponding to
+   * the passed {@link Path path} must be the name of the edition.
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   private String getInstalledEdition(Path toolPath) {
@@ -388,8 +394,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
   }
 
-  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile,
-      boolean newInstallation, EnvironmentContext environmentContext, boolean extraInstallation) {
+  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile, boolean newInstallation,
+    EnvironmentContext environmentContext, boolean extraInstallation) {
 
     Path linkDir = getMacOsHelper().findLinkDir(rootDir, getBinaryName());
     Path binDir = linkDir;
@@ -409,11 +415,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   /**
    * Method to set environment variables for the process context.
    *
-   * @param environmentContext the {@link EnvironmentContext} where to {@link EnvironmentContext#withEnvVar(String, String) set environment variables} for
-   *     this tool.
+   * @param environmentContext the {@link EnvironmentContext} where to {@link EnvironmentContext#withEnvVar(String, String) set environment variables} for this
+   * tool.
    * @param toolInstallation the {@link ToolInstallation}.
    * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
-   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   * {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
    */
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
@@ -423,6 +429,5 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       environmentContext.withPathEntry(toolInstallation.binDir());
     }
   }
-
 
 }
