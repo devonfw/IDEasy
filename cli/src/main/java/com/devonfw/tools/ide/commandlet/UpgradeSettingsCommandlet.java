@@ -3,10 +3,8 @@ package com.devonfw.tools.ide.commandlet;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -191,39 +189,47 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   private void cleanupLegacyProperties() {
     this.context.info("Cleaning up legacy properties...");
 
-    Path homeDirectory = this.config.getgetUserHome();
-    try {
-      Files.walk(rootDirectory)
-          .filter(path -> path.getFileName().toString().equals("IDEasy.properties"))
-          .forEach(filePath -> {
-            try {
-              updateProperties(filePath);
-            } catch (IOException e) {
-              this.context.warning("Error processing IDEasy.properties at " + filePath);
-            }
-          });
-    } catch (IOException e) {
-      this.context.warning("Error walking the file tree to find IDEasy.properties.");
+    Path settingsPath = context.getSettingsPath();
+    Path repositoriesPath = settingsPath.resolve(IdeContext.FOLDER_REPOSITORIES);
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (fileAccess.isExpectedFolder(repositoriesPath)) {
+      fileAccess.listChildrenMapped(repositoriesPath, child -> {
+        try {
+          updateRepositoryPropertiesFile(child);
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+        return null;
+      });
     }
   }
 
   private void updateRepositoryPropertiesFile(Path filePath) throws IOException {
     List<String> lines = Files.readAllLines(filePath);
-    List<String> updatedLines = new ArrayList<>();
+    boolean updated = false;
 
-    for (String line : lines) {
+    for (int i = 0; i < lines.size(); i++) {
+      String line = lines.get(i).trim();
       if (line.startsWith("git.url=") || line.startsWith("git-url")) {
-        String gitUrl = line.substring("git.url=".length());
-        updatedLines.add("git_url=" + gitUrl);
+        String gitUrl = line.substring(line.indexOf("=") + 1).trim();
+        lines.set(i, "git_url=" + gitUrl);
+        updated = true;
         continue;
       }
       if (line.startsWith("eclipse=import")) {
-        updatedLines.add("import=eclipse");
-        continue;
+        lines.set(i, "import=eclipse");
+        updated = true;
       }
-      updatedLines.add(line);
     }
-    Files.write(filePath, updatedLines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
-    this.context.success("Successfully updated repository configuration file {}", filePath);
+    if (updated) {
+      try {
+        Files.write(filePath, lines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+        this.context.success("Successfully updated repository configuration file {}", filePath);
+      } catch (IOException e) {
+        this.context.error("Failed to write updated repository configuration file {}", filePath);
+        throw e;
+      }
+    }
   }
 }
