@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns:merge="https://github.com/devonfw/IDEasy/merge" version="4">
+  <component name="RunManager">
+    <configuration default="true" type="JUnit" factoryName="JUnit" merge:id="configuration[@default='true' and @type='JUnit']">
+      <shortenClasspath name="ARGS_FILE" merge:id="name()"/>
+      <option name="METHOD_NAME" value=""/>
+      <option name="TEST_OBJECT" value="class"/>
+      <method v="2" merge:id="@v">
+        <option name="Make" enabled="true"/>
+      </method>
+    </configuration>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level"
+    UseSingleDictionary="true" transferred="true"/>
+</project>
