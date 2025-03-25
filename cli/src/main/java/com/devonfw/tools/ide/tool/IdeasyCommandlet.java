@@ -365,11 +365,18 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     Path idePath = this.context.getIdePath();
     uninstallIdeasyWindowsEnv(ideRoot);
     uninstallIdeasyIdePath(idePath);
+    deleteDownloadCache();
     this.context.success("IDEasy has been uninstalled from your system.");
     this.context.interaction("ATTENTION:\n"
         + "In order to prevent data-loss, we do not delete your projects and git repositories!\n"
         + "To entirely get rid of IDEasy, also check your IDE_ROOT folder at:\n"
         + "{}", ideRoot);
+  }
+
+  private void deleteDownloadCache() {
+    Path downloadPath = this.context.getDownloadPath();
+    this.context.info("Deleting download cache from {}", downloadPath);
+    this.context.getFileAccess().delete(downloadPath);
   }
 
   private void uninstallIdeasyIdePath(Path idePath) {
