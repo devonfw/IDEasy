@@ -32,6 +32,7 @@ import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksumType;
+import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.GenericVersionRange;
@@ -260,6 +261,11 @@ public final class MavenRepository extends AbstractToolRepository {
 
     // We could read POM here and find dependencies but we do not want to reimplement maven here.
     // For our use-case we only download bundled packages from maven central so we do KISS for now.
+    return Collections.emptyList();
+  }
+
+  @Override
+  public Collection<CVE> findSecurity(String tool, String edition, VersionIdentifier version) {
     return Collections.emptyList();
   }
 

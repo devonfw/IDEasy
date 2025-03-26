@@ -14,6 +14,7 @@ import java.util.Map;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
+import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -146,6 +147,11 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   @Override
   public Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version) {
 
+    return Collections.emptyList();
+  }
+
+  @Override
+  public Collection<CVE> findSecurity(String tool, String edition, VersionIdentifier version) {
     return Collections.emptyList();
   }
 

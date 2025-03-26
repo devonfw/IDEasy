@@ -5,6 +5,7 @@ import java.util.Collection;
 
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.AbstractUrlMetadata;
+import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -61,4 +62,11 @@ public interface ToolRepository extends AbstractUrlMetadata {
    */
   Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version);
 
+  /**
+   * @param tool the name of the tool.
+   * @param edition the edition of the tool.
+   * @param version the {@link #resolveVersion(String, String, GenericVersionRange, ToolCommandlet) resolved} {@link VersionIdentifier}.
+   * @return the {@link Collection} of {@link CVE cve security}.
+   */
+  Collection<CVE> findSecurity(String tool, String edition, VersionIdentifier version);
 }
