@@ -27,6 +27,10 @@
     <wiremock.version>3.11.0</wiremock.version>
     <javafx.version>21</javafx.version>
     <testfx.version>4.0.18</testfx.version>
+    <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
+    <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
+    <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
+    <graalvm.version>24.2.0</graalvm.version>
   </properties>
 
   <dependencyManagement>
@@ -60,6 +64,11 @@
         <groupId>com.fasterxml.jackson.dataformat</groupId>
         <artifactId>jackson-dataformat-xml</artifactId>
         <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.graalvm.sdk</groupId>
+        <artifactId>nativeimage</artifactId>
+        <version>${graalvm.version}</version>
       </dependency>
       <dependency>
         <groupId>org.junit.jupiter</groupId>

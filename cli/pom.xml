@@ -14,9 +14,6 @@
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ideasy</mainClass>
     <imageName>ideasy</imageName>
-    <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
-    <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
-    <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
   </properties>
 
   <dependencies>
@@ -57,6 +54,10 @@
       <artifactId>logback-classic</artifactId>
       <version>1.5.17</version>
       <!--optional>true</optional-->
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.sdk</groupId>
+      <artifactId>nativeimage</artifactId>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
