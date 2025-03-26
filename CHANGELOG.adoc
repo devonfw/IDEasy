@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1159[#1159]: ide upgrade cannot find latest version at least for SNAPSHOTs
 * https://github.com/devonfw/IDEasy/issues/1153[#1153]: Print SystemInfo in ide status
 * https://github.com/devonfw/IDEasy/issues/1006[#1006]: Eclipse automation opens UI that blocks further processing until closed
 * https://github.com/devonfw/IDEasy/issues/1110[#1110]: ide status fails with IllegalStateException when offline

@@ -248,4 +248,28 @@ public class VersionIdentifierTest extends Assertions {
     assertThat(v21_0_3_9).isGreaterThan(v21_35);
   }
 
+  /**
+   * Tests if unstable SNAPSHOT versions can be detected properly. See: <a href="https://github.com/devonfw/IDEasy/issues/1159">1159</a>
+   */
+  @Test
+  public void testSnapshotStarFindsUnstableVersions() {
+    VersionIdentifier snapshot_star = VersionIdentifier.of("*!-SNAPSHOT");
+    assertThat(snapshot_star.isValid()).isFalse();
+    assertThat(snapshot_star.isPattern()).isTrue();
+    assertThat(snapshot_star.matches(VersionIdentifier.of("2025.03.001-SNAPSHOT"))).isTrue();
+    assertThat(snapshot_star.matches(VersionIdentifier.of("2025.02.001-beta-SNAPSHOT"))).isTrue();
+  }
+
+  /**
+   * Tests if unstable versions will not match. See: <a href="https://github.com/devonfw/IDEasy/issues/1159">1159</a>
+   */
+  @Test
+  public void testSnapshotStarNotMatchingUnstableVersions() {
+    VersionIdentifier snapshot_star = VersionIdentifier.of("*-SNAPSHOT");
+    assertThat(snapshot_star.isValid()).isFalse();
+    assertThat(snapshot_star.isPattern()).isTrue();
+    assertThat(snapshot_star.matches(VersionIdentifier.of("2025.03.001-beta-SNAPSHOT"))).isFalse();
+    assertThat(snapshot_star.matches(VersionIdentifier.of("2025.03.001-SNAPSHOT"))).isFalse();
+  }
+
 }

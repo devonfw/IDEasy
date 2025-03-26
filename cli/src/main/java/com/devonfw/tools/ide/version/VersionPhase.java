@@ -12,7 +12,7 @@ public enum VersionPhase implements AbstractVersionPhase {
   REVISION(Boolean.TRUE, "revision", "rev"),
 
   /** A snapshot version from development (e.g. "-SNAPSHOT" suffix in maven). */
-  SNAPSHOT(Boolean.FALSE, "snapshot", "dev"),
+  SNAPSHOT(Boolean.FALSE, "beta-snapshot", "snapshot", "dev"),
 
   /** A nightly build version from continuous-integration (CI) process. */
   NIGHTLY("nightly", "nb", "ci"),
@@ -130,7 +130,7 @@ public enum VersionPhase implements AbstractVersionPhase {
 
   /**
    * @param letters the {@link VersionSegment#getLettersString() letter-sequence} of a {@link VersionSegment} in
-   * {@link String#toLowerCase(java.util.Locale) lower-case}.
+   *     {@link String#toLowerCase(java.util.Locale) lower-case}.
    * @return the corresponding {@link VersionPhase}. Will be {@code #UNDEFINED} if undefined (e.g. "apple" or "banana").
    */
   public static VersionPhase of(String letters) {

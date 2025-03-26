@@ -14,7 +14,7 @@ public enum UpgradeMode {
   UNSTABLE(VersionIdentifier.LATEST_UNSTABLE),
 
   /** Mode to get latest SNAPSHOT release version. */
-  SNAPSHOT(VersionIdentifier.of("*-SNAPSHOT"));
+  SNAPSHOT(VersionIdentifier.of("*!-SNAPSHOT"));
 
   private final VersionIdentifier version;
 
