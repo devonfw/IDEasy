@@ -9,7 +9,6 @@ import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.GenericVersionRange;
-import com.devonfw.tools.ide.version.VersionComparisonResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 import java.nio.file.Files;
@@ -20,8 +19,6 @@ import java.util.Set;
  * {@link ToolCommandlet} for <a href="https://yarnpkg.com">yarn</a>.
  */
 public class Yarn extends LocalToolCommandlet {
-
-  private static final VersionIdentifier YARN_MODERN_MIN_VERSION = VersionIdentifier.of("2.0");
 
   /**
    * The constructor.
@@ -86,51 +83,34 @@ public class Yarn extends LocalToolCommandlet {
     // UrlUpdater required for Yarn...
     // VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
     VersionIdentifier resolvedVersion = configuredVersion;
-    VersionComparisonResult comparisonResult = resolvedVersion.compareVersion(YARN_MODERN_MIN_VERSION);
-    // install yarn classic (1.x) or yarn modern (> 2.0)?
-    boolean yarnClassic = comparisonResult == VersionComparisonResult.LESS;
-    if (yarnClassic) {
-      String yarnPackage = "yarn";
-      if (resolvedVersion.isPattern()) {
-        this.context.warning("Yarn currently does not support version pattern: {}", resolvedVersion);
-      } else {
-        yarnPackage += "@" + resolvedVersion.toString();
+    if (!hasNodeBinary("corepack")) {
+      if (hasNodeBinary("yarn")) {
+        // uninstall yarn classic to prevent error when installing core-pack
+        pc.run("npm", "uninstall", "-g", "yarn");
       }
-      npmInstall(yarnPackage, pc);
-    } else {
-      if (!hasNodeBinary("corepack")) {
-        if (hasNodeBinary("yarn")) {
-          // uninstall yarn classic to prevent error when installing core-pack
-          pc.run("npm", "uninstall", "-g", "yarn");
-        }
-        npmInstall("corepack", pc);
-      }
-      pc.run("yarn", "init", "-2");
-      if (resolvedVersion.isPattern()) {
-        this.context.warning("Yarn currently does not support version pattern: {}", resolvedVersion);
-      } else {
-        pc.run("yarn", "set", "version", resolvedVersion.toString());
-        pc.run("yarn", "install");
-      }
+      runNpmInstall("corepack");
     }
+    String yarnPackage = "yarn";
+    if (resolvedVersion.isPattern()) {
+      this.context.warning("Yarn currently does not support version pattern: {}", resolvedVersion);
+    } else {
+      yarnPackage += "@" + resolvedVersion.toString();
+    }
+    pc.run("corepack", "prepare", yarnPackage, "--activate");
+    pc.run("corepack", "install", "-g", yarnPackage);
     Path rootDir = null;
     return new ToolInstallation(rootDir, rootDir, null, configuredVersion, true);
   }
 
-  private void npmInstall(String npmPackage, ProcessContext pc) {
+  private void runNpmInstall(String npmPackage) {
 
-    Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
-    npm.arguments.clearValue();
-    npm.arguments.addValue("install");
-    npm.arguments.addValue("-g");
-    npm.arguments.addValue(npmPackage);
-    npm.run();
+    runNpm("install", "-g", npmPackage);
   }
 
-  @Override
-  public boolean install(boolean silent, ProcessContext pc) {
+  private void runNpm(String... args) {
 
-    return super.install(silent, pc);
+    Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
+    npm.runTool(args);
   }
 
   @Override
