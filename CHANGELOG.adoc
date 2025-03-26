@@ -7,7 +7,12 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/692[#692]: "Latest" version of Docker causes installation problems
-
+* https://github.com/devonfw/IDEasy/issues/1153[#1153]: Print SystemInfo in ide status
+* https://github.com/devonfw/IDEasy/issues/1006[#1006]: Eclipse automation opens UI that blocks further processing until closed
+* https://github.com/devonfw/IDEasy/issues/1110[#1110]: ide status fails with IllegalStateException when offline
+* https://github.com/devonfw/IDEasy/issues/1039[#1039]: Update Jasypt commandlet implementation to run Java version from dependencies.json
+* https://github.com/devonfw/IDEasy/issues/1138[#1138]: Duplicated variables in configuration logs a clear warning and do not prevent merge anymore
+* https://github.com/devonfw/IDEasy/issues/1086[#1086]: ide uninstall should also delete ~/Downloads/ide
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/24?closed=1[milestone 2025.03.002].
 

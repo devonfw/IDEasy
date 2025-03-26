@@ -258,7 +258,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-antrun-plugin</artifactId>
-            <version>1.8</version>
+            <version>3.1.0</version>
             <executions>
               <execution>
                 <phase>prepare-package</phase>
@@ -266,10 +266,10 @@
                   <goal>run</goal>
                 </goals>
                 <configuration>
-                  <tasks>
+                  <target>
                     <move file="${project.basedir}/target/msi/ideasy.msi"
                       tofile="${project.basedir}/target/${project.artifactId}-${revision}-windows-x64.msi"/>
-                  </tasks>
+                  </target>
                 </configuration>
               </execution>
             </executions>
