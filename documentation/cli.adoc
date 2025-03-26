@@ -7,7 +7,7 @@ toc::[]
 The link:setup.adoc[setup] will automatically register this command so it is available in any shell on your system.
 This page describes the Command Line Interface (CLI) of this command.
 
-== Ide
+== ide
 
 Without any argument the `ide` command will determine your `IDE_HOME` and setup your link:variables.adoc[environment variables] automatically.
 In case you are not inside of a `IDEasy` folder the command will echo a message and do nothing.
@@ -44,3 +44,19 @@ Further, it will ensure that the actual command is called with the proper config
 We see the main benefit in this for writing portable scripts that you may commit to your git repository and that will then run everywhere and will lazily install the required tools on the fly.
 In your daily usage there is no need to always type `ide` as prefix to every command.
 Simply assure that you have called `ide` to setup your environment before calling the actual tool.
+
+NOTE: For this reason global options have to be provided after `ide` but before the commandlet and further arguments. `ide --help mvn` will print the help of our `mvn` commandlet while `ide mvn --help` will call `mvn --help` what prints the help page of maven.
+
+== icd
+
+IDEasy also ships with the `icd` command that can be used as fancy improved version of the regular `cd` command:
+
+```bash
+[/tmp]$ icd -p myproject -w myworkspace
+IDE environment variables have been set for /~/projects/myproject in workspace myworkspace
+[~/projects/myproject/workspaces/myworkspace]$ cd myrepo/mymodule/src/main/java/com/foo/bar/some/path
+[.../some/path]$ echo "do something here but now I want to go back to my project root dir"
+[.../some/path]$ icd
+IDE environment variables have been set for /~/projects/myproject in workspace main
+[~/projects/myproject]$ echo "Wow! IDEasy is awesome!"
+```

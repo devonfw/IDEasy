@@ -28,44 +28,66 @@ function icd() {
     cd $1 || return 1
     ide
     return
-  elif [ $# -gt 2 ]; then
-    echo -e "\033[91mInvalid usage icd $*\033[39m" >&2
-    return 1  
-  fi
-  if [ "$1" = "-p" ]; then
-    if [ -d "${IDE_ROOT}/$2" ]; then
-      cd "${IDE_ROOT}/$2"
-      ide
-      return
-    else
-      echo -e "\033[93mNo such IDE project ${IDE_ROOT}/$2\033[39m" >&2
-      return 1
-    fi
-  fi
-  if [ ! -d "${IDE_HOME}" ]; then
-    ide
-  fi
-  if [ $# = 0 ]; then
-    if [ -d "${IDE_HOME}" ]; then
+  elif [ $# = 0 ]; then
+    if [ "${IDE_HOME}" != "" ]; then
       cd "${IDE_HOME}"
-      return
-    fi
-    echo -e "\033[93mYou are not inside an IDE project: $PWD\033[39m" >&2
-    return 1
-  elif [ "$1" = "-w" ]; then
-    local wksp=$2
-    if [ "${wksp}" = "" ]; then
-      wksp=main
-    fi
-    if [ -d "${IDE_HOME}/workspaces/${wksp}" ]; then
-      cd "${IDE_HOME}/workspaces/${wksp}"
       ide
       return
     else
-      echo -e "\033[93mNo such IDE workspace ${IDE_HOME}/workspaces/${wksp}\033[39m" >&2
-      return 1
+      cd "${IDE_ROOT}"
+      return
     fi
   fi
+  local icd_project=
+  local icd_workspace=
+  while [ $# != 0 ]; do
+    case "$1" in
+      -p|--project)
+        shift
+        icd_project=$1
+        shift
+        ;;
+      -w|--workspace)
+        shift
+        if [ $# != 0 ] && [ "${1::1}" != "-" ]; then
+          icd_workspace=$1
+          shift
+        else
+          icd_workspace=main
+        fi
+        ;;
+      -h|--help)
+        echo "USAGE: icd [-p «project»] [-w [«workspace»]]"
+        echo
+        echo "Change directory and initialize IDEasy environment."
+        echo "The icd command can be used as an alternative to the regular cd command."
+        echo "As additional effect, it will automatically update your environment variables."
+        echo "Futher, it allows shortcuts to quickly navigate to common directories of IDEasy."
+        echo "Without any arguments icd will navigate to your top-level project directory (IDE_HOME)."
+        echo
+        echo "OPTIONS:"
+        echo "  -p | --project   «project»   The IDEasy project to cd to."
+        echo "  -w | --workspace «workspace» The workspace inside your IDEasy project to cd to. Defaults to main."
+        echo "  -h | --help                  Print this help text."
+        return
+        ;;
+      *)
+        echo "Unknown option $1"
+        return 1
+    esac
+  done
+  local icd_path=${IDE_ROOT}
+  if [ "${icd_project}" != "" ]; then
+    icd_path=${icd_path}/${icd_project}
+  elif [ "${IDE_HOME}" != "" ]; then
+    icd_path=${IDE_HOME}
+  fi
+  if [ "${icd_workspace}" != "" ]; then
+    icd_path=${icd_path}/workspaces/${icd_workspace}
+  fi
+  cd "${icd_path}" || return 1
+  ide
+  return
 }
 
 _ide_completion()
