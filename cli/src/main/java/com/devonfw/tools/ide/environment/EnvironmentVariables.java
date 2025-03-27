@@ -74,7 +74,7 @@ public interface EnvironmentVariables {
    */
   default String getToolEdition(String tool) {
 
-    String variable = tool.toUpperCase(Locale.ROOT) + "_EDITION";
+    String variable = getToolEditionVariable(tool);
     String value = get(variable);
     if (value == null) {
       value = tool;
@@ -262,7 +262,7 @@ public interface EnvironmentVariables {
    */
   static String getToolVersionVariable(String tool) {
 
-    return tool.toUpperCase(Locale.ROOT) + "_VERSION";
+    return getToolVariablePrefix(tool) + "_VERSION";
   }
 
   /**
@@ -271,6 +271,11 @@ public interface EnvironmentVariables {
    */
   static String getToolEditionVariable(String tool) {
 
-    return tool.toUpperCase(Locale.ROOT) + "_EDITION";
+    return getToolVariablePrefix(tool) + "_EDITION";
+  }
+
+  private static String getToolVariablePrefix(String tool) {
+
+    return tool.toUpperCase(Locale.ROOT).replace('-', '_');
   }
 }

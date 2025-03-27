@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.merge.xmlmerger;
+package com.devonfw.tools.ide.merge.xml;
 
 /**
  * {@link RuntimeException} for errors related to {@link XmlMerger}.

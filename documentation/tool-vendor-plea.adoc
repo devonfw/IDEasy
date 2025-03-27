@@ -23,13 +23,14 @@ A minimum requirement for major platforms should be:
 * MacOS on ARM architecture
 * Linux on x86 architecture
 
-Additional platforms like MacOS on x86 and Windows on ARM would also be lovely to have if you want your tool to be used worldwide.
+However, ARM CPUs are on the rise and therefore also start to conquer Windows and Linux systems.
+So if you want your tool to be used worldwide you should support both x86 and ARM architecture for all three major operating systems (on MacOS in order to not exclude users with older hardware).
 Do not leave your users left in the rain saying "build the release from the source-code" without shipping ready to use binaries!
 Nowadays platforms like github and others make it easy to automate cross platform builds and publishing releases with the click of a button.
-Tools that tell MacOS users to build the binary manually from the source-code (with complex and maybe vague instructions) should not be considered premium.
+Tools that tell MacOS or Linux users to build the binary manually from the source-code (with complex and maybe vague instructions) should not be considered premium.
 
-Just to give an example https://www.python.org/[Python] is a tool that did not offer binary releases for Mac or Linux quite some time ago so users had to build it from the sources.
-We got in touch with the python community and they now provide portable releases for all platforms. Thank you so much!
+Just to give an example https://www.python.org/[Python] is a tool that did not offer binary releases for Mac or Linux quite some time ago so users had to build it from the sources (for Linux there still is no portable release available).
+We got in touch with the python community and they now provide portable releases for MacOS. Thank you so much!
 
 === Stable and consistent download URLs
 

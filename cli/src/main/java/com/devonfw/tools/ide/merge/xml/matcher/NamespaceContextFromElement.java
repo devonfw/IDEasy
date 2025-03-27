@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.merge.xmlmerger.matcher;
+package com.devonfw.tools.ide.merge.xml.matcher;
 
 import java.util.Collections;
 import java.util.Iterator;
