@@ -279,4 +279,5 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
     assertThat(versionsPath.resolve("status.json")).doesNotExist();
 
   }
+
 }

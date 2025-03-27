@@ -13,7 +13,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
  */
 public class UrlUpdaterMockSingle extends UrlUpdaterMock {
 
-  private static Set<String> versions = new HashSet<>(List.of("1.0"));
+  private static final Set<String> versions = new HashSet<>(List.of("1.0"));
 
   /**
    * The constructor
