@@ -30,15 +30,6 @@ public class UrlUpdaterMockSingle extends UrlUpdaterMock {
     return versions;
   }
 
-  /**
-   * Enables the possibility to change the version which should be tested.
-   *
-   * @param newVersion the new Version to be set.
-   */
-  protected void setVersion(final String newVersion) {
-    versions = Set.of(newVersion);
-  }
-
   @Override
   protected void addVersion(UrlVersion urlVersion) {
     doAddVersion(urlVersion, wmRuntimeInfo.getHttpBaseUrl() + "/os/windows_x64_url.tgz", WINDOWS, X64, "123");
