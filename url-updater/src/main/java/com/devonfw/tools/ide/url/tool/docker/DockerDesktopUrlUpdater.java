@@ -33,6 +33,12 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   private final static String MAC_VERSION = "mac";
   private final static String AMD_ARCH_TYPE = "amd64";
   private final static String ARM_ARCH_TYPE = "arm64";
+  private final static String WIN_BASE_URL = "https://desktop.docker.com/win/main/";
+  private final static String WIN_AMD_URL = WIN_BASE_URL + AMD_ARCH_TYPE + "/";
+  private final static String WIN_ARM_URL = WIN_BASE_URL + ARM_ARCH_TYPE + "/";
+  private final static String MAC_BASE_URL = "https://desktop.docker.com/mac/main/";
+  private final static String MAC_AMD_URL = MAC_BASE_URL + AMD_ARCH_TYPE + "/";
+  private final static String MAC_ARM_URL = MAC_BASE_URL + ARM_ARCH_TYPE + "/";
 
   @Override
   protected String getTool() {
@@ -70,11 +76,13 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   private void addVersionsForWindows(UrlVersion urlVersion, String dockerVersion, String body) {
     boolean versionExists = checkIfVersionExists(dockerVersion, body, WIN_VERSION, AMD_ARCH_TYPE);
     if (versionExists) {
-      doAddVersion(urlVersion, "https://desktop.docker.com/win/main/amd64/" + dockerVersion + "/Docker%20Desktop%20Installer.exe", WINDOWS, X64);
+      String cs = getChecksum(WIN_AMD_URL + dockerVersion + "/checksum.txt");
+      doAddVersion(urlVersion, WIN_AMD_URL + dockerVersion + "/Docker%20Desktop%20Installer.exe", WINDOWS, X64, cs);
     }
     versionExists = checkIfVersionExists(dockerVersion, body, WIN_VERSION, ARM_ARCH_TYPE);
     if (versionExists) {
-      doAddVersion(urlVersion, "https://desktop.docker.com/win/main/arm64/" + dockerVersion + "/Docker%20Desktop%20Installer.exe", WINDOWS, ARM64);
+      String cs = getChecksum(WIN_ARM_URL + dockerVersion + "/checksum.txt");
+      doAddVersion(urlVersion, WIN_ARM_URL + dockerVersion + "/Docker%20Desktop%20Installer.exe", WINDOWS, ARM64, cs);
     }
   }
 
@@ -88,11 +96,13 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   private void addVersionsForMac(UrlVersion urlVersion, String dockerVersion, String body) {
     boolean versionExists = checkIfVersionExists(dockerVersion, body, MAC_VERSION, AMD_ARCH_TYPE);
     if (versionExists) {
-      doAddVersion(urlVersion, "https://desktop.docker.com/mac/main/amd64/" + dockerVersion + "/Docker.dmg", MAC, X64);
+      String cs = getChecksum(MAC_AMD_URL + dockerVersion + "/checksum.txt");
+      doAddVersion(urlVersion, MAC_AMD_URL + dockerVersion + "/Docker.dmg", MAC, X64, cs);
     }
     versionExists = checkIfVersionExists(dockerVersion, body, MAC_VERSION, ARM_ARCH_TYPE);
     if (versionExists) {
-      doAddVersion(urlVersion, "https://desktop.docker.com/mac/main/arm64/" + dockerVersion + "/Docker.dmg", MAC, ARM64);
+      String cs = getChecksum(MAC_ARM_URL + dockerVersion + "/checksum.txt");
+      doAddVersion(urlVersion, MAC_ARM_URL + dockerVersion + "/Docker.dmg", MAC, ARM64, cs);
     }
   }
 
@@ -113,6 +123,18 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
     Pattern patternForDownloadUrls = Pattern.compile(regexForDownloadUrlS, Pattern.DOTALL);
     Matcher matcherForDownloadUrls = patternForDownloadUrls.matcher(body);
     return matcherForDownloadUrls.find();
+  }
+
+  /**
+   * Retrieves the checksum for the passed url
+   *
+   * @param url url for specific version to download
+   * @return the checksum in string format
+   */
+  private String getChecksum(String url) {
+    String checksumAsString = doGetResponseBodyAsString(url);
+    // Example checksum response: e832d4c2c99300436096b2e990220068e69ede845137a9dd63eff0a51e8a14e9 *Docker Desktop Installer.exe
+    return checksumAsString.split(" ")[0];
   }
 
   @Override
