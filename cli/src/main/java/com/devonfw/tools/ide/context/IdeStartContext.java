@@ -42,6 +42,27 @@ public interface IdeStartContext extends IdeLogger {
   boolean isForceRepositories();
 
   /**
+   * Sets a new value which indicates if pull from git should be forced
+   *
+   * @param forcePull {@code true} if it should be forced, {@code false} otherwise.
+   */
+  void setForcePull(boolean forcePull);
+
+  /**
+   * Sets a new value which indicates if plugins should be forced to be installed/updated
+   *
+   * @param forcePlugins {@code true} if it should be forced, {@code false} otherwise.
+   */
+  void setForcePlugins(boolean forcePlugins);
+
+  /**
+   * Sets a new value which indicates if repositories should be forced to be pulled
+   *
+   * @param forceRepositories {@code true} if it should be forced, {@code false} otherwise.
+   */
+  void setForceRepositories(boolean forceRepositories);
+
+  /**
    * @return {@code true} if offline mode is activated (-o/--offline), {@code false} otherwise.
    */
   boolean isOfflineMode();

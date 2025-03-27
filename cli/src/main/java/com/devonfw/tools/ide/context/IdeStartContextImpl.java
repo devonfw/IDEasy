@@ -103,6 +103,7 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
   /**
    * @param forcePull new value of {@link #isForcePull()}.
    */
+  @Override
   public void setForcePull(boolean forcePull) {
 
     this.forcePull = forcePull;
@@ -111,6 +112,7 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
   /**
    * @param forcePlugins new value of {@link #isForcePlugins()}.
    */
+  @Override
   public void setForcePlugins(boolean forcePlugins) {
 
     this.forcePlugins = forcePlugins;
@@ -119,6 +121,7 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
   /**
    * @param forceRepositories new value of {@link #isForceRepositories()}.
    */
+  @Override
   public void setForceRepositories(boolean forceRepositories) {
 
     this.forceRepositories = forceRepositories;

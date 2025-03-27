@@ -813,7 +813,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     O option = null;
     if (isBatchMode()) {
-      if (isForceMode()) {
+      if (isForceMode() || isForcePull()) {
         option = options[0];
         interaction("" + option);
       }

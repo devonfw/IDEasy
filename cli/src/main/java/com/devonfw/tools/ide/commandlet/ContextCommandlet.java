@@ -18,12 +18,6 @@ public class ContextCommandlet extends Commandlet {
 
   private final FlagProperty force;
 
-  private final FlagProperty forcePull;
-
-  private final FlagProperty forcePlugins;
-
-  private final FlagProperty forceRepositories;
-
   private final FlagProperty trace;
 
   private final FlagProperty debug;
@@ -46,9 +40,6 @@ public class ContextCommandlet extends Commandlet {
     super(null);
     this.batch = add(new FlagProperty("--batch", false, "-b"));
     this.force = add(new FlagProperty("--force", false, "-f"));
-    this.forcePull = add(new FlagProperty("--force-pull", false));
-    this.forcePlugins = add(new FlagProperty("--force-plugins", false));
-    this.forceRepositories = add(new FlagProperty("--force-repositories", false));
     this.trace = add(new FlagProperty("--trace", false, "-t"));
     this.debug = add(new FlagProperty("--debug", false, "-d"));
     this.quiet = add(new FlagProperty("--quiet", false, "-q"));
@@ -83,9 +74,6 @@ public class ContextCommandlet extends Commandlet {
     }
     this.startContext.setBatchMode(this.batch.isTrue());
     this.startContext.setForceMode(this.force.isTrue());
-    this.startContext.setForcePull(this.forcePull.isTrue());
-    this.startContext.setForcePlugins(this.forcePlugins.isTrue());
-    this.startContext.setForceRepositories(this.forceRepositories.isTrue());
     this.startContext.setQuietMode(this.quiet.isTrue());
     this.startContext.setOfflineMode(this.offline.isTrue());
     this.startContext.setSkipUpdatesMode(this.skipUpdates.isTrue());
