@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -10,6 +9,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.repository.CustomToolsJson;
@@ -55,16 +55,16 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   }
 
   private void updateLegacyFolder(Path folder, String legacyName, String newName) {
-
+    FileAccess fileAccess = this.context.getFileAccess();
     Path legacyFolder = folder.resolve(legacyName);
     Path newFolder = folder.resolve(newName);
-    if (Files.isDirectory(legacyFolder)) {
+    if (fileAccess.isExpectedFolder(legacyFolder)) {
       try {
         if (!Files.exists(newFolder)) {
-          Files.move(legacyFolder, newFolder, StandardCopyOption.REPLACE_EXISTING);
+          fileAccess.move(legacyFolder, newFolder, StandardCopyOption.REPLACE_EXISTING);
           this.context.success("Successfully renamed folder '{}' to '{}' in {}.", legacyName, newName, folder);
         }
-      } catch (IOException e) {
+      } catch (IllegalStateException e) {
         this.context.error(e, "Error renaming folder {} to {} in {}", legacyName, newName, folder);
       }
     }
@@ -73,15 +73,16 @@ public class UpgradeSettingsCommandlet extends Commandlet {
   private void updateWorkspaceTemplates() {
     this.context.info("Updating workspace templates (replace legacy variables and change variable syntax)...");
 
+    FileAccess fileAccess = this.context.getFileAccess();
     DirectoryMerger merger = this.context.getWorkspaceMerger();
     Path settingsDir = this.context.getSettingsPath();
     Path workspaceDir = settingsDir.resolve(IdeContext.FOLDER_WORKSPACE);
-    if (Files.isDirectory(workspaceDir)) {
+    if (fileAccess.isExpectedFolder(workspaceDir)) {
       merger.upgrade(workspaceDir);
     }
-    this.context.getFileAccess().listChildrenMapped(settingsDir, child -> {
+    fileAccess.listChildrenMapped(settingsDir, child -> {
       Path childWorkspaceDir = child.resolve(IdeContext.FOLDER_WORKSPACE);
-      if (Files.isDirectory(childWorkspaceDir)) {
+      if (fileAccess.isExpectedFolder(childWorkspaceDir)) {
         merger.upgrade(childWorkspaceDir);
       }
       return null;

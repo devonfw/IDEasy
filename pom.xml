@@ -19,28 +19,152 @@
   <properties>
     <github.repository>IDEasy</github.repository>
     <ide_version>${revision}</ide_version>
-    <java.version>17</java.version>
+    <java.version>21</java.version>
+    <jline.version>3.24.1</jline.version>
+    <jansi.version>2.4.1</jansi.version>
+    <jackson.version>2.18.2</jackson.version>
+    <xmlunit.version>2.10.0</xmlunit.version>
+    <wiremock.version>3.11.0</wiremock.version>
+    <javafx.version>21</javafx.version>
+    <testfx.version>4.0.18</testfx.version>
+    <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
+    <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
+    <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
+    <graalvm.version>24.2.0</graalvm.version>
   </properties>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.junit.jupiter</groupId>
-      <artifactId>junit-jupiter</artifactId>
-      <version>5.9.2</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <version>3.24.2</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>org.apache.commons</groupId>
+        <artifactId>commons-compress</artifactId>
+        <version>1.27.1</version>
+      </dependency>
+      <dependency>
+        <groupId>jakarta.json</groupId>
+        <artifactId>jakarta.json-api</artifactId>
+        <version>2.1.3</version>
+      </dependency>
+      <dependency>
+        <groupId>org.eclipse.parsson</groupId>
+        <artifactId>parsson</artifactId>
+        <version>1.1.7</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.datatype</groupId>
+        <artifactId>jackson-datatype-jsr310</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.fasterxml.jackson.dataformat</groupId>
+        <artifactId>jackson-dataformat-xml</artifactId>
+        <version>${jackson.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.graalvm.sdk</groupId>
+        <artifactId>nativeimage</artifactId>
+        <version>${graalvm.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.junit.jupiter</groupId>
+        <artifactId>junit-jupiter</artifactId>
+        <version>5.12.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.assertj</groupId>
+        <artifactId>assertj-core</artifactId>
+        <version>3.24.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>slf4j-api</artifactId>
+        <version>2.0.17</version>
+      </dependency>
+      <dependency>
+        <groupId>ch.qos.logback</groupId>
+        <artifactId>logback-classic</artifactId>
+        <version>1.5.16</version>
+      </dependency>
+      <dependency>
+        <groupId>me.tongfei</groupId>
+        <artifactId>progressbar</artifactId>
+        <version>0.10.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.jline</groupId>
+        <artifactId>jline</artifactId>
+        <version>${jline.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.fusesource.jansi</groupId>
+        <artifactId>jansi</artifactId>
+        <version>${jansi.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mockito</groupId>
+        <artifactId>mockito-core</artifactId>
+        <version>5.15.2</version>
+      </dependency>
+      <dependency>
+        <!-- required for advanced mocking -->
+        <groupId>net.bytebuddy</groupId>
+        <artifactId>byte-buddy</artifactId>
+        <version>1.17.2</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xmlunit</groupId>
+        <artifactId>xmlunit-core</artifactId>
+        <version>${xmlunit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.xmlunit</groupId>
+        <artifactId>xmlunit-assertj3</artifactId>
+        <version>${xmlunit.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.wiremock</groupId>
+        <artifactId>wiremock</artifactId>
+        <version>3.11.0</version>
+      </dependency>
+      <dependency>
+        <groupId>org.testfx</groupId>
+        <artifactId>openjfx-monocle</artifactId>
+        <version>17.0.10</version>
+      </dependency>
+      <dependency>
+        <groupId>org.testfx</groupId>
+        <artifactId>testfx-junit5</artifactId>
+        <version>${testfx.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.testfx</groupId>
+        <artifactId>testfx-core</artifactId>
+        <version>${testfx.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-fxml</artifactId>
+        <version>${javafx.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.openjfx</groupId>
+        <artifactId>javafx-controls</artifactId>
+        <version>${javafx.version}</version>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+
 
   <modules>
     <module>documentation</module>
     <module>cli</module>
     <module>gui</module>
+    <module>url-updater</module>
   </modules>
 
   <build>
@@ -75,7 +199,7 @@
       <plugin>
         <groupId>org.pitest</groupId>
         <artifactId>pitest-maven</artifactId>
-        <version>1.16.1</version>
+        <version>1.18.2</version>
         <dependencies>
           <dependency>
             <groupId>org.pitest</groupId>

@@ -3,6 +3,8 @@ package com.devonfw.tools.ide.os;
 import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 
@@ -34,6 +36,17 @@ public class WindowsHelperImpl implements WindowsHelper {
   }
 
   @Override
+  public void removeUserEnvironmentValue(String key) {
+    ProcessResult result = this.context.newProcess().executable("reg").addArgs("delete", HKCU_ENVIRONMENT, "/v", key, "/f")
+        .errorHandling(ProcessErrorHandling.LOG_WARNING).run(ProcessMode.DEFAULT_CAPTURE);
+    if (result.isSuccessful()) {
+      this.context.debug("Removed environment variable {}", key);
+    } else {
+      result.log(IdeLogLevel.WARNING, this.context);
+    }
+  }
+
+  @Override
   public String getUserEnvironmentValue(String key) {
 
     return getRegistryValue(HKCU_ENVIRONMENT, key);
@@ -44,6 +57,17 @@ public class WindowsHelperImpl implements WindowsHelper {
 
     ProcessResult result = this.context.newProcess().executable("reg").addArgs("query", path, "/v", key).run(ProcessMode.DEFAULT_CAPTURE);
     List<String> out = result.getOut();
+    return retrieveRegString(key, out);
+  }
+
+  /**
+   * Parses the result of a registry query and outputs the given key.
+   *
+   * @param key the key to look for.
+   * @param out List of keys from registry query result.
+   * @return the registry value.
+   */
+  protected String retrieveRegString(String key, List<String> out) {
     for (String line : out) {
       int i = line.indexOf(key);
       if (i >= 0) {

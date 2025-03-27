@@ -57,12 +57,6 @@ public class Eclipse extends IdeToolCommandlet {
   @Override
   protected void configureToolArgs(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
 
-    if ((args.length > 0) && !VMARGS.equals(args[0])) {
-      String vmArgs = this.context.getVariables().get("ECLIPSE_VMARGS");
-      if ((vmArgs != null) && !vmArgs.isEmpty()) {
-        pc.addArg(VMARGS).addArg(vmArgs);
-      }
-    }
     // configure workspace location
     pc.addArg("-data").addArg(this.context.getWorkspacePath());
     // use keyring from user home to keep secrets and share across projects and workspaces
@@ -76,6 +70,12 @@ public class Eclipse extends IdeToolCommandlet {
       pc.addArg("-consoleLog").addArg("-nosplash");
     }
     super.configureToolArgs(pc, processMode, errorHandling, args);
+    if ((args.length > 0) && !VMARGS.equals(args[0])) {
+      String vmArgs = this.context.getVariables().get("ECLIPSE_VMARGS");
+      if ((vmArgs != null) && !vmArgs.isEmpty()) {
+        pc.addArg(VMARGS).addArg(vmArgs);
+      }
+    }
   }
 
   @Override
@@ -85,21 +85,22 @@ public class Eclipse extends IdeToolCommandlet {
   }
 
   @Override
-  public void installPlugin(ToolPluginDescriptor plugin, Step step) {
+  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
-    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, null, ProcessErrorHandling.LOG_WARNING, "-application", "org.eclipse.equinox.p2.director",
+    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, pc, "-application", "org.eclipse.equinox.p2.director",
         "-repository", plugin.url(), "-installIU", plugin.id());
     if (result.isSuccessful()) {
       for (String line : result.getOut()) {
         if (line.contains("Overall install request is satisfiable")) {
+          this.context.success("Successfully installed plugin: {}", plugin.name());
           step.success();
-          return;
+          return true;
         }
       }
     }
-
     result.log(IdeLogLevel.DEBUG, context, IdeLogLevel.ERROR);
     step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
+    return false;
   }
 
   @Override
