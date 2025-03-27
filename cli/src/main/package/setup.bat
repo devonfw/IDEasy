@@ -8,7 +8,7 @@ Set _RESET=[0m
 pushd %~dp0
 echo Setting up IDEasy from %CD%
 
-REM activate ANSI support for colors in CMD and Powershell
+REM activate ANSI support for colors in native cmd and powershell terminals
 reg add HKCU\Console /v VirtualTerminalLevel /t REG_DWORD /d 1 /f
 
 REM find bash on your Windows system...
