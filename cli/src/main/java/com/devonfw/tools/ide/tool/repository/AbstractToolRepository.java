@@ -135,11 +135,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
     StringBuilder sb = new StringBuilder(32);
     sb.append(tool);
     sb.append("-");
-    if (VersionIdentifier.LATEST.equals(version)) {
-      sb.append("latest");
-    } else {
-      sb.append(version);
-    }
+    sb.append(version);
     if (!edition.equals(tool)) {
       sb.append("-");
       sb.append(edition);
