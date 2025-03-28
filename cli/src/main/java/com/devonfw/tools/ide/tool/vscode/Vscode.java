@@ -73,13 +73,18 @@ public class Vscode extends IdeToolCommandlet {
     try {
       for (ToolPluginDescriptor plugin : plugins) {
         if (plugin.active()) {
-          pluginsToInstall.add(plugin);
+          if (retrievePluginMarkerFilePath(plugin) != null && Files.exists(retrievePluginMarkerFilePath(plugin))) {
+            this.context.debug("Markerfile for IDE: {} and active plugin: {} already exists.", getName(), plugin.name());
+          } else {
+            pluginsToInstall.add(plugin);
+          }
         } else {
           pluginsToRecommend.add(plugin);
         }
       }
       if (pluginsToInstall.isEmpty()) {
-        this.context.info("No plugins to be installed");
+        this.context.debug("No plugins to be installed");
+        step.success();
       } else {
         for (ToolPluginDescriptor plugin : pluginsToInstall) {
           boolean result = installPlugin(plugin, step, pc);

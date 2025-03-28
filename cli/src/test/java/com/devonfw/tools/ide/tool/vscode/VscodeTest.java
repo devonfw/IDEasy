@@ -41,6 +41,28 @@ public class VscodeTest extends AbstractIdeContextTest {
     checkInstallation(context);
   }
 
+  /**
+   * Tests if after the installation of vscode the expected plugin marker file is existing.
+   */
+  @Test
+  public void testCheckPluginInstallation() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_VSCODE);
+
+    // act
+    Vscode commandlet = context.getCommandletManager().getCommandlet(Vscode.class);
+    commandlet.run();
+
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: mockedPlugin");
+
+    // assert
+    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
+
+    commandlet.run();
+    assertThat(context).logAtDebug().hasMessage("Markerfile for IDE: vscode and active plugin: mockedPlugin already exists.");
+  }
+
+
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("vscode/bin/code.cmd")).exists().hasContent("@echo test for windows");
