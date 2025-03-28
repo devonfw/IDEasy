@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependencies;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
+import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
@@ -58,6 +59,20 @@ public class DefaultToolRepository extends AbstractToolRepository {
       this.context.trace("Found dependencies in {}", dependencies);
     }
     return dependencies.findDependencies(version, this.context);
+  }
+
+  @Override
+  public ToolSecurity findSecurity(String tool, String edition) {
+    UrlEdition urlEdition = this.context.getUrls().getEdition(tool, edition);
+    ToolSecurity security = urlEdition.getSecurityFile().getSecurity();
+    if (security == ToolSecurity.getEmpty()) {
+      UrlTool urlTool = urlEdition.getParent();
+      security = urlTool.getSecurityFile().getSecurity();
+    }
+    if (security != ToolSecurity.getEmpty()) {
+      this.context.trace("Found dependencies in {}", security);
+    }
+    return security;
   }
 
   @Override
