@@ -25,7 +25,7 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   }
 
   /**
-   * @return the number of #getUrl
+   * @return the content of the CVE map of the security.json file
    */
   public ToolSecurity getSecurity() {
 

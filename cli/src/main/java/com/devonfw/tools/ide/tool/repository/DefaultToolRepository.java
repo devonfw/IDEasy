@@ -8,7 +8,6 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
-import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependencies;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
@@ -63,7 +62,7 @@ public class DefaultToolRepository extends AbstractToolRepository {
   }
 
   @Override
-  public Collection<CVE> findSecurity(String tool, String edition, VersionIdentifier version) {
+  public ToolSecurity findSecurity(String tool, String edition) {
     UrlEdition urlEdition = this.context.getUrls().getEdition(tool, edition);
     ToolSecurity security = urlEdition.getSecurityFile().getSecurity();
     if (security == ToolSecurity.getEmpty()) {
@@ -73,7 +72,7 @@ public class DefaultToolRepository extends AbstractToolRepository {
     if (security != ToolSecurity.getEmpty()) {
       this.context.trace("Found dependencies in {}", security);
     }
-    return security.findCVEs(version, this.context);
+    return security;
   }
 
   @Override

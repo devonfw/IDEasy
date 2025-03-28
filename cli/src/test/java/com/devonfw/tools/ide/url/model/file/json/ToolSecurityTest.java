@@ -25,7 +25,7 @@ public class ToolSecurityTest extends AbstractUrlModelTest {
 
     // act
     Collection<CVE> security = context.getDefaultToolRepository()
-        .findSecurity("tomcat", "tomcat", VersionIdentifier.of("2.40.1"));
+        .findSecurity("tomcat", "tomcat").findCVEs(VersionIdentifier.of("(2.40.1)"));
     List<VersionRange> versionRanges = new ArrayList<>();
     versionRanges.add(VersionRange.of("(0,2.39.4)"));
     versionRanges.add(VersionRange.of("[2.40.0,2.40.2)"));

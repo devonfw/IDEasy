@@ -4,17 +4,12 @@ import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -26,30 +21,30 @@ public class ToolSecurity {
 
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
-  private static final ToolSecurity EMPTY = new ToolSecurity(Collections.emptyMap(), Path.of("empty"));
+  private static final ToolSecurity EMPTY = new ToolSecurity(Collections.emptyList());
   private List<CVE> issues;
 
 
-  private ToolSecurity(Map<String, List<CVE>> security, Path path) {
+  private ToolSecurity() {
+    super();
+  }
+
+  private ToolSecurity(List<CVE> issues) {
 
     super();
-    this.security = security;
-    this.path = path;
+    this.issues = issues;
   }
 
   /**
    * @param version the {@link VersionIdentifier} of the tool to install.
    * @return The {@link List} of {@link CVE}s for the given tool version.
    */
-  public List<CVE> findCVEs(VersionIdentifier version, IdeLogger logger) {
-    Collection<List<CVE>> values = this.security.values();
+  public List<CVE> findCVEs(VersionIdentifier version) {
     List<CVE> cves = new ArrayList<>();
-    for (List<CVE> entry : values) {
-      for (CVE cve : entry) {
-        for (VersionRange versionRange : cve.versions()) {
-          if (versionRange.contains(version)) {
-            cves.add(cve);
-          }
+    for (CVE cve : issues) {
+      for (VersionRange versionRange : cve.versions()) {
+        if (versionRange.contains(version)) {
+          cves.add(cve);
         }
       }
     }
@@ -79,5 +74,19 @@ public class ToolSecurity {
   public static ToolSecurity getEmpty() {
 
     return EMPTY;
+  }
+
+  /**
+   * @return the list of CVEs
+   */
+  public List<CVE> getIssues() {
+    return issues;
+  }
+
+  /**
+   * @param issues the list of CVEs
+   */
+  public void setIssues(List<CVE> issues) {
+    this.issues = issues;
   }
 }

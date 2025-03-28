@@ -32,8 +32,8 @@ import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksumType;
-import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
+import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -265,8 +265,8 @@ public final class MavenRepository extends AbstractToolRepository {
   }
 
   @Override
-  public Collection<CVE> findSecurity(String tool, String edition, VersionIdentifier version) {
-    return Collections.emptyList();
+  public ToolSecurity findSecurity(String tool, String edition) {
+    return ToolSecurity.getEmpty();
   }
 
   @Override
