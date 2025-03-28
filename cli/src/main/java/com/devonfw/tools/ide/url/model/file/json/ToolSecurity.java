@@ -64,10 +64,7 @@ public class ToolSecurity {
 
     if (Files.exists(file)) {
       try (BufferedReader reader = Files.newBufferedReader(file)) {
-        TypeReference<TreeMap<String, List<CVE>>> typeRef = new TypeReference<>() {
-        };
-        Map<String, List<CVE>> security = MAPPER.readValue(reader, typeRef);
-        return new ToolSecurity(security, file);
+        return MAPPER.readValue(reader, ToolSecurity.class);
       } catch (Exception e) {
         throw new IllegalStateException("Failed to load " + file, e);
       }
