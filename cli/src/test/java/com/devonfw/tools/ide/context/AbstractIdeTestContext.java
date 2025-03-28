@@ -325,4 +325,16 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     }
     return null;
   }
+
+  @Override
+  public void setForcePull(boolean forcePull) {
+  }
+
+  @Override
+  public void setForcePlugins(boolean forcePlugins) {
+  }
+
+  @Override
+  public void setForceRepositories(boolean forceRepositories) {
+  }
 }
