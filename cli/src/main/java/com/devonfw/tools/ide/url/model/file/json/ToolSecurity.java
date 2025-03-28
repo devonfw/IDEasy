@@ -53,14 +53,7 @@ public class ToolSecurity {
         }
       }
     }
-    if (!cves.isEmpty()) {
-      return cves;
-    }
-    int size = security.size();
-    if (size > 0) {
-      logger.warning("No match for version {} while {} version ranges are configured in {} - configuration error?!", version, size, this.path);
-    }
-    return Collections.emptyList();
+    return cves;
   }
 
   /**
