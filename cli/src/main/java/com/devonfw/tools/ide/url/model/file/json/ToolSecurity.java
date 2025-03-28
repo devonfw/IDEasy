@@ -29,7 +29,6 @@ public class ToolSecurity {
   private static final ToolSecurity EMPTY = new ToolSecurity(Collections.emptyMap(), Path.of("empty"));
   private List<CVE> issues;
 
-  private final Path path;
 
   private ToolSecurity(Map<String, List<CVE>> security, Path path) {
 
