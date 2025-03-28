@@ -27,7 +27,7 @@ public class ToolSecurity {
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
   private static final ToolSecurity EMPTY = new ToolSecurity(Collections.emptyMap(), Path.of("empty"));
-  private final Map<String, List<CVE>> security;
+  private List<CVE> issues;
 
   private final Path path;
 
