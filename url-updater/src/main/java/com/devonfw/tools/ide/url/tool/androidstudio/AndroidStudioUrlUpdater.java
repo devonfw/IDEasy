@@ -5,9 +5,6 @@ import java.util.Collection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.devonfw.tools.ide.tool.androidstudio.AndroidJsonDownload;
-import com.devonfw.tools.ide.tool.androidstudio.AndroidJsonItem;
-import com.devonfw.tools.ide.tool.androidstudio.AndroidJsonObject;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 
