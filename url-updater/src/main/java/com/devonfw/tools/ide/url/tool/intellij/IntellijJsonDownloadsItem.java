@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.intellij;
+package com.devonfw.tools.ide.url.tool.intellij;
 
 import java.util.Map;
 
@@ -20,7 +20,7 @@ public class IntellijJsonDownloadsItem {
 
   /**
    * @return the {@link Map} with the properties as key value pairs. Unlike it may be suggested from the name "os_values" the key is not the operating-system
-   * but e.g. {@link #KEY_LINK} or {@link #KEY_CHECKSUM_LINK}.
+   *     but e.g. {@link #KEY_LINK} or {@link #KEY_CHECKSUM_LINK}.
    */
   public Map<String, Object> getOs_values() {
 

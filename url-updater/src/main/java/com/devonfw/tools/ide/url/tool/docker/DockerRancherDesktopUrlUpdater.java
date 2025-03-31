@@ -33,6 +33,12 @@ public class DockerRancherDesktopUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
+  protected String getBaseUrl() {
+
+    return GITHUB_BASE_URL;
+  }
+
+  @Override
   protected String getVersionPrefixToRemove() {
 
     return "v";
@@ -41,7 +47,7 @@ public class DockerRancherDesktopUrlUpdater extends GithubUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = "https://github.com/rancher-sandbox/rancher-desktop/releases/download/v${version}/";
+    String baseUrl = getBaseUrl() + "/rancher-sandbox/rancher-desktop/releases/download/v${version}/";
 
     doAddVersion(urlVersion, baseUrl + "Rancher.Desktop.Setup.${version}.msi", WINDOWS);
     doAddVersion(urlVersion, baseUrl + "Rancher.Desktop-${version}.x86_64.dmg", MAC);

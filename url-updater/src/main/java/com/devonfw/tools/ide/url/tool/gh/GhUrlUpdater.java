@@ -28,7 +28,7 @@ public class GhUrlUpdater extends GithubUrlUpdater {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
 
-    String baseUrl = "https://github.com/cli/cli/releases/download/v${version}/gh_${version}_";
+    String baseUrl = getBaseUrl() + "/cli/cli/releases/download/v${version}/gh_${version}_";
     doAddVersion(urlVersion, baseUrl + "windows_amd64.zip", WINDOWS, X64);
     doAddVersion(urlVersion, baseUrl + "linux_amd64.tar.gz", LINUX, X64);
     doAddVersion(urlVersion, baseUrl + "linux_arm64.tar.gz", LINUX, ARM64);
@@ -50,5 +50,11 @@ public class GhUrlUpdater extends GithubUrlUpdater {
   protected String getGithubRepository() {
 
     return "cli";
+  }
+
+  @Override
+  protected String getBaseUrl() {
+
+    return GITHUB_BASE_URL;
   }
 }

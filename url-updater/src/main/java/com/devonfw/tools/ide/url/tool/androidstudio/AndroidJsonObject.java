@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.androidstudio;
+package com.devonfw.tools.ide.url.tool.androidstudio;
 
 import com.devonfw.tools.ide.json.JsonObject;
 

@@ -364,7 +364,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * Checks if the content type was not of type text (this method is required because {@link PipUrlUpdater} returns text and needs to be overridden)
+   * Checks if the content type was not of type text (this method is required because {@link com.devonfw.tools.ide.url.tool.pip.PipUrlUpdater} returns text and
+   * needs to be overridden)
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *

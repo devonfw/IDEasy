@@ -8,6 +8,8 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
  */
 public class SonarUrlUpdater extends GithubUrlUpdater {
 
+  private static final String BASE_URL = "https://binaries.sonarsource.com";
+
   @Override
   protected String getTool() {
 
@@ -27,9 +29,15 @@ public class SonarUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
+  protected String getBaseUrl() {
+
+    return BASE_URL;
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    doAddVersion(urlVersion, "https://binaries.sonarsource.com/Distribution/sonarqube/sonarqube-${version}.zip");
+    doAddVersion(urlVersion, getBaseUrl() + "/Distribution/sonarqube/sonarqube-${version}.zip");
   }
 
 }

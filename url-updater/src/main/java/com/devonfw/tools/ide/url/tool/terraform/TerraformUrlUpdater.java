@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class TerraformUrlUpdater extends GithubUrlUpdater {
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("1.1.0");
+  private static final String BASE_URL = "https://releases.hashicorp.com";
 
   @Override
   protected String getTool() {
@@ -24,6 +25,12 @@ public class TerraformUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
+  protected String getBaseUrl() {
+
+    return BASE_URL;
+  }
+
+  @Override
   protected String getVersionPrefixToRemove() {
 
     return "v";
@@ -33,7 +40,7 @@ public class TerraformUrlUpdater extends GithubUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
-    String baseUrl = "https://releases.hashicorp.com/terraform/${version}/terraform_${version}_";
+    String baseUrl = getBaseUrl() + "/terraform/${version}/terraform_${version}_";
     doAddVersion(urlVersion, baseUrl + "windows_amd64.zip", WINDOWS);
     doAddVersion(urlVersion, baseUrl + "linux_amd64.zip", LINUX);
     doAddVersion(urlVersion, baseUrl + "darwin_amd64.zip", MAC);

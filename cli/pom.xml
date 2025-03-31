@@ -14,12 +14,6 @@
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ideasy</mainClass>
     <imageName>ideasy</imageName>
-    <native.maven.plugin.version>0.10.4</native.maven.plugin.version>
-    <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
-    <jline.version>3.24.1</jline.version>
-    <jansi.version>2.4.1</jansi.version>
-    <jackson.version>2.18.2</jackson.version>
-    <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
   </properties>
 
   <dependencies>
@@ -27,18 +21,15 @@
     <dependency>
       <groupId>org.apache.commons</groupId>
       <artifactId>commons-compress</artifactId>
-      <version>1.27.1</version>
     </dependency>
     <!-- JSON and XML support -->
     <dependency>
       <groupId>jakarta.json</groupId>
       <artifactId>jakarta.json-api</artifactId>
-      <version>2.1.3</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.parsson</groupId>
       <artifactId>parsson</artifactId>
-      <version>1.1.7</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
@@ -48,79 +39,80 @@
     <dependency>
       <groupId>com.fasterxml.jackson.core</groupId>
       <artifactId>jackson-databind</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.datatype</groupId>
       <artifactId>jackson-datatype-jsr310</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
-      <version>${jackson.version}</version>
     </dependency>
     <!-- Logging (only for URL-Updaters) -->
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-api</artifactId>
-      <version>2.0.17</version>
       <!--optional>true</optional-->
     </dependency>
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.5.16</version>
       <!--optional>true</optional-->
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.sdk</groupId>
+      <artifactId>nativeimage</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.junit.jupiter</groupId>
+      <artifactId>junit-jupiter</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>me.tongfei</groupId>
       <artifactId>progressbar</artifactId>
-      <version>0.10.1</version>
     </dependency>
     <dependency>
       <groupId>org.jline</groupId>
       <artifactId>jline</artifactId>
-      <version>${jline.version}</version>
     </dependency>
     <dependency>
       <groupId>org.fusesource.jansi</groupId>
       <artifactId>jansi</artifactId>
-      <version>${jansi.version}</version>
     </dependency>
     <!-- Test dependencies -->
     <!-- Mockito for mocking -->
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
-      <version>5.15.2</version>
       <scope>test</scope>
     </dependency>
     <!-- Needed for WireMock test support -->
     <dependency>
       <groupId>org.wiremock</groupId>
       <artifactId>wiremock</artifactId>
-      <version>3.11.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <!-- required for advanced mocking -->
       <groupId>net.bytebuddy</groupId>
       <artifactId>byte-buddy</artifactId>
-      <version>1.17.1</version>
       <scope>test</scope>
     </dependency>
     <!-- required for XML assertion (XmlMergerTest) -->
     <dependency>
       <groupId>org.xmlunit</groupId>
       <artifactId>xmlunit-core</artifactId>
-      <version>2.10.0</version>
       <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.xmlunit</groupId>
       <artifactId>xmlunit-assertj3</artifactId>
-      <version>2.10.0</version>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -271,7 +263,7 @@
           <plugin>
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-antrun-plugin</artifactId>
-            <version>1.8</version>
+            <version>3.1.0</version>
             <executions>
               <execution>
                 <phase>prepare-package</phase>
@@ -279,10 +271,10 @@
                   <goal>run</goal>
                 </goals>
                 <configuration>
-                  <tasks>
+                  <target>
                     <move file="${project.basedir}/target/msi/ideasy.msi"
                       tofile="${project.basedir}/target/${project.artifactId}-${revision}-windows-x64.msi"/>
-                  </tasks>
+                  </target>
                 </configuration>
               </execution>
             </executions>
