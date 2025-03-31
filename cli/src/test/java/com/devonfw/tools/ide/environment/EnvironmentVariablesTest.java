@@ -60,4 +60,14 @@ public class EnvironmentVariablesTest extends AbstractIdeContextTest {
     assertThat(TEST_ARGSc).isEqualTo(" user1 settings1 workspace1 conf1 userc settingsc confc");
     assertThat(TEST_ARGSd).isEqualTo(" user1 settings1 workspace1 conf1 userd workspaced");
   }
+
+  /**
+   * Test of {@link EnvironmentVariables#getToolVersionVariable(String)} and {@link EnvironmentVariables#getToolEditionVariable(String)}.
+   */
+  @Test
+  public void testGetToolVariable() {
+
+    assertThat(EnvironmentVariables.getToolVersionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_VERSION");
+    assertThat(EnvironmentVariables.getToolEditionVariable("android-studio")).isEqualTo("ANDROID_STUDIO_EDITION");
+  }
 }
