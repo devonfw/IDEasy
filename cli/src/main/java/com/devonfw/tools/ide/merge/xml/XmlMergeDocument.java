@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.merge.xmlmerger;
+package com.devonfw.tools.ide.merge.xml;
 
 import java.nio.file.Path;
 

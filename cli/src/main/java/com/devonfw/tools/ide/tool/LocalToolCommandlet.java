@@ -6,11 +6,11 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
-import java.util.Locale;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.process.EnvironmentContext;
@@ -417,7 +417,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    */
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
-    String pathVariable = this.tool.toUpperCase(Locale.ROOT) + "_HOME";
+    String pathVariable = EnvironmentVariables.getToolVariablePrefix(this.tool) + "_HOME";
     environmentContext.withEnvVar(pathVariable, toolInstallation.linkDir().toString());
     if (extraInstallation) {
       environmentContext.withPathEntry(toolInstallation.binDir());
