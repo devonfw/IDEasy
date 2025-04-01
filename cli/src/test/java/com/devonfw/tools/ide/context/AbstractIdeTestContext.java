@@ -52,6 +52,12 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   private Path urlsPath;
 
+  boolean forcePull = false;
+
+  boolean forcePlugins = false;
+
+  boolean forceRepositories = false;
+
   /**
    * The constructor.
    *
@@ -327,14 +333,38 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
+  public boolean isForcePull() {
+
+    return this.forcePull;
+  }
+
+  @Override
+  public boolean isForcePlugins() {
+
+    return this.forcePlugins;
+  }
+
+  @Override
+  public boolean isForceRepositories() {
+
+    return this.forceRepositories;
+  }
+
+  @Override
   public void setForcePull(boolean forcePull) {
+
+    this.forcePull = forcePull;
   }
 
   @Override
   public void setForcePlugins(boolean forcePlugins) {
+
+    this.forcePlugins = forcePlugins;
   }
 
   @Override
   public void setForceRepositories(boolean forceRepositories) {
+
+    this.forceRepositories = forceRepositories;
   }
 }

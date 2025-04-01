@@ -92,35 +92,24 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     return this.forceRepositories;
   }
 
-  /**
-   * @param forceMode new value of {@link #isForceMode()}.
-   */
+
   public void setForceMode(boolean forceMode) {
 
     this.forceMode = forceMode;
   }
 
-  /**
-   * @param forcePull new value of {@link #isForcePull()}.
-   */
   @Override
   public void setForcePull(boolean forcePull) {
 
     this.forcePull = forcePull;
   }
 
-  /**
-   * @param forcePlugins new value of {@link #isForcePlugins()}.
-   */
   @Override
   public void setForcePlugins(boolean forcePlugins) {
 
     this.forcePlugins = forcePlugins;
   }
 
-  /**
-   * @param forceRepositories new value of {@link #isForceRepositories()}.
-   */
   @Override
   public void setForceRepositories(boolean forceRepositories) {
 
