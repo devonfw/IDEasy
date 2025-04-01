@@ -196,7 +196,9 @@ public class UpgradeSettingsCommandlet extends Commandlet {
     if (fileAccess.isExpectedFolder(repositoriesPath)) {
       fileAccess.listChildrenMapped(repositoriesPath, child -> {
         try {
-          updateRepositoryPropertiesFile(child);
+          if (Files.isRegularFile(child) && child.getFileName().toString().endsWith(".properties")) {
+            updateRepositoryPropertiesFile(child);
+          }
         } catch (IOException e) {
           throw new RuntimeException(e);
         }
