@@ -1,8 +1,11 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.util.List;
 import java.util.function.Function;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -139,6 +142,7 @@ public class UpgradeSettingsCommandlet extends Commandlet {
       }
       updatePropertiesLegacyEdition(environmentVariables, "INTELLIJ_EDITION_TYPE", "INTELLIJ_EDITION", this::mapLegacyIntellijEdition);
       updatePropertiesLegacyEdition(environmentVariables, "ECLIPSE_EDITION_TYPE", "ECLIPSE_EDITION", this::mapLegacyEclipseEdition);
+      cleanupLegacyProperties();
       environmentVariables.save();
       this.context.getFileAccess().backup(environmentVariables.getLegacyPropertiesFilePath());
     }
@@ -179,6 +183,55 @@ public class UpgradeSettingsCommandlet extends Commandlet {
         environmentVariables.set(newEditionVariable, editionMapper.apply(legacyEdition), false);
       }
       environmentVariables.remove(legacyEditionVariable);
+    }
+  }
+
+  private void cleanupLegacyProperties() {
+    this.context.info("Cleaning up legacy properties...");
+
+    Path settingsPath = context.getSettingsPath();
+    Path repositoriesPath = settingsPath.resolve(IdeContext.FOLDER_REPOSITORIES);
+
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (fileAccess.isExpectedFolder(repositoriesPath)) {
+      fileAccess.listChildrenMapped(repositoriesPath, child -> {
+        try {
+          if (Files.isRegularFile(child) && child.getFileName().toString().endsWith(".properties")) {
+            updateRepositoryPropertiesFile(child);
+          }
+        } catch (IOException e) {
+          throw new RuntimeException(e);
+        }
+        return null;
+      });
+    }
+  }
+
+  private void updateRepositoryPropertiesFile(Path filePath) throws IOException {
+    List<String> lines = Files.readAllLines(filePath);
+    boolean updated = false;
+
+    for (int i = 0; i < lines.size(); i++) {
+      String line = lines.get(i).trim();
+      if (line.startsWith("git.url=") || line.startsWith("git-url")) {
+        String gitUrl = line.substring(line.indexOf("=") + 1).trim();
+        lines.set(i, "git_url=" + gitUrl);
+        updated = true;
+        continue;
+      }
+      if (line.startsWith("eclipse=import")) {
+        lines.set(i, "import=eclipse");
+        updated = true;
+      }
+    }
+    if (updated) {
+      try {
+        Files.write(filePath, lines, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING);
+        this.context.success("Successfully updated repository configuration file {}", filePath);
+      } catch (IOException e) {
+        this.context.error("Failed to write updated repository configuration file {}", filePath);
+        throw e;
+      }
     }
   }
 }
