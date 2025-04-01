@@ -18,7 +18,7 @@ import com.devonfw.tools.ide.context.ProcessContextTestImpl;
  */
 public class PluginBasedCommandletTest extends AbstractIdeContextTest {
 
-  private final String ANY_EDIT_PLUGIN_PATH = "eclipse\\plugins\\anyedit.properties";
+  private final String ANY_EDIT_PLUGIN_PATH = "eclipse/plugins/anyedit.properties";
   private final String TOOL = "eclipse";
 
   private final Set<Tag> tags = null;
