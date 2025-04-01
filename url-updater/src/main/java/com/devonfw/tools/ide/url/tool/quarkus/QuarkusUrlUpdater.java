@@ -46,4 +46,21 @@ public class QuarkusUrlUpdater extends GithubUrlUpdater {
     }
   }
 
+  @Override
+  public String getCpeVendor() {
+
+    return "quarkusio";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "quarkus";
+  }
+
+  @Override
+  public String mapUrlVersionToCpeVersion(String version) {
+
+    return version.replaceAll("[^\\d.]", "");
+  }
 }

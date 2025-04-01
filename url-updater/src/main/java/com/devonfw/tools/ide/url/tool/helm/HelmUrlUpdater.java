@@ -31,9 +31,27 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  public String getCpeVendor() {
 
-    return BASE_URL;
+    return getTool();
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return getTool();
+  }
+
+  @Override
+  public String mapUrlVersionToCpeVersion(String version) {
+
+    return version.substring(getVersionPrefixToRemove().length());
+  }
+
+  @Override
+  public String mapCpeVersionToUrlVersion(String version) {
+
+    return getVersionPrefixToRemove() + version;
   }
 
   @Override
