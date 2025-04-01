@@ -42,14 +42,14 @@ public class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if after the installation of vscode the expected plugin marker file is existing.
+   * Tests if after the installation of vscode the expected plugin marker file is existing and recommendations were added.
    */
   @Test
-  public void testCheckPluginInstallation() {
+  public void testCheckPluginInstallationAndRecommendation() {
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
 
-    // act
+    // act I
     Vscode commandlet = context.getCommandletManager().getCommandlet(Vscode.class);
     commandlet.run();
 
@@ -58,8 +58,18 @@ public class VscodeTest extends AbstractIdeContextTest {
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("mockedPlugin"))).exists();
 
+    // act II
     commandlet.run();
+
+    // assert
     assertThat(context).logAtDebug().hasMessage("Markerfile for IDE: vscode and active plugin: mockedPlugin already exists.");
+
+    //check plugins folder
+    assertThat(context.getIdeHome().resolve("plugins").resolve("vscode")).exists();
+
+    //check Recommendations
+    assertThat(context.getWorkspacePath().resolve(".vscode").resolve("extensions.json")).exists()
+        .hasContent("{\"recommendations\":[\"esbenp.prettier-vscode\",\"mockedPlugin2\"]}");
   }
 
 
@@ -70,12 +80,5 @@ public class VscodeTest extends AbstractIdeContextTest {
 
     assertThat(context.getSoftwarePath().resolve("vscode/.ide.software.version")).exists().hasContent("1.92.1");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed vscode in version 1.92.1");
-
-    //check plugins folder
-    assertThat(context.getIdeHome().resolve("plugins").resolve("vscode")).exists();
-
-    //check Recommendations
-    assertThat(context.getWorkspacePath().resolve(".vscode").resolve("extensions.json")).exists()
-        .hasContent("{\"recommendations\":[\"esbenp.prettier-vscode\",\"mockedPlugin2\"]}");
   }
 }
