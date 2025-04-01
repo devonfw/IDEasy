@@ -274,7 +274,11 @@ public interface EnvironmentVariables {
     return getToolVariablePrefix(tool) + "_EDITION";
   }
 
-  private static String getToolVariablePrefix(String tool) {
+  /**
+   * @param tool the name of the tool.
+   * @return the given {@code tool} name in UPPER_CASE without hyphen characters.
+   */
+  static String getToolVariablePrefix(String tool) {
 
     return tool.toUpperCase(Locale.ROOT).replace('-', '_');
   }
