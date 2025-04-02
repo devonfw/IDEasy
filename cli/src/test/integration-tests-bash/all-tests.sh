@@ -112,11 +112,7 @@ function main () {
   # give it to 'doDownloadSnapshot' as first argument..
   local SNAPSHOT=""
   #local SNAPSHOT="/c/Users/nmollers/Downloads/ide-cli-2024.10.001-beta-20241029.023922-8-windows-x64.tar.gz"
-  if [ "$SNAPSHOT" != "" ]; then
-    doDownloadSnapshot "$SNAPSHOT"
-  else
-    doDownloadSnapshot
-  fi
+  doDownloadSnapshot "${SNAPSHOT}"
   # Extract IDEasy and setup
   doExtract
 

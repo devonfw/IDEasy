@@ -34,7 +34,7 @@ function doIdeCreateCleanup () {
 
 function doDownloadSnapshot () {
   mkdir -p "$WORK_DIR_INTEG_TEST"
-  if [ "$1" ]; then
+  if [ "$1" != "" ]; then
     if [ -f "$1" ] && [[ $1 == *.tar.gz ]]; then
       echo "Local snapshot given. Copy to directory ${WORK_DIR_INTEG_TEST}"
       cp "$1" "$IDEASY_COMPRESSED_FILE"
