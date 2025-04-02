@@ -110,6 +110,7 @@ function main () {
   # NOTE: For debugging purposes, if you want to avoid download time, you can
   # uncomment var SNAPSHOT, set it to a local compressed IDEasy release and
   # give it to 'doDownloadSnapshot' as first argument..
+  local SNAPSHOT=""
   #local SNAPSHOT="/c/Users/nmollers/Downloads/ide-cli-2024.10.001-beta-20241029.023922-8-windows-x64.tar.gz"
   if [ "$SNAPSHOT" != "" ]; then
     doDownloadSnapshot "$SNAPSHOT"
