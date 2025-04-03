@@ -9,7 +9,7 @@ pushd %~dp0
 echo Setting up IDEasy from %CD%
 
 REM activate ANSI support for colors in native terminals (cmd and powershell)
-reg import system/windows/terminal/Enable_ANSI_encoding_native_terminals.reg >nul 2>&1
+reg import system/windows/terminal/Enable_ANSI_encoding_native_terminal.reg >nul 2>&1
 
 
 REM find bash on your Windows system...
