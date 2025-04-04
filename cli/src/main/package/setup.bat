@@ -8,6 +8,9 @@ Set _RESET=[0m
 pushd %~dp0
 echo Setting up IDEasy from %CD%
 
+REM activate ANSI support for colors in native terminals (cmd and powershell)
+reg import system/windows/terminal/Enable_ANSI_encoding_native_terminal.reg >nul 2>&1
+
 REM find bash on your Windows system...
 for %%H in ( HKEY_LOCAL_MACHINE HKEY_CURRENT_USER ) do for /F "usebackq tokens=2*" %%O in (`call "%SystemRoot%"\system32\reg.exe query "%%H\Software\GitForWindows" /v "InstallPath" 2^>nul ^| "%SystemRoot%\system32\findstr.exe" REG_SZ`) do set GIT_HOME=%%P
 
