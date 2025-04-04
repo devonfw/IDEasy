@@ -55,4 +55,14 @@ public class DockerRancherDesktopUrlUpdater extends GithubUrlUpdater {
     doAddVersion(urlVersion, baseUrl + "rancher-desktop-linux-v${version}.zip", LINUX);
 
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "docker";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "docker";
+  }
 }

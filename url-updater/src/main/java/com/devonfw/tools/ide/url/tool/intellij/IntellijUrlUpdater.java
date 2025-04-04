@@ -57,6 +57,16 @@ public class IntellijUrlUpdater extends JsonUrlUpdater<IntellijJsonObject, Intel
   }
 
   @Override
+  public String getCpeVendor() {
+    return "jetbrains";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "intellij";
+  }
+
+  @Override
   protected Class<IntellijJsonObject> getJsonObjectType() {
 
     return IntellijJsonObject.class;

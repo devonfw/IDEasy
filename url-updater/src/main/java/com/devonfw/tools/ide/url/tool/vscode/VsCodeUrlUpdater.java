@@ -47,4 +47,14 @@ public class VsCodeUrlUpdater extends GithubUrlUpdater {
     }
   }
 
+  @Override
+  public String getCpeVendor() {
+    return "microsoft";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "vscode";
+  }
+
 }

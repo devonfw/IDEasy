@@ -49,4 +49,15 @@ public class GcViewerUrlUpdater extends GithubUrlUpdater {
       return null;
     }
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "chewiebug";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "gcviewer";
+  }
+
 }
