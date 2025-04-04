@@ -47,6 +47,9 @@ import com.devonfw.tools.ide.util.HexUtil;
  */
 public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout implements UrlUpdater {
 
+  /** <a href="https://nvd.nist.gov/products/cpe">CPE</a> stands for Common Platform Enumeration. */
+  public static final String CPE = "CPE";
+  
   private static final Duration VERSION_RECHECK_DELAY = Duration.ofDays(3);
 
   private static final Duration DAYS_UNTIL_DELETION_OF_BROKEN_URL = Duration.ofDays(14);
@@ -133,7 +136,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @return the vendor of the tool as specified in the CPE
+   * @return the vendor of the tool as specified in the {@link #CPE}.
    */
   public String getCpeVendor() {
 
@@ -141,7 +144,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @return the product name of the tool as specified in the CPE
+   * @return the product name of the tool as specified in the {@link #CPE}.
    */
   public String getCpeProduct() {
 
@@ -149,7 +152,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @return the edition as specified in the CPE
+   * @return the edition as specified in the {@link #CPE}.
    */
   public String getCpeEdition() {
 
@@ -157,8 +160,8 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * @param version the {@link UrlVersion#getName() version} to get the CPE version for
-   * @return the version as specified in the CPE
+   * @param version the {@link UrlVersion#getName() version} to map to the format or syntax used in the {@link #CPE}.
+   * @return the version as specified in the {@link #CPE}.
    */
   public String mapUrlVersionToCpeVersion(String version) {
 
@@ -166,10 +169,10 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   }
 
   /**
-   * This method is only used as fallback if the passed version is not in the image of {@link #mapUrlVersionToCpeVersion(String)}. This doesn't have to be
-   * inverse of {@link #mapUrlVersionToCpeVersion(String)}. It must only be sufficient to get the correct VersionRange from the matched vulnerable software.
+   * This method is only used as fallback if the passed version is not in the expected format or syntax of {@link #mapUrlVersionToCpeVersion(String)}.
+   * This doesn't have to be inverse of {@link #mapUrlVersionToCpeVersion(String)}. It must only be sufficient to get the correct {@link com.devonfw.tools.ide.version.VersionRange} from the matched vulnerable software.
    *
-   * @return maps the version as specified in the CPE (Common Platform Enumeration) to the version as specified by the directory name in the url repository
+   * @return the mapped version as specified in the {@link #CPE} to the version as specified by the directory name in the url repository.
    */
   public String mapCpeVersionToUrlVersion(String version) {
 
