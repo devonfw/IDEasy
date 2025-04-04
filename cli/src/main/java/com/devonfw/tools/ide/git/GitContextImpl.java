@@ -211,6 +211,9 @@ public class GitContextImpl implements GitContext {
     if ((remoteName == null) || remoteName.isEmpty()) {
       remoteName = DEFAULT_REMOTE;
     }
+    if ((branchName == null) || branchName.isEmpty()) {
+      branchName = GitUrl.BRANCH_MASTER;
+    }
     ProcessResult result = runGitCommand(repository, ProcessMode.DEFAULT, "diff-index", "--quiet", "HEAD");
     if (!result.isSuccessful()) {
       // reset to origin/master

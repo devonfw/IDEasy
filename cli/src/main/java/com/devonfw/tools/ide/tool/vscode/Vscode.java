@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -63,42 +62,24 @@ public class Vscode extends IdeToolCommandlet {
     }
   }
 
+
   @Override
-  protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
+  protected void handleInstallForInactivePlugin(ToolPluginDescriptor plugin) {
 
-    List<ToolPluginDescriptor> pluginsToInstall = new ArrayList<>();
-    List<ToolPluginDescriptor> pluginsToRecommend = new ArrayList<>();
+    super.handleInstallForInactivePlugin(plugin);
 
-    Step step = this.context.newStep(true, "Install plugins for " + this.tool);
+    Step step = this.context.newStep(true, "Add recommendation for " + this.tool + " and plugin: " + plugin.name());
     try {
-      for (ToolPluginDescriptor plugin : plugins) {
-        if (plugin.active()) {
-          pluginsToInstall.add(plugin);
-        } else {
-          pluginsToRecommend.add(plugin);
-        }
-      }
-      if (pluginsToInstall.isEmpty()) {
-        this.context.info("No plugins to be installed");
-      } else {
-        for (ToolPluginDescriptor plugin : pluginsToInstall) {
-          boolean result = installPlugin(plugin, step, pc);
-          if (result) {
-            createPluginMarkerFile(plugin);
-          }
-        }
-      }
-      doAddRecommendations(pluginsToRecommend);
+      doAddRecommendation(plugin);
     } catch (RuntimeException e) {
       step.error(e, true);
       throw e;
     } finally {
       step.close();
     }
-
   }
 
-  private void doAddRecommendations(List<ToolPluginDescriptor> recommendations) {
+  private void doAddRecommendation(ToolPluginDescriptor recommendation) {
     Path extensionsJsonPath = this.context.getWorkspacePath().resolve(".vscode/extensions.json");
 
     ObjectMapper objectMapper = new ObjectMapper();
@@ -117,19 +98,13 @@ public class Vscode extends IdeToolCommandlet {
     List<String> existingRecommendations = (List<String>) recommendationsMap.getOrDefault("recommendations", new ArrayList<>());
 
     try {
-      int addedRecommendations = 0;
       Set<String> existingRecommendationsSet = new HashSet<>(existingRecommendations);
-      for (ToolPluginDescriptor recommendation : recommendations) {
-        String recommendationId = recommendation.id();
-        if (existingRecommendationsSet.add(recommendationId)) {
-          existingRecommendations.add(recommendationId);
-          addedRecommendations++;
-        }
-      }
 
-      if (addedRecommendations > 0) {
-        objectMapper.writeValue(extensionsJsonPath.toFile(), recommendationsMap);
+      String recommendationId = recommendation.id();
+      if (existingRecommendationsSet.add(recommendationId)) {
+        existingRecommendations.add(recommendationId);
       }
+      objectMapper.writeValue(extensionsJsonPath.toFile(), recommendationsMap);
 
     } catch (IOException e) {
       this.context.error(e);
