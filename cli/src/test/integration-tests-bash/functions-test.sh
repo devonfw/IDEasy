@@ -2,7 +2,7 @@
 #set -eu
 set -o pipefail
 
-WORK_DIR_INTEG_TEST="$HOME/tmp/ideasy-integration-test-debug/IDEasy_snapshot"
+WORK_DIR_INTEG_TEST="${HOME}/tmp/ideasy-integration-test-debug/IDEasy_snapshot"
 IDEASY_COMPRESSED_NAME="ideasy_latest.tar.gz"
 IDEASY_COMPRESSED_FILE="${WORK_DIR_INTEG_TEST}/${IDEASY_COMPRESSED_NAME}"
 test_project_name="tmp-integ-test"
@@ -12,7 +12,7 @@ function doIdeCreate () {
   # If first argument is given, then it is the url for the ide create command (default is '-').
   local settings_url=${1:--}
   echo "Running ide --batch create ${test_project_name} ${settings_url}"
-  $IDE --batch create "${test_project_name}" "${settings_url}"
+  $IDE_INSTALLATION --batch create "${test_project_name}" "${settings_url}"
 
   echo "Switching to directory: ${IDE_ROOT}/${test_project_name}"
   cd "${IDE_ROOT}/${test_project_name}" || exit
@@ -49,9 +49,9 @@ function doDownloadSnapshot () {
 
 
 function doExtract() {
-  echo "${IDE_ROOT:?}/_ide"
+  echo "Extracting IDEasy archive: ${IDEASY_COMPRESSED_FILE} to: ${IDEASY_DIR}"
   if [ -f "${IDEASY_COMPRESSED_FILE:?}" ]; then
-    tar xfz "${IDEASY_COMPRESSED_FILE:?}" --directory "${IDE_ROOT:?}/_ide" || exit 1
+    tar xfz "${IDEASY_COMPRESSED_FILE:?}" --directory "${IDEASY_DIR:?}" || exit 1
   else
     echo "Could not find and extract release ${IDEASY_COMPRESSED_FILE:?}"
     exit 1

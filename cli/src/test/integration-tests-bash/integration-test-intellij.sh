@@ -14,7 +14,6 @@
 
 #--- Body ---
 echo "Running install intellij integration test"
-doIdeCreate
-$IDE -d install intellij || return 1
+$IDE_INSTALLATION -d install intellij || return 1
 return 0
 

@@ -6,13 +6,15 @@ source "$(dirname "${0}")"/functions-test.sh
 
 START_TIME=$(date '+%Y-%m-%d_%H-%M-%S')
 
-DEBUG_INTEGRATION_TEST_PREFIX="$HOME/tmp/ideasy-integration-test-debug"
+DEBUG_INTEGRATION_TEST_PREFIX="${HOME}/tmp/ideasy-integration-test-debug"
 DEBUG_INTEGRATION_TEST="${DEBUG_INTEGRATION_TEST_PREFIX}-${START_TIME}"
 IDE_HOME="${DEBUG_INTEGRATION_TEST}/home-dir"
 IDE_ROOT="${IDE_HOME}/projects"
 IDEASY_DIR="${IDE_ROOT}/_ide"
 FUNCTIONS="${IDEASY_DIR}/installation/functions"
+IDEASY_INSTALLATION_DIR="${IDEASY_DIR}/installation"
 IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/ideasy"
+IDE_INSTALLATION="${IDEASY_INSTALLATION_DIR}/bin/ideasy"
 TEST_RESULTS_FILE="${IDE_ROOT}/testResults"
 
 test_files_directory=$(realpath "$0" | xargs dirname)
@@ -30,7 +32,8 @@ function doTestsInner() {
     echo "Running test #${total}: ${testcase} (${testpath})"
     # Every test runs in its own environment.
     # Need to return back from created environment (integration test might have changed pwd).
-    cd "${IDE_ROOT:?}" || exit
+    #echo "Switching directory to: ${IDE_ROOT}"
+    #cd "${IDE_ROOT:?}" || exit
 
     integration_test_result=0
 
@@ -126,7 +129,9 @@ function main () {
   source "${FUNCTIONS:?}"
 
   echo "Running 'ide -v'"
-  $IDE -v
+  $IDE_INSTALLATION -v
+
+  doIdeCreate
 
   doTests
 

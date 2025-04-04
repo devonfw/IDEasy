@@ -1,6 +1,5 @@
 #--- Body ---
 echo "Running install npm integration test"
-doIdeCreate
-$IDE -d install npm || return 1
+$IDE_INSTALLATION -d install npm || return 1
 return 0
 
