@@ -53,4 +53,14 @@ public class GCloudUrlUpdater extends GithubUrlUpdater {
     }
   }
 
+  @Override
+  public String getCpeVendor() {
+    return "google";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "gcloud";
+  }
+
 }

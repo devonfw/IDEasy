@@ -39,13 +39,13 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
   @Override
   public String getCpeVendor() {
 
-    return getTool();
+    return "helm";
   }
 
   @Override
   public String getCpeProduct() {
 
-    return getTool();
+    return "helm";
   }
 
   @Override

@@ -46,5 +46,4 @@ public class MvnUrlUpdater extends WebsiteUrlUpdater {
 
     return "maven";
   }
-
 }
