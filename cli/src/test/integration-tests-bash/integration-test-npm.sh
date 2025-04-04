@@ -1,10 +1,6 @@
 #--- Body ---
-echo "MY PWD: $PWD"
-echo "npm test"
-#cd adgnaklgnadgknlan
-echo Aha
-#doIdeCreate 
-#ide install npm
-#return
+echo "Running install npm integration test"
+doIdeCreate
+$IDE -d install npm || return 1
 return 0
 

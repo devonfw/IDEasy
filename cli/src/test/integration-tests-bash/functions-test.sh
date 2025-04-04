@@ -1,31 +1,21 @@
 #!/bin/bash
-set -eu
+#set -eu
 set -o pipefail
 
-WORK_DIR_INTEG_TEST="~/tmp/ideasy-integration-test-debug/IDEasy_snapshot"
+WORK_DIR_INTEG_TEST="$HOME/tmp/ideasy-integration-test-debug/IDEasy_snapshot"
 IDEASY_COMPRESSED_NAME="ideasy_latest.tar.gz"
 IDEASY_COMPRESSED_FILE="${WORK_DIR_INTEG_TEST}/${IDEASY_COMPRESSED_NAME}"
 test_project_name="tmp-integ-test"
 
 function doIdeCreate () {
   #TODO: determine the name of the currently executed script
-#  local project-name="$(dirname "${BASH_SOURCE:-$0}")" 
-#  local project_name="$(basename "${BASH_SOURCE:-$0}")"
-  #  local test_project_name="tmp-integ-test"
   # If first argument is given, then it is the url for the ide create command (default is '-').
   local settings_url=${1:--}
-  $IDE create "${test_project_name}" "${settings_url}"
-  echo ide create "${test_project_name}" "${settings_url}"
-  #TODO: IDE_ROOT ?
-  # mkdir ${IDE_ROOT}/${test_project_name}
-  cd "${IDE_ROOT}/${test_project_name}" || exit
+  echo "Running ide --batch create ${test_project_name} ${settings_url}"
+  $IDE --batch create "${test_project_name}" "${settings_url}"
 
-  echo "${IDE_ROOT}/${test_project_name}"
-  echo "${test_project_name}"
-  # TODO: Remove logs
-  echo "My IDE_ROOT is: ${IDE_ROOT}"
-  echo "My PWD is: $PWD"
-  echo "settings-url : ${settings_url}"
+  echo "Switching to directory: ${IDE_ROOT}/${test_project_name}"
+  cd "${IDE_ROOT}/${test_project_name}" || exit
 }
 
 function doIdeCreateCleanup () {
@@ -36,14 +26,14 @@ function doDownloadSnapshot () {
   mkdir -p "$WORK_DIR_INTEG_TEST"
   if [ "$1" != "" ]; then
     if [ -f "$1" ] && [[ $1 == *.tar.gz ]]; then
-      echo "Local snapshot given. Copy to directory ${WORK_DIR_INTEG_TEST}"
+      echo "Local snapshot given. Copying to directory: ${WORK_DIR_INTEG_TEST}"
       cp "$1" "$IDEASY_COMPRESSED_FILE"
     else
       echo "Expected a file ending with tar.gz - Given: ${1}"
       exit 1
     fi
   else
-    echo "Will try to download latest IDEasy release..."
+    echo "Trying to download latest IDEasy release..."
     local URL_IDEASY_LATEST="https://github.com/devonfw/IDEasy/releases/latest"
     local PAGE_HTML_LOCAL="${WORK_DIR_INTEG_TEST}/integ_test_gh_latest.html"
 

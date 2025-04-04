@@ -1,5 +1,5 @@
 #!/bin/bash
-set -eu
+#set -eu
 set -o pipefail
 
 source "$(dirname "${0}")"/functions-test.sh
@@ -11,7 +11,8 @@ DEBUG_INTEGRATION_TEST="${DEBUG_INTEGRATION_TEST_PREFIX}-${START_TIME}"
 IDE_HOME="${DEBUG_INTEGRATION_TEST}/home-dir"
 IDE_ROOT="${IDE_HOME}/projects"
 IDEASY_DIR="${IDE_ROOT}/_ide"
-#IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/ide"
+FUNCTIONS="${IDEASY_DIR}/installation/functions"
+IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/ide"
 TEST_RESULTS_FILE="${IDE_ROOT}/testResults"
 
 test_files_directory=$(realpath "$0" | xargs dirname)
@@ -22,8 +23,7 @@ total=0
 
 function doTestsInner() {
   # Note: requires var test_files_directory to be set.
-  echo "Enter doTestsInner..."
-  echo "$PWD"
+  echo "Entering doTestsInner..."
   local test_files_prefix="integration-test"
   for testpath in "${test_files_directory:?}"/"${test_files_prefix}"-*; do
     testcase="${testpath/*\//}"
@@ -83,18 +83,15 @@ function doTests () {
 }
 
 function main () {
-  echo "Will run integration tests from dir: ${test_files_directory}"
+  echo "Running integration tests from directory: ${test_files_directory}"
 
   # rm -rf "${DEBUG_INTEGRATION_TEST_PREFIX}"
   # Only need to mkdir once:
+  echo "Creating IDEasy directory at: ${IDEASY_DIR}"
   mkdir -p "${IDEASY_DIR}"
 
-  # TODO remove logs
-  echo "IDE_ROOT is: $IDE_ROOT"
-  echo "My PWD is: $PWD"
-  echo "My ~/ is:" ~/
-
-  cd "${IDE_ROOT}/_ide" || exit
+  echo "Switching directory to: ${IDEASY_DIR}"
+  cd "${IDEASY_DIR}" || exit
 
   # Will call IDEasy with variable
   #ide="${IDE_ROOT}/_ide/bin/ide"
@@ -117,7 +114,20 @@ function main () {
   doExtract
 
   # source ./bin/ide
+  echo "Switching directory to: ${IDE_ROOT}"
   cd "${IDE_ROOT}" || exit
+
+  # upgrade to latest snapshot
+  echo "Upgrading IDEasy to latest SNAPSHOT"
+  $IDE upgrade --mode=snapshot
+
+  # source functions (resets IDEasy)
+  echo "Sourcing functions to: ${FUNCTIONS}"
+  source "${FUNCTIONS:?}"
+
+  echo "Running 'ide -v'"
+  $IDE -v
+
   doTests
 
   echo "DONE"
@@ -125,7 +135,4 @@ function main () {
 }
 
 main
-
-#doDownloadSnapshot "/c/Users/nmollers/Downloads/ide-cli-2024.10.001-beta-20241029.023922-8-windows-x64.tar.gz"
-#doDownloadSnapshot
 

@@ -13,19 +13,8 @@
 #set -e 
 
 #--- Body ---
-echo "My ide $IDE"
-echo "MY PWD: $PWD"
-#doIdeCreate 
-echo "MY PWD: $PWD"
-
-doWarning "Fn working?"
-#cd asgkagkadgöadjg
-#cd agagagadlöm
-#which ide | echo 
-#$IDE gibberish whatever intellij 
-#cd sometakntnalgnank || return 1
-# cd sometakntnalgnank
-#echo "Try and fail" && exit 1
-echo "All good."
-#exit 0
+echo "Running install intellij integration test"
+doIdeCreate
+$IDE -d install intellij || return 1
+return 0
 
