@@ -12,7 +12,7 @@ IDE_HOME="${DEBUG_INTEGRATION_TEST}/home-dir"
 IDE_ROOT="${IDE_HOME}/projects"
 IDEASY_DIR="${IDE_ROOT}/_ide"
 FUNCTIONS="${IDEASY_DIR}/installation/functions"
-IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/ide"
+IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/ideasy"
 TEST_RESULTS_FILE="${IDE_ROOT}/testResults"
 
 test_files_directory=$(realpath "$0" | xargs dirname)
