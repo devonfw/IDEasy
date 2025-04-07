@@ -5,11 +5,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.plugin.PluginBasedCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -43,15 +39,6 @@ public class GraalVm extends LocalToolCommandlet {
   protected String getBinaryName() {
 
     return "java";
-  }
-
-  @Override
-  public void postInstall() {
-
-    EnvironmentVariables envVars = this.context.getVariables().getByType(EnvironmentVariablesType.CONF);
-    envVars.set("GRAALVM_HOME", getToolPath().toString(), true);
-    envVars.save();
-    super.postInstall();
   }
 
 }

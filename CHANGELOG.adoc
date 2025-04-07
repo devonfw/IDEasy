@@ -2,11 +2,42 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.04.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1007[#1007]: Consider explicit option flags instead of overusing force mode
+* https://github.com/devonfw/IDEasy/issues/951[#951]: Fix text coloring in native cmd and powershell terminals
+* https://github.com/devonfw/IDEasy/issues/1202[#1202]: IDEasy can not reset urls on WSL
+* https://github.com/devonfw/IDEasy/issues/692[#692]: "Latest" version of Docker causes installation problems
+* https://github.com/devonfw/IDEasy/issues/1008[#1008]: Improve upgrade-settings to cleanup legacy configs in repositories
+* https://github.com/devonfw/IDEasy/issues/1191[#1191]: vscode always tries to reinstall all plugins
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/25?closed=1[milestone 2025.04.001].
+
+== 2025.03.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1159[#1159]: ide upgrade cannot find latest version at least for SNAPSHOTs
+* https://github.com/devonfw/IDEasy/issues/1153[#1153]: Print SystemInfo in ide status
+* https://github.com/devonfw/IDEasy/issues/1006[#1006]: Eclipse automation opens UI that blocks further processing until closed
+* https://github.com/devonfw/IDEasy/issues/1110[#1110]: ide status fails with IllegalStateException when offline
+* https://github.com/devonfw/IDEasy/issues/1039[#1039]: Update Jasypt commandlet implementation to run Java version from dependencies.json
+* https://github.com/devonfw/IDEasy/issues/1138[#1138]: Duplicated variables in configuration logs a clear warning and do not prevent merge anymore
+* https://github.com/devonfw/IDEasy/issues/1086[#1086]: ide uninstall should also delete ~/Downloads/ide
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/24?closed=1[milestone 2025.03.002].
+
 == 2025.03.001
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1111[#1111]: MSI Installer hangs because it does not create .license.agreement
+* https://github.com/devonfw/IDEasy/issues/910[#910]: Cannot update Intellij on Linux - FileAlreadyExistsException
+* https://github.com/devonfw/IDEasy/issues/654[#654]: Improve plugin support
 * https://github.com/devonfw/IDEasy/issues/38[#38]: Implement ToolCommandlet for Python
+* https://github.com/devonfw/IDEasy/issues/740[#740]: Create devonfw-ide to IDEasy settings migration guide
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/23?closed=1[milestone 2025.03.001].
 

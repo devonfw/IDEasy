@@ -1,19 +1,18 @@
 package com.devonfw.tools.ide.tool.jasypt;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.nls.NlsBundle;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.property.PasswordProperty;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.java.Java;
 
 /**
  * {@link ToolCommandlet} for <a href="http://www.jasypt.org/">Jasypt</a>, The java library which allows to add basic encryption capabilities with minimum
@@ -51,7 +50,7 @@ public class Jasypt extends LocalToolCommandlet {
   @Override
   protected void initProperties() {
 
-    // Empty on purpose
+    // avoid generic multi-valued arguments
   }
 
   @Override
@@ -61,41 +60,35 @@ public class Jasypt extends LocalToolCommandlet {
   }
 
   @Override
-  public void run() {
+  public ProcessResult runTool(ProcessMode processMode, ProcessErrorHandling errorHandling, ProcessContext pc, String... args) {
 
-    Path toolPath = getToolPath();
-    if (!toolPath.toFile().exists()) {
-      super.install(true);
-    }
-
-    JasyptCommand command = this.command.getValue();
-    switch (command) {
-      case ENCRYPT:
-        runJasypt(CLASS_NAME_ENCRYPTION);
-        break;
-      case DECRYPT:
-        runJasypt(CLASS_NAME_DECRYPTION);
-        break;
-
-      default:
-    }
+    return runJasypt(determineJasyptMainClass(), pc, processMode);
   }
 
-  private void runJasypt(String className) {
+  private String determineJasyptMainClass() {
+    JasyptCommand command = this.command.getValue();
+    return switch (command) {
+      case ENCRYPT -> CLASS_NAME_ENCRYPTION;
+      case DECRYPT -> CLASS_NAME_DECRYPTION;
+    };
+  }
 
-    List<String> arguments = new ArrayList<>(
-        Arrays.asList("-cp", resolveJasyptJarPath().toString(), className, "password=" + this.masterPassword.getValue(),
-            "input=" + this.secret.getValue()));
+  private ProcessResult runJasypt(String className, ProcessContext pc, ProcessMode processMode) {
+
+    pc = pc.executable("java").addArgs("-cp", resolveJasyptJarPath().toString(), className, "password=" + this.masterPassword.getValue(),
+        "input=" + this.secret.getValue());
 
     String jasyptOpts = this.context.getVariables().get("JASYPT_OPTS");
-    if (jasyptOpts != null && !jasyptOpts.trim().isEmpty()) {
-      String[] jasyptOptions = jasyptOpts.split("\\s+");
-
-      arguments.addAll(Arrays.asList(jasyptOptions));
+    if (jasyptOpts != null) {
+      jasyptOpts = jasyptOpts.trim();
+      if (!jasyptOpts.isEmpty()) {
+        for (String opt : jasyptOpts.split("\\s+")) {
+          pc = pc.addArg(opt);
+        }
+      }
     }
 
-    Java java = getCommandlet(Java.class);
-    java.runTool(arguments.toArray(i -> new String[i]));
+    return pc.run(processMode);
   }
 
   private Path resolveJasyptJarPath() {
@@ -105,10 +98,4 @@ public class Jasypt extends LocalToolCommandlet {
     return toolPath.resolve("jasypt-" + installedVersion + ".jar");
   }
 
-  @Override
-  public void printHelp(NlsBundle bundle) {
-
-    this.context.info(
-        "To get detailed help about the usage of the jasypt CLI tools, see http://www.jasypt.org/cli.html#");
-  }
 }

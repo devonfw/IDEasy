@@ -1,9 +1,9 @@
 package com.devonfw.tools.ide.tool.intellij;
 
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-import com.devonfw.tools.ide.commandlet.InstallPluginCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
@@ -119,26 +119,53 @@ public class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if {@link InstallPluginCommandlet} can install intellij plugins with custom url.
-   *
-   * @param os String of the OS to use.
+   * Tests if after the installation of intellij the expected plugin marker file is existing.
    */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijInstallPluginWithCustomRepoUrl(String os) {
-
+  @Test
+  public void testCheckPluginInstallation() {
     // arrange
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    this.context.setSystemInfo(systemInfo);
-    InstallPluginCommandlet commandlet = context.getCommandletManager().getCommandlet(InstallPluginCommandlet.class);
-    commandlet.tool.setValueAsString("intellij", context);
-    commandlet.plugin.setValueAsString("ActivePlugin", context);
+    IdeTestContext context = newContext("intellij");
+
     // act
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
+    commandlet.run();
+
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: ActivePlugin");
+
+    // assert
+    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
+
+    commandlet.run();
+    assertThat(context).logAtDebug().hasMessage("Markerfile for IDE: intellij and active plugin: ActivePlugin already exists.");
+  }
+
+  /**
+   * Tests by using 2 installations of intellij with different editions, if the plugins get re-installed and if all marker files get re-initialized properly.
+   */
+  @Test
+  public void testCheckEditionConflictInstallation() {
+    // arrange
+    IdeTestContext context = newContext("intellij");
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    context.setSystemInfo(systemInfo);
+
+    // act
+    Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
     commandlet.run();
 
     // assert
-    assertThat(context).logAtSuccess().hasEntries("Successfully ended step 'Install plugin: ActivePlugin'.");
+    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
+
+    // act
+    commandlet.setEdition("ultimate");
+    commandlet.run();
+
+    // assert
+    assertThat(context).logAtDebug()
+        .hasEntries("Plugin marker file " + context.getIdeHome().resolve(".ide").resolve("plugin.intellij.intellij.ActivePlugin") + " got deleted.");
+    assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
   }
+
 
   private void checkInstallation(IdeTestContext context) {
 
