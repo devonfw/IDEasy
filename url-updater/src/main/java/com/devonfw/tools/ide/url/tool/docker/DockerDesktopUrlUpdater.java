@@ -154,4 +154,14 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
 
     return Pattern.compile("(4\\.\\d{1,4}+\\.\\d+)");
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "docker";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "docker";
+  }
 }
