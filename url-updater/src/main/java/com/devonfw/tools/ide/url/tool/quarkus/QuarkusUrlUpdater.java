@@ -49,7 +49,7 @@ public class QuarkusUrlUpdater extends GithubUrlUpdater {
   @Override
   public String getCpeVendor() {
 
-    return "quarkusio";
+    return "quarkus";
   }
 
   @Override
