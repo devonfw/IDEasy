@@ -34,22 +34,27 @@ function doDownloadSnapshot () {
     fi
   else
     echo "Trying to download latest IDEasy release..."
-    local URL_IDEASY_LATEST="https://github.com/devonfw/IDEasy/releases/latest"
-    local PAGE_HTML_LOCAL="${WORK_DIR_INTEG_TEST}/integ_test_gh_latest.html"
+    local urlIdeasyLatest="https://github.com/devonfw/IDEasy/releases/latest"
+    local pageHtmlLocal="${WORK_DIR_INTEG_TEST}/integ_test_gh_latest.html"
 
-    curl -L "$URL_IDEASY_LATEST" > "$PAGE_HTML_LOCAL"
+    curl -L "$urlIdeasyLatest" > "$pageHtmlLocal"
     # TODO: A bit of a workaround. But works for the time being...
     # Note: Explanation for cryptic argument "\"" of 'cut': delimiting char after url link from href is char '"'
-    local URL
-    local OSTYPE
-    if [ "${BINARY_FILE_NAME}" == "ideasy.exe" ]; then
-      OSTYPE="windows"
-    else
-      OSTYPE="linux"
+    local url
+    # Change OS type based on github workflow matrix.os name
+    local osType
+    if [ "${MATRIX_OS}" == "windows-latest" ]; then
+      osType="windows-x64"
+    elif [ "${MATRIX_OS}" == "ubuntu-latest" ]; then
+      osType="linux-x64"
+    elif [ "${MATRIX_OS}" == "macos-latest" ]; then
+      osType="mac-arm"
+    elif [ "${MATRIX_OS}" == "macos-13" ]; then
+      osType="mac-x64"
     fi
-    URL=$(grep "href=\"https://.*${OSTYPE}-x64.tar.gz" "$PAGE_HTML_LOCAL" | grep -o "https://.*${OSTYPE}-x64.tar.gz" | cut -f1 -d"\"")
-    curl -o "${IDEASY_COMPRESSED_FILE:?}" "$URL"
-    rm "${PAGE_HTML_LOCAL:?}"
+    url=$(grep "href=\"https://.*${osType}.tar.gz" "$pageHtmlLocal" | grep -o "https://.*${osType}.tar.gz" | cut -f1 -d"\"")
+    curl -o "${IDEASY_COMPRESSED_FILE:?}" "$url"
+    rm "${pageHtmlLocal:?}"
   fi
 }
 

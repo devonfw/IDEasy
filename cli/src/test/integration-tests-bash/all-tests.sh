@@ -4,8 +4,10 @@ set -o pipefail
 
 source "$(dirname "${0}")"/functions-test.sh
 
+MATRIX_OS="$1"
+# Switch IDEasy binary file name based on github workflow matrix.os name (first argument of all-tests.sh)
 BINARY_FILE_NAME="ideasy"
-if [ $1 == "windows-latest" ]; then
+if [ "${MATRIX_OS}" == "windows-latest" ]; then
   BINARY_FILE_NAME="ideasy.exe"
 fi
 
@@ -13,13 +15,13 @@ START_TIME=$(date '+%Y-%m-%d_%H-%M-%S')
 
 DEBUG_INTEGRATION_TEST_PREFIX="${HOME}/tmp/ideasy-integration-test-debug"
 DEBUG_INTEGRATION_TEST="${DEBUG_INTEGRATION_TEST_PREFIX}-${START_TIME}"
-export IDE_HOME="${DEBUG_INTEGRATION_TEST}/home-dir"
+IDE_HOME="${DEBUG_INTEGRATION_TEST}/home-dir"
 export IDE_ROOT="${IDE_HOME}/projects"
 IDEASY_DIR="${IDE_ROOT}/_ide"
 FUNCTIONS="${IDEASY_DIR}/installation/functions"
 IDEASY_INSTALLATION_DIR="${IDEASY_DIR}/installation"
-export IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/${BINARY_FILE_NAME}"
-export IDE_INSTALLATION="${IDEASY_INSTALLATION_DIR}/bin/${BINARY_FILE_NAME}"
+IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/${BINARY_FILE_NAME}"
+IDE_INSTALLATION="${IDEASY_INSTALLATION_DIR}/bin/${BINARY_FILE_NAME}"
 TEST_RESULTS_FILE="${IDE_ROOT}/testResults"
 
 test_files_directory=$(realpath "$0" | xargs dirname)
@@ -113,11 +115,11 @@ function main () {
 
   # Determine IDEasy release to use for testing (default: downloads latest release)
   # NOTE: For debugging purposes, if you want to avoid download time, you can
-  # uncomment var SNAPSHOT, set it to a local compressed IDEasy release and
+  # uncomment var snapshot, set it to a local compressed IDEasy release and
   # give it to 'doDownloadSnapshot' as first argument..
-  local SNAPSHOT=""
-  #local SNAPSHOT="/c/Users/nmollers/Downloads/ide-cli-2024.10.001-beta-20241029.023922-8-windows-x64.tar.gz"
-  doDownloadSnapshot "${SNAPSHOT}"
+  local snapshot=""
+  #snapshot="$HOME/tmp/downloads/ide-cli-2025.04.001-20250404.093145-4-linux-x64.tar.gz"
+  doDownloadSnapshot "${snapshot}"
   # Extract IDEasy and setup
   doExtract
 
