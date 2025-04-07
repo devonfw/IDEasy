@@ -138,18 +138,12 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
   /**
    * @return the vendor of the tool as specified in the {@link #CPE}.
    */
-  public String getCpeVendor() {
-
-    return getTool();
-  }
+  public abstract String getCpeVendor();
 
   /**
    * @return the product name of the tool as specified in the {@link #CPE}.
    */
-  public String getCpeProduct() {
-
-    return getTool();
-  }
+  public abstract String getCpeProduct();
 
   /**
    * @return the edition as specified in the {@link #CPE}.
