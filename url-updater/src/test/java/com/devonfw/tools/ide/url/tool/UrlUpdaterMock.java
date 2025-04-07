@@ -47,4 +47,15 @@ public class UrlUpdaterMock extends AbstractUrlUpdater {
     doAddVersion(urlVersion, this.wmRuntimeInfo.getHttpBaseUrl() + "/os/mac_Arm64_url.tgz", MAC, ARM64, "123");
   }
 
+  @Override
+  public String getCpeVendor() {
+    return "";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "";
+  }
+  
+
 }
