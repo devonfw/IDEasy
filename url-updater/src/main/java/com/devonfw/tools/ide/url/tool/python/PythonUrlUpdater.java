@@ -73,6 +73,16 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
   }
 
   @Override
+  public String getCpeVendor() {
+    return "python";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "python";
+  }
+
+  @Override
   protected Class<PythonJsonObject> getJsonObjectType() {
 
     return PythonJsonObject.class;
