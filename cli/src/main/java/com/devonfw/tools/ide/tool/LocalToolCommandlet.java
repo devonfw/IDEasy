@@ -6,6 +6,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -17,7 +18,9 @@ import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
+import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
@@ -185,6 +188,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     boolean extraInstallation = (version instanceof VersionRange);
     ToolRepository toolRepository = getToolRepository();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
+    lookForCVEs(resolvedVersion, edition, processContext);
     installToolDependencies(resolvedVersion, edition, processContext);
 
     Path installationPath;
@@ -273,6 +277,31 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.trace("Ensuring dependency {} for tool {}", dependency.tool(), toolWithEdition);
       LocalToolCommandlet dependencyTool = this.context.getCommandletManager().getRequiredLocalToolCommandlet(dependency.tool());
       dependencyTool.installAsDependency(dependency.versionRange(), processContext);
+    }
+  }
+
+  private void lookForCVEs(VersionIdentifier version, String edition, ProcessContext processContext) {
+    ToolSecurity toolSecurity = getToolRepository().findSecurity(this.tool, edition);
+    Collection<CVE> cves = toolSecurity.findCVEs(version);
+    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(1.1)"))));
+    for (CVE cve : cves) {
+      context.info(cve.id());
+      context.info(String.valueOf(cve.severity()));
+      context.info(cve.versions().toString());
+    }
+    String answer = context.question("Currently selected version contains the above weaknesses, do you want to continue anyway?", "yes",
+        "no install next save version",
+        "no install latest save version");
+    if (answer.equals("yes")) {
+      return;
+    }
+    if (answer.equals("no install next save version")) {
+      Collection<CVE> allCves = toolSecurity.getIssues();
+      
+    }
+    if (answer.equals("no install latest save version")) {
+      Collection<CVE> allCves = toolSecurity.getIssues();
+
     }
   }
 

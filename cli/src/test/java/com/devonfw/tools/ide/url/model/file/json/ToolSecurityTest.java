@@ -29,6 +29,7 @@ public class ToolSecurityTest extends AbstractUrlModelTest {
     List<VersionRange> versionRanges = new ArrayList<>();
     versionRanges.add(VersionRange.of("(0,2.39.4)"));
     versionRanges.add(VersionRange.of("[2.40.0,2.40.2)"));
+    context.debug(security.toString());
 
     // assert
     assertThat(security).containsExactly(new CVE("CVE-2024-32002", 9.0f, versionRanges));
