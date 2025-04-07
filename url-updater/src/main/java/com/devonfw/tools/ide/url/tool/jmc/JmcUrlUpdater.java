@@ -42,4 +42,14 @@ public class JmcUrlUpdater extends GithubUrlUpdater {
     doAddVersion(urlVersion, baseUrl + "macosx.cocoa.x86_64.tar.gz", MAC);
     doAddVersion(urlVersion, baseUrl + "linux.gtk.x86_64.tar.gz", LINUX);
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "adoptium";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "jmc-build";
+  }
 }

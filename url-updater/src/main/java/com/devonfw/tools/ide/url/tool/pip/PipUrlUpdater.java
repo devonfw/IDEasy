@@ -39,4 +39,14 @@ public class PipUrlUpdater extends WebsiteUrlUpdater {
 
     return Pattern.compile("(\\d+\\.\\d(\\.\\d)?)");
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "pypa";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "pip";
+  }
 }

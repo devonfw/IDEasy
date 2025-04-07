@@ -59,7 +59,7 @@ public class RepositoryCommandlet extends Commandlet {
       }
       List<Path> propertiesFiles = this.context.getFileAccess()
           .listChildren(repositoriesPath, path -> path.getFileName().toString().endsWith(".properties"));
-      boolean forceMode = this.context.isForceMode();
+      boolean forceMode = this.context.isForceMode() || this.context.isForceRepositories();
       for (Path propertiesFile : propertiesFiles) {
         doImportRepository(propertiesFile, forceMode);
       }
@@ -99,8 +99,8 @@ public class RepositoryCommandlet extends Commandlet {
     Path repositoryPath = getRepositoryPath(repositoryConfig, repositoryId);
     if (Files.isDirectory(repositoryPath.resolve(GitContext.GIT_FOLDER))) {
       this.context.info("Repository {} already exists at {}", repositoryId, repositoryPath);
-      if (!this.context.isForceMode()) {
-        this.context.info("Ignoring repository {} - use --force to rerun setup.", repositoryId);
+      if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
+        this.context.info("Ignoring repository {} - use --force or --force-repositories to rerun setup.", repositoryId);
         return;
       }
     }
@@ -108,8 +108,8 @@ public class RepositoryCommandlet extends Commandlet {
     this.context.getFileAccess().mkdirs(ideStatusDir);
     Path repositoryCreatedStatusFile = ideStatusDir.resolve("repository." + repositoryId);
     if (Files.exists(repositoryCreatedStatusFile)) {
-      if (!this.context.isForceMode()) {
-        this.context.info("Ignoring repository {} because it was already setup before - use --force for recreation.", repository);
+      if (!(this.context.isForceMode() || this.context.isForceRepositories())) {
+        this.context.info("Ignoring repository {} because it was already setup before - use --force or --force-repositories for recreation.", repository);
         return;
       }
     }

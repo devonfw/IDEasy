@@ -34,4 +34,14 @@ public class KotlincUrlUpdater extends WebsiteUrlUpdater {
 
     return Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+");
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "jetbrains";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "kotlin";
+  }
 }

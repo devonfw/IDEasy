@@ -117,6 +117,25 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     assertThat(this.context).logAtWarning().hasMessage("Cannot find folder 'repositories' nor 'projects' in your settings.");
   }
 
+  @Test
+  public void testSetupSpecificRepositoryWithForceOption() {
+
+    // arrange
+    this.context.setForceRepositories(true);
+    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    saveProperties();
+    rc.repository.setValueAsString("test", this.context);
+    rc.repository.setValue(null, 0); //Overwrite the repository path to check if repositories should be forced
+
+    // act
+    rc.run();
+
+    // assert
+    assertThat(this.context).log().hasMessage("Setup of repository test is forced, hence proceeding ...");
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(TEST_WORKSPACE).resolve(TEST_REPO)).isDirectory();
+    assertThat(this.context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+  }
+
   private void saveProperties() {
 
     FileAccess fileAccess = this.context.getFileAccess();

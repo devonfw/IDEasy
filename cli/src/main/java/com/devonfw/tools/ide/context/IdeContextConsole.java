@@ -14,6 +14,12 @@ public class IdeContextConsole extends AbstractIdeContext {
 
   private final Scanner scanner;
 
+  private boolean forcePull;
+
+  private boolean forcePlugins;
+
+  private boolean forceRepositories;
+
   /**
    * The constructor.
    *
@@ -62,5 +68,35 @@ public class IdeContextConsole extends AbstractIdeContext {
   public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
 
     return new IdeProgressBarConsole(getSystemInfo(), title, size, unitName, unitSize);
+  }
+
+  @Override
+  public boolean isForcePull() {
+    return forcePull;
+  }
+
+  @Override
+  public boolean isForcePlugins() {
+    return forcePlugins;
+  }
+
+  @Override
+  public boolean isForceRepositories() {
+    return forceRepositories;
+  }
+
+  @Override
+  public void setForcePull(boolean forcePull) {
+    this.forcePull = forcePull;
+  }
+
+  @Override
+  public void setForcePlugins(boolean forcePlugins) {
+    this.forcePlugins = forcePlugins;
+  }
+
+  @Override
+  public void setForceRepositories(boolean forceRepositories) {
+    this.forceRepositories = forceRepositories;
   }
 }

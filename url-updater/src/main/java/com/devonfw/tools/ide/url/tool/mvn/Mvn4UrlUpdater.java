@@ -40,4 +40,16 @@ public class Mvn4UrlUpdater extends WebsiteUrlUpdater {
 
     return Pattern.compile("(\\d\\.\\d\\.\\d-[a-z]*?-\\d{1,2})");
   }
+
+  @Override
+  public String getCpeVendor() {
+
+    return "apache";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "maven";
+  }
 }
