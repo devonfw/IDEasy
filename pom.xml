@@ -134,7 +134,7 @@
       <dependency>
         <groupId>org.testfx</groupId>
         <artifactId>openjfx-monocle</artifactId>
-        <version>17.0.10</version>
+        <version>21.0.2</version>
       </dependency>
       <dependency>
         <groupId>org.testfx</groupId>
@@ -199,7 +199,7 @@
       <plugin>
         <groupId>org.pitest</groupId>
         <artifactId>pitest-maven</artifactId>
-        <version>1.18.2</version>
+        <version>1.19.0</version>
         <dependencies>
           <dependency>
             <groupId>org.pitest</groupId>
