@@ -37,6 +37,15 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   /** {@link FlagProperty} for skipping the setup of git repositories. */
   public final FlagProperty skipRepositories;
 
+  /** {@link FlagProperty} to force the update of the settings git repository. */
+  public final FlagProperty forcePull;
+
+  /** {@link FlagProperty} to force the installation/update of plugins. */
+  public final FlagProperty forcePlugins;
+
+  /** {@link FlagProperty} to force the setup of git repositories. */
+  public final FlagProperty forceRepositories;
+
   /**
    * The constructor.
    *
@@ -48,13 +57,20 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     addKeyword(getName());
     this.skipTools = add(new FlagProperty("--skip-tools"));
     this.skipRepositories = add(new FlagProperty("--skip-repositories"));
+    this.forcePull = add(new FlagProperty("--force-pull"));
+    this.forcePlugins = add(new FlagProperty("--force-plugins"));
+    this.forceRepositories = add(new FlagProperty("--force-repositories"));
     this.settingsRepo = new StringProperty("", false, "settingsRepository");
   }
 
   @Override
   public void run() {
 
-    if (!this.context.isSettingsRepositorySymlinkOrJunction() || this.context.isForceMode()) {
+    this.context.setForcePull(forcePull.isTrue());
+    this.context.setForcePlugins(forcePlugins.isTrue());
+    this.context.setForceRepositories(forceRepositories.isTrue());
+
+    if (!this.context.isSettingsRepositorySymlinkOrJunction() || this.context.isForceMode() || forcePull.isTrue()) {
       updateSettings();
     }
     updateConf();
@@ -201,6 +217,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   private void updateRepositories() {
 
     if (this.skipRepositories.isTrue()) {
+      if (this.forceRepositories.isTrue()) {
+        this.context.warning("Options to skip and force repositories are incompatible and should not be combined. Ignoring --force-repositories to proceed.");
+      }
       this.context.info("Skipping setup of repositories as specified by the user.");
       return;
     }
