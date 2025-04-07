@@ -14,8 +14,10 @@ jobs:
       - uses: actions/checkout@v3
         with:
           submodules: recursive
-      - name: Run integration test
+      - name: Run integration tests
         shell: bash
         run: |
+          mkdir -p ${HOME}/.ide
+          touch ${HOME}/.ide/.license.agreement
           cd cli/src/test/integration-tests-bash
-          ./all-tests.sh
+          ./all-tests.sh ${{ matrix.os }}

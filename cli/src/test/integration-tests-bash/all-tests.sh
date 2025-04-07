@@ -4,17 +4,22 @@ set -o pipefail
 
 source "$(dirname "${0}")"/functions-test.sh
 
+BINARY_FILE_NAME="ideasy"
+if [ $1 == "windows-latest" ]; then
+  BINARY_FILE_NAME="ideasy.exe"
+fi
+
 START_TIME=$(date '+%Y-%m-%d_%H-%M-%S')
 
 DEBUG_INTEGRATION_TEST_PREFIX="${HOME}/tmp/ideasy-integration-test-debug"
 DEBUG_INTEGRATION_TEST="${DEBUG_INTEGRATION_TEST_PREFIX}-${START_TIME}"
-IDE_HOME="${DEBUG_INTEGRATION_TEST}/home-dir"
-IDE_ROOT="${IDE_HOME}/projects"
+export IDE_HOME="${DEBUG_INTEGRATION_TEST}/home-dir"
+export IDE_ROOT="${IDE_HOME}/projects"
 IDEASY_DIR="${IDE_ROOT}/_ide"
 FUNCTIONS="${IDEASY_DIR}/installation/functions"
 IDEASY_INSTALLATION_DIR="${IDEASY_DIR}/installation"
-IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/ideasy"
-IDE_INSTALLATION="${IDEASY_INSTALLATION_DIR}/bin/ideasy"
+export IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/${BINARY_FILE_NAME}"
+export IDE_INSTALLATION="${IDEASY_INSTALLATION_DIR}/bin/${BINARY_FILE_NAME}"
 TEST_RESULTS_FILE="${IDE_ROOT}/testResults"
 
 test_files_directory=$(realpath "$0" | xargs dirname)
@@ -70,7 +75,7 @@ function doDisplayResults() {
 
 
 function doTests () {
-  doTestsInner 
+  doTestsInner
   echo -e "\n*****************************************************"
   echo "Executed #${total} test(s), #${success} succeeded and #${failure} failed"
   echo -e "*****************************************************\n"
@@ -122,7 +127,7 @@ function main () {
 
   # upgrade to latest snapshot
   echo "Upgrading IDEasy to latest SNAPSHOT"
-  $IDE -d upgrade --mode=snapshot
+  $IDE -d --batch upgrade --mode=snapshot
 
   # source functions (resets IDEasy)
   echo "Sourcing functions to: ${FUNCTIONS}"

@@ -12,7 +12,7 @@ function doIdeCreate () {
   # If first argument is given, then it is the url for the ide create command (default is '-').
   local settings_url=${1:--}
   echo "Running ide --batch create ${test_project_name} ${settings_url}"
-  $IDE_INSTALLATION --batch create "${test_project_name}" "${settings_url}"
+  $IDE_INSTALLATION --batch -d create "${test_project_name}" "${settings_url}"
 
   echo "Switching to directory: ${IDE_ROOT}/${test_project_name}"
   cd "${IDE_ROOT}/${test_project_name}" || exit
@@ -41,7 +41,13 @@ function doDownloadSnapshot () {
     # TODO: A bit of a workaround. But works for the time being...
     # Note: Explanation for cryptic argument "\"" of 'cut': delimiting char after url link from href is char '"'
     local URL
-    URL=$(grep "href=\"https://.*linux-x64.tar.gz" "$PAGE_HTML_LOCAL" | grep -o "https://.*linux-x64.tar.gz" | cut -f1 -d"\"")
+    local OSTYPE
+    if [ "${BINARY_FILE_NAME}" == "ideasy.exe" ]; then
+      OSTYPE="windows"
+    else
+      OSTYPE="linux"
+    fi
+    URL=$(grep "href=\"https://.*${OSTYPE}-x64.tar.gz" "$PAGE_HTML_LOCAL" | grep -o "https://.*${OSTYPE}-x64.tar.gz" | cut -f1 -d"\"")
     curl -o "${IDEASY_COMPRESSED_FILE:?}" "$URL"
     rm "${PAGE_HTML_LOCAL:?}"
   fi
