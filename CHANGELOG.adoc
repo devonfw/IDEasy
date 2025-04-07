@@ -2,6 +2,19 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.04.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1007[#1007]: Consider explicit option flags instead of overusing force mode
+* https://github.com/devonfw/IDEasy/issues/951[#951]: Fix text coloring in native cmd and powershell terminals
+* https://github.com/devonfw/IDEasy/issues/1202[#1202]: IDEasy can not reset urls on WSL
+* https://github.com/devonfw/IDEasy/issues/692[#692]: "Latest" version of Docker causes installation problems
+* https://github.com/devonfw/IDEasy/issues/1008[#1008]: Improve upgrade-settings to cleanup legacy configs in repositories
+* https://github.com/devonfw/IDEasy/issues/1191[#1191]: vscode always tries to reinstall all plugins
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/25?closed=1[milestone 2025.04.001].
+
 == 2025.03.002
 
 Release with new features and bugfixes:

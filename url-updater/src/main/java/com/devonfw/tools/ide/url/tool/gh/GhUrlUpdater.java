@@ -57,4 +57,14 @@ public class GhUrlUpdater extends GithubUrlUpdater {
 
     return GITHUB_BASE_URL;
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "github";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "gh";
+  }
 }
