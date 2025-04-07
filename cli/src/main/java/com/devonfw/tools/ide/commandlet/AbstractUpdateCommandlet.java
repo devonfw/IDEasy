@@ -218,7 +218,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
     if (this.skipRepositories.isTrue()) {
       if (this.forceRepositories.isTrue()) {
-        this.context.warning("Skipping and forcing results in skipping to not modify any unwanted changes - please check your input");
+        this.context.warning("Options to skip and force repositories are incompatible and should not be combined. Ignoring --force-repositories to proceed.");
       }
       this.context.info("Skipping setup of repositories as specified by the user.");
       return;

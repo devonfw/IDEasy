@@ -25,7 +25,7 @@ public class PluginBasedCommandletTest extends AbstractIdeContextTest {
   private static IdeTestContext context;
 
   @BeforeAll
-  static void setUp() {
+  void setUp() {
 
     context = newContext(PROJECT_BASIC, null, false);
   }

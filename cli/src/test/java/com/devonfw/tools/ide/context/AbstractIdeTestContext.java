@@ -52,11 +52,11 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   private Path urlsPath;
 
-  boolean forcePull = false;
+  private boolean forcePull = false;
 
-  boolean forcePlugins = false;
+  private boolean forcePlugins = false;
 
-  boolean forceRepositories = false;
+  private boolean forceRepositories = false;
 
   /**
    * The constructor.
