@@ -50,6 +50,6 @@ public class Mvn4UrlUpdater extends WebsiteUrlUpdater {
   @Override
   public String getCpeProduct() {
 
-    return "maven4";
+    return "maven";
   }
 }

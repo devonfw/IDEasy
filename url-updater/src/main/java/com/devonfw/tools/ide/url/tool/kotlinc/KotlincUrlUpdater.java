@@ -42,6 +42,6 @@ public class KotlincUrlUpdater extends WebsiteUrlUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "kotlinc";
+    return "kotlin";
   }
 }
