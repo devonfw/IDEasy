@@ -122,13 +122,13 @@ function main () {
 
   # upgrade to latest snapshot
   echo "Upgrading IDEasy to latest SNAPSHOT"
-  $IDE upgrade --mode=snapshot
+  $IDE -d upgrade --mode=snapshot
 
   # source functions (resets IDEasy)
   echo "Sourcing functions to: ${FUNCTIONS}"
   source "${FUNCTIONS:?}"
 
-  echo "Running 'ide -v'"
+  echo "Checking version after upgrade"
   $IDE_INSTALLATION -v
 
   doIdeCreate
