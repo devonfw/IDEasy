@@ -148,7 +148,7 @@ public enum GitOperation {
     if (context.isOffline()) {
       context.info("Skipping git {} on {} because we are offline.", this.name, targetRepository);
       return false;
-    } else if (context.isForceMode()) {
+    } else if (context.isForceMode() || context.isForcePull()) {
       context.debug("Enforcing git {} on {} because force mode is active.", this.name, targetRepository);
       return true;
     }
