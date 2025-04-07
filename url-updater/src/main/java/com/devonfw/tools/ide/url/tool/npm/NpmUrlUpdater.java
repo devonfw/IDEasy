@@ -18,4 +18,14 @@ public class NpmUrlUpdater extends NpmBasedUrlUpdater {
 
     return getTool();
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "npm";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "npm";
+  }
 }
