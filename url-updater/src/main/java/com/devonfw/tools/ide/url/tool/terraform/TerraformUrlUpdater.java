@@ -49,4 +49,16 @@ public class TerraformUrlUpdater extends GithubUrlUpdater {
     }
   }
 
+  @Override
+  public String getCpeVendor() {
+
+    return "hashicorp";
+  }
+
+  @Override
+  public String getCpeProduct() {
+
+    return "terraform";
+  }
+
 }

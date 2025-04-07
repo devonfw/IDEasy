@@ -68,4 +68,14 @@ public class AwsUrlUpdater extends GithubUrlUpdater {
     doAddVersion(urlVersion, baseUrl + "/AWSCLIV2-${version}.pkg", OperatingSystem.MAC);
   }
 
+  @Override
+  public String getCpeVendor() {
+    return "amazon";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "aws";
+  }
+
 }

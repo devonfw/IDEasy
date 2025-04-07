@@ -52,4 +52,14 @@ public class PgAdminUrlUpdater extends WebsiteUrlUpdater {
     }
   }
 
+  @Override
+  public String getCpeVendor() {
+    return "pgadmin-org";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "pgadmin";
+  }
+
 }

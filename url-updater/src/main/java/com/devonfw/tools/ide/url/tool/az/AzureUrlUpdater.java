@@ -55,4 +55,15 @@ public class AzureUrlUpdater extends GithubUrlUpdater {
       return null;
     }
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "microsoft";
+
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "az";
+  }
 }

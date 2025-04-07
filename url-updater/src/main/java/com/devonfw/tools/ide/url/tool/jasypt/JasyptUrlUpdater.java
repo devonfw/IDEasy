@@ -29,6 +29,16 @@ public class JasyptUrlUpdater extends MavenBasedUrlUpdater {
   }
 
   @Override
+  public String getCpeVendor() {
+    return "jasypt";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "jasypt";
+  }
+
+  @Override
   public boolean isValidVersion(String version) {
 
     VersionIdentifier artifactVersion = VersionIdentifier.of(version);
