@@ -42,7 +42,7 @@ public class SonarUrlUpdater extends GithubUrlUpdater {
 
   @Override
   public String getCpeVendor() {
-    return "SonarSource";
+    return "sonarsource";
   }
 
   @Override
