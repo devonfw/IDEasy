@@ -90,4 +90,13 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
     return super.mapVersion(version.replace(" ", "-"));
   }
 
+  @Override
+  public String getCpeVendor() {
+    return "eclipse";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "eclipse";
+  }
 }
