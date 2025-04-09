@@ -19,5 +19,5 @@ jobs:
         run: |
           mkdir -p ${HOME}/.ide
           touch ${HOME}/.ide/.license.agreement
-          cd cli/src/test/integration-tests-bash
+          cd cli/src/test
           ./all-tests.sh ${{ matrix.os }}
