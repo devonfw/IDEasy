@@ -19,9 +19,7 @@ IDE_HOME="${DEBUG_INTEGRATION_TEST}/home-dir"
 export IDE_ROOT="${IDE_HOME}/projects"
 IDEASY_DIR="${IDE_ROOT}/_ide"
 FUNCTIONS="${IDEASY_DIR}/installation/functions"
-IDEASY_INSTALLATION_DIR="${IDEASY_DIR}/installation"
 IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/${BINARY_FILE_NAME}"
-IDE_INSTALLATION="${IDEASY_INSTALLATION_DIR}/bin/${BINARY_FILE_NAME}"
 TEST_RESULTS_FILE="${IDE_ROOT}/testResults"
 
 test_files_directory=$(realpath "$0" | xargs dirname)
