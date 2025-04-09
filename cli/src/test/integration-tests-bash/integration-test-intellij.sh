@@ -13,7 +13,6 @@
 #set -e 
 
 #--- Body ---
+set -e
 echo "Running install intellij integration test"
-$IDE_INSTALLATION -d install intellij || return 1
-return 0
-
+ide -d install intellij

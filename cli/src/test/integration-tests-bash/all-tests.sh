@@ -136,7 +136,7 @@ function main () {
   source "${FUNCTIONS:?}"
 
   echo "Checking version after upgrade"
-  $IDE_INSTALLATION -v
+  ide -v
 
   doIdeCreate
 

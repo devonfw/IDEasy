@@ -12,7 +12,7 @@ function doIdeCreate () {
   # If first argument is given, then it is the url for the ide create command (default is '-').
   local settings_url=${1:--}
   echo "Running ide --batch create ${test_project_name} ${settings_url}"
-  $IDE_INSTALLATION --batch -d create "${test_project_name}" "${settings_url}"
+  ide --batch -d create "${test_project_name}" "${settings_url}"
 
   echo "Switching to directory: ${IDE_ROOT}/${test_project_name}"
   cd "${IDE_ROOT}/${test_project_name}" || exit
