@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
@@ -154,12 +155,13 @@ public class Mvn extends PluginBasedCommandlet {
 
     String input = this.context.askForInput("Please enter secret value for variable " + variable + ":");
 
-    ProcessContext pc = this.context.newProcess().executable("mvn");
-    pc.addArgs("--encrypt-password", input);
-    pc.addArg(getSettingsSecurityProperty());
-    ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
+    ToolCommandlet mvn = this.context.getCommandletManager().getToolCommandlet("mvn");
+    mvn.arguments.addValue("--encrypt-password");
+    mvn.arguments.addValue(input);
+    mvn.arguments.addValue(getSettingsSecurityProperty());
+    ProcessResult result = mvn.runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess());
 
-    String encryptedPassword = result.getOut().get(0);
+    String encryptedPassword = result.getOut().getFirst();
     this.context.info("Encrypted as " + encryptedPassword);
 
     return encryptedPassword;
