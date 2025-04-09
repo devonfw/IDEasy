@@ -1,15 +1,14 @@
 package com.devonfw.tools.ide.tool.pycharm;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
-
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 /**
  * Integration test of {@link Pycharm}.
@@ -18,6 +17,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 public class PycharmTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_PYCHARM = "pycharm";
+
   private final IdeTestContext context = newContext(PROJECT_PYCHARM);
 
   /**
@@ -42,7 +42,7 @@ public class PycharmTest extends AbstractIdeContextTest {
 
     //if tool already installed
     commandlet.install();
-    assertThat(this.context).logAtDebug().hasMessageContaining("Version 2023.3.3 of tool pycharm is already installed");
+    assertThat(this.context).logAtDebug().hasMessageContaining("Version 2024.3.5 of tool pycharm is already installed");
   }
 
   /**
@@ -115,8 +115,7 @@ public class PycharmTest extends AbstractIdeContextTest {
 
     // assert
     checkInstallation(this.context);
-    assertThat(commandlet.getToolBinPath().resolve("customRepoTest")).hasContent(
-        "custom plugin repo url is: http://customRepo");
+    assertThat(commandlet.getToolBinPath().resolve("customRepoTest")).hasContent("custom plugin repo url is: http://customRepo");
   }
 
   /**
@@ -163,16 +162,14 @@ public class PycharmTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtDebug()
-        .hasEntries("Plugin marker file " + context.getIdeHome().resolve(".ide").resolve("plugin.pycharm.professional.ActivePlugin") + " got deleted.");
+        .hasEntries("Plugin marker file " + context.getIdeHome().resolve(".ide").resolve("plugin.pycharm.pycharm.ActivePlugin") + " got deleted.");
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
   }
 
-
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context.getSoftwarePath().resolve("pycharm/.ide.software.version")).exists().hasContent("2023.3.3");
-    assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
-        "Successfully installed pycharm in version 2023.3.3");
+    assertThat(context.getSoftwarePath().resolve("pycharm/.ide.software.version")).exists().hasContent("2024.3.5");
+    assertThat(context).logAtSuccess().hasEntries("Successfully installed pycharm in version 2024.3.5");
     assertThat(context).logAtDebug().hasEntries("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");
     assertThat(context).logAtSuccess().hasMessage("Successfully ended step 'Install plugin ActivePlugin'.");
   }
