@@ -64,12 +64,14 @@ public class PycharmTest extends AbstractIdeContextTest {
 
     // assert
     checkInstallation(this.context);
+    assertThat(commandlet.getToolBinPath().resolve("customRepoTest")).hasContent("custom plugin repo url is: http://customRepo");
 
     // act
     commandlet.uninstallPlugin(commandlet.getPlugins().getById("activePlugin"));
 
     //assert
-    assertThat(context.getPluginsPath().resolve("pycharm").resolve("mockedPlugin").resolve("MockedClass.class")).doesNotExist();
+    assertThat(context.getPluginsPath().resolve("pycharm").resolve("activePlugin")).doesNotExist();
+
   }
 
   /**
@@ -94,28 +96,6 @@ public class PycharmTest extends AbstractIdeContextTest {
     checkInstallation(this.context);
     assertThat(commandlet.getToolBinPath().resolve("pycharmtest")).hasContent(
         "pycharm " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
-  }
-
-  /**
-   * Tests if {@link Intellij IntelliJ IDE} can install plugins with custom url.
-   *
-   * @param os String of the OS to use.
-   */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testPycharmPluginInstallWithCustomRepoUrl(String os) {
-
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    this.context.setSystemInfo(systemInfo);
-    Pycharm commandlet = new Pycharm(this.context);
-
-    // act
-    commandlet.install();
-
-    // assert
-    checkInstallation(this.context);
-    assertThat(commandlet.getToolBinPath().resolve("customRepoTest")).hasContent("custom plugin repo url is: http://customRepo");
   }
 
   /**
