@@ -105,6 +105,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
     IdeTestContext context = newContext(PROJECT_DEVONFW_IDE);
     Path DEVONFW_IDE_PATH = TEST_PROJECTS_COPY.resolve(PROJECT_DEVONFW_IDE).resolve("project");
     EnvironmentVariables variables = context.getVariables();
+    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED", "true");
     Path settingsWorkspaceFolder = DEVONFW_IDE_PATH.resolve("settings").resolve("workspace");
     Path setupPath = settingsWorkspaceFolder.resolve("setup").resolve("test.xml");
     Path updatePath = settingsWorkspaceFolder.resolve("update").resolve("test.xml");
