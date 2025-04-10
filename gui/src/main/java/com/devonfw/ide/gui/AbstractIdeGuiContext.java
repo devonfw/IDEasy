@@ -1,0 +1,34 @@
+package com.devonfw.ide.gui;
+
+import java.nio.file.Path;
+
+import com.devonfw.tools.ide.context.AbstractIdeContext;
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
+import com.devonfw.tools.ide.io.IdeProgressBar;
+
+/**
+ *
+ */
+public class AbstractIdeGuiContext extends AbstractIdeContext {
+
+
+  /**
+   * The constructor.
+   *
+   * @param startContext the {@link com.devonfw.tools.ide.log.IdeLogger IdeLogger}.
+   * @param workingDirectory the optional {@link Path} to current working directory.
+   */
+  public AbstractIdeGuiContext(IdeStartContextImpl startContext, Path workingDirectory) {
+    super(startContext, workingDirectory);
+  }
+
+  @Override
+  protected String readLine() {
+    return "";
+  }
+
+  @Override
+  public IdeProgressBar newProgressBar(String title, long size, String unitName, long unitSize) {
+    return null;
+  }
+}
