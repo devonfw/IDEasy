@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.xmlunit.assertj3.XmlAssert;
@@ -89,6 +90,41 @@ class XmlMergerTest extends AbstractIdeContextTest {
         .hasRootCauseInstanceOf(IllegalStateException.class).hasRootCauseMessage(
             "2 matches found for XPath configuration[@default='true' and @type='JUnit'] in workspace XML at /project[@version='4']/component[@name='RunManager' @selected='Application.IDEasy']");
     ;
+
+  }
+
+  /**
+   * Tests for XML merge of legacy devonfw-ide templates without namespace prefix merge.
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  void testLegacySupportXmlMerge() {
+
+    // arrange
+    String PROJECT_DEVONFW_IDE = "devonfw-ide";
+    IdeTestContext context = newContext(PROJECT_DEVONFW_IDE);
+    Path DEVONFW_IDE_PATH = TEST_PROJECTS_COPY.resolve(PROJECT_DEVONFW_IDE).resolve("project");
+    EnvironmentVariables variables = context.getVariables();
+    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED", "true");
+    Path settingsWorkspaceFolder = DEVONFW_IDE_PATH.resolve("settings").resolve("workspace");
+    Path settingsSetupPath = settingsWorkspaceFolder.resolve("setup").resolve("setup.xml");
+    Path settingsUpdatePath = settingsWorkspaceFolder.resolve("update").resolve("update.xml");
+    Path settingsUpdateWithNsPath = settingsWorkspaceFolder.resolve("update").resolve("updateWithNs.xml");
+    Path workspaceSetupPath = DEVONFW_IDE_PATH.resolve("workspaces").resolve("main").resolve("setup.xml");
+    Path workspaceUpdatePath = DEVONFW_IDE_PATH.resolve("workspaces").resolve("main").resolve("update.xml");
+    Path workspaceUpdateWithNsPath = DEVONFW_IDE_PATH.resolve("workspaces").resolve("main").resolve("updateWithNs.xml");
+    Path workspaceUpdateCombinedPath = DEVONFW_IDE_PATH.resolve("workspaces").resolve("main").resolve("combinedUpdate.xml");
+    XmlMerger merger = new XmlMerger(context);
+
+    // act
+    merger.doMerge(settingsSetupPath, settingsUpdatePath, variables, workspaceSetupPath);
+    merger.doMerge(settingsSetupPath, settingsUpdatePath, variables, workspaceUpdatePath);
+    merger.doMerge(settingsSetupPath, settingsUpdateWithNsPath, variables, workspaceUpdateWithNsPath);
+
+    // assert
+    XmlAssert.assertThat(settingsSetupPath.toFile()).and(workspaceSetupPath.toFile()).areIdentical();
+    XmlAssert.assertThat(settingsUpdatePath.toFile()).and(settingsUpdatePath.toFile()).areIdentical();
+    XmlAssert.assertThat(workspaceUpdateWithNsPath.toFile()).and(workspaceUpdateCombinedPath.toFile()).areIdentical();
 
   }
 }
