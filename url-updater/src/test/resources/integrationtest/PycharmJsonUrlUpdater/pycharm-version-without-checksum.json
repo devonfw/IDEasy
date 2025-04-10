@@ -1,0 +1,68 @@
+[
+  {
+    "code": "PCP",
+    "releases": [
+      {
+        "date": "2025-03-19",
+        "downloads": {
+          "linuxARM64": {
+            "link": "${testbaseurl}/python/pycharm-professional-2024.3.5-aarch64.tar.gz",
+            "checksumLink": ""
+          },
+          "linux": {
+            "link": "${testbaseurl}/python/pycharm-professional-2024.3.5.tar.gz",
+            "checksumLink": ""
+          }
+        },
+        "version": "2024.3.5"
+      },
+      {
+        "date": "2025-02-27",
+        "downloads": {
+          "linuxARM64": {
+            "link": "${testbaseurl}/python/pycharm-professional-2024.3.4-aarch64.tar.gz",
+            "checksumLink": ""
+          },
+          "linux": {
+            "link": "${testbaseurl}/python/pycharm-professional-2024.3.4.tar.gz",
+            "checksumLink": ""
+          }
+        },
+        "version": "2024.3.4"
+      }
+    ]
+  },
+  {
+    "code": "PCC",
+    "releases": [
+      {
+        "date": "2025-03-19",
+        "downloads": {
+          "linuxARM64": {
+            "link": "${testbaseurl}/python/pycharm-community-2024.3.5-aarch64.tar.gz",
+            "checksumLink": ""
+          },
+          "linux": {
+            "link": "${testbaseurl}/python/pycharm-community-2024.3.5.tar.gz",
+            "checksumLink": ""
+          }
+        },
+        "version": "2024.3.5"
+      },
+      {
+        "date": "2025-02-27",
+        "downloads": {
+          "linuxARM64": {
+            "link": "${testbaseurl}/python/pycharm-community-2024.3.4-aarch64.tar.gz",
+            "checksumLink": ""
+          },
+          "linux": {
+            "link": "${testbaseurl}/python/pycharm-community-2024.3.4.tar.gz",
+            "checksumLink": ""
+          }
+        },
+        "version": "2024.3.4"
+      }
+    ]
+  }
+]

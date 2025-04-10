@@ -2,6 +2,12 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.04.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1190[#1190]: Add pycharm support to IDEasy
+
 == 2025.04.001
 
 Release with new features and bugfixes:
