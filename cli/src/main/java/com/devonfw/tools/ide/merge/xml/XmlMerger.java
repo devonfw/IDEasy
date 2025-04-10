@@ -106,7 +106,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
    * @param templateDocument the {@link XmlMergeDocument} representing the template xml file from the settings.
    * @param workspaceDocument the {@link XmlMergeDocument} of the actual source XML file (typically from the workspace of the real IDE) to merge with the
    *     {@code templateDocument}.
-   * @param workspaceFileExists indicates whether the workspace already exists or if setup templates are loaded
+   * @param workspaceFileExists indicates whether the workspace document already exists or if setup templates are loaded
    * @return the merged {@link Document}.
    */
   public Document merge(XmlMergeDocument templateDocument, XmlMergeDocument workspaceDocument, boolean workspaceFileExists) {
