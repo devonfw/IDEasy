@@ -8,7 +8,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1217[#1217]: Remove plugin recommendation feature in VSCode
 
-The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/25?closed=1[milestone 2025.04.001].
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/26?closed=1[milestone 2025.04.002].
 
 == 2025.04.001
 
