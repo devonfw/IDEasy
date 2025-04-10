@@ -36,7 +36,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
 
   private static final TransformerFactory TRANSFORMER_FACTORY;
 
-  protected final boolean legacySupport;
+  protected final boolean legacyXmlSupport;
 
   /** The namespace URI for this XML merger. */
   public static final String MERGE_NS_URI = "https://github.com/devonfw/IDEasy/merge";
@@ -60,7 +60,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
   public XmlMerger(IdeContext context) {
 
     super(context);
-    this.legacySupport = Boolean.TRUE.equals(IdeVariables.IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED.get(context));
+    this.legacyXmlSupport = Boolean.TRUE.equals(IdeVariables.IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED.get(context));
   }
 
   @Override
@@ -124,7 +124,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
       if (strategy == null) {
         strategy = XmlMergeStrategy.COMBINE; // default strategy used as fallback
       }
-      if (this.legacySupport && (templateRoot.lookupNamespaceURI("merge") == null)) {
+      if (this.legacyXmlSupport && (templateRoot.lookupNamespaceURI("merge") == null)) {
         if (workspaceFileExists) {
           strategy = XmlMergeStrategy.OVERRIDE;
         } else {
