@@ -107,22 +107,24 @@ class XmlMergerTest extends AbstractIdeContextTest {
     EnvironmentVariables variables = context.getVariables();
     variables.getByType(EnvironmentVariablesType.CONF).set("IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED", "true");
     Path settingsWorkspaceFolder = DEVONFW_IDE_PATH.resolve("settings").resolve("workspace");
-    Path setupPath = settingsWorkspaceFolder.resolve("setup").resolve("test.xml");
-    Path updatePath = settingsWorkspaceFolder.resolve("update").resolve("test.xml");
-    Path workspacePath = DEVONFW_IDE_PATH.resolve("workspace").resolve("main").resolve("test.xml");
+    Path settingsSetupPath = settingsWorkspaceFolder.resolve("setup").resolve("setup.xml");
+    Path settingsUpdatePath = settingsWorkspaceFolder.resolve("update").resolve("update.xml");
+    Path settingsUpdateWithNsPath = settingsWorkspaceFolder.resolve("update").resolve("updateWithNs.xml");
+    Path workspaceSetupPath = DEVONFW_IDE_PATH.resolve("workspaces").resolve("main").resolve("setup.xml");
+    Path workspaceUpdatePath = DEVONFW_IDE_PATH.resolve("workspaces").resolve("main").resolve("update.xml");
+    Path workspaceUpdateWithNsPath = DEVONFW_IDE_PATH.resolve("workspaces").resolve("main").resolve("updateWithNs.xml");
+    Path workspaceUpdateCombinedPath = DEVONFW_IDE_PATH.resolve("workspaces").resolve("main").resolve("combinedUpdate.xml");
     XmlMerger merger = new XmlMerger(context);
 
-    // case: initialised workspace with setup folder and keep strategy
     // act
-    merger.doMerge(setupPath, updatePath, variables, workspacePath);
-    // assert
-    XmlAssert.assertThat(setupPath.toFile()).and(workspacePath.toFile()).areIdentical();
+    merger.doMerge(settingsSetupPath, settingsUpdatePath, variables, workspaceSetupPath);
+    merger.doMerge(settingsSetupPath, settingsUpdatePath, variables, workspaceUpdatePath);
+    merger.doMerge(settingsSetupPath, settingsUpdateWithNsPath, variables, workspaceUpdateWithNsPath);
 
-    // case: update workspace with update folder and override strategy
-    // act
-    merger.doMerge(setupPath, updatePath, variables, workspacePath);
     // assert
-    XmlAssert.assertThat(updatePath.toFile()).and(workspacePath.toFile()).areIdentical();
+    XmlAssert.assertThat(settingsSetupPath.toFile()).and(workspaceSetupPath.toFile()).areIdentical();
+    XmlAssert.assertThat(settingsUpdatePath.toFile()).and(settingsUpdatePath.toFile()).areIdentical();
+    XmlAssert.assertThat(workspaceUpdateWithNsPath.toFile()).and(workspaceUpdateCombinedPath.toFile()).areIdentical();
 
   }
 }
