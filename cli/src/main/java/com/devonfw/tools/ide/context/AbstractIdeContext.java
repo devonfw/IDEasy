@@ -138,6 +138,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private WindowsHelper windowsHelper;
 
+  /** Context used for logging */
+  public static IdeContext loggingContext;
+
   /**
    * The constructor.
    *
@@ -180,7 +183,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       if ((ideRootPath != null) && (ideRootPath.equals(currentDir))) {
         // prevent that during tests we traverse to the real IDE project of IDEasy developer
         currentDir = null;
-      }
+    }
     }
 
     // detection completed, initializing variables
@@ -198,6 +201,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
 
     this.defaultToolRepository = new DefaultToolRepository(this);
+    loggingContext = this;
     this.mavenRepository = new MavenRepository(this);
   }
 
@@ -411,7 +415,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     Path myIdeRoot = getIdeRoot();
     if (myIdeRoot == null) {
       return null;
-    }
+  }
     return myIdeRoot.resolve(FOLDER_UNDERSCORE_IDE);
   }
 
@@ -427,7 +431,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     Path idePath = getIdePath();
     if (idePath == null) {
       return null;
-    }
+  }
     return idePath.resolve("tmp");
   }
 
@@ -437,7 +441,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     Path tmp = getTempPath();
     if (tmp == null) {
       return null;
-    }
+  }
     return tmp.resolve(FOLDER_DOWNLOADS);
   }
 
@@ -498,7 +502,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     if (this.ideHome == null) {
       return null;
-    }
+  }
     return this.ideHome.resolve(FOLDER_SOFTWARE);
   }
 
@@ -508,7 +512,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     Path softwarePath = getSoftwarePath();
     if (softwarePath == null) {
       return null;
-    }
+  }
     return softwarePath.resolve(FOLDER_EXTRA);
   }
 
@@ -518,7 +522,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     Path idePath = getIdePath();
     if (idePath == null) {
       return null;
-    }
+  }
     return idePath.resolve(FOLDER_SOFTWARE);
   }
 
@@ -552,7 +556,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     Path idePath = getIdePath();
     if (idePath == null) {
       return null;
-    }
+  }
     return idePath.resolve(FOLDER_URLS);
   }
 
@@ -562,7 +566,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     Path idePath = getIdePath();
     if (idePath == null) {
       return null;
-    }
+  }
     return idePath.resolve(FOLDER_SOFTWARE);
   }
 
