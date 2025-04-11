@@ -97,12 +97,10 @@ public class Mvn extends PluginBasedCommandlet {
       secureRandom.nextBytes(randomBytes);
       String base64String = Base64.getEncoder().encodeToString(randomBytes);
 
-      ProcessContext pc = this.context.newProcess().executable("mvn");
-      pc.addArgs("--encrypt-master-password", base64String);
-
-      ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
-
-      String encryptedMasterPassword = result.getOut().get(0);
+      Mvn mvn = new Mvn(context);
+      ProcessResult result = mvn.runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), "--encrypt-master-password",
+          base64String);
+      String encryptedMasterPassword = result.getOut().getFirst();
 
       String settingsSecurityXml =
           "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<settingsSecurity>\n" + "  <master>" + encryptedMasterPassword + "</master>\n"
@@ -155,11 +153,9 @@ public class Mvn extends PluginBasedCommandlet {
 
     String input = this.context.askForInput("Please enter secret value for variable " + variable + ":");
 
-    ToolCommandlet mvn = this.context.getCommandletManager().getToolCommandlet("mvn");
-    mvn.arguments.addValue("--encrypt-password");
-    mvn.arguments.addValue(input);
-    mvn.arguments.addValue(getSettingsSecurityProperty());
-    ProcessResult result = mvn.runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess());
+    Mvn mvn = new Mvn(context);
+    ProcessResult result = mvn.runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), "--encrypt-password", input,
+        getSettingsSecurityProperty());
 
     String encryptedPassword = result.getOut().getFirst();
     this.context.info("Encrypted as " + encryptedPassword);
