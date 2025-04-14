@@ -34,10 +34,6 @@ function doTestsInner() {
   for testpath in "${test_files_directory:?}/integration-tests"/*; do
     testcase="${testpath/*\//}"
     echo "Running test #${total}: ${testcase} (${testpath})"
-    # Every test runs in its own environment.
-    # Need to return back from created environment (integration test might have changed pwd).
-    #echo "Switching directory to: ${IDE_ROOT}"
-    #cd "${IDE_ROOT:?}" || exit
 
     integration_test_result=0
 
@@ -53,7 +49,6 @@ function doTestsInner() {
     set +e
 
     echo "RESULTS:"
-    echo "$integration_test_result"
     if [ "$integration_test_result" == 0 ]; then
       doSuccess "[SUCCESS] Succeeded running test #${total}: ${testcase}"
       ((success++))
@@ -99,16 +94,6 @@ function main () {
 
   echo "Switching directory to: ${IDEASY_DIR}"
   cd "${IDEASY_DIR}" || exit
-
-  # Will call IDEasy with variable
-  #ide="${IDE_ROOT}/_ide/bin/ide"
-  #alias ide="source ${IDE_ROOT}/_ide/bin/ide"
-  # TODO REMOVE? We will simulate having a virtual home.
-  #no need to: cd "${HOME}"
-  #echo -e "echo \"Tmp home dir's bashrc loading...\"" >> ~/.bashrc
-  #echo -e "alias ide=\"source ${PWD}/bin/ide\"" >> ~/.bashrc
-  # echo -e 'export IDE_ROOT="$(pwd)"' >> ~/.bashrc
-  #source ~/.bashrc
 
   # Determine IDEasy release to use for testing (default: downloads latest release)
   # NOTE: For debugging purposes, if you want to avoid download time, you can
