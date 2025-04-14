@@ -1,9 +1,8 @@
 #--- Preamble ---
 # Working dir (PWD) is IDE_ROOT (it should contain an ide installation)
 # Inherited variables:
-#    - $IDE      := IDEasy ($PWD/_ide/bin/ide)
 #    - $IDE_ROOT := PWD
-#    - All functions in functions-test
+#    - All functions in src/test
 # Use 'return <EXIT_CODE>' (instead of exit) to signal if test passed/failed.
 
 # For debugging integration scripts (like this script), it is a good idea to
