@@ -127,7 +127,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
     for (ToolPluginDescriptor plugin : plugins) {
       if (plugin.active()) {
-        if (retrievePluginMarkerFilePath(plugin) != null && Files.exists(retrievePluginMarkerFilePath(plugin))) {
+        if (!this.context.isForcePlugins() && retrievePluginMarkerFilePath(plugin) != null && Files.exists(retrievePluginMarkerFilePath(plugin))) {
           this.context.debug("Markerfile for IDE: {} and active plugin: {} already exists.", getName(), plugin.name());
         } else {
           try (Step step = this.context.newStep("Install plugin " + plugin.name())) {
