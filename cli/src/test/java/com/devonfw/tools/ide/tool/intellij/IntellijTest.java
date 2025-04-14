@@ -5,7 +5,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
@@ -125,14 +124,19 @@ public class IntellijTest extends AbstractIdeContextTest {
   @Test
   public void testCheckPluginInstallation() {
     // arrange
-    IdeContext context = newContext("intellij");
+    IdeTestContext context = newContext("intellij");
 
     // act
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
     commandlet.run();
 
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: ActivePlugin");
+
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
+
+    commandlet.run();
+    assertThat(context).logAtDebug().hasMessage("Markerfile for IDE: intellij and active plugin: ActivePlugin already exists.");
   }
 
   /**

@@ -106,4 +106,14 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
     return versions;
   }
 
+
+  @Override
+  public String getCpeVendor() {
+    return "gradle";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "gradle";
+  }
 }
