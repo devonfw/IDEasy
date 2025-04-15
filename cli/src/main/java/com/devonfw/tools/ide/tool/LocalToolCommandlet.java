@@ -330,7 +330,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   private String getInstalledEdition(Path toolPath) {
-
     if (!Files.isDirectory(toolPath)) {
       this.context.debug("Tool {} not installed in {}", this.tool, toolPath);
       return null;
@@ -369,6 +368,31 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
+  public Path getInstalledSoftwareRepoPath() {
+    if (this.context.getSoftwarePath() == null) {
+      return null;
+    }
+    return getInstalledSoftwareRepoPath(this.context.getSoftwarePath().resolve(this.tool));
+  }
+
+  private Path getInstalledSoftwareRepoPath(Path toolPath) {
+    if (!Files.isDirectory(toolPath)) {
+      this.context.debug("Tool {} not installed in {}", this.tool, toolPath);
+      return null;
+    }
+    Path realPath = this.context.getFileAccess().toRealPath(toolPath);
+    // if the realPath changed, a link has been resolved
+    if (realPath.equals(toolPath)) {
+      if (!isIgnoreSoftwareRepo()) {
+        this.context.warning("Tool {} is not installed via software repository (maybe from devonfw-ide). Please consider reinstalling it.", this.tool);
+      }
+      // I do not see any reliable way how we could determine the edition of a tool that does not use software repo or that was installed by devonfw-ide
+      return null;
+    }
+    return realPath;
+  }
+
+  @Override
   public void uninstall() {
 
     try {
@@ -379,6 +403,27 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           this.context.success("Successfully uninstalled " + this.tool);
         } catch (Exception e) {
           this.context.error("Couldn't uninstall " + this.tool);
+        }
+      } else {
+        this.context.warning("An installed version of " + this.tool + " does not exist");
+      }
+    } catch (Exception e) {
+      this.context.error(e.getMessage());
+    }
+  }
+
+  @Override
+  public void forceUninstall() {
+    try {
+      Path realPath = getInstalledSoftwareRepoPath();
+      if (Files.exists(realPath)) {
+        this.context.info("Physically deleting " + realPath + " as requested by the user via force mode.");
+        uninstall();
+        try {
+          this.context.getFileAccess().delete(realPath);
+          this.context.success("Successfully deleted " + realPath + " from your computer.");
+        } catch (Exception e) {
+          this.context.error("Couldn't uninstall " + this.tool + " from your computer.");
         }
       } else {
         this.context.warning("An installed version of " + this.tool + " does not exist");

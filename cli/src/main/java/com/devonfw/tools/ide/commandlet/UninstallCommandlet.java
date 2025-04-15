@@ -54,7 +54,16 @@ public class UninstallCommandlet extends Commandlet {
     for (int i = 0; i < valueCount; i++) {
       ToolCommandlet toolCommandlet = this.tools.getValue(i);
       if (toolCommandlet.getInstalledVersion() != null) {
-        toolCommandlet.uninstall();
+        if (this.context.isForceMode()) {
+          this.context.askToContinue(
+              "Sub-command uninstall via force mode will physically delete the currently installed version of " + toolCommandlet.getName()
+                  + " from the computer.\n"
+                  + "This may cause issues with other projects, that use the same version of " + toolCommandlet.getName() + ".\n"
+                  + "Deleting " + toolCommandlet.getName() + " version " + toolCommandlet.getInstalledVersion() + " from your computer. Continue?");
+          toolCommandlet.forceUninstall();
+        } else {
+          toolCommandlet.uninstall();
+        }
       } else {
         this.context.warning("Couldn't uninstall " + toolCommandlet.getName() + " because we could not find an installation");
       }
