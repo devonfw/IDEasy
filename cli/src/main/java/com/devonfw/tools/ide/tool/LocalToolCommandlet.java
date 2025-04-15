@@ -402,20 +402,21 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           this.context.getFileAccess().delete(softwarePath);
           this.context.success("Successfully uninstalled " + this.tool);
         } catch (Exception e) {
-          this.context.error("Couldn't uninstall " + this.tool);
+          this.context.error("Couldn't uninstall " + this.tool, e);
         }
       } else {
         this.context.warning("An installed version of " + this.tool + " does not exist");
       }
     } catch (Exception e) {
-      this.context.error(e.getMessage());
+      this.context.error(e.getMessage(), e);
     }
   }
 
   @Override
   public void forceUninstall() {
     try {
-      Path realPath = getInstalledSoftwareRepoPath();
+      Path repoPath = getInstalledSoftwareRepoPath();
+      Path realPath = getMacOsHelper().findLinkDir(repoPath, getBinaryName());
       if (Files.exists(realPath)) {
         this.context.info("Physically deleting " + realPath + " as requested by the user via force mode.");
         uninstall();
@@ -423,13 +424,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           this.context.getFileAccess().delete(realPath);
           this.context.success("Successfully deleted " + realPath + " from your computer.");
         } catch (Exception e) {
-          this.context.error("Couldn't uninstall " + this.tool + " from your computer.");
+          this.context.error("Couldn't uninstall " + this.tool + " from your computer.", e);
         }
       } else {
         this.context.warning("An installed version of " + this.tool + " does not exist");
       }
     } catch (Exception e) {
-      this.context.error(e.getMessage());
+      this.context.error("Couldn't uninstall " + this.tool + " from your computer. Installed version does not exist inside the software repository. ", e);
     }
   }
 
