@@ -6,6 +6,8 @@ import java.util.Objects;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 /**
  * Data-type to represent a {@link VersionIdentifier} in a structured way and allowing {@link #compareVersion(VersionIdentifier) comparison} of
@@ -234,6 +236,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
   }
 
   @Override
+  @JsonSerialize
   public String toString() {
 
     StringBuilder sb = new StringBuilder();
@@ -249,6 +252,7 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
    * @param version the {@link #toString() string representation} of the {@link VersionIdentifier} to parse.
    * @return the parsed {@link VersionIdentifier}.
    */
+  @JsonCreator
   public static VersionIdentifier of(String version) {
 
     if (version == null) {

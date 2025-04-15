@@ -26,20 +26,13 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
    * @param max the {@link #getMax() maximum}.
    * @param boundaryType the {@link BoundaryType} defining whether the boundaries of the range are inclusive or exclusive.
    */
-  private VersionRange(VersionIdentifier min, VersionIdentifier max, BoundaryType boundaryType) {
+  public VersionRange(VersionIdentifier min, VersionIdentifier max, BoundaryType boundaryType) {
 
     super();
     Objects.requireNonNull(boundaryType);
     this.min = min;
     this.max = max;
     this.boundaryType = boundaryType;
-    if ((min != null) && (max != null) && min.isGreater(max)) {
-      throw new IllegalArgumentException(toString());
-    } else if ((min == null) && !boundaryType.isLeftExclusive()) {
-      throw new IllegalArgumentException(toString());
-    } else if ((max == null) && !boundaryType.isRightExclusive()) {
-      throw new IllegalArgumentException(toString());
-    }
 
   }
 
@@ -106,8 +99,15 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
     }
     int compareMins = this.min.compareTo(o.min);
     if (compareMins == 0) {
-      return this.boundaryType.isLeftExclusive() == o.boundaryType.isLeftExclusive() ? 0
-          : this.boundaryType.isLeftExclusive() ? 1 : -1;
+      if (this.boundaryType.isLeftExclusive() == o.boundaryType.isLeftExclusive()) {
+        return 0;
+      } else {
+        if (this.boundaryType.isLeftExclusive()) {
+          return 1;
+        } else {
+          return -1;
+        }
+      }
     } else {
       return compareMins;
     }

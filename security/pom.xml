@@ -28,6 +28,12 @@
       <artifactId>url-updater</artifactId>
       <scope>compile</scope>
     </dependency>
+    <dependency>
+      <groupId>com.devonfw.tools.IDEasy</groupId>
+      <artifactId>url-updater</artifactId>
+      <version>2025.04.001-SNAPSHOT</version>
+      <scope>compile</scope>
+    </dependency>
   </dependencies>
 
 </project>

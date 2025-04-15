@@ -25,7 +25,7 @@ public class ToolSecurity {
   private List<CVE> issues;
 
 
-  private ToolSecurity() {
+  public ToolSecurity() {
     super();
   }
 
