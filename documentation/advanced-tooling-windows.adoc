@@ -51,7 +51,7 @@ image::images/WindowsTerminal.png["Shells inside Windows-Terminal"]
 For perfect integration, you should (re-)install `git` after Windows-Terminal has been installed and check the option `Add a Git Bash Profile to Windows Terminal` or follow the https://www.timschaeps.be/post/adding-git-bash-to-windows-terminal/[manual integration].
 
 .Integration of git-bash into Windows-Terminal
-image::https://linuxhint.com/wp-content/uploads/2022/09/add-git-bash-windows-terminal-05.png["Intergate git-bash into Windows-Terminal"]
+image::https://mobeigi.com/_next/image/?url=%2Fapi%2Fmedia%2Ffile%2Fgit-installer-windows-terminal-profile.webp&w=1200&q=75["Intergate git-bash into Windows-Terminal"]
 
 You can even open SSH sessions and WSL distributions from the context menu of `Windows Terminal` in a tab.
 
