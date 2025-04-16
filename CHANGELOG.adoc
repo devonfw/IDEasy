@@ -6,6 +6,9 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1233[#1233]: Fix dropdown width in MSI installer for drive selection
+
+
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/26?closed=1[milestone 2025.04.002].
 
 == 2025.04.001
