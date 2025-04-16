@@ -4,7 +4,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 == 2025.04.002
 
-* https://github.com/devonfw/IDEasy/issues/1243[#1243]: Fix display of ide status on error
+* https://github.com/devonfw/IDEasy/issues/1243[#1243]: Fix display of ide status although errors might occur
 
 Release with new features and bugfixes:
 
