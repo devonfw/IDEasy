@@ -40,4 +40,14 @@ public class TomcatUrlUpdater extends GithubUrlUpdater {
 
     return BASE_URL;
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "apache";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "tomcat";
+  }
 }

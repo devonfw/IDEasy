@@ -25,4 +25,13 @@ public abstract class GraalVmUrlUpdater extends GithubUrlUpdater {
     return "graalvm-ce-builds";
   }
 
+  @Override
+  public String getCpeVendor() {
+    return "oracle";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "graalvm";
+  }
 }
