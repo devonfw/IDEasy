@@ -9,6 +9,7 @@ import java.util.Map;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
@@ -82,7 +83,13 @@ public class UrlMetadata implements AbstractUrlMetadata {
     urlEdition.load(false);
     for (UrlVersion urlVersion : urlEdition.getChildren()) {
       VersionIdentifier versionIdentifier = urlVersion.getVersionIdentifier();
-      list.add(versionIdentifier);
+      SystemInfo sys = this.context.getSystemInfo();
+      try {
+        urlVersion.getMatchingUrls(sys.getOs(), sys.getArchitecture());
+        list.add(versionIdentifier);
+      } catch (IllegalStateException e) {
+        // ignore, but do not add versionIdentifier as there is no download available for the current system
+      }
     }
     list.sort(Comparator.reverseOrder());
     return Collections.unmodifiableList(list);
@@ -98,6 +105,7 @@ public class UrlMetadata implements AbstractUrlMetadata {
    */
   @Override
   public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
+
     List<VersionIdentifier> versions = getSortedVersions(tool, edition, toolCommandlet);
     return VersionIdentifier.resolveVersionPattern(version, versions, this.context);
   }
