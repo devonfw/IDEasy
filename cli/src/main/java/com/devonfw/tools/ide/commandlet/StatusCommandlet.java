@@ -46,7 +46,7 @@ public class StatusCommandlet extends Commandlet {
       step.run(this::logSettingsGitStatus);
       step = this.context.newStep(true, "Show legacy status");
       step.run(this::logSettingsLegacyStatus);
-      step = this.context.newStep(true, "Show migrations status");
+      step = this.context.newStep(true, "Show migration status");
       step.run(this::logMigrationStatus);
     }
     step = this.context.newStep(true, "Check for updates of IDEasy");
