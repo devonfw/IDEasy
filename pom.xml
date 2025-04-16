@@ -129,7 +129,7 @@
       <dependency>
         <groupId>org.wiremock</groupId>
         <artifactId>wiremock</artifactId>
-        <version>3.11.0</version>
+        <version>3.12.1</version>
       </dependency>
       <dependency>
         <groupId>org.testfx</groupId>
@@ -204,7 +204,7 @@
           <dependency>
             <groupId>org.pitest</groupId>
             <artifactId>pitest-junit5-plugin</artifactId>
-            <version>1.2.1</version>
+            <version>1.2.2</version>
           </dependency>
         </dependencies>
       </plugin>
