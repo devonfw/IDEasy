@@ -242,9 +242,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *
    * @param version the required {@link VersionRange}. See {@link ToolDependency#versionRange()}.
    * @param processContext the {@link ProcessContext}.
+   * @param toolParent the parent tool name needing the dependency
    * @return {@code true} if the tool was newly installed, {@code false} otherwise (installation was already present).
    */
-  public boolean installAsDependency(VersionRange version, ProcessContext processContext) {
+  public boolean installAsDependency(VersionRange version, ProcessContext processContext, String toolParent) {
 
     VersionIdentifier configuredVersion = getConfiguredVersion();
     if (version.contains(configuredVersion)) {
@@ -257,8 +258,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
                 + " and this tool does not support the software repository.");
       }
       this.context.info(
-          "Configured version of tool {} is {} but does not match version to install {} - need to use different version from software repository.",
-          this.tool, configuredVersion, version);
+          "The tool {} requires {} in the version range {}, but your project uses version {}, which does not match."
+              + " Therefore, we install an additional version {} to run it.",
+          toolParent, this.tool, version, configuredVersion, getLatestToolVersion());
     }
     ToolInstallation toolInstallation = installTool(version, processContext);
     return toolInstallation.newInstallation();
@@ -272,7 +274,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     for (ToolDependency dependency : dependencies) {
       this.context.trace("Ensuring dependency {} for tool {}", dependency.tool(), toolWithEdition);
       LocalToolCommandlet dependencyTool = this.context.getCommandletManager().getRequiredLocalToolCommandlet(dependency.tool());
-      dependencyTool.installAsDependency(dependency.versionRange(), processContext);
+      dependencyTool.installAsDependency(dependency.versionRange(), processContext, toolWithEdition);
     }
   }
 
@@ -422,6 +424,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (extraInstallation) {
       environmentContext.withPathEntry(toolInstallation.binDir());
     }
+  }
+
+  /**
+   * @return {@link VersionIdentifier} with latest version of the tool}.
+   */
+  public VersionIdentifier getLatestToolVersion() {
+
+    return this.context.getDefaultToolRepository().resolveVersion(this.tool, getConfiguredEdition(), VersionIdentifier.LATEST, this);
   }
 
 
