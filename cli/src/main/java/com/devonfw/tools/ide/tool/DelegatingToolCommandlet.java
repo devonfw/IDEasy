@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool;
 
+import java.nio.file.Path;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
@@ -49,8 +50,18 @@ public abstract class DelegatingToolCommandlet<D extends ToolCommandlet> extends
   }
 
   @Override
+  public Path getInstalledSoftwareRepoPath() {
+    return getDelegate().getInstalledSoftwareRepoPath();
+  }
+
+  @Override
   public void uninstall() {
     getDelegate().uninstall();
+  }
+
+  @Override
+  public void forceUninstall() {
+    getDelegate().forceUninstall();
   }
 
   @Override
