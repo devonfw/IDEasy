@@ -257,8 +257,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
                 + " and this tool does not support the software repository.");
       }
       this.context.info(
-          "Configured version of tool {} is {} but does not match version to install {} - need to use different version from software repository.",
-          this.tool, configuredVersion, version);
+          "The tool intellij requires {} in version range {} but your project is using {} version {} that does not match."
+              + " Hence, we install an additional {} version {} to run intellij.",
+          this.tool, version, this.tool, configuredVersion, this.tool, getLatestToolVersion());
     }
     ToolInstallation toolInstallation = installTool(version, processContext);
     return toolInstallation.newInstallation();
@@ -422,6 +423,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (extraInstallation) {
       environmentContext.withPathEntry(toolInstallation.binDir());
     }
+  }
+
+  /**
+   * @return {@link VersionIdentifier} with latest version of the tool}.
+   */
+  public VersionIdentifier getLatestToolVersion() {
+
+    return this.context.getDefaultToolRepository().resolveVersion(this.tool, getConfiguredEdition(), VersionIdentifier.LATEST, this);
   }
 
 
