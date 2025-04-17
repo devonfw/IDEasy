@@ -51,8 +51,8 @@ public class TomcatTest extends AbstractIdeContextTest {
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version " + javaVersionProject), //
         new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionProject), //
         new IdeLogEntry(IdeLogLevel.INFO,
-            "Configured version of tool java is 8u402b06 but does not match version to install [11,22) - need to use different version from software repository."),
-        //
+            "The tool intellij requires java in version range [11,22) but your project is using java version 8u402b06 that does not match."
+                + " Hence, we install an additional java version 21_35 to run intellij."), //
         new IdeLogEntry(IdeLogLevel.DEBUG, "Installed java in version " + javaVersionTomcat + " at ", true),
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed tomcat in version " + tomcatVersion), //
         new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionTomcat), //
