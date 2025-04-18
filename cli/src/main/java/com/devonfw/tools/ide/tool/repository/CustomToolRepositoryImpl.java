@@ -139,6 +139,11 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
   }
 
   @Override
+  public List<VersionIdentifier> getSortedVersions(String tool, String edition) {
+    return List.of();
+  }
+
+  @Override
   public Collection<CustomToolMetadata> getTools() {
 
     return this.tools;
