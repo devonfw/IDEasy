@@ -6,7 +6,11 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1233[#1233]: Fix dropdown width in MSI installer for drive selection
+* https://github.com/devonfw/IDEasy/issues/1229[#1229]: Installation fails if version not available for current OS
 * https://github.com/devonfw/IDEasy/issues/1190[#1190]: Add pycharm support to IDEasy
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/26?closed=1[milestone 2025.04.002].
 
 == 2025.04.001
 
@@ -49,7 +53,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 == 2025.02.002
 
-Release with new features and bugfixes:
+This is the first official release of IDEasy (end of BETA) with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/420[#420]: Add MSI Build and Deployment
 * https://github.com/devonfw/IDEasy/issues/1061[#1061]: Mac: no such file or directory: /_ide/installation/functions
