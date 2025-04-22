@@ -205,7 +205,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         }
       } else {
         // Makes sure that IDEasy will not delete itself
-        if (!this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
+        if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
+          this.context.warning("Your IDEasy installation is missing the version file at {}", toolVersionFile);
+        } else {
           this.context.warning("Deleting corrupted installation at {}", installationPath);
           fileAccess.delete(installationPath);
         }
