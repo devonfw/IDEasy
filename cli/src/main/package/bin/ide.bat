@@ -12,7 +12,7 @@ set "GIT_BIN=%GIT_HOME%\usr\bin"
 set "GIT_CORE=%GIT_HOME%\mingw64\libexec\git-core"
 
 if exist "%GIT_BIN%" (
-  echo "%PATH%" | FIND /i "%GIT_BIN%" >nul || set "PATH=%PATH%;%GIT_BIN%"
+  echo "%PATH%" | find /i "%GIT_BIN%" >nul || set "PATH=%PATH%;%GIT_BIN%"
 )
 
 if exist "%GIT_CORE%" (
@@ -21,10 +21,9 @@ if exist "%GIT_CORE%" (
 
 if not "%1%" == "" (
   ideasy %IDE_OPTIONS% %*
-  call :checkUseBash
-
   if not %ERRORLEVEL% == 0 (
     echo %_fBRed%Error: IDEasy failed with exit code %ERRORLEVEL% %_RESET%
+    call :echoUseBash
     exit /b %ERRORLEVEL%
   )
 )
@@ -34,20 +33,17 @@ for /f "tokens=*" %%i in ('ideasy %IDE_OPTIONS% env') do (
   call set %%i
 )
 
-ideasy %IDE_OPTIONS% env>nul
+ideasy %IDE_OPTIONS% env >nul
 
 if %ERRORLEVEL% == 0 (
   echo IDE environment variables have been set for %IDE_HOME% in workspace %WORKSPACE%
 )
-call :checkUseBash
 
+call :echoUseBash
 goto :eof
 
-
-:checkUseBash
-  if not defined MSYSTEM (
-    echo.
-    echo %_fBYellow%Please use ^(git-^)bash ^(integrated in Windows Terminal^) for full IDEasy support:
-    echo https://github.com/devonfw/IDEasy/blob/main/documentation/advanced-tooling-windows.adoc#tabs-for-shells %_RESET%
-  )
-  goto :eof
+:echoUseBash
+  echo.
+  echo %_fBYellow%Please use ^(git-^)bash ^(integrated in Windows Terminal^) for full IDEasy support:
+  echo https://github.com/devonfw/IDEasy/blob/main/documentation/advanced-tooling-windows.adoc#tabs-for-shells %_RESET%
+  exit /b
