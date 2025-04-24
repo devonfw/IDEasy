@@ -204,8 +204,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           return createToolInstallation(installationPath, resolvedVersion, toolVersionFile, false, processContext, extraInstallation);
         }
       } else {
-        this.context.warning("Deleting corrupted installation at {}", installationPath);
-        fileAccess.delete(installationPath);
+        // Makes sure that IDEasy will not delete itself
+        if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
+          this.context.warning("Your IDEasy installation is missing the version file at {}", toolVersionFile);
+        } else {
+          this.context.warning("Deleting corrupted installation at {}", installationPath);
+          fileAccess.delete(installationPath);
+        }
       }
     }
     Path downloadedToolFile = downloadTool(edition, toolRepository, resolvedVersion);
