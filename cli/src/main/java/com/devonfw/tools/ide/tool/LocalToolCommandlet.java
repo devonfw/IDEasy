@@ -416,13 +416,16 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public void forceUninstall() {
     try {
       Path repoPath = getInstalledSoftwareRepoPath();
-      Path realPath = getMacOsHelper().findLinkDir(repoPath, getBinaryName());
-      if (Files.exists(realPath)) {
-        this.context.info("Physically deleting " + realPath + " as requested by the user via force mode.");
+      Path effectivePath = repoPath;
+      if (this.context.getSystemInfo().isMac()) {
+        effectivePath = getMacOsHelper().findLinkDir(repoPath, getBinaryName());
+      }
+      if (Files.exists(effectivePath)) {
+        this.context.info("Physically deleting " + effectivePath + " as requested by the user via force mode.");
         uninstall();
         try {
-          this.context.getFileAccess().delete(realPath);
-          this.context.success("Successfully deleted " + realPath + " from your computer.");
+          this.context.getFileAccess().delete(effectivePath);
+          this.context.success("Successfully deleted " + effectivePath + " from your computer.");
         } catch (Exception e) {
           this.context.error("Couldn't uninstall " + this.tool + " from your computer.", e);
         }

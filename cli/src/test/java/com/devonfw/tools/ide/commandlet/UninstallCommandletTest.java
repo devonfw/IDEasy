@@ -37,7 +37,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
   private static void mockInstallTool(IdeTestContext context, String tool) {
 
     Path pathToInstallationOfDummyTool = context.getSoftwareRepositoryPath()
-        .resolve(context.getDefaultToolRepository().getId()).resolve(tool).resolve(tool + "/testVersion");
+        .resolve(context.getDefaultToolRepository().getId()).resolve(tool).resolve(tool).resolve("testVersion");
     Path pathToLinkedSoftware = context.getSoftwarePath().resolve(tool);
     context.getFileAccess().symlink(pathToInstallationOfDummyTool, pathToLinkedSoftware);
   }
@@ -126,10 +126,10 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).log()
         .hasEntries(IdeLogEntry.ofSuccess("Successfully deleted " + context.getSoftwareRepositoryPath()
-            .resolve(context.getDefaultToolRepository().getId()).resolve(tool).resolve(tool + "/testVersion") + " from your computer."));
+            .resolve(context.getDefaultToolRepository().getId()).resolve(tool).resolve(tool).resolve("testVersion") + " from your computer."));
     assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled " + tool));
     assertThat(context.getSoftwareRepositoryPath()
-        .resolve(context.getDefaultToolRepository().getId()).resolve(tool).resolve(tool + "/testVersion")).doesNotExist();
+        .resolve(context.getDefaultToolRepository().getId()).resolve(tool).resolve(tool).resolve("testVersion")).doesNotExist();
   }
 
   /** Test {@link UninstallCommandlet} without arguments uninstalls IDEasy. */
