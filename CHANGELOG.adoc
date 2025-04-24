@@ -8,6 +8,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1233[#1233]: Fix dropdown width in MSI installer for drive selection
 * https://github.com/devonfw/IDEasy/issues/1229[#1229]: Installation fails if version not available for current OS
+* https://github.com/devonfw/IDEasy/issues/1223[#1223]: IDEasy upgrade is not working on Mac M1
 * https://github.com/devonfw/IDEasy/issues/1252[#1252]: Create warning when using CMD or PowerShell
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/26?closed=1[milestone 2025.04.002].
