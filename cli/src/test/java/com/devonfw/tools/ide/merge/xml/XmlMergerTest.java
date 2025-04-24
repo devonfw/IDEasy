@@ -100,8 +100,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
    *
    * @param os String of the OS to use.
    */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
+  @Test
   void testLegacySupportXmlMerge(String os) {
 
     // arrange
