@@ -130,7 +130,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
         } else {
           strategy = XmlMergeStrategy.KEEP;
         }
-      } else if (templateRoot.lookupNamespaceURI("merge") == null) {
+      } else if (templateRoot.lookupPrefix(MERGE_NS_URI) == null) {
         this.context.warning(
             "XML merge namespace not found. If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
                 + "proceed correctly.");
