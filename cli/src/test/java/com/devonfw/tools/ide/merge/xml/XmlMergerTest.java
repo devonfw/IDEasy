@@ -111,7 +111,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
     Path workspaceSetupPath = devonfwIdePath.resolve("workspaces").resolve("main").resolve("setup.xml");
     Path workspaceUpdatePath = devonfwIdePath.resolve("workspaces").resolve("main").resolve("update.xml");
     Path workspaceUpdateWithNsPath = devonfwIdePath.resolve("workspaces").resolve("main").resolve("updateWithNs.xml");
-    Path workspaceUpdateCombinedPath = devonfwIdePath.resolve("workspaces").resolve("main").resolve("combinedUpdate.xml");
+    Path workspaceResultUpdateWithNsPath = devonfwIdePath.resolve("workspaces").resolve("main").resolve("expectedResultUpdateWithNs.xml");
     XmlMerger merger = new XmlMerger(context);
 
     // act
@@ -122,7 +122,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
     // assert
     XmlAssert.assertThat(settingsSetupPath.toFile()).and(workspaceSetupPath.toFile()).areIdentical();
     XmlAssert.assertThat(settingsUpdatePath.toFile()).and(settingsUpdatePath.toFile()).areIdentical();
-    XmlAssert.assertThat(workspaceUpdateWithNsPath.toFile()).and(workspaceUpdateCombinedPath.toFile()).areIdentical();
+    XmlAssert.assertThat(workspaceUpdateWithNsPath.toFile()).and(workspaceResultUpdateWithNsPath.toFile()).areIdentical();
 
   }
 
