@@ -124,7 +124,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
       if (strategy == null) {
         strategy = XmlMergeStrategy.COMBINE; // default strategy used as fallback
       }
-      if (this.legacyXmlSupport && (templateRoot.lookupNamespaceURI("merge") == null)) {
+      if (this.legacyXmlSupport && (templateRoot.lookupPrefix(MERGE_NS_URI) == null)) {
         if (workspaceFileExists) {
           strategy = XmlMergeStrategy.OVERRIDE;
         } else {
