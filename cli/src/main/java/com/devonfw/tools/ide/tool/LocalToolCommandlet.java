@@ -1,10 +1,8 @@
 package com.devonfw.tools.ide.tool;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Collection;
 import java.util.Set;
 
@@ -223,11 +221,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     fileAccess.mkdirs(installationPath.getParent());
     fileAccess.extract(downloadedToolFile, installationPath, this::postExtract, extract);
-    try {
-      Files.writeString(toolVersionFile, resolvedVersion.toString(), StandardOpenOption.CREATE_NEW);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to write version file " + toolVersionFile, e);
-    }
+    this.context.writeVersionFile(resolvedVersion, installationPath);
     this.context.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
     return createToolInstallation(installationPath, resolvedVersion, toolVersionFile, true, processContext, extraInstallation);
   }
