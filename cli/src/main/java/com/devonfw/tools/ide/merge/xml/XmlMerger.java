@@ -124,16 +124,18 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
       if (strategy == null) {
         strategy = XmlMergeStrategy.COMBINE; // default strategy used as fallback
       }
-      if (this.legacyXmlSupport && (templateRoot.lookupPrefix(MERGE_NS_URI) == null)) {
-        if (workspaceFileExists) {
-          strategy = XmlMergeStrategy.OVERRIDE;
+      if (templateRoot.lookupPrefix(MERGE_NS_URI) == null) {
+        if (this.legacyXmlSupport) {
+          if (workspaceFileExists) {
+            strategy = XmlMergeStrategy.OVERRIDE;
+          } else {
+            strategy = XmlMergeStrategy.KEEP;
+          }
         } else {
-          strategy = XmlMergeStrategy.KEEP;
+          this.context.warning(
+              "XML merge namespace not found. If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
+                  + "proceed correctly.");
         }
-      } else if (templateRoot.lookupPrefix(MERGE_NS_URI) == null) {
-        this.context.warning(
-            "XML merge namespace not found. If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
-                + "proceed correctly.");
       }
       ElementMatcher elementMatcher = new ElementMatcher(this.context);
       strategy.merge(templateRoot, workspaceRoot, elementMatcher);
