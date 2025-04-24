@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root xmlns:merge="https://github.com/devonfw/IDEasy/merge" merge:strategy="combine">
+  <element name="elem1" attr1="updateNsValue1">This is an element of the updated XML file with namespace</element>
+  <element name="elem2" attr2="updateNsValue2">This is another element of the updated XML file with namespace</element>
+  <element1 merge:id="name()" attr1="newValue">New text 1</element1>
+</root>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root>
+  <element name="elem1" attr1="workspaceValue" attr3="value3">This is the old workspace XML file</element>
+  <element1 attr2="oldValue">1</element1>
+  <element2 attr2="oldValue">2</element2>
+</root>
