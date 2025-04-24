@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.context;
 
+import static com.devonfw.tools.ide.variable.IdeVariables.IDE_MIN_VERSION;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -67,6 +69,7 @@ import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -899,6 +902,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
       this.startContext.activateLogging();
+      verifyIdeMinVersion();
       if (result != null) {
         error(result.getErrorMessage());
       }
@@ -1058,6 +1062,15 @@ public abstract class AbstractIdeContext implements IdeContext {
               this.ideHome.getFileName(), this.ideRoot);
         }
       }
+    }
+  }
+
+  private void verifyIdeMinVersion() {
+    if (IdeVersion.getVersionIdentifier().compareVersion(IDE_MIN_VERSION.get(this)).isLess()) {
+      warning(String.format("Your version of IDEasy is currently %s\n"
+          + "However, this is too old as your project requires at latest version %s\n"
+          + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
+          + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), IDE_MIN_VERSION.get(this).toString()));
     }
   }
 

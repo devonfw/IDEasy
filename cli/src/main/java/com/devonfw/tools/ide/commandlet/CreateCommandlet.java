@@ -1,8 +1,11 @@
 package com.devonfw.tools.ide.commandlet;
 
+import static com.devonfw.tools.ide.variable.IdeVariables.IDE_MIN_VERSION;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -61,6 +64,12 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     initializeProject(newProjectPath);
     this.context.setIdeHome(newProjectPath);
+    if (IdeVersion.getVersionIdentifier().compareVersion(IDE_MIN_VERSION.get(context)).isLess()) {
+      throw new CliException(String.format("Your version of IDEasy is currently %s\n"
+          + "However, this is too old as your project requires at latest version %s\n"
+          + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
+          + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), IDE_MIN_VERSION.get(context).toString()));
+    }
     super.run();
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
     this.context.success("Successfully created new project '{}'.", newProjectName);

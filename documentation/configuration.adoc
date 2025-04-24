@@ -7,7 +7,7 @@ toc::[]
 The configuration of the link:cli.adoc[ide] command and environment variables takes place via `ide.properties` files.
 The following list shows these configuration folders in the order they are loaded so files can override configurations:
 
-1. build in defaults (for `MAVEN_ARGS`, `IDE_TOOLS`, etc.)
+1. built-in defaults (for `MAVEN_ARGS`, `IDE_TOOLS`, etc.)
 2. `~/.ide/` - user specific global defaults (on Windows in `%USERPROFILE%/.ide/`)
 3. `https://github.com/devonfw/ide-settings/blob/main/[settings/]` - project specific configurations from link:settings.adoc[settings].
 4. `workspaces/${WORKSPACE}/` - optional workspace specific configurations.
