@@ -36,7 +36,7 @@ Changes to settings can then be committed alongside code changes.
 
 However, please note that the "settings in code repository" approach is not recommended (happy path) and has the following disadvantages:
 
-* Code repositories have their own CI and review process and it is typically more hard and slow to incorporate changes
+* Code repositories have their own CI and review process and it is typically more hard and slow to incorporate changes.
 * Code repositories are typically big and need more time to clone.
 IDE admins that frequently want to test changes to the settings on feature branches via `ide create ...` will have to wait longer and might be annoyed.
 * In real life you typically work with multiple code repositories (frontend/backend, microservices, libraries, ...) but you want to have consistent IDEasy settings for that or at least an N:M mapping between code-repos and settings.
@@ -52,7 +52,7 @@ However, if you are in a monolithic project with complex release branches you ma
 
 == Structure
 
-The settings folder (see `link:variables.adoc[SETTINGS_PATH]`) has to follow this file structure:
+The settings folder has to follow this file structure:
 
 .File structure of settings
 [subs=+macros]
