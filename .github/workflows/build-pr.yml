@@ -16,3 +16,5 @@ jobs:
         run: mvn -B -ntp -Dstyle.color=always install
       - name: Coveralls GitHub Action
         uses: coverallsapp/github-action@v2.2.3
+        with:
+          fail-on-error: false
