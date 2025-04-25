@@ -7,6 +7,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
@@ -89,6 +90,7 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     assertThat(installationPath.resolve("IDEasy.pdf")).hasContent("IDEasy.pdf mock");
     assertThat(installationPath.resolve("setup")).hasContent("setup mock");
     assertThat(installationPath.resolve("setup.bat")).hasContent("setup.bat mock");
+    assertThat(installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION)).hasContent("SNAPSHOT");
   }
 
 }
