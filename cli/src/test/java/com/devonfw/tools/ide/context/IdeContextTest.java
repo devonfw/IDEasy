@@ -159,14 +159,10 @@ public class IdeContextTest extends AbstractIdeContextTest {
     String ideVersion = IdeVersion.getVersionIdentifier().toString();
     variables.getByType(EnvironmentVariablesType.CONF).set("IDE_MIN_VERSION", ideVersion);
     CliArguments args = new CliArguments();
-    String warningMessage = String.format("Your version of IDEasy is currently %s\n"
-        + "However, this is too old as your project requires at latest version %s\n"
-        + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
-        + "ide upgrade", ideVersion, ideVersion);
     // act
     context.run(args);
     // assert
-    assertThat(context).logAtWarning().hasNoMessage(warningMessage);
+    assertThat(context).log().hasNoMessageContaining("However, this is too old as your project requires at latest version");
   }
 
 }
