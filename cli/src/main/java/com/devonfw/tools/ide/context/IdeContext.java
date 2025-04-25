@@ -719,4 +719,11 @@ public interface IdeContext extends IdeStartContext {
    */
   void logIdeHomeAndRootStatus();
 
+  /**
+   * checks if the ide version is at least IDE_MIN_VERSION
+   *
+   * @param throwError whether to throw a CliException or just log a warning
+   */
+  void verifyIdeMinVersion(boolean throwException);
+
 }
