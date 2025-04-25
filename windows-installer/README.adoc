@@ -1,0 +1,73 @@
+:toc: macro
+toc::[]
+
+== Building IDEASY MSI Package with WixToolSet v5
+
+=== Prerequisites
+
+Ensure you have the following installed:
+
+- .NET SDK 6.0 or later
+- dotnet (supported by IDEasy itself)
+- Wixtoolset v.5 `dotnet tool install --global wix --version 5.0.2`
+
+=== Steps to Build the MSI Package
+
+1. **Add the necessary WiX extensions**
+
+   cd windows-installer
+   wix extension add WixToolset.UI.wixext/5.0.2
+   wix extension add WixToolset.Util.wixext/5.0.2
+
+2. **Build the MSI package**
+
+   wix build Package.wxs WixUI_IDEasySetup.wxs -loc Package.en-us.wxl -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext -o ideasy.msi
+
+== Debugging Installation Issues
+
+To debug the installation process and capture detailed logs, use the following command:
+
+```
+msiexec /i IDEASY.msi /l*vx install.log
+```
+
+This will create a verbose log file (`install.log`) that can help diagnose installation issues.
+
+== Additional Notes
+
+- Ensure that all dependencies and required WiX extensions are correctly installed.
+- Verify the generated MSI file to confirm that all components are included as expected.
+- Use the log file for troubleshooting any issues encountered during installation.
+- Use CMD or Powershell
+
+== Files
+
+link:Package.wxs[Package.wxs]
+
+This file serves as the entry point for the Windows installation process.
+It defines custom actions, properties, and the installation logic.
+Additionally, it specifies which files should be installed during the process.
+
+Here you can define what files should be included in the installation:
+
+			<Files Include="msi-files\**" />
+
+Here you define the script that will be executed after installation:
+
+      <SetProperty
+            Id="RunSetupAction"
+            Value="&quot;[INSTALLFOLDER]bin\ideasy.exe&quot; -f install"
+            Before="RunSetupAction"
+            Sequence="execute"
+            />
+
+link:WixUI_IDEasySetup.wxs[WixUI_IDEasySetup.wxs]
+
+This file contains all elements related to the UI for the installation.
+You can configure the sequence of UI dialogs, add triggers for custom actions based on UI elements and customize dialogs like the InstallPathDlg, where users can choose their preferred installation directory.
+Most of the current UI is inherited by `WixUI_InstallDir.wxs` from WixUI dialog library in WixToolSet.
+
+link:Package.en-us.wxl[Package.en-us.wxl]
+
+A localization file containing text strings for English (US).
+By adding further localization files, we can support additional languages.

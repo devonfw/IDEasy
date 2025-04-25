@@ -1,0 +1,16 @@
+﻿<!--
+This file contains the declaration of all the localizable strings.
+-->
+<WixLocalization xmlns="http://wixtoolset.org/schemas/v4/wxl" Culture="en-US">
+
+  <String Id="DowngradeError" Value="A newer version of [ProductName] is already installed." />
+  <String Id="InstallPathDlg_Title" Value="[ProductName] Setup" />
+  <String Id="InstallPathDlgTitle" Value="{\WixUI_Font_Title}Select Project Folder" />
+  <String Id="InstallPathDlgDescription" Value="Click Next to install to the default folder or customize with options below." />
+  <String Id="InstallDirDlgBannerBitmap" Value="WixUI_Bmp_Banner"/>
+  <String Id="SelectCustomDrive" Value="Please choose the drive where you want to install IDEasy:"/>
+  <String Id="SelectCustomDriveText" Value="Please choose the drive where you want to install IDEasy:"/>
+  <String Id="SelectInstallLocationText" Value="Select your preferred installation location:"/>
+  <String Id="InstallUserHomeOption" Value="Install in Home Directory - [USERFOLDER]projects"/>
+  <String Id="InstallCustomOption" Value="Install in Custom Directory - e.g., [ROOTDRIVE]projects"/>
+</WixLocalization>

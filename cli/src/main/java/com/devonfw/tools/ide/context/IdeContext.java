@@ -609,21 +609,24 @@ public interface IdeContext extends IdeStartContext {
    */
   default Path getMavenConfigurationFolder() {
 
-    if (getIdeHome() != null) {
-      Path confPath = getConfPath();
-      Path m2Folder = confPath.resolve(Mvn.MVN_CONFIG_FOLDER);
-      if (!Files.isDirectory(m2Folder)) {
+    Path confPath = getConfPath();
+    Path mvnConfFolder = null;
+    if (confPath != null) {
+      mvnConfFolder = confPath.resolve(Mvn.MVN_CONFIG_FOLDER);
+      if (!Files.isDirectory(mvnConfFolder)) {
         Path m2LegacyFolder = confPath.resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
         if (Files.isDirectory(m2LegacyFolder)) {
-          m2Folder = m2LegacyFolder;
+          mvnConfFolder = m2LegacyFolder;
         } else {
-          // fallback to USER_HOME/.m2 folder
-          m2Folder = getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
+          mvnConfFolder = null; // see fallback below
         }
       }
-      return m2Folder;
     }
-    return null;
+    if (mvnConfFolder == null) {
+      // fallback to USER_HOME/.m2 folder
+      mvnConfFolder = getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
+    }
+    return mvnConfFolder;
   }
 
   /**

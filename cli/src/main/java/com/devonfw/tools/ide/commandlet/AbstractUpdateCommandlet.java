@@ -268,7 +268,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       scriptContent = "#!/usr/bin/env bash\n"
           + "cd \"$(dirname \"$0\")\"\n"
           + "cd workspaces/" + workspace + "\n"
-          + "ide " + ide + "\n";
+          + "ideasy " + ide + "\n";
     }
     FileAccess fileAccess = this.context.getFileAccess();
     fileAccess.writeFileContent(scriptContent, scriptPath);
