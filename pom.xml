@@ -25,7 +25,7 @@
     <jackson.version>2.18.3</jackson.version>
     <xmlunit.version>2.10.0</xmlunit.version>
     <wiremock.version>3.11.0</wiremock.version>
-    <javafx.version>21</javafx.version>
+    <javafx.version>25-ea+14</javafx.version>
     <testfx.version>4.0.18</testfx.version>
     <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
     <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
