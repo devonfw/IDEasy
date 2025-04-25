@@ -107,12 +107,13 @@ This should not cause errors but say that you are online and tell you if updates
 11. If that is now working fine, make this setting persistent:
 +
 ```
-echo 'export IDE_OPTIONS="-Djavax.net.ssl.trustStore=$IDE_HOME/settings/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit"' >> conf/ide.properties
+touch ~/.ide/ide.properties
+echo 'export IDE_OPTIONS="-Djavax.net.ssl.trustStore=$IDE_HOME/settings/truststore.p12 -Djavax.net.ssl.trustStorePassword=changeit"' >> ~/.ide/ide.properties
 ```
 12. Open a new shell and try if `ide` commands (like `ide status`) are still working.
 13. You are now all set. Commit and push the `truststore.p12` file to your settings git repo to share it with your team.
 14. Provide a wiki page for your team with only step 11. and share it.
-15. If everybody in your team is affected, you can even add the line directly to the https://github.com/devonfw/ide-settings/blob/main/templates/conf/ide.properties[conf/ide.properties template in your settings repo].
+15. If everybody in your team is affected by this VPN/TLS issue, you can even add the line directly to the https://github.com/devonfw/ide-settings/blob/main/templates/conf/ide.properties[conf/ide.properties template in your settings repo].
 
 Sorry, that we cannot support you automatically in this scenario.
 Ask your VPN tool vendor for support and why this is all required.
