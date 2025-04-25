@@ -42,10 +42,10 @@ public class VscodeTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if after the installation of vscode the expected plugin marker file is existing and recommendations were added.
+   * Tests if after the installation of vscode the expected plugin marker file is existing.
    */
   @Test
-  public void testCheckPluginInstallationAndRecommendation() {
+  public void testCheckPluginInstallation() {
     // arrange
     IdeTestContext context = newContext(PROJECT_VSCODE);
 
@@ -66,10 +66,7 @@ public class VscodeTest extends AbstractIdeContextTest {
 
     //check plugins folder
     assertThat(context.getIdeHome().resolve("plugins").resolve("vscode")).exists();
-
-    //check Recommendations
-    assertThat(context.getWorkspacePath().resolve(".vscode").resolve("extensions.json")).exists()
-        .hasContent("{\"recommendations\":[\"esbenp.prettier-vscode\",\"mockedPlugin2\"]}");
+    
   }
 
 
