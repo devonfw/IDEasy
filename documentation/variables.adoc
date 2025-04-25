@@ -35,5 +35,5 @@ Please note that we are trying to minimize any potential side-effect from `IDEas
 |`«TOOL»_VERSION`|`*`|The version of the tool `«TOOL»` to install and use (e.g. `ECLIPSE_VERSION` or `MVN_VERSION`).
 |`«TOOL»_BUILD_OPTS`| |The arguments provided to the build-tool `«TOOL»` in order to run a build. E.g.`clean install`
 |`«TOOL»_RELEASE_OPTS`| |The arguments provided to the build-tool `«TOOL»` in order to perform a release build. E.g.`clean deploy -Dchangelist= -Pdeploy`
-|`IDE_MIN_VERSION`| | The minimum version of IDEasy that should be installed. Causes `ide create` to fail if violated, otherwise renders a warning
+|`IDE_MIN_VERSION`| | The minimum version of IDEasy that is required by your project. Causes `ide create` to fail if violated, otherwise renders a warning
 |=======================

@@ -84,6 +84,12 @@ public interface IdeVariables {
   VariableDefinitionBoolean IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED = new VariableDefinitionBoolean("IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED", null,
       c -> Boolean.TRUE);
 
+  /**
+   * {@link VariableDefinition} for support of legacy xml templates without XML merge namespace
+   */
+  VariableDefinitionBoolean IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED = new VariableDefinitionBoolean("IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED", null,
+      c -> Boolean.FALSE);
+
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getProjectName() DEVON_IDE_CUSTOM_TOOLS}. */
   VariableDefinitionString DEVON_IDE_CUSTOM_TOOLS = new VariableDefinitionString("DEVON_IDE_CUSTOM_TOOLS");
 

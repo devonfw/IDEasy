@@ -1338,4 +1338,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.variables = null;
     this.customToolRepository = null;
   }
+
+  @Override
+  public void writeVersionFile(VersionIdentifier version, Path installationPath) {
+
+    assert (Files.isDirectory(installationPath));
+    Path versionFile = installationPath.resolve(FILE_SOFTWARE_VERSION);
+    getFileAccess().writeFileContent(version.toString(), versionFile);
+  }
+
 }
