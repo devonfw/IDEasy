@@ -28,7 +28,7 @@ public class Pycharm extends IdeaBasedIdeToolCommandlet {
    */
   public Pycharm(IdeContext context) {
 
-    super(context, "pycharm", Set.of(Tag.PYCHARM));
+    super(context, "pycharm", Set.of(Tag.PYCHARM, Tag.PYTHON));
   }
 
   @Override
