@@ -2,6 +2,10 @@
 #set -eu
 set -o pipefail
 
+# Workaround to create license.agreement file and simulate a proper installation.
+mkdir -p "${HOME}"/.ide
+touch "${HOME}"/.ide/.license.agreement
+
 source "$(dirname "${0}")"/functions-test.sh
 
 MATRIX_OS="$1"
