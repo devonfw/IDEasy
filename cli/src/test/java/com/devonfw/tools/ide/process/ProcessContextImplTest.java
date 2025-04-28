@@ -72,7 +72,7 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
   public void missingExecutableShouldThrowIllegalState() throws Exception {
 
     // arrange
-    String expectedMessage = "Missing executable to run process!";
+    String expectedMessage = "No executable set";
 
     Field underTestExecutable = ReflectionUtils.findFields(ProcessContextImpl.class,
         f -> f.getName().equals("executable"), ReflectionUtils.HierarchyTraversalMode.TOP_DOWN).get(0);

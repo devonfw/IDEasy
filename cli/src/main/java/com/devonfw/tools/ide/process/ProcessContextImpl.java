@@ -42,6 +42,8 @@ public class ProcessContextImpl implements ProcessContext {
 
   private Path executable;
 
+  private boolean executableResolved = false;
+
   private String overriddenPath;
 
   private final List<Path> extraPathEntries;
@@ -93,11 +95,21 @@ public class ProcessContextImpl implements ProcessContext {
   @Override
   public ProcessContext executable(Path command) {
 
+    return executable(command, false);
+  }
+
+  @Override
+  public ProcessContext executable(Path command, boolean check) {
+
     if (!this.arguments.isEmpty()) {
       throw new IllegalStateException("Arguments already present - did you forget to call run for previous call?");
     }
 
     this.executable = command;
+
+    if (check) {
+      resolveExecutable();
+    }
     return this;
   }
 
@@ -127,6 +139,21 @@ public class ProcessContextImpl implements ProcessContext {
     return this;
   }
 
+  private void resolveExecutable() {
+    if (this.executable == null) {
+      throw new IllegalStateException("No executable set");
+    }
+    SystemPath systemPath = this.context.getPath();
+    if ((this.overriddenPath != null) || !this.extraPathEntries.isEmpty()) {
+      systemPath = systemPath.withPath(this.overriddenPath, this.extraPathEntries);
+    }
+    String path = systemPath.toString();
+    this.context.trace("Setting PATH for process execution of {} to {}", this.executable.getFileName(), path);
+    this.executable = systemPath.findBinary(this.executable);
+    this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
+    this.executableResolved = true;
+  }
+
   @Override
   public ProcessResult run(ProcessMode processMode) {
 
@@ -138,18 +165,10 @@ public class ProcessContextImpl implements ProcessContext {
       this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
     }
 
-    if (this.executable == null) {
-      throw new IllegalStateException("Missing executable to run process!");
+    if (!this.executableResolved) {
+      resolveExecutable();
     }
 
-    SystemPath systemPath = this.context.getPath();
-    if ((this.overriddenPath != null) || !this.extraPathEntries.isEmpty()) {
-      systemPath = systemPath.withPath(this.overriddenPath, this.extraPathEntries);
-    }
-    String path = systemPath.toString();
-    this.context.trace("Setting PATH for process execution of {} to {}", this.executable.getFileName(), path);
-    this.executable = systemPath.findBinary(this.executable);
-    this.processBuilder.environment().put(IdeVariables.PATH.getName(), path);
     List<String> args = new ArrayList<>(this.arguments.size() + 4);
     String interpreter = addExecutable(args);
     args.addAll(this.arguments);
