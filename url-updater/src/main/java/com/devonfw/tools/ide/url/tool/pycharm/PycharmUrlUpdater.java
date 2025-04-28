@@ -4,19 +4,18 @@ import java.util.List;
 
 import com.devonfw.tools.ide.json.JsonMapping;
 import com.devonfw.tools.ide.url.tool.intellij.IntellijJsonObject;
-import com.devonfw.tools.ide.url.tool.intellij.IntellijUrlUpdater;
+import com.devonfw.tools.ide.url.updater.IdeaBasedUrlUpdater;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * {@link IntellijUrlUpdater} base class for Pycharm.
+ * {@link IdeaBasedUrlUpdater} base class for Pycharm.
  */
-public class PycharmUrlUpdater extends IntellijUrlUpdater {
+public class PycharmUrlUpdater extends IdeaBasedUrlUpdater {
 
-  private static final String VERSION_BASE_URL = "https://data.services.jetbrains.com";
   private static final String JSON_URL = "products?code=PCP%2CPCC&release.type=release";
   private static final List<String> EDITIONS = List.of("professional", "pycharm");
-  private static final ObjectMapper MAPPER = JsonMapping.create();
+  protected static final ObjectMapper MAPPER = JsonMapping.create();
 
   @Override
   protected String getTool() {
@@ -49,11 +48,5 @@ public class PycharmUrlUpdater extends IntellijUrlUpdater {
   protected String doGetVersionUrl() {
 
     return getVersionBaseUrl() + "/" + JSON_URL;
-  }
-
-  @Override
-  protected String getVersionBaseUrl() {
-
-    return VERSION_BASE_URL;
   }
 }
