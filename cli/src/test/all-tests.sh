@@ -6,7 +6,7 @@ set -o pipefail
 mkdir -p "${HOME}"/.ide
 touch "${HOME}"/.ide/.license.agreement
 
-source "$(dirname "${0}")"/functions-test.sh
+source "$(dirname "${0}")"/all-tests-functions.sh
 
 MATRIX_OS="$1"
 # Switch IDEasy binary file name based on github workflow matrix.os name (first argument of all-tests.sh)
