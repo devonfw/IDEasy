@@ -1,4 +1,3 @@
-#--- Body ---
 echo "Running help integration test"
 output=$(ide help)
 
