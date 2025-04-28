@@ -3,9 +3,6 @@ package com.devonfw.tools.ide.cli;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.devonfw.tools.ide.commandlet.ContextCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -21,8 +18,6 @@ import com.devonfw.tools.ide.property.Property;
 public final class Ideasy {
 
   private AbstractIdeContext context;
-
-  private static final Logger logger = LoggerFactory.getLogger(Ideasy.class);
 
   /**
    * The default constructor.
