@@ -21,10 +21,9 @@ if exist "%GIT_CORE%" (
 
 if not "%1%" == "" (
   ideasy %IDE_OPTIONS% %*
-  if not %ERRORLEVEL% == 0 (
-    echo %_fBRed%Error: IDEasy failed with exit code %ERRORLEVEL% %_RESET%
-    call :echoUseBash
-    exit /b %ERRORLEVEL%
+  if errorlevel 1 (
+    goto :echoErrorOutput
+    exit \b
   )
 )
 
@@ -47,3 +46,8 @@ goto :eof
   echo %_fBYellow%Please use ^(git-^)bash ^(integrated in Windows Terminal^) for full IDEasy support:
   echo https://github.com/devonfw/IDEasy/blob/main/documentation/advanced-tooling-windows.adoc#tabs-for-shells %_RESET%
   exit /b
+
+:echoErrorOutput
+  echo %_fBRed%Error: IDEasy failed with exit code %ERRORLEVEL% %_RESET%
+  call :echoUseBash
+  exit /b %ERRORLEVEL%
