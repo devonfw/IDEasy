@@ -133,8 +133,8 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
           }
         } else {
           this.context.warning(
-              "XML merge namespace not found. If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
-                  + "proceed correctly.");
+              "XML merge namespace not found in file {}. If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
+                  + "proceed correctly.", source.getFileName());
         }
       }
       ElementMatcher elementMatcher = new ElementMatcher(this.context);
