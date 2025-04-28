@@ -2,10 +2,17 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.05.001
+
+Release with new features and bugfixes:
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/27?closed=1[milestone 2025.05.001].
+
 == 2025.04.002
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1037[#1037]: Add devonfw-ide legacy support for merging XML templates without namespace
 * https://github.com/devonfw/IDEasy/issues/1217[#1217]: Remove plugin recommendation feature in VSCode
 * https://github.com/devonfw/IDEasy/issues/1243[#1243]: Fix display of ide status although errors might occur
 * https://github.com/devonfw/IDEasy/issues/1233[#1233]: Fix dropdown width in MSI installer for drive selection
