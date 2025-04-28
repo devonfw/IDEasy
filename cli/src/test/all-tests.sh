@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -eu
+set -e
 set -o pipefail
 
 # Workaround to create license.agreement file and simulate a proper installation.

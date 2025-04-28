@@ -8,10 +8,8 @@
 # For debugging integration scripts (like this script), it is a good idea to
 # fail whenever an error occurred (set -e). When you finished writing the
 # test, however, please remove your 'set -e' line, since in production it will
-# exit and not run subsequent integration tests. 
-#set -e 
+# exit and not run subsequent integration tests.
 
 #--- Body ---
-set -e
 echo "Running install intellij integration test"
 ide -d install intellij
