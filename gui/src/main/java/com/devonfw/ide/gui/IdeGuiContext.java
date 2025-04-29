@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.io.IdeProgressBar;
 /**
  *
  */
-public class AbstractIdeGuiContext extends AbstractIdeContext {
+public class IdeGuiContext extends AbstractIdeContext {
 
 
   /**
@@ -18,7 +18,7 @@ public class AbstractIdeGuiContext extends AbstractIdeContext {
    * @param startContext the {@link com.devonfw.tools.ide.log.IdeLogger IdeLogger}.
    * @param workingDirectory the optional {@link Path} to current working directory.
    */
-  public AbstractIdeGuiContext(IdeStartContextImpl startContext, Path workingDirectory) {
+  public IdeGuiContext(IdeStartContextImpl startContext, Path workingDirectory) {
     super(startContext, workingDirectory);
   }
 

@@ -1,23 +1,30 @@
 VBox {
+
   -fx-background-color: #B0E0E6;
 }
 
 .sideNavigationElement {
-    -fx-max-width: Infinity;
-    -fx-pref-width: Infinity;
-    -fx-min-height: 40;
+
     -fx-border-radius: 0;
-    -fx-background-color: transparent;
-    -fx-alignment: CENTER_LEFT;
+    -fx-background-color: #ADD8E6;
     -fx-padding: 10;
-    -fx-font-size: 18px;
-    -fx-opacity: 1.0;
+    -fx-font-size: 16px;
     -fx-text-fill: #000;
+    -fx-border-radius: 10px;
+    -fx-background-radius: 10px;
+
   }
 
-.sideNavigationElement:hover {
-  -fx-background-color: #87CEFA;
+HBox {
 
+  -fx-background-color: #B0E0E6;
 }
 
+.chooseProject {
 
+  -fx-background-color: #FFF;
+  -fx-font-size: 14px;
+  -fx-font-family: Arial;
+  -fx-border-radius: 10px;
+  -fx-background-radius: 10px;
+}
