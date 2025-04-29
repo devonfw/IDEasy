@@ -93,8 +93,11 @@ public final class Tag {
   /** {@link Tag} for IntelliJ. */
   public static final Tag INTELLIJ = create("intellij", IDEA);
 
-  /** {@link Tag} for IntelliJ. */
+  /** {@link Tag} for Android-Studio. */
   public static final Tag ANDROID_STUDIO = create("android-studio", IDEA);
+
+  /** {@link Tag} for Pycharm. */
+  public static final Tag PYCHARM = create("pycharm", IDEA);
 
   /** {@link Tag} for VS-Code. */
   public static final Tag VS_CODE = create("vscode", IDE, false, "visualstudiocode");

@@ -1,12 +1,5 @@
 package com.devonfw.tools.ide.tool.ide;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,9 +7,10 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
 
@@ -25,8 +19,6 @@ import com.devonfw.tools.ide.tool.plugin.ToolPluginDescriptor;
  * {@link com.devonfw.tools.ide.tool.androidstudio.AndroidStudio Android Studio}.
  */
 public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
-
-  private static final String BUILD_FILE = "build.txt";
 
   /**
    * The constructor.
@@ -40,33 +32,24 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   }
 
   @Override
-  // TODO: Check if this is still needed, because Intellij is overriding this already and using a different approach
-  public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
-    String downloadUrl = getDownloadUrl(plugin);
+  public boolean installPlugin(ToolPluginDescriptor plugin, final Step step, ProcessContext pc) {
 
-    String pluginId = plugin.id();
-
-    Path tmpDir = null;
-
-    try {
-      Path installationPath = this.getPluginsInstallationPath();
-      ensureInstallationPathExists(installationPath);
-
-      FileAccess fileAccess = context.getFileAccess();
-      tmpDir = fileAccess.createTempDir(pluginId);
-
-      Path downloadedFile = downloadPlugin(fileAccess, downloadUrl, tmpDir, pluginId);
-      extractDownloadedPlugin(fileAccess, downloadedFile, pluginId);
-
+    // In case of plugins with a custom repo url
+    boolean customRepo = plugin.url() != null;
+    List<String> args = new ArrayList<>();
+    args.add("installPlugins");
+    args.add(plugin.id());
+    if (customRepo) {
+      args.add(plugin.url());
+    }
+    ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.LOG_WARNING, pc, args.toArray(String[]::new));
+    if (result.isSuccessful()) {
+      this.context.success("Successfully installed plugin: {}", plugin.name());
       step.success();
       return true;
-    } catch (IOException e) {
-      step.error(e);
-      throw new IllegalStateException("Failed to process installation of plugin: " + pluginId, e);
-    } finally {
-      if (tmpDir != null) {
-        context.getFileAccess().delete(tmpDir);
-      }
+    } else {
+      step.error("Failed to install plugin {} ({}): exit code was {}", plugin.name(), plugin.id(), result.getExitCode());
+      return false;
     }
   }
 
@@ -76,87 +59,4 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     extendedArgs.add(this.context.getWorkspacePath().toString());
     super.runTool(extendedArgs.toArray(new String[0]));
   }
-
-  /**
-   * @param plugin the {@link ToolPluginDescriptor} to be installer
-   * @return a {@link String} representing the download URL.
-   */
-  private String getDownloadUrl(ToolPluginDescriptor plugin) {
-    String downloadUrl = plugin.url();
-    String pluginId = URLEncoder.encode(plugin.id(), StandardCharsets.UTF_8).replaceAll("\\+", "%20");
-
-    String buildVersion = readBuildVersion();
-
-    if (downloadUrl == null || downloadUrl.isEmpty()) {
-      downloadUrl = String.format("https://plugins.jetbrains.com/pluginManager?action=download&id=%s&build=%s", pluginId, buildVersion);
-    }
-    return downloadUrl;
-  }
-
-  private String readBuildVersion() {
-    Path buildFile = this.getToolPath().resolve(BUILD_FILE);
-    if (context.getSystemInfo().isMac()) {
-      MacOsHelper macOsHelper = new MacOsHelper(context);
-      Path appPath = macOsHelper.findAppDir(macOsHelper.findRootToolPath(this, context));
-      buildFile = appPath.resolve("Contents/Resources").resolve(BUILD_FILE);
-    }
-    try {
-      return Files.readString(buildFile);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to read " + this.getName() + " build version: " + buildFile, e);
-    }
-  }
-
-  private void ensureInstallationPathExists(Path installationPath) throws IOException {
-    if (!Files.exists(installationPath)) {
-      try {
-        Files.createDirectories(installationPath);
-      } catch (IOException e) {
-        throw new IllegalStateException("Failed to create directory " + installationPath, e);
-      }
-    }
-  }
-
-  private Path downloadPlugin(FileAccess fileAccess, String downloadUrl, Path tmpDir, String pluginId) throws IOException {
-    String extension = getFileExtensionFromUrl(downloadUrl);
-    if (extension.isEmpty()) {
-      throw new IllegalStateException("Unknown file type for URL: " + downloadUrl);
-    }
-    String fileName = String.format("%s-plugin-%s%s", this.getName(), pluginId, extension);
-    Path downloadedFile = tmpDir.resolve(fileName);
-    fileAccess.download(downloadUrl, downloadedFile);
-    return downloadedFile;
-  }
-
-  private void extractDownloadedPlugin(FileAccess fileAccess, Path downloadedFile, String pluginId) throws IOException {
-    Path targetDir = this.getPluginsInstallationPath().resolve(pluginId);
-    if (Files.exists(targetDir)) {
-      context.info("Plugin already installed, target directory already existing: {}", targetDir);
-    } else {
-      fileAccess.extract(downloadedFile, targetDir);
-    }
-  }
-
-  private String getFileExtensionFromUrl(String urlString) throws IOException {
-    URL url = new URL(urlString);
-    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    connection.setRequestMethod("HEAD");
-    connection.connect();
-
-    int responseCode = connection.getResponseCode();
-    if (responseCode != HttpURLConnection.HTTP_OK) {
-      throw new IOException("Failed to fetch file headers: HTTP " + responseCode);
-    }
-
-    String contentType = connection.getContentType();
-    if (contentType == null) {
-      return "";
-    }
-    return switch (contentType) {
-      case "application/zip" -> ".zip";
-      case "application/java-archive" -> ".jar";
-      default -> "";
-    };
-  }
-
 }
