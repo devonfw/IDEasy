@@ -612,6 +612,24 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public boolean isForcePull() {
+
+    return this.startContext.isForcePull();
+  }
+
+  @Override
+  public boolean isForcePlugins() {
+
+    return this.startContext.isForcePlugins();
+  }
+
+  @Override
+  public boolean isForceRepositories() {
+
+    return this.startContext.isForceRepositories();
+  }
+
+  @Override
   public boolean isOfflineMode() {
 
     return this.startContext.isOfflineMode();
@@ -751,7 +769,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       info(message);
     }
     if (isBatchMode()) {
-      if (isForceMode()) {
+      if (isForceMode() || isForcePull()) {
         return defaultValue;
       } else {
         throw new CliAbortException();
@@ -795,7 +813,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     O option = null;
     if (isBatchMode()) {
-      if (isForceMode()) {
+      if (isForceMode() || isForcePull()) {
         option = options[0];
         interaction("" + option);
       }
@@ -1299,4 +1317,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.variables = null;
     this.customToolRepository = null;
   }
+
+  @Override
+  public void writeVersionFile(VersionIdentifier version, Path installationPath) {
+
+    assert (Files.isDirectory(installationPath));
+    Path versionFile = installationPath.resolve(FILE_SOFTWARE_VERSION);
+    getFileAccess().writeFileContent(version.toString(), versionFile);
+  }
+
 }
