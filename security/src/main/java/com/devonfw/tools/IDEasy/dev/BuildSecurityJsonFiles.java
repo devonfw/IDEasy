@@ -9,7 +9,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -71,7 +70,7 @@ public class BuildSecurityJsonFiles {
 
   private static final String CVE_BASE_URL = "https://nvd.nist.gov/vuln/detail/";
 
-  private static final Set<String> CVES_TO_IGNORE = new HashSet<>();
+  private static final Set<String> CVES_TO_IGNORE = new HashSet<>(Set.of("CVE-2021-36230")); // terraform https://github.com/anchore/grype/issues/1377
 
   private static final Set<Class<? extends AbstractAnalyzer>> ANALYZERS_TO_IGNORE = Set.of(ArchiveAnalyzer.class,
       RubyBundlerAnalyzer.class, FileNameAnalyzer.class, JarAnalyzer.class, CentralAnalyzer.class, NexusAnalyzer.class,
@@ -96,8 +95,7 @@ public class BuildSecurityJsonFiles {
   }
 
   private static void run() {
-
-    initCvesToIgnore();
+    
     UpdateManager updateManager = new UpdateManager(context.getUrlsPath(), null, Instant.now());
     List<Dependency> dependencies = getDependenciesWithVulnerabilities(updateManager);
     Set<Pair<String, String>> foundToolsAndEditions = new HashSet<>();
@@ -266,9 +264,8 @@ public class BuildSecurityJsonFiles {
   protected static BigDecimal getBigDecimalSeverity(Vulnerability vulnerability) {
 
     if (vulnerability.getCvssV2() == null && vulnerability.getCvssV3() == null) {
-      // TODO if this ever happens, add a case that handles this. See https://github.com/devonfw/IDEasy/issues/190
-      throw new RuntimeException("Vulnerability without severity found: " + vulnerability.getName() + "\\n"
-          + " Please contact https://github.com/devonfw/IDEasy and make a request to get this feature implemented.");
+      context.warning("Vulnerability without severity found: " + vulnerability.getName());
+      return null;
     }
     double severityDouble;
     if (vulnerability.getCvssV3() != null) {
@@ -276,9 +273,7 @@ public class BuildSecurityJsonFiles {
     } else {
       severityDouble = vulnerability.getCvssV2().getCvssData().getBaseScore();
     }
-    String formatted = String.format(Locale.US, "%.1f", severityDouble);
-    BigDecimal severity = new BigDecimal(formatted);
-    return severity;
+    return BigDecimal.valueOf(severityDouble);
   }
 
   /**
@@ -361,7 +356,8 @@ public class BuildSecurityJsonFiles {
             "Vulnerability has no interval of affected versions or single affected version.");
       }
       VersionIdentifier singleAffectedVersion = VersionIdentifier.of(singleVersion);
-      return new VersionRange(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED);
+      return VersionRange.of(singleAffectedVersion, singleAffectedVersion, BoundaryType.CLOSED);
+
     }
 
     boolean leftExclusive = startIncluding == null;
@@ -381,7 +377,7 @@ public class BuildSecurityJsonFiles {
       max = VersionIdentifier.of(endExcluding);
     }
 
-    return new VersionRange(min, max, BoundaryType.of(leftExclusive, rightExclusive));
+    return VersionRange.of(min, max, BoundaryType.of(leftExclusive, rightExclusive));
   }
 
   /**
@@ -415,26 +411,18 @@ public class BuildSecurityJsonFiles {
           } else {
             if (min != null) {
               context.info("Tool " + tool.getName() + " with edition " + edition.getName() + " and versions "
-                  + new VersionRange(min, version, BoundaryType.of(false, true)) + " are affected by vulnerabilities.");
+                  + VersionRange.of(min, version, BoundaryType.of(false, true)) + " are affected by vulnerabilities.");
               min = null;
             }
           }
         }
         if (min != null) {
           context.info("Tool " + tool.getName() + " with edition " + edition.getName() + " and versions "
-              + new VersionRange(min, null, BoundaryType.of(false, true)) + " are affected by vulnerabilities.");
+              + VersionRange.of(min, null, BoundaryType.of(false, true)) + " are affected by vulnerabilities.");
         }
       }
     }
   }
 
-  /** Initializes the {@link #CVES_TO_IGNORE}. */
-  private static void initCvesToIgnore() {
-
-    if (CVES_TO_IGNORE.isEmpty()) {
-      // .................CVE..................vendor......product......why was is ignored
-      CVES_TO_IGNORE.add("CVE-2021-36230"); // hashicorp...terraform....https://github.com/anchore/grype/issues/1377
-    }
-  }
 
 }

@@ -26,7 +26,7 @@ public final class VersionRange implements Comparable<VersionRange>, GenericVers
    * @param max the {@link #getMax() maximum}.
    * @param boundaryType the {@link BoundaryType} defining whether the boundaries of the range are inclusive or exclusive.
    */
-  public VersionRange(VersionIdentifier min, VersionIdentifier max, BoundaryType boundaryType) {
+  private VersionRange(VersionIdentifier min, VersionIdentifier max, BoundaryType boundaryType) {
 
     super();
     Objects.requireNonNull(boundaryType);

@@ -36,8 +36,6 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
 
   private ToolSecurity security;
 
-  private IdeContext context;
-
   /**
    * The constructor.
    *
