@@ -90,11 +90,6 @@ public class BuildSecurityJsonFiles {
 
   public static void main(String[] args) {
 
-    run();
-  }
-
-  private static void run() {
-
     initCvesToIgnore();
     UpdateManager updateManager = new UpdateManager(context.getUrlsPath(), null, Instant.now());
     List<Dependency> dependencies = getDependenciesWithVulnerabilities(updateManager);
