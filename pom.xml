@@ -165,7 +165,7 @@
     <module>cli</module>
     <module>gui</module>
     <module>url-updater</module>
-      <module>security</module>
+    <module>security</module>
   </modules>
 
   <build>
