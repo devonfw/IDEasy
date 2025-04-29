@@ -40,4 +40,13 @@ public class SonarUrlUpdater extends GithubUrlUpdater {
     doAddVersion(urlVersion, getBaseUrl() + "/Distribution/sonarqube/sonarqube-${version}.zip");
   }
 
+  @Override
+  public String getCpeVendor() {
+    return "sonarsource";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "sonar";
+  }
 }

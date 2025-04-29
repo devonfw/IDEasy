@@ -67,6 +67,22 @@ public class NodeUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
+  public String getCpeVendor() {
+    return "nodejs";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "node";
+  }
+
+  @Override
+  public String mapUrlVersionToCpeVersion(String version) {
+
+    return version.replaceAll("[^\\d.]", "");
+  }
+
+  @Override
   protected String mapVersion(String version) {
 
     return super.mapVersion("v" + version);

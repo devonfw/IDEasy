@@ -2,9 +2,53 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.05.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1190[#1190]: Add pycharm support to IDEasy
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/27?closed=1[milestone 2025.05.001].
+
+== 2025.04.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1037[#1037]: Add devonfw-ide legacy support for merging XML templates without namespace
+* https://github.com/devonfw/IDEasy/issues/1217[#1217]: Remove plugin recommendation feature in VSCode
+* https://github.com/devonfw/IDEasy/issues/1243[#1243]: Fix display of ide status although errors might occur
+* https://github.com/devonfw/IDEasy/issues/1233[#1233]: Fix dropdown width in MSI installer for drive selection
+* https://github.com/devonfw/IDEasy/issues/1229[#1229]: Installation fails if version not available for current OS
+* https://github.com/devonfw/IDEasy/issues/1231[#1231]: Ide is reported to be broken after installation
+* https://github.com/devonfw/IDEasy/issues/1223[#1223]: IDEasy upgrade is not working on Mac M1
+* https://github.com/devonfw/IDEasy/issues/1252[#1252]: Create warning when using CMD or PowerShell
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/26?closed=1[milestone 2025.04.002].
+
+== 2025.04.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1007[#1007]: Consider explicit option flags instead of overusing force mode
+* https://github.com/devonfw/IDEasy/issues/951[#951]: Fix text coloring in native cmd and powershell terminals
+* https://github.com/devonfw/IDEasy/issues/1202[#1202]: IDEasy can not reset urls on WSL
+* https://github.com/devonfw/IDEasy/issues/692[#692]: "Latest" version of Docker causes installation problems
+* https://github.com/devonfw/IDEasy/issues/1008[#1008]: Improve upgrade-settings to cleanup legacy configs in repositories
+* https://github.com/devonfw/IDEasy/issues/1191[#1191]: vscode always tries to reinstall all plugins
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/25?closed=1[milestone 2025.04.001].
+
 == 2025.03.002
 
 Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1159[#1159]: ide upgrade cannot find latest version at least for SNAPSHOTs
+* https://github.com/devonfw/IDEasy/issues/1153[#1153]: Print SystemInfo in ide status
+* https://github.com/devonfw/IDEasy/issues/1006[#1006]: Eclipse automation opens UI that blocks further processing until closed
+* https://github.com/devonfw/IDEasy/issues/1110[#1110]: ide status fails with IllegalStateException when offline
+* https://github.com/devonfw/IDEasy/issues/1039[#1039]: Update Jasypt commandlet implementation to run Java version from dependencies.json
+* https://github.com/devonfw/IDEasy/issues/1138[#1138]: Duplicated variables in configuration logs a clear warning and do not prevent merge anymore
+* https://github.com/devonfw/IDEasy/issues/1086[#1086]: ide uninstall should also delete ~/Downloads/ide
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/24?closed=1[milestone 2025.03.002].
 
@@ -22,7 +66,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 == 2025.02.002
 
-Release with new features and bugfixes:
+This is the first official release of IDEasy (end of BETA) with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/420[#420]: Add MSI Build and Deployment
 * https://github.com/devonfw/IDEasy/issues/1061[#1061]: Mac: no such file or directory: /_ide/installation/functions

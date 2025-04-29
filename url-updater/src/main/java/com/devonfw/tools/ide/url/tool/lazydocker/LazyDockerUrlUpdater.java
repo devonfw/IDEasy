@@ -60,4 +60,14 @@ public class LazyDockerUrlUpdater extends GithubUrlUpdater {
     }
   }
 
+  @Override
+  public String getCpeVendor() {
+    return "jesseduffield";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "lazydocker";
+  }
+
 }

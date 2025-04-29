@@ -22,11 +22,15 @@
     <java.version>21</java.version>
     <jline.version>3.24.1</jline.version>
     <jansi.version>2.4.1</jansi.version>
-    <jackson.version>2.18.2</jackson.version>
+    <jackson.version>2.18.3</jackson.version>
     <xmlunit.version>2.10.0</xmlunit.version>
     <wiremock.version>3.11.0</wiremock.version>
     <javafx.version>21</javafx.version>
     <testfx.version>4.0.18</testfx.version>
+    <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
+    <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
+    <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
+    <graalvm.version>24.2.1</graalvm.version>
   </properties>
 
   <dependencyManagement>
@@ -62,6 +66,11 @@
         <version>${jackson.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.graalvm.sdk</groupId>
+        <artifactId>nativeimage</artifactId>
+        <version>${graalvm.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.junit.jupiter</groupId>
         <artifactId>junit-jupiter</artifactId>
         <version>5.12.1</version>
@@ -69,7 +78,7 @@
       <dependency>
         <groupId>org.assertj</groupId>
         <artifactId>assertj-core</artifactId>
-        <version>3.24.2</version>
+        <version>3.27.3</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>
@@ -79,7 +88,7 @@
       <dependency>
         <groupId>ch.qos.logback</groupId>
         <artifactId>logback-classic</artifactId>
-        <version>1.5.16</version>
+        <version>1.5.18</version>
       </dependency>
       <dependency>
         <groupId>me.tongfei</groupId>
@@ -99,7 +108,7 @@
       <dependency>
         <groupId>org.mockito</groupId>
         <artifactId>mockito-core</artifactId>
-        <version>5.15.2</version>
+        <version>5.17.0</version>
       </dependency>
       <dependency>
         <!-- required for advanced mocking -->
@@ -120,12 +129,12 @@
       <dependency>
         <groupId>org.wiremock</groupId>
         <artifactId>wiremock</artifactId>
-        <version>3.11.0</version>
+        <version>3.13.0</version>
       </dependency>
       <dependency>
         <groupId>org.testfx</groupId>
         <artifactId>openjfx-monocle</artifactId>
-        <version>17.0.10</version>
+        <version>21.0.2</version>
       </dependency>
       <dependency>
         <groupId>org.testfx</groupId>
@@ -171,7 +180,7 @@
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
-        <version>0.8.12</version>
+        <version>0.8.13</version>
         <executions>
           <execution>
             <goals>
@@ -190,12 +199,12 @@
       <plugin>
         <groupId>org.pitest</groupId>
         <artifactId>pitest-maven</artifactId>
-        <version>1.18.2</version>
+        <version>1.19.1</version>
         <dependencies>
           <dependency>
             <groupId>org.pitest</groupId>
             <artifactId>pitest-junit5-plugin</artifactId>
-            <version>1.2.1</version>
+            <version>1.2.2</version>
           </dependency>
         </dependencies>
       </plugin>

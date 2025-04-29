@@ -719,4 +719,10 @@ public interface IdeContext extends IdeStartContext {
    */
   void logIdeHomeAndRootStatus();
 
+  /**
+   * @param version the {@link VersionIdentifier} to write.
+   * @param installationPath the {@link Path directory} where to write the version to a {@link #FILE_SOFTWARE_VERSION version file}.
+   */
+  void writeVersionFile(VersionIdentifier version, Path installationPath);
+
 }

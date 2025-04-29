@@ -76,7 +76,7 @@
 				</Control>
 
 				<Control Id="VolumeSelectorText" Type="Text" X="51" Y="115" Width="250" Height="15" Transparent="yes" NoPrefix="yes" HideCondition="INSTALLTYPE=&quot;USERHOME&quot;" ShowCondition="INSTALLTYPE=&quot;CUSTOM&quot;" Text="!(loc.SelectCustomDriveText)" />
-        <Control Id="VolumeSelector" Type="VolumeSelectCombo" X="51" Y="130" Width="40" Height="40" Fixed="yes" Remote="yes" HideCondition="INSTALLTYPE=&quot;USERHOME&quot;" ShowCondition="INSTALLTYPE=&quot;CUSTOM&quot;" Property="ROOTDIRECTORY" Text="!(loc.SelectCustomDrive)" />
+        <Control Id="VolumeSelector" Type="VolumeSelectCombo" X="51" Y="130" Width="52" Height="40" Fixed="yes" Remote="yes" HideCondition="INSTALLTYPE=&quot;USERHOME&quot;" ShowCondition="INSTALLTYPE=&quot;CUSTOM&quot;" Property="ROOTDIRECTORY" Text="!(loc.SelectCustomDrive)" />
 				<Control Id="Next" Type="PushButton" X="236" Y="243" Width="56" Height="17" Default="yes" Text="!(loc.WixUINext)" >
 				  <Publish Event="DoAction" Value="SetIDE_ROOT" Condition="INSTALLTYPE=&quot;CUSTOM&quot;" Order="1" />
 				  <Publish Event="DoAction" Value="SetTEMP_FOLDER" Order="2" />
