@@ -39,12 +39,6 @@ public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
         this.updateManager = updateManager;
     }
 
-    /**
-     * Analyzes the given {@link Dependency} and adds {@link Evidence} to it. Namely, CPE vendor, product, edition and version.
-     *
-     * @param dependency the dependency to analyze.
-     * @param engine     not actually used here, but needs to match the signature of the super class.
-     */
     @Override
     protected void analyzeDependency(Dependency dependency, Engine engine) {
 

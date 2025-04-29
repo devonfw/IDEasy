@@ -43,8 +43,6 @@ tar xvfz ~/Downloads/ide-cli-*.tar.gz
 source setup
 ```
 
-NOTE: We are planning to create a installer that will guide users through the installation process but this is not yet released.
-
 == Uninstall
 
 To "uninstall" your `IDEasy` you only need to call the following command:
