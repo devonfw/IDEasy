@@ -99,3 +99,36 @@ function doIsWindows() {
   fi
   return 255
 }
+
+# supports assertion types like contains and equals
+# TODO: add more assertion types
+assertThat() {
+  local output="$1"
+  local assertionType="$2"
+  local expected="$3"
+
+  case "$assertionType" in
+    contains)
+      if echo "$output" | grep -q -e "$expected"; then
+        echo "Assertion passed: '$expected' found in output"
+        return 0
+      else
+        echo "Assertion failed: '$expected' not found in output"
+        return 1
+      fi
+      ;;
+    equals)
+      if [[ "$output" == "$expected" ]]; then
+        echo "Assertion passed: output equals '$expected'"
+        return 0
+      else
+        echo "Assertion failed: output does not equal '$expected'"
+        return 1
+      fi
+      ;;
+    *)
+      echo "Unknown assertion type: '$assertionType'"
+      return 2
+      ;;
+  esac
+}

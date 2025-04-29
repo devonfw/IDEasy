@@ -1,21 +1,9 @@
 echo "Running help integration test"
+source ../all-tests-functions.sh
 output=$(ide help)
 
-assertThat() {
-  local output="$1"
-  local keyword="$2"
-
-  if echo "$output" | grep -q "$keyword"; then
-    echo "Assertion passed: '$keyword' found in output"
-    return 0
-  else
-    echo "Assertion failed: '$keyword' not found in output"
-    return 1
-  fi
-}
-
-assertThat "$output" "Current version"
-assertThat "$output" "build"
-assertThat "$output" "Usage"
-assertThat "$output" "docker"
-assertThat "$output" "--locale"
+assertThat "$output" contains "Current version"
+assertThat "$output" contains "build"
+assertThat "$output" contains "Usage"
+assertThat "$output" contains "docker"
+assertThat "$output" contains "--locale"
