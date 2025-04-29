@@ -110,6 +110,35 @@ public class MyClass {
 With SLF4J we have to create the logger via `LoggerFactory`.
 In IDEasy for commandlets, etc. we do not need to define `LOG` and can simply use `this.context` instead of `LOG`.
 
+=== Log-Messages
+
+Log-messages should be helpful and give contextual information.
+
+Bad:
+
+> an unknown error ocurred!
+
+Good:
+
+> While downloading https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/maven-metadata.xml the following error ocurred: SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+
+=== Log-message parameters
+
+In order to create good log messages you typically need to fill in dynamic values.
+For this loggers already support a simple pattern syntax that we can see in the logging example above.
+We simply write `{}` in the log message and provide the value to fill into this placeholder as argument.
+If multiple such placeholders are used, the parameters have to be given in the exact same order.
+
+```java
+debug(String.format("Installing %s version %s", tool, version)); // bad
+debug("Installing {} version {}", tool, version); // good
+```
+
+The advantage is that if the log-level is not enabled, then no String operations (search and replace) will take place.
+Once you are used to the pattern, it is good to follow it strickly for logging to make the code homogenous.
+
+=== Log-levels
+
 .Usage of Log-Levels
 [options="header"]
 |=======================
