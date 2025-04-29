@@ -33,8 +33,8 @@ function doDownloadSnapshot () {
       exit 1
     fi
   else
-    echo "Trying to download latest IDEasy release..."
     local urlIdeasyLatest="https://github.com/devonfw/IDEasy/releases/latest"
+    echo "Trying to download latest IDEasy release from ${urlIdeasyLatest} ..."
     local pageHtmlLocal="${WORK_DIR_INTEG_TEST}/integ_test_gh_latest.html"
 
     curl -L "$urlIdeasyLatest" > "$pageHtmlLocal"
@@ -48,11 +48,12 @@ function doDownloadSnapshot () {
     elif [ "${MATRIX_OS}" == "ubuntu-latest" ]; then
       osType="linux-x64"
     elif [ "${MATRIX_OS}" == "macos-latest" ]; then
-      osType="mac-arm"
+      osType="mac-arm64"
     elif [ "${MATRIX_OS}" == "macos-13" ]; then
       osType="mac-x64"
     fi
     url=$(grep "href=\"https://.*${osType}.tar.gz" "$pageHtmlLocal" | grep -o "https://.*${osType}.tar.gz" | cut -f1 -d"\"")
+    echo "Trying to download IDEasy for OS: ${osType} from ${IDEASY_COMPRESSED_FILE:?} to ${url}..."
     curl -o "${IDEASY_COMPRESSED_FILE:?}" "$url"
     rm "${pageHtmlLocal:?}"
   fi
