@@ -10,31 +10,22 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.text.Font?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="515.0" prefWidth="817.0" xmlns="http://javafx.com/javafx/23.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devonfw.ide.gui.MainController">
    <left>
       <VBox prefHeight="428.0" prefWidth="181.0" spacing="4.0" stylesheets="@style/navigation.css" BorderPane.alignment="CENTER">
          <children>
             <HBox alignment="CENTER_LEFT" prefWidth="200.0">
-               <children>
-                  <ImageView fitHeight="80.0" fitWidth="94.0" pickOnBounds="true" preserveRatio="true">
-                     <image>
-                        <Image url="@assets/devonfw.png" />
-                     </image>
-                  </ImageView>
-                  <Label text="IDEasy">
-                     <font>
-                        <Font name="HP Simplified" size="22.0" />
-                     </font>
-                     <HBox.margin>
-                        <Insets left="5.0" />
-                     </HBox.margin>
-                  </Label>
-               </children>
                <VBox.margin>
                   <Insets bottom="10.0" />
                </VBox.margin>
+               <children>
+                  <ImageView fitHeight="150.0" fitWidth="200.0" pickOnBounds="true" preserveRatio="true">
+                     <image>
+                        <Image url="@assets/logo.png" />
+                     </image>
+                  </ImageView>
+               </children>
             </HBox>
             <VBox maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
                <children>
