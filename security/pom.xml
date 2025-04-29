@@ -9,7 +9,9 @@
     <version>dev-SNAPSHOT</version>
   </parent>
 
+  <groupId>com.devonfw.tools.IDEasy</groupId>
   <artifactId>ide-security</artifactId>
+  <version>${revision}</version>
 
   <properties>
     <maven.compiler.source>21</maven.compiler.source>
