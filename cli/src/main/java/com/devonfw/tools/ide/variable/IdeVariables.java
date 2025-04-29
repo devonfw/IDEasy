@@ -30,6 +30,9 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspacePath() WORKSPACE_PATH}. */
   VariableDefinitionPath WORKSPACE_PATH = new VariableDefinitionPath("WORKSPACE_PATH", null, c -> c.getWorkspacePath(), true);
 
+  /** {@link VariableDefinition} for default CVE_MIN_SEVERITY. */
+  VariableDefinitionDoulbe CVE_MIN_SEVERIRY = new VariableDefinitionDoulbe("CVE_MIN_SEVERITY", null, c -> 1.0);
+
   /** {@link VariableDefinition} for list of tools to install by default. */
   VariableDefinitionStringList IDE_TOOLS = new VariableDefinitionStringList("IDE_TOOLS", "DEVON_IDE_TOOLS", c -> List.of("mvn", "npm"));
 
@@ -88,7 +91,8 @@ public interface IdeVariables {
   VariableDefinitionString DEVON_IDE_CUSTOM_TOOLS = new VariableDefinitionString("DEVON_IDE_CUSTOM_TOOLS");
 
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
-  Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, CREATE_START_SCRIPTS,
+  Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, CVE_MIN_SEVERIRY, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS,
+      CREATE_START_SCRIPTS,
       IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, GRADLE_BUILD_OPTS, YARN_BUILD_OPTS, JASYPT_OPTS, MAVEN_ARGS,
       PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
 

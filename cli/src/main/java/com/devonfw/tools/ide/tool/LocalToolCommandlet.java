@@ -6,9 +6,9 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Set;
 
+import com.devonfw.tools.ide.CVEFinder;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
@@ -20,7 +20,6 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
-import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
@@ -280,30 +279,42 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
   }
 
-  private void lookForCVEs(VersionIdentifier version, String edition, ProcessContext processContext) {
-    ToolSecurity toolSecurity = getToolRepository().findSecurity(this.tool, edition);
-    Collection<CVE> cves = toolSecurity.findCVEs(version);
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(1.1)"))));
-    for (CVE cve : cves) {
-      context.info(cve.id());
-      context.info(String.valueOf(cve.severity()));
-      context.info(cve.versions().toString());
-    }
-    String answer = context.question("Currently selected version contains the above weaknesses, do you want to continue anyway?", "yes",
-        "no install next save version",
-        "no install latest save version");
-    if (answer.equals("yes")) {
-      return;
-    }
-    if (answer.equals("no install next save version")) {
-      Collection<CVE> allCves = toolSecurity.getIssues();
-      
-    }
-    if (answer.equals("no install latest save version")) {
-      Collection<CVE> allCves = toolSecurity.getIssues();
+  private VersionIdentifier lookForCVEs(VersionIdentifier version, String edition, ProcessContext processContext) {
+    CVEFinder cveFinder = new CVEFinder(context, this, version);
+    Collection<CVE> cves = cveFinder.getCVEs(version);
+    VersionIdentifier safestNearestVersion = version;
+    VersionIdentifier safestLatestVersion = version;
+    //Todo remove Test cve
 
+    if (cves.isEmpty()) {
+
+      context.info("No CVEs found for tool {} in version {}", this.getName(), version);
+    } else {
+      cveFinder.listCVEs(version);
+      context.info("The tool {} in version {} is affected by the CVE(s) logged above.", this.getName(), version);
+      safestLatestVersion = cveFinder.findSafestLatestVersion();
+      context.info("The latest version {} is only affected by the following CVE(s).", safestLatestVersion);
+      cveFinder.listCVEs(safestLatestVersion);
+      safestNearestVersion = cveFinder.findSafestNearestVersion();
+      context.info("The nearest version {} is only affected by the following CVE(s).", safestNearestVersion);
+      cveFinder.listCVEs(safestNearestVersion);
     }
+
+    String answer = context.question("Which version do you want to use?", "current (keep current version - WARNING insecure)",
+        "nearest",
+        "latest");
+    if (answer.equals("current")) {
+      return version;
+    }
+    if (answer.equals("nearest")) {
+      return safestNearestVersion;
+    }
+    if (answer.equals("latest")) {
+      return safestLatestVersion;
+    }
+    return null;
   }
+
 
   /**
    * Post-extraction hook that can be overridden to add custom processing after unpacking and before moving to the final destination folder.
@@ -441,8 +452,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param environmentContext the {@link EnvironmentContext} where to {@link EnvironmentContext#withEnvVar(String, String) set environment variables} for
    *     this tool.
    * @param toolInstallation the {@link ToolInstallation}.
-   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
-   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the {@link #getConfiguredVersion()} ()
+   *     configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
    */
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
