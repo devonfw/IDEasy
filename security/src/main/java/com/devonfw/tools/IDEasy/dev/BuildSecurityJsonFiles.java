@@ -87,8 +87,6 @@ public class BuildSecurityJsonFiles {
   private static final Set<String> actuallyIgnoredCves = new HashSet<>();
 
   private static final IdeContext context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
-  ;
-
 
   public static void main(String[] args) {
 
