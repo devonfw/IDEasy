@@ -86,11 +86,9 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
     List<Map<String, Object>> serializableWarnings = urlSecurityWarnings.stream()
         .map(warning -> {
           Map<String, Object> m = new HashMap<>();
-          m.put("versionRange", VersionRangeMapper.serializeVersionRange(warning.getVersionRange()));
-          m.put("severity", warning.getSeverity());
           m.put("cveID", warning.getCveName());
-          m.put("description", warning.getDescription());
-          m.put("nistUrl", warning.getNistUrl());
+          m.put("severity", warning.getSeverity());
+          m.put("versionRange", VersionRangeMapper.serializeVersionRange(warning.getVersionRange()));
           return m;
         }).toList();
 
@@ -116,24 +114,21 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
    */
   public void addSecurityWarning(VersionRange versionRange) {
 
-    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, null, null, null, null);
+    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, null, null);
     boolean added = urlSecurityWarnings.add(newWarning);
     this.modified = this.modified || added;
   }
 
   /**
-   * Adds a new security warning with detailed information, such as severity, CVE ID, description, and NIST URL.
+   * Adds a new security warning with detailed information, such as severity, CVE ID and a versionRange
    *
    * @param versionRange the {@link VersionRange} of the tool or edition for which to add the warning.
    * @param severity the severity of the security issue.
    * @param cveName the CVE ID of the vulnerability.
-   * @param description a description of the security issue.
-   * @param nistUrl the NIST URL for more information about the CVE.
    * @return {@code true} if the warning was successfully added, {@code false} if it already exists.
    */
-  public boolean addSecurityWarning(VersionRange versionRange, BigDecimal severity, String cveName, String description,
-      String nistUrl) {
-    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, severity, cveName, description, nistUrl);
+  public boolean addSecurityWarning(VersionRange versionRange, BigDecimal severity, String cveName) {
+    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, severity, cveName);
     boolean added = urlSecurityWarnings.add(newWarning);
     this.modified = this.modified || added;
     return added;

@@ -90,7 +90,6 @@ public class BuildSecurityJsonFiles {
 
   public static void main(String[] args) {
 
-    initCvesToIgnore();
     UpdateManager updateManager = new UpdateManager(context.getUrlsPath(), null, Instant.now());
     List<Dependency> dependencies = getDependenciesWithVulnerabilities(updateManager);
     Set<Pair<String, String>> foundToolsAndEditions = new HashSet<>();
@@ -214,10 +213,7 @@ public class BuildSecurityJsonFiles {
       return;
     }
 
-    String description = vulnerability.getDescription();
-    String nistUrl = CVE_BASE_URL + cveName;
-    debugInfo(vulnerability, versionRange, severity, cveName, description, nistUrl, securityFile);
-    securityFile.addSecurityWarning(versionRange, severity, cveName, description, nistUrl);
+    securityFile.addSecurityWarning(versionRange, severity, cveName);
   }
 
   /**

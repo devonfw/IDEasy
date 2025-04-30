@@ -16,16 +16,12 @@ public class UrlSecurityWarning {
 
   private String cveName;
 
-  private String description;
-
-  private String nistUrl;
 
   /**
    * Default constructor for Jackson (de)serialization.
    */
   public UrlSecurityWarning() {
-
-    super();
+    
   }
 
   /**
@@ -34,18 +30,12 @@ public class UrlSecurityWarning {
    * @param versionRange the {@link VersionRange}, specifying the versions of the tool to which the security risk applies.
    * @param severity the severity of the security risk.
    * @param cveName the name of the CVE (Common Vulnerabilities and Exposures).
-   * @param description the description of the CVE.
-   * @param nistUrl the url to the CVE on the NIST website.
    */
-  public UrlSecurityWarning(VersionRange versionRange, BigDecimal severity, String cveName, String description,
-      String nistUrl) {
+  public UrlSecurityWarning(VersionRange versionRange, BigDecimal severity, String cveName) {
 
-    super();
     this.versionRange = versionRange;
     this.severity = severity;
     this.cveName = cveName;
-    this.description = description;
-    this.nistUrl = nistUrl;
   }
 
   // these setters and getters are needed for the jackson (de)serialization
@@ -80,25 +70,6 @@ public class UrlSecurityWarning {
     this.cveName = cveName;
   }
 
-  /**
-   * Sets the description of the CVE providing more details about the security issue.
-   *
-   * @param description the CVE description.
-   */
-  public void setDescription(String description) {
-
-    this.description = description;
-  }
-
-  /**
-   * Sets the URL pointing to the NIST page for more information about the CVE.
-   *
-   * @param nistUrl the NIST URL for the CVE.
-   */
-  public void setNistUrl(String nistUrl) {
-
-    this.nistUrl = nistUrl;
-  }
 
   /**
    * Retrieves the version range for which this security warning applies.
@@ -130,32 +101,13 @@ public class UrlSecurityWarning {
     return cveName;
   }
 
-  /**
-   * Retrieves the description of the CVE providing additional information about the security issue.
-   *
-   * @return the description of the CVE.
-   */
-  public String getDescription() {
-
-    return description;
-  }
-
-  /**
-   * Retrieves the NIST URL for more information about the CVE.
-   *
-   * @return the URL to the CVE on the NIST website.
-   */
-  public String getNistUrl() {
-
-    return nistUrl;
-  }
 
   @Override
   public int hashCode() {
 
     String versionRangeString = Optional.ofNullable(this.versionRange).map(Object::toString).orElse("");
     String severity = Optional.ofNullable(this.severity).map(Object::toString).orElse("");
-    String s = versionRangeString + severity + this.cveName + this.description + this.nistUrl;
+    String s = versionRangeString + severity + this.cveName;
     return s.hashCode();
 
   }
@@ -176,16 +128,6 @@ public class UrlSecurityWarning {
     if (this.severity.compareTo(other.severity) != 0) {
       return false;
     }
-    if (!this.cveName.equals(other.cveName)) {
-      return false;
-    }
-    if (!this.description.equals(other.description)) {
-      return false;
-    }
-    if (!this.nistUrl.equals(other.nistUrl)) {
-      return false;
-    }
-
-    return true;
+    return this.cveName.equals(other.cveName);
   }
 }
