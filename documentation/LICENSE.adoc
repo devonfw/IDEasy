@@ -75,6 +75,7 @@ The column `inclusion` indicates the way the component is included:
 |https://github.com/devonfw/devon4node[devon4node] |Optional|https://github.com/devonfw/devon4node/blob/develop/LICENSE.txt[Apache 2.0]
 |https://www.jetbrains.com/idea/[IntelliJ IDEA] |Optional|https://www.jetbrains.com/opensource/idea/[Apache 2.0]
 |https://developer.android.com/studio[Android Studio] |Optional|https://developer.android.com/license[Apache 2.0]
+|https://www.jetbrains.com/pycharm/[Pycharm] |Optional|https://www.jetbrains.com/legal/docs/toolbox/user_community/[Apache 2.0]
 |http://www.jasypt.org/[jasypt] |Optional|http://www.jasypt.org/license.html[Apache 2.0]
 |https://www.docker.com/[docker]|Optional|https://docs.docker.com/engine/#licensing[Apache 2.0] and https://www.docker.com/legal/docker-software-end-user-license-agreement[EULA]
 |https://kubernetes.io/[kubernetes]|Optional|https://github.com/kubernetes/kubernetes/blob/master/LICENSE[Apache 2.0]
