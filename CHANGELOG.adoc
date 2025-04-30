@@ -6,6 +6,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1272[#1272]: Add name of file with missing namespace to warning message
+* https://github.com/devonfw/IDEasy/issues/1190[#1190]: Add pycharm support to IDEasy
 * https://github.com/devonfw/IDEasy/issues/809[#809]: make uninstall with --force also remove from software repo
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/27?closed=1[milestone 2025.05.001].
