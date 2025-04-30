@@ -1,6 +1,6 @@
 #!/bin/bash
-set -e
-set -o pipefail
+#set -e
+#set -o pipefail
 
 WORK_DIR_INTEG_TEST="${HOME}/tmp/ideasy-integration-test-debug/IDEasy_snapshot"
 IDEASY_COMPRESSED_NAME="ideasy_latest.tar.gz"
@@ -53,7 +53,7 @@ function doDownloadSnapshot () {
       osType="mac-x64"
     fi
     url=$(grep "href=\"https://.*${osType}.tar.gz" "$pageHtmlLocal" | grep -o "https://.*${osType}.tar.gz" | cut -f1 -d"\"")
-    echo "Trying to download IDEasy for OS: ${osType} from ${IDEASY_COMPRESSED_FILE:?} to ${url}..."
+    echo "Trying to download IDEasy for OS: ${osType} from: ${url} to: ${IDEASY_COMPRESSED_FILE:?} ..."
     curl -o "${IDEASY_COMPRESSED_FILE:?}" "$url"
     rm "${pageHtmlLocal:?}"
   fi

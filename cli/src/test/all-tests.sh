@@ -1,6 +1,6 @@
 #!/bin/bash
-set -e
-set -o pipefail
+#set -e
+#set -o pipefail
 
 # Workaround to create license.agreement file and simulate a proper installation.
 mkdir -p "${HOME}"/.ide
