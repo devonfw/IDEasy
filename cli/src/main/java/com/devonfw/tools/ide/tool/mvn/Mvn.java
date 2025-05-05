@@ -251,6 +251,10 @@ public class Mvn extends PluginBasedCommandlet {
     if (!Files.exists(mvnSettingsFile)) {
       return null;
     }
+    Path settingsSecurityFile = this.context.getMavenConfigurationFolder().resolve(SETTINGS_SECURITY_FILE);
+    if (!Files.exists(settingsSecurityFile)) {
+      return null;
+    }
     String settingsPath = mvnSettingsFile.toString();
     return "-s " + settingsPath + " " + getSettingsSecurityProperty();
   }
