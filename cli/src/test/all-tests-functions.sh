@@ -5,21 +5,21 @@
 WORK_DIR_INTEG_TEST="${HOME}/tmp/ideasy-integration-test-debug/IDEasy_snapshot"
 IDEASY_COMPRESSED_NAME="ideasy_latest.tar.gz"
 IDEASY_COMPRESSED_FILE="${WORK_DIR_INTEG_TEST}/${IDEASY_COMPRESSED_NAME}"
-test_project_name="tmp-integ-test"
+TEST_PROJECT_NAME="tmp-integ-test"
 
 function doIdeCreate () {
   #TODO: determine the name of the currently executed script
   # If first argument is given, then it is the url for the ide create command (default is '-').
   local settings_url=${1:--}
-  echo "Running ide --batch create ${test_project_name} ${settings_url}"
-  ide --batch -d create "${test_project_name}" "${settings_url}"
+  echo "Running ide --batch create ${TEST_PROJECT_NAME} ${settings_url}"
+  ide --batch -d create "${TEST_PROJECT_NAME}" "${settings_url}"
 
-  echo "Switching to directory: ${IDE_ROOT}/${test_project_name}"
-  cd "${IDE_ROOT}/${test_project_name}" || exit
+  echo "Switching to directory: ${IDE_ROOT}/${TEST_PROJECT_NAME}"
+  cd "${IDE_ROOT}/${TEST_PROJECT_NAME}" || exit
 }
 
 function doIdeCreateCleanup () {
-  rm -rf "${IDE_ROOT:?}/${test_project_name}"
+  rm -rf "${IDE_ROOT:?}/${TEST_PROJECT_NAME}"
 }
 
 function doDownloadSnapshot () {
@@ -124,6 +124,15 @@ assertThat() {
         return 0
       else
         echo "Assertion failed: output does not equal '$expected'"
+        return 1
+      fi
+      ;;
+    exits)
+      if [[ -f "$expected" ]]; then
+        echo "Assertion passed: file '$expected' exists"
+        return 0
+      else
+        echo "Assertion failed: file '$expected' does not exist"
         return 1
       fi
       ;;
