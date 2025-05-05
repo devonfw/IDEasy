@@ -80,7 +80,7 @@ function doWarning() {
   echo -e "\033[93m${*}\033[39m"
 }
 
-# $@: messages to output
+# $@: messages to input
 function doError() {
   echo -e "\033[91m${1}\033[39m"
 }
@@ -104,35 +104,35 @@ function doIsWindows() {
 # supports assertion types like contains and equals
 # TODO: add more assertion types
 assertThat() {
-  local output="$1"
+  local input="$1"
   local assertionType="$2"
   local expected="$3"
 
   case "$assertionType" in
     contains)
-      if echo "$output" | grep -q -e "$expected"; then
-        echo "Assertion passed: '$expected' found in output"
+      if echo "$input" | grep -q -e "$expected"; then
+        echo "Assertion passed: '$expected' found in input"
         return 0
       else
-        echo "Assertion failed: '$expected' not found in output"
+        echo "Assertion failed: '$expected' not found in input"
         return 1
       fi
       ;;
     equals)
-      if [[ "$output" == "$expected" ]]; then
-        echo "Assertion passed: output equals '$expected'"
+      if [[ "$input" == "$expected" ]]; then
+        echo "Assertion passed: input equals '$expected'"
         return 0
       else
-        echo "Assertion failed: output does not equal '$expected'"
+        echo "Assertion failed: input does not equal '$expected'"
         return 1
       fi
       ;;
     exists)
-      if [[ -f "$expected" ]]; then
-        echo "Assertion passed: file '$expected' exists"
+      if [[ -f "$input" ]]; then
+        echo "Assertion passed: file '$input' exists"
         return 0
       else
-        echo "Assertion failed: file '$expected' does not exist"
+        echo "Assertion failed: file '$input' does not exist"
         return 1
       fi
       ;;

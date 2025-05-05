@@ -1,7 +1,7 @@
 echo "Running install intellij integration test"
 ide -d install intellij
 
-assertThat "" exists "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/intellij/.ide.software.version"
+assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/intellij/.ide.software.version" exists
 
 intellij_binary="idea.sh"
 
@@ -15,4 +15,4 @@ then
   intellij_binary="idea"
 fi
 
-assertThat "" exists "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/intellij/bin/${intellij_binary}"
+assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/intellij/bin/${intellij_binary}" exists
