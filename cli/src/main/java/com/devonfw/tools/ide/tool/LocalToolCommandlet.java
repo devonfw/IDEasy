@@ -258,8 +258,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
       this.context.info(
           "The tool {} requires {} in the version range {}, but your project uses version {}, which does not match."
-              + " Therefore, we install an additional version {} to run it.",
-          toolParent, this.tool, version, configuredVersion, getLatestToolVersion());
+              + " Therefore, we install a compatible version in that range.",
+          toolParent, this.tool, version, configuredVersion);
     }
     ToolInstallation toolInstallation = installTool(version, processContext);
     return toolInstallation.newInstallation();
