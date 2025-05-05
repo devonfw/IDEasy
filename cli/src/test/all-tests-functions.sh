@@ -127,7 +127,7 @@ assertThat() {
         return 1
       fi
       ;;
-    exits)
+    exists)
       if [[ -f "$expected" ]]; then
         echo "Assertion passed: file '$expected' exists"
         return 0
