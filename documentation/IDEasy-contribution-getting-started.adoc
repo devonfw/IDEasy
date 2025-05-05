@@ -39,7 +39,7 @@ If some days have passed meanwhile you should merge changes that meanwhile happe
 git pull upstream main
 ```
 
-Once you are complete and everything is merged and comitted, you can push your local feature branch and make it a remote branch of your fork on github:
+Once you are complete and everything is merged and committed, you can push your local feature branch and make it a remote branch of your fork on github:
 
 ```
 git push -u origin feature/«issue-id»-«brief-feature-description»
@@ -48,7 +48,7 @@ git push -u origin feature/«issue-id»-«brief-feature-description»
 Now you can go to https://github.com/devonfw/ideasy/pulls and create the pull-request (PR) from your new feature.
 Therefore, please click on the right down arrow of the green button and choose `Create draft pull request` and then click on `Draft pull request`.
 When the checks have completed you can check the link:DoD.adoc[Definition-of-Done] (DoD).
-Once, all checks of the DoD are addressed, you can go the the very bottom of the PR and click on `Ready for review` what will take the PR out of the draft mode.
+Once, all checks of the DoD are addressed, you can go to the very bottom of the PR and click on `Ready for review` what will take the PR out of the draft mode.
 FYI: If you forgot the upstream merge (`git pull upstream/main`) or the upstream changed again while your PR is still open, you will see `This branch is out-of-date with the base branch` at the bottom of your PR and can click on `Update branch`.
 
 For further development and testing, it is recommended to xref:symbolic-links[symlink] the modified scripts into your IDEasy installation.
@@ -136,13 +136,13 @@ You probably know this black box on Windows (the Command Prompt) that accepts co
 Now for users of a Linux Distribution there is something similar, but way more powerful, usually called "Bourne Again Shell", or in short Bash.
 This Command Line Interface or "Shell" is what we use most often when implementing something new for our Command-Line-Tool with the name IDEasy.  https://www.youtube.com/watch?v=I4EWvMFj37g[Have a look at Bash in 150 Seconds.]
 For MacOS you often also use BASH.
-That's why it is often enough to implement code for Mac or Linux (at least to some extend as you'll see soon enough) to be able to use it on both Operating Systems.
+That's why it is often enough to implement code for Mac or Linux (at least to some extent as you'll see soon enough) to be able to use it on both Operating Systems.
 
 Let's get to the practical part of the Bash-usage.
 
 **If you are using Windows**, make sure that you have git-bash installed, so you can execute the Bash commands mentioned in this introduction. (https://git-scm.com/download/win[Here you can find git for windows]).
 In some cases later on you may want or need to use WSL.
-Our project teams standard way is to install WSL via Rancher Desktop, which is easily installable with the IDEasy by using the command `ide install docker`.
+Our project team's standard way is to install WSL via Rancher Desktop, which is easily installable with the IDEasy by using the command `ide install docker`.
 If you don't have the IDEasy yet, then you can follow (https://github.com/devonfw/IDEasy/blob/main/documentation/setup.adoc[this guide])
 
 The https://www.youtube.com/watch?v=oxuRxtrO2Ag[following video] gives you some important and helpful basics, still you don't need to know all of these commands directly by heart.
