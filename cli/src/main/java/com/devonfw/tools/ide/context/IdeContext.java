@@ -725,4 +725,11 @@ public interface IdeContext extends IdeStartContext {
    */
   void writeVersionFile(VersionIdentifier version, Path installationPath);
 
+  /**
+   * checks if the ide version is at least IDE_MIN_VERSION
+   *
+   * @param throwException whether to throw a CliException or just log a warning
+   */
+  void verifyIdeMinVersion(boolean throwException);
+
 }
