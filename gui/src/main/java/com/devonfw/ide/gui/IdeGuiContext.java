@@ -7,7 +7,7 @@ import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 
 /**
- *
+ * Implementation of {@link AbstractIdeContext} for the IDEasy dashbaord (GUI).
  */
 public class IdeGuiContext extends AbstractIdeContext {
 
