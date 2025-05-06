@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1272[#1272]: Add name of file with missing namespace to warning message
 * https://github.com/devonfw/IDEasy/issues/1190[#1190]: Add pycharm support to IDEasy
 * https://github.com/devonfw/IDEasy/issues/1213[#1213]: Adapt log when tool version is not in compatible range
 
