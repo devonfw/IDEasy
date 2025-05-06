@@ -15,7 +15,7 @@ public class IdeGuiContext extends AbstractIdeContext {
   /**
    * The constructor.
    *
-   * @param startContext the {@link com.devonfw.tools.ide.log.IdeLogger IdeLogger}.
+   * @param startContext the {@link IdeStartContextImpl}.
    * @param workingDirectory the optional {@link Path} to current working directory.
    */
   public IdeGuiContext(IdeStartContextImpl startContext, Path workingDirectory) {
