@@ -41,7 +41,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @return the {@link Path} where the tool is located (installed).
    */
   public Path getToolPath() {
-
+    if (this.context.getSoftwarePath() == null) {
+      return null;
+    }
     return this.context.getSoftwarePath().resolve(getName());
   }
 
@@ -368,10 +370,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
   @Override
   public Path getInstalledSoftwareRepoPath() {
-    if (this.context.getSoftwarePath() == null) {
-      return null;
-    }
-    return getInstalledSoftwareRepoPath(this.context.getSoftwarePath().resolve(this.tool));
+    return getInstalledSoftwareRepoPath(getToolPath());
   }
 
   private Path getInstalledSoftwareRepoPath(Path toolPath) {
@@ -388,36 +387,33 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       // I do not see any reliable way how we could determine the edition of a tool that does not use software repo or that was installed by devonfw-ide
       return null;
     }
-    Path toolRepoFolder = context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve(this.tool);
-    installPath = getSoftwareRepoPath(toolRepoFolder, installPath);
+    installPath = getValidInstalledSoftwareRepoPath(installPath);
     return installPath;
   }
 
-  private Path getSoftwareRepoPath(Path toolRepoFolder, Path toolInstallFolder) {
-    int toolRepoNameCount = toolRepoFolder.getNameCount();
+  private Path getValidInstalledSoftwareRepoPath(Path toolInstallFolder) {
+    Path softwareRepoFolder = context.getSoftwareRepositoryPath();
+    int softwareRepoNameCount = context.getSoftwareRepositoryPath().getNameCount();
     int toolInstallNameCount = toolInstallFolder.getNameCount();
-    int targetToolInstallNameCount = toolRepoNameCount + 2;
-    if (toolRepoNameCount >= toolInstallNameCount) {
-      return null;
-    }
-    // ensure toolInstallFolder starts with $IDE_ROOT/_ide/software/default/«tool»
-    for (int i = 0; i < toolRepoNameCount; i++) {
-      if (!toolRepoFolder.getName(i).toString().equals(toolInstallFolder.getName(i).toString())) {
+    int targetToolInstallNameCount = softwareRepoNameCount + 4;
+    // ensure toolInstallFolder starts with $IDE_ROOT/_ide/software/
+    for (int i = 0; i < softwareRepoNameCount; i++) {
+      if (!softwareRepoFolder.getName(i).toString().equals(toolInstallFolder.getName(i).toString())) {
         return null;
       }
     }
-    // return $IDE_ROOT/_ide/software/default/«tool»/«edition»/«version»
-    if (toolInstallNameCount < targetToolInstallNameCount) {
-      this.context.warning("Software repository path is faulty {}", toolInstallFolder);
-      return null;
-    } else if (toolInstallNameCount == targetToolInstallNameCount) {
+    // return $IDE_ROOT/_ide/software/«id»/«tool»/«edition»/«version»
+    if (toolInstallNameCount == targetToolInstallNameCount) {
       return toolInstallFolder;
-    } else {
-      Path realInstallFolder = toolRepoFolder;
-      for (int i = toolRepoNameCount; i < targetToolInstallNameCount; i++) {
-        realInstallFolder = realInstallFolder.resolve(toolInstallFolder.getName(i));
+    } else if (toolInstallNameCount > targetToolInstallNameCount) {
+      Path validInstallFolder = toolInstallFolder;
+      for (int i = 0; i < toolInstallNameCount - targetToolInstallNameCount; i++) {
+        validInstallFolder = validInstallFolder.getParent();
       }
-      return realInstallFolder;
+      return validInstallFolder;
+    } else {
+      this.context.warning("Software repository path is faulty {}.", toolInstallFolder);
+      return null;
     }
   }
 
@@ -429,12 +425,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       if (Files.exists(softwarePath)) {
         try {
           this.context.getFileAccess().delete(softwarePath);
-          this.context.success("Successfully uninstalled " + this.tool);
+          this.context.success("Successfully uninstalled {}.", this.tool);
         } catch (Exception e) {
-          this.context.error("Couldn't uninstall " + this.tool, e);
+          this.context.error("Couldn't uninstall {]. {}", this.tool, e);
         }
       } else {
-        this.context.warning("An installed version of " + this.tool + " does not exist");
+        this.context.warning("An installed version of {} does not exist.", this.tool);
       }
     } catch (Exception e) {
       this.context.error(e.getMessage(), e);
@@ -446,19 +442,22 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     try {
       Path repoPath = getInstalledSoftwareRepoPath();
       if (Files.exists(repoPath)) {
-        this.context.info("Physically deleting " + repoPath + " as requested by the user via force mode.");
+        this.context.info("Physically deleting {} as requested by the user via force mode.", repoPath);
         uninstall();
         try {
           this.context.getFileAccess().delete(repoPath);
-          this.context.success("Successfully deleted " + repoPath + " from your computer.");
+          this.context.success("Successfully deleted {} from your computer.", repoPath);
         } catch (Exception e) {
-          this.context.error("Couldn't uninstall " + this.tool + " from your computer.", e);
+          this.context.error("Couldn't delete {} from your computer. {}", this.tool, e);
         }
       } else {
-        this.context.warning("An installed version of " + this.tool + " does not exist");
+        this.context.warning("An installed version of {} does not exist.", this.tool);
       }
     } catch (Exception e) {
-      this.context.error("Couldn't uninstall " + this.tool + " from your computer. Installed version does not exist inside the software repository. ", e);
+      this.context.error("Couldn't uninstall {} from your computer.", this.tool);
+      throw new IllegalStateException(
+          " Couldn't uninstall " + this.tool + ". "
+              + "An installed version of " + this.tool + " does not exist inside the software repository.", e);
     }
   }
 
