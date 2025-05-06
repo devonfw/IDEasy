@@ -35,7 +35,9 @@ for /f "tokens=*" %%i in ('ideasy %IDE_OPTIONS% env') do (
 ideasy %IDE_OPTIONS% env >nul
 
 if %ERRORLEVEL% == 0 (
-  echo IDE environment variables have been set for %IDE_HOME% in workspace %WORKSPACE%
+  if "%~1"=="" (
+    echo IDE environment variables have been set for %IDE_HOME% in workspace %WORKSPACE%
+  )
 )
 
 call :echoUseBash
@@ -48,6 +50,7 @@ goto :eof
   exit /b
 
 :echoErrorOutput
+  echo.
   echo %_fBRed%Error: IDEasy failed with exit code %ERRORLEVEL% %_RESET%
   call :echoUseBash
   exit /b %ERRORLEVEL%
