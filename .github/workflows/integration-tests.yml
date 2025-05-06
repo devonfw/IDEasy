@@ -1,0 +1,21 @@
+name: Integration Tests
+on:
+  workflow_dispatch
+
+jobs:
+  # Runs integration tests for each os
+  run-integration-tests:
+    name: Run integration test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ windows-latest, ubuntu-latest, macos-latest, macos-13 ]
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+      - name: Run integration tests
+        shell: bash
+        run: |
+          cd cli/src/test
+          ./all-tests.sh ${{ matrix.os }}
