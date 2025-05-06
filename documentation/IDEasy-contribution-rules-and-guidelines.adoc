@@ -5,17 +5,22 @@ toc::[]
 
 The IDEasy *Project Board* with its Columns should be used as follows:
 
-* *New*: [.underline]#Issues# that are newly created and have yet to be refined
-* *Backlog*: [.underline]#Issues# that are refined but not yet being worked on
-* *Research*: [.underline]#Issues# that are blocked or need complex research/analysis to make progress.
-Typically, these are issues that somebody tried to solve but it turned out to be hard to make progress and find a solution.
+* *New*: [.underline]#Issues# our backlog with issues to work on.
+When you want to work on an issue from this backlog please follow these suggestions:
+** Ensure there is no assignee set for the issue. Otherwise someone else is already working on it and you should look for another story.
+** Check the `Priority` and `Size` of the issue. Issues with higher `Priority` should typically be addressed first. Issues with higher `Size` are typically more complex. Depending on your experience consider if you want to deal with the story or check if easier tasks are there fore you to work on first.
+** If the issue was not created from `jan-vcapgemini` or `hohwille` and there is no sign of comments or refinement, please ask the team before working on it.
+** Check the `Development` section of the issue if there is already a PR assigned to it. Then typically someone else worked on the story and was not able to finish it (e.g. before he left the team). Then pick up from the existing PR(s) instead of starting from scratch.
+** If you finally decided to work on the story, ensure you are assigned to it (as the only assignee) and move it to `In Progress`.
+* *Research*: [.underline]#Issues# or #PRs# that are blocked or need complex research/analysis to make progress.
+Typically, these are tickets that somebody tried to solve but it turned out to be hard to make progress and find a solution.
 * *In Progress*: [.underline]#Issues# that are currently being worked on, they must be assigned to the person (or people) working on it.
 You can see on the board if there is a pull-request linked to it.
 If not, the developer is still working on the story “in the dark”.
 Otherwise, there is already a solution implemented.
 The PR may be in draft state, otherwise the PR should be in one of the following two columns.
 * *Team Review*: [.underline]#Pull Request# that is to be or currently under review by a member of the dev team.
-The reviewer is the assignee of the PR and the author remains assignee (2 assignees).
+The reviewer is the assignee of the PR and the author remains assignee (2 assignees). Once the team review is completed (all findings resolved) it is moved to `In Review` (by the team reviewer).
 * *In Review*: [.underline]#Pull Request# that is to be or currently under review by a final reviewer that is the assignee of the PR together with the author (2 assignees).
 Typically the final reviewer is the Project Owner (currently hohwille) but it may also be done by team members with longer experience in the project.
 * *Done*: [.underline]#Issues# and [.underline]#Pull Requests# that have been completed and merged.
