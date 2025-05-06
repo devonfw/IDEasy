@@ -425,12 +425,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       if (Files.exists(softwarePath)) {
         try {
           this.context.getFileAccess().delete(softwarePath);
-          this.context.success("Successfully uninstalled {}.", this.tool);
+          this.context.success("Successfully uninstalled " + this.tool);
         } catch (Exception e) {
-          this.context.error("Couldn't uninstall {]. {}", this.tool, e);
+          this.context.error("Couldn't uninstall " + this.tool + ". ", e);
         }
       } else {
-        this.context.warning("An installed version of {} does not exist.", this.tool);
+        this.context.warning("An installed version of " + this.tool + " does not exist.");
       }
     } catch (Exception e) {
       this.context.error(e.getMessage(), e);
@@ -442,19 +442,19 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     try {
       Path repoPath = getInstalledSoftwareRepoPath();
       if (Files.exists(repoPath)) {
-        this.context.info("Physically deleting {} as requested by the user via force mode.", repoPath);
+        this.context.info("Physically deleting " + repoPath + " as requested by the user via force mode.");
         uninstall();
         try {
           this.context.getFileAccess().delete(repoPath);
-          this.context.success("Successfully deleted {} from your computer.", repoPath);
+          this.context.success("Successfully deleted " + repoPath + " from your computer.");
         } catch (Exception e) {
-          this.context.error("Couldn't delete {} from your computer. {}", this.tool, e);
+          this.context.error("Couldn't delete " + this.tool + " from your computer.", e);
         }
       } else {
-        this.context.warning("An installed version of {} does not exist.", this.tool);
+        this.context.warning("An installed version of " + this.tool + " does not exist.");
       }
     } catch (Exception e) {
-      this.context.error("Couldn't uninstall {} from your computer.", this.tool);
+      this.context.error("Couldn't uninstall " + this.tool + " from your computer.");
       throw new IllegalStateException(
           " Couldn't uninstall " + this.tool + ". "
               + "An installed version of " + this.tool + " does not exist inside the software repository.", e);
