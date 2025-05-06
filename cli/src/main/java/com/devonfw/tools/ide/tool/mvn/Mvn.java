@@ -97,8 +97,7 @@ public class Mvn extends PluginBasedCommandlet {
       secureRandom.nextBytes(randomBytes);
       String base64String = Base64.getEncoder().encodeToString(randomBytes);
 
-      Mvn mvn = new Mvn(context);
-      ProcessResult result = mvn.runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), "--encrypt-master-password",
+      ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), "--encrypt-master-password",
           base64String);
       String encryptedMasterPassword = result.getOut().getFirst();
 
@@ -153,8 +152,7 @@ public class Mvn extends PluginBasedCommandlet {
 
     String input = this.context.askForInput("Please enter secret value for variable " + variable + ":");
 
-    Mvn mvn = new Mvn(context);
-    ProcessResult result = mvn.runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), "--encrypt-password", input,
+    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), "--encrypt-password", input,
         getSettingsSecurityProperty());
 
     String encryptedPassword = result.getOut().getFirst();
