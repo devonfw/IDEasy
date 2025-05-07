@@ -99,10 +99,7 @@ public class Mvn extends PluginBasedCommandlet {
       secureRandom.nextBytes(randomBytes);
       String base64String = Base64.getEncoder().encodeToString(randomBytes);
 
-      ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), "--encrypt-master-password",
-          base64String);
-      IdeSubLogger logger = this.context.level(IdeLogLevel.WARNING);
-      String encryptedMasterPassword = result.getSingleOutput(logger);
+      String encryptedMasterPassword = retrievePassword("--encrypt-master-password", base64String);
 
       String settingsSecurityXml =
           "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<settingsSecurity>\n" + "  <master>" + encryptedMasterPassword + "</master>\n"
@@ -155,14 +152,19 @@ public class Mvn extends PluginBasedCommandlet {
 
     String input = this.context.askForInput("Please enter secret value for variable " + variable + ":");
 
-    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), "--encrypt-password", input,
-        getSettingsSecurityProperty());
-
-    IdeSubLogger logger = this.context.level(IdeLogLevel.WARNING);
-    String encryptedPassword = result.getSingleOutput(logger);
+    String encryptedPassword = retrievePassword("--encrypt-password", input);
     this.context.info("Encrypted as " + encryptedPassword);
 
     return encryptedPassword;
+  }
+
+  private String retrievePassword(String args, String input) {
+
+    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), args, input,
+        getSettingsSecurityProperty());
+
+    IdeSubLogger logger = this.context.level(IdeLogLevel.WARNING);
+    return result.getSingleOutput(logger);
   }
 
   private Set<String> findVariables(String content) {

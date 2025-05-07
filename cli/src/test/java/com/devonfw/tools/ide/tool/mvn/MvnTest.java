@@ -21,7 +21,6 @@ public class MvnTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_MVN = "mvn";
 
-  //private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\[(.*?)\\]");
   private static final Pattern VARIABLE_PATTERN = Pattern.compile("<([^>]+)>(.*?)</\\1>");
 
   /**
