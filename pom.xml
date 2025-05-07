@@ -30,7 +30,7 @@
     <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
     <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
     <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
-    <graalvm.version>24.2.0</graalvm.version>
+    <graalvm.version>24.2.1</graalvm.version>
   </properties>
 
   <dependencyManagement>
@@ -114,7 +114,7 @@
         <!-- required for advanced mocking -->
         <groupId>net.bytebuddy</groupId>
         <artifactId>byte-buddy</artifactId>
-        <version>1.17.2</version>
+        <version>1.17.5</version>
       </dependency>
       <dependency>
         <groupId>org.xmlunit</groupId>
@@ -129,7 +129,7 @@
       <dependency>
         <groupId>org.wiremock</groupId>
         <artifactId>wiremock</artifactId>
-        <version>3.12.1</version>
+        <version>3.13.0</version>
       </dependency>
       <dependency>
         <groupId>org.testfx</groupId>

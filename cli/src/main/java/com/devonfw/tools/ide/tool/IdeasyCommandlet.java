@@ -173,6 +173,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     for (Path installationArtifact : installationArtifacts) {
       fileAccess.copy(installationArtifact, ideasyVersionPath);
     }
+    this.context.writeVersionFile(IdeVersion.getVersionIdentifier(), ideasyVersionPath);
     fileAccess.symlink(ideasyVersionPath, installationPath);
     addToShellRc(BASHRC, ideRoot, null);
     addToShellRc(ZSHRC, ideRoot, "autoload -U +X bashcompinit && bashcompinit");

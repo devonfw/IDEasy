@@ -8,23 +8,51 @@ toc::[]
 To get an initial set of these settings we provide the default https://github.com/devonfw/ide-settings[ide-settings] as an initial package.
 These are also released so you can download the latest stable or any history version at http://search.maven.org/#search|ga|1|a%3A%22devonfw-ide-settings%22[maven central].
 
-To test `IDEasy` or for very small projects you can also use these the latest default settings (just hit return when link:setup.adoc[setup] is asking for the `Settings URL`).
-However, for collaborative projects we provide two approaches to distribute and maintain the settings:
+To test `IDEasy` or for very small projects you can also use the latest default settings:
+```
+ide create «project-name» -
+```
+However, for collaborative projects it is important that you create `settings` specific for your team via a dedidcated git repository.
 
-* Via a dedicated and project specific git repository (recommended approach).
 This gives you the freedom to control and manage the tools with their versions and configurations during the project lifecycle.
-Therefore simply follow the link:usage.adoc#admin[admin usage guide].
-* Via your code repository by including the settings folder directly in your project.
-This allows you to keep settings changes in sync with code changes and manage them in the same pull requests.
-To use this approach:
-** Create a settings folder in your repository root following the structure described below
-** Use `ide create --code <code-repo-url>` to create your project.
+To setup and customize these settings simply follow the link:usage.adoc#admin[admin usage guide].
+Then tell your team to create the project using your project sepcific settings git URL:
+```
+ide create «project-name» --code «settings-url»
+```
+
+== Code-repository
+
+It is even possible to include your settings into your code repository by having the `settings` folder directly on top-level of your code git repository.
+This allows you to keep settings changes in sync with code changes and manage them in the same pull/merge requests.
+To use this approach simply copy the content of https://github.com/devonfw/ide-settings[ide-settings] to a top-level `settings` folder in your code repository root and tell your developers to create the project usining the `--code` option:
+
+```
+ide create «project-name» --code «code-repo-url»
+```
+
 IDEasy will clone your repository and create a symlink to the settings folder.
 Changes to settings can then be committed alongside code changes.
 
+However, please note that the "settings in code repository" approach is not recommended (happy path) and has the following disadvantages:
+
+* Code repositories have their own CI and review process and it is typically more hard and slow to incorporate changes.
+* Code repositories are typically big and need more time to clone.
+IDE admins that frequently want to test changes to the settings on feature branches via `ide create ...` will have to wait longer and might be annoyed.
+* In real life you typically work with multiple code repositories (frontend/backend, microservices, libraries, ...) but you want to have consistent IDEasy settings for that or at least an N:M mapping between code-repos and settings.
+With the regular approach you simply have more flexibility and are better prepared for future changes.
+* With the regular approach (standalone settings repo) you can upstream merge changes from our central https://github.com/devonfw/ide-settings[ide-settings] to keep up-to-date and reduce maintenance overhead.
+With settings in code repository approach this is not working well.
+
+But we do not want to forget the following advantage:
+
+* With settings in code repository you can easily create consistent feature branches where you change code and IDEasy settings together (e.g. java major upgrade in `pom.xml`, `ide.properties`, etc.).
+Anyhow you can still create feature branches in standalone settings repositories to manage such scenarios and follow KISS and trunk-based development so you more or less avoid such problems.
+However, if you are in a monolithic project with complex release branches you may consider using the "settings in code repository" approach.
+
 == Structure
 
-The settings folder (see `link:variables.adoc[SETTINGS_PATH]`) has to follow this file structure:
+The settings folder has to follow this file structure:
 
 .File structure of settings
 [subs=+macros]

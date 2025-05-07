@@ -25,6 +25,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.merge.FileMerger;
 import com.devonfw.tools.ide.merge.xml.matcher.ElementMatcher;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * {@link FileMerger} for XML files.
@@ -34,6 +35,8 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
   private static final DocumentBuilder DOCUMENT_BUILDER;
 
   private static final TransformerFactory TRANSFORMER_FACTORY;
+
+  protected final boolean legacyXmlSupport;
 
   /** The namespace URI for this XML merger. */
   public static final String MERGE_NS_URI = "https://github.com/devonfw/IDEasy/merge";
@@ -57,6 +60,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
   public XmlMerger(IdeContext context) {
 
     super(context);
+    this.legacyXmlSupport = Boolean.TRUE.equals(IdeVariables.IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED.get(context));
   }
 
   @Override
@@ -79,7 +83,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
       if (workspaceDocument == null) {
         resultDocument = templateDocument.getDocument();
       } else {
-        resultDocument = merge(templateDocument, workspaceDocument);
+        resultDocument = merge(templateDocument, workspaceDocument, workspaceFileExists);
         if ((resultDocument == null) && !workspaceFileExists) {
           // if the merge failed due to incompatible roots and we have no workspace file
           // then at least we should take the resolved setup file as result
@@ -102,9 +106,10 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
    * @param templateDocument the {@link XmlMergeDocument} representing the template xml file from the settings.
    * @param workspaceDocument the {@link XmlMergeDocument} of the actual source XML file (typically from the workspace of the real IDE) to merge with the
    *     {@code templateDocument}.
+   * @param workspaceFileExists indicates whether the workspace document already exists or if setup templates are loaded
    * @return the merged {@link Document}.
    */
-  public Document merge(XmlMergeDocument templateDocument, XmlMergeDocument workspaceDocument) {
+  public Document merge(XmlMergeDocument templateDocument, XmlMergeDocument workspaceDocument, boolean workspaceFileExists) {
 
     Document resultDocument;
     Path source = templateDocument.getPath();
@@ -118,6 +123,19 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
       XmlMergeStrategy strategy = XmlMergeSupport.getMergeStrategy(templateRoot);
       if (strategy == null) {
         strategy = XmlMergeStrategy.COMBINE; // default strategy used as fallback
+      }
+      if (templateRoot.lookupPrefix(MERGE_NS_URI) == null) {
+        if (this.legacyXmlSupport) {
+          if (workspaceFileExists) {
+            strategy = XmlMergeStrategy.OVERRIDE;
+          } else {
+            strategy = XmlMergeStrategy.KEEP;
+          }
+        } else {
+          this.context.warning(
+              "XML merge namespace not found in file {}. If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
+                  + "proceed correctly.", source);
+        }
       }
       ElementMatcher elementMatcher = new ElementMatcher(this.context);
       strategy.merge(templateRoot, workspaceRoot, elementMatcher);
