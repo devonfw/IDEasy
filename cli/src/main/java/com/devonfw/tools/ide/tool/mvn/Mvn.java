@@ -12,6 +12,8 @@ import java.util.regex.Matcher;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -99,7 +101,8 @@ public class Mvn extends PluginBasedCommandlet {
 
       ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), "--encrypt-master-password",
           base64String);
-      String encryptedMasterPassword = result.getOut().getFirst();
+      IdeSubLogger logger = this.context.level(IdeLogLevel.WARNING);
+      String encryptedMasterPassword = result.getSingleOutput(logger);
 
       String settingsSecurityXml =
           "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<settingsSecurity>\n" + "  <master>" + encryptedMasterPassword + "</master>\n"
@@ -155,7 +158,8 @@ public class Mvn extends PluginBasedCommandlet {
     ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), "--encrypt-password", input,
         getSettingsSecurityProperty());
 
-    String encryptedPassword = result.getOut().getFirst();
+    IdeSubLogger logger = this.context.level(IdeLogLevel.WARNING);
+    String encryptedPassword = result.getSingleOutput(logger);
     this.context.info("Encrypted as " + encryptedPassword);
 
     return encryptedPassword;
