@@ -38,7 +38,7 @@ public interface IdeVariables {
 
   /** {@link VariableDefinition} for minimum IDE product version. */
   // TODO define initial IDEasy version as default value
-  VariableDefinitionVersion IDE_MIN_VERSION = new VariableDefinitionVersion("IDE_MIN_VERSION", "DEVON_IDE_MIN_VERSION");
+  VariableDefinitionVersion IDE_MIN_VERSION = new VariableDefinitionVersion("IDE_MIN_VERSION");
 
   /** {@link VariableDefinition} for version of maven (mvn). */
   VariableDefinitionVersion MVN_VERSION = new VariableDefinitionVersion("MVN_VERSION", "MAVEN_VERSION");

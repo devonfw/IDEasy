@@ -11,6 +11,7 @@ image:https://img.shields.io/maven-central/v/com.devonfw.tools.IDEasy/ide-cli.sv
 image:https://github.com/devonfw/IDEasy/actions/workflows/build.yml/badge.svg["Build Status",link="https://github.com/devonfw/IDEasy/actions/workflows/build.yml"]
 image:https://github.com/devonfw/IDEasy/actions/workflows/update-urls.yml/badge.svg["Update URLS Status",link="https://github.com/devonfw/IDEasy/actions/workflows/update-urls.yml"]
 image:https://github.com/devonfw/IDEasy/actions/workflows/nightly-build.yml/badge.svg["Nightly Release",link="https://github.com/devonfw/IDEasy/actions/workflows/nightly-build.yml"]
+image:https://github.com/devonfw/IDEasy/actions/workflows/integration-tests.yml/badge.svg["Integration Tests",link="https://github.com/devonfw/IDEasy/actions/workflows/integration-tests.yml"]
 image:https://coveralls.io/repos/github/devonfw/IDEasy/badge.svg?branch=main["Coverage Status",link="https://coveralls.io/github/devonfw/IDEasy?branch=main"]
 
 toc::[]
