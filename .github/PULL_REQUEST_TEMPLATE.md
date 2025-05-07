@@ -1,10 +1,12 @@
-This PR fixes `<#issue ID>`.
+### This PR fixes `<#issue ID>`.
 
 ### Implemented changes:
 
 * Change 1
 
-### Checklist for this PR
+---
+
+## Checklist for this PR
 
 Make sure everything is checked before merging this PR. For further info please also see
 our [DoD](https://github.com/devonfw/ide/blob/master/documentation/DoD.asciidoc).
