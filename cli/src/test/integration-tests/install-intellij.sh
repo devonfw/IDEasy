@@ -12,7 +12,7 @@ fi
 
 if doIsMacOs
 then
-  intellij_binary="IntelliJ IDEA CE.app/Contents/MacOS/idea"
+  intellij_binary="idea"
 fi
 
 assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/intellij/${intellij_binary}" exists
