@@ -300,9 +300,19 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public abstract String getInstalledEdition();
 
   /**
+   * @return the path of the installed tool inside the software repo folder or {@code null} if not installed.
+   */
+  public abstract Path getInstalledSoftwareRepoPath();
+
+  /**
    * Uninstalls the {@link #getName() tool}.
    */
   public abstract void uninstall();
+
+  /**
+   * Uninstalls the {@link #getName() tool} and the real tool version inside the software repository.
+   */
+  public abstract void forceUninstall();
 
   /**
    * @return the {@link ToolRepository}.

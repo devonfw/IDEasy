@@ -41,7 +41,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @return the {@link Path} where the tool is located (installed).
    */
   public Path getToolPath() {
-
+    if (this.context.getSoftwarePath() == null) {
+      return null;
+    }
     return this.context.getSoftwarePath().resolve(getName());
   }
 
@@ -329,7 +331,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   private String getInstalledEdition(Path toolPath) {
-
     if (!Files.isDirectory(toolPath)) {
       this.context.debug("Tool {} not installed in {}", this.tool, toolPath);
       return null;
@@ -368,6 +369,55 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
+  public Path getInstalledSoftwareRepoPath() {
+    return getInstalledSoftwareRepoPath(getToolPath());
+  }
+
+  private Path getInstalledSoftwareRepoPath(Path toolPath) {
+    if (!Files.isDirectory(toolPath)) {
+      this.context.debug("Tool {} not installed in {}", this.tool, toolPath);
+      return null;
+    }
+    Path installPath = this.context.getFileAccess().toRealPath(toolPath);
+    // if the installPath changed, a link has been resolved
+    if (installPath.equals(toolPath)) {
+      if (!isIgnoreSoftwareRepo()) {
+        this.context.warning("Tool {} is not installed via software repository (maybe from devonfw-ide). Please consider reinstalling it.", this.tool);
+      }
+      // I do not see any reliable way how we could determine the edition of a tool that does not use software repo or that was installed by devonfw-ide
+      return null;
+    }
+    installPath = getValidInstalledSoftwareRepoPath(installPath);
+    return installPath;
+  }
+
+  private Path getValidInstalledSoftwareRepoPath(Path toolInstallFolder) {
+    Path softwareRepoFolder = context.getSoftwareRepositoryPath();
+    int softwareRepoNameCount = context.getSoftwareRepositoryPath().getNameCount();
+    int toolInstallNameCount = toolInstallFolder.getNameCount();
+    int targetToolInstallNameCount = softwareRepoNameCount + 4;
+    // ensure toolInstallFolder starts with $IDE_ROOT/_ide/software/
+    for (int i = 0; i < softwareRepoNameCount; i++) {
+      if (!softwareRepoFolder.getName(i).toString().equals(toolInstallFolder.getName(i).toString())) {
+        return null;
+      }
+    }
+    // return $IDE_ROOT/_ide/software/«id»/«tool»/«edition»/«version»
+    if (toolInstallNameCount == targetToolInstallNameCount) {
+      return toolInstallFolder;
+    } else if (toolInstallNameCount > targetToolInstallNameCount) {
+      Path validInstallFolder = toolInstallFolder;
+      for (int i = 0; i < toolInstallNameCount - targetToolInstallNameCount; i++) {
+        validInstallFolder = validInstallFolder.getParent();
+      }
+      return validInstallFolder;
+    } else {
+      this.context.warning("Software repository path is faulty {}.", toolInstallFolder);
+      return null;
+    }
+  }
+
+  @Override
   public void uninstall() {
 
     try {
@@ -377,13 +427,37 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
           this.context.getFileAccess().delete(softwarePath);
           this.context.success("Successfully uninstalled " + this.tool);
         } catch (Exception e) {
-          this.context.error("Couldn't uninstall " + this.tool);
+          this.context.error("Couldn't uninstall " + this.tool + ". ", e);
         }
       } else {
-        this.context.warning("An installed version of " + this.tool + " does not exist");
+        this.context.warning("An installed version of " + this.tool + " does not exist.");
       }
     } catch (Exception e) {
-      this.context.error(e.getMessage());
+      this.context.error(e.getMessage(), e);
+    }
+  }
+
+  @Override
+  public void forceUninstall() {
+    try {
+      Path repoPath = getInstalledSoftwareRepoPath();
+      if (Files.exists(repoPath)) {
+        this.context.info("Physically deleting " + repoPath + " as requested by the user via force mode.");
+        uninstall();
+        try {
+          this.context.getFileAccess().delete(repoPath);
+          this.context.success("Successfully deleted " + repoPath + " from your computer.");
+        } catch (Exception e) {
+          this.context.error("Couldn't delete " + this.tool + " from your computer.", e);
+        }
+      } else {
+        this.context.warning("An installed version of " + this.tool + " does not exist.");
+      }
+    } catch (Exception e) {
+      this.context.error("Couldn't uninstall " + this.tool + " from your computer.");
+      throw new IllegalStateException(
+          " Couldn't uninstall " + this.tool + ". "
+              + "An installed version of " + this.tool + " does not exist inside the software repository.", e);
     }
   }
 
