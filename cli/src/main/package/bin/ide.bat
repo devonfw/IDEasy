@@ -21,10 +21,9 @@ if exist "%GIT_CORE%" (
 
 if not "%1%" == "" (
   ideasy %IDE_OPTIONS% %*
-  if not %ERRORLEVEL% == 0 (
-    echo %_fBRed%Error: IDEasy failed with exit code %ERRORLEVEL% %_RESET%
-    call :echoUseBash
-    exit /b %ERRORLEVEL%
+  if errorlevel 1 (
+    goto :echoErrorOutput
+    exit \b
   )
 )
 
@@ -36,7 +35,9 @@ for /f "tokens=*" %%i in ('ideasy %IDE_OPTIONS% env') do (
 ideasy %IDE_OPTIONS% env >nul
 
 if %ERRORLEVEL% == 0 (
-  echo IDE environment variables have been set for %IDE_HOME% in workspace %WORKSPACE%
+  if "%~1"=="" (
+    echo IDE environment variables have been set for %IDE_HOME% in workspace %WORKSPACE%
+  )
 )
 
 call :echoUseBash
@@ -47,3 +48,9 @@ goto :eof
   echo %_fBYellow%Please use ^(git-^)bash ^(integrated in Windows Terminal^) for full IDEasy support:
   echo https://github.com/devonfw/IDEasy/blob/main/documentation/advanced-tooling-windows.adoc#tabs-for-shells %_RESET%
   exit /b
+
+:echoErrorOutput
+  echo.
+  echo %_fBRed%Error: IDEasy failed with exit code %ERRORLEVEL% %_RESET%
+  call :echoUseBash
+  exit /b %ERRORLEVEL%
