@@ -3,16 +3,16 @@ ide -d install intellij
 
 assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/intellij/.ide.software.version" exists
 
-intellij_binary="idea.sh"
+intellij_binary="bin/idea.sh"
 
 if doIsWindows
 then
-  intellij_binary="idea64.exe"
+  intellij_binary="bin/idea64.exe"
 fi
 
 if doIsMacOs
 then
-  intellij_binary="idea"
+  intellij_binary="IntelliJ IDEA CE.app/Contents/MacOS/idea"
 fi
 
-assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/intellij/bin/${intellij_binary}" exists
+assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/intellij/${intellij_binary}" exists
