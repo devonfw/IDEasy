@@ -19,11 +19,12 @@ our [DoD](https://github.com/devonfw/ide/blob/master/documentation/DoD.asciidoc)
 - [ ] You followed all [coding conventions](link:coding-conventions.adoc)
 - [ ] You have added the issue implemented by your PR in [CHANGELOG.adoc](https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc)
 
+### Checklist for tool commandlets
+
 Have you added a new `«tool»` as commandlet? The following points need to be checked off, too:
 
-<details>
-<summary>Checklist for tool commandlets</summary>
-- [ ] A new urlUpdater named `«tool»` has been added to a folder in [updater](https://github.com/devonfw/ide/tree/master/url-updater/src/main/java/com/devonfw/tools/ide/url/updater)
+- [ ] A new urlUpdater named `«tool»` has been added to a folder
+  in [updater](https://github.com/devonfw/ide/tree/master/url-updater/src/main/java/com/devonfw/tools/ide/url/updater)
 - [ ] A new commandlet named `«tool»` has been added to [command](https://github.com/devonfw/ide/tree/master/scripts/src/main/resources/scripts/command)
 - [ ] The tool can be installed automatically (during setup via settings) or via the commandlet call
 - [ ] The tool will be installed locally to the software folder inside the IDEasy installation (${IDEASY_HOME}) *or* it is an exception to this rule
@@ -37,9 +38,10 @@ Have you added a new `«tool»` as commandlet? The following points need to be c
 - [ ] The new commandlet installs potential dependencies automatically
 - [ ] The new commandlet defines the variable `TOOL_VERSION_COMMAND` before sourcing the functions
 - [ ] Calling `ide get-version «tool»", `ide list-versions «tool»" and `ide set-version «tool»" works *or* the tool does not provide any such setup
-- [ ] The variable `«TOOL»_VERSION` is honored by your commandlet??? 
+- [ ] The variable `«TOOL»_VERSION` is honored by your commandlet???
 - [ ] The new commandlet is tested on all platforms it is available for or tested on all platforms that are in scope of the linked issue
-</details>
+
+### Checklist for functions
 
 Have you added, changed or deleted a *function* (in `functions` or `environment-project`)?
 
