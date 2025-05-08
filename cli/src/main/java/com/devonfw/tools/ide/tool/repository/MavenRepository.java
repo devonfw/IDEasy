@@ -257,6 +257,11 @@ public final class MavenRepository extends AbstractToolRepository {
   }
 
   @Override
+  public List<VersionIdentifier> getSortedVersions(String tool, String edition) {
+    return List.of();
+  }
+
+  @Override
   public Collection<ToolDependency> findDependencies(String groupId, String artifactId, VersionIdentifier version) {
 
     // We could read POM here and find dependencies but we do not want to reimplement maven here.

@@ -24,6 +24,8 @@ public interface AbstractUrlMetadata {
    */
   List<VersionIdentifier> getSortedVersions(String tool, String edition, ToolCommandlet toolCommandlet);
 
+  List<VersionIdentifier> getSortedVersions(String tool, String edition);
+
   /**
    * @param tool the name of the {@link UrlTool}.
    * @param edition the name of the {@link UrlEdition}.
