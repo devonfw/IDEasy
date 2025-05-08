@@ -141,6 +141,9 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private WindowsHelper windowsHelper;
 
+  /** Context used for logging */
+  public static IdeContext loggingContext;
+
   /**
    * The constructor.
    *
@@ -201,6 +204,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
 
     this.defaultToolRepository = new DefaultToolRepository(this);
+    loggingContext = this;
     this.mavenRepository = new MavenRepository(this);
   }
 
