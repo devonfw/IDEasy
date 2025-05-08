@@ -335,6 +335,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
+   * @return the {@link com.devonfw.tools.ide.tool.repository.DefaultToolRepository#getSortedVersions(String, String, ToolCommandlet)}  SortedVersions}. of this
+   *     tool.
+   */
+  public List<VersionIdentifier> getVersions() {
+    return getToolRepository().getSortedVersions(getName(), getConfiguredEdition(), this);
+  }
+
+  /**
    * Sets the tool version in the environment variable configuration file.
    *
    * @param version the version (pattern) to set.

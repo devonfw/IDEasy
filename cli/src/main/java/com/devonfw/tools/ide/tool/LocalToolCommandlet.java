@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 
+import com.devonfw.tools.ide.CVEFinder;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
@@ -15,6 +16,7 @@ import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -183,6 +185,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     boolean extraInstallation = (version instanceof VersionRange);
     ToolRepository toolRepository = getToolRepository();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
+    lookForCVEs(resolvedVersion, edition, processContext);
     installToolDependencies(resolvedVersion, edition, processContext);
 
     Path installationPath;
@@ -274,6 +277,43 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       dependencyTool.installAsDependency(dependency.versionRange(), processContext);
     }
   }
+
+  private VersionIdentifier lookForCVEs(VersionIdentifier version, String edition, ProcessContext processContext) {
+    CVEFinder cveFinder = new CVEFinder(context, this, version);
+    Collection<CVE> cves = cveFinder.getCVEs(version);
+    VersionIdentifier safestNearestVersion = version;
+    VersionIdentifier safestLatestVersion = version;
+    //Todo remove Test cve
+
+    if (cves.isEmpty()) {
+
+      context.info("No CVEs found for tool {} in version {}", this.getName(), version);
+    } else {
+      cveFinder.listCVEs(version);
+      context.info("The tool {} in version {} is affected by the CVE(s) logged above.", this.getName(), version);
+      safestLatestVersion = cveFinder.findSafestLatestVersion();
+      context.info("The latest version {} is only affected by the following CVE(s).", safestLatestVersion);
+      cveFinder.listCVEs(safestLatestVersion);
+      safestNearestVersion = cveFinder.findSafestNearestVersion();
+      context.info("The nearest version {} is only affected by the following CVE(s).", safestNearestVersion);
+      cveFinder.listCVEs(safestNearestVersion);
+    }
+
+    String answer = context.question("Which version do you want to use?", "current (keep current version - WARNING insecure)",
+        "nearest",
+        "latest");
+    if (answer.equals("current")) {
+      return version;
+    }
+    if (answer.equals("nearest")) {
+      return safestNearestVersion;
+    }
+    if (answer.equals("latest")) {
+      return safestLatestVersion;
+    }
+    return null;
+  }
+
 
   /**
    * Post-extraction hook that can be overridden to add custom processing after unpacking and before moving to the final destination folder.
@@ -411,8 +451,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param environmentContext the {@link EnvironmentContext} where to {@link EnvironmentContext#withEnvVar(String, String) set environment variables} for
    *     this tool.
    * @param toolInstallation the {@link ToolInstallation}.
-   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
-   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the {@link #getConfiguredVersion()} ()
+   *     configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
    */
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
