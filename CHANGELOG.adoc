@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1108[#1108]: Fix git authentification in terminal
 * https://github.com/devonfw/IDEasy/issues/1272[#1272]: Add name of file with missing namespace to warning message
 * https://github.com/devonfw/IDEasy/issues/1190[#1190]: Add pycharm support to IDEasy
 
