@@ -12,7 +12,10 @@ import java.util.regex.Matcher;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
@@ -96,12 +99,7 @@ public class Mvn extends PluginBasedCommandlet {
       secureRandom.nextBytes(randomBytes);
       String base64String = Base64.getEncoder().encodeToString(randomBytes);
 
-      ProcessContext pc = this.context.newProcess().executable("mvn");
-      pc.addArgs("--encrypt-master-password", base64String);
-
-      ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
-
-      String encryptedMasterPassword = result.getOut().get(0);
+      String encryptedMasterPassword = retrievePassword("--encrypt-master-password", base64String);
 
       String settingsSecurityXml =
           "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<settingsSecurity>\n" + "  <master>" + encryptedMasterPassword + "</master>\n"
@@ -154,15 +152,19 @@ public class Mvn extends PluginBasedCommandlet {
 
     String input = this.context.askForInput("Please enter secret value for variable " + variable + ":");
 
-    ProcessContext pc = this.context.newProcess().executable("mvn");
-    pc.addArgs("--encrypt-password", input);
-    pc.addArg(getSettingsSecurityProperty());
-    ProcessResult result = pc.run(ProcessMode.DEFAULT_CAPTURE);
-
-    String encryptedPassword = result.getOut().get(0);
+    String encryptedPassword = retrievePassword("--encrypt-password", input);
     this.context.info("Encrypted as " + encryptedPassword);
 
     return encryptedPassword;
+  }
+
+  private String retrievePassword(String args, String input) {
+
+    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), args, input,
+        getSettingsSecurityProperty());
+
+    IdeSubLogger logger = this.context.level(IdeLogLevel.WARNING);
+    return result.getSingleOutput(logger);
   }
 
   private Set<String> findVariables(String content) {
@@ -248,13 +250,26 @@ public class Mvn extends PluginBasedCommandlet {
    * @return the maven arguments (MVN_ARGS).
    */
   public String getMavenArgs() {
-    Path mavenConfFolder = getMavenConfFolder(false);
+    Path mavenConfFolder = getMavenConfFolder(true);
     Path mvnSettingsFile = mavenConfFolder.resolve(Mvn.SETTINGS_FILE);
-    if (!Files.exists(mvnSettingsFile)) {
+    Path settingsSecurityFile = mavenConfFolder.resolve(SETTINGS_SECURITY_FILE);
+    boolean settingsFileExists = Files.exists(mvnSettingsFile);
+    boolean securityFileExists = Files.exists(settingsSecurityFile);
+    if (!settingsFileExists && !securityFileExists) {
       return null;
     }
-    String settingsPath = mvnSettingsFile.toString();
-    return "-s " + settingsPath + " " + getSettingsSecurityProperty();
+    StringBuilder sb = new StringBuilder();
+    if (settingsFileExists) {
+      sb.append("-s ");
+      sb.append(mvnSettingsFile);
+    }
+    if (securityFileExists) {
+      if (!sb.isEmpty()) {
+        sb.append(" ");
+      }
+      sb.append(getSettingsSecurityProperty());
+    }
+    return sb.toString();
   }
 
   private String getSettingsSecurityProperty() {
