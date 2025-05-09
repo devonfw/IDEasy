@@ -250,14 +250,26 @@ public class Mvn extends PluginBasedCommandlet {
    * @return the maven arguments (MVN_ARGS).
    */
   public String getMavenArgs() {
-    Path mavenConfFolder = this.context.getMavenConfigurationFolder();
+    Path mavenConfFolder = getMavenConfFolder(true);
     Path mvnSettingsFile = mavenConfFolder.resolve(Mvn.SETTINGS_FILE);
     Path settingsSecurityFile = mavenConfFolder.resolve(SETTINGS_SECURITY_FILE);
-    if (!Files.exists(mvnSettingsFile) && !Files.exists(settingsSecurityFile)) {
+    boolean settingsFileExists = Files.exists(mvnSettingsFile);
+    boolean securityFileExists = Files.exists(settingsSecurityFile);
+    if (!settingsFileExists && !securityFileExists) {
       return null;
     }
-    String settingsPath = mvnSettingsFile.toString();
-    return "-s " + settingsPath + " " + getSettingsSecurityProperty();
+    StringBuilder sb = new StringBuilder();
+    if (settingsFileExists) {
+      sb.append("-s ");
+      sb.append(mvnSettingsFile);
+    }
+    if (securityFileExists) {
+      if (!sb.isEmpty()) {
+        sb.append(" ");
+      }
+      sb.append(getSettingsSecurityProperty());
+    }
+    return sb.toString();
   }
 
   private String getSettingsSecurityProperty() {
