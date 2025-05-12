@@ -50,16 +50,14 @@ body:
       description: Output of `ide status`
       render: bash
       placeholder: |
-        Paste here your output of `ide status`. 
-        
         It should look something like this:
         
-        `IDE_ROOT is set to C:\projects
+        IDE_ROOT is set to C:\projects
         IDE_HOME is set to C:\projects\IDEasy
         You are online.
         Your settings are up-to-date.
         Your version of IDEasy is 2025.04.002-04_17_02-SNAPSHOT 
-        Your operating system is windows(10.0)@x64 [Windows 11@amd64]`
+        Your operating system is windows(10.0)@x64 [Windows 11@amd64]
 
     validations:
       required: true
@@ -86,7 +84,5 @@ body:
     attributes:
       label: Comments/Hints
       description: Any comments, hints or additional info you want to provide.
-      placeholder: |
-        Put your comment here.
     validations:
       required: false
