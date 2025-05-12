@@ -7,6 +7,7 @@ import java.util.Objects;
 import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeSubLogger;
 
 /**
  * Implementation of {@link ProcessResult}.
@@ -54,6 +55,40 @@ public class ProcessResultImpl implements ProcessResult {
   public int getExitCode() {
 
     return this.exitCode;
+  }
+
+  @Override
+  public String getSingleOutput(IdeSubLogger logger) throws IllegalStateException {
+    String errorMessage;
+    if (this.isSuccessful()) {
+      List<String> out = this.getOut();
+      int size = out.size();
+      if (size == 1) {
+        return out.getFirst();
+      } else if (size == 0) {
+        errorMessage = "No output received from " + this.getCommand();
+      } else {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Expected single line of output but received ");
+        sb.append(size);
+        sb.append(" lines from ");
+        sb.append(this.getCommand());
+        sb.append(":");
+        for (String line : out) {
+          sb.append("\n");
+          sb.append(line);
+        }
+        errorMessage = sb.toString();
+      }
+    } else {
+      errorMessage = "Command " + this.getCommand() + " failed with exit code " + this.getExitCode();
+    }
+    if (logger == null) {
+      throw new IllegalStateException(errorMessage);
+    } else {
+      logger.log(errorMessage);
+      return null;
+    }
   }
 
   @Override
