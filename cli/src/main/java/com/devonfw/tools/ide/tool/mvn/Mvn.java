@@ -247,7 +247,7 @@ public class Mvn extends PluginBasedCommandlet {
    * @return the maven arguments (MVN_ARGS).
    */
   public String getMavenArgs() {
-    Path mavenConfFolder = getMavenConfFolder(true);
+    Path mavenConfFolder = getMavenConfFolder(false);
     Path mvnSettingsFile = mavenConfFolder.resolve(Mvn.SETTINGS_FILE);
     Path settingsSecurityFile = mavenConfFolder.resolve(SETTINGS_SECURITY_FILE);
     boolean settingsFileExists = Files.exists(mvnSettingsFile);
