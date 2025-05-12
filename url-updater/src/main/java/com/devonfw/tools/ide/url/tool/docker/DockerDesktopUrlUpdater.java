@@ -22,7 +22,7 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   private final static String DOCKER_RELEASE_NOTES_URL = "https://docs.docker.com/desktop/release-notes/";
   private final static String AMD_ARCH_TYPE = "amd64";
   private final static String ARM_ARCH_TYPE = "arm64";
-  private final static String CHECKSUM_FILE = "checksum.txt";
+  private final static String CHECKSUM_FILE = "checksums.txt";
 
   private final static String WIN_VERSION = "win";
   private final static String WIN_FILE = "Docker%20Desktop%20Installer.exe";
