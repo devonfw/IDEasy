@@ -12,8 +12,6 @@ import java.util.regex.Matcher;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -163,8 +161,7 @@ public class Mvn extends PluginBasedCommandlet {
     ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), args, input,
         getSettingsSecurityProperty());
 
-    IdeSubLogger logger = this.context.level(IdeLogLevel.WARNING);
-    return result.getSingleOutput(logger);
+    return result.getSingleOutput(null);
   }
 
   private Set<String> findVariables(String content) {
