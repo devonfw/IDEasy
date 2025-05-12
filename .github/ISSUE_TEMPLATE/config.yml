@@ -1,5 +1,5 @@
 blank_issues_enabled: true
-contact_links:
-  - name: "Feature request"
-    about: "Check out what features are in the pipeline."
-    url: "https://github.com/devonfw/IDEasy/issues?q=is%3Aissue%20state%3Aopen%20project%3Adevonfw%2F5%20type%3AFeature"
+#contact_links:
+#  - name: "Feature request"
+#    about: "Check out what features are in the pipeline."
+#    url: "https://github.com/devonfw/IDEasy/issues?q=is%3Aissue%20state%3Aopen%20project%3Adevonfw%2F5%20type%3AFeature"
