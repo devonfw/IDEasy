@@ -114,7 +114,7 @@
         <!-- required for advanced mocking -->
         <groupId>net.bytebuddy</groupId>
         <artifactId>byte-buddy</artifactId>
-        <version>1.17.2</version>
+        <version>1.17.5</version>
       </dependency>
       <dependency>
         <groupId>org.xmlunit</groupId>
@@ -129,7 +129,7 @@
       <dependency>
         <groupId>org.wiremock</groupId>
         <artifactId>wiremock</artifactId>
-        <version>3.12.1</version>
+        <version>3.13.0</version>
       </dependency>
       <dependency>
         <groupId>org.testfx</groupId>
