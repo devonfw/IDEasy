@@ -5,8 +5,8 @@ labels:
 body:
   - type: markdown
     attributes:
-    value: |
-      Thanks for taking the time to place your idea!
+      value: |
+        Thanks for taking the time to place your idea!
   - type: textarea
     id: idea
     attributes:

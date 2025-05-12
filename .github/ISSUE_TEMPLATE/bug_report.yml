@@ -7,7 +7,7 @@ body:
       value: |
         Thanks for taking the time to fill out this bug report!
   - type: textarea
-    id: expected
+    id: actual
     attributes:
       label: Actual behavior
       description: Please give a clear and concise description of the bug/actual behavior.
@@ -43,9 +43,9 @@ body:
     validations:
       required: true
   - type: textarea
-    id: info
+    id: status-info
     attributes:
-      label: docker info
+      label: ide status
       description: Output of `ide status`
       render: bash
       placeholder: |
@@ -71,13 +71,13 @@ body:
     validations:
       required: false
   - type: input
-    id: os
+    id: web-browser
     attributes:
       label: Web browser
       description: |
         Please state your used web browser, if applicable.
       placeholder: |
-        Chrome/Firefox/Safari
+        Chrome, Firefox, Safari etc.
     validations:
       required: false
   - type: textarea
