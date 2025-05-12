@@ -19,6 +19,7 @@ body:
       label: Reproduce
       description: Steps to reproduce the bug
       placeholder: |
+        E.g.
         1. ide create ...
         2. ide upgrade ...
     validations:
@@ -35,37 +36,37 @@ body:
   - type: textarea
     id: version
     attributes:
-      label: ideasy version
+      label: IDEasy version
       description: Output of `ide -v`
       render: bash
       placeholder: |
-        2025.04.001-04_08_02-SNAPSHOT
+        Paste here your output of `ide -v`
     validations:
       required: true
   - type: textarea
     id: status-info
     attributes:
-      label: ide status
+      label: IDEasy status
       description: Output of `ide status`
       render: bash
       placeholder: |
+        Paste here your output of `ide status`. 
         
-        IDE_ROOT is set to C:\projects
+        It should look something like this:
+        
+        `IDE_ROOT is set to C:\projects
         IDE_HOME is set to C:\projects\IDEasy
         You are online.
         Your settings are up-to-date.
-        Your version of IDEasy is 2025.04.002-04_17_02-SNAPSHOT but version 2025.04.002-20250417.024201-5 is available. Please run the following command to upgrade
-        to
-        the latest version:
-        ide upgrade
-        Your operating system is windows(10.0)@x64 [Windows 11@amd64]
+        Your version of IDEasy is 2025.04.002-04_17_02-SNAPSHOT 
+        Your operating system is windows(10.0)@x64 [Windows 11@amd64]`
 
     validations:
       required: true
   - type: input
     id: related
     attributes:
-      label: Related/Dependent Issues
+      label: Related/Dependent issues
       description: |
         Please state any related or dependent issue...
     validations:
@@ -85,5 +86,7 @@ body:
     attributes:
       label: Comments/Hints
       description: Any comments, hints or additional info you want to provide.
+      placeholder: |
+        Put your comment here.
     validations:
       required: false
