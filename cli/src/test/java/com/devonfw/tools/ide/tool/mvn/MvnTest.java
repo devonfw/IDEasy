@@ -10,7 +10,6 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -22,7 +21,6 @@ public class MvnTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_MVN = "mvn";
 
-  //private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\[(.*?)\\]");
   private static final Pattern VARIABLE_PATTERN = Pattern.compile("<([^>]+)>(.*?)</\\1>");
 
   /**
@@ -36,11 +34,10 @@ public class MvnTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
     context.setAnswers("testLogin", "testPassword");
-    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
-    install.tool.setValueAsString("mvn", context);
+    Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
 
     // act
-    install.run();
+    mvn.run();
 
     // assert
     checkInstallation(context);
@@ -56,14 +53,12 @@ public class MvnTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
     context.setAnswers("testLogin", "testPassword");
-    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
-    install.tool.setValueAsString("mvn", context);
-    Mvn commandlet = (Mvn) install.tool.getValue();
-    commandlet.arguments.addValue("foo");
-    commandlet.arguments.addValue("bar");
+    Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
+    mvn.arguments.addValue("foo");
+    mvn.arguments.addValue("bar");
 
     // act
-    commandlet.run();
+    mvn.run();
 
     // assert
     assertThat(context).logAtInfo().hasMessage("mvn " + "foo bar");
