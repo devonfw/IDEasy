@@ -48,18 +48,18 @@ public class TomcatTest extends AbstractIdeContextTest {
     assertThat(context.getSoftwarePath().resolve("tomcat/.ide.software.version")).exists().hasContent(tomcatVersion);
     assertThat(javaTomcatPath.resolve(".ide.software.version")).exists().hasContent(javaVersionTomcat);
     assertThat(context).log().hasEntries(
-        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version " + javaVersionProject), //
-        new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionProject), //
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed java in version " + javaVersionProject),
+        new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionProject),
         new IdeLogEntry(IdeLogLevel.INFO,
-            "Configured version of tool java is 8u402b06 but does not match version to install [11,22) - need to use different version from software repository."),
-        //
+            "The tool tomcat requires java in the version range [11,22), but your project uses version 8u402b06, which does not match."
+                + " Therefore, we install a compatible version in that range."),
         new IdeLogEntry(IdeLogLevel.DEBUG, "Installed java in version " + javaVersionTomcat + " at ", true),
-        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed tomcat in version " + tomcatVersion), //
-        new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionTomcat), //
-        new IdeLogEntry(IdeLogLevel.INFO, "JAVA_HOME=" + javaTomcatPath), //
-        new IdeLogEntry(IdeLogLevel.INFO, "tomcat run"), //
-        new IdeLogEntry(IdeLogLevel.INFO, "Tomcat is running at localhost on HTTP port " + tomcatPort + ":"), //
-        new IdeLogEntry(IdeLogLevel.INFO, "http://localhost:" + tomcatPort) //
+        new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed tomcat in version " + tomcatVersion),
+        new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionTomcat),
+        new IdeLogEntry(IdeLogLevel.INFO, "JAVA_HOME=" + javaTomcatPath),
+        new IdeLogEntry(IdeLogLevel.INFO, "tomcat run"),
+        new IdeLogEntry(IdeLogLevel.INFO, "Tomcat is running at localhost on HTTP port " + tomcatPort + ":"),
+        new IdeLogEntry(IdeLogLevel.INFO, "http://localhost:" + tomcatPort)
     );
   }
 
