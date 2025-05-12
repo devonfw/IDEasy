@@ -1,20 +1,49 @@
----
-name: Feature request
-about: Suggest an idea for this project
-title: ''
-labels: ''
-assignees: ''
+[//]: # (---)
 
----
+[//]: # (name: Feature request)
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+[//]: # (about: Suggest an idea for IDEasy)
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+[//]: # (title: '')
 
-**Describe alternatives you've considered**
-A clear and concise description of any alternative solutions or features you've considered.
+[//]: # (labels: feature)
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+[//]: # (assignees: '')
+
+[//]: # ()
+
+[//]: # (---)
+
+[//]: # ()
+
+[//]: # (<!--)
+
+[//]: # (Welcome to IDEasy! And thanks for proposing an improvement or feature for this tool. )
+
+[//]: # ()
+
+[//]: # (-->)
+
+[//]: # ()
+
+[//]: # (**Is your feature request related to a problem? Please describe.**)
+
+[//]: # (A clear and concise description of what the problem is. Ex. I'm always frustrated when [...])
+
+[//]: # ()
+
+[//]: # (**Describe the solution you'd like**)
+
+[//]: # (A clear and concise description of what you want to happen.)
+
+[//]: # ()
+
+[//]: # (**Describe alternatives you've considered**)
+
+[//]: # (A clear and concise description of any alternative solutions or features you've considered.)
+
+[//]: # ()
+
+[//]: # (**Additional context**)
+
+[//]: # (Add any other context or screenshots about the feature request here.)

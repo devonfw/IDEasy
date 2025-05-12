@@ -18,7 +18,7 @@ our [DoD](https://github.com/devonfw/ide/blob/master/documentation/DoD.asciidoc)
 - [ ] Issue is set to `In Progress` and assigned to you *or* there is no issue (might happen for very small PRs)
 - [ ] At least one milestone is assigned (typically done by PO)
 - [ ] The feature branch of the PR is up-to-date with the `main` branch
-- [ ] You followed all [coding conventions](link:coding-conventions.adoc)
+- [ ] You followed all [coding conventions](https://github.com/devonfw/IDEasy/blob/main/documentation/coding-conventions.adoc)
 - [ ] You have added the issue implemented by your PR in [CHANGELOG.adoc](https://github.com/devonfw/IDEasy/blob/main/CHANGELOG.adoc)
 
 ### Checklist for tool commandlets
@@ -34,7 +34,7 @@ Have you added a new `«tool»` as commandlet? The following points need to be c
 - [ ] The new commandlet is documented as `«tool»`.asciidoc in the [documentation](https://github.com/devonfw/ide/tree/master/documentation) folder
 - [ ] The new commandlet is added and linked in [cli.asciidoc](https://github.com/devonfw/ide/blob/master/documentation/cli.asciidoc#commandlet-overview)
 - [ ] The new commandlet is added and linked in [scripts.asciidoc](https://github.com/devonfw/ide/blob/master/documentation/scripts.asciidoc)
-- [ ] The new commandlet is included to [devonfw-ide-usage.asciidoc](https://github.com/devonfw/ide/blob/master/documentation/devonfw-ide-usage.asciidoc)
+- [ ] The new commandlet is added to [devonfw-ide-usage.asciidoc](https://github.com/devonfw/ide/blob/master/documentation/devonfw-ide-usage.asciidoc)
 - [ ] The new tool is added to the table of tools in [LICENSE.asciidoc](https://github.com/devonfw/ide/blob/master/documentation/LICENSE.asciidoc#license)
 - [ ] The new commandlet is a [command-wrapper](https://github.com/devonfw/ide/blob/master/documentation/cli.asciidoc#command-wrapper) for `«tool»`
 - [ ] The new commandlet installs potential dependencies automatically
