@@ -28,8 +28,6 @@ public class IdeaPluginDownloader {
   private static final String BUILD_FILE = "build.txt";
   private final IdeContext context;
   private final IdeaBasedIdeToolCommandlet commandlet;
-  //TODO: clarify whether .followRedirects() is needed here
-  protected final HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
 
   /**
    * the constructor
@@ -141,15 +139,14 @@ public class IdeaPluginDownloader {
 
     URI uri = null;
     HttpRequest request;
-    try {
+    try (HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build()) {
       uri = URI.create(urlString);
       request = HttpRequest.newBuilder().uri(uri)
           .method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
 
-      HttpResponse<?> res = this.client.send(request, HttpResponse.BodyHandlers.ofString());
+      HttpResponse<?> res = client.send(request, HttpResponse.BodyHandlers.ofString());
 
       int responseCode = res.statusCode();
-      // TODO: brauchen wir die if-abfrage überhaupt noch, oder wird der Fehler durch catch-block behandelt
       if (responseCode != HttpURLConnection.HTTP_OK) {
         throw new RuntimeException("Failed to fetch file headers: HTTP " + responseCode);
       }
@@ -164,7 +161,6 @@ public class IdeaPluginDownloader {
         default -> "";
       };
     } catch (Exception e) {
-      // logger.error("Failed to perform HEAD request of URL {}", uri, e);
       throw new RuntimeException("Failed to perform HEAD request of URL " + uri, e);
     }
   }
