@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Optional;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -135,7 +136,7 @@ public class IdeaPluginDownloader {
     }
   }
 
-  private String getFileExtensionFromUrl(String urlString) throws IOException {
+  private String getFileExtensionFromUrl(String urlString) throws RuntimeException {
 
     URI uri = null;
     HttpRequest request;
@@ -151,11 +152,11 @@ public class IdeaPluginDownloader {
         throw new RuntimeException("Failed to fetch file headers: HTTP " + responseCode);
       }
 
-      String contentType = res.headers().firstValue("content-type").orElse("undefined");
-      if (contentType.equals("undefined")) {
+      Optional<String> contentType = res.headers().firstValue("content-type");
+      if (contentType.isEmpty()) {
         return "";
       }
-      return switch (contentType) {
+      return switch (contentType.get()) {
         case "application/zip" -> ".zip";
         case "application/java-archive" -> ".jar";
         default -> "";
