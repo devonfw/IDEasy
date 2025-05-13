@@ -8,7 +8,7 @@ toc::[]
 We try to make it as simple as possible for you.
 However, there are some minimal prerequisites:
 
-* You need to have a tool to extract `*.tar.gz` files (`tar` and `gzip`).
+* Unless you use the MSI installer for Windows, you need to have a tool to extract `*.tar.gz` files (`tar` and `gzip`).
 On Windows before Version 10 (1803) use https://www.7-zip.org/[7-zip].
 On all other platforms this comes out of the box.
 * You need to have https://git-scm.com[git].
