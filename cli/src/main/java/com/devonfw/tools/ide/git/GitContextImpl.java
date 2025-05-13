@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -307,11 +306,10 @@ public class GitContextImpl implements GitContext {
 
   private ProcessResult runGitCommand(Path directory, ProcessMode mode, ProcessErrorHandling errorHandling, String... args) {
 
-    boolean batchMode = Arrays.asList(args).contains("--batch");
     ProcessContext processContext;
 
-    if (batchMode) {
-      processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "1").errorHandling(errorHandling)
+    if (this.context.isBatchMode()) {
+      processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").errorHandling(errorHandling)
           .directory(directory);
     } else {
       processContext = this.context.newProcess().executable("git").errorHandling(errorHandling)
