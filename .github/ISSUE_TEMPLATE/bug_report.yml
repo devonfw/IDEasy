@@ -1,23 +1,28 @@
 name: "Bug report"
 description: "Create a report to help us improve!"
 labels: [ "bug" ]
-type: "bug"
 body:
   - type: markdown
     attributes:
-      value: |
-        Thanks for taking the time to fill out this bug report!
+      value: "## Thanks for taking the time to fill out this bug report!"
+
+  - type: markdown
+    attributes:
+      value: "## Actual behavior"
   - type: textarea
     id: actual
     attributes:
-      label: "## Actual behavior"
+      #      label: "## Actual behavior"
       description: Please give a clear and concise description of the bug/actual behavior.
     validations:
       required: true
+  - type: markdown
+    attributes:
+      value: "## Reproduce"
   - type: textarea
     id: reproduce
     attributes:
-      label: "## Reproduce"
+      #      label: "## Reproduce"
       description: Steps to reproduce the bug
       placeholder: |
         E.g.
@@ -25,19 +30,25 @@ body:
         2. ide upgrade ...
     validations:
       required: true
+  - type: markdown
+    attributes:
+      value: "## Expected behavior"
   - type: textarea
     id: expected
     attributes:
-      label: "## Expected behavior"
+      #      label: "## Expected behavior"
       description: What is the expected behavior?
       placeholder: |
         E.g. `ide upgrade` should update your IDEasy to latest available version
     validations:
       required: true
+  - type: markdown
+    attributes:
+      value: "##IDEasy status"
   - type: textarea
     id: status-info
     attributes:
-      label: "##IDEasy status"
+      #      label: "##IDEasy status"
       description: Output of `ide status`
       render: bash
       placeholder: |
@@ -52,19 +63,25 @@ body:
 
     validations:
       required: true
+  - type: markdown
+    attributes:
+      value: "## Related/Dependent issues"
   - type: input
     id: related
     attributes:
-      label: "## Related/Dependent issues"
+      #      label: "## Related/Dependent issues"
       description: |
         Please state any related or dependent issue...
 
     validations:
       required: false
+  - type: markdown
+    attributes:
+      value: "## Comments/Hints"
   - type: textarea
     id: comments
     attributes:
-      label: "## Comments/Hints"
+      #      label: "## Comments/Hints"
       description: Any comments, hints or additional info you want to provide.
     validations:
       required: false

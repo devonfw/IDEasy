@@ -1,7 +1,6 @@
 name: "Feature request"
 description: "Place your idea for IDEasy here!"
 labels: [ "feature" ]
-type: "feature"
 body:
   - type: markdown
     attributes:
