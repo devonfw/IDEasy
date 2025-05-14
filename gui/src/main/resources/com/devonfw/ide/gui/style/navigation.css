@@ -12,13 +12,7 @@ VBox {
     -fx-text-fill: #000;
     -fx-border-radius: 10px;
     -fx-background-radius: 10px;
-
   }
-
-HBox {
-
-  -fx-background-color: #B0E0E6;
-}
 
 .chooseProject {
 

@@ -37,7 +37,7 @@ public class MainController {
   @FXML
   private void initialize() {
 
-    setProjectsComboBox(selectedProject);
+    setProjectsComboBox();
   }
 
   @FXML
@@ -65,9 +65,9 @@ public class MainController {
   }
 
 
-  private void setProjectsComboBox(ComboBox<String> projects) {
+  private void setProjectsComboBox() {
 
-    projects.getItems().clear();
+    selectedProject.getItems().clear();
     File directory = new File(directoryPath);
     if (directory.exists() && directory.isDirectory()) {
 
@@ -79,16 +79,16 @@ public class MainController {
           String name = subDirectory.getName();
           if (!name.startsWith("_")) {
 
-            projects.getItems().add(name);
+            selectedProject.getItems().add(name);
           }
         }
       }
     }
 
-    projects.setOnAction(actionEvent -> {
+    selectedProject.setOnAction(actionEvent -> {
 
-      projectValue = projects.getValue() + "\\workspaces";
-      setWorkspaceValue(selectedWorkspace);
+      projectValue = selectedProject.getValue() + "\\workspaces";
+      setWorkspaceValue();
       selectedWorkspace.setDisable(false);
       androidStudioOpen.setDisable(false);
       eclipseOpen.setDisable(false);
@@ -97,9 +97,9 @@ public class MainController {
     });
   }
 
-  private void setWorkspaceValue(ComboBox<String> workspace) {
+  private void setWorkspaceValue() {
 
-    workspace.getItems().clear();
+    selectedWorkspace.getItems().clear();
     File directory = new File(directoryPath + projectValue);
     if (directory.exists() && directory.isDirectory()) {
 
@@ -109,16 +109,13 @@ public class MainController {
         for (File subDirectory : subDirectories) {
 
           String name = subDirectory.getName();
-          workspace.getItems().add(name);
-          workspace.setValue("main");
+          selectedWorkspace.getItems().add(name);
+          selectedWorkspace.setValue("main");
         }
       }
     }
 
-    workspace.setOnAction(actionEvent -> {
-
-      workspaceValue = workspace.getValue();
-    });
+    selectedWorkspace.setOnAction(actionEvent -> workspaceValue = selectedWorkspace.getValue());
   }
 
   private void openIDE(String inIde) {
