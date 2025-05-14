@@ -5,6 +5,7 @@ import java.util.List;
 import com.devonfw.tools.ide.cli.CliProcessException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.IdeSubLogger;
 
 /**
  * Result of a {@link Process} execution.
@@ -65,6 +66,13 @@ public interface ProcessResult {
 
     return getExitCode() == SUCCESS;
   }
+
+  /**
+   * @param logger the {@link IdeSubLogger logger} to use.
+   * @return the first captured standard out. Will be {@code null} if not captured but redirected.
+   * @throws IllegalStateException if more than one output was captured and the {@link IdeSubLogger logger} was null.
+   */
+  String getSingleOutput(IdeSubLogger logger) throws IllegalStateException;
 
   /**
    * @return the {@link List} with the lines captured on standard out. Will be {@code null} if not captured but redirected.
