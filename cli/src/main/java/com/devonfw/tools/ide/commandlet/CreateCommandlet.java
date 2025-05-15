@@ -61,9 +61,9 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     initializeProject(newProjectPath);
     this.context.setIdeHome(newProjectPath);
-    this.context.verifyIdeMinVersion(true);
     super.run();
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
+    this.context.verifyIdeMinVersion(true);
     this.context.success("Successfully created new project '{}'.", newProjectName);
   }
 
