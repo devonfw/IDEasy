@@ -172,6 +172,8 @@ public class ProcessContextImpl implements ProcessContext {
         this.processBuilder.redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
       } else if (processMode.isBackground()) {
         modifyArgumentsOnBackgroundProcess(processMode);
+      } else {
+        this.processBuilder.redirectInput(Redirect.INHERIT);
       }
 
       this.processBuilder.command(args);
