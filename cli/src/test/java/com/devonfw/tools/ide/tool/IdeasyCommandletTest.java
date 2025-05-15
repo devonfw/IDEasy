@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -77,6 +80,51 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
         + "devon\n"
         + "source ~/.devon/autocomplete\n"
         + addedRcLines);
+  }
+
+  /**
+   * Test of {@link IdeasyCommandlet#setGitConfigProperty(String, String, String, Path)}
+   *
+   * @throws IOException if creation of temporary file fails
+   */
+  @Test
+  public void testSetGitConfigProperty() throws IOException {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    IdeTestContext context = newContext("install");
+    context.setIdeRoot(null);
+    context.setSystemInfo(systemInfo);
+    context.getStartContext().setForceMode(true);
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+
+    File gitconfigFile = File.createTempFile("example", "ini");
+    gitconfigFile.deleteOnExit();
+    Path gitconfigPath = gitconfigFile.toPath();
+    String testContent = "[filter \"lfs\"]\n"
+        + "\trequired = true\n"
+        + "\tclean = git-lfs clean -- %f\n"
+        + "\tsmudge = git-lfs smudge -- %f\n"
+        + "[credential]\n"
+        + "\thelper = store\n"
+        + "[core]\n"
+        + "\tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe\n";
+    String expectedContent = "[filter \"lfs\"]\n"
+        + "\trequired = true\n"
+        + "\tclean = git-lfs clean -- %f\n"
+        + "\tsmudge = git-lfs smudge -- %f\n"
+        + "[credential]\n"
+        + "\thelper = store\n"
+        + "[core]\n"
+        + "\tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe\n"
+        + "\tlongpaths = true\n";
+    Files.writeString(gitconfigPath, testContent);
+
+    // act
+    ideasy.setGitConfigProperty("core", "longpaths", "true", gitconfigPath);
+
+    // assert
+    String newContent = Files.readString(gitconfigPath);
+    assertThat(newContent).isEqualTo(expectedContent);
   }
 
   private void verifyInstallation(Path installationPath) {
