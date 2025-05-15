@@ -2,11 +2,17 @@ package com.devonfw.tools.ide.tool.ide;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Optional;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -130,25 +136,33 @@ public class IdeaPluginDownloader {
     }
   }
 
-  private String getFileExtensionFromUrl(String urlString) throws IOException {
-    URL url = new URL(urlString);
-    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    connection.setRequestMethod("HEAD");
-    connection.connect();
+  private String getFileExtensionFromUrl(String urlString) throws RuntimeException {
 
-    int responseCode = connection.getResponseCode();
-    if (responseCode != HttpURLConnection.HTTP_OK) {
-      throw new IOException("Failed to fetch file headers: HTTP " + responseCode);
-    }
+    URI uri = null;
+    HttpRequest request;
+    try (HttpClient client = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build()) {
+      uri = URI.create(urlString);
+      request = HttpRequest.newBuilder().uri(uri)
+          .method("HEAD", HttpRequest.BodyPublishers.noBody()).timeout(Duration.ofSeconds(5)).build();
 
-    String contentType = connection.getContentType();
-    if (contentType == null) {
-      return "";
+      HttpResponse<?> res = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+      int responseCode = res.statusCode();
+      if (responseCode != HttpURLConnection.HTTP_OK) {
+        throw new RuntimeException("Failed to fetch file headers: HTTP " + responseCode);
+      }
+
+      Optional<String> contentType = res.headers().firstValue("content-type");
+      if (contentType.isEmpty()) {
+        return "";
+      }
+      return switch (contentType.get()) {
+        case "application/zip" -> ".zip";
+        case "application/java-archive" -> ".jar";
+        default -> "";
+      };
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to perform HEAD request of URL " + uri, e);
     }
-    return switch (contentType) {
-      case "application/zip" -> ".zip";
-      case "application/java-archive" -> ".jar";
-      default -> "";
-    };
   }
 }
