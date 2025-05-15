@@ -62,6 +62,12 @@ public class ProcessContextGitMock implements ProcessContext {
   }
 
   @Override
+  public ProcessContext executable(Path executable, boolean check) {
+
+    return this;
+  }
+
+  @Override
   public ProcessContext addArg(String arg) {
 
     this.arguments.add(arg);
