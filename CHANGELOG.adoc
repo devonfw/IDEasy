@@ -9,7 +9,6 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/736[#736]: Resolved issue with handling of special characters in plugin names
 * https://github.com/devonfw/IDEasy/issues/1271[#1271]: After installation of aws 'aws configure' not possible
 * https://github.com/devonfw/IDEasy/issues/1264[#1264]: Fix ide.bat to detect errors properly
-* https://github.com/devonfw/IDEasy/issues/1038[#1038]: XML merger fails in native-image on custom XPath with MissingResourceException
 * https://github.com/devonfw/IDEasy/issues/1213[#1213]: Adapt log entry when tool version is not in compatible range
 * https://github.com/devonfw/IDEasy/issues/1272[#1272]: Add name of file with missing namespace to warning message
 * https://github.com/devonfw/IDEasy/issues/1190[#1190]: Add pycharm support to IDEasy
