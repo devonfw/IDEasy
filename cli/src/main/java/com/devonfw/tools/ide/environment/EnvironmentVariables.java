@@ -42,9 +42,15 @@ public interface EnvironmentVariables {
     if (value == null) {
       EnvironmentVariables parent = getParent();
       if (parent != null) {
+        if ((name.equals("M2_REPO") || name.equals("MAVEN_ARGS")) || name.contains("_VERSION") || name.contains("_EDITION")) {
+          if (parent.getSource().toString().contains("SYSTEM")) {
+            return null;
+          }
+        }
         value = parent.get(name);
       }
     }
+
     return value;
   }
 
