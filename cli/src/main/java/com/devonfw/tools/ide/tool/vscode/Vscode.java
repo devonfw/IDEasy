@@ -2,11 +2,13 @@ package com.devonfw.tools.ide.tool.vscode;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -38,13 +40,25 @@ public class Vscode extends IdeToolCommandlet {
   }
 
   @Override
+  protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
+    IdeProgressBar pb = this.context.newProgressBarForPlugins(plugins.size());
+    pc.setOutputListener((msg, err) -> {
+      if (msg.contains("Installing extension")) {
+        pb.stepBy(1);
+      }
+    });
+    super.installPlugins(plugins, pc);
+    pb.close();
+  }
+
+  @Override
   public boolean installPlugin(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
 
     List<String> extensionsCommands = new ArrayList<>();
     extensionsCommands.add("--force");
     extensionsCommands.add("--install-extension");
     extensionsCommands.add(plugin.id());
-    ProcessResult result = runTool(ProcessMode.DEFAULT, ProcessErrorHandling.THROW_ERR, pc, extensionsCommands.toArray(String[]::new));
+    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.THROW_ERR, pc, extensionsCommands.toArray(String[]::new));
     if (result.isSuccessful()) {
       this.context.success("Successfully installed plugin: {}", plugin.name());
       step.success();
