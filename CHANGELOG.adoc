@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1271[#1271]: After installation of aws 'aws configure' not possible
 * https://github.com/devonfw/IDEasy/issues/1264[#1264]: Fix ide.bat to detect errors properly
 * https://github.com/devonfw/IDEasy/issues/1038[#1038]: XML merger fails in native-image on custom XPath with MissingResourceException
 * https://github.com/devonfw/IDEasy/issues/1213[#1213]: Adapt log entry when tool version is not in compatible range
