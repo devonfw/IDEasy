@@ -44,12 +44,11 @@ class EnvironmentVariablesPropertiesFileTest extends AbstractIdeContextTest {
     assertThat(variables.get("KEY")).isEqualTo("value");
     assertThat(variables.get("IDE_MIN_VERSION")).isEqualTo("2024.11.001");
     assertThat(variables.getToolVersion("java")).isEqualTo(VersionIdentifier.LATEST);
-    assertThat(variables.getVariables()).hasSize(6);
+    assertThat(variables.getVariables()).hasSize(7);
     assertThat(context).log(IdeLogLevel.WARNING)
         .hasEntries("Duplicate variable definition MVN_VERSION with old value 'undefined' and new value '3.9.0' in " + propertiesFilePath,
             "Both legacy variable MAVEN_VERSION and official variable MVN_VERSION are configured in " + propertiesFilePath
                 + " - ignoring legacy variable declaration!",
-            "Duplicate variable definition IDE_MIN_VERSION with old value '2023.07.003' and new value '2024.11.001' in " + propertiesFilePath,
             "Variable JAVA_VERSION is configured with empty value, please fix your configuration.");
   }
 
