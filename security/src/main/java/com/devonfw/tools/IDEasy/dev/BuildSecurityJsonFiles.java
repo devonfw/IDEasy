@@ -149,7 +149,7 @@ public class BuildSecurityJsonFiles {
   private static Map<String, String> buildCpeToUrlVersionMap(String tool, String edition,
       AbstractUrlUpdater urlUpdater) {
 
-    List<String> sortedVersions = context.getUrls().getSortedVersions(tool, edition).stream()
+    List<String> sortedVersions = context.getUrls().getSortedVersions(tool, edition, null).stream()
         .map(VersionIdentifier::toString).toList();
 
     List<String> sortedCpeVersions = sortedVersions.stream().map(urlUpdater::mapUrlVersionToCpeVersion)
@@ -403,7 +403,7 @@ public class BuildSecurityJsonFiles {
         if (!edition.isDirectory()) {
           continue;
         }
-        List<VersionIdentifier> sortedVersions = context.getUrls().getSortedVersions(tool.getName(), edition.getName());
+        List<VersionIdentifier> sortedVersions = context.getUrls().getSortedVersions(tool.getName(), edition.getName(), null);
         UrlSecurityFile securityJsonFile = context.getUrls().getEdition(tool.getName(), edition.getName())
             .getSecurityFile();
 
