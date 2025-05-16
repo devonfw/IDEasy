@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.devonfw.tools.ide.process.OutputListener;
 import com.devonfw.tools.ide.process.OutputMessage;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -83,6 +84,10 @@ public class ProcessContextGitMock implements ProcessContext {
   public ProcessContext withPathEntry(Path path) {
 
     return this;
+  }
+
+  @Override
+  public void setOutputListener(OutputListener listener) {
   }
 
   @Override

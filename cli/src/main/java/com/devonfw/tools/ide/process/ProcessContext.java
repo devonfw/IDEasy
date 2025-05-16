@@ -183,4 +183,6 @@ public interface ProcessContext extends EnvironmentContext {
    */
   ProcessResult run(ProcessMode processMode);
 
+  void setOutputListener(OutputListener listener);
+
 }
