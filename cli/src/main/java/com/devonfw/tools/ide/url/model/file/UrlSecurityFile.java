@@ -134,7 +134,7 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
     List<VersionIdentifier> sortedVersions = List.of();
     if (ignoreWarningsThatAffectAllVersions) {
       sortedVersions = Objects.requireNonNull(context).getUrls().getSortedVersions(edition.getName(),
-          edition.getName());
+          edition.getName(), null);
     }
 
     for (UrlSecurityWarning warning : this.urlSecurityWarnings) {
