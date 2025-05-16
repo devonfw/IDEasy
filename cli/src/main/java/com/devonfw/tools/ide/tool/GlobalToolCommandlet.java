@@ -169,21 +169,8 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public Path getInstalledSoftwareRepoPath() {
-    //TODO: handle "--force uninstall <globaltool>"
-    this.context.error("Couldn't get installed repository path of " + this.getName());
-    return null;
-  }
-
-  @Override
   public void uninstall() {
     //TODO: handle "uninstall <globaltool>"
     this.context.error("Couldn't uninstall " + this.getName());
-  }
-
-  @Override
-  public void forceUninstall() {
-    //TODO: handle "uninstall <globaltool>"
-    this.context.error("Couldn't uninstall " + this.getName() + " from your computer.");
   }
 }
