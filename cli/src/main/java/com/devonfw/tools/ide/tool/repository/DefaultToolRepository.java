@@ -87,8 +87,4 @@ public class DefaultToolRepository extends AbstractToolRepository {
     return this.context.getUrls().getSortedVersions(tool, edition, toolCommandlet);
   }
 
-  @Override
-  public List<VersionIdentifier> getSortedVersions(String tool, String edition) {
-    return List.of();
-  }
 }

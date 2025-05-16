@@ -76,13 +76,6 @@ public class UrlMetadata implements AbstractUrlMetadata {
     return this.toolEdition2VersionMap.computeIfAbsent(key, k -> computeSortedVersions(tool, edition));
   }
 
-  @Override
-  public List<VersionIdentifier> getSortedVersions(String tool, String edition) {
-
-    String key = tool + "/" + edition;
-    return this.toolEdition2VersionMap.computeIfAbsent(key, k -> computeSortedVersions(tool, edition));
-  }
-
   private List<VersionIdentifier> computeSortedVersions(String tool, String edition) {
 
     List<VersionIdentifier> list = new ArrayList<>();
