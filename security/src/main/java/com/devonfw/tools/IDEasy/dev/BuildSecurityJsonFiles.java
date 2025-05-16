@@ -86,39 +86,55 @@ public class BuildSecurityJsonFiles {
   private static final Set<String> actuallyIgnoredCves = new HashSet<>();
 
   private static final IdeContext context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
-  ;
+
 
   public static void main(String[] args) {
-
     UpdateManager updateManager = new UpdateManager(context.getUrlsPath(), null, Instant.now());
-    List<Dependency> dependencies = getDependenciesWithVulnerabilities(updateManager);
+    List<Dependency> dependencies = loadDependenciesWithVulnerabilities(updateManager);
+    processDependenciesWithVulnerabilities(dependencies, updateManager, context);
+  }
+
+  public static List<Dependency> loadDependenciesWithVulnerabilities(UpdateManager updateManager) {
+    return getDependenciesWithVulnerabilities(updateManager);
+  }
+
+  public static void processDependenciesWithVulnerabilities(List<Dependency> dependencies, UpdateManager updateManager, IdeContext context) {
     Set<Pair<String, String>> foundToolsAndEditions = new HashSet<>();
+
     for (Dependency dependency : dependencies) {
       String filePath = dependency.getFilePath();
       Path parent = Paths.get(filePath).getParent();
       String tool = parent.getParent().getParent().getFileName().toString();
       String edition = parent.getParent().getFileName().toString();
+
       AbstractUrlUpdater urlUpdater = updateManager.retrieveUrlUpdater(tool, edition);
       if (urlUpdater == null) {
         continue;
       }
-      UrlSecurityFile securityFile = context.getUrls().getEdition(tool, edition).getSecurityFile();
-      boolean newlyAdded = foundToolsAndEditions.add(new Pair<>(tool, edition));
-      if (newlyAdded) { // to assure that the file is cleared only once per tool and edition
-        securityFile.clearSecurityWarnings();
-      }
 
-      Map<String, String> cpeToUrlVersion = buildCpeToUrlVersionMap(tool, edition, urlUpdater);
-      Set<Vulnerability> vulnerabilities = dependency.getVulnerabilities(true);
-      for (Vulnerability vulnerability : vulnerabilities) {
-        addVulnerabilityToSecurityFile(vulnerability, securityFile, cpeToUrlVersion, urlUpdater);
-      }
-      securityFile.save();
+      UrlSecurityFile securityFile = context.getUrls().getEdition(tool, edition).getSecurityFile();
+      saveSecurityFile(dependency, foundToolsAndEditions, tool, edition, securityFile, urlUpdater);
     }
-    actuallyIgnoredCves
-        .forEach(cve -> context.debug("Ignored CVE " + cve + " because it is listed in CVES_TO_IGNORE."));
+
+    actuallyIgnoredCves.forEach(cve -> context.debug("Ignored CVE " + cve + " because it is listed in CVES_TO_IGNORE."));
     printAffectedVersions(context);
   }
+
+  public static void saveSecurityFile(Dependency dependency, Set<Pair<String, String>> foundToolsAndEditions, String tool, String edition,
+      UrlSecurityFile securityFile, AbstractUrlUpdater urlUpdater) {
+    boolean newlyAdded = foundToolsAndEditions.add(new Pair<>(tool, edition));
+    if (newlyAdded) {
+      securityFile.clearSecurityWarnings();
+    }
+
+    Map<String, String> cpeToUrlVersion = buildCpeToUrlVersionMap(tool, edition, urlUpdater);
+    Set<Vulnerability> vulnerabilities = dependency.getVulnerabilities(true);
+    for (Vulnerability vulnerability : vulnerabilities) {
+      addVulnerabilityToSecurityFile(vulnerability, securityFile, cpeToUrlVersion, urlUpdater);
+    }
+    securityFile.save();
+  }
+
 
   /**
    * Creates a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version} containing all versions provided by IDEasy for the given tool and
@@ -185,7 +201,7 @@ public class BuildSecurityJsonFiles {
    * @param cpeToUrlVersion a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
    * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get maps between CPE Version and {@link UrlVersion#getName() Url Version} naming.
    */
-  protected static void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityFile securityFile,
+  public static void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityFile securityFile,
       Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater) {
 
     String cveName = vulnerability.getName();

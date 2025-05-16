@@ -10,18 +10,18 @@ import com.devonfw.tools.ide.version.VersionRange;
  */
 public class UrlSecurityWarning {
 
-  private VersionRange versionRange;
+  private String id;
 
   private BigDecimal severity;
 
-  private String cveName;
+  private VersionRange versions;
 
 
   /**
    * Default constructor for Jackson (de)serialization.
    */
   public UrlSecurityWarning() {
-    
+
   }
 
   /**
@@ -33,9 +33,9 @@ public class UrlSecurityWarning {
    */
   public UrlSecurityWarning(VersionRange versionRange, BigDecimal severity, String cveName) {
 
-    this.versionRange = versionRange;
+    this.versions = versionRange;
     this.severity = severity;
-    this.cveName = cveName;
+    this.id = cveName;
   }
 
   // these setters and getters are needed for the jackson (de)serialization
@@ -43,11 +43,11 @@ public class UrlSecurityWarning {
   /**
    * Sets the {@link VersionRange} that specifies the versions this security warning applies to.
    *
-   * @param versionRange the version range for which the security warning is applicable.
+   * @param versions the version range for which the security warning is applicable.
    */
-  public void setVersionRange(VersionRange versionRange) {
+  public void setVersions(VersionRange versions) {
 
-    this.versionRange = versionRange;
+    this.versions = versions;
   }
 
   /**
@@ -65,9 +65,9 @@ public class UrlSecurityWarning {
    *
    * @param cveName the CVE name.
    */
-  public void setCveName(String cveName) {
+  public void setId(String cveName) {
 
-    this.cveName = cveName;
+    this.id = cveName;
   }
 
 
@@ -76,10 +76,11 @@ public class UrlSecurityWarning {
    *
    * @return the {@link VersionRange} specifying the applicable versions.
    */
-  public VersionRange getVersionRange() {
+  public VersionRange getVersions() {
 
-    return versionRange;
+    return versions;
   }
+
 
   /**
    * Retrieves the severity of the security risk.
@@ -96,18 +97,18 @@ public class UrlSecurityWarning {
    *
    * @return the CVE name.
    */
-  public String getCveName() {
+  public String getId() {
 
-    return cveName;
+    return id;
   }
 
 
   @Override
   public int hashCode() {
 
-    String versionRangeString = Optional.ofNullable(this.versionRange).map(Object::toString).orElse("");
+    String versionRangeString = Optional.ofNullable(this.versions).map(Object::toString).orElse("");
     String severity = Optional.ofNullable(this.severity).map(Object::toString).orElse("");
-    String s = versionRangeString + severity + this.cveName;
+    String s = versionRangeString + severity + this.id;
     return s.hashCode();
 
   }
@@ -122,12 +123,12 @@ public class UrlSecurityWarning {
       return false;
     }
     UrlSecurityWarning other = (UrlSecurityWarning) obj;
-    if (!this.versionRange.equals(other.versionRange)) {
+    if (!this.versions.equals(other.versions)) {
       return false;
     }
     if (this.severity.compareTo(other.severity) != 0) {
       return false;
     }
-    return this.cveName.equals(other.cveName);
+    return this.id.equals(other.id);
   }
 }

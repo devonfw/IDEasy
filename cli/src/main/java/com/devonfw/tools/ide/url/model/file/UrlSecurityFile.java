@@ -1,15 +1,11 @@
 package com.devonfw.tools.ide.url.model.file;
 
 import java.io.BufferedWriter;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
-import java.nio.file.StandardOpenOption;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -20,8 +16,6 @@ import com.devonfw.tools.ide.url.model.folder.AbstractUrlToolOrEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
-import com.devonfw.tools.ide.version.VersionRangeMapper;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -35,6 +29,8 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   private final Collection<UrlSecurityWarning> urlSecurityWarnings;
 
   private ToolSecurity security;
+
+  private final ObjectMapper MAPPER = JsonMapping.create();
 
   /**
    * The constructor.
@@ -75,34 +71,15 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   @Override
   public void doSave() {
 
-    ObjectMapper mapper = JsonMapping.create();
-
     if (this.urlSecurityWarnings.isEmpty() && !Files.exists(getPath())) {
       System.out.println("Skipping save for " + getPath() + " (no warnings and file doesn't exist)");
       return;
     }
 
-    String jsonString;
-    List<Map<String, Object>> serializableWarnings = urlSecurityWarnings.stream()
-        .map(warning -> {
-          Map<String, Object> m = new HashMap<>();
-          m.put("cveID", warning.getCveName());
-          m.put("severity", warning.getSeverity());
-          m.put("versionRange", VersionRangeMapper.serializeVersionRange(warning.getVersionRange()));
-          return m;
-        }).toList();
-
-    try {
-      jsonString = mapper.writeValueAsString(serializableWarnings);
-    } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
-    }
-
-    try (BufferedWriter bw = Files.newBufferedWriter(getPath(), StandardOpenOption.TRUNCATE_EXISTING,
-        StandardOpenOption.WRITE, StandardOpenOption.CREATE)) {
-      bw.write(jsonString + "\n");
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to save the UrlSecurityJsonFile " + getPath(), e);
+    try (BufferedWriter writer = Files.newBufferedWriter(getPath())) {
+      MAPPER.writeValue(writer, urlSecurityWarnings);
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to save file " + getPath(), e);
     }
 
   }
@@ -161,17 +138,17 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
     }
 
     for (UrlSecurityWarning warning : this.urlSecurityWarnings) {
-      VersionRange versionRange = warning.getVersionRange();
+      VersionRange versionRange = warning.getVersions();
       if (ignoreWarningsThatAffectAllVersions) {
         boolean includesOldestVersion = versionRange.getMin() == null
-            || warning.getVersionRange().contains(sortedVersions.get(sortedVersions.size() - 1));
+            || warning.getVersions().contains(sortedVersions.get(sortedVersions.size() - 1));
         boolean includesNewestVersion = versionRange.getMax() == null
-            || warning.getVersionRange().contains(sortedVersions.get(0));
+            || warning.getVersions().contains(sortedVersions.get(0));
         if (includesOldestVersion && includesNewestVersion) {
           continue;
         }
       }
-      if (warning.getVersionRange().contains(version)) {
+      if (warning.getVersions().contains(version)) {
         return true;
       }
     }
