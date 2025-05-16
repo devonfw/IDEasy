@@ -97,34 +97,54 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     context.getStartContext().setForceMode(true);
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
 
-    File gitconfigFile = File.createTempFile("example", "ini");
-    gitconfigFile.deleteOnExit();
-    Path gitconfigPath = gitconfigFile.toPath();
-    String testContent = "[filter \"lfs\"]\n"
-        + "\trequired = true\n"
-        + "\tclean = git-lfs clean -- %f\n"
-        + "\tsmudge = git-lfs smudge -- %f\n"
-        + "[credential]\n"
-        + "\thelper = store\n"
-        + "[core]\n"
-        + "\tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe\n";
-    String expectedContent = "[filter \"lfs\"]\n"
-        + "\trequired = true\n"
-        + "\tclean = git-lfs clean -- %f\n"
-        + "\tsmudge = git-lfs smudge -- %f\n"
-        + "[credential]\n"
-        + "\thelper = store\n"
-        + "[core]\n"
-        + "\tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe\n"
-        + "\tlongpaths = true\n";
-    Files.writeString(gitconfigPath, testContent);
+    File sectionExistsFile = File.createTempFile("gitconfigWithSection", "ini");
+    sectionExistsFile.deleteOnExit();
+    File propertyExistsFile = File.createTempFile("gitconfigWithProperty", "ini");
+    propertyExistsFile.deleteOnExit();
+    Path sectionExistsPath = sectionExistsFile.toPath();
+    Path propertyExistsPath = propertyExistsFile.toPath();
+    String sectionExistsContent = """
+        [filter "lfs"]
+        \trequired = true
+        \tclean = git-lfs clean -- %f
+        \tsmudge = git-lfs smudge -- %f
+        [credential]
+        \thelper = store
+        [core]
+        \tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+        """;
+    String propertyExistsContent = """
+        [filter "lfs"]
+        \trequired = true
+        \tclean = git-lfs clean -- %f
+        \tsmudge = git-lfs smudge -- %f
+        [credential]
+        \thelper = store
+        [core]
+        \tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+        longpaths = false
+        """;
+    String expectedContent = """
+        [filter "lfs"]
+        \trequired = true
+        \tclean = git-lfs clean -- %f
+        \tsmudge = git-lfs smudge -- %f
+        [credential]
+        \thelper = store
+        [core]
+        \tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+        \tlongpaths = true
+        """;
+    Files.writeString(sectionExistsPath, sectionExistsContent);
+    Files.writeString(propertyExistsPath, propertyExistsContent);
 
     // act
-    ideasy.setGitConfigProperty("core", "longpaths", "true", gitconfigPath);
+    ideasy.setGitConfigProperty("core", "longpaths", "true", sectionExistsPath);
+    ideasy.setGitConfigProperty("core", "longpaths", "true", propertyExistsPath);
 
     // assert
-    String newContent = Files.readString(gitconfigPath);
-    assertThat(newContent).isEqualTo(expectedContent);
+    assertThat(Files.readString(sectionExistsPath)).isEqualTo(expectedContent);
+    assertThat(Files.readString(propertyExistsPath)).isEqualTo(expectedContent);
   }
 
   private void verifyInstallation(Path installationPath) {
