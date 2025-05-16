@@ -24,7 +24,7 @@ public interface IdeProgressBar extends AutoCloseable {
   int UNIT_SIZE_MB = 1048576;
 
   /** {@link #getUnitName() Unit name} for plugins. */
-  String UNIT_NAME_PLUGIN = "Plugins";
+  String UNIT_NAME_PLUGIN = " Plugins";
 
   /** {@link #getUnitSize() Unit size} for plugins. */
   int UNIT_SIZE_PLUGIN = 1;

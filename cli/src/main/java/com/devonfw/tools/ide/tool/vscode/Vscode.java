@@ -43,7 +43,7 @@ public class Vscode extends IdeToolCommandlet {
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
     IdeProgressBar pb = this.context.newProgressBarForPlugins(plugins.size());
     pc.setOutputListener((msg, err) -> {
-      if (msg.contains("Installing extension")) {
+      if (msg.contains("Installing extension ")) {
         pb.stepBy(1);
       }
     });
