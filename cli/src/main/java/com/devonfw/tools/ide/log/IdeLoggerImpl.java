@@ -82,4 +82,19 @@ public class IdeLoggerImpl implements IdeLogger {
     }
   }
 
+  /**
+   * Disables the logging system (temporary).
+   *
+   * @param threshold the {@link IdeLogLevel} acting as threshold.
+   * @see com.devonfw.tools.ide.context.IdeContext#runWithoutLogging(Runnable, IdeLogLevel)
+   */
+  public void deactivateLogging(IdeLogLevel threshold) {
+
+    if (this.listener instanceof IdeLogListenerBuffer buffer) {
+      buffer.enable(threshold);
+    } else {
+      throw new IllegalStateException();
+    }
+  }
+
 }

@@ -8,7 +8,9 @@ import java.util.List;
  */
 public class IdeLogListenerCollector implements IdeLogListener {
 
-  protected List<IdeLogEntry> entries;
+  protected final List<IdeLogEntry> entries;
+
+  protected IdeLogLevel threshold;
 
   /**
    * The constructor.
@@ -16,6 +18,7 @@ public class IdeLogListenerCollector implements IdeLogListener {
   public IdeLogListenerCollector() {
     super();
     this.entries = new ArrayList<>(512);
+    this.threshold = IdeLogLevel.TRACE;
   }
 
   /**
@@ -28,9 +31,16 @@ public class IdeLogListenerCollector implements IdeLogListener {
 
   @Override
   public boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
-    if (this.entries != null) {
+    if (level.ordinal() >= threshold.ordinal()) {
       this.entries.add(new IdeLogEntry(level, message, rawMessage, args, error));
     }
+    return true;
+  }
+
+  /**
+   * @return {@code true} if this collector is active and collects all logs, {@code false} otherwise (disabled and no filtering of logs so regular logging).
+   */
+  protected boolean isActive() {
     return true;
   }
 }
