@@ -5,7 +5,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
@@ -64,12 +63,14 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     // assert
     checkInstallation(this.context);
+    assertThat(commandlet.getToolBinPath().resolve("customRepoTest")).hasContent(
+        "custom plugin repo url is: http://customRepo");
 
     // act
     commandlet.uninstallPlugin(commandlet.getPlugins().getById("activePlugin"));
 
     //assert
-    assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).doesNotExist();
+    assertThat(context.getPluginsPath().resolve("intellij").resolve("activePlugin")).doesNotExist();
   }
 
   /**
@@ -97,42 +98,24 @@ public class IntellijTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if {@link Intellij IntelliJ IDE} can install plugins with custom url.
-   *
-   * @param os String of the OS to use.
-   */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijPluginInstallWithCustomRepoUrl(String os) {
-
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    this.context.setSystemInfo(systemInfo);
-    Intellij commandlet = new Intellij(this.context);
-
-    // act
-    commandlet.install();
-
-    // assert
-    checkInstallation(this.context);
-    assertThat(commandlet.getToolBinPath().resolve("customRepoTest")).hasContent(
-        "custom plugin repo url is: http://customRepo");
-  }
-
-  /**
    * Tests if after the installation of intellij the expected plugin marker file is existing.
    */
   @Test
   public void testCheckPluginInstallation() {
     // arrange
-    IdeContext context = newContext("intellij");
+    IdeTestContext context = newContext("intellij");
 
     // act
     Intellij commandlet = context.getCommandletManager().getCommandlet(Intellij.class);
     commandlet.run();
 
+    assertThat(context).logAtSuccess().hasMessage("Successfully installed plugin: ActivePlugin");
+
     // assert
     assertThat(commandlet.retrievePluginMarkerFilePath(commandlet.getPlugin("ActivePlugin"))).exists();
+
+    commandlet.run();
+    assertThat(context).logAtDebug().hasMessage("Markerfile for IDE: intellij and active plugin: ActivePlugin already exists.");
   }
 
   /**

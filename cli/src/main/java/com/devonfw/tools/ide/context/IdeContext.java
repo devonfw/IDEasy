@@ -719,4 +719,17 @@ public interface IdeContext extends IdeStartContext {
    */
   void logIdeHomeAndRootStatus();
 
+  /**
+   * @param version the {@link VersionIdentifier} to write.
+   * @param installationPath the {@link Path directory} where to write the version to a {@link #FILE_SOFTWARE_VERSION version file}.
+   */
+  void writeVersionFile(VersionIdentifier version, Path installationPath);
+
+  /**
+   * checks if the ide version is at least IDE_MIN_VERSION
+   *
+   * @param throwException whether to throw a CliException or just log a warning
+   */
+  void verifyIdeMinVersion(boolean throwException);
+
 }

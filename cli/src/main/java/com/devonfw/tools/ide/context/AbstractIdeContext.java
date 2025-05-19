@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.context;
 
+import static com.devonfw.tools.ide.variable.IdeVariables.IDE_MIN_VERSION;
+
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -67,6 +69,7 @@ import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -612,6 +615,24 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public boolean isForcePull() {
+
+    return this.startContext.isForcePull();
+  }
+
+  @Override
+  public boolean isForcePlugins() {
+
+    return this.startContext.isForcePlugins();
+  }
+
+  @Override
+  public boolean isForceRepositories() {
+
+    return this.startContext.isForceRepositories();
+  }
+
+  @Override
   public boolean isOfflineMode() {
 
     return this.startContext.isOfflineMode();
@@ -751,7 +772,7 @@ public abstract class AbstractIdeContext implements IdeContext {
       info(message);
     }
     if (isBatchMode()) {
-      if (isForceMode()) {
+      if (isForceMode() || isForcePull()) {
         return defaultValue;
       } else {
         throw new CliAbortException();
@@ -795,7 +816,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     O option = null;
     if (isBatchMode()) {
-      if (isForceMode()) {
+      if (isForceMode() || isForcePull()) {
         option = options[0];
         interaction("" + option);
       }
@@ -881,6 +902,7 @@ public abstract class AbstractIdeContext implements IdeContext {
         }
       }
       this.startContext.activateLogging();
+      verifyIdeMinVersion(false);
       if (result != null) {
         error(result.getErrorMessage());
       }
@@ -1039,6 +1061,23 @@ public abstract class AbstractIdeContext implements IdeContext {
           warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPath,
               this.ideHome.getFileName(), this.ideRoot);
         }
+      }
+    }
+  }
+
+  public void verifyIdeMinVersion(boolean throwException) {
+    if (IDE_MIN_VERSION.get(this) == null) {
+      return;
+    }
+    if (IdeVersion.getVersionIdentifier().compareVersion(IDE_MIN_VERSION.get(this)).isLess()) {
+      String message = String.format("Your version of IDEasy is currently %s\n"
+          + "However, this is too old as your project requires at latest version %s\n"
+          + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
+          + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), IDE_MIN_VERSION.get(this).toString());
+      if (throwException) {
+        throw new CliException(message);
+      } else {
+        warning(message);
       }
     }
   }
@@ -1299,4 +1338,13 @@ public abstract class AbstractIdeContext implements IdeContext {
     this.variables = null;
     this.customToolRepository = null;
   }
+
+  @Override
+  public void writeVersionFile(VersionIdentifier version, Path installationPath) {
+
+    assert (Files.isDirectory(installationPath));
+    Path versionFile = installationPath.resolve(FILE_SOFTWARE_VERSION);
+    getFileAccess().writeFileContent(version.toString(), versionFile);
+  }
+
 }

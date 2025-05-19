@@ -7,6 +7,8 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.migration.IdeMigrator;
+import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -34,15 +36,36 @@ public class StatusCommandlet extends Commandlet {
 
   @Override
   public void run() {
+    Step step = this.context.newStep(true, "Show IDE_ROOT and IDE_HOME");
+    step.run(this.context::logIdeHomeAndRootStatus);
+    step = this.context.newStep(true, "Show online status");
+    step.run(this::logOnlineStatus);
 
-    this.context.logIdeHomeAndRootStatus();
-    logOnlineStatus();
     if (this.context.getIdeHome() != null) {
-      logSettingsGitStatus();
-      logSettingsLegacyStatus();
-      logMigrationStatus();
+      step = this.context.newStep(true, "Show git status");
+      step.run(this::logSettingsGitStatus);
+      step = this.context.newStep(true, "Show legacy status");
+      step.run(this::logSettingsLegacyStatus);
+      step = this.context.newStep(true, "Show migration status");
+      step.run(this::logMigrationStatus);
+    }
+    step = this.context.newStep(true, "Check for updates of IDEasy");
+    step.run(this::checkForUpdate);
+  }
+
+  private void checkForUpdate() {
+    if (!this.context.isOnline()) {
+      this.context.warning("Check for newer version of IDEasy is skipped due to no network connectivity.");
+      return;
     }
     new IdeasyCommandlet(this.context, null).checkIfUpdateIsAvailable();
+    logSystemInfo();
+  }
+
+  private void logSystemInfo() {
+    SystemInfo systemInfo = this.context.getSystemInfo();
+    this.context.info("Your operating system is {}({})@{} [{}@{}]", systemInfo.getOs(), systemInfo.getOsVersion(), systemInfo.getArchitecture(),
+        systemInfo.getOsName(), systemInfo.getArchitectureName());
   }
 
   private void logSettingsLegacyStatus() {
