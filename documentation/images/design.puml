@@ -19,6 +19,7 @@ interface EnvironmentVariables
 interface FileAccess
 interface ProcessContext
 interface SystemInfo
+interface Step
 
 interface ToolRepository
 interface CustomToolRepository
@@ -56,6 +57,7 @@ IdeContext ..> EnvironmentVariables
 IdeContext ..> FileAccess
 IdeContext ..> ProcessContext
 IdeContext ..> SystemInfo
+IdeContext ..> Step
 IdeContext ..> ToolRepository
 IdeContext ..> UrlMetadata
 IdeContext ..> GitContext
