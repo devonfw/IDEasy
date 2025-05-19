@@ -32,19 +32,6 @@ public class UrlEdition extends AbstractUrlToolOrEdition<UrlTool, UrlVersion> {
     return new UrlVersion(this, name);
   }
 
-  /**
-   * @return the {@link UrlSecurityFile} of this {@link UrlEdition}. Will be lazily initialized on the first call of this method. If the file exists, it will be
-   *     loaded, otherwise it will be empty and only created on save if data was added.
-   */
-  public UrlSecurityFile getSecurityFile() {
-
-    if (this.securityFile == null) {
-      this.securityFile = new UrlSecurityFile(this);
-      this.securityFile.load(false);
-    }
-    return this.securityFile;
-  }
-
   @Override
   public void save() {
 

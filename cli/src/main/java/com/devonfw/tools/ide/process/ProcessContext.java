@@ -4,6 +4,8 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 
+import com.devonfw.tools.ide.log.IdeSubLogger;
+
 /**
  * Wrapper for {@link ProcessBuilder} to simplify its usage and avoid common mistakes and pitfalls.
  */
@@ -124,6 +126,52 @@ public interface ProcessContext extends EnvironmentContext {
   default int run() {
 
     return run(ProcessMode.DEFAULT).getExitCode();
+  }
+
+  /**
+   * Runs the given {@code executable} with the given {@code arguments}.
+   *
+   * @param executable the executable program.
+   * @param arguments the program arguments.
+   * @throws IllegalStateException if the command failed.
+   */
+  default void run(String executable, String... arguments) {
+
+    executable(executable).addArgs(arguments).errorHandling(ProcessErrorHandling.THROW_ERR).run();
+  }
+
+  /**
+   * Runs the given {@code executable} with the given {@code arguments} and returns the expected single line from its
+   * {@link ProcessResult#getOut() standard output}.
+   *
+   * @param executable the executable program.
+   * @param arguments the program arguments.
+   * @return the single line printed from the command.
+   * @throws IllegalStateException if the command failed or did not print a single line as expected.
+   */
+  default String runAndGetSingleOutput(String executable, String... arguments) {
+
+    return runAndGetSingleOutput(null, executable, arguments);
+  }
+
+  /**
+   * Runs the given {@code executable} with the given {@code arguments} and returns the expected single line from its
+   * {@link ProcessResult#getOut() standard output}.
+   *
+   * @param logger the {@link IdeSubLogger} used to log errors instead of throwing an exception.
+   * @param executable the executable program.
+   * @param arguments the program arguments.
+   * @return the single line printed from the command.
+   * @throws IllegalStateException if the command did not print a single line as expected.
+   */
+  default String runAndGetSingleOutput(IdeSubLogger logger, String executable, String... arguments) {
+
+    executable(executable).addArgs(arguments);
+    if (logger == null) {
+      errorHandling(ProcessErrorHandling.THROW_ERR);
+    }
+    ProcessResult result = run(ProcessMode.DEFAULT_CAPTURE);
+    return result.getSingleOutput(logger);
   }
 
   /**

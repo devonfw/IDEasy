@@ -11,6 +11,7 @@ image:https://img.shields.io/maven-central/v/com.devonfw.tools.IDEasy/ide-cli.sv
 image:https://github.com/devonfw/IDEasy/actions/workflows/build.yml/badge.svg["Build Status",link="https://github.com/devonfw/IDEasy/actions/workflows/build.yml"]
 image:https://github.com/devonfw/IDEasy/actions/workflows/update-urls.yml/badge.svg["Update URLS Status",link="https://github.com/devonfw/IDEasy/actions/workflows/update-urls.yml"]
 image:https://github.com/devonfw/IDEasy/actions/workflows/nightly-build.yml/badge.svg["Nightly Release",link="https://github.com/devonfw/IDEasy/actions/workflows/nightly-build.yml"]
+image:https://github.com/devonfw/IDEasy/actions/workflows/integration-tests.yml/badge.svg["Integration Tests",link="https://github.com/devonfw/IDEasy/actions/workflows/integration-tests.yml"]
 image:https://coveralls.io/repos/github/devonfw/IDEasy/badge.svg?branch=main["Coverage Status",link="https://coveralls.io/github/devonfw/IDEasy?branch=main"]
 
 toc::[]
@@ -29,7 +30,7 @@ See link:documentation/features.adoc[features].
 
 == Status
 
-Currently we focused on support for Windows while official Linux and Mac support are still a little bit work in progress (see e.g. bug https://github.com/devonfw/IDEasy/issues/589[#589] or https://github.com/devonfw/IDEasy/issues/451[#451]).
+Currently we focused on support for Windows while official Linux and Mac support are still a little bit work in progress (see e.g. bug https://github.com/devonfw/IDEasy/issues/451[#451]).
 Further, we still recommend that you should contact us if you plan to use IDEasy in your project with a larger developer team.
 We surely try to fix bugs as soon as possible but we do not work extra shifts or prioritize your issues if you are blocked and we never promised any help before.
 

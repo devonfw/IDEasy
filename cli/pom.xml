@@ -14,9 +14,6 @@
   <properties>
     <mainClass>com.devonfw.tools.ide.cli.Ideasy</mainClass>
     <imageName>ideasy</imageName>
-    <native.maven.plugin.version>0.10.6</native.maven.plugin.version>
-    <assembly.maven.plugin.version>3.7.1</assembly.maven.plugin.version>
-    <build.helper.maven.plugin.version>3.6.0</build.helper.maven.plugin.version>
   </properties>
 
   <dependencies>
@@ -55,8 +52,11 @@
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
-      <version>1.5.17</version>
       <!--optional>true</optional-->
+    </dependency>
+    <dependency>
+      <groupId>org.graalvm.sdk</groupId>
+      <artifactId>nativeimage</artifactId>
     </dependency>
     <dependency>
       <groupId>org.junit.jupiter</groupId>
@@ -266,10 +266,10 @@
                   <goal>run</goal>
                 </goals>
                 <configuration>
-                  <tasks>
+                  <target>
                     <move file="${project.basedir}/target/msi/ideasy.msi"
                       tofile="${project.basedir}/target/${project.artifactId}-${revision}-windows-x64.msi"/>
-                  </tasks>
+                  </target>
                 </configuration>
               </execution>
             </executions>
