@@ -34,4 +34,14 @@ public class JenkinsUrlUpdater extends WebsiteUrlUpdater {
 
     doAddVersion(urlVersion, "https://mirrors.jenkins.io/war-stable/${version}/jenkins.war");
   }
+
+  @Override
+  public String getCpeVendor() {
+    return "jenkinsci";
+  }
+
+  @Override
+  public String getCpeProduct() {
+    return "jenkins";
+  }
 }
