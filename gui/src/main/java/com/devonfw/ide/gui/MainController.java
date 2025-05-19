@@ -1,15 +1,21 @@
 package com.devonfw.ide.gui;
 
-import java.io.File;
+import static ch.qos.logback.core.util.OptionHelper.getEnv;
+
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogListenerBuffer;
 import com.devonfw.tools.ide.log.IdeSubLoggerOut;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  *
@@ -29,9 +35,9 @@ public class MainController {
   @FXML
   private Button vsCodeOpen;
 
-  private final String directoryPath = "C:\\projects\\";
-  private String projectValue;
-  private String workspaceValue;
+  private final String directoryPath = getEnv(IdeVariables.IDE_ROOT.getName());
+  private Path projectValue;
+  private Path workspaceValue;
 
 
   @FXML
@@ -68,26 +74,24 @@ public class MainController {
   private void setProjectsComboBox() {
 
     selectedProject.getItems().clear();
-    File directory = new File(directoryPath);
-    if (directory.exists() && directory.isDirectory()) {
+    Path directory = Path.of(directoryPath);
 
-      File[] subDirectories = directory.listFiles(File::isDirectory);
-      if (subDirectories != null) {
-
-        for (File subDirectory : subDirectories) {
-
-          String name = subDirectory.getName();
-          if (!name.startsWith("_")) {
-
-            selectedProject.getItems().add(name);
-          }
-        }
+    if (Files.exists(directory) && Files.isDirectory(directory)) {
+      try (Stream<Path> subPaths = Files.list(directory)) {
+        subPaths
+            .filter(Files::isDirectory)
+            .map(Path::getFileName)
+            .map(Path::toString)
+            .filter(name -> !name.startsWith("_"))
+            .forEach(name -> selectedProject.getItems().add(name));
+      } catch (IOException e) {
+        e.printStackTrace();
       }
     }
 
     selectedProject.setOnAction(actionEvent -> {
 
-      projectValue = selectedProject.getValue() + "\\workspaces";
+      projectValue = Path.of(selectedProject.getValue()).resolve(IdeContext.FOLDER_WORKSPACES);
       setWorkspaceValue();
       selectedWorkspace.setDisable(false);
       androidStudioOpen.setDisable(false);
@@ -100,22 +104,22 @@ public class MainController {
   private void setWorkspaceValue() {
 
     selectedWorkspace.getItems().clear();
-    File directory = new File(directoryPath + projectValue);
-    if (directory.exists() && directory.isDirectory()) {
+    Path directory = Path.of(directoryPath).resolve(projectValue);
+    if (Files.exists(directory) && Files.isDirectory(directory)) {
+      try (Stream<Path> subPaths = Files.list(directory)) {
+        subPaths
+            .filter(Files::isDirectory)
+            .map(Path::getFileName)
+            .map(Path::toString)
+            .forEach(name -> selectedWorkspace.getItems().add(name));
 
-      File[] subDirectories = directory.listFiles(File::isDirectory);
-      if (subDirectories != null) {
-
-        for (File subDirectory : subDirectories) {
-
-          String name = subDirectory.getName();
-          selectedWorkspace.getItems().add(name);
-          selectedWorkspace.setValue("main");
-        }
+        selectedWorkspace.setValue("main");
+      } catch (IOException e) {
+        e.printStackTrace();
       }
     }
 
-    selectedWorkspace.setOnAction(actionEvent -> workspaceValue = selectedWorkspace.getValue());
+    selectedWorkspace.setOnAction(actionEvent -> workspaceValue = Path.of(selectedWorkspace.getValue()));
   }
 
   private void openIDE(String inIde) {
@@ -123,7 +127,7 @@ public class MainController {
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.INFO;
     IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel, buffer));
-    IdeGuiContext context = new IdeGuiContext(startContext, Path.of(directoryPath + projectValue + workspaceValue));
+    IdeGuiContext context = new IdeGuiContext(startContext, Path.of(directoryPath).resolve(projectValue).resolve(workspaceValue));
     context.getCommandletManager().getCommandlet(inIde).run();
   }
 }
