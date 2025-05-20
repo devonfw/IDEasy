@@ -70,7 +70,13 @@ image::images/AccessToken6.png["Copy token secret"]
 From the https://github.com/organizations/devonfw/settings/secrets/actions[secrets page of our organization] we need to update the 
 https://github.com/organizations/devonfw/settings/secrets/actions/ACTION_PUSH_TOKEN[ACTION_PUSH_TOKEN].
 
+ +
+ +
+ +
 image::images/AccessToken7.png["GitHub Secrets"]
+ +
+ +
+ +
 
 Select the `ACTION_PUSH_TOKEN`.
 
