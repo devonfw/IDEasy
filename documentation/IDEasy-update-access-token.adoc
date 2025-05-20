@@ -30,33 +30,33 @@ Enter the following data
 * choose `Only select repositories` and select the repositories our actions need to access (`IDEasy` and `ide-urls`).
 * in `Repository permissions` select `Read and write` for `Contents`.
 
- +
- +
- +
+
+
+
 image::images/AccessToken3.png["Repository permissions"]
- +
- +
- +
+
+
+
 
 Click on `Generate token` to proceed.
 
- +
- +
- +
+
+
+
 image::images/AccessToken4.png["Generate token"]
- +
- +
- +
+
+
+
 
 On the confirmation page click again on `Generate token` to proceed.
 
- +
- +
- +
+
+
+
 image::images/AccessToken5.png["Confirm and Generate token"]
- +
- +
- +
+
+
+
 
 Now the token has been generated.
 It can be copied from the current page but only from here.
@@ -70,33 +70,33 @@ image::images/AccessToken6.png["Copy token secret"]
 From the https://github.com/organizations/devonfw/settings/secrets/actions[secrets page of our organization] we need to update the 
 https://github.com/organizations/devonfw/settings/secrets/actions/ACTION_PUSH_TOKEN[ACTION_PUSH_TOKEN].
 
- +
- +
- +
+
+
+
 image::images/AccessToken7.png["GitHub Secrets"]
- +
- +
- +
+
+
+
 
 Select the `ACTION_PUSH_TOKEN`.
 
- +
- +
- +
+
+
+
 image::images/AccessToken8.png["ACTION_PUSH_TOKEN"]
- +
- +
- +
+
+
+
 
 Click on `enter a new value`.
 
- +
- +
- +
+
+
+
 image::images/AccessToken9.png["ACTION_PUSH_TOKEN"]
- +
- +
- +
+
+
+
 
 Finally, copy your new secret token value into the text area and click on `Save changes`.
 
