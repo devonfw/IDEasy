@@ -56,7 +56,6 @@ public class IdeLogListenerBuffer implements IdeLogListener {
    */
   public void flushAndEndBuffering(IdeLogger logger) {
 
-    assert (this.buffering);
     // disable buffering further log events
     this.buffering = false;
     // write all cached log events to the logger again for processing
