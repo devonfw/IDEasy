@@ -30,7 +30,13 @@ Enter the following data
 * choose `Only select repositories` and select the repositories our actions need to access (`IDEasy` and `ide-urls`).
 * in `Repository permissions` select `Read and write` for `Contents`.
 
+ +
+ +
+ +
 image::images/AccessToken3.png["Repository permissions"]
+ +
+ +
+ +
 
 Click on `Generate token` to proceed.
 
