@@ -5,7 +5,10 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 == 2025.05.002
 
 Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/809[#809]: make uninstall with --force also remove from software repo
 * https://github.com/devonfw/IDEasy/issues/1038[#1038]: XML merger fails in native-image on custom XPath with MissingResourceException
+* https://github.com/devonfw/IDEasy/issues/1108[#1108]: Fix git authentification in terminal
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/28?closed=1[milestone 2025.05.002].
 
