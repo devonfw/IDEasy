@@ -40,7 +40,13 @@ image::images/AccessToken3.png["Repository permissions"]
 
 Click on `Generate token` to proceed.
 
+ +
+ +
+ +
 image::images/AccessToken4.png["Generate token"]
+ +
+ +
+ +
 
 On the confirmation page click again on `Generate token` to proceed.
 
