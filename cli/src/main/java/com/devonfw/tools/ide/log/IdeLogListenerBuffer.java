@@ -1,62 +1,84 @@
 package com.devonfw.tools.ide.log;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * Extends {@link IdeLogListenerCollector} to buffer log events during bootstrapping and then flush them once the logger is properly configured.
+ * Implements {@link IdeLogListener} to buffer log events during bootstrapping and then flush them once the logger is properly configured.
+ *
+ * @see com.devonfw.tools.ide.context.IdeContext#runWithoutLogging(Runnable)
  */
-public class IdeLogListenerBuffer extends IdeLogListenerCollector {
+public class IdeLogListenerBuffer implements IdeLogListener {
 
-  private boolean disabled;
+  protected final List<IdeLogEntry> buffer;
 
-  @Override
-  protected boolean isActive() {
+  protected IdeLogLevel threshold;
 
-    return !this.disabled;
+  private boolean buffering;
+
+  /**
+   * The constructor.
+   */
+  public IdeLogListenerBuffer() {
+    this(true);
+  }
+
+  IdeLogListenerBuffer(boolean buffering) {
+    super();
+    this.buffer = new ArrayList<>();
+    this.threshold = IdeLogLevel.TRACE;
+    this.buffering = buffering;
   }
 
   @Override
   public boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
-
-    if (isActive()) {
-      // buffer the log event
-      super.onLog(level, message, rawMessage, args, error);
-      // reject further processing of the log event suppressing it (so it is only cached)
+    if (this.buffering) {
+      if (level.ordinal() >= threshold.ordinal()) {
+        this.buffer.add(new IdeLogEntry(level, message, rawMessage, args, error));
+      }
       return false;
-    } else {
-      return true;
     }
+    return true;
   }
 
   /**
-   * This method is supposed to be called once after the {@link IdeLogger} has been properly initialized.
+   * @return {@code true} if this collector is currently buffering all logs, {@code false} otherwise (regular logging).
+   */
+  protected boolean isBuffering() {
+    return this.buffering;
+  }
+
+  /**
+   * This method is supposed to be called once after the {@link IdeLogger} has been properly initialized or after invocation of
+   * {@link #startBuffering(IdeLogLevel)}.
    *
    * @param logger the initialized {@link IdeLogger}.
    */
-  public void flushAndDisable(IdeLogger logger) {
+  public void flushAndEndBuffering(IdeLogger logger) {
 
-    if (this.disabled) {
-      assert (this.entries.isEmpty());
-      return;
-    }
-    // disable ourselves from collecting further events
-    this.disabled = true;
+    assert (this.buffering);
+    // disable buffering further log events
+    this.buffering = false;
     // write all cached log events to the logger again for processing
-    for (IdeLogEntry entry : this.entries) {
+    for (IdeLogEntry entry : this.buffer) {
       logger.level(entry.level()).log(entry.error(), entry.message());
     }
-    this.entries.clear();
+    this.buffer.clear();
+    this.threshold = IdeLogLevel.TRACE;
   }
 
   /**
-   * Re-enables the buffering of the logger so nothing gets logged and log messages are only collected until {@link #flushAndDisable(IdeLogger)} is called.
+   * Re-enables the buffering of the logger so nothing gets logged and log messages are only collected until {@link #flushAndEndBuffering(IdeLogger)} is
+   * called.
    *
    * @param threshold the {@link IdeLogLevel} acting as threshold.
    * @see com.devonfw.tools.ide.context.IdeContext#runWithoutLogging(Runnable, IdeLogLevel)
    */
-  public void enable(IdeLogLevel threshold) {
+  public void startBuffering(IdeLogLevel threshold) {
 
-    assert (this.disabled);
+    assert (!this.buffering);
     this.threshold = threshold;
-    this.disabled = false;
+    this.buffering = true;
   }
 
 }

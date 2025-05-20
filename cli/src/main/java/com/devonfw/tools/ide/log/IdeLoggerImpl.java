@@ -78,7 +78,7 @@ public class IdeLoggerImpl implements IdeLogger {
 
     if (this.listener instanceof IdeLogListenerBuffer buffer) {
       // https://github.com/devonfw/IDEasy/issues/754
-      buffer.flushAndDisable(this);
+      buffer.flushAndEndBuffering(this);
     }
   }
 
@@ -91,7 +91,7 @@ public class IdeLoggerImpl implements IdeLogger {
   public void deactivateLogging(IdeLogLevel threshold) {
 
     if (this.listener instanceof IdeLogListenerBuffer buffer) {
-      buffer.enable(threshold);
+      buffer.startBuffering(threshold);
     } else {
       throw new IllegalStateException();
     }
