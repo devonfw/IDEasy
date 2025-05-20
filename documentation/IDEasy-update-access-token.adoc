@@ -90,7 +90,13 @@ image::images/AccessToken8.png["ACTION_PUSH_TOKEN"]
 
 Click on `enter a new value`.
 
+ +
+ +
+ +
 image::images/AccessToken9.png["ACTION_PUSH_TOKEN"]
+ +
+ +
+ +
 
 Finally, copy your new secret token value into the text area and click on `Save changes`.
 
