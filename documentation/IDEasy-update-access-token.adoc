@@ -50,7 +50,13 @@ image::images/AccessToken4.png["Generate token"]
 
 On the confirmation page click again on `Generate token` to proceed.
 
+ +
+ +
+ +
 image::images/AccessToken5.png["Confirm and Generate token"]
+ +
+ +
+ +
 
 Now the token has been generated.
 It can be copied from the current page but only from here.
