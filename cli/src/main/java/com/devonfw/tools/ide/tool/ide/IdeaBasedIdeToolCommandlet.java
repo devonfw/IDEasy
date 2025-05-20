@@ -38,7 +38,7 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
     boolean customRepo = plugin.url() != null;
     List<String> args = new ArrayList<>();
     args.add("installPlugins");
-    args.add(plugin.id());
+    args.add(plugin.id().replace("+", " "));
     if (customRepo) {
       args.add(plugin.url());
     }
