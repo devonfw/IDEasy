@@ -111,7 +111,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     // arrange
     SystemInfo systemInfo = SystemInfoMock.of(os);
     String tool = "az";
-    IdeTestContext context = newContext(PROJECT, null, true);
+    IdeTestContext context = newContext(PROJECT);
     context.setSystemInfo(systemInfo);
     mockInstallTool(context, tool);
     CommandletManager commandletManager = context.getCommandletManager();
