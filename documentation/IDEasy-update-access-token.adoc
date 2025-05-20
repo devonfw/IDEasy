@@ -80,7 +80,13 @@ image::images/AccessToken7.png["GitHub Secrets"]
 
 Select the `ACTION_PUSH_TOKEN`.
 
+ +
+ +
+ +
 image::images/AccessToken8.png["ACTION_PUSH_TOKEN"]
+ +
+ +
+ +
 
 Click on `enter a new value`.
 
