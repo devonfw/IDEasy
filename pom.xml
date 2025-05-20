@@ -20,7 +20,7 @@
     <github.repository>IDEasy</github.repository>
     <ide_version>${revision}</ide_version>
     <java.version>21</java.version>
-    <jline.version>3.24.1</jline.version>
+    <jline.version>3.30.2</jline.version>
     <jansi.version>2.4.1</jansi.version>
     <jackson.version>2.18.3</jackson.version>
     <xmlunit.version>2.10.0</xmlunit.version>
