@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitUrl;
@@ -81,6 +82,11 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
       this.context.getFileAccess().symlink(settingsFolder, this.context.getSettingsPath());
       // create a file in IDE_HOME with the current local commit id
       this.context.getGitContext().saveCurrentCommitId(codeRepoPath, this.context.getSettingsCommitIdPath());
+      Predicate<Path> welcomePredicate = path -> String.valueOf(path.getFileName()).startsWith("welcome.");
+      Path welcomeFile = this.context.getFileAccess().findFirst(settingsFolder, welcomePredicate, false);
+      if (welcomeFile != null) {
+        this.context.info(welcomeFile.toFile().toString());
+      }
     } else {
       this.context.warning("No settings folder was found inside the code repository.");
     }
