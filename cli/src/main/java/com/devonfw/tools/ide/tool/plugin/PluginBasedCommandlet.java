@@ -130,12 +130,8 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
         if (!this.context.isForcePlugins() && retrievePluginMarkerFilePath(plugin) != null && Files.exists(retrievePluginMarkerFilePath(plugin))) {
           this.context.debug("Markerfile for IDE: {} and active plugin: {} already exists.", getName(), plugin.name());
         } else {
-          try (Step step = this.context.newStep("Install plugin " + plugin.name())) {
-            boolean result = installPlugin(plugin, step, pc);
-            if (result) {
-              createPluginMarkerFile(plugin);
-            }
-          }
+          Step step = this.context.newStep("Install plugin " + plugin.name());
+          step.run(() -> doInstallPluginStep(plugin, step, pc));
         }
       } else {
         if (retrievePluginMarkerFilePath(plugin) != null && Files.exists(retrievePluginMarkerFilePath(plugin))) {
@@ -144,6 +140,13 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
           handleInstallForInactivePlugin(plugin);
         }
       }
+    }
+  }
+
+  private void doInstallPluginStep(ToolPluginDescriptor plugin, Step step, ProcessContext pc) {
+    boolean result = installPlugin(plugin, step, pc);
+    if (result) {
+      createPluginMarkerFile(plugin);
     }
   }
 

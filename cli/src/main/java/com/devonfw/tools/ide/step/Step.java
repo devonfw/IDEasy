@@ -3,35 +3,26 @@ package com.devonfw.tools.ide.step;
 import java.util.concurrent.Callable;
 
 /**
- * Interface for a {@link Step} of the process. Allows to split larger processes into smaller steps that are traced and measured. At the end you can get a
- * report with the hierarchy of all steps and their success/failure status, duration in absolute and relative numbers to gain transparency.<br> The typical use
- * should follow this pattern:
+ * Interface for a {@link Step} of the process. Allows to split larger processes into smaller steps that are traced and measured. Also prevents that if one step
+ * fails, the overall process can still continue so a sub-step (e.g. "plugin installation" or "git update") does not automatically block the entire process. At
+ * the end you can get a report with the hierarchy of all steps and their success/failure status, duration in absolute and relative numbers to gain
+ * transparency.<br> The typical use should follow this pattern:
  *
  * <pre>
  * Step step = context.{@link com.devonfw.tools.ide.context.IdeContext#newStep(String) newStep}("My step description");
- * try {
+ * step.run(() -> {
  *   // ... do something ...
- *   step.{@link #success(String) success}("Did something successfully.");
- * } catch (Exception e) {
- *   step.{@link #error(Throwable, String) error}(e, "Failed to do something.");
- * } finally {
- *   step.{@link #close()};
- * }
- * </pre>
- * {@link Step} also extends {@link AutoCloseable} so you can also use try-with-resource syntax:
- * <pre>
- * try (Step step = context.{@link com.devonfw.tools.ide.context.IdeContext#newStep(String) newStep}("My step description")) {
- *   // ... do something ...
- *   try {
- *     // ... stuff that may cause an exception ...
- *     step.{@link #success()};
- *   } catch (Exception e) {
- *     step.{@link #error(Throwable, String) error}(e, "Failed to do something.");
+ *   if (success) {
+ *     step.{@link #success(String) success}("Did something successfully.");
+ *   } else {
+ *     step.{@link #error(String) error}("Failed to do something.");
  *   }
- * }
+ * });
  * </pre>
+ * No need to manually catch exceptions and report them as error. All this will happen automatically in {@link #run(Runnable)} method. You may pass a private
+ * method as lambda to avoid multiline lambda syntax.
  */
-public interface Step extends AutoCloseable {
+public interface Step {
 
   /**
    * Empty object array for no parameters.
@@ -103,9 +94,9 @@ public interface Step extends AutoCloseable {
   void success(String message, Object... args);
 
   /**
-   * Ensures this {@link Step} is properly ended. Has to be called from a finally block.
+   * Ensures this {@link Step} is properly ended. Has to be called from a finally block. Do not call manually but always use {@link #run(Runnable)} or
+   * {@link #call(Callable)}.
    */
-  @Override
   void close();
 
   /**
