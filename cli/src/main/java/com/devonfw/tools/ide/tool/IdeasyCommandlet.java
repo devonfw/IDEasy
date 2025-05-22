@@ -238,8 +238,10 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     String gitconfig;
     // read files
     FileAccess fileAccess = this.context.getFileAccess();
-    fileAccess.touch(configPath);
     gitconfig = fileAccess.readFileContent(configPath);
+    if (gitconfig == null) {
+      gitconfig = "";
+    }
 
     LinkedHashMap<String, LinkedHashMap<String, String>> iniMap = parseIniFile(gitconfig);
 
