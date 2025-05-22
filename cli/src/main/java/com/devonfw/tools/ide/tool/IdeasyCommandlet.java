@@ -224,7 +224,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       this.context.error("Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
           + "https://git-scm.com/download/");
     } else {
-      setGitConfigProperty("core", "longpaths", "true", Path.of("~/.gitconfig"));
+      setGitConfigProperty("core", "longpaths", "true", this.context.getUserHome().resolve(".gitconfig"));
     }
   }
 
