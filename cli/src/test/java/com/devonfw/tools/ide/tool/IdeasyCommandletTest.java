@@ -101,8 +101,11 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     sectionExistsFile.deleteOnExit();
     File propertyExistsFile = File.createTempFile("gitconfigWithProperty", "ini");
     propertyExistsFile.deleteOnExit();
+    File missingFile = File.createTempFile("todelete", "ini");
     Path sectionExistsPath = sectionExistsFile.toPath();
     Path propertyExistsPath = propertyExistsFile.toPath();
+    Path missingPath = missingFile.toPath();
+    missingFile.delete();
     String sectionExistsContent = """
         [filter "lfs"]
         \trequired = true
@@ -135,16 +138,22 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
         \tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe
         \tlongpaths = true
         """;
+    String expectedNewContent = """
+        [core]
+        \tlongpaths = true
+        """;
     Files.writeString(sectionExistsPath, sectionExistsContent);
     Files.writeString(propertyExistsPath, propertyExistsContent);
 
     // act
     ideasy.setGitConfigProperty("core", "longpaths", "true", sectionExistsPath);
     ideasy.setGitConfigProperty("core", "longpaths", "true", propertyExistsPath);
+    ideasy.setGitConfigProperty("core", "longpaths", "true", missingPath);
 
     // assert
     assertThat(Files.readString(sectionExistsPath)).isEqualTo(expectedContent);
     assertThat(Files.readString(propertyExistsPath)).isEqualTo(expectedContent);
+    assertThat(Files.readString(missingPath)).isEqualTo(expectedNewContent);
   }
 
   private void verifyInstallation(Path installationPath) {
