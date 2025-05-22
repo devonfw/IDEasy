@@ -151,7 +151,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         String repository = this.settingsRepo.getValue();
         if (repository == null) {
           String message = "Missing your settings at " + settingsPath + " and no SETTINGS_URL is defined.\n"
-              + "Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.asciidoc\n"
+              + "Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc\n"
               + "Please contact the technical lead of your project to get the SETTINGS_URL for your project.\n"
               + "In case you just want to test IDEasy you may simply hit return to install the default settings.\n" + "Settings URL ["
               + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
