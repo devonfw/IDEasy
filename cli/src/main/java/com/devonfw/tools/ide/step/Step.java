@@ -2,6 +2,8 @@ package com.devonfw.tools.ide.step;
 
 import java.util.concurrent.Callable;
 
+import com.devonfw.tools.ide.log.IdeSubLogger;
+
 /**
  * Interface for a {@link Step} of the process. Allows to split larger processes into smaller steps that are traced and measured. Also prevents that if one step
  * fails, the overall process can still continue so a sub-step (e.g. "plugin installation" or "git update") does not automatically block the entire process. At
@@ -94,6 +96,11 @@ public interface Step {
   void success(String message, Object... args);
 
   /**
+   * @return the {@link IdeSubLogger} for success messages allowing generic code sharing logger fallback.
+   */
+  IdeSubLogger asSuccess();
+
+  /**
    * Ensures this {@link Step} is properly ended. Has to be called from a finally block. Do not call manually but always use {@link #run(Runnable)} or
    * {@link #call(Callable)}.
    */
@@ -182,6 +189,11 @@ public interface Step {
   void error(Throwable error, boolean suppress, String message, Object... args);
 
   /**
+   * @return the {@link IdeSubLogger} for error messages allowing generic code sharing logger fallback.
+   */
+  IdeSubLogger asError();
+
+  /**
    * @return the parent {@link Step} or {@code null} if there is no parent.
    */
   Step getParent();
@@ -238,6 +250,29 @@ public interface Step {
    */
   default <R> R call(Callable<R> stepCode) {
 
+    return call(stepCode, true, null);
+  }
+
+  /**
+   * @param stepCode the {@link Callable} to {@link Callable#call() execute} for this {@link Step}.
+   * @param resultOnError the result to be returned in case of a {@link Throwable error}.
+   * @param <R> type of the return value.
+   * @return the value returned from {@link Callable#call()}.
+   */
+  default <R> R call(Callable<R> stepCode, R resultOnError) {
+
+    return call(stepCode, false, resultOnError);
+  }
+
+  /**
+   * @param stepCode the {@link Callable} to {@link Callable#call() execute} for this {@link Step}.
+   * @param rethrow - {@code true} to rethrow a potential {@link Throwable error}.
+   * @param resultOnError the result to be returned in case of a {@link Throwable error}.
+   * @param <R> type of the return value.
+   * @return the value returned from {@link Callable#call()}.
+   */
+  default <R> R call(Callable<R> stepCode, boolean rethrow, R resultOnError) {
+
     try {
       R result = stepCode.call();
       if (getSuccess() == null) {
@@ -246,15 +281,19 @@ public interface Step {
       return result;
     } catch (Throwable e) {
       error(e);
-      if (e instanceof RuntimeException re) {
-        throw re;
-      } else if (e instanceof Error error) {
-        throw error;
-      } else {
-        throw new IllegalStateException(e);
+      if (rethrow) {
+        if (e instanceof RuntimeException re) {
+          throw re;
+        } else if (e instanceof Error error) {
+          throw error;
+        } else {
+          throw new IllegalStateException(e);
+        }
       }
+      return resultOnError;
     } finally {
       close();
     }
   }
+
 }

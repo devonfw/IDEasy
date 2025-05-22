@@ -189,7 +189,7 @@ public abstract class PluginBasedCommandlet extends LocalToolCommandlet {
    */
   public void installPlugin(ToolPluginDescriptor plugin, final Step step) {
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-    install(true, pc);
+    install(true, pc, null);
     installPlugin(plugin, step, pc);
   }
 

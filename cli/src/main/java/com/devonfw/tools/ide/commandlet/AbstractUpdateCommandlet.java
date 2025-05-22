@@ -176,10 +176,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       return;
     }
     Step step = this.context.newStep("Install or update software");
-    step.run(this::doUpdateSoftwareStep);
+    step.run(() -> doUpdateSoftwareStep(step));
   }
 
-  private void doUpdateSoftwareStep() {
+  private void doUpdateSoftwareStep(Step step) {
 
     Set<ToolCommandlet> toolCommandlets = new HashSet<>();
     // installed tools in IDE_HOME/software
