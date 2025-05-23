@@ -998,6 +998,10 @@ public class FileAccessImpl implements FileAccess {
   public String readFileContent(Path file) {
 
     this.context.trace("Reading content of file from {}", file);
+    if (!Files.exists((file))) {
+      this.context.debug("File {} does not exist", file);
+      return null;
+    }
     try {
       String content = Files.readString(file);
       this.context.trace("Completed reading {} character(s) from file {}", content.length(), file);

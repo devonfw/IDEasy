@@ -308,7 +308,7 @@ public interface FileAccess {
 
   /**
    * @param file the {@link Path} to the file to read.
-   * @return the content of the specified file (in UTF-8 encoding).
+   * @return the content of the specified file (in UTF-8 encoding), or null if the file doesn't exist
    * @see java.nio.file.Files#readString(Path)
    */
   String readFileContent(Path file);
