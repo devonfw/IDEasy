@@ -98,6 +98,9 @@ public class IniParserImpl implements IniParser {
 
   @Override
   public void setProperty(String section, String property, String value) {
+    if (!iniMap.containsKey(section)) {
+      addSection(section);
+    }
     iniMap.get(section).put(property, value);
   }
 
