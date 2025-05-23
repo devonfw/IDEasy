@@ -1,0 +1,43 @@
+.ideTitle {
+
+  -fx-font-size: 20px;
+  -fx-font-style: Arial;
+  -fx-color: #000;
+}
+
+.ideElement {
+
+  -fx-effect: dropshadow(gaussian , rgba(0, 0, 0, 0.1), 10, 0.2, 0.0, 0.0);
+  -fx-background-color: #FFF;
+}
+
+.launchButton {
+
+  -fx-background-color: #FFF;
+  -fx-font-size: 14px;
+  -fx-font-family: Arial;
+  -fx-border-style: solid;
+  -fx-border-color: #E8E8E8;
+  -fx-border-radius: 10px;
+  -fx-background-radius: 10px;
+}
+
+.launchButton:hover {
+
+  -fx-border-color: #87CEFA;
+  -fx-background-color: #87CEFA;
+}
+
+.workspaceElement {
+
+  -fx-effect: dropshadow(gaussian , rgba(0, 0, 0, 0.1), 10, 0.2, 0.0, 0.0);
+  -fx-background-color: #FFF;
+  -fx-min-height: 80;
+  -fx-alignment: CENTER_LEFT;
+  -fx-padding: 15;
+  -fx-spacing: 10;
+  -fx-font-size: 16;
+  -fx-border-radius: 10;
+  -fx-background-radius: 10;
+}
+
