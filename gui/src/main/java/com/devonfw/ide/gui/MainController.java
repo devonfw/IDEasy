@@ -85,7 +85,7 @@ public class MainController {
             .filter(name -> !name.startsWith("_"))
             .forEach(name -> selectedProject.getItems().add(name));
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new IllegalStateException("Failed to list projects!", e);
       }
     }
 
