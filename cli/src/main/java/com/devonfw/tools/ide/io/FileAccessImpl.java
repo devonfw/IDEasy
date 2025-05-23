@@ -498,7 +498,7 @@ public class FileAccessImpl implements FileAccess {
     } catch (FileSystemException e) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
         this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
-            + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for " + "further details. Error was: "
+            + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for " + "further details. Error was: "
             + e.getMessage());
         createWindowsJunction(adaptedSource, targetLink);
       } else {
