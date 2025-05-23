@@ -27,7 +27,7 @@ public class App extends Application {
     Rectangle2D bounds = Screen.getPrimary().getVisualBounds();
     Scene scene = new Scene(root, bounds.getWidth() / 2, bounds.getHeight() / 2);
 
-    Image icon = new Image("com\\devonfw\\ide\\gui\\assets\\devonfw.png");
+    Image icon = new Image("com/devonfw/ide/gui/assets/devonfw.png");
     primaryStage.getIcons().add(icon);
     primaryStage.setTitle("IDEasy - version " + IdeVersion.getVersionString());
     primaryStage.setScene(scene);
