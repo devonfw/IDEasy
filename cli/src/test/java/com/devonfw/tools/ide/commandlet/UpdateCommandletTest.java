@@ -96,14 +96,14 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     context.getFileAccess().delete(javaRepository);
     Path javaDownload = context.getIdeRoot().resolve("repository").resolve("java");
     context.getFileAccess().delete(javaDownload);
-    UpdateCommandlet uc = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+    UpdateCommandlet update = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
 
     // act
-    uc.run();
+    update.run();
 
     // assert
-    assertThat(context).logAtError().hasMessage("Installation of java failed!");
-    assertThat(context).logAtError().hasMessage("Installation of mvn failed!");
+    assertThat(context).logAtError().hasMessage("Step 'Install java' ended with failure.");
+    assertThat(context).logAtError().hasMessage("Step 'Install mvn' ended with failure.");
     assertThat(context).logAtSuccess().hasMessage("Successfully updated settings repository.");
     assertThat(context).logAtSuccess().hasMessageContaining("Install or update software");
   }

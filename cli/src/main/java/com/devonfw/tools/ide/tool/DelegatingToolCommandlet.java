@@ -6,14 +6,17 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
  * {@link ToolCommandlet} that delegates to another ToolCommandlet.
+ *
+ * @param <D> type of the {@link ToolCommandlet} to delegate to.
  */
 public abstract class DelegatingToolCommandlet<D extends ToolCommandlet> extends ToolCommandlet {
 
-  private Class<D> delegateClass;
+  private final Class<D> delegateClass;
 
   /**
    * The constructor.
@@ -34,8 +37,8 @@ public abstract class DelegatingToolCommandlet<D extends ToolCommandlet> extends
   }
 
   @Override
-  public final boolean install(boolean silent, ProcessContext processContext) {
-    return getDelegate().install(silent, processContext);
+  public final boolean install(boolean silent, ProcessContext processContext, Step step) {
+    return getDelegate().install(silent, processContext, step);
   }
 
   @Override

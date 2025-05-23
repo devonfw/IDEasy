@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -13,6 +14,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -115,7 +117,7 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent, ProcessContext processContext) {
+  public boolean install(boolean silent, ProcessContext processContext, Step step) {
 
     Path binaryPath = this.context.getPath().findBinary(Path.of(getBinaryName()));
     // if force mode is enabled, go through with the installation even if the tool is already installed
@@ -146,10 +148,9 @@ public abstract class GlobalToolCommandlet extends ToolCommandlet {
       fileAccess.delete(tmpDir);
     }
     if (exitCode == 0) {
-      this.context.success("Installation process for {} in version {} has started", this.tool, resolvedVersion);
+      asSuccess(step).log("Installation process for {} in version {} has started", this.tool, resolvedVersion);
     } else {
-      this.context.warning("{} in version {} was not successfully installed", this.tool, resolvedVersion);
-      return false;
+      throw new CliException("Installation process for " + this.tool + " in version " + resolvedVersion + " failed with exit code " + exitCode + "!");
     }
     return true;
   }

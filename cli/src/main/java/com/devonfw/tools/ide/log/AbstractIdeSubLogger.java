@@ -18,8 +18,6 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
 
   private boolean enabled;
 
-  private int count;
-
   /**
    * The constructor.
    *
@@ -54,13 +52,6 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
   void setEnabled(boolean enabled) {
 
     this.enabled = enabled;
-  }
-
-
-  @Override
-  public int getCount() {
-
-    return this.count;
   }
 
   /**
@@ -134,7 +125,6 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
   public String log(Throwable error, String message, Object... args) {
 
     if (!this.enabled) {
-      this.count++;
       // performance optimization: do not fill in arguments if disabled
       return message;
     }
@@ -158,7 +148,6 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
     }
     boolean accept = this.listener.onLog(this.level, actualMessage, message, args, error);
     if (accept) {
-      this.count++;
       doLog(actualMessage, error);
     }
     return actualMessage;
