@@ -498,7 +498,7 @@ public class FileAccessImpl implements FileAccess {
     } catch (FileSystemException e) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
         this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
-            + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for " + "further details. Error was: "
+            + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for " + "further details. Error was: "
             + e.getMessage());
         createWindowsJunction(adaptedSource, targetLink);
       } else {
@@ -998,6 +998,10 @@ public class FileAccessImpl implements FileAccess {
   public String readFileContent(Path file) {
 
     this.context.trace("Reading content of file from {}", file);
+    if (!Files.exists((file))) {
+      this.context.debug("File {} does not exist", file);
+      return null;
+    }
     try {
       String content = Files.readString(file);
       this.context.trace("Completed reading {} character(s) from file {}", content.length(), file);
