@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.mvn;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.SecureRandom;
@@ -12,6 +11,7 @@ import java.util.regex.Matcher;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -82,7 +82,7 @@ public class Mvn extends PluginBasedCommandlet {
     createSettingsSecurityFile(settingsSecurityFile);
 
     Path settingsFile = mvnConfigPath.resolve(SETTINGS_FILE);
-    createSettingsFile(settingsFile, settingsSecurityFile, templatesConfMvnFolder.resolve(SETTINGS_FILE));
+    createSettingsFile(settingsFile, templatesConfMvnFolder.resolve(SETTINGS_FILE), settingsSecurityFile);
   }
 
   private void createSettingsSecurityFile(Path settingsSecurityFile) {
@@ -90,59 +90,63 @@ public class Mvn extends PluginBasedCommandlet {
     if (Files.exists(settingsSecurityFile)) {
       return; // file already exists, nothing to do...
     }
-    try (Step step = this.context.newStep("Create mvn settings security file at " + settingsSecurityFile)) {
-      SecureRandom secureRandom = new SecureRandom();
-      byte[] randomBytes = new byte[20];
+    Step step = this.context.newStep("Create mvn settings security file at " + settingsSecurityFile);
+    step.run(() -> doCreateSettingsSecurityFileStep(settingsSecurityFile, step));
+  }
 
-      secureRandom.nextBytes(randomBytes);
-      String base64String = Base64.getEncoder().encodeToString(randomBytes);
+  private void doCreateSettingsSecurityFileStep(Path settingsSecurityFile, Step step) {
 
-      String encryptedMasterPassword = retrievePassword("--encrypt-master-password", base64String);
+    SecureRandom secureRandom = new SecureRandom();
+    byte[] randomBytes = new byte[20];
 
-      String settingsSecurityXml =
-          "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<settingsSecurity>\n" + "  <master>" + encryptedMasterPassword + "</master>\n"
-              + "</settingsSecurity>";
-      try {
-        Files.writeString(settingsSecurityFile, settingsSecurityXml);
-        step.success();
-      } catch (IOException e) {
-        step.error(e, ERROR_SETTINGS_SECURITY_FILE_MESSAGE, settingsSecurityFile);
-      }
+    secureRandom.nextBytes(randomBytes);
+    String base64String = Base64.getEncoder().encodeToString(randomBytes);
+
+    String encryptedMasterPassword = retrievePassword("--encrypt-master-password", base64String);
+
+    String settingsSecurityXml =
+        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<settingsSecurity>\n" + "  <master>" + encryptedMasterPassword + "</master>\n"
+            + "</settingsSecurity>";
+    try {
+      this.context.getFileAccess().writeFileContent(settingsSecurityXml, settingsSecurityFile, true);
+    } catch (Exception e) {
+      step.error(e, ERROR_SETTINGS_SECURITY_FILE_MESSAGE, settingsSecurityFile);
     }
   }
 
-  private void createSettingsFile(Path settingsFile, Path settingsSecurityFile, Path settingsTemplateFile) {
+  private void createSettingsFile(Path settingsFile, Path settingsTemplateFile, Path settingsSecurityFile) {
 
-    if (Files.exists(settingsFile) || !Files.exists(settingsSecurityFile)) {
+    if (Files.exists(settingsFile)) {
       return;
     }
     if (!Files.exists(settingsTemplateFile)) {
       this.context.warning("Missing maven settings template at {}. ", settingsTemplateFile);
       return;
     }
-    try (Step step = this.context.newStep("Create mvn settings file at " + settingsFile)) {
-      try {
-        String content = Files.readString(settingsTemplateFile);
+    Step step = this.context.newStep("Create mvn settings file at " + settingsFile);
+    step.run(() -> doCreateSettingsFile(settingsFile, settingsTemplateFile, settingsSecurityFile, step));
+  }
 
-        GitContext gitContext = this.context.getGitContext();
+  private void doCreateSettingsFile(Path settingsFile, Path settingsTemplateFile, Path settingsSecurityFile, Step step) {
 
-        String gitSettingsUrl = gitContext.retrieveGitUrl(this.context.getSettingsPath());
-
-        if (gitSettingsUrl == null) {
-          this.context.warning("Failed to determine git remote URL for settings folder.");
-        } else if (!gitSettingsUrl.equals(GitContext.DEFAULT_SETTINGS_GIT_URL)) {
-          Set<String> variables = findVariables(content);
-          for (String variable : variables) {
-            String secret = getEncryptedPassword(variable);
-            content = content.replace(VARIABLE_SYNTAX.create(variable), secret);
-          }
+    try {
+      FileAccess fileAccess = this.context.getFileAccess();
+      String content = fileAccess.readFileContent(settingsTemplateFile);
+      GitContext gitContext = this.context.getGitContext();
+      String gitSettingsUrl = gitContext.retrieveGitUrl(this.context.getSettingsPath());
+      if (gitSettingsUrl == null) {
+        this.context.warning("Failed to determine git remote URL for settings folder.");
+      } else if (!gitSettingsUrl.equals(GitContext.DEFAULT_SETTINGS_GIT_URL) && Files.exists(settingsSecurityFile)) {
+        Set<String> variables = findVariables(content);
+        for (String variable : variables) {
+          String secret = getEncryptedPassword(variable);
+          content = content.replace(VARIABLE_SYNTAX.create(variable), secret);
         }
-        Files.createDirectories(settingsFile.getParent());
-        Files.writeString(settingsFile, content);
-        step.success();
-      } catch (IOException e) {
-        step.error(e, ERROR_SETTINGS_FILE_MESSAGE, settingsFile);
       }
+      fileAccess.writeFileContent(content, settingsFile, true);
+      step.success();
+    } catch (Exception e) {
+      step.error(e, ERROR_SETTINGS_FILE_MESSAGE, settingsFile);
     }
   }
 
