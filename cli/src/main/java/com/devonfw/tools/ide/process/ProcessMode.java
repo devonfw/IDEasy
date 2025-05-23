@@ -15,12 +15,19 @@ public enum ProcessMode {
    * SIGHUP. Using nohup would simply result in redirecting output to a nohup.out file.)
    */
   BACKGROUND {
+    @Override
     public Redirect getRedirectOutput() {
       return Redirect.INHERIT;
     }
 
+    @Override
     public Redirect getRedirectError() {
       return Redirect.INHERIT;
+    }
+
+    @Override
+    public Redirect getRedirectInput() {
+      return null;
     }
   },
   /**
@@ -28,12 +35,19 @@ public enum ProcessMode {
    * {@link ProcessBuilder.Redirect#DISCARD}.
    */
   BACKGROUND_SILENT {
+    @Override
     public Redirect getRedirectOutput() {
       return Redirect.DISCARD;
     }
 
+    @Override
     public Redirect getRedirectError() {
       return Redirect.DISCARD;
+    }
+
+    @Override
+    public Redirect getRedirectInput() {
+      return null;
     }
   },
   /**
@@ -41,14 +55,17 @@ public enum ProcessMode {
    * the child process dependant from the parent process! (If you close the parent process the child process will also be terminated.)
    */
   DEFAULT {
+    @Override
     public Redirect getRedirectOutput() {
       return Redirect.INHERIT;
     }
 
+    @Override
     public Redirect getRedirectError() {
       return Redirect.INHERIT;
     }
 
+    @Override
     public Redirect getRedirectInput() {
       return Redirect.INHERIT;
     }
@@ -60,12 +77,19 @@ public enum ProcessMode {
    * process! (If you close the parent process the child process will also be terminated.)
    */
   DEFAULT_CAPTURE {
+    @Override
     public Redirect getRedirectOutput() {
       return Redirect.PIPE;
     }
 
+    @Override
     public Redirect getRedirectError() {
       return Redirect.PIPE;
+    }
+
+    @Override
+    public Redirect getRedirectInput() {
+      return null;
     }
 
   },
@@ -75,31 +99,49 @@ public enum ProcessMode {
    * using {@link ProcessBuilder.Redirect#DISCARD}.
    */
   DEFAULT_SILENT {
+    @Override
     public Redirect getRedirectOutput() {
+
       return Redirect.DISCARD;
     }
 
+    @Override
     public Redirect getRedirectError() {
+
       return Redirect.DISCARD;
     }
 
+    @Override
     public Redirect getRedirectInput() {
+
       return Redirect.INHERIT;
     }
   };
 
 
-  public Redirect getRedirectOutput() {
-    return null;
-  }
+  /**
+   * Method to return the {@link ProcessBuilder.Redirect} strategy for the standard output stream of the process. Depending on the mode, the output may be
+   * inherited from the parent process, discarded, or piped for programmatic access.
+   *
+   * @return the {@link ProcessBuilder.Redirect} configuration for standard output, or {@code null} if no redirection is specified.
+   */
+  public abstract Redirect getRedirectOutput();
 
-  public Redirect getRedirectError() {
-    return null;
-  }
+  /**
+   * Method to return the {@link ProcessBuilder.Redirect} strategy for the standard error stream of the process. Depending on the mode, the error output may be
+   * inherited from the parent process, discarded, or piped for programmatic access.
+   *
+   * @return the {@link ProcessBuilder.Redirect} configuration for standard error, or {@code null} if no redirection is specified.
+   */
+  public abstract Redirect getRedirectError();
 
-  public Redirect getRedirectInput() {
-    return null;
-  }
+  /**
+   * Method to return the {@link ProcessBuilder.Redirect} strategy for the standard input stream of the process. Depending on the mode, the input may be
+   * inherited from the parent process or left unconfigured.
+   *
+   * @return the {@link ProcessBuilder.Redirect} configuration for standard input, or {@code null} if no redirection is specified.
+   */
+  public abstract Redirect getRedirectInput();
 
 
   /**
