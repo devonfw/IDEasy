@@ -130,14 +130,6 @@ public class ProcessContextImpl implements ProcessContext {
   @Override
   public ProcessResult run(ProcessMode processMode) {
 
-    if (processMode == ProcessMode.DEFAULT) {
-      this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
-    }
-
-    if (processMode == ProcessMode.DEFAULT_SILENT) {
-      this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
-    }
-
     if (this.executable == null) {
       throw new IllegalStateException("Missing executable to run process!");
     }
@@ -160,13 +152,9 @@ public class ProcessContextImpl implements ProcessContext {
     }
 
     try {
-
-      if (processMode == ProcessMode.DEFAULT_CAPTURE) {
-        this.processBuilder.redirectOutput(Redirect.PIPE).redirectError(Redirect.PIPE);
-      } else if (processMode.isBackground()) {
+      applyRedirects(processMode);
+      if (processMode.isBackground()) {
         modifyArgumentsOnBackgroundProcess(processMode);
-      } else {
-        this.processBuilder.redirectInput(Redirect.INHERIT);
       }
 
       this.processBuilder.command(args);
@@ -360,11 +348,7 @@ public class ProcessContextImpl implements ProcessContext {
 
   private void modifyArgumentsOnBackgroundProcess(ProcessMode processMode) {
 
-    if (processMode == ProcessMode.BACKGROUND) {
-      this.processBuilder.redirectOutput(Redirect.INHERIT).redirectError(Redirect.INHERIT);
-    } else if (processMode == ProcessMode.BACKGROUND_SILENT) {
-      this.processBuilder.redirectOutput(Redirect.DISCARD).redirectError(Redirect.DISCARD);
-    } else {
+    if (!processMode.isBackground()) {
       throw new IllegalStateException("Cannot handle non background process mode!");
     }
 
@@ -384,6 +368,23 @@ public class ProcessContextImpl implements ProcessContext {
     commandToRunInBackground += " & disown";
     this.arguments.add(commandToRunInBackground);
 
+  }
+
+  private void applyRedirects(ProcessMode processMode) {
+
+    Redirect output = processMode.getRedirectOutput();
+    Redirect error = processMode.getRedirectError();
+    Redirect input = processMode.getRedirectInput();
+
+    if (output != null) {
+      this.processBuilder.redirectOutput(output);
+    }
+    if (error != null) {
+      this.processBuilder.redirectError(error);
+    }
+    if (input != null) {
+      this.processBuilder.redirectInput(input);
+    }
   }
 
   private String buildCommandToRunInBackground() {
