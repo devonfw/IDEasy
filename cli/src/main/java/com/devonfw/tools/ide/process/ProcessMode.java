@@ -118,7 +118,6 @@ public enum ProcessMode {
     }
   };
 
-
   /**
    * Method to return the {@link ProcessBuilder.Redirect} strategy for the standard output stream of the process. Depending on the mode, the output may be
    * inherited from the parent process, discarded, or piped for programmatic access.
