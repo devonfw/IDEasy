@@ -65,8 +65,8 @@ public class ContextCommandlet extends Commandlet {
 
     IdeLogLevel logLevel = determineLogLevel();
     if (this.startContext == null) {
-      final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
-      this.startContext = new IdeStartContextImpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel, buffer));
+      IdeLogListenerBuffer listener = new IdeLogListenerBuffer();
+      this.startContext = new IdeStartContextImpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel, listener));
     } else if (this.context != null) {
       IdeStartContextImpl newStartContext = ((AbstractIdeContext) this.context).getStartContext();
       assert (this.startContext == newStartContext); // fast fail during development via assert
