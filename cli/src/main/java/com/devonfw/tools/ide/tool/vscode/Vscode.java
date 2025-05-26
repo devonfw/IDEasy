@@ -41,14 +41,16 @@ public class Vscode extends IdeToolCommandlet {
 
   @Override
   protected void installPlugins(Collection<ToolPluginDescriptor> plugins, ProcessContext pc) {
-    IdeProgressBar pb = this.context.newProgressBarForPlugins(plugins.size());
-    pc.setOutputListener((msg, err) -> {
-      if (msg.contains("Installing extension ")) {
-        pb.stepBy(1);
-      }
+    this.context.runWithoutLogging(() -> {
+      IdeProgressBar pb = this.context.newProgressBarForPlugins(plugins.size());
+      pc.setOutputListener((msg, err) -> {
+        if (msg.contains("Installing extension ")) {
+          pb.stepBy(1);
+        }
+      });
+      super.installPlugins(plugins, pc);
+      pb.close();
     });
-    super.installPlugins(plugins, pc);
-    pb.close();
   }
 
   @Override
