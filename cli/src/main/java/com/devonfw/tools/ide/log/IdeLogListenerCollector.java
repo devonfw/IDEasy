@@ -6,15 +6,15 @@ import java.util.List;
 /**
  * Implementation of {@link IdeLogListener} that collects all events as {@link IdeLogEntry}.
  */
-public class IdeLogListenerCollector implements IdeLogListener {
+public class IdeLogListenerCollector extends IdeLogListenerBuffer {
 
-  protected List<IdeLogEntry> entries;
+  protected final List<IdeLogEntry> entries;
 
   /**
    * The constructor.
    */
   public IdeLogListenerCollector() {
-    super();
+    super(false);
     this.entries = new ArrayList<>(512);
   }
 
@@ -28,9 +28,11 @@ public class IdeLogListenerCollector implements IdeLogListener {
 
   @Override
   public boolean onLog(IdeLogLevel level, String message, String rawMessage, Object[] args, Throwable error) {
-    if (this.entries != null) {
+    boolean accept = super.onLog(level, message, rawMessage, args, error);
+    if (accept) {
       this.entries.add(new IdeLogEntry(level, message, rawMessage, args, error));
     }
-    return true;
+    return accept;
   }
+
 }

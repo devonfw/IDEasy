@@ -8,11 +8,13 @@ import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
- * Integration test of {@link IdeContext}.
+ * Test of {@link IdeContext}.
  */
 public class IdeContextTest extends AbstractIdeContextTest {
 
@@ -163,6 +165,37 @@ public class IdeContextTest extends AbstractIdeContextTest {
     context.run(args);
     // assert
     assertThat(context).log().hasNoMessageContaining("However, this is too old as your project requires at latest version");
+  }
+
+  @Test
+  public void testRunWithoutLogging() {
+
+    // arrange
+    String testWarningMessage = "Test warning message";
+    String testWarningMessage2 = "Other warning message";
+    String testWarningMessage3 = "Final warning message";
+    String testInfoMessage = "Test info message";
+    String testDebugMessage = "Test debug message that will be suppressed because of threshold";
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    // act
+    context.warning(testWarningMessage);
+    // assert
+    assertThat(context).logAtWarning().hasMessage(testWarningMessage);
+    // and act
+    context.runWithoutLogging(() -> {
+      context.warning(testWarningMessage2);
+      context.info(testInfoMessage);
+      context.debug(testDebugMessage);
+      assertThat(context).log().hasNoMessage(testWarningMessage2);
+      assertThat(context).log().hasNoMessage(testInfoMessage);
+      assertThat(context).log().hasNoMessage(testDebugMessage);
+    }, IdeLogLevel.INFO);
+    context.warning(testWarningMessage3);
+
+    assertThat(context).log()
+        .hasEntries(IdeLogEntry.ofWarning(testWarningMessage), IdeLogEntry.ofWarning(testWarningMessage2), IdeLogEntry.ofInfo(testInfoMessage),
+            IdeLogEntry.ofWarning(testWarningMessage3));
+    assertThat(context).log().hasNoMessage(testDebugMessage);
   }
 
 }
