@@ -8,6 +8,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
@@ -30,12 +31,12 @@ public class PgAdmin extends GlobalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent, ProcessContext processContext) {
+  public boolean install(boolean silent, ProcessContext processContext, Step step) {
 
     if (this.context.getSystemInfo().isLinux()) {
       return runWithPackageManager(silent, getPackageManagerCommandsInstall());
     } else {
-      return super.install(silent, processContext);
+      return super.install(silent, processContext, step);
     }
   }
 
