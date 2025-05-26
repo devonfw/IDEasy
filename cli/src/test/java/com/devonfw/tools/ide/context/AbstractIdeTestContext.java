@@ -4,6 +4,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
 import com.devonfw.tools.ide.commandlet.CommandletManager;
@@ -11,7 +12,7 @@ import com.devonfw.tools.ide.commandlet.TestCommandletManager;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesPropertiesFile;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesSystem;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.environment.IdeSystem;
 import com.devonfw.tools.ide.environment.IdeSystemTestImpl;
@@ -132,14 +133,16 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     return progressBar;
   }
 
+  @SuppressWarnings({ "rawtypes", "unchecked" })
   @Override
   protected AbstractEnvironmentVariables createSystemVariables() {
 
     Path home = getUserHome();
     if (home != null) {
-      Path systemPropertiesFile = home.resolve("environment.properties");
-      if (Files.exists(systemPropertiesFile)) {
-        return new EnvironmentVariablesPropertiesFile(null, EnvironmentVariablesType.SYSTEM, systemPropertiesFile, this);
+      Path environmentPropertiesFile = home.resolve("environment.properties");
+      if (Files.exists(environmentPropertiesFile)) {
+        Properties environmentProperties = getFileAccess().readProperties(environmentPropertiesFile);
+        return EnvironmentVariablesSystem.of(this, (Map) environmentProperties);
       }
     }
     return super.createSystemVariables();

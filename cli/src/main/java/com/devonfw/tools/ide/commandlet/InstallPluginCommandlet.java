@@ -45,9 +45,8 @@ public class InstallPluginCommandlet extends Commandlet {
     String plugin = this.plugin.getValue();
 
     if (commandlet instanceof PluginBasedCommandlet cmd) {
-      try (Step step = context.newStep("Install plugin: " + plugin)) {
-        cmd.installPlugin(cmd.getPlugin(plugin), step);
-      }
+      Step step = context.newStep("Install plugin: " + plugin);
+      step.run(() -> cmd.installPlugin(cmd.getPlugin(plugin), step));
     } else {
       context.warning("Tool {} does not support installation of plugins.", commandlet.getName());
     }
