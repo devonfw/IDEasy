@@ -183,6 +183,14 @@ public interface ProcessContext extends EnvironmentContext {
    */
   ProcessResult run(ProcessMode processMode);
 
-  void setOutputListener(OutputListener listener);
+  /**
+   * Sets the {@link OutputListener} that will receive output events. This method is intended to be used by subclasses that support output listening. The
+   * default implementation does nothing.
+   *
+   * @param listener the {@code OutputListener} to receive output events
+   */
+  default void setOutputListener(OutputListener listener) {
+
+  }
 
 }
