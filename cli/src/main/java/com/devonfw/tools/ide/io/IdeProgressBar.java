@@ -14,11 +14,20 @@ public interface IdeProgressBar extends AutoCloseable {
   /** The {@link #getTitle() title} for copying. */
   String TITLE_COPYING = "Copying";
 
+  /** The {@link #getTitle() title} for installing plugins. */
+  String TITLE_INSTALL_PLUGIN = "Installing Plugins";
+
   /** {@link #getUnitName() Unit name} for Megabytes. */
   String UNIT_NAME_MB = "MiB";
-  
+
   /** {@link #getUnitSize() Unit size} for Megabytes. */
   int UNIT_SIZE_MB = 1048576;
+
+  /** {@link #getUnitName() Unit name} for plugins. */
+  String UNIT_NAME_PLUGIN = " Plugins";
+
+  /** {@link #getUnitSize() Unit size} for plugins. */
+  int UNIT_SIZE_PLUGIN = 1;
 
   /**
    * @return the title (task name or activity) to display in the progress bar.

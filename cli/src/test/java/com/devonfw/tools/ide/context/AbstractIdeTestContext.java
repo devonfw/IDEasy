@@ -128,7 +128,8 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     IdeProgressBarTestImpl progressBar = new IdeProgressBarTestImpl(title, maxSize, unitName, unitSize);
     IdeProgressBarTestImpl duplicate = this.progressBarMap.put(title, progressBar);
     // If we have multiple downloads or unpacking, we may have an existing "Downloading" or "Unpacking" key
-    assert (title.equals(IdeProgressBar.TITLE_DOWNLOADING)) || (title.equals(IdeProgressBar.TITLE_EXTRACTING)) || duplicate == null;
+    assert (title.equals(IdeProgressBar.TITLE_DOWNLOADING)) || (title.equals(IdeProgressBar.TITLE_EXTRACTING)) || (title.equals(
+        IdeProgressBar.TITLE_INSTALL_PLUGIN)) || duplicate == null;
     return progressBar;
   }
 

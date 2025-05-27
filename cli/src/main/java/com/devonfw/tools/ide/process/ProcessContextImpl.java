@@ -48,6 +48,8 @@ public class ProcessContextImpl implements ProcessContext {
 
   private ProcessErrorHandling errorHandling;
 
+  private OutputListener outputListener;
+
   /**
    * The constructor.
    *
@@ -128,6 +130,11 @@ public class ProcessContextImpl implements ProcessContext {
   }
 
   @Override
+  public void setOutputListener(OutputListener listener) {
+    this.outputListener = listener;
+  }
+
+  @Override
   public ProcessResult run(ProcessMode processMode) {
 
     if (this.executable == null) {
@@ -169,6 +176,12 @@ public class ProcessContextImpl implements ProcessContext {
           CompletableFuture<Void> errFut = readInputStream(process.getErrorStream(), true, output);
           outFut.get();
           errFut.get();
+
+          if (this.outputListener != null) {
+            for (OutputMessage msg : output) {
+              this.outputListener.onOutput(msg.message(), msg.error());
+            }
+          }
         }
 
         int exitCode;
