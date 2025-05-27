@@ -10,6 +10,7 @@ import com.devonfw.tools.ide.migration.IdeMigrator;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.IdeasyCommandlet;
+import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -38,6 +39,10 @@ public class StatusCommandlet extends Commandlet {
   public void run() {
     Step step = this.context.newStep(true, "Show IDE_ROOT and IDE_HOME");
     step.run(this.context::logIdeHomeAndRootStatus);
+
+    step = this.context.newStep(true, "Check CWD and IDE_ROOT path cases");
+    step.run(this::checkCwdAndRootPathCases);
+
     step = this.context.newStep(true, "Show online status");
     step.run(this::logOnlineStatus);
 
@@ -51,6 +56,30 @@ public class StatusCommandlet extends Commandlet {
     }
     step = this.context.newStep(true, "Check for updates of IDEasy");
     step.run(this::checkForUpdate);
+  }
+
+  private void checkCwdAndRootPathCases() {
+    Path cwd = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
+    Path root = Path.of(this.context.getSystem().getEnv(IdeVariables.IDE_ROOT.getName()))
+        .toAbsolutePath().normalize();
+
+    boolean isCaseSensitive;
+    isCaseSensitive = !this.context.getSystemInfo().isLinux();
+
+    boolean pathsMatch;
+
+    if (isCaseSensitive) {
+      pathsMatch = cwd.toString().startsWith(root.toString());
+    } else {
+      pathsMatch = cwd.toString().equalsIgnoreCase(root.toString());
+    }
+
+    if (!pathsMatch) {
+      this.context.error(
+          "Your CWD path: '{}' and your IDE_ROOT path: '{}' cases do not match!\n" +
+              "Please check your 'user.dir' or starting directory and make sure that it matches your IDE_ROOT path.",
+          cwd, root);
+    }
   }
 
   private void checkForUpdate() {
