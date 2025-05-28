@@ -16,8 +16,8 @@ jobs:
           submodules: recursive
       - uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '23.0.2'
-          distribution: 'graalvm-community'
+          java-version: '21.0.2'
+          distribution: 'graalvm'
           github-token: ${{ secrets.GITHUB_TOKEN }}
           native-image-job-reports: 'true'
       - name: Build native image
