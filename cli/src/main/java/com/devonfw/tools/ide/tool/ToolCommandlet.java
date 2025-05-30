@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.common.Tags;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesFiles;
+import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.nls.NlsBundle;
 import com.devonfw.tools.ide.os.MacOsHelper;
 import com.devonfw.tools.ide.process.EnvironmentContext;
@@ -21,6 +22,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.property.StringProperty;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -185,7 +187,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
 
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
-    install(true, pc);
+    install(true, pc, null);
     return runTool(processMode, errorHandling, pc, args);
   }
 
@@ -257,7 +259,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public boolean install(boolean silent) {
     ProcessContext pc = this.context.newProcess().errorHandling(ProcessErrorHandling.THROW_CLI);
-    return install(silent, pc);
+    return install(silent, pc, null);
   }
 
   /**
@@ -266,9 +268,10 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param silent - {@code true} if called recursively to suppress verbose logging, {@code false} otherwise.
    * @param processContext the {@link ProcessContext} used to
    *     {@link LocalToolCommandlet#setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
+   * @param step the {@link Step} to track the installation. May be {@code null} to fail with {@link Exception} on error.
    * @return {@code true} if the tool was newly installed, {@code false} if the tool was already installed before and nothing has changed.
    */
-  public abstract boolean install(boolean silent, ProcessContext processContext);
+  public abstract boolean install(boolean silent, ProcessContext processContext, Step step);
 
   /**
    * @return {@code true} to extract (unpack) the downloaded binary file, {@code false} otherwise.
@@ -537,5 +540,32 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public void reset() {
     super.reset();
     this.executionDirectory = null;
+  }
+
+  /**
+   * @param step the {@link Step} to get {@link Step#asSuccess() success logger} from. May be {@code null}.
+   * @return the {@link IdeSubLogger} from {@link Step#asSuccess()} or {@link IdeContext#success()} as fallback.
+   */
+  protected IdeSubLogger asSuccess(Step step) {
+
+    if (step == null) {
+      return this.context.success();
+    } else {
+      return step.asSuccess();
+    }
+  }
+
+
+  /**
+   * @param step the {@link Step} to get {@link Step#asError() error logger} from. May be {@code null}.
+   * @return the {@link IdeSubLogger} from {@link Step#asError()} or {@link IdeContext#error()} as fallback.
+   */
+  protected IdeSubLogger asError(Step step) {
+
+    if (step == null) {
+      return this.context.error();
+    } else {
+      return step.asError();
+    }
   }
 }

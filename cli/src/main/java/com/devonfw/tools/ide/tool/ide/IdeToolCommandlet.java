@@ -66,20 +66,24 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
       this.context.warning("Current workspace does not exist: {}", workspaceFolder);
       return; // should actually never happen...
     }
-    try (Step step = this.context.newStep("Configuring workspace " + workspaceFolder.getFileName() + " for IDE " + this.tool)) {
-      int errors = 0;
-      errors = mergeWorkspace(this.context.getUserHomeIde(), workspaceFolder, errors);
-      errors = mergeWorkspace(this.context.getSettingsPath(), workspaceFolder, errors);
-      errors = mergeWorkspace(this.context.getConfPath(), workspaceFolder, errors);
-      if (errors == 0) {
-        step.success();
-      } else {
-        step.error("Your workspace configuration failed with {} error(s) - see log above.\n"
-            + "This is either a configuration error in your settings git repository or a bug in IDEasy.\n"
-            + "Please analyze the above errors with your team or IDE-admin and try to fix the problem.", errors);
-        this.context.askToContinue(
-            "In order to prevent you from being blocked, you can start your IDE anyhow but some configuration may not be in sync.");
-      }
+    Step step = this.context.newStep("Configuring workspace " + workspaceFolder.getFileName() + " for IDE " + this.tool);
+    step.run(() -> doMergeWorkspaceStep(step, workspaceFolder));
+  }
+
+  private void doMergeWorkspaceStep(Step step, Path workspaceFolder) {
+
+    int errors = 0;
+    errors = mergeWorkspace(this.context.getUserHomeIde(), workspaceFolder, errors);
+    errors = mergeWorkspace(this.context.getSettingsPath(), workspaceFolder, errors);
+    errors = mergeWorkspace(this.context.getConfPath(), workspaceFolder, errors);
+    if (errors == 0) {
+      step.success();
+    } else {
+      step.error("Your workspace configuration failed with {} error(s) - see log above.\n"
+          + "This is either a configuration error in your settings git repository or a bug in IDEasy.\n"
+          + "Please analyze the above errors with your team or IDE-admin and try to fix the problem.", errors);
+      this.context.askToContinue(
+          "In order to prevent you from being blocked, you can start your IDE anyhow but some configuration may not be in sync.");
     }
   }
 
