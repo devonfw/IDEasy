@@ -575,6 +575,14 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum} plugin count.
+   * @return the new {@link IdeProgressBar} to use.
+   */
+  default IdeProgressBar newProgressBarForPlugins(long size) {
+    return newProgressBar(IdeProgressBar.TITLE_INSTALL_PLUGIN, size, IdeProgressBar.UNIT_NAME_PLUGIN, IdeProgressBar.UNIT_SIZE_PLUGIN);
+  }
+
+  /**
    * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
    */
   DirectoryMerger getWorkspaceMerger();

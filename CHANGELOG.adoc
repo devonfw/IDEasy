@@ -2,7 +2,7 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
-== 2025.05.002
+== 2025.06.001
 
 Release with new features and bugfixes:
 
@@ -13,6 +13,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1307[#1307]: Link to settings documentation is broken
 * https://github.com/devonfw/IDEasy/issues/351[#351]: Avoid inheriting environment variables from other IDEasy project if switched in the same shell session
 * https://github.com/devonfw/IDEasy/issues/1332[#1332]: cannot launch eclipse due to failling plugin
+* https://github.com/devonfw/IDEasy/issues/716[#716]: Show progress of vscode extension installation
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/28?closed=1[milestone 2025.05.002].
 
