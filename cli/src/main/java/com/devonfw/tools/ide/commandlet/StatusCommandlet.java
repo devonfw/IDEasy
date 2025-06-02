@@ -59,22 +59,20 @@ public class StatusCommandlet extends Commandlet {
   }
 
   private void checkCwdAndRootPathCases() {
-    Path cwd = Path.of(System.getProperty("user.dir")).toAbsolutePath().normalize();
+
+    // make sure to run this check only within a project
+    if (this.context.getIdeHome() == null) {
+      return;
+    }
+
+    Path cwd = this.context.getCwd().toAbsolutePath().normalize();
     Path root = Path.of(this.context.getSystem().getEnv(IdeVariables.IDE_ROOT.getName()))
         .toAbsolutePath().normalize();
 
     boolean isCaseSensitive;
     isCaseSensitive = !this.context.getSystemInfo().isLinux();
 
-    boolean pathsMatch;
-
-    if (isCaseSensitive) {
-      pathsMatch = cwd.toString().startsWith(root.toString());
-    } else {
-      pathsMatch = cwd.toString().equalsIgnoreCase(root.toString());
-    }
-
-    if (!pathsMatch) {
+    if (!cwd.toString().startsWith(root.toString()) && isCaseSensitive) {
       this.context.error(
           "Your CWD path: '{}' and your IDE_ROOT path: '{}' cases do not match!\n" +
               "Please check your 'user.dir' or starting directory and make sure that it matches your IDE_ROOT path.",
