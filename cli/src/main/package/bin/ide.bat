@@ -34,7 +34,7 @@ if %ERRORLEVEL% NEQ 0 (
 :skipIdeasy
 
 REM https://stackoverflow.com/questions/61888625/what-is-f-in-the-for-loop-command
-for /f "tokens=*" %%i in ('ideasy %IDE_OPTIONS% env') do (
+for /f "tokens=*" %%i in ('"ideasy %IDE_OPTIONS% env"') do (
   call set %%i
 )
 
