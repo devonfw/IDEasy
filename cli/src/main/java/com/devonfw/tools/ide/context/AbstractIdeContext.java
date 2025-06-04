@@ -210,8 +210,11 @@ public abstract class AbstractIdeContext implements IdeContext {
       Path ideRootPathFromEnv = getIdeRootPathFromEnv(true);
       ideRootPath = ideHomePath.getParent();
       if ((ideRootPathFromEnv != null) && !ideRootPath.toString().equals(ideRootPathFromEnv.toString())) {
-        warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPathFromEnv,
-            ideRootPath, ideHomePath.getFileName());
+        warning(
+            "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.\n"
+                + "Please check your 'user.dir' or working directory setting and make sure that it matches your IDE_ROOT variable.",
+            ideRootPathFromEnv,
+            ideHomePath.getFileName(), ideRootPath);
       }
 
     } else if (!isTest()) {
