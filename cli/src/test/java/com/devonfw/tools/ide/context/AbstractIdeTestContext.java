@@ -316,7 +316,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  protected Path getIdeRootPathFromEnv() {
+  protected Path getIdeRootPathFromEnv(boolean withSanityCheck) {
 
     Path workingDirectory = getCwd();
     Path root = Path.of("").toAbsolutePath();
