@@ -12,9 +12,10 @@ import java.util.Set;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.common.SimpleSystemPath;
-import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -218,14 +219,10 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   private void setGitLongpaths() {
-    SystemPath systemPath = this.context.getPath();
-    Path gitPath = systemPath.getPath("git");
-    if (gitPath == null) {
-      this.context.error("Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
-          + "https://git-scm.com/download/");
-    } else {
-      setGitConfigProperty("core", "longpaths", "true", this.context.getUserHome().resolve(".gitconfig"));
-    }
+    GitContext gitContext = new GitContextImpl(this.context);
+    gitContext.verifyGitInstalled();
+    this.context.error();
+    setGitConfigProperty("core", "longpaths", "true", this.context.getUserHome().resolve(".gitconfig"));
   }
 
   /**
