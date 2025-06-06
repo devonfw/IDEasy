@@ -174,6 +174,11 @@ public interface GitContext {
   String retrieveGitUrl(Path repository);
 
   /**
+   * Checks if there is a git installation and throws an exception if there is none
+   */
+  void verifyGitInstalled();
+
+  /**
    * @param repository the {@link Path} to the folder where the git repository is located.
    * @return the name of the current branch.
    */

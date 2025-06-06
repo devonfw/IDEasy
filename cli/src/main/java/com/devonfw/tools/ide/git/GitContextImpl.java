@@ -251,16 +251,15 @@ public class GitContextImpl implements GitContext {
     return this.context;
   }
 
-  /**
-   * Checks if there is a git installation and throws an exception if there is none
-   */
-  private void verifyGitInstalled() {
+  @Override
+  public void verifyGitInstalled() {
 
     this.context.findBashRequired();
     Path git = Path.of("git");
     Path binaryGitPath = this.context.getPath().findBinary(git);
     if (git == binaryGitPath) {
-      String message = "Could not find a git installation. We highly recommend installing git since most of our actions require git to work properly!";
+      String message = "Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
+          + "https://git-scm.com/download/";
       throw new CliException(message);
     }
     this.context.trace("Git is installed");
