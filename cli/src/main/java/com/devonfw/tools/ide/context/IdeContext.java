@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -26,6 +27,7 @@ import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -573,6 +575,14 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum} plugin count.
+   * @return the new {@link IdeProgressBar} to use.
+   */
+  default IdeProgressBar newProgressBarForPlugins(long size) {
+    return newProgressBar(IdeProgressBar.TITLE_INSTALL_PLUGIN, size, IdeProgressBar.UNIT_NAME_PLUGIN, IdeProgressBar.UNIT_SIZE_PLUGIN);
+  }
+
+  /**
    * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
    */
   DirectoryMerger getWorkspaceMerger();
@@ -665,6 +675,24 @@ public interface IdeContext extends IdeStartContext {
   Step newStep(boolean silent, String name, Object... parameters);
 
   /**
+   * @param lambda the {@link Runnable} to {@link Runnable#run() run} while the {@link com.devonfw.tools.ide.log.IdeLogger logging} is entirely disabled.
+   *     After this the logging will be enabled again. Collected log messages will then be logged at the end.
+   */
+  default void runWithoutLogging(Runnable lambda) {
+
+    runWithoutLogging(lambda, IdeLogLevel.TRACE);
+  }
+
+  /**
+   * @param lambda the {@link Runnable} to {@link Runnable#run() run} while the {@link com.devonfw.tools.ide.log.IdeLogger logging} is entirely disabled.
+   *     After this the logging will be enabled again. Collected log messages will then be logged at the end.
+   * @param threshold the {@link IdeLogLevel} to use as threshold for filtering logs while logging is disabled and log messages are collected. Use
+   *     {@link IdeLogLevel#TRACE} to collect all logs and ensure nothing gets lost (will still not log anything that is generally not active in regular
+   *     logging) and e.g. use {@link IdeLogLevel#ERROR} to discard all logs except errors.
+   */
+  void runWithoutLogging(Runnable lambda, IdeLogLevel threshold);
+
+  /**
    * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters. This method is central to changing
    * the IDE's notion of where it operates, affecting where configurations, workspaces, settings, and other resources are located or loaded from.
    *
@@ -726,9 +754,9 @@ public interface IdeContext extends IdeStartContext {
   void writeVersionFile(VersionIdentifier version, Path installationPath);
 
   /**
-   * checks if the ide version is at least IDE_MIN_VERSION
+   * Verifies that current {@link IdeVersion} satisfies {@link IdeVariables#IDE_MIN_VERSION}.
    *
-   * @param throwException whether to throw a CliException or just log a warning
+   * @param throwException whether to throw a {@link CliException} or just log a warning.
    */
   void verifyIdeMinVersion(boolean throwException);
 
