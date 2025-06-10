@@ -928,6 +928,14 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
   }
 
+  @Override
+  public void runWithoutLogging(Runnable lambda, IdeLogLevel threshold) {
+
+    this.startContext.deactivateLogging(threshold);
+    lambda.run();
+    this.startContext.activateLogging();
+  }
+
   /**
    * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet) apply} and {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
@@ -1069,15 +1077,17 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
   }
 
+  @Override
   public void verifyIdeMinVersion(boolean throwException) {
-    if (IDE_MIN_VERSION.get(this) == null) {
+    VersionIdentifier minVersion = IDE_MIN_VERSION.get(this);
+    if (minVersion == null) {
       return;
     }
-    if (IdeVersion.getVersionIdentifier().compareVersion(IDE_MIN_VERSION.get(this)).isLess()) {
+    if (IdeVersion.getVersionIdentifier().compareVersion(minVersion).isLess()) {
       String message = String.format("Your version of IDEasy is currently %s\n"
           + "However, this is too old as your project requires at latest version %s\n"
           + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
-          + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), IDE_MIN_VERSION.get(this).toString());
+          + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), minVersion.toString());
       if (throwException) {
         throw new CliException(message);
       } else {

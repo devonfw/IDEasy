@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 
 /**
@@ -118,9 +119,60 @@ public final class StepImpl implements Step {
   }
 
   @Override
+  public IdeSubLogger asSuccess() {
+
+    return new IdeSubLogger() {
+      @Override
+      public String log(Throwable error, String message, Object... args) {
+
+        assert (error == null);
+        success(message, args);
+        return message;
+      }
+
+      @Override
+      public boolean isEnabled() {
+
+        return true;
+      }
+
+      @Override
+      public IdeLogLevel getLevel() {
+
+        return IdeLogLevel.SUCCESS;
+      }
+    };
+  }
+
+  @Override
   public void error(Throwable error, boolean suppress, String message, Object... args) {
 
     end(Boolean.FALSE, error, suppress, message, args);
+  }
+
+  @Override
+  public IdeSubLogger asError() {
+
+    return new IdeSubLogger() {
+      @Override
+      public String log(Throwable error, String message, Object... args) {
+
+        error(error, message, args);
+        return message;
+      }
+
+      @Override
+      public boolean isEnabled() {
+
+        return true;
+      }
+
+      @Override
+      public IdeLogLevel getLevel() {
+
+        return IdeLogLevel.ERROR;
+      }
+    };
   }
 
   @Override
@@ -134,7 +186,7 @@ public final class StepImpl implements Step {
     boolean firstCallOfEnd = (this.success == null);
     if (!firstCallOfEnd) {
       assert (this.duration > 0);
-      if (newSuccess != null) {
+      if ((newSuccess != null) && (newSuccess != this.success)) {
         this.context.warning("Step '{}' already ended with {} and now ended again with {}.", this.name, this.success, newSuccess);
       } else {
         return;
@@ -168,10 +220,15 @@ public final class StepImpl implements Step {
           } else {
             this.errorMessage = message;
           }
+          logger = this.context.debug();
         } else {
           this.errorMessage = this.context.error().log(error, message, args);
+          if (error == null) {
+            logger = this.context.debug();
+          } else {
+            logger = this.context.error();
+          }
         }
-        logger = this.context.debug();
       } else {
         logger = this.context.info();
       }

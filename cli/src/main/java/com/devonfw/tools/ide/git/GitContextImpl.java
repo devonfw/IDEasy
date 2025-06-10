@@ -251,16 +251,15 @@ public class GitContextImpl implements GitContext {
     return this.context;
   }
 
-  /**
-   * Checks if there is a git installation and throws an exception if there is none
-   */
-  private void verifyGitInstalled() {
+  @Override
+  public void verifyGitInstalled() {
 
     this.context.findBashRequired();
     Path git = Path.of("git");
     Path binaryGitPath = this.context.getPath().findBinary(git);
     if (git == binaryGitPath) {
-      String message = "Could not find a git installation. We highly recommend installing git since most of our actions require git to work properly!";
+      String message = "Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
+          + "https://git-scm.com/download/";
       throw new CliException(message);
     }
     this.context.trace("Git is installed");
@@ -306,8 +305,16 @@ public class GitContextImpl implements GitContext {
 
   private ProcessResult runGitCommand(Path directory, ProcessMode mode, ProcessErrorHandling errorHandling, String... args) {
 
-    ProcessContext processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").errorHandling(errorHandling)
-        .directory(directory);
+    ProcessContext processContext;
+
+    if (this.context.isBatchMode()) {
+      processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").withEnvVar("GCM_INTERACTIVE", "never")
+          .withEnvVar("GIT_ASKPASS", "echo").withEnvVar("SSH_ASKPASS", "echo").errorHandling(errorHandling).directory(directory);
+    } else {
+      processContext = this.context.newProcess().executable("git").errorHandling(errorHandling)
+          .directory(directory);
+    }
+
     processContext.addArgs(args);
     return processContext.run(mode);
   }
