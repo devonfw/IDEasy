@@ -93,7 +93,9 @@ function icd() {
 _ide_completion()
 {
   if [ -z "${COMP_WORDS[COMP_CWORD]}" ]; then
-    COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1} "") )
+    set -f
+    COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1} "" ) )
+    set +f
   else
     COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1}) )
   fi
