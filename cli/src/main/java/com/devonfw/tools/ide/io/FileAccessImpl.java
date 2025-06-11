@@ -804,6 +804,7 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     this.context.trace("Deleting {} ...", path);
+    path.toFile().setWritable(true);
     Files.delete(path);
   }
 
