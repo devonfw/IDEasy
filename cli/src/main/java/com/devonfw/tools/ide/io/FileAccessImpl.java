@@ -804,7 +804,10 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     this.context.trace("Deleting {} ...", path);
-    path.toFile().setWritable(true);
+    boolean isSetWritable = path.toFile().setWritable(true);
+    if (!isSetWritable) {
+      this.context.debug("Couldn't give write access to file: " + path);
+    }
     Files.delete(path);
   }
 
