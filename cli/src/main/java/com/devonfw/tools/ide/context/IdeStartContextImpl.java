@@ -29,6 +29,8 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
 
   private boolean quietMode;
 
+  private boolean privacyMode;
+
   private Locale locale;
 
   /**
@@ -72,6 +74,18 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
   public boolean isForceMode() {
 
     return this.forceMode;
+  }
+
+  /**
+   * @param privacyMode new value of {@link #isPrivacyMode()}.
+   */
+  public void setPrivacyMode(boolean privacyMode) {
+    this.privacyMode = privacyMode;
+  }
+
+  @Override
+  public boolean isPrivacyMode() {
+    return this.privacyMode;
   }
 
   @Override

@@ -65,6 +65,7 @@ import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
+import com.devonfw.tools.ide.util.PrivacyUtil;
 import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
@@ -639,6 +640,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public boolean isPrivacyMode() {
+    return this.startContext.isPrivacyMode();
+  }
+
+  @Override
   public boolean isSkipUpdatesMode() {
 
     return this.startContext.isSkipUpdatesMode();
@@ -754,15 +760,28 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @Override
   public void logIdeHomeAndRootStatus() {
-
     if (this.ideRoot != null) {
-      success("IDE_ROOT is set to {}", this.ideRoot);
+      success("IDE_ROOT is set to {}", formatLocationPathForDisplay(this.ideRoot));
     }
     if (this.ideHome == null) {
       warning(getMessageNotInsideIdeProject());
     } else {
-      success("IDE_HOME is set to {}", this.ideHome);
+      success("IDE_HOME is set to {}", formatLocationPathForDisplay(this.ideHome));
     }
+  }
+
+  /**
+   * Formats a path for GDPR compliance based on the privacy mode.
+   *
+   * @param location Path to format.
+   * @return the formatted path string.
+   */
+  public String formatLocationPathForDisplay(Path location) {
+    String locationString = location.toString();
+    if (this.startContext.isPrivacyMode()) {
+      locationString = PrivacyUtil.applyPrivacyToPath(location);
+    }
+    return locationString;
   }
 
   @Override
