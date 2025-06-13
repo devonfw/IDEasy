@@ -36,7 +36,7 @@ body:
     id: status-info
     attributes:
       label: IDEasy status
-      description: Output of `ide status`
+      description: Output of `ide -p status`
       render: bash
       placeholder: |
         It should look something like this:
