@@ -69,6 +69,7 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     if (systemInfo.isWindows()) {
       assertThat(helper.getUserEnvironmentValue("IDE_ROOT")).isEqualTo(ideRoot.toString());
       assertThat(helper.getUserEnvironmentValue("PATH")).isEqualTo(originalPath + ";" + context.getUserHome().resolve("projects/_ide/installation/bin"));
+      assertThat(context.getUserHome().resolve(".gitconfig")).hasContent("[core]\n\tlongpaths = true");
     }
     assertThat(context.getUserHome().resolve(".bashrc")).hasContent(addedRcLines);
     assertThat(context.getUserHome().resolve(".zshrc")).hasContent("#already exists\n"
