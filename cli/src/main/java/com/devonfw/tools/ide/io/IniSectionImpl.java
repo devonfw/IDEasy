@@ -3,16 +3,30 @@ package com.devonfw.tools.ide.io;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+/**
+ * Implementation of {@link IniSection}
+ */
 public class IniSectionImpl implements IniSection {
 
   String name;
   LinkedHashMap<String, String> properties;
 
+  /**
+   * creates IniSectionImpl with given name and properties
+   *
+   * @param name section name
+   * @param properties section properties
+   */
   public IniSectionImpl(String name, Map<String, String> properties) {
     this.name = name;
     this.properties = (LinkedHashMap<String, String>) properties;
   }
 
+  /**
+   * creates IniSectionImpl with given name and empty properties
+   *
+   * @param name section name
+   */
   public IniSectionImpl(String name) {
     this.name = name;
     this.properties = new LinkedHashMap<>();

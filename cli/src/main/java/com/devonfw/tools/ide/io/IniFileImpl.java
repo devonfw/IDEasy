@@ -9,6 +9,9 @@ public class IniFileImpl implements IniFile {
 
   LinkedHashMap<String, IniSection> iniMap;
 
+  /**
+   * creates empty IniFileImpl
+   */
   public IniFileImpl() {
     this.iniMap = new LinkedHashMap<>();
   }
