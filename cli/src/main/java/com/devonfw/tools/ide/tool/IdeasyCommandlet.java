@@ -10,10 +10,13 @@ import java.util.Set;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.common.SimpleSystemPath;
-import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.IniParser;
+import com.devonfw.tools.ide.io.IniParserImpl;
 import com.devonfw.tools.ide.io.IniParser;
 import com.devonfw.tools.ide.io.IniParserImpl;
 import com.devonfw.tools.ide.os.WindowsHelper;
@@ -218,17 +221,12 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   private void setGitLongpaths() {
-    SystemPath systemPath = this.context.getPath();
-    Path gitPath = systemPath.getPath("git");
-    if (gitPath == null) {
-      this.context.error("Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
-          + "https://git-scm.com/download/");
-    } else {
-      Path configPath = this.context.getUserHome().resolve(".gitconfig");
-      IniParser configParser = new IniParserImpl(configPath, context);
-      configParser.setProperty("core", "longpaths", "true");
-      configParser.write(configPath);
-    }
+    GitContext gitContext = new GitContextImpl(this.context);
+    gitContext.verifyGitInstalled();
+    Path configPath = this.context.getUserHome().resolve(".gitconfig");
+    IniParser configParser = new IniParserImpl(configPath, context);
+    configParser.setProperty("core", "longpaths", "true");
+    configParser.write(configPath);
   }
 
   static String removeObsoleteEntryFromWindowsPath(String userPath) {
