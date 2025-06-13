@@ -401,6 +401,20 @@ public interface FileAccess {
   void writeProperties(Properties properties, Path file, boolean createParentDir);
 
 
+  default IniFile readIniFile(Path file) {
+    IniFile iniFile = new IniFileImpl();
+    readIniFile(file, iniFile);
+    return iniFile;
+  }
+
+  void readIniFile(Path file, IniFile iniFile);
+
+  default void writeIniFile(IniFile iniFile, Path file) {
+    writeIniFile(iniFile, file, false);
+  }
+
+  void writeIniFile(IniFile iniFile, Path file, boolean createParentDir);
+
   /**
    * @param path the {@link Path} to get the age from the modification time.
    * @return the age of the file as {@link Duration} from now to the modification time of the file.
