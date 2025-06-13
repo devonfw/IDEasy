@@ -1096,6 +1096,37 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
+  public void readIniFile(Path file, IniFile iniFile) {
+    String content = readFileContent(file);
+    if (content == null) {
+      return;
+    }
+    List<String> iniLines = content.lines().toList();
+    String currentSectionName = "";
+    for (String line : iniLines) {
+      if (line.isEmpty()) {
+        continue;
+      }
+      if (line.startsWith("[")) {
+        currentSectionName = line.replace("[", "").replace("]", "");
+        iniFile.getOrCreateSection(currentSectionName);
+      } else {
+        String[] parts = line.split("=");
+        String propertyName = parts[0].trim();
+        String propertyValue = parts[1].trim();
+        IniSection iniSection = iniFile.getOrCreateSection(currentSectionName);
+        iniSection.getProperties().put(propertyName, propertyValue);
+      }
+    }
+  }
+
+  @Override
+  public void writeIniFile(IniFile iniFile, Path file, boolean createParentDir) {
+    String iniString = iniFile.toString();
+    writeFileContent(iniString, file, createParentDir);
+  }
+
+  @Override
   public Duration getFileAge(Path path) {
     if (Files.exists(path)) {
       try {

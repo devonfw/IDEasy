@@ -15,10 +15,10 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.IniParser;
-import com.devonfw.tools.ide.io.IniParserImpl;
-import com.devonfw.tools.ide.io.IniParser;
-import com.devonfw.tools.ide.io.IniParserImpl;
+import com.devonfw.tools.ide.io.FileAccessImpl;
+import com.devonfw.tools.ide.io.IniFile;
+import com.devonfw.tools.ide.io.IniFileImpl;
+import com.devonfw.tools.ide.io.IniSection;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -224,9 +224,12 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     GitContext gitContext = new GitContextImpl(this.context);
     gitContext.verifyGitInstalled();
     Path configPath = this.context.getUserHome().resolve(".gitconfig");
-    IniParser configParser = new IniParserImpl(configPath, context);
-    configParser.setProperty("core", "longpaths", "true");
-    configParser.write(configPath);
+    IniFile iniFile = new IniFileImpl();
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.readIniFile(configPath, iniFile);
+    IniSection coreSection = iniFile.getOrCreateSection("core");
+    coreSection.getProperties().put("longpaths", "true");
+    fileAccess.writeIniFile(iniFile, configPath);
   }
 
   static String removeObsoleteEntryFromWindowsPath(String userPath) {
