@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.util;
 
 import java.nio.file.Path;
+import java.util.Locale;
 
 /**
  * Utility for converting console output to GDPR compatible output.
@@ -23,7 +24,7 @@ public class PrivacyUtil {
     String[] parts = text.split(separator.equals("\\") ? "\\\\" : separator);
 
     for (int i = 0; i < parts.length - 1; i++) {
-      String current = parts[i].toLowerCase();
+      String current = parts[i].toLowerCase(Locale.ROOT);
       if ((current.equals("users") || current.equals("home")) && i + 1 < parts.length) {
         parts[i + 1] = USERNAME_PLACEHOLDER;
         break;
