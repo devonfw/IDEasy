@@ -158,7 +158,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (workingDirectory == null) {
       workingDirectory = Path.of(System.getProperty("user.dir"));
     }
-    workingDirectory = workingDirectory.toAbsolutePath();
+    workingDirectory = this.fileAccess.toCanonicalPath(workingDirectory);
     this.cwd = workingDirectory;
     // detect IDE_HOME and WORKSPACE
     Path currentDir = workingDirectory;
