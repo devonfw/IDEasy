@@ -56,16 +56,20 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
    *
    * @param os the operating system to test on.
    * @param ideHome the path to the IDE home.
+   * @param ideRoot the path to IDE root.
+   * @param userHome the path to the user home.
    */
   @ParameterizedTest
   @MethodSource("providePrivacyModeTestCases")
-  public void testStatusWhenInPrivacyMode(String os, Path ideHome) {
+  public void testStatusWhenInPrivacyMode(String os, Path ideHome, Path ideRoot, Path userHome) {
     // arrange
     IdeTestContext context = new IdeTestContext();
     StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     context.setSystemInfo(systemInfo);
+    context.setUserHome(userHome);
     context.setIdeHome(ideHome);
+    context.setIdeRoot(ideRoot);
     context.getStartContext().setPrivacyMode(true);
 
     // act
@@ -79,19 +83,27 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
     return Stream.of(
         Arguments.of(
             "linux",
-            Path.of("/mnt/c/Users/testuser/projects/myproject")
+            Path.of("/mnt/c/Users/testuser/projects/myproject"),
+            Path.of("/mnt/c/Users/testuser/projects"),
+            Path.of("/mnt/c/projects")
         ),
         Arguments.of(
             "windows",
-            Path.of("C:\\Users\\testuser\\projects\\myproject")
+            Path.of("C:\\Users\\testuser\\projects\\myproject"),
+            Path.of("C:\\Users\\testuser\\projects"),
+            Path.of("C:\\Users\\testuser")
         ),
         Arguments.of(
             "linux",
-            Path.of("/home/testuser/projects/myproject")
+            Path.of("/home/testuser/projects/myproject"),
+            Path.of("/home/testuser/projects"),
+            Path.of("/home/testuser")
         ),
         Arguments.of(
             "mac",
-            Path.of("/Users/testuser/projects/myproject")
+            Path.of("/Users/testuser/projects/myproject"),
+            Path.of("/Users/testuser/projects"),
+            Path.of("/Users/testuser")
         )
     );
   }

@@ -8,6 +8,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -65,7 +66,6 @@ import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
-import com.devonfw.tools.ide.util.PrivacyUtil;
 import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
@@ -81,6 +81,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
 
   private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
+  private static final String IDE_HOME_PLACEHOLDER = "$IDE_HOME";
+  private static final String IDE_ROOT_PLACEHOLDER = "$IDE_ROOT";
+  private static final String USER_HOME_PLACEHOLDER = "~";
 
   private final IdeStartContextImpl startContext;
 
@@ -272,7 +275,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private String getMessageNotInsideIdeProject() {
 
-    return "You are not inside an IDE project: " + this.cwd;
+    return "You are not inside an IDE project: " + formatLocationPathForDisplay(this.cwd);
   }
 
   private String getMessageIdeRootNotFound() {
@@ -779,7 +782,23 @@ public abstract class AbstractIdeContext implements IdeContext {
   public String formatLocationPathForDisplay(Path location) {
     String locationString = location.toString();
     if (this.startContext.isPrivacyMode()) {
-      locationString = PrivacyUtil.applyPrivacyToPath(location);
+      Path normalizedPath = location.normalize();
+
+      if (this.ideHome != null && normalizedPath.startsWith(this.ideHome)) {
+        Path relative = this.ideHome.relativize(normalizedPath);
+        return Paths.get(IDE_HOME_PLACEHOLDER).resolve(relative).toString();
+      }
+
+      if (this.ideRoot != null && normalizedPath.startsWith(this.ideRoot)) {
+        Path relative = this.ideRoot.relativize(normalizedPath);
+        return Paths.get(IDE_ROOT_PLACEHOLDER).resolve(relative).toString();
+      }
+
+      if (this.userHome != null && normalizedPath.startsWith(this.userHome)) {
+        Path relative = this.userHome.relativize(normalizedPath);
+        return Paths.get(USER_HOME_PLACEHOLDER).resolve(relative).toString();
+      }
+      return location.toString();
     }
     return locationString;
   }
@@ -1085,7 +1104,8 @@ public abstract class AbstractIdeContext implements IdeContext {
       } else if (this.ideHome != null) {
         Path ideRootPath = getIdeRootPathFromEnv();
         if (!this.ideRoot.equals(ideRootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPath,
+          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.",
+              formatLocationPathForDisplay(ideRootPath),
               this.ideHome.getFileName(), formatLocationPathForDisplay(this.ideRoot));
         }
       }
