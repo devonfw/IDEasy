@@ -16,3 +16,4 @@ then
 fi
 
 assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/software/intellij/${intellij_binary}" exists
+assertThat "${IDE_ROOT}/${TEST_PROJECT_NAME}/workspaces/main/idea.properties" exists
