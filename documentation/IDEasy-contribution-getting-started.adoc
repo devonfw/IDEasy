@@ -6,7 +6,7 @@ toc::[]
 == Installation
 
 To start developing IDEasy, you must first install it on your computer.
-Therefore simply follow the link:setup.adoc[setup] guide.
+Therefore, simply follow the link:setup.adoc[setup] guide.
 It is important to notice that this installation gives you the latest published version of IDEasy with which you can execute commands like eclipse or docker whose scripts are located inside the "${IDE_HOME}$/scripts/command, but for committing code we use a differing folder structure.
 This will be addressed under xref:Contribution[Contribution].
 
@@ -20,6 +20,13 @@ Open git-bash in the cloned fork at `workspaces/main/IDEasy` and run the followi
 ```
 git remote add upstream https://github.com/devonfw/ideasy.git
 git fetch upstream
+```
+
+Please also make sure that your git config matches your GitHub account e.g. set:
+
+```
+git config user.name "<your_github_username>"
+git config user.email "<your_github_user_email>"
 ```
 
 Whenever you want to implement a new change first do the following things:
