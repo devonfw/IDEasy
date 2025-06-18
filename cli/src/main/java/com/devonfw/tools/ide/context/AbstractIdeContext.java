@@ -157,15 +157,19 @@ public abstract class AbstractIdeContext implements IdeContext {
     String workspace = WORKSPACE_MAIN;
     if (workingDirectory == null) {
       workingDirectory = Path.of(System.getProperty("user.dir"));
+    }
+    workingDirectory = workingDirectory.toAbsolutePath();
+    if (Files.isDirectory(workingDirectory)) {
+      workingDirectory = this.fileAccess.toCanonicalPath(workingDirectory);
     } else {
-      workingDirectory = workingDirectory.toAbsolutePath();
+      warning("Current working directory does not exist: {}", workingDirectory);
     }
     this.cwd = workingDirectory;
     // detect IDE_HOME and WORKSPACE
     Path currentDir = workingDirectory;
     String name1 = "";
     String name2 = "";
-    Path ideRootPath = getIdeRootPathFromEnv();
+    Path ideRootPath = getIdeRootPathFromEnv(false);
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
@@ -208,9 +212,18 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     Path ideRootPath = null;
     if (ideHomePath != null) {
+      Path ideRootPathFromEnv = getIdeRootPathFromEnv(true);
       ideRootPath = ideHomePath.getParent();
+      if ((ideRootPathFromEnv != null) && !ideRootPath.toString().equals(ideRootPathFromEnv.toString())) {
+        warning(
+            "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.\n"
+                + "Please check your 'user.dir' or working directory setting and make sure that it matches your IDE_ROOT variable.",
+            ideRootPathFromEnv,
+            ideHomePath.getFileName(), ideRootPath);
+      }
+
     } else if (!isTest()) {
-      ideRootPath = getIdeRootPathFromEnv();
+      ideRootPath = getIdeRootPathFromEnv(true);
     }
     return ideRootPath;
   }
@@ -218,13 +231,34 @@ public abstract class AbstractIdeContext implements IdeContext {
   /**
    * @return the {@link #getIdeRoot() IDE_ROOT} from the system environment.
    */
-  protected Path getIdeRootPathFromEnv() {
+  protected Path getIdeRootPathFromEnv(boolean withSanityCheck) {
 
     String root = getSystem().getEnv(IdeVariables.IDE_ROOT.getName());
     if (root != null) {
       Path rootPath = Path.of(root);
       if (Files.isDirectory(rootPath)) {
-        return rootPath;
+        Path absoluteRootPath = getFileAccess().toCanonicalPath(rootPath);
+        if (withSanityCheck) {
+          int nameCount = rootPath.getNameCount();
+          int absoluteNameCount = absoluteRootPath.getNameCount();
+          int delta = absoluteNameCount - nameCount;
+          if (delta >= 0) {
+            for (int nameIndex = 0; nameIndex < nameCount; nameIndex++) {
+              String rootName = rootPath.getName(nameIndex).toString();
+              String absoluteRootName = absoluteRootPath.getName(nameIndex + delta).toString();
+              if (!rootName.equals(absoluteRootName)) {
+                warning("IDE_ROOT is set to {} but was expanded to absolute path {} and does not match for segment {} and {} - fix your IDEasy installation!",
+                    rootPath, absoluteRootPath, rootName, absoluteRootName);
+                break;
+              }
+            }
+          } else {
+            warning("IDE_ROOT is set to {} but was expanded to a shorter absolute path {}", rootPath, absoluteRootPath);
+          }
+        }
+        return absoluteRootPath;
+      } else if (withSanityCheck) {
+        warning("IDE_ROOT is set to {} that is not an existing directory - fix your IDEasy installation!", rootPath);
       }
     }
     return null;
@@ -961,7 +995,6 @@ public abstract class AbstractIdeContext implements IdeContext {
           this.startContext.activateLogging();
         } else {
           this.startContext.activateLogging();
-          verifyIdeRoot();
           if (cmd.isIdeHomeRequired()) {
             debug(getMessageIdeHomeFound());
           }
@@ -1056,21 +1089,6 @@ public abstract class AbstractIdeContext implements IdeContext {
       this.startContext.setLogLevel(IdeLogLevel.INTERACTION, false);
     }
     return true;
-  }
-
-  private void verifyIdeRoot() {
-
-    if (!isTest()) {
-      if (this.ideRoot == null) {
-        warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");
-      } else if (this.ideHome != null) {
-        Path ideRootPath = getIdeRootPathFromEnv();
-        if (!this.ideRoot.equals(ideRootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPath,
-              this.ideHome.getFileName(), this.ideRoot);
-        }
-      }
-    }
   }
 
   @Override
