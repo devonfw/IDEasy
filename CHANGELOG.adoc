@@ -6,12 +6,9 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
-<<<<<<< 1309-ide-bat-splitting-ide-options
 * https://github.com/devonfw/IDEasy/issues/1309[#1309]: ide.bat splitting short options
-=======
 * https://github.com/devonfw/IDEasy/issues/1361[#1361]: ide create does not install intellij plugins properly
 * https://github.com/devonfw/IDEasy/issues/1340[#1340]: IDEasy does not warn user if IDE_ROOT is not sane
->>>>>>> main
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/29?closed=1[milestone 2025.06.002].
 
