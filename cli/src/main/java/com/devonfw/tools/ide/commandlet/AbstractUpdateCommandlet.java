@@ -10,10 +10,11 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.NotImplementedException;
+
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
-import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
@@ -151,6 +152,13 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   }
 
   /**
+   * Process a repository and returns the created new step.
+   */
+  protected void processRepository() {
+    throw new NotImplementedException("The process Repository is not implemented until it is overwritten.");
+  }
+
+  /**
    * Updates the settings repository in IDE_HOME/settings by either cloning if no such repository exists or pulling if the repository exists then saves the
    * latest current commit ID in the file ".commit.id".
    */
@@ -164,27 +172,11 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
       if (Files.isDirectory(settingsPath) && !this.context.getFileAccess().isEmptyDir(settingsPath)) {
         step = this.context.newStep("Pull settings repository");
         gitContext.pull(settingsPath);
+        this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
+        step.success("Successfully updated settings repository.");
       } else {
-        step = this.context.newStep("Clone settings repository");
-        // check if a settings repository is given, otherwise prompt user for a repository.
-        String repository = this.settingsRepo.getValue();
-        if (repository == null || repository.isBlank()) {
-          String message = "Missing your settings at " + settingsPath + " and no SETTINGS_URL is defined.\n"
-              + "Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc\n"
-              + "Please contact the technical lead of your project to get the SETTINGS_URL for your project.\n"
-              + "In case you just want to test IDEasy you may simply hit return to install the default settings.\n" + "Settings URL ["
-              + IdeContext.DEFAULT_SETTINGS_REPO_URL + "]:";
-          repository = this.context.askForInput(message, IdeContext.DEFAULT_SETTINGS_REPO_URL);
-        }
-        if ("-".equals(repository)) {
-          repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
-        }
-        GitUrl gitUrl = GitUrl.of(repository);
-        checkProjectNameConvention(gitUrl.getProjectName());
-        gitContext.pullOrClone(gitUrl, settingsPath);
+        processRepository();
       }
-      this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
-      step.success("Successfully updated settings repository.");
     } finally {
       if (step != null) {
         step.close();
