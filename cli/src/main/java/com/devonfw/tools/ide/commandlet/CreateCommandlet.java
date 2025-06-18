@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.MessageFormat;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitUrl;
@@ -68,10 +69,9 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     this.context.success("Successfully created new project '{}'.", newProjectName);
   }
 
-  private void initializeCodeRepository(String repoUrl) {
+  private void initializeCodeRepository(GitUrl gitUrl) {
 
     // clone the given repository into IDE_HOME/workspaces/main
-    GitUrl gitUrl = GitUrl.of(repoUrl);
     Path codeRepoPath = this.context.getWorkspacePath().resolve(gitUrl.getProjectName());
     this.context.getGitContext().pullOrClone(gitUrl, codeRepoPath);
 
@@ -96,22 +96,47 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
   @Override
   protected void updateSettings() {
-
-    if (this.codeRepositoryFlag.isTrue()) {
-      String codeRepository = this.settingsRepo.getValue();
-      if (codeRepository == null || codeRepository.isBlank()) {
-        String message = """
-            No code repository was given after '--code'.
-            Please give the code repository below that includes your settings folder.
-            Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
-            Code repository URL:
-            """;
-        codeRepository = this.context.askForInput(message);
-      }
-      initializeCodeRepository(codeRepository);
-    } else {
+    // is settings repository
+    if (!this.codeRepositoryFlag.isTrue()) {
       super.updateSettings();
+      return;
     }
 
+    // is code repository
+    String repository = this.settingsRepo.getValue();
+    if (repository == null || repository.isBlank()) {
+      String message = """
+          No code repository was given after '--code'.
+          Please give the code repository below that includes your settings folder.
+          Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
+          Code repository URL:
+          """;
+      repository = this.context.askForInput(message);
+    }
+    if ("-".equals(repository)) {
+      repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
+    }
+    GitUrl gitUrl = GitUrl.of(repository);
+    checkProjectNameConvention(gitUrl.getProjectName());
+    initializeCodeRepository(gitUrl);
+
+  }
+
+  /**
+   * Check project name convention of a code repository. When project name contains settings keyword, it shows a warning.
+   *
+   * @param projectName the project name of the repository
+   */
+  @Override
+  protected void checkProjectNameConvention(String projectName) {
+    if (projectName.contains(SETTINGS_REPOSITORY_KEYWORD)) {
+      String warningTemplate = """
+          Your git URL is pointing to the project name {0} that contains the keyword ''{1}''.
+          Therefore we assume that you did a mistake by adding the '--code' option to the ide project creation.
+          Do you really want to create the project?
+          """;
+      String warning = MessageFormat.format(warningTemplate, projectName, SETTINGS_REPOSITORY_KEYWORD);
+      this.context.askToContinue(warning);
+    }
   }
 }
