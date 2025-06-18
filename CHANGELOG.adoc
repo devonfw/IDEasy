@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1361[#1361]: ide create does not install intellij plugins properly
 * https://github.com/devonfw/IDEasy/issues/1354[#1354]: Add GRADLE_USER_HOME to gradle
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/29?closed=1[milestone 2025.06.002].
@@ -20,6 +21,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1293[#1293]: make sure core.longpaths is true in windows git config
 * https://github.com/devonfw/IDEasy/issues/1307[#1307]: Link to settings documentation is broken
 * https://github.com/devonfw/IDEasy/issues/351[#351]: Avoid inheriting environment variables from other IDEasy project if switched in the same shell session
+* https://github.com/devonfw/IDEasy/issues/1340[#1340]: IDEasy does not warn user if IDE_ROOT is not sane
 * https://github.com/devonfw/IDEasy/issues/1332[#1332]: cannot launch eclipse due to failling plugin
 * https://github.com/devonfw/IDEasy/issues/716[#716]: Show progress of vscode extension installation
 
