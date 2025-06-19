@@ -3,10 +3,12 @@ package com.devonfw.tools.ide.commandlet;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.context.ProcessContextGitMock;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.version.IdeVersion;
@@ -30,6 +32,80 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     // act
     cc.run();
     // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    assertThat(newProjectPath).exists();
+    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
+  }
+
+  @Test
+  public void testWarningWhenSettingsRepoDoesNotContainKeyword(@TempDir Path tempDir) {
+    String invalidSettingsRepo = "https://github.com/devonfw/code.git";
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    ProcessContextGitMock gitMock = new ProcessContextGitMock(tempDir);
+    context.setProcessContext(gitMock);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(invalidSettingsRepo);
+    cc.skipTools.setValue(true);
+    context.setAnswers("yes");
+    // act
+    cc.run();
+    // assert
+    assertThat(context).logAtInteraction().hasMessageContaining("Do you really want to create the project?");
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    assertThat(newProjectPath).exists();
+    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
+  }
+
+  @Test
+  public void testWarningWhenCodeRepoContainsKeyword(@TempDir Path tempDir) {
+    String invalidCodeRepo = "https://github.com/devonfw/settings.git";
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    ProcessContextGitMock gitMock = new ProcessContextGitMock(tempDir);
+    context.setProcessContext(gitMock);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(invalidCodeRepo);
+    cc.codeRepositoryFlag.setValue(true);
+    cc.skipTools.setValue(true);
+    context.setAnswers("yes");
+    // act
+    cc.run();
+    // assert
+    assertThat(context).logAtInteraction().hasMessageContaining("Do you really want to create the project?");
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    assertThat(newProjectPath).exists();
+    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
+  }
+
+  @Test
+  public void testWarningWhenCodeRepoOmitted(@TempDir Path tempDir) {
+    String invalidCodeRepo = "-";
+    // arrange
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    ProcessContextGitMock gitMock = new ProcessContextGitMock(tempDir);
+    context.setProcessContext(gitMock);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(invalidCodeRepo);
+    cc.codeRepositoryFlag.setValue(true);
+    cc.skipTools.setValue(true);
+    context.setAnswers("yes");
+    // act
+    cc.run();
+    // assert
+    assertThat(context).logAtInteraction().hasMessageContaining("Do you really want to create the project?");
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     assertThat(newProjectPath).exists();
     assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
