@@ -71,9 +71,11 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
         return;
       }
     }
-    doAddVersion(urlVersion, baseUrl + "U-jdk_x64_mac_hotspot_${version}.tar.gz", MAC);
-    doAddVersion(urlVersion, baseUrl + "U-jdk_x64_linux_hotspot_${version}.tar.gz", LINUX);
-
+    
+    doAddVersion(urlVersion, baseUrl + "U-jdk_x64_mac_hotspot_${version}.tar.gz", MAC, X64);
+    doAddVersion(urlVersion, baseUrl + "U-jdk_aarch64_mac_hotspot_${version}.tar.gz", MAC, ARM64);
+    doAddVersion(urlVersion, baseUrl + "U-jdk_x64_linux_hotspot_${version}.tar.gz", LINUX, X64);
+    doAddVersion(urlVersion, baseUrl + "U-jdk_aarch64_linux_hotspot_${version}.tar.gz", LINUX, ARM64);
   }
 
   protected String getMirror() {
