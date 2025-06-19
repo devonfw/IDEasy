@@ -94,7 +94,7 @@ _ide_completion()
 {
   set -f
   if [ -z "${COMP_WORDS[COMP_CWORD]}" ]; then
-    COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1} "" ) )
+    COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1} "") )
   else
     COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1}) )
   fi
