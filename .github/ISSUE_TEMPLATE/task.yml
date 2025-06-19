@@ -1,7 +1,7 @@
-name: "Feature request"
-description: "Place your idea for IDEasy here!"
+name: "Task"
+description: "Place your task description for IDEasy here!"
 labels: [ "enhancement" ]
-type: "Feature"
+type: "Task"
 body:
   - type: markdown
     attributes:
@@ -9,10 +9,10 @@ body:
   - type: textarea
     id: idea
     attributes:
-      label: Feature idea
+      label: Task summary
       description: Please give a clear and concise description of what you want to happen.
       placeholder: |
-        Enter your idea in a User Story format, i.e. "As a <type of user>, I want <some goal> so that <some reason>"
+        Enter your task summary here, i.e. "Integration tests need to cover xyz."
     validations:
       required: true
   - type: textarea
@@ -20,6 +20,6 @@ body:
     attributes:
       label: Additional context
       description: |
-        Add any other context or screenshots about the feature request here.
+        Add any other context or screenshots about the task here.
     validations:
       required: false

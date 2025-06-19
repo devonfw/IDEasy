@@ -40,6 +40,6 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
     status.run();
 
     // assert
-    assertThat(context).logAtWarning().hasMessage("Check for newer version of IDEasy is skipped due to no network connectivity.");
+    assertThat(context).logAtWarning().hasMessage("Skipping check for newer version of IDEasy due to lack of network connectivity.");
   }
 }
