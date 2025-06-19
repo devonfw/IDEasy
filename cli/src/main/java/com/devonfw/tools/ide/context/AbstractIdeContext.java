@@ -44,6 +44,7 @@ import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
+import com.devonfw.tools.ide.log.Message;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.migration.IdeMigrator;
 import com.devonfw.tools.ide.network.NetworkProxy;
@@ -796,10 +797,14 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @SuppressWarnings("unchecked")
   @Override
-  public <O> O question(String question, O... options) {
+  public <O> O question(Message question, O... options) {
 
     assert (options.length >= 2);
-    interaction(question);
+    interaction(question.messageTemplate(), question.args());
+    return displayOptionsAndGetAnswer(options);
+  }
+
+  private <O> O displayOptionsAndGetAnswer(O[] options) {
     Map<String, O> mapping = new HashMap<>(options.length);
     int i = 0;
     for (O option : options) {
@@ -830,6 +835,15 @@ public abstract class AbstractIdeContext implements IdeContext {
       }
     }
     return option;
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public <O> O question(String question, O... options) {
+
+    assert (options.length >= 2);
+    interaction(question);
+    return displayOptionsAndGetAnswer(options);
   }
 
   /**

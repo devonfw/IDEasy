@@ -16,6 +16,7 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
 import com.devonfw.tools.ide.log.IdeLogLevel;
+import com.devonfw.tools.ide.log.Message;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -241,6 +242,29 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
+   * @param question the question to ask.
+   * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
+   */
+  default boolean question(Message question) {
+
+    String yes = "yes";
+    String option = question(question, yes, "no");
+    if (yes.equals(option)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * @param <O> type of the option. E.g. {@link String}.
+   * @param question the question to ask.
+   * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
+   * @return the option selected by the user as answer.
+   */
+  @SuppressWarnings("unchecked")
+  <O> O question(Message question, O... options);
+
+  /**
    * @param <O> type of the option. E.g. {@link String}.
    * @param question the question to ask.
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
@@ -258,6 +282,22 @@ public interface IdeContext extends IdeStartContext {
    */
   default void askToContinue(String question) {
 
+    boolean yesContinue = question(question);
+    if (!yesContinue) {
+      throw new CliAbortException();
+    }
+  }
+
+  /**
+   * Will ask the given question. If the user answers with "yes" the method will return and the process can continue. Otherwise if the user answers with "no" an
+   * exception is thrown to abort further processing.
+   *
+   * @param questionTemplate the yes/no question to {@link #question(String) ask}.
+   * @param args the arguments to fill the placeholders in the question template.
+   * @throws CliAbortException if the user answered with "no" and further processing shall be aborted.
+   */
+  default void askToContinue(String questionTemplate, Object... args) {
+    Message question = new Message(questionTemplate, args);
     boolean yesContinue = question(question);
     if (!yesContinue) {
       throw new CliAbortException();

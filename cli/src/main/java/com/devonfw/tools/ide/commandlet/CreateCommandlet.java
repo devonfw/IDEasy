@@ -222,8 +222,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
             Therefore we assume that you forgot to add the '--code' option to the ide project creation.
             Do you really want to create the project?
             """;
-        String warning = MessageFormat.format(warningTemplate, projectName, SETTINGS_REPOSITORY_KEYWORD);
-        context.askToContinue(warning);
+        context.askToContinue(warningTemplate, projectName, SETTINGS_REPOSITORY_KEYWORD);
       }
     }
 
