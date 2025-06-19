@@ -953,10 +953,9 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public boolean setWriteable(Path file, boolean writeable) {
     try {
+      // POSIX
       PosixFileAttributeView posix = Files.getFileAttributeView(file, PosixFileAttributeView.class);
-
       if (posix != null) {
-        // POSIX
         Set<PosixFilePermission> permissions = new HashSet<>(posix.readAttributes().permissions());
         boolean changed;
         if (writeable) {
@@ -968,15 +967,17 @@ public class FileAccessImpl implements FileAccess {
           posix.setPermissions(permissions);
         }
         return true;
+      }
 
-      } else {
-        // Windows
-        DosFileAttributeView dos = Files.getFileAttributeView(file, DosFileAttributeView.class);
-        if (dos != null) {
-          dos.setReadOnly(!writeable);
-        }
+      // Windows
+      DosFileAttributeView dos = Files.getFileAttributeView(file, DosFileAttributeView.class);
+      if (dos != null) {
+        dos.setReadOnly(!writeable);
         return true;
       }
+
+      return false;
+
     } catch (IOException e) {
       return false;
     }
