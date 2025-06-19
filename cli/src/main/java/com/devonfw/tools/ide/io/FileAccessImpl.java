@@ -22,7 +22,9 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
@@ -820,7 +822,7 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     this.context.trace("Deleting {} ...", path);
-    boolean isSetWritable = path.toFile().setWritable(true);
+    boolean isSetWritable = setWriteable(path, true);
     if (!isSetWritable) {
       this.context.debug("Couldn't give write access to file: " + path);
     }
@@ -946,6 +948,38 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     return null;
+  }
+
+  @Override
+  public boolean setWriteable(Path file, boolean writeable) {
+    try {
+      PosixFileAttributeView posix = Files.getFileAttributeView(file, PosixFileAttributeView.class);
+
+      if (posix != null) {
+        // POSIX
+        Set<PosixFilePermission> permissions = new HashSet<>(posix.readAttributes().permissions());
+        boolean changed;
+        if (writeable) {
+          changed = permissions.add(PosixFilePermission.OWNER_WRITE);
+        } else {
+          changed = permissions.remove(PosixFilePermission.OWNER_WRITE);
+        }
+        if (changed) {
+          posix.setPermissions(permissions);
+        }
+        return true;
+
+      } else {
+        // Windows
+        DosFileAttributeView dos = Files.getFileAttributeView(file, DosFileAttributeView.class);
+        if (dos != null) {
+          dos.setReadOnly(!writeable);
+        }
+        return true;
+      }
+    } catch (IOException e) {
+      return false;
+    }
   }
 
   @Override
