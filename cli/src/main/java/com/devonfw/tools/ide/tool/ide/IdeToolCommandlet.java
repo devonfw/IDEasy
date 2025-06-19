@@ -7,6 +7,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -45,7 +46,6 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
 
   @Override
   public final void run() {
-    configureWorkspace();
     super.run();
   }
 
@@ -55,8 +55,15 @@ public abstract class IdeToolCommandlet extends PluginBasedCommandlet {
     runTool(ProcessMode.BACKGROUND, null, args);
   }
 
+  @Override
+  public boolean install(boolean silent, ProcessContext processContext, Step step) {
+
+    configureWorkspace();
+    return super.install(silent, processContext, step);
+  }
+
   /**
-   * Configure the workspace for this IDE using the templates from the settings.
+   * Configure (initialize or update) the workspace for this IDE using the templates from the settings.
    */
   protected void configureWorkspace() {
 
