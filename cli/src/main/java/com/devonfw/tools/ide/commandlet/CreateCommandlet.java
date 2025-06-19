@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.MessageFormat;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
@@ -80,24 +79,6 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   }
 
   /**
-   * Check project name convention of a code repository. When project name contains settings keyword, it shows a warning.
-   *
-   * @param projectName the project name of the repository
-   */
-  @Override
-  protected void checkProjectNameConvention(String projectName) {
-    if (projectName.contains(SETTINGS_REPOSITORY_KEYWORD)) {
-      String warningTemplate = """
-          Your git URL is pointing to the project name {0} that contains the keyword ''{1}''.
-          Therefore we assume that you did a mistake by adding the '--code' option to the ide project creation.
-          Do you really want to create the project?
-          """;
-      String warning = MessageFormat.format(warningTemplate, projectName, SETTINGS_REPOSITORY_KEYWORD);
-      this.context.askToContinue(warning);
-    }
-  }
-
-  /**
    * Handles cases for settings and code repository during creation.
    */
   @Override
@@ -144,7 +125,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   /**
    * Strategy implementation for code repository.
    */
-  class CodeRepositoryStrategy implements RepositoryStrategy {
+  static class CodeRepositoryStrategy implements RepositoryStrategy {
 
     @Override
     public String handleBlankRepository(IdeContext context) {
@@ -159,14 +140,13 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     @Override
     public void checkProjectNameConvention(IdeContext context, String projectName) {
-      if (projectName.contains(SETTINGS_REPOSITORY_KEYWORD)) {
+      if (projectName.contains(IdeContext.SETTINGS_REPOSITORY_KEYWORD)) {
         String warningTemplate = """
-            Your git URL is pointing to the project name {0} that contains the keyword ''{1}''.
+            Your git URL is pointing to the project name {} that contains the keyword '{}'.
             Therefore we assume that you did a mistake by adding the '--code' option to the ide project creation.
             Do you really want to create the project?
             """;
-        String warning = MessageFormat.format(warningTemplate, projectName, SETTINGS_REPOSITORY_KEYWORD);
-        context.askToContinue(warning);
+        context.askToContinue(warningTemplate, projectName, IdeContext.SETTINGS_REPOSITORY_KEYWORD);
       }
     }
 
@@ -201,7 +181,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   /**
    * Strategy implementation for settings repository.
    */
-  class SettingsRepositoryStrategy implements RepositoryStrategy {
+  static class SettingsRepositoryStrategy implements RepositoryStrategy {
 
     @Override
     public String handleBlankRepository(IdeContext context) {
@@ -216,13 +196,13 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
 
     @Override
     public void checkProjectNameConvention(IdeContext context, String projectName) {
-      if (!projectName.contains(SETTINGS_REPOSITORY_KEYWORD)) {
+      if (!projectName.contains(IdeContext.SETTINGS_REPOSITORY_KEYWORD)) {
         String warningTemplate = """
-            Your git URL is pointing to the project name {0} that does not contain the keyword ''{1}''.
+            Your git URL is pointing to the project name {} that does not contain the keyword ''{}''.
             Therefore we assume that you forgot to add the '--code' option to the ide project creation.
             Do you really want to create the project?
             """;
-        context.askToContinue(warningTemplate, projectName, SETTINGS_REPOSITORY_KEYWORD);
+        context.askToContinue(warningTemplate, projectName, IdeContext.SETTINGS_REPOSITORY_KEYWORD);
       }
     }
 

@@ -3,7 +3,6 @@ package com.devonfw.tools.ide.commandlet;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.text.MessageFormat;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -47,8 +46,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
 
   /** {@link FlagProperty} to force the setup of git repositories. */
   public final FlagProperty forceRepositories;
-
-  protected final String SETTINGS_REPOSITORY_KEYWORD = "settings";
 
   /**
    * The constructor.
@@ -131,23 +128,6 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           }
         }
       }
-    }
-  }
-
-  /**
-   * Check project name convention of a settings repository. When project name does not contain settings keyword, it shows a warning.
-   *
-   * @param projectName the project name of the repository
-   */
-  protected void checkProjectNameConvention(String projectName) {
-    if (!projectName.contains(SETTINGS_REPOSITORY_KEYWORD)) {
-      String warningTemplate = """
-          Your git URL is pointing to the project name {0} that does not contain the keyword ''{1}''.
-          Therefore we assume that you forgot to add the '--code' option to the ide project creation.
-          Do you really want to create the project?
-          """;
-      String warning = MessageFormat.format(warningTemplate, projectName, SETTINGS_REPOSITORY_KEYWORD);
-      this.context.askToContinue(warning);
     }
   }
 

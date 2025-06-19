@@ -190,6 +190,11 @@ public interface IdeContext extends IdeStartContext {
       """.replace('╲', '\\');
 
   /**
+   * The keyword for project name convention.
+   */
+  String SETTINGS_REPOSITORY_KEYWORD = "settings";
+
+  /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
    */
   default boolean isOffline() {
