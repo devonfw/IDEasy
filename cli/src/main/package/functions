@@ -92,13 +92,13 @@ function icd() {
 
 _ide_completion()
 {
+  set -f
   if [ -z "${COMP_WORDS[COMP_CWORD]}" ]; then
-    set -f
     COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1} "" ) )
-    set +f
   else
     COMPREPLY=( $(ideasy -q complete ${COMP_WORDS[@]:1}) )
   fi
+  set +f
 }
 
 if [ "${0/*\//}" = "zsh" ]; then
