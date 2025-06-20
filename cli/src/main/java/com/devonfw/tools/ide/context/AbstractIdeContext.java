@@ -166,7 +166,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (Files.isDirectory(workingDirectory)) {
       workingDirectory = this.fileAccess.toCanonicalPath(workingDirectory);
     } else {
-      warning("Current working directory does not exist: {}", workingDirectory);
+      warning("Current working directory does not exist: {}", formatLocationPathForDisplay(workingDirectory));
     }
     this.cwd = workingDirectory;
     // detect IDE_HOME and WORKSPACE
@@ -222,8 +222,8 @@ public abstract class AbstractIdeContext implements IdeContext {
         warning(
             "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.\n"
                 + "Please check your 'user.dir' or working directory setting and make sure that it matches your IDE_ROOT variable.",
-            ideRootPathFromEnv,
-            ideHomePath.getFileName(), ideRootPath);
+            formatLocationPathForDisplay(ideRootPathFromEnv),
+            ideHomePath.getFileName(), formatLocationPathForDisplay(ideRootPath));
       }
 
     } else if (!isTest()) {
@@ -252,17 +252,18 @@ public abstract class AbstractIdeContext implements IdeContext {
               String absoluteRootName = absoluteRootPath.getName(nameIndex + delta).toString();
               if (!rootName.equals(absoluteRootName)) {
                 warning("IDE_ROOT is set to {} but was expanded to absolute path {} and does not match for segment {} and {} - fix your IDEasy installation!",
-                    rootPath, absoluteRootPath, rootName, absoluteRootName);
+                    formatLocationPathForDisplay(rootPath), formatLocationPathForDisplay(absoluteRootPath), rootName, absoluteRootName);
                 break;
               }
             }
           } else {
-            warning("IDE_ROOT is set to {} but was expanded to a shorter absolute path {}", rootPath, absoluteRootPath);
+            warning("IDE_ROOT is set to {} but was expanded to a shorter absolute path {}", formatLocationPathForDisplay(rootPath),
+                formatLocationPathForDisplay(absoluteRootPath));
           }
         }
         return absoluteRootPath;
       } else if (withSanityCheck) {
-        warning("IDE_ROOT is set to {} that is not an existing directory - fix your IDEasy installation!", rootPath);
+        warning("IDE_ROOT is set to {} that is not an existing directory - fix your IDEasy installation!", formatLocationPathForDisplay(rootPath));
       }
     }
     return null;
@@ -819,18 +820,19 @@ public abstract class AbstractIdeContext implements IdeContext {
       Path normalizedPath = location.normalize();
 
       if (this.ideHome != null && normalizedPath.startsWith(this.ideHome)) {
-        Path relative = this.ideHome.relativize(normalizedPath);
-        return Paths.get(IDE_HOME_PLACEHOLDER).resolve(relative).toString();
+        return Paths.get(IDE_HOME_PLACEHOLDER).resolve(this.ideHome.relativize(normalizedPath)).toString();
       }
 
       if (this.ideRoot != null && normalizedPath.startsWith(this.ideRoot)) {
-        Path relative = this.ideRoot.relativize(normalizedPath);
-        return Paths.get(IDE_ROOT_PLACEHOLDER).resolve(relative).toString();
+        return Paths.get(IDE_ROOT_PLACEHOLDER).resolve(this.ideRoot.relativize(normalizedPath)).toString();
       }
 
+      Path userHome = Path.of(getSystem().getProperty("user.home"));
+      Path userHomePlaceholder = Paths.get(USER_HOME_PLACEHOLDER);
       if (this.userHome != null && normalizedPath.startsWith(this.userHome)) {
-        Path relative = this.userHome.relativize(normalizedPath);
-        return Paths.get(USER_HOME_PLACEHOLDER).resolve(relative).toString();
+        return userHomePlaceholder.resolve(this.userHome.relativize(normalizedPath)).toString();
+      } else if (normalizedPath.startsWith(userHome)) {
+        return userHomePlaceholder.resolve(userHome.relativize(normalizedPath)).toString();
       }
       return location.toString();
     }
