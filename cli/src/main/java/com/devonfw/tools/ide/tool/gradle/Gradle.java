@@ -19,10 +19,6 @@ public class Gradle extends LocalToolCommandlet {
    */
   public static final String GRADLE_CONFIG_FOLDER = "gradle";
 
-  /**
-   * The name of the legacy gradle configuration folder.
-   */
-  public static final String GRADLE_CONFIG_LEGACY_FOLDER = ".gradle";
 
   /**
    * The constructor.
