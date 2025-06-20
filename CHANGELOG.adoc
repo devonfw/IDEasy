@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1346[#1346]: ide upgrade throws exception when offline
 * https://github.com/devonfw/IDEasy/issues/1160[#1160]: Print IDEasy version in ide status when offline
 * https://github.com/devonfw/IDEasy/issues/1309[#1309]: ide.bat splitting short options
 * https://github.com/devonfw/IDEasy/issues/1361[#1361]: ide create does not install intellij plugins properly
