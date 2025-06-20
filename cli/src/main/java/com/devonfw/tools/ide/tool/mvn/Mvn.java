@@ -93,7 +93,7 @@ public class Mvn extends PluginBasedCommandlet {
         dir.getParent() != null) {
       dir = dir.getParent();
     }
-    if (Files.exists(dir.resolve("mvnw"))) {
+    if (Files.exists(dir.resolve(MVN_WRAPPER_FILENAME))) {
       context.debug("Using mvn wrapper file at: {}", dir);
       return dir.resolve(MVN_WRAPPER_FILENAME);
     }
