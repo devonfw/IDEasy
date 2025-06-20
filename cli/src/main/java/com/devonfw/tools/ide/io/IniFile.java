@@ -24,7 +24,7 @@ public interface IniFile {
 
   /**
    * @param section the section to get or create
-   * @return existing or newly created IniSection
+   * @return existing or newly created {@link IniSection}
    */
   IniSection getOrCreateSection(String section);
 }
