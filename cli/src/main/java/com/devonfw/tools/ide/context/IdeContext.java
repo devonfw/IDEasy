@@ -21,6 +21,7 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
 import com.devonfw.tools.ide.tool.repository.MavenRepository;
@@ -612,6 +613,18 @@ public interface IdeContext extends IdeStartContext {
     }
     Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
     return mvn.getMavenArgs();
+  }
+
+  /**
+   * @return the path for the variable GRADLE_USER_HOME, or null if called outside an IDEasy installation.
+   */
+  default Path getGradleUserHome() {
+
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Gradle gradle = getCommandletManager().getCommandlet(Gradle.class);
+    return gradle.getOrCreateGradleConfFolder();
   }
 
   /**
