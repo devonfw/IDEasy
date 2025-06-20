@@ -1,6 +1,8 @@
 if doIsWindows
 then
-  gitconfig_path = "$HOME/.gitconfig"
+  touch "$HOME"/.gitconfig
+  $IDE -f install
+  gitconfig_path="$HOME"/.gitconfig
   fileContent=$(cat "$gitconfig_path")
   assertThat "$fileContent" contains "longpaths"
 fi
