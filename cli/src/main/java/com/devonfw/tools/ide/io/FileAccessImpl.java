@@ -822,7 +822,7 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     this.context.trace("Deleting {} ...", path);
-    boolean isSetWritable = setWriteable(path, true);
+    boolean isSetWritable = setWritable(path, true);
     if (!isSetWritable) {
       this.context.debug("Couldn't give write access to file: " + path);
     }
@@ -951,14 +951,14 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public boolean setWriteable(Path file, boolean writeable) {
+  public boolean setWritable(Path file, boolean writable) {
     try {
       // POSIX
       PosixFileAttributeView posix = Files.getFileAttributeView(file, PosixFileAttributeView.class);
       if (posix != null) {
         Set<PosixFilePermission> permissions = new HashSet<>(posix.readAttributes().permissions());
         boolean changed;
-        if (writeable) {
+        if (writable) {
           changed = permissions.add(PosixFilePermission.OWNER_WRITE);
         } else {
           changed = permissions.remove(PosixFilePermission.OWNER_WRITE);
@@ -972,13 +972,15 @@ public class FileAccessImpl implements FileAccess {
       // Windows
       DosFileAttributeView dos = Files.getFileAttributeView(file, DosFileAttributeView.class);
       if (dos != null) {
-        dos.setReadOnly(!writeable);
+        dos.setReadOnly(!writable);
         return true;
       }
 
+      this.context.debug("Failed to set writing permission for file {}", file);
       return false;
 
     } catch (IOException e) {
+      this.context.debug("Error occurred when trying to set writing permission for file " + file + ": " + e);
       return false;
     }
   }

@@ -292,7 +292,7 @@ public interface FileAccess {
    * @param writable {@code true} to make the file writable, {@code false} to make it read-only
    * @return {@code true} if the operation was successful or supported, {@code false} otherwise
    */
-  boolean setWriteable(Path file, boolean writable);
+  boolean setWritable(Path file, boolean writable);
 
   /**
    * Makes a file executable (analog to 'chmod a+x').
