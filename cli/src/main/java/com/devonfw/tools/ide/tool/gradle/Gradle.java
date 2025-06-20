@@ -37,9 +37,9 @@ public class Gradle extends LocalToolCommandlet {
   }
 
   /**
-   * @return the {@link Path} to the gradle configuration folder.
+   * @return the {@link Path} to the gradle configuration folder, creates the folder if it was not existing.
    */
-  public Path getGradleConfFolder() {
+  public Path getOrCreateGradleConfFolder() {
 
     Path confPath = this.context.getConfPath();
     Path gradleConfigFolder = confPath.resolve(GRADLE_CONFIG_FOLDER);

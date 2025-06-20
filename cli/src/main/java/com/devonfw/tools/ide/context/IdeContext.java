@@ -624,7 +624,7 @@ public interface IdeContext extends IdeStartContext {
       return null;
     }
     Gradle gradle = getCommandletManager().getCommandlet(Gradle.class);
-    return gradle.getGradleConfFolder();
+    return gradle.getOrCreateGradleConfFolder();
   }
 
   /**
