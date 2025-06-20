@@ -18,7 +18,7 @@ public interface IniFile {
 
   /**
    * @param section the section to get
-   * @return IniSection if section exists, null otherwise
+   * @return {@link IniSection} if section exists, null otherwise
    */
   IniSection getSection(String section);
 
