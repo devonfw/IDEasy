@@ -12,7 +12,7 @@ public interface IniFile {
 
   /**
    * @param section the section to remove
-   * @return true if section existed, false otherwise
+   * @return {@code true} if section existed, {@code false} otherwise
    */
   boolean removeSection(String section);
 
