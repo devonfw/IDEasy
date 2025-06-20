@@ -513,8 +513,24 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public Path toRealPath(Path path) {
 
+    return toRealPath(path, true);
+  }
+
+  @Override
+  public Path toCanonicalPath(Path path) {
+
+    return toRealPath(path, false);
+  }
+
+  private Path toRealPath(Path path, boolean resolveLinks) {
+
     try {
-      Path realPath = path.toRealPath();
+      Path realPath;
+      if (resolveLinks) {
+        realPath = path.toRealPath();
+      } else {
+        realPath = path.toRealPath(LinkOption.NOFOLLOW_LINKS);
+      }
       if (!realPath.equals(path)) {
         this.context.trace("Resolved path {} to {}", path, realPath);
       }
