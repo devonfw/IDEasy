@@ -8,6 +8,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -80,6 +81,9 @@ public abstract class AbstractIdeContext implements IdeContext {
   private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
 
   private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
+  private static final String IDE_HOME_PLACEHOLDER = "$IDE_HOME";
+  private static final String IDE_ROOT_PLACEHOLDER = "$IDE_ROOT";
+  private static final String USER_HOME_PLACEHOLDER = "~";
 
   private final IdeStartContextImpl startContext;
 
@@ -162,7 +166,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (Files.isDirectory(workingDirectory)) {
       workingDirectory = this.fileAccess.toCanonicalPath(workingDirectory);
     } else {
-      warning("Current working directory does not exist: {}", workingDirectory);
+      warning("Current working directory does not exist: {}", formatLocationPathForDisplay(workingDirectory));
     }
     this.cwd = workingDirectory;
     // detect IDE_HOME and WORKSPACE
@@ -218,8 +222,8 @@ public abstract class AbstractIdeContext implements IdeContext {
         warning(
             "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.\n"
                 + "Please check your 'user.dir' or working directory setting and make sure that it matches your IDE_ROOT variable.",
-            ideRootPathFromEnv,
-            ideHomePath.getFileName(), ideRootPath);
+            formatLocationPathForDisplay(ideRootPathFromEnv),
+            ideHomePath.getFileName(), formatLocationPathForDisplay(ideRootPath));
       }
 
     } else if (!isTest()) {
@@ -248,17 +252,18 @@ public abstract class AbstractIdeContext implements IdeContext {
               String absoluteRootName = absoluteRootPath.getName(nameIndex + delta).toString();
               if (!rootName.equals(absoluteRootName)) {
                 warning("IDE_ROOT is set to {} but was expanded to absolute path {} and does not match for segment {} and {} - fix your IDEasy installation!",
-                    rootPath, absoluteRootPath, rootName, absoluteRootName);
+                    formatLocationPathForDisplay(rootPath), formatLocationPathForDisplay(absoluteRootPath), rootName, absoluteRootName);
                 break;
               }
             }
           } else {
-            warning("IDE_ROOT is set to {} but was expanded to a shorter absolute path {}", rootPath, absoluteRootPath);
+            warning("IDE_ROOT is set to {} but was expanded to a shorter absolute path {}", formatLocationPathForDisplay(rootPath),
+                formatLocationPathForDisplay(absoluteRootPath));
           }
         }
         return absoluteRootPath;
       } else if (withSanityCheck) {
-        warning("IDE_ROOT is set to {} that is not an existing directory - fix your IDEasy installation!", rootPath);
+        warning("IDE_ROOT is set to {} that is not an existing directory - fix your IDEasy installation!", formatLocationPathForDisplay(rootPath));
       }
     }
     return null;
@@ -305,7 +310,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private String getMessageNotInsideIdeProject() {
 
-    return "You are not inside an IDE project: " + this.cwd;
+    return "You are not inside an IDE project: " + formatLocationPathForDisplay(this.cwd);
   }
 
   private String getMessageIdeRootNotFound() {
@@ -673,6 +678,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public boolean isPrivacyMode() {
+    return this.startContext.isPrivacyMode();
+  }
+
+  @Override
   public boolean isSkipUpdatesMode() {
 
     return this.startContext.isSkipUpdatesMode();
@@ -788,15 +798,45 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @Override
   public void logIdeHomeAndRootStatus() {
-
     if (this.ideRoot != null) {
-      success("IDE_ROOT is set to {}", this.ideRoot);
+      success("IDE_ROOT is set to {}", formatLocationPathForDisplay(this.ideRoot));
     }
     if (this.ideHome == null) {
       warning(getMessageNotInsideIdeProject());
     } else {
-      success("IDE_HOME is set to {}", this.ideHome);
+      success("IDE_HOME is set to {}", formatLocationPathForDisplay(this.ideHome));
     }
+  }
+
+  /**
+   * Formats a path for GDPR compliance based on the privacy mode.
+   *
+   * @param location Path to format.
+   * @return the formatted path string.
+   */
+  public String formatLocationPathForDisplay(Path location) {
+    String locationString = location.toString();
+    if (this.startContext.isPrivacyMode()) {
+      Path normalizedPath = location.normalize();
+
+      if (this.ideHome != null && normalizedPath.startsWith(this.ideHome)) {
+        return Paths.get(IDE_HOME_PLACEHOLDER).resolve(this.ideHome.relativize(normalizedPath)).toString();
+      }
+
+      if (this.ideRoot != null && normalizedPath.startsWith(this.ideRoot)) {
+        return Paths.get(IDE_ROOT_PLACEHOLDER).resolve(this.ideRoot.relativize(normalizedPath)).toString();
+      }
+
+      Path userHome = Path.of(getSystem().getProperty("user.home"));
+      Path userHomePlaceholder = Paths.get(USER_HOME_PLACEHOLDER);
+      if (this.userHome != null && normalizedPath.startsWith(this.userHome)) {
+        return userHomePlaceholder.resolve(this.userHome.relativize(normalizedPath)).toString();
+      } else if (normalizedPath.startsWith(userHome)) {
+        return userHomePlaceholder.resolve(userHome.relativize(normalizedPath)).toString();
+      }
+      return location.toString();
+    }
+    return locationString;
   }
 
   @Override
