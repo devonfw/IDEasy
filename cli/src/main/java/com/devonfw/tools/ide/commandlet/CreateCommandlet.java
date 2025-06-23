@@ -111,14 +111,43 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
    */
   interface RepositoryStrategy {
 
+    /**
+     * Handler for blank repository, displays warning and ask for input of repository URL.
+     *
+     * @param context ide context
+     * @return repository url from user input
+     */
     String handleBlankRepository(IdeContext context);
 
+    /**
+     * Check the given project name, displays warning when name does not meet convention.
+     *
+     * @param context ide context
+     * @param projectName the project name of repository
+     */
     void checkProjectNameConvention(IdeContext context, String projectName);
 
+    /**
+     * Initialize the given Git repository.
+     *
+     * @param context ide context
+     * @param gitUrl URL of the git repository
+     */
     void initializeRepository(IdeContext context, GitUrl gitUrl);
 
+    /**
+     * Create a new commandlet step.
+     *
+     * @param context ide context
+     * @return the created new commandlet Step
+     */
     Step createNewStep(IdeContext context);
 
+    /**
+     * Resolve the given commandlet step.
+     *
+     * @param step to resolve
+     */
     void resolveStep(Step step);
   }
 
