@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1160[#1160]: Print IDEasy version in ide status when offline
+* https://github.com/devonfw/IDEasy/issues/901[#901]: Consider maven wrapper mvnw
 * https://github.com/devonfw/IDEasy/issues/1309[#1309]: ide.bat splitting short options
 * https://github.com/devonfw/IDEasy/issues/1361[#1361]: ide create does not install intellij plugins properly
 * https://github.com/devonfw/IDEasy/issues/1340[#1340]: IDEasy does not warn user if IDE_ROOT is not sane
