@@ -84,7 +84,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   @Override
   protected void processRepository() {
     RepositoryStrategy repositoryStrategy = new SettingsRepositoryStrategy();
-    if (this.codeRepositoryFlag.isTrue()) {
+    if (isCodeRepository()) {
       repositoryStrategy = new CodeRepositoryStrategy();
     }
 
@@ -252,5 +252,10 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     public void resolveStep(Step step) {
       step.success("Successfully updated settings repository.");
     }
+  }
+
+  @Override
+  protected boolean isCodeRepository() {
+    return this.codeRepositoryFlag.isTrue();
   }
 }

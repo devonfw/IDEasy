@@ -287,4 +287,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     fileAccess.makeExecutable(scriptPath);
   }
 
+  protected boolean isCodeRepository() {
+    return false;
+  }
 }

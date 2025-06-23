@@ -16,7 +16,6 @@ import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
 import com.devonfw.tools.ide.log.IdeLogLevel;
-import com.devonfw.tools.ide.log.Message;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -239,7 +238,7 @@ public interface IdeContext extends IdeStartContext {
   default boolean question(String question) {
 
     String yes = "yes";
-    String option = question(question, yes, "no");
+    String option = question(new String[] { yes, "no" }, question, new Object[0]);
     if (yes.equals(option)) {
       return true;
     }
@@ -248,12 +247,13 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param question the question to ask.
+   * @param args
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
    */
-  default boolean question(Message question) {
+  default boolean question(String question, Object... args) {
 
     String yes = "yes";
-    String option = question(question, yes, "no");
+    String option = question(new String[] { yes, "no" }, question, args);
     if (yes.equals(option)) {
       return true;
     }
@@ -262,21 +262,13 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param <O> type of the option. E.g. {@link String}.
-   * @param question the question to ask.
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
+   * @param question the question to ask.
    * @return the option selected by the user as answer.
    */
   @SuppressWarnings("unchecked")
-  <O> O question(Message question, O... options);
+  <O> O question(O[] options, String question, Object... args);
 
-  /**
-   * @param <O> type of the option. E.g. {@link String}.
-   * @param question the question to ask.
-   * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
-   * @return the option selected by the user as answer.
-   */
-  @SuppressWarnings("unchecked")
-  <O> O question(String question, O... options);
 
   /**
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue. Otherwise if the user answers with "no" an
@@ -302,8 +294,7 @@ public interface IdeContext extends IdeStartContext {
    * @throws CliAbortException if the user answered with "no" and further processing shall be aborted.
    */
   default void askToContinue(String questionTemplate, Object... args) {
-    Message question = new Message(questionTemplate, args);
-    boolean yesContinue = question(question);
+    boolean yesContinue = question(questionTemplate, args);
     if (!yesContinue) {
       throw new CliAbortException();
     }
