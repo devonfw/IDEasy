@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Matcher;
 
@@ -41,6 +42,12 @@ public class Mvn extends PluginBasedCommandlet {
   /** The name of the settings-security.xml */
   public static final String SETTINGS_SECURITY_FILE = "settings-security.xml";
 
+  /** The mvn wrapper file name. */
+  public static final String MVN_WRAPPER_FILENAME = "mvnw";
+
+  /** The pom.xml file name. */
+  public static final String POM_XML = "pom.xml";
+
   /**
    * The name of the settings.xml
    */
@@ -64,6 +71,34 @@ public class Mvn extends PluginBasedCommandlet {
   public Mvn(IdeContext context) {
 
     super(context, "mvn", Set.of(Tag.JAVA, Tag.BUILD));
+  }
+
+  @Override
+  protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
+    Path mvn = Path.of(getBinaryName());
+    Path wrapper = findWrapper();
+    pc.executable(Objects.requireNonNullElse(wrapper, mvn));
+  }
+
+  /**
+   * Searches for a wrapper file in valid mvn projects (containing a pom.xml) and returns its path.
+   *
+   * @return Path of the wrapper file or {@code null} if none was found.
+   */
+  protected Path findWrapper() {
+    Path dir = context.getCwd();
+    // traverse the cwd containing a pom.xml up till a maven wrapper file was found
+    while (Files.exists(dir.resolve(POM_XML)) &&
+        !Files.exists(dir.resolve(MVN_WRAPPER_FILENAME)) &&
+        dir.getParent() != null) {
+      dir = dir.getParent();
+    }
+    if (Files.exists(dir.resolve(MVN_WRAPPER_FILENAME))) {
+      context.debug("Using mvn wrapper file at: {}", dir);
+      return dir.resolve(MVN_WRAPPER_FILENAME);
+    }
+
+    return null;
   }
 
   @Override
