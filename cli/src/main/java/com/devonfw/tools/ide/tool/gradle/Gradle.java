@@ -39,9 +39,9 @@ public class Gradle extends LocalToolCommandlet {
 
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
-    Path mvn = Path.of(getBinaryName());
+    Path gradle = Path.of(getBinaryName());
     Path wrapper = findWrapper();
-    pc.executable(Objects.requireNonNullElse(wrapper, mvn));
+    pc.executable(Objects.requireNonNullElse(wrapper, gradle));
   }
 
   /**
