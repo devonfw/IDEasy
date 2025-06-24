@@ -67,6 +67,8 @@ public class JavaUrlUpdaterTest extends Assertions {
     assertThat(JavaVersionsPath2103.resolve("linux_x64.urls.sha256")).exists();
     assertThat(JavaVersionsPath2103.resolve("mac_x64.urls")).exists();
     assertThat(JavaVersionsPath2103.resolve("mac_x64.urls.sha256")).exists();
+    assertThat(JavaVersionsPath2103.resolve("mac_arm64.urls")).exists();
+    assertThat(JavaVersionsPath2103.resolve("mac_arm64.urls.sha256")).exists();
 
     assertThat(JavaVersionsPath2201.resolve("status.json")).exists();
     assertThat(JavaVersionsPath2201.resolve("windows_x64.urls")).exists();
@@ -75,6 +77,8 @@ public class JavaUrlUpdaterTest extends Assertions {
     assertThat(JavaVersionsPath2201.resolve("linux_x64.urls.sha256")).exists();
     assertThat(JavaVersionsPath2201.resolve("mac_x64.urls")).exists();
     assertThat(JavaVersionsPath2201.resolve("mac_x64.urls.sha256")).exists();
+    assertThat(JavaVersionsPath2201.resolve("mac_arm64.urls")).exists();
+    assertThat(JavaVersionsPath2201.resolve("mac_arm64.urls.sha256")).exists();
 
     assertThat(JavaVersionsPath2236.resolve("status.json")).exists();
     assertThat(JavaVersionsPath2236.resolve("windows_x64.urls")).exists();
@@ -83,6 +87,8 @@ public class JavaUrlUpdaterTest extends Assertions {
     assertThat(JavaVersionsPath2236.resolve("linux_x64.urls.sha256")).exists();
     assertThat(JavaVersionsPath2236.resolve("mac_x64.urls")).exists();
     assertThat(JavaVersionsPath2236.resolve("mac_x64.urls.sha256")).exists();
+    assertThat(JavaVersionsPath2236.resolve("mac_arm64.urls")).exists();
+    assertThat(JavaVersionsPath2236.resolve("mac_arm64.urls.sha256")).exists();
 
   }
 
