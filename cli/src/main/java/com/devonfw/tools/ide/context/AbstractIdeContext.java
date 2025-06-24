@@ -695,7 +695,9 @@ public abstract class AbstractIdeContext implements IdeContext {
         connection.getContent();
         this.online = Boolean.TRUE;
       } catch (Exception e) {
-        this.startContext.debug("Error when trying to connect to {}: {}", url, e);
+        if (debug().isEnabled()) {
+          debug().log(e, "Error when trying to connect to {}", url);
+        }
         this.online = Boolean.FALSE;
       }
     }
