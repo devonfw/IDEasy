@@ -112,7 +112,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   interface RepositoryStrategy {
 
     /**
-     * Handler for blank repository, displays warning and ask for input of repository URL.
+     * Handler for blank repository, displays warning and asks for input of repository URL.
      *
      * @param context ide context
      * @return repository url from user input
