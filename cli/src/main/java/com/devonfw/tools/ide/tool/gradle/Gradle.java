@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 public class Gradle extends LocalToolCommandlet {
 
   private static final String BUILD_GRADLE = "build.gradle";
+  private static final String BUILD_GRADLE_KTS = "build.gradle.kts";
   private static final String GRADLE_WRAPPER_FILENAME = "gradlew";
 
   /**
@@ -40,29 +41,8 @@ public class Gradle extends LocalToolCommandlet {
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
     Path gradle = Path.of(getBinaryName());
-    Path wrapper = findWrapper();
+    Path wrapper = findWrapper(GRADLE_WRAPPER_FILENAME, path -> Files.exists(path.resolve(BUILD_GRADLE)) || Files.exists(path.resolve(BUILD_GRADLE_KTS)));
     pc.executable(Objects.requireNonNullElse(wrapper, gradle));
-  }
-
-  /**
-   * Searches for a wrapper file in valid gradle projects (containing a build.gradle) and returns its path.
-   *
-   * @return Path of the wrapper file or {@code null} if none was found.
-   */
-  protected Path findWrapper() {
-    Path dir = context.getCwd();
-    // traverse the cwd containing a build.gradle up till a gradle wrapper file was found
-    while (Files.exists(dir.resolve(BUILD_GRADLE)) &&
-        !Files.exists(dir.resolve(GRADLE_WRAPPER_FILENAME)) &&
-        dir.getParent() != null) {
-      dir = dir.getParent();
-    }
-    if (Files.exists(dir.resolve(GRADLE_WRAPPER_FILENAME))) {
-      context.debug("Using gradle wrapper file at: {}", dir);
-      return dir.resolve(GRADLE_WRAPPER_FILENAME);
-    }
-
-    return null;
   }
 
 }

@@ -88,7 +88,7 @@ public class GradleTest extends AbstractIdeContextTest {
     gradle.run();
 
     // assert
-    assertThat(context).logAtDebug().hasMessage("Using gradle wrapper file at: " + context.getWorkspacePath());
+    assertThat(context).logAtDebug().hasMessage("Using wrapper file at: " + context.getWorkspacePath());
     assertThat(context).logAtInfo().hasMessage("gradlew " + "foo bar");
   }
 
