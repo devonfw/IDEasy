@@ -266,12 +266,19 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param purpose the purpose why Internet connection is required.
+   * @param explicitOnlineCheck if {@code true}, perform an explicit {@link #isOffline()} check; if {@code false} use {@link #isOfflineMode()}.
    * @throws CliException if you are {@link #isOffline() offline}.
    */
-  default void requireOnline(String purpose) {
+  default void requireOnline(String purpose, boolean explicitOnlineCheck) {
 
-    if (isOfflineMode()) {
-      throw CliOfflineException.ofPurpose(purpose);
+    if (explicitOnlineCheck) {
+      if (isOffline()) {
+        throw CliOfflineException.ofPurpose(purpose);
+      }
+    } else {
+      if (isOfflineMode()) {
+        throw CliOfflineException.ofPurpose(purpose);
+      }
     }
   }
 
