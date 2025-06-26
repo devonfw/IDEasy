@@ -10,12 +10,13 @@ import java.util.Set;
  */
 public final class PrivacyUtil {
 
-  private static final Set<String> UNSENSITIVE_SEGMENTS = Set.of("project", "projects", "ide", "src", "target", "main", "test", "master", "java", "resource",
-      "resources", "text", "txt", "less", "more", "com", "org", "javax", "groovy", "scala", "cpp", "common", "data", "doc", "documentation",
-      "generated", "web", "public", "dataaccess", "persistence", "logic", "general", "git", "lock", "jpa", "tar", "tgz", "bz2", "tbz2", "zip", "compress",
-      "compression", "global", "value", "code", "branch", "string", "long", "number", "numeric", "apache", "commons", "hibernate", "storage", "db", "spring",
-      "springframework", "boot", "quarkus", "mnt", "usr", "user", "users", "windows", "etc", "var", "log", "lib", "driver", "system", "system32", "appdata",
-      "module", "info", "sha1", "md5", "sha256", "sha512", "pkcs", "p12", "cert");
+  private static final Set<String> UNSENSITIVE_SEGMENTS = Set.of("project", "projects", "workspace", "workspaces", "conf", "settings", "software", "plugins",
+      "setup", "update", "templates", "urls", "ide", "intellij", "eclipse", "vscode", "java", "mvn", "maven", "tmp", "backups", "bakup", "bak", "src", "target",
+      "main", "test", "master", "resource", "resources", "text", "txt", "less", "more", "com", "org", "javax", "groovy", "scala", "cpp", "common", "data",
+      "doc", "documentation", "generated", "web", "public", "dataaccess", "persistence", "logic", "general", "git", "lock", "jpa", "tar", "tgz", "bz2", "tbz2",
+      "zip", "compress", "compression", "global", "value", "code", "branch", "string", "long", "number", "numeric", "apache", "commons", "hibernate", "storage",
+      "db", "spring", "springframework", "boot", "quarkus", "mnt", "usr", "user", "users", "windows", "etc", "var", "log", "lib", "drivers", "system",
+      "system32", "appdata", "module", "info", "sha1", "md5", "sha256", "sha512", "pkcs", "p12", "cert", "file");
 
   // construction forbidden
   private PrivacyUtil() {
@@ -51,23 +52,23 @@ public final class PrivacyUtil {
       // now we remove sensitive information from the current path
       while (index < length) {
         int cp = arg.codePointAt(index);
-        index += Character.charCount(cp);
         boolean slash = isSlash(cp);
         if (slash) {
           cp = '/'; // normalize Windows backslash
         }
         if (slash || isSeparator(cp)) {
-          appendSegment(arg, result, start, index - 1);
+          appendSegment(arg, result, start, index);
+          index += Character.charCount(cp);
           start = index;
           result.appendCodePoint(cp);
         } else if (!isFileSegment(cp)) {
-          index -= Character.charCount(cp);
           appendSegment(arg, result, start, index);
           start = index;
           break;
+        } else {
+          index += Character.charCount(cp);
         }
       }
-      start = index;
       index = indexOfSlash(arg, index);
       if (index < 0) {
         result.append(arg, start, length); // append rest
@@ -78,13 +79,16 @@ public final class PrivacyUtil {
 
   private static int indexOfSlash(String arg, int start) {
     int index = arg.indexOf('/', start);
-    if (index < 0) {
-      index = arg.indexOf('\\', start);
+    int index2 = arg.indexOf('\\', start);
+    if (index2 < 0) {
+      return index;
+    } else if ((index < 0) || (index2 < index)) {
+      return index2;
     }
     return index;
   }
 
-  private static int appendSegment(String arg, StringBuilder result, int start, int index) {
+  private static void appendSegment(String arg, StringBuilder result, int start, int index) {
 
     String segment = arg.substring(start, index);
     if (UNSENSITIVE_SEGMENTS.contains(segment.toLowerCase(Locale.ROOT)) || segment.length() <= 2) {
@@ -92,14 +96,15 @@ public final class PrivacyUtil {
     } else {
       result.repeat('*', segment.length());
     }
-    return index;
   }
 
   private static boolean isSlash(int cp) {
+
     return (cp == '/') || (cp == '\\');
   }
 
   private static boolean isSeparator(int cp) {
+
     return (cp == '.') || (cp == '-') || (cp == '_');
   }
 
