@@ -815,13 +815,9 @@ public abstract class AbstractIdeContext implements IdeContext {
    * @return the formatted path string.
    */
   public String formatLocationPathForDisplay(Path location) {
-    String locationString = location.toString();
+
     if (this.startContext.isPrivacyMode()) {
       Path normalizedPath = location.normalize();
-
-      if (this.ideHome != null && normalizedPath.startsWith(this.ideHome)) {
-        return Paths.get(IDE_HOME_PLACEHOLDER).resolve(this.ideHome.relativize(normalizedPath)).toString();
-      }
 
       if (this.ideRoot != null && normalizedPath.startsWith(this.ideRoot)) {
         return Paths.get(IDE_ROOT_PLACEHOLDER).resolve(this.ideRoot.relativize(normalizedPath)).toString();
@@ -835,8 +831,9 @@ public abstract class AbstractIdeContext implements IdeContext {
         return Paths.get(USER_HOME_PLACEHOLDER).resolve(userHomeDir.relativize(normalizedPath)).toString();
       }
       return location.toString();
+    } else {
+       return location.toString();
     }
-    return locationString;
   }
 
   @Override
