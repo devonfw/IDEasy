@@ -837,7 +837,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (isPrivacyMode()) {
       if (this.privacyMap.isEmpty()) {
         initializePrivacyMap(this.userHome, "~");
-        this.privacyMap.put(getProjectName(), "<project>");
+        this.privacyMap.put(getProjectName(), "project");
       }
       for (Entry<String, String> entry : this.privacyMap.entrySet()) {
         result = result.replace(entry.getKey(), entry.getValue());
