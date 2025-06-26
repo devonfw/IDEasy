@@ -19,7 +19,7 @@ public class IniSectionImpl implements IniSection {
    */
   public IniSectionImpl(String name, Map<String, String> properties) {
     this.name = name;
-    this.properties = (LinkedHashMap<String, String>) properties;
+    this.properties = properties;
   }
 
   /**
