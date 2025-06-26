@@ -6,11 +6,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
-<<<<<<< 1133-version-autocomplete-bug
 * https://github.com/devonfw/IDEasy/issues/1133[#1133]: Version autocomplete with full list displays files too
-=======
 * https://github.com/devonfw/IDEasy/issues/1372[#1372]: Add gradlew support
->>>>>>> main
 * https://github.com/devonfw/IDEasy/issues/1304[#1304]: Error when reinstalling vscode
 * https://github.com/devonfw/IDEasy/issues/1160[#1160]: Print IDEasy version in ide status when offline
 * https://github.com/devonfw/IDEasy/issues/901[#901]: Consider maven wrapper mvnw
