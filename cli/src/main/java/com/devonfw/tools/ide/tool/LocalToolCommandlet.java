@@ -526,15 +526,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   protected Path findWrapper(String wrapperFileName, Predicate<Path> filter) {
     Path dir = context.getCwd();
     // traverse the cwd directory containing a build file up till a wrapper file was found
-    while (filter.test(dir) &&
-        dir.getParent() != null) {
-      dir = dir.getParent();
+    while ((dir != null) && filter.test(dir)) {
       if (Files.exists(dir.resolve(wrapperFileName))) {
         context.debug("Using wrapper file at: {}", dir);
         return dir.resolve(wrapperFileName);
       }
+      dir = dir.getParent();
     }
-
     return null;
   }
 
