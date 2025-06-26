@@ -1113,11 +1113,7 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void readIniFile(Path file, IniFile iniFile) {
-    String content = readFileContent(file);
-    if (content == null) {
-      return;
-    }
-    List<String> iniLines = content.lines().toList();
+    List<String> iniLines = readFileLines(file);
     String currentSectionName = "";
     for (String line : iniLines) {
       if (line.isEmpty()) {
