@@ -8,8 +8,8 @@ import java.util.Map;
  */
 public class IniSectionImpl implements IniSection {
 
-  String name;
-  LinkedHashMap<String, String> properties;
+  private final String name;
+  private final Map<String, String> properties;
 
   /**
    * creates IniSectionImpl with given name and properties
