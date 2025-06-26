@@ -97,4 +97,16 @@ public class IdeLoggerImpl implements IdeLogger {
     }
   }
 
+  /**
+   * Internal method to set the {@link IdeLogArgFormatter}.
+   *
+   * @param argFormatter the {@link IdeLogArgFormatter}.
+   */
+  public void setArgFormatter(IdeLogArgFormatter argFormatter) {
+
+    for (AbstractIdeSubLogger logger : this.loggers) {
+      logger.setArgFormatter(argFormatter);
+    }
+  }
+
 }
