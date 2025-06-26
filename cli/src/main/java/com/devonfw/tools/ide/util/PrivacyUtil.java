@@ -98,10 +98,12 @@ public final class PrivacyUtil {
   }
 
   private static boolean isSlash(int cp) {
+    
     return (cp == '/') || (cp == '\\');
   }
 
   private static boolean isSeparator(int cp) {
+    
     return (cp == '.') || (cp == '-') || (cp == '_');
   }
 

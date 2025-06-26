@@ -38,7 +38,7 @@ public class PrivacyUtilTest extends Assertions {
    */
   @Test
   public void testTextMixedWithMultiplePaths() {
-
+    
     String string = "In project /projects/myproject the file ~/projects/myproject/secret-module/src/main/java/com/secret_company/secret_project/common/data\\SecretClass.java could not be deleted.";
     String result = "In project /projects/********* the file ~/projects/*********/******-module/src/main/java/com/******_*******/******_project/common/data/***********.java could not be deleted.";
     assertThat(PrivacyUtil.removeSensitivePathInformation(string)).isEqualTo(result);
