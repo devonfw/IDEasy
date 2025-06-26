@@ -76,29 +76,8 @@ public class Mvn extends PluginBasedCommandlet {
   @Override
   protected void configureToolBinary(ProcessContext pc, ProcessMode processMode, ProcessErrorHandling errorHandling) {
     Path mvn = Path.of(getBinaryName());
-    Path wrapper = findWrapper();
+    Path wrapper = findWrapper(MVN_WRAPPER_FILENAME, path -> Files.exists(path.resolve(POM_XML)));
     pc.executable(Objects.requireNonNullElse(wrapper, mvn));
-  }
-
-  /**
-   * Searches for a wrapper file in valid mvn projects (containing a pom.xml) and returns its path.
-   *
-   * @return Path of the wrapper file or {@code null} if none was found.
-   */
-  protected Path findWrapper() {
-    Path dir = context.getCwd();
-    // traverse the cwd containing a pom.xml up till a maven wrapper file was found
-    while (Files.exists(dir.resolve(POM_XML)) &&
-        !Files.exists(dir.resolve(MVN_WRAPPER_FILENAME)) &&
-        dir.getParent() != null) {
-      dir = dir.getParent();
-    }
-    if (Files.exists(dir.resolve(MVN_WRAPPER_FILENAME))) {
-      context.debug("Using mvn wrapper file at: {}", dir);
-      return dir.resolve(MVN_WRAPPER_FILENAME);
-    }
-
-    return null;
   }
 
   @Override
