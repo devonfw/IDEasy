@@ -18,7 +18,7 @@ public class IniFileImpl implements IniFile {
 
   @Override
   public String[] getSectionNames() {
-    return iniMap.keySet().toArray(new String[0]);
+    return iniMap.keySet().toArray(String[]::new);
   }
 
   @Override
