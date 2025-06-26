@@ -35,14 +35,7 @@ public class IniFileImpl implements IniFile {
 
   @Override
   public IniSection getOrCreateSection(String section) {
-    IniSection iniSection;
-    if (!iniMap.containsKey(section)) {
-      iniSection = new IniSectionImpl(section);
-      iniMap.put(section, iniSection);
-    } else {
-      iniSection = iniMap.get(section);
-    }
-    return iniSection;
+    return this.iniMap.computeIfAbsent(section, IniSectionImpl::new);
   }
 
   @Override
