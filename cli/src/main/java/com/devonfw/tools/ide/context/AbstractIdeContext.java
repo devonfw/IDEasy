@@ -685,15 +685,19 @@ public abstract class AbstractIdeContext implements IdeContext {
       configureNetworkProxy();
       // we currently assume we have only a CLI process that runs shortly
       // therefore we run this check only once to save resources when this method is called many times
+      String url = "https://www.github.com";
       try {
         int timeout = 1000;
         //open a connection to github.com and try to retrieve data
         //getContent fails if there is no connection
-        URLConnection connection = new URL("https://www.github.com").openConnection();
+        URLConnection connection = new URL(url).openConnection();
         connection.setConnectTimeout(timeout);
         connection.getContent();
         this.online = Boolean.TRUE;
-      } catch (Exception ignored) {
+      } catch (Exception e) {
+        if (debug().isEnabled()) {
+          debug().log(e, "Error when trying to connect to {}", url);
+        }
         this.online = Boolean.FALSE;
       }
     }
