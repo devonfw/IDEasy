@@ -28,8 +28,7 @@ public class IniSectionImpl implements IniSection {
    * @param name section name
    */
   public IniSectionImpl(String name) {
-    this.name = name;
-    this.properties = new LinkedHashMap<>();
+    this(name, new LinkedHashMap<>());
   }
 
   @Override
