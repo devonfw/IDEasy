@@ -136,7 +136,7 @@ public class GitContextImpl implements GitContext {
     GitUrlSyntax gitUrlSyntax = IdeVariables.PREFERRED_GIT_PROTOCOL.get(getContext());
     gitUrl = gitUrlSyntax.format(gitUrl);
     if (this.context.isOfflineMode()) {
-      this.context.requireOnline("git clone of " + gitUrl);
+      this.context.requireOnline("git clone of " + gitUrl, false);
     }
     this.context.getFileAccess().mkdirs(repository);
     List<String> args = new ArrayList<>(7);
@@ -270,7 +270,7 @@ public class GitContextImpl implements GitContext {
     ProcessResult result = runGitCommand(directory, ProcessMode.DEFAULT, args);
     if (!result.isSuccessful()) {
       String command = result.getCommand();
-      this.context.requireOnline(command);
+      this.context.requireOnline(command, false);
       result.failOnError();
     }
   }

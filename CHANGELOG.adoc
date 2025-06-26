@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1346[#1346]: ide upgrade throws exception when offline
 * https://github.com/devonfw/IDEasy/issues/1133[#1133]: Version autocomplete with full list displays files too
 * https://github.com/devonfw/IDEasy/issues/1372[#1372]: Add gradlew support
 * https://github.com/devonfw/IDEasy/issues/1304[#1304]: Error when reinstalling vscode
