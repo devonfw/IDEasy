@@ -45,7 +45,7 @@ public class IniFileImpl implements IniFile {
       stringBuilder.append('[');
       stringBuilder.append(configSection);
       stringBuilder.append("]\n");
-      LinkedHashMap<String, String> properties = (LinkedHashMap<String, String>) iniMap.get(configSection).getProperties();
+      Map<String, String> properties = iniMap.get(configSection).getProperties();
       for (String sectionProperty : properties.keySet()) {
         String propertyValue = properties.get(sectionProperty);
         stringBuilder.append(String.format("\t%s = %s\n", sectionProperty, propertyValue));
