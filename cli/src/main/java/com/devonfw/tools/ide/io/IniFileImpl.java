@@ -46,9 +46,12 @@ public class IniFileImpl implements IniFile {
       stringBuilder.append(configSection);
       stringBuilder.append("]\n");
       Map<String, String> properties = iniMap.get(configSection).getProperties();
-      for (String sectionProperty : properties.keySet()) {
-        String propertyValue = properties.get(sectionProperty);
-        stringBuilder.append(String.format("\t%s = %s\n", sectionProperty, propertyValue));
+      for (Entry<String, String> entry : properties.entrySet()) {
+        stringBuilder.append('\t');
+        stringBuilder.append(entry.getKey());
+        stringBuilder.append(" = ");
+        stringBuilder.append(entry.getValue());
+        stringBuilder.append('\n');
       }
     }
     return stringBuilder.toString();
