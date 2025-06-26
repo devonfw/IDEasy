@@ -1114,20 +1114,23 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void readIniFile(Path file, IniFile iniFile) {
     List<String> iniLines = readFileLines(file);
-    String currentSectionName = "";
+IniSection currentIniSection = null;
     for (String line : iniLines) {
       if (line.isEmpty()) {
         continue;
       }
       if (line.startsWith("[")) {
-        currentSectionName = line.replace("[", "").replace("]", "");
-        iniFile.getOrCreateSection(currentSectionName);
+        String sectionName = line.replace("[", "").replace("]", "");
+        currentIniSection = iniFile.getOrCreateSection(sectionName);
       } else {
         String[] parts = line.split("=");
         String propertyName = parts[0].trim();
         String propertyValue = parts[1].trim();
-        IniSection iniSection = iniFile.getOrCreateSection(currentSectionName);
-        iniSection.getProperties().put(propertyName, propertyValue);
+        if (currentIniSection == null) {
+          Log.warn("Invalid ini-file with property {} before section", propertyName);
+        } else {
+          currentIniSection.getProperties().put(propertyName, propertyValue);
+        }
       }
     }
   }
