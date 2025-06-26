@@ -23,6 +23,12 @@ public class Gradle extends LocalToolCommandlet {
   private static final String GRADLE_WRAPPER_FILENAME = "gradlew";
 
   /**
+   * The name of the gradle configuration folder.
+   */
+  public static final String GRADLE_CONFIG_FOLDER = "gradle";
+
+
+  /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
@@ -43,6 +49,19 @@ public class Gradle extends LocalToolCommandlet {
     Path gradle = Path.of(getBinaryName());
     Path wrapper = findWrapper(GRADLE_WRAPPER_FILENAME, path -> Files.exists(path.resolve(BUILD_GRADLE)) || Files.exists(path.resolve(BUILD_GRADLE_KTS)));
     pc.executable(Objects.requireNonNullElse(wrapper, gradle));
+  }
+  
+  /**
+   * @return the {@link Path} to the gradle configuration folder, creates the folder if it was not existing.
+   */
+  public Path getOrCreateGradleConfFolder() {
+
+    Path confPath = this.context.getConfPath();
+    Path gradleConfigFolder = confPath.resolve(GRADLE_CONFIG_FOLDER);
+    if (!Files.isDirectory(gradleConfigFolder)) {
+      this.context.getFileAccess().mkdirs(gradleConfigFolder);
+    }
+    return gradleConfigFolder;
   }
 
 }
