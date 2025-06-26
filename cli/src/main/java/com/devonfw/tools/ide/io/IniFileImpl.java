@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
  */
 public class IniFileImpl implements IniFile {
 
-  LinkedHashMap<String, IniSection> iniMap;
+  private final Map<String, IniSection> iniMap;
 
   /**
    * creates empty IniFileImpl
