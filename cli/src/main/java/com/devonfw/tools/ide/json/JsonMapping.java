@@ -41,6 +41,7 @@ public class JsonMapping {
     customModule.addSerializer(CustomToolJson.class, new CustomToolJsonSerializer());
     customModule.addSerializer(CustomToolsJson.class, new CustomToolsJsonSerializer());
     customModule.addKeyDeserializer(VersionRange.class, new VersionRangeKeyDeserializer());
+    customModule.addSerializer(VersionRange.class, new VersionRangeSerializer());
     mapper = mapper.registerModule(customModule);
     return mapper;
   }
