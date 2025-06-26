@@ -12,7 +12,8 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1309[#1309]: ide.bat splitting short options
 * https://github.com/devonfw/IDEasy/issues/1361[#1361]: ide create does not install intellij plugins properly
 * https://github.com/devonfw/IDEasy/issues/1340[#1340]: IDEasy does not warn user if IDE_ROOT is not sane
-* https://github.com/devonfw/IDEasy/issues/1292[#1292]: logs potential welcome file in settings dir to info level
+* https://github.com/devonfw/IDEasy/issues/1354[#1354]: Add GRADLE_USER_HOME to gradle
+* https://github.com/devonfw/IDEasy/issues/1292[#1292]: ability to add welcome message
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/29?closed=1[milestone 2025.06.002].
 
