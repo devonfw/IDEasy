@@ -9,6 +9,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsHelper;
@@ -60,6 +62,9 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     Path idePath = ideRoot.resolve("_ide");
     Path installationPath = idePath.resolve("installation");
     Path releasePath = idePath.resolve("software/maven/ideasy/ideasy/SNAPSHOT");
+    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.writeFileContent("", gitconfigPath);
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
     // act
     ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));

@@ -46,6 +46,7 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.jline.utils.Log;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -1114,7 +1115,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void readIniFile(Path file, IniFile iniFile) {
     List<String> iniLines = readFileLines(file);
-IniSection currentIniSection = null;
+    IniSection currentIniSection = null;
     for (String line : iniLines) {
       if (line.isEmpty()) {
         continue;

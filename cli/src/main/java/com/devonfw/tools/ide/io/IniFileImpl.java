@@ -1,6 +1,8 @@
 package com.devonfw.tools.ide.io;
 
 import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Implementation of {@link IniFile} preserves order of sections and properties between reading and writing
