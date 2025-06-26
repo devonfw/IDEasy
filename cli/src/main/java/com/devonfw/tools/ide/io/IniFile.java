@@ -6,7 +6,7 @@ package com.devonfw.tools.ide.io;
 public interface IniFile {
 
   /**
-   * @return String[] the sections
+   * @return the names of the available sections from this {@link IniFile}.
    */
   String[] getSectionNames();
 
