@@ -80,13 +80,15 @@ public final class PrivacyUtil {
   private static int indexOfSlash(String arg, int start) {
     int index = arg.indexOf('/', start);
     int index2 = arg.indexOf('\\', start);
-    if ((index < 0) || (index2 < index)) {
+    if (index2 < 0) {
+      return index;
+    } else if ((index < 0) || (index2 < index)) {
       return index2;
     }
     return index;
   }
 
-  private static int appendSegment(String arg, StringBuilder result, int start, int index) {
+  private static void appendSegment(String arg, StringBuilder result, int start, int index) {
 
     String segment = arg.substring(start, index);
     if (UNSENSITIVE_SEGMENTS.contains(segment.toLowerCase(Locale.ROOT)) || segment.length() <= 2) {
@@ -94,16 +96,15 @@ public final class PrivacyUtil {
     } else {
       result.repeat('*', segment.length());
     }
-    return index;
   }
 
   private static boolean isSlash(int cp) {
-    
+
     return (cp == '/') || (cp == '\\');
   }
 
   private static boolean isSeparator(int cp) {
-    
+
     return (cp == '.') || (cp == '-') || (cp == '_');
   }
 
