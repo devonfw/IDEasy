@@ -827,12 +827,12 @@ public abstract class AbstractIdeContext implements IdeContext {
         return Paths.get(IDE_ROOT_PLACEHOLDER).resolve(this.ideRoot.relativize(normalizedPath)).toString();
       }
 
-      Path userHome = Path.of(getSystem().getProperty("user.home"));
-      Path userHomePlaceholder = Paths.get(USER_HOME_PLACEHOLDER);
-      if (this.userHome != null && normalizedPath.startsWith(this.userHome)) {
-        return userHomePlaceholder.resolve(this.userHome.relativize(normalizedPath)).toString();
-      } else if (normalizedPath.startsWith(userHome)) {
-        return userHomePlaceholder.resolve(userHome.relativize(normalizedPath)).toString();
+      Path userHomeDir = this.userHome;
+      if (userHomeDir == null) {
+        userHomeDir = Path.of(getSystem().getProperty("user.home"));
+      }
+      if (normalizedPath.startsWith(userHomeDir)) {
+        return Paths.get(USER_HOME_PLACEHOLDER).resolve(userHomeDir.relativize(normalizedPath)).toString();
       }
       return location.toString();
     }
