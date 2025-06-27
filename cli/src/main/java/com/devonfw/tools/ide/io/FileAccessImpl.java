@@ -1155,6 +1155,10 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void readIniFile(Path file, IniFile iniFile) {
+    if (!Files.exists(file)) {
+      this.context.debug("INI file {} does not exist.", iniFile);
+      return;
+    }
     List<String> iniLines = readFileLines(file);
     IniSection currentIniSection = null;
     for (String line : iniLines) {
