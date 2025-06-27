@@ -303,7 +303,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
     this.userHomeIde = this.userHome.resolve(FOLDER_DOT_IDE);
     this.downloadPath = this.userHome.resolve("Downloads/ide");
-
+    resetPrivacyMap();
     this.path = computeSystemPath();
   }
 
@@ -837,7 +837,10 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (isPrivacyMode()) {
       if ((this.ideRoot != null) && this.privacyMap.isEmpty()) {
         initializePrivacyMap(this.userHome, "~");
-        this.privacyMap.put(getProjectName(), "project");
+        String projectName = getProjectName();
+        if (!projectName.isEmpty()) {
+          this.privacyMap.put(projectName, "project");
+        }
       }
       for (Entry<String, String> entry : this.privacyMap.entrySet()) {
         result = result.replace(entry.getKey(), entry.getValue());
