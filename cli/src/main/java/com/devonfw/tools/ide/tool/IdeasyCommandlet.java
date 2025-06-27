@@ -107,6 +107,8 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
   @Override
   public boolean install(boolean silent) {
+    
+    this.context.requireOnline("upgrade of IDEasy", true);
 
     if (IdeVersion.isUndefined()) {
       this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", IdeVersion.getVersionString());

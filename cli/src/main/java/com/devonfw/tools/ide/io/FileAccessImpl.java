@@ -22,7 +22,9 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
@@ -821,6 +823,10 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     this.context.trace("Deleting {} ...", path);
+    boolean isSetWritable = setWritable(path, true);
+    if (!isSetWritable) {
+      this.context.debug("Couldn't give write access to file: " + path);
+    }
     Files.delete(path);
   }
 
@@ -943,6 +949,41 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     return null;
+  }
+
+  @Override
+  public boolean setWritable(Path file, boolean writable) {
+    try {
+      // POSIX
+      PosixFileAttributeView posix = Files.getFileAttributeView(file, PosixFileAttributeView.class);
+      if (posix != null) {
+        Set<PosixFilePermission> permissions = new HashSet<>(posix.readAttributes().permissions());
+        boolean changed;
+        if (writable) {
+          changed = permissions.add(PosixFilePermission.OWNER_WRITE);
+        } else {
+          changed = permissions.remove(PosixFilePermission.OWNER_WRITE);
+        }
+        if (changed) {
+          posix.setPermissions(permissions);
+        }
+        return true;
+      }
+
+      // Windows
+      DosFileAttributeView dos = Files.getFileAttributeView(file, DosFileAttributeView.class);
+      if (dos != null) {
+        dos.setReadOnly(!writable);
+        return true;
+      }
+
+      this.context.debug("Failed to set writing permission for file {}", file);
+      return false;
+
+    } catch (IOException e) {
+      this.context.debug("Error occurred when trying to set writing permission for file " + file + ": " + e);
+      return false;
+    }
   }
 
   @Override

@@ -286,6 +286,15 @@ public interface FileAccess {
   boolean isEmptyDir(Path dir);
 
   /**
+   * Sets or unsets the writable permission for the specified file path.
+   *
+   * @param file {@link Path} to the file.
+   * @param writable {@code true} to make the file writable, {@code false} to make it read-only
+   * @return {@code true} if the operation was successful or supported, {@code false} otherwise
+   */
+  boolean setWritable(Path file, boolean writable);
+
+  /**
    * Makes a file executable (analog to 'chmod a+x').
    *
    * @param file {@link Path} to the file.
