@@ -231,9 +231,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     GitContext gitContext = new GitContextImpl(this.context);
     gitContext.verifyGitInstalled();
     Path configPath = this.context.getUserHome().resolve(".gitconfig");
-    IniFile iniFile = new IniFileImpl();
-    FileAccess fileAccess = new FileAccessImpl(context);
-    fileAccess.readIniFile(configPath, iniFile);
+    IniFile iniFile = this.context.getFileAccess().readIniFile(configPath);
     IniSection coreSection = iniFile.getOrCreateSection("core");
     coreSection.getProperties().put("longpaths", "true");
     fileAccess.writeIniFile(iniFile, configPath);
