@@ -48,6 +48,7 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.jline.utils.Log;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -1150,6 +1151,44 @@ public class FileAccessImpl implements FileAccess {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to save properties file during tests.", e);
     }
+  }
+
+  @Override
+  public void readIniFile(Path file, IniFile iniFile) {
+    if (!Files.exists(file)) {
+      this.context.debug("INI file {} does not exist.", iniFile);
+      return;
+    }
+    List<String> iniLines = readFileLines(file);
+    IniSection currentIniSection = null;
+    for (String line : iniLines) {
+      if (line.isEmpty()) {
+        continue;
+      }
+      if (line.startsWith("[")) {
+        String sectionName = line.replace("[", "").replace("]", "").trim();
+        currentIniSection = iniFile.getOrCreateSection(sectionName);
+      } else {
+        int index = line.indexOf('=');
+        if (index > 0) {
+          String propertyName = line.substring(0, index).trim();
+          String propertyValue = line.substring(index + 1).trim();
+          if (currentIniSection == null) {
+            Log.warn("Invalid ini-file with property {} before section", propertyName);
+          } else {
+            currentIniSection.getProperties().put(propertyName, propertyValue);
+          }  
+        } else {
+          // here we can handle comments and empty lines in the future
+        }
+      }
+    }
+  }
+
+  @Override
+  public void writeIniFile(IniFile iniFile, Path file, boolean createParentDir) {
+    String iniString = iniFile.toString();
+    writeFileContent(iniString, file, createParentDir);
   }
 
   @Override
