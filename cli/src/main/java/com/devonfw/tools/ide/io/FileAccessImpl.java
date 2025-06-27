@@ -1162,7 +1162,7 @@ public class FileAccessImpl implements FileAccess {
         continue;
       }
       if (line.startsWith("[")) {
-        String sectionName = line.replace("[", "").replace("]", "");
+        String sectionName = line.replace("[", "").replace("]", "").trim();
         currentIniSection = iniFile.getOrCreateSection(sectionName);
       } else {
         int index = line.indexOf('=');
