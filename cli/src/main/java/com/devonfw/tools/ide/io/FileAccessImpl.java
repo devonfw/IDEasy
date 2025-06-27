@@ -1165,13 +1165,17 @@ public class FileAccessImpl implements FileAccess {
         String sectionName = line.replace("[", "").replace("]", "");
         currentIniSection = iniFile.getOrCreateSection(sectionName);
       } else {
-        String[] parts = line.split("=");
-        String propertyName = parts[0].trim();
-        String propertyValue = parts[1].trim();
-        if (currentIniSection == null) {
-          Log.warn("Invalid ini-file with property {} before section", propertyName);
+        int index = line.indexOf('=');
+        if (index > 0) {
+          String propertyName = line.substring(0, index).trim();
+          String propertyValue = line.substring(index + 1).trim();
+          if (currentIniSection == null) {
+            Log.warn("Invalid ini-file with property {} before section", propertyName);
+          } else {
+            currentIniSection.getProperties().put(propertyName, propertyValue);
+          }  
         } else {
-          currentIniSection.getProperties().put(propertyName, propertyValue);
+          // here we can handle comments and empty lines in the future
         }
       }
     }
