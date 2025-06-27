@@ -21,6 +21,7 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
 import com.devonfw.tools.ide.tool.repository.MavenRepository;
@@ -302,12 +303,19 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param purpose the purpose why Internet connection is required.
+   * @param explicitOnlineCheck if {@code true}, perform an explicit {@link #isOffline()} check; if {@code false} use {@link #isOfflineMode()}.
    * @throws CliException if you are {@link #isOffline() offline}.
    */
-  default void requireOnline(String purpose) {
+  default void requireOnline(String purpose, boolean explicitOnlineCheck) {
 
-    if (isOfflineMode()) {
-      throw CliOfflineException.ofPurpose(purpose);
+    if (explicitOnlineCheck) {
+      if (isOffline()) {
+        throw CliOfflineException.ofPurpose(purpose);
+      }
+    } else {
+      if (isOfflineMode()) {
+        throw CliOfflineException.ofPurpose(purpose);
+      }
     }
   }
 
@@ -648,6 +656,18 @@ public interface IdeContext extends IdeStartContext {
     }
     Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
     return mvn.getMavenArgs();
+  }
+
+  /**
+   * @return the path for the variable GRADLE_USER_HOME, or null if called outside an IDEasy installation.
+   */
+  default Path getGradleUserHome() {
+
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Gradle gradle = getCommandletManager().getCommandlet(Gradle.class);
+    return gradle.getOrCreateGradleConfFolder();
   }
 
   /**

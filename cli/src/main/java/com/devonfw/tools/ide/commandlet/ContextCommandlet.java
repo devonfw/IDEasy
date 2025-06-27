@@ -26,6 +26,8 @@ public class ContextCommandlet extends Commandlet {
 
   private final FlagProperty offline;
 
+  private final FlagProperty privacy;
+
   private final FlagProperty skipUpdates;
 
   private final LocaleProperty locale;
@@ -43,6 +45,7 @@ public class ContextCommandlet extends Commandlet {
     this.trace = add(new FlagProperty("--trace", false, "-t"));
     this.debug = add(new FlagProperty("--debug", false, "-d"));
     this.quiet = add(new FlagProperty("--quiet", false, "-q"));
+    this.privacy = add(new FlagProperty("--privacy", false, "-p"));
     this.offline = add(new FlagProperty("--offline", false, "-o"));
     this.skipUpdates = add(new FlagProperty("--skip-updates", false));
     this.locale = add(new LocaleProperty("--locale", false, null));
@@ -76,6 +79,7 @@ public class ContextCommandlet extends Commandlet {
     this.startContext.setForceMode(this.force.isTrue());
     this.startContext.setQuietMode(this.quiet.isTrue());
     this.startContext.setOfflineMode(this.offline.isTrue());
+    this.startContext.setPrivacyMode(this.privacy.isTrue());
     this.startContext.setSkipUpdatesMode(this.skipUpdates.isTrue());
     this.startContext.setLocale(this.locale.getValue());
   }

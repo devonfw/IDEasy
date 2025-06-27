@@ -29,6 +29,8 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
 
   private boolean quietMode;
 
+  private boolean privacyMode;
+
   private Locale locale;
 
   /**
@@ -74,6 +76,26 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     return this.forceMode;
   }
 
+  /**
+   * @param forceMode new value of {@link #isForceMode()}.
+   */
+  public void setForceMode(boolean forceMode) {
+
+    this.forceMode = forceMode;
+  }
+
+  @Override
+  public boolean isPrivacyMode() {
+    return this.privacyMode;
+  }
+
+  /**
+   * @param privacyMode new value of {@link #isPrivacyMode()}.
+   */
+  public void setPrivacyMode(boolean privacyMode) {
+    this.privacyMode = privacyMode;
+  }
+
   @Override
   public boolean isForcePull() {
 
@@ -90,12 +112,6 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
   public boolean isForceRepositories() {
 
     return this.forceRepositories;
-  }
-
-
-  public void setForceMode(boolean forceMode) {
-
-    this.forceMode = forceMode;
   }
 
   @Override

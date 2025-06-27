@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
@@ -68,6 +69,8 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     this.context.verifyIdeMinVersion(true);
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
     this.context.success("Successfully created new project '{}'.", newProjectName);
+
+    logWelcomeMessage(newProjectPath);
   }
 
   private void initializeProject(Path newInstancePath) {
@@ -257,5 +260,18 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   @Override
   protected boolean isCodeRepository() {
     return this.codeRepositoryFlag.isTrue();
+  }
+
+  private void logWelcomeMessage(Path newProjectPath) {
+    GitUrl gitUrl = GitUrl.of(newProjectPath.toString());
+    Path codeRepoPath = this.context.getWorkspacePath().resolve(gitUrl.getProjectName());
+    Path settingsFolder = codeRepoPath.resolve(IdeContext.FOLDER_SETTINGS);
+    if (Files.exists(settingsFolder)) {
+      Predicate<Path> welcomePredicate = path -> String.valueOf(path.getFileName()).startsWith("welcome.");
+      Path welcomeFilePath = this.context.getFileAccess().findFirst(settingsFolder, welcomePredicate, false);
+      if (welcomeFilePath != null) {
+        this.context.info(this.context.getFileAccess().readFileContent(welcomeFilePath));
+      }
+    }
   }
 }
