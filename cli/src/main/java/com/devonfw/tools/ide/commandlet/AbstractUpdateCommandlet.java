@@ -131,7 +131,9 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   }
 
   /**
-   * Process a repository and returns the created new step.
+   * Process a repository.
+   * <p>
+   * Default behavior is to use strategy for settings repository.
    */
   protected void processRepository() {
     RepositoryStrategy repositoryStrategy = new SettingsRepositoryStrategy();
@@ -295,7 +297,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   /**
    * Strategy for handling repository.
    */
-  interface RepositoryStrategy {
+  protected interface RepositoryStrategy {
 
     /**
      * Handler for blank repository, displays warning and asks for input of repository URL.
