@@ -290,6 +290,11 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     fileAccess.makeExecutable(scriptPath);
   }
 
+  /**
+   * Judge if the repository is a code repository.
+   *
+   * @return true when the repository is a code repository, otherwise false.
+   */
   protected boolean isCodeRepository() {
     return false;
   }
