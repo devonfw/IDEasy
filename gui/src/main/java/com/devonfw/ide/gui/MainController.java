@@ -18,7 +18,7 @@ import com.devonfw.tools.ide.log.IdeSubLoggerOut;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
- *
+ * Controller of the main screen of the dashboard GUI.
  */
 public class MainController {
 
