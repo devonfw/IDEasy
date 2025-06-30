@@ -1,8 +1,5 @@
 package com.devonfw.tools.ide.tool;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -12,6 +9,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsHelper;
@@ -63,6 +62,9 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     Path idePath = ideRoot.resolve("_ide");
     Path installationPath = idePath.resolve("installation");
     Path releasePath = idePath.resolve("software/maven/ideasy/ideasy/SNAPSHOT");
+    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.writeFileContent("", gitconfigPath);
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
     // act
     ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
@@ -72,6 +74,7 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     if (systemInfo.isWindows()) {
       assertThat(helper.getUserEnvironmentValue("IDE_ROOT")).isEqualTo(ideRoot.toString());
       assertThat(helper.getUserEnvironmentValue("PATH")).isEqualTo(originalPath + ";" + context.getUserHome().resolve("projects/_ide/installation/bin"));
+      assertThat(context.getUserHome().resolve(".gitconfig")).hasContent("[core]\n\tlongpaths = true");
     }
     assertThat(context.getUserHome().resolve(".bashrc")).hasContent(addedRcLines);
     assertThat(context.getUserHome().resolve(".zshrc")).hasContent("#already exists\n"
@@ -80,80 +83,6 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
         + "devon\n"
         + "source ~/.devon/autocomplete\n"
         + addedRcLines);
-  }
-
-  /**
-   * Test of {@link IdeasyCommandlet#setGitConfigProperty(String, String, String, Path)}
-   *
-   * @throws IOException if creation of temporary file fails
-   */
-  @Test
-  public void testSetGitConfigProperty() throws IOException {
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of("windows");
-    IdeTestContext context = newContext("install");
-    context.setIdeRoot(null);
-    context.setSystemInfo(systemInfo);
-    context.getStartContext().setForceMode(true);
-    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
-
-    File sectionExistsFile = File.createTempFile("gitconfigWithSection", "ini");
-    sectionExistsFile.deleteOnExit();
-    File propertyExistsFile = File.createTempFile("gitconfigWithProperty", "ini");
-    propertyExistsFile.deleteOnExit();
-    File missingFile = File.createTempFile("todelete", "ini");
-    Path sectionExistsPath = sectionExistsFile.toPath();
-    Path propertyExistsPath = propertyExistsFile.toPath();
-    Path missingPath = missingFile.toPath();
-    missingFile.delete();
-    String sectionExistsContent = """
-        [filter "lfs"]
-        \trequired = true
-        \tclean = git-lfs clean -- %f
-        \tsmudge = git-lfs smudge -- %f
-        [credential]
-        \thelper = store
-        [core]
-        \tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe
-        """;
-    String propertyExistsContent = """
-        [filter "lfs"]
-        \trequired = true
-        \tclean = git-lfs clean -- %f
-        \tsmudge = git-lfs smudge -- %f
-        [credential]
-        \thelper = store
-        [core]
-        \tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe
-        longpaths = false
-        """;
-    String expectedContent = """
-        [filter "lfs"]
-        \trequired = true
-        \tclean = git-lfs clean -- %f
-        \tsmudge = git-lfs smudge -- %f
-        [credential]
-        \thelper = store
-        [core]
-        \tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe
-        \tlongpaths = true
-        """;
-    String expectedNewContent = """
-        [core]
-        \tlongpaths = true
-        """;
-    Files.writeString(sectionExistsPath, sectionExistsContent);
-    Files.writeString(propertyExistsPath, propertyExistsContent);
-
-    // act
-    ideasy.setGitConfigProperty("core", "longpaths", "true", sectionExistsPath);
-    ideasy.setGitConfigProperty("core", "longpaths", "true", propertyExistsPath);
-    ideasy.setGitConfigProperty("core", "longpaths", "true", missingPath);
-
-    // assert
-    assertThat(Files.readString(sectionExistsPath)).isEqualTo(expectedContent);
-    assertThat(Files.readString(propertyExistsPath)).isEqualTo(expectedContent);
-    assertThat(Files.readString(missingPath)).isEqualTo(expectedNewContent);
   }
 
   private void verifyInstallation(Path installationPath) {
