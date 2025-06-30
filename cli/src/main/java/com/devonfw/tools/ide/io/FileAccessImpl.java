@@ -22,7 +22,9 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
@@ -46,6 +48,7 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.jline.utils.Log;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -498,7 +501,7 @@ public class FileAccessImpl implements FileAccess {
     } catch (FileSystemException e) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
         this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
-            + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlinks.asciidoc for " + "further details. Error was: "
+            + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for " + "further details. Error was: "
             + e.getMessage());
         createWindowsJunction(adaptedSource, targetLink);
       } else {
@@ -513,8 +516,24 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public Path toRealPath(Path path) {
 
+    return toRealPath(path, true);
+  }
+
+  @Override
+  public Path toCanonicalPath(Path path) {
+
+    return toRealPath(path, false);
+  }
+
+  private Path toRealPath(Path path, boolean resolveLinks) {
+
     try {
-      Path realPath = path.toRealPath();
+      Path realPath;
+      if (resolveLinks) {
+        realPath = path.toRealPath();
+      } else {
+        realPath = path.toRealPath(LinkOption.NOFOLLOW_LINKS);
+      }
       if (!realPath.equals(path)) {
         this.context.trace("Resolved path {} to {}", path, realPath);
       }
@@ -804,6 +823,10 @@ public class FileAccessImpl implements FileAccess {
       }
     }
     this.context.trace("Deleting {} ...", path);
+    boolean isSetWritable = setWritable(path, true);
+    if (!isSetWritable) {
+      this.context.debug("Couldn't give write access to file: " + path);
+    }
     Files.delete(path);
   }
 
@@ -929,6 +952,41 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
+  public boolean setWritable(Path file, boolean writable) {
+    try {
+      // POSIX
+      PosixFileAttributeView posix = Files.getFileAttributeView(file, PosixFileAttributeView.class);
+      if (posix != null) {
+        Set<PosixFilePermission> permissions = new HashSet<>(posix.readAttributes().permissions());
+        boolean changed;
+        if (writable) {
+          changed = permissions.add(PosixFilePermission.OWNER_WRITE);
+        } else {
+          changed = permissions.remove(PosixFilePermission.OWNER_WRITE);
+        }
+        if (changed) {
+          posix.setPermissions(permissions);
+        }
+        return true;
+      }
+
+      // Windows
+      DosFileAttributeView dos = Files.getFileAttributeView(file, DosFileAttributeView.class);
+      if (dos != null) {
+        dos.setReadOnly(!writable);
+        return true;
+      }
+
+      this.context.debug("Failed to set writing permission for file {}", file);
+      return false;
+
+    } catch (IOException e) {
+      this.context.debug("Error occurred when trying to set writing permission for file " + file + ": " + e);
+      return false;
+    }
+  }
+
+  @Override
   public void makeExecutable(Path file, boolean confirm) {
 
     if (Files.exists(file)) {
@@ -998,6 +1056,10 @@ public class FileAccessImpl implements FileAccess {
   public String readFileContent(Path file) {
 
     this.context.trace("Reading content of file from {}", file);
+    if (!Files.exists((file))) {
+      this.context.debug("File {} does not exist", file);
+      return null;
+    }
     try {
       String content = Files.readString(file);
       this.context.trace("Completed reading {} character(s) from file {}", content.length(), file);
@@ -1089,6 +1151,44 @@ public class FileAccessImpl implements FileAccess {
     } catch (IOException e) {
       throw new IllegalStateException("Failed to save properties file during tests.", e);
     }
+  }
+
+  @Override
+  public void readIniFile(Path file, IniFile iniFile) {
+    if (!Files.exists(file)) {
+      this.context.debug("INI file {} does not exist.", iniFile);
+      return;
+    }
+    List<String> iniLines = readFileLines(file);
+    IniSection currentIniSection = null;
+    for (String line : iniLines) {
+      if (line.isEmpty()) {
+        continue;
+      }
+      if (line.startsWith("[")) {
+        String sectionName = line.replace("[", "").replace("]", "").trim();
+        currentIniSection = iniFile.getOrCreateSection(sectionName);
+      } else {
+        int index = line.indexOf('=');
+        if (index > 0) {
+          String propertyName = line.substring(0, index).trim();
+          String propertyValue = line.substring(index + 1).trim();
+          if (currentIniSection == null) {
+            Log.warn("Invalid ini-file with property {} before section", propertyName);
+          } else {
+            currentIniSection.getProperties().put(propertyName, propertyValue);
+          }  
+        } else {
+          // here we can handle comments and empty lines in the future
+        }
+      }
+    }
+  }
+
+  @Override
+  public void writeIniFile(IniFile iniFile, Path file, boolean createParentDir) {
+    String iniString = iniFile.toString();
+    writeFileContent(iniString, file, createParentDir);
   }
 
   @Override

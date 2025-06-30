@@ -10,7 +10,6 @@ import com.devonfw.tools.ide.property.EnumProperty;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.java.Java;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
-import com.devonfw.tools.ide.util.PropertiesFileUtil;
 
 public class Sonar extends LocalToolCommandlet {
 
@@ -90,7 +89,7 @@ public class Sonar extends LocalToolCommandlet {
     this.context.info("SonarQube is running at localhost on the following port (default 9000):");
     Path sonarPropertiesPath = getToolPath().resolve("conf/sonar.properties");
 
-    Properties sonarProperties = PropertiesFileUtil.loadProperties(sonarPropertiesPath);
+    Properties sonarProperties = this.context.getFileAccess().readProperties(sonarPropertiesPath);
     String sonarWebPort = sonarProperties.getProperty("sonar.web.port");
     if (sonarWebPort != null) {
       this.context.info(sonarWebPort);
