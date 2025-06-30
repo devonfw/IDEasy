@@ -136,7 +136,7 @@ public class GitContextImpl implements GitContext {
     GitUrlSyntax gitUrlSyntax = IdeVariables.PREFERRED_GIT_PROTOCOL.get(getContext());
     gitUrl = gitUrlSyntax.format(gitUrl);
     if (this.context.isOfflineMode()) {
-      this.context.requireOnline("git clone of " + gitUrl);
+      this.context.requireOnline("git clone of " + gitUrl, false);
     }
     this.context.getFileAccess().mkdirs(repository);
     List<String> args = new ArrayList<>(7);
@@ -251,16 +251,15 @@ public class GitContextImpl implements GitContext {
     return this.context;
   }
 
-  /**
-   * Checks if there is a git installation and throws an exception if there is none
-   */
-  private void verifyGitInstalled() {
+  @Override
+  public void verifyGitInstalled() {
 
     this.context.findBashRequired();
     Path git = Path.of("git");
     Path binaryGitPath = this.context.getPath().findBinary(git);
     if (git == binaryGitPath) {
-      String message = "Could not find a git installation. We highly recommend installing git since most of our actions require git to work properly!";
+      String message = "Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
+          + "https://git-scm.com/download/";
       throw new CliException(message);
     }
     this.context.trace("Git is installed");
@@ -271,7 +270,7 @@ public class GitContextImpl implements GitContext {
     ProcessResult result = runGitCommand(directory, ProcessMode.DEFAULT, args);
     if (!result.isSuccessful()) {
       String command = result.getCommand();
-      this.context.requireOnline(command);
+      this.context.requireOnline(command, false);
       result.failOnError();
     }
   }

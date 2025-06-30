@@ -216,6 +216,12 @@ public interface FileAccess {
   Path toRealPath(Path path);
 
   /**
+   * @param path the {@link Path} to convert.
+   * @return the absolute and physical {@link Path}.
+   */
+  Path toCanonicalPath(Path path);
+
+  /**
    * Deletes the given {@link Path} idempotent and recursive.
    * <p>
    * ATTENTION: In most cases we want to use {@link #backup(Path)} instead to prevent the user from data loss.
@@ -280,6 +286,15 @@ public interface FileAccess {
   boolean isEmptyDir(Path dir);
 
   /**
+   * Sets or unsets the writable permission for the specified file path.
+   *
+   * @param file {@link Path} to the file.
+   * @param writable {@code true} to make the file writable, {@code false} to make it read-only
+   * @return {@code true} if the operation was successful or supported, {@code false} otherwise
+   */
+  boolean setWritable(Path file, boolean writable);
+
+  /**
    * Makes a file executable (analog to 'chmod a+x').
    *
    * @param file {@link Path} to the file.
@@ -308,7 +323,7 @@ public interface FileAccess {
 
   /**
    * @param file the {@link Path} to the file to read.
-   * @return the content of the specified file (in UTF-8 encoding).
+   * @return the content of the specified file (in UTF-8 encoding), or null if the file doesn't exist
    * @see java.nio.file.Files#readString(Path)
    */
   String readFileContent(Path file);
@@ -400,6 +415,36 @@ public interface FileAccess {
    */
   void writeProperties(Properties properties, Path file, boolean createParentDir);
 
+  /**
+   * @param file the {@link Path} to read from
+   * @return {@link IniFile}
+   */
+  default IniFile readIniFile(Path file) {
+    IniFile iniFile = new IniFileImpl();
+    readIniFile(file, iniFile);
+    return iniFile;
+  }
+
+  /**
+   * @param file the {@link Path} to read from
+   * @param iniFile the {@link IniFile} object the data is loaded into
+   */
+  void readIniFile(Path file, IniFile iniFile);
+
+  /**
+   * @param iniFile the {@link IniFile} object
+   * @param file the {@link Path} to write to
+   */
+  default void writeIniFile(IniFile iniFile, Path file) {
+    writeIniFile(iniFile, file, false);
+  }
+
+  /**
+   * @param iniFile the {@link IniFile} object
+   * @param file the {@link Path} to write to
+   * @param createParentDir whether to create missing parent directories
+   */
+  void writeIniFile(IniFile iniFile, Path file, boolean createParentDir);
 
   /**
    * @param path the {@link Path} to get the age from the modification time.
