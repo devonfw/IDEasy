@@ -234,21 +234,7 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param question the question to ask.
-   * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
-   */
-  default boolean question(String question) {
-
-    String yes = "yes";
-    String option = question(new String[] { yes, "no" }, question, new Object[0]);
-    if (yes.equals(option)) {
-      return true;
-    }
-    return false;
-  }
-
-  /**
-   * @param question the question to ask.
-   * @param args
+   * @param args arguments for filling the templates
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
    */
   default boolean question(String question, Object... args) {
@@ -275,7 +261,7 @@ public interface IdeContext extends IdeStartContext {
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue. Otherwise if the user answers with "no" an
    * exception is thrown to abort further processing.
    *
-   * @param question the yes/no question to {@link #question(String) ask}.
+   * @param question the yes/no question to {@link #question(String, Object...) ask}.
    * @throws CliAbortException if the user answered with "no" and further processing shall be aborted.
    */
   default void askToContinue(String question) {
@@ -290,7 +276,7 @@ public interface IdeContext extends IdeStartContext {
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue. Otherwise if the user answers with "no" an
    * exception is thrown to abort further processing.
    *
-   * @param questionTemplate the yes/no question to {@link #question(String) ask}.
+   * @param questionTemplate the yes/no question to {@link #question(String, Object...) ask}.
    * @param args the arguments to fill the placeholders in the question template.
    * @throws CliAbortException if the user answered with "no" and further processing shall be aborted.
    */

@@ -1,9 +1,13 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -19,12 +23,25 @@ import com.devonfw.tools.ide.version.IdeVersion;
 class CreateCommandletTest extends AbstractIdeContextTest {
 
   private static final String NEW_PROJECT_NAME = "newProject";
+  private IdeTestContext context;
+
+  /**
+   * Create the project basic context, delete new project if it exists.
+   */
+  @BeforeEach
+  void setup() {
+    IdeTestContext context = newContext(PROJECT_BASIC);
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    if (Files.exists(newProjectPath)) {
+      context.getFileAccess().delete(newProjectPath);
+    }
+    this.context = context;
+  }
 
   @Test
   public void testCreateCommandletRun() {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
@@ -40,16 +57,16 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
   }
 
-  @Test
-  public void testWarningWhenSettingsRepoDoesNotContainKeyword(@TempDir Path tempDir) {
-    String invalidSettingsRepo = "https://github.com/devonfw/code.git";
+  @ParameterizedTest
+  @ValueSource(strings = { "some code repository", "some settings repository" })
+  public void testWarningWhenRepoDoesNotMeetNamingConvention(String invalidRepo, @TempDir Path tempDir) {
     // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
     ProcessContextGitMock gitMock = new ProcessContextGitMock(tempDir);
     context.setProcessContext(gitMock);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
-    cc.settingsRepo.setValue(invalidSettingsRepo);
+    cc.codeRepositoryFlag.setValue(!invalidRepo.contains("code")); // raise conflict
+    cc.settingsRepo.setValue(invalidRepo);
     cc.skipTools.setValue(true);
     context.setAnswers("yes");
     // act
@@ -65,35 +82,9 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testWarningWhenCodeRepoContainsKeyword(@TempDir Path tempDir) {
-    String invalidCodeRepo = "https://github.com/devonfw/settings.git";
-    // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    ProcessContextGitMock gitMock = new ProcessContextGitMock(tempDir);
-    context.setProcessContext(gitMock);
-    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
-    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
-    cc.settingsRepo.setValue(invalidCodeRepo);
-    cc.codeRepositoryFlag.setValue(true);
-    cc.skipTools.setValue(true);
-    context.setAnswers("yes");
-    // act
-    cc.run();
-    // assert
-    assertThat(context).logAtInteraction().hasMessageContaining("Do you really want to create the project?");
-    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
-    assertThat(newProjectPath).exists();
-    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
-    assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
-  }
-
-  @Test
-  public void testWarningWhenCodeRepoOmitted(@TempDir Path tempDir) {
+  public void testWarningWhenCodeRepoUsingDefaultMark(@TempDir Path tempDir) {
     String invalidCodeRepo = "-";
     // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
     ProcessContextGitMock gitMock = new ProcessContextGitMock(tempDir);
     context.setProcessContext(gitMock);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
@@ -101,11 +92,11 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     cc.settingsRepo.setValue(invalidCodeRepo);
     cc.codeRepositoryFlag.setValue(true);
     cc.skipTools.setValue(true);
-    context.setAnswers("yes");
+    context.setAnswers("some code repository");
     // act
     cc.run();
     // assert
-    assertThat(context).logAtInteraction().hasMessageContaining("Do you really want to create the project?");
+    assertThat(context).logAtWarning().hasMessageContaining("'-' is found after '--code'. This is invalid.");
     Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
     assertThat(newProjectPath).exists();
     assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
@@ -117,7 +108,6 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   @Test
   public void testIdeVersionTooSmall() {
     // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
@@ -136,7 +126,6 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   @Test
   public void testIdeVersionOk() {
     // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
     CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
     cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
     cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);

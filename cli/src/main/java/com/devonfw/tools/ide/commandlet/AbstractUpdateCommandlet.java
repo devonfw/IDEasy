@@ -308,6 +308,14 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     String handleBlankRepository(IdeContext context);
 
     /**
+     * Handler for default repository "-".
+     *
+     * @param context ide context
+     * @return repository url
+     */
+    String handleDefaultRepository(IdeContext context);
+
+    /**
      * Check the given project name, displays warning when name does not meet convention.
      *
      * @param context ide context
@@ -350,8 +358,18 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
           No code repository was given after '--code'.
           Please give the code repository below that includes your settings folder.
           Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
-          Code repository URL:
-          """;
+          Code repository URL:""";
+      return context.askForInput(message);
+    }
+
+    @Override
+    public String handleDefaultRepository(IdeContext context) {
+      String warning = "'-' is found after '--code'. This is invalid.";
+      context.warning(warning);
+      String message = """
+          Please give the code repository below that includes your settings folder.
+          Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
+          Code repository URL:""";
       return context.askForInput(message);
     }
 
@@ -361,8 +379,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
         String warningTemplate = """
             Your git URL is pointing to the project name {} that contains the keyword '{}'.
             Therefore we assume that you did a mistake by adding the '--code' option to the ide project creation.
-            Do you really want to create the project?
-            """;
+            Do you really want to create the project?""";
         context.askToContinue(warningTemplate, projectName,
             IdeContext.SETTINGS_REPOSITORY_KEYWORD);
       }
@@ -415,13 +432,19 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     }
 
     @Override
+    public String handleDefaultRepository(IdeContext context) {
+      String message = "'-' is found for settings repository, the default settings repository '{}' will be used.";
+      context.info(message, IdeContext.DEFAULT_SETTINGS_REPO_URL);
+      return IdeContext.DEFAULT_SETTINGS_REPO_URL;
+    }
+
+    @Override
     public void checkProjectNameConvention(IdeContext context, String projectName) {
       if (!projectName.contains(IdeContext.SETTINGS_REPOSITORY_KEYWORD)) {
         String warningTemplate = """
             Your git URL is pointing to the project name {} that does not contain the keyword ''{}''.
             Therefore we assume that you forgot to add the '--code' option to the ide project creation.
-            Do you really want to create the project?
-            """;
+            Do you really want to create the project?""";
         context.askToContinue(warningTemplate, projectName,
             IdeContext.SETTINGS_REPOSITORY_KEYWORD);
       }
@@ -450,11 +473,11 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   protected void processRepositoryUsingStrategy(RepositoryStrategy strategy) {
     Step step = strategy.createNewStep(this.context);
     String repository = this.settingsRepo.getValue();
-    if (repository == null || repository.isBlank()) {
+    while (repository == null || repository.isBlank()) {
       repository = strategy.handleBlankRepository(this.context);
     }
-    if ("-".equals(repository)) {
-      repository = IdeContext.DEFAULT_SETTINGS_REPO_URL;
+    while ("-".equals(repository)) {
+      repository = strategy.handleDefaultRepository(context);
     }
     GitUrl gitUrl = GitUrl.of(repository);
     strategy.checkProjectNameConvention(this.context, gitUrl.getProjectName());
