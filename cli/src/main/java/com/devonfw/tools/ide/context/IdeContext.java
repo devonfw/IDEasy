@@ -190,6 +190,11 @@ public interface IdeContext extends IdeStartContext {
       """.replace('╲', '\\');
 
   /**
+   * The keyword for project name convention.
+   */
+  String SETTINGS_REPOSITORY_KEYWORD = "settings";
+
+  /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
    */
   default boolean isOffline() {
@@ -234,7 +239,22 @@ public interface IdeContext extends IdeStartContext {
   default boolean question(String question) {
 
     String yes = "yes";
-    String option = question(question, yes, "no");
+    String option = question(new String[] { yes, "no" }, question, new Object[0]);
+    if (yes.equals(option)) {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * @param question the question to ask.
+   * @param args
+   * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
+   */
+  default boolean question(String question, Object... args) {
+
+    String yes = "yes";
+    String option = question(new String[] { yes, "no" }, question, args);
     if (yes.equals(option)) {
       return true;
     }
@@ -243,12 +263,13 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param <O> type of the option. E.g. {@link String}.
-   * @param question the question to ask.
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
+   * @param question the question to ask.
    * @return the option selected by the user as answer.
    */
   @SuppressWarnings("unchecked")
-  <O> O question(String question, O... options);
+  <O> O question(O[] options, String question, Object... args);
+
 
   /**
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue. Otherwise if the user answers with "no" an
@@ -260,6 +281,21 @@ public interface IdeContext extends IdeStartContext {
   default void askToContinue(String question) {
 
     boolean yesContinue = question(question);
+    if (!yesContinue) {
+      throw new CliAbortException();
+    }
+  }
+
+  /**
+   * Will ask the given question. If the user answers with "yes" the method will return and the process can continue. Otherwise if the user answers with "no" an
+   * exception is thrown to abort further processing.
+   *
+   * @param questionTemplate the yes/no question to {@link #question(String) ask}.
+   * @param args the arguments to fill the placeholders in the question template.
+   * @throws CliAbortException if the user answered with "no" and further processing shall be aborted.
+   */
+  default void askToContinue(String questionTemplate, Object... args) {
+    boolean yesContinue = question(questionTemplate, args);
     if (!yesContinue) {
       throw new CliAbortException();
     }

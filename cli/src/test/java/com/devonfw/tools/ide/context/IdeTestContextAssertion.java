@@ -51,6 +51,13 @@ public class IdeTestContextAssertion {
   }
 
   /**
+   * @return the {@link IdeTestLoggerAssertion} for assertion on {@link IdeLogLevel#INTERACTION}.
+   */
+  public IdeTestLoggerAssertion logAtInteraction() {
+    return log(IdeLogLevel.INTERACTION);
+  }
+
+  /**
    * @return the {@link IdeTestLoggerAssertion} for assertion on {@link IdeLogLevel#SUCCESS}.
    */
   public IdeTestLoggerAssertion logAtSuccess() {
