@@ -309,12 +309,16 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private String getMessageIdeHomeFound() {
 
-    return "IDE environment variables have been set for " + this.ideHome + " in workspace " + this.workspaceName;
+    String wks = this.workspaceName;
+    if (isPrivacyMode() && !WORKSPACE_MAIN.equals(wks)) {
+      wks = "*".repeat(wks.length());
+    }
+    return "IDE environment variables have been set for " + formatArgument(this.ideHome) + " in workspace " + wks;
   }
 
   private String getMessageNotInsideIdeProject() {
 
-    return "You are not inside an IDE project: " + this.cwd;
+    return "You are not inside an IDE project: " + formatArgument(this.cwd);
   }
 
   private String getMessageIdeRootNotFound() {
@@ -323,7 +327,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (root == null) {
       return "The environment variable IDE_ROOT is undefined. Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     } else {
-      return "The environment variable IDE_ROOT is pointing to an invalid path " + root + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
+      return "The environment variable IDE_ROOT is pointing to an invalid path " + formatArgument(root)
+          + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     }
   }
 

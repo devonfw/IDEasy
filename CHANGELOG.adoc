@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1401[#1401]: Privacy option not working properly
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/30?closed=1[milestone 2025.07.001].
 
