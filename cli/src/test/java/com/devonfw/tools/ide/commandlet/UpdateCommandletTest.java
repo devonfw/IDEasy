@@ -107,4 +107,22 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasMessage("Successfully updated settings repository.");
     assertThat(context).logAtSuccess().hasMessageContaining("Install or update software");
   }
+
+  @Test
+  public void testRunUpdateSoftwareDoesNotFailWhenSettingPathIsDeleted() {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_UPDATE);
+    Path settingsPath = context.getSettingsPath();
+    context.getFileAccess().delete(settingsPath);
+    UpdateCommandlet update = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
+    context.setAnswers("-");
+
+    // act
+    update.run();
+    //
+    // assert
+    assertThat(context).logAtSuccess().hasMessage("Successfully updated settings repository.");
+    assertThat(context).logAtSuccess().hasMessageContaining("Install or update software");
+  }
 }
