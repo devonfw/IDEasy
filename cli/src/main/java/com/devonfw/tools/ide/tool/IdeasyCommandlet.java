@@ -15,9 +15,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.io.IniFile;
-import com.devonfw.tools.ide.io.IniFileImpl;
 import com.devonfw.tools.ide.io.IniSection;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -107,7 +105,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
   @Override
   public boolean install(boolean silent) {
-    
+
     this.context.requireOnline("upgrade of IDEasy", true);
 
     if (IdeVersion.isUndefined()) {
@@ -137,7 +135,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public boolean checkIfUpdateIsAvailable() {
     VersionIdentifier installedVersion = getInstalledVersion();
-    if (!this.context.isOnline()) {
+    if (this.context.isOffline()) {
       this.context.success("Your version of IDEasy is {}.", installedVersion);
       this.context.warning("Skipping check for newer version of IDEasy due to lack of network connectivity.");
       return false;
