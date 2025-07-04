@@ -14,11 +14,4 @@ public interface IniProperty extends IniElement {
    * @return property value
    */
   String getValue();
-
-  /**
-   * sets property value
-   *
-   * @param value new value
-   */
-  void setValue(String value);
 }
