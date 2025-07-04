@@ -27,4 +27,28 @@ public interface IniFile {
    * @return existing or newly created {@link IniSection}
    */
   IniSection getOrCreateSection(String section);
+
+  /**
+   * adds a property to the bottom of the ini file
+   *
+   * @param key property key
+   * @param value property value
+   */
+  void setProperty(String key, String value);
+
+  /**
+   * gets a top level property
+   *
+   * @param key property key
+   * @return the {@link IniProperty}
+   */
+  IniProperty getProperty(String key);
+
+  /**
+   * adds a comment to the bottom of the ini file
+   *
+   * @param comment the comment
+   * @param indentLevel indentation level
+   */
+  void addComment(String comment, int indentLevel);
 }
