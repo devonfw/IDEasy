@@ -1,12 +1,12 @@
 package com.devonfw.tools.ide.io;
 
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * container for a section in an {@link IniFile}
  */
-public interface IniSection {
+public interface IniSection extends IniElement {
 
   /**
    * @return the section name
@@ -14,7 +14,28 @@ public interface IniSection {
   String getName();
 
   /**
-   * @return map of the section key-value pairs
+   * @return list of property keys
    */
-  Map<String, String> getProperties();
+  List<String> getPropertyKeys();
+
+  /**
+   * @param key the property key
+   * @return the property with the given key
+   */
+  IniProperty getProperty(String key);
+
+  /**
+   * Add a property to the section
+   *
+   * @param key property key
+   * @param value property value
+   */
+  void setProperty(String key, String value);
+
+  /**
+   * Add a comment to the section
+   *
+   * @param comment the comment
+   */
+  void addComment(String comment);
 }

@@ -48,7 +48,6 @@ import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
-import org.jline.utils.Log;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -1168,18 +1167,24 @@ public class FileAccessImpl implements FileAccess {
       if (line.startsWith("[")) {
         String sectionName = line.replace("[", "").replace("]", "").trim();
         currentIniSection = iniFile.getOrCreateSection(sectionName);
+      } else if (line.strip().startsWith(";")) {
+        if (currentIniSection == null) {
+          iniFile.addComment(line);
+        } else {
+          currentIniSection.addComment(line);
+        }
       } else {
         int index = line.indexOf('=');
         if (index > 0) {
           String propertyName = line.substring(0, index).trim();
           String propertyValue = line.substring(index + 1).trim();
           if (currentIniSection == null) {
-            Log.warn("Invalid ini-file with property {} before section", propertyName);
+            iniFile.addProperty(propertyName, propertyValue);
           } else {
-            currentIniSection.getProperties().put(propertyName, propertyValue);
-          }  
+            currentIniSection.setProperty(propertyName, propertyValue);
+          }
         } else {
-          // here we can handle comments and empty lines in the future
+          // here we can handle empty lines in the future
         }
       }
     }

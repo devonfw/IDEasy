@@ -3,8 +3,8 @@ package com.devonfw.tools.ide.io;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
@@ -18,6 +18,7 @@ import com.devonfw.tools.ide.context.IdeTestContextMock;
 public class IniFileImplTest extends AbstractIdeContextTest {
 
   String iniContent = """
+      ; this is an ini file!
       [filter "lfs"]
       \trequired = true
       \tclean = git-lfs clean -- %f
@@ -25,6 +26,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
       [credential]
       \thelper = store
       [core]
+      \t; core elements
       \tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe
       \tlongpaths = false
       [last section]
@@ -93,8 +95,10 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFile = getIniFile(context);
     String sectionName = "credential";
-    Map<String, String> expectedProperties = new LinkedHashMap<>();
-    expectedProperties.put("helper", "store");
+    String newSectionName = "missing section";
+    List<String> expectedPropertyKeys = new LinkedList<>();
+    expectedPropertyKeys.add("helper");
+    String expectedHelperValue = "store";
 
     // act
     IniSection section = iniFile.getSection(sectionName);
@@ -102,7 +106,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(section.getName()).isEqualTo(sectionName);
-    assertThat(section.getProperties()).isEqualTo(expectedProperties);
+    assertThat(section.getPropertyKeys()).isEqualTo(expectedPropertyKeys);
     assertThat(missingSection).isNull();
   }
 
@@ -118,8 +122,9 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     IniFile iniFile = getIniFile(context);
     String sectionName = "credential";
     String newSectionName = "missing section";
-    Map<String, String> expectedProperties = new LinkedHashMap<>();
-    expectedProperties.put("helper", "store");
+    List<String> expectedPropertyKeys = new LinkedList<>();
+    expectedPropertyKeys.add("helper");
+    String expectedHelperValue = "store";
 
     // act
     IniSection section = iniFile.getOrCreateSection(sectionName);
@@ -127,10 +132,11 @@ public class IniFileImplTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(section.getName()).isEqualTo(sectionName);
-    assertThat(section.getProperties()).isEqualTo(expectedProperties);
+    assertThat(section.getPropertyKeys()).isEqualTo(expectedPropertyKeys);
+    assertThat(section.getProperty("helper").getValue()).isEqualTo(expectedHelperValue);
 
     assertThat(newSection.getName()).isEqualTo(newSectionName);
-    assertThat(newSection.getProperties()).isEqualTo(new LinkedHashMap<>());
+    assertThat(newSection.getPropertyKeys()).isEmpty();
   }
 
   /**

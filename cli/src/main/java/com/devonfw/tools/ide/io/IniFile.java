@@ -27,4 +27,19 @@ public interface IniFile {
    * @return existing or newly created {@link IniSection}
    */
   IniSection getOrCreateSection(String section);
+
+  /**
+   * adds a property to the bottom of the ini file
+   *
+   * @param key property key
+   * @param value property value
+   */
+  void addProperty(String key, String value);
+
+  /**
+   * adds a comment to the bottom of the ini file
+   *
+   * @param comment the comment
+   */
+  void addComment(String comment);
 }
