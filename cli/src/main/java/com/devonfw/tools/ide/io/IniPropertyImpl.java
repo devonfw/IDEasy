@@ -5,9 +5,9 @@ package com.devonfw.tools.ide.io;
  */
 public class IniPropertyImpl implements IniProperty {
 
-  String key;
-  String value;
-  int indentLevel;
+  private String key;
+  private String value;
+  private int indentLevel;
 
   /**
    * creates a new IniPropertyImpl
