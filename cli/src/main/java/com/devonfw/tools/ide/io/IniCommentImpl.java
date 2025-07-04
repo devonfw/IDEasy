@@ -6,12 +6,27 @@ package com.devonfw.tools.ide.io;
 public class IniCommentImpl implements IniComment {
 
   String comment;
+  int indentLevel;
+
+  /**
+   * @param comment the content of the comment, including comment marker like ";"
+   * @param indentLevel the indentation level
+   */
+  public IniCommentImpl(String comment, int indentLevel) {
+    this.comment = comment;
+    this.indentLevel = indentLevel;
+  }
 
   /**
    * @param comment the content of the comment, including comment marker like ";"
    */
   public IniCommentImpl(String comment) {
-    this.comment = comment;
+    this(comment, 0);
+  }
+
+  @Override
+  public int getIndentLevel() {
+    return indentLevel;
   }
 
   @Override

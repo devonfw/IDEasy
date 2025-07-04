@@ -38,6 +38,9 @@ public interface IniFile {
 
   /**
    * gets a top level property
+   *
+   * @param key property key
+   * @return the {@link IniProperty}
    */
   IniProperty getProperty(String key);
 
@@ -45,6 +48,7 @@ public interface IniFile {
    * adds a comment to the bottom of the ini file
    *
    * @param comment the comment
+   * @param indentLevel indentation level
    */
-  void addComment(String comment);
+  void addComment(String comment, int indentLevel);
 }

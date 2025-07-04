@@ -1164,14 +1164,15 @@ public class FileAccessImpl implements FileAccess {
       if (line.isEmpty()) {
         continue;
       }
+      int indentLevel = line.length() - line.stripLeading().length();
       if (line.startsWith("[")) {
         String sectionName = line.replace("[", "").replace("]", "").trim();
         currentIniSection = iniFile.getOrCreateSection(sectionName);
       } else if (line.strip().startsWith(";")) {
         if (currentIniSection == null) {
-          iniFile.addComment(line);
+          iniFile.addComment(line.strip(), indentLevel);
         } else {
-          currentIniSection.addComment(line);
+          currentIniSection.addComment(line.strip(), indentLevel);
         }
       } else {
         int index = line.indexOf('=');
@@ -1181,7 +1182,7 @@ public class FileAccessImpl implements FileAccess {
           if (currentIniSection == null) {
             iniFile.setProperty(propertyName, propertyValue);
           } else {
-            currentIniSection.setProperty(propertyName, propertyValue);
+            currentIniSection.setProperty(propertyName, propertyValue, indentLevel);
           }
         } else {
           // here we can handle empty lines in the future

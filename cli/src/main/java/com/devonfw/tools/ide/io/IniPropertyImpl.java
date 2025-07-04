@@ -7,16 +7,29 @@ public class IniPropertyImpl implements IniProperty {
 
   String key;
   String value;
+  int indentLevel;
 
   /**
    * creates a new IniPropertyImpl
    *
    * @param key property key
    * @param value property value
+   * @param indentLevel the indentation level
    */
-  public IniPropertyImpl(String key, String value) {
+  public IniPropertyImpl(String key, String value, int indentLevel) {
     this.key = key;
     this.value = value;
+    this.indentLevel = indentLevel;
+  }
+
+  /**
+   * creates a new IniPropertyImpl with indentation level 0
+   *
+   * @param key property key
+   * @param value property value
+   */
+  public IniPropertyImpl(String key, String value) {
+    this(key, value, 0);
   }
 
   @Override
@@ -35,7 +48,12 @@ public class IniPropertyImpl implements IniProperty {
   }
 
   @Override
+  public int getIndentLevel() {
+    return indentLevel;
+  }
+
+  @Override
   public String toString() {
-    return "\t" + key + " = " + value;
+    return key + " = " + value;
   }
 }

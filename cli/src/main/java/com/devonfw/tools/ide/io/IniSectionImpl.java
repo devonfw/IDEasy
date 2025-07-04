@@ -56,15 +56,20 @@ public class IniSectionImpl implements IniSection {
   }
 
   @Override
-  public void setProperty(String key, String value) {
-    IniProperty property = new IniPropertyImpl(key, value);
+  public void setProperty(String key, String value, int indentLevel) {
+    IniProperty property = new IniPropertyImpl(key, value, indentLevel);
     sectionElements.add(property);
     properties.put(key, property);
   }
 
   @Override
-  public void addComment(String comment) {
-    sectionElements.add(new IniCommentImpl(comment));
+  public void addComment(String comment, int indentLevel) {
+    sectionElements.add(new IniCommentImpl(comment, indentLevel));
+  }
+
+  @Override
+  public int getIndentLevel() {
+    return 0;
   }
 
   @Override
@@ -73,7 +78,8 @@ public class IniSectionImpl implements IniSection {
     stringBuilder.append("[").append(name).append("]").append("\n");
     for (int i = 0; i < sectionElements.size(); i++) {
       IniElement element = sectionElements.get(i);
-      stringBuilder.append(element.toString());
+      stringBuilder.append("\t".repeat(Math.max(0, element.getIndentLevel())));
+      stringBuilder.append(element);
       if (i + 1 < sectionElements.size()) {
         stringBuilder.append("\n");
       }

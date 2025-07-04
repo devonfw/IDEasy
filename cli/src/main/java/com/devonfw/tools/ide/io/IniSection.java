@@ -29,13 +29,15 @@ public interface IniSection extends IniElement {
    *
    * @param key property key
    * @param value property value
+   * @param indentLevel indentation level
    */
-  void setProperty(String key, String value);
+  void setProperty(String key, String value, int indentLevel);
 
   /**
    * Add a comment to the section
    *
    * @param comment the comment
+   * @param indentLevel indentation level
    */
-  void addComment(String comment);
+  void addComment(String comment, int indentLevel);
 }

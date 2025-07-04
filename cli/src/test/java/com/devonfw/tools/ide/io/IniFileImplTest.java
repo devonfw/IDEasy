@@ -19,6 +19,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
 
   String iniContent = """
       ; this is an ini file!
+      filetype = ini file
       [filter "lfs"]
       \trequired = true
       \tclean = git-lfs clean -- %f

@@ -68,15 +68,16 @@ public class IniFileImpl implements IniFile {
   }
 
   @Override
-  public void addComment(String comment) {
-    fileElements.add(new IniCommentImpl(comment));
+  public void addComment(String comment, int indentLevel) {
+    fileElements.add(new IniCommentImpl(comment, indentLevel));
   }
 
   @Override
   public String toString() {
     StringBuilder stringBuilder = new StringBuilder();
     for (IniElement element : fileElements) {
-      stringBuilder.append(element.toString()).append("\n");
+      stringBuilder.append("\t".repeat(Math.max(0, element.getIndentLevel())));
+      stringBuilder.append(element).append("\n");
     }
     return stringBuilder.toString();
   }
