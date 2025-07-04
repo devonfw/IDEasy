@@ -34,7 +34,12 @@ public interface IniFile {
    * @param key property key
    * @param value property value
    */
-  void addProperty(String key, String value);
+  void setProperty(String key, String value);
+
+  /**
+   * gets a top level property
+   */
+  IniProperty getProperty(String key);
 
   /**
    * adds a comment to the bottom of the ini file

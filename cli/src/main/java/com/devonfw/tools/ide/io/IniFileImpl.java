@@ -12,6 +12,8 @@ public class IniFileImpl implements IniFile {
 
   private final Map<String, IniSection> iniMap;
 
+  private final Map<String, IniProperty> properties;
+
   private final List<IniElement> fileElements;
 
   /**
@@ -20,6 +22,7 @@ public class IniFileImpl implements IniFile {
   public IniFileImpl() {
     this.iniMap = new LinkedHashMap<>();
     this.fileElements = new LinkedList<>();
+    this.properties = new LinkedHashMap<>();
   }
 
   @Override
@@ -53,8 +56,15 @@ public class IniFileImpl implements IniFile {
   }
 
   @Override
-  public void addProperty(String key, String value) {
-    fileElements.add(new IniPropertyImpl(key, value));
+  public void setProperty(String key, String value) {
+    IniProperty property = new IniPropertyImpl(key, value);
+    fileElements.add(property);
+    properties.put(key, property);
+  }
+
+  @Override
+  public IniProperty getProperty(String key) {
+    return properties.get(key);
   }
 
   @Override

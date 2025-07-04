@@ -1179,7 +1179,7 @@ public class FileAccessImpl implements FileAccess {
           String propertyName = line.substring(0, index).trim();
           String propertyValue = line.substring(index + 1).trim();
           if (currentIniSection == null) {
-            iniFile.addProperty(propertyName, propertyValue);
+            iniFile.setProperty(propertyName, propertyValue);
           } else {
             currentIniSection.setProperty(propertyName, propertyValue);
           }
