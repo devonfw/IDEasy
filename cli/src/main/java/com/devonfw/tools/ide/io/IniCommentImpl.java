@@ -5,8 +5,8 @@ package com.devonfw.tools.ide.io;
  */
 public class IniCommentImpl implements IniComment {
 
-  String comment;
-  int indentLevel;
+  private String comment;
+  private int indentLevel;
 
   /**
    * @param comment the content of the comment, including comment marker like ";"
