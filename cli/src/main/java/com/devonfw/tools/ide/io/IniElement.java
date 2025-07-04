@@ -9,6 +9,4 @@ public interface IniElement {
    * @return the indentation level of the element
    */
   int getIndentLevel();
-
-  String toString();
 }
