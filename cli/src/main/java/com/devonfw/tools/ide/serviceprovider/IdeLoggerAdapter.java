@@ -1,9 +1,10 @@
 package com.devonfw.tools.ide.serviceprovider;
 
-import static com.devonfw.tools.ide.context.AbstractIdeContext.loggingContext;
-
 import org.slf4j.Logger;
 import org.slf4j.Marker;
+
+import com.devonfw.tools.ide.context.AbstractIdeContext;
+import com.devonfw.tools.ide.context.IdeContext;
 
 /**
  * Implementation of {@link Logger}.
@@ -11,6 +12,8 @@ import org.slf4j.Marker;
 public class IdeLoggerAdapter implements Logger {
 
   private final String name;
+
+  private final IdeContext loggingContext;
 
   /**
    * The constructor.
@@ -20,6 +23,12 @@ public class IdeLoggerAdapter implements Logger {
   public IdeLoggerAdapter(String name) {
 
     this.name = name;
+    // TODO: check for WireMock, com.github.jknack.handlebars.Handlebars, org.eclipse.jetty.util.Jetty
+    if (name.equals("WireMock") || name.contains("jknack") || name.contains("jetty")) {
+      loggingContext = null;
+      return;
+    }
+    loggingContext = AbstractIdeContext.getLoggingContext();
   }
 
   @Override
@@ -266,7 +275,9 @@ public class IdeLoggerAdapter implements Logger {
 
   @Override
   public void warn(String s, Throwable throwable) {
-    loggingContext.warning(s, throwable);
+    if (loggingContext != null) {
+      loggingContext.warning(s, throwable);
+    }
   }
 
   @Override
