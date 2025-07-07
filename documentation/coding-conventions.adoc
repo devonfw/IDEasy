@@ -824,25 +824,26 @@ Use Filter method & comprehension
 [source,java]
 ----
 // bad
-static public Iterator<String> TwitterHandles(Iterator<Author> authors, string company) {
-    final List result = new ArrayList<String> ();
-    foreach (Author a : authors) {
-      if (a.Company.equals(company)) {
-        String handle = a.TwitterHandle;
-        if (handle != null)
-          result.Add(handle);
+public static List<String> twitterHandles(Collection<Author> authors, String company) {
+  final List<String> result = new ArrayList<>();
+  authors.stream().forEach(a -> {
+    if (a.getCompany().equals(company)) {
+      String handle = a.getTwitterHandle();
+      if (handle != null) {
+        result.add(handle);
       }
     }
-    return result;
-  }
+  });
+  return result;
+}
 ----
 +
 [source,java]
 ----
 // fine
-public List<String> twitterHandles(List<Author> authors, String company) {
+public List<String> twitterHandles(Collection<Author> authors, String company) {
     return authors.stream()
-            .filter(a -> null != a && a.getCompany().equals(company))
+            .filter(a -> (a != null) && a.getCompany().equals(company))
             .map(a -> a.getTwitterHandle())
             .collect(toList());
   }

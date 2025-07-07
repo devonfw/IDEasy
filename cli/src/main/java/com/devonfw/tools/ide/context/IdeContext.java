@@ -21,6 +21,7 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
 import com.devonfw.tools.ide.tool.repository.MavenRepository;
@@ -189,6 +190,11 @@ public interface IdeContext extends IdeStartContext {
       """.replace('╲', '\\');
 
   /**
+   * The keyword for project name convention.
+   */
+  String SETTINGS_REPOSITORY_KEYWORD = "settings";
+
+  /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
    */
   default boolean isOffline() {
@@ -228,12 +234,13 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param question the question to ask.
+   * @param args arguments for filling the templates
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
    */
-  default boolean question(String question) {
+  default boolean question(String question, Object... args) {
 
     String yes = "yes";
-    String option = question(question, yes, "no");
+    String option = question(new String[] { yes, "no" }, question, args);
     if (yes.equals(option)) {
       return true;
     }
@@ -242,23 +249,23 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param <O> type of the option. E.g. {@link String}.
-   * @param question the question to ask.
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
+   * @param question the question to ask.
    * @return the option selected by the user as answer.
    */
   @SuppressWarnings("unchecked")
-  <O> O question(String question, O... options);
+  <O> O question(O[] options, String question, Object... args);
 
   /**
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue. Otherwise if the user answers with "no" an
    * exception is thrown to abort further processing.
    *
-   * @param question the yes/no question to {@link #question(String) ask}.
+   * @param questionTemplate the yes/no question to {@link #question(String, Object...) ask}.
+   * @param args the arguments to fill the placeholders in the question template.
    * @throws CliAbortException if the user answered with "no" and further processing shall be aborted.
    */
-  default void askToContinue(String question) {
-
-    boolean yesContinue = question(question);
+  default void askToContinue(String questionTemplate, Object... args) {
+    boolean yesContinue = question(questionTemplate, args);
     if (!yesContinue) {
       throw new CliAbortException();
     }
@@ -266,12 +273,19 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param purpose the purpose why Internet connection is required.
+   * @param explicitOnlineCheck if {@code true}, perform an explicit {@link #isOffline()} check; if {@code false} use {@link #isOfflineMode()}.
    * @throws CliException if you are {@link #isOffline() offline}.
    */
-  default void requireOnline(String purpose) {
+  default void requireOnline(String purpose, boolean explicitOnlineCheck) {
 
-    if (isOfflineMode()) {
-      throw CliOfflineException.ofPurpose(purpose);
+    if (explicitOnlineCheck) {
+      if (isOffline()) {
+        throw CliOfflineException.ofPurpose(purpose);
+      }
+    } else {
+      if (isOfflineMode()) {
+        throw CliOfflineException.ofPurpose(purpose);
+      }
     }
   }
 
@@ -612,6 +626,18 @@ public interface IdeContext extends IdeStartContext {
     }
     Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
     return mvn.getMavenArgs();
+  }
+
+  /**
+   * @return the path for the variable GRADLE_USER_HOME, or null if called outside an IDEasy installation.
+   */
+  default Path getGradleUserHome() {
+
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Gradle gradle = getCommandletManager().getCommandlet(Gradle.class);
+    return gradle.getOrCreateGradleConfFolder();
   }
 
   /**

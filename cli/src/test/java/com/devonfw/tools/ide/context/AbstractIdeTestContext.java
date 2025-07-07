@@ -223,13 +223,11 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     this.systemInfo = systemInfo;
   }
 
-  /**
-   * @param dummyUserHome mock path which will be used in {@link #getUserHome()}
-   */
+  @Override
   public void setUserHome(Path dummyUserHome) {
 
     requireMutable();
-    this.userHome = dummyUserHome;
+    super.setUserHome(dummyUserHome);
   }
 
   @Override
@@ -316,7 +314,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
   }
 
   @Override
-  protected Path getIdeRootPathFromEnv() {
+  protected Path getIdeRootPathFromEnv(boolean withSanityCheck) {
 
     Path workingDirectory = getCwd();
     Path root = Path.of("").toAbsolutePath();
