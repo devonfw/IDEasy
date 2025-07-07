@@ -1,7 +1,5 @@
 package com.devonfw.ide.gui;
 
-import static ch.qos.logback.core.util.OptionHelper.getEnv;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,7 +33,7 @@ public class MainController {
   @FXML
   private Button vsCodeOpen;
 
-  private final String directoryPath = getEnv(IdeVariables.IDE_ROOT.getName());
+  private final String directoryPath = IdeVariables.IDE_ROOT.getName();
   private Path projectValue;
   private Path workspaceValue;
 
