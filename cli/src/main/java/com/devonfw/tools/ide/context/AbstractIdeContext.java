@@ -912,10 +912,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   @SuppressWarnings("unchecked")
   @Override
-  public <O> O question(String question, O... options) {
+  public <O> O question(O[] options, String question, Object... args) {
 
     assert (options.length >= 2);
-    interaction(question);
+    interaction(question, args);
+    return displayOptionsAndGetAnswer(options);
+  }
+
+  private <O> O displayOptionsAndGetAnswer(O[] options) {
     Map<String, O> mapping = new HashMap<>(options.length);
     int i = 0;
     for (O option : options) {

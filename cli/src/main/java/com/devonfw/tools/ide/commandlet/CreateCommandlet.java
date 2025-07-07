@@ -71,24 +71,6 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     logWelcomeMessage(newProjectPath);
   }
 
-  private void initializeCodeRepository(String repoUrl) {
-
-    // clone the given repository into IDE_HOME/workspaces/main
-    GitUrl gitUrl = GitUrl.of(repoUrl);
-    Path codeRepoPath = this.context.getWorkspacePath().resolve(gitUrl.getProjectName());
-    this.context.getGitContext().pullOrClone(gitUrl, codeRepoPath);
-
-    // check for settings folder and create symlink to IDE_HOME/settings
-    Path settingsFolder = codeRepoPath.resolve(IdeContext.FOLDER_SETTINGS);
-    if (Files.exists(settingsFolder)) {
-      this.context.getFileAccess().symlink(settingsFolder, this.context.getSettingsPath());
-      // create a file in IDE_HOME with the current local commit id
-      this.context.getGitContext().saveCurrentCommitId(codeRepoPath, this.context.getSettingsCommitIdPath());
-    } else {
-      this.context.warning("No settings folder was found inside the code repository.");
-    }
-  }
-
   private void initializeProject(Path newInstancePath) {
 
     FileAccess fileAccess = this.context.getFileAccess();
@@ -98,24 +80,18 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   }
 
   @Override
-  protected void updateSettings() {
-
-    if (this.codeRepositoryFlag.isTrue()) {
-      String codeRepository = this.settingsRepo.getValue();
-      if (codeRepository == null || codeRepository.isBlank()) {
-        String message = """
-            No code repository was given after '--code'.
-            Please give the code repository below that includes your settings folder.
-            Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
-            Code repository URL:
-            """;
-        codeRepository = this.context.askForInput(message);
-      }
-      initializeCodeRepository(codeRepository);
-    } else {
-      super.updateSettings();
+  protected void processRepository() {
+    RepositoryStrategy repositoryStrategy = new SettingsRepositoryStrategy();
+    if (isCodeRepository()) {
+      repositoryStrategy = new CodeRepositoryStrategy();
     }
 
+    processRepositoryUsingStrategy(repositoryStrategy);
+  }
+
+  @Override
+  protected boolean isCodeRepository() {
+    return this.codeRepositoryFlag.isTrue();
   }
 
   private void logWelcomeMessage(Path newProjectPath) {
