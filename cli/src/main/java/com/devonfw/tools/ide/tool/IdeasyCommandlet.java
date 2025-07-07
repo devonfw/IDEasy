@@ -135,9 +135,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public boolean checkIfUpdateIsAvailable() {
     VersionIdentifier installedVersion = getInstalledVersion();
-    if (!this.context.isOnline()) {
+    if (this.context.isOffline()) {
       this.context.success("Your version of IDEasy is {}.", installedVersion);
-      this.context.warning("Skipping check for newer version of IDEasy due to lack of network connectivity.");
+      this.context.warning("Skipping check for newer version of IDEasy because you are offline.");
       return false;
     }
     VersionIdentifier latestVersion = getLatestVersion();
