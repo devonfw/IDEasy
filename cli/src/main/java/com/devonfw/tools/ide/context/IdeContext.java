@@ -256,22 +256,6 @@ public interface IdeContext extends IdeStartContext {
   @SuppressWarnings("unchecked")
   <O> O question(O[] options, String question, Object... args);
 
-
-  /**
-   * Will ask the given question. If the user answers with "yes" the method will return and the process can continue. Otherwise if the user answers with "no" an
-   * exception is thrown to abort further processing.
-   *
-   * @param question the yes/no question to {@link #question(String, Object...) ask}.
-   * @throws CliAbortException if the user answered with "no" and further processing shall be aborted.
-   */
-  default void askToContinue(String question) {
-
-    boolean yesContinue = question(question);
-    if (!yesContinue) {
-      throw new CliAbortException();
-    }
-  }
-
   /**
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue. Otherwise if the user answers with "no" an
    * exception is thrown to abort further processing.
