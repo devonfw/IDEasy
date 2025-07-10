@@ -75,6 +75,7 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     }
     updateConf();
     reloadContext();
+    this.context.verifyIdeMinVersion(true);
 
     updateSoftware();
     updateRepositories();
