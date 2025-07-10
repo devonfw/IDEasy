@@ -43,11 +43,6 @@ public class IniPropertyImpl implements IniProperty {
   }
 
   @Override
-  public void setValue(String value) {
-    this.value = value;
-  }
-
-  @Override
   public int getIndentLevel() {
     return indentLevel;
   }
