@@ -87,7 +87,7 @@ class XmlMergerTest extends AbstractIdeContextTest {
     })
         // assert
         .hasRootCauseInstanceOf(IllegalStateException.class).hasRootCauseMessage(
-            "2 matches found for XPath configuration[@default='true' and @type='JUnit'] in workspace XML at /project[@version='4']/component[@name='RunManager' @selected='Application.IDEasy']");
+            "2 matches found for XPath configuration[@default='true' and @type='JUnit'] in workspace XML file `" + targetPath + "` at /project[@version='4']/component[@name='RunManager' @selected='Application.IDEasy'] for template file `" + sourcePath + "`");
     ;
 
   }
