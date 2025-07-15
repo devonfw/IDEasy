@@ -49,6 +49,50 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
+   * @return the {@link Path} where the extra tool is located (installed).
+   */
+  public Path getExtraToolPath() {
+    if (this.context.getSoftwareExtraPath() == null) {
+      return null;
+    }
+    return this.context.getSoftwareExtraPath().resolve(getName());
+  }
+
+  /**
+   * @return the {@link EnvironmentVariables#getExtraToolVersion(String) extra tool version}.
+   */
+  public VersionIdentifier getExtraConfiguredVersion() {
+    return this.context.getVariables().getExtraToolVersion(getName());
+  }
+
+  /**
+   * @return the {@link EnvironmentVariables#getExtraToolEdition(String) extra tool edition}.
+   */
+  public String getExtraConfiguredEdition() {
+    String edition = this.context.getVariables().getExtraToolEdition(getName());
+    if (edition == null) {
+      // fallback to regular edition mechanism
+      edition = getConfiguredEdition();
+    }
+    return edition;
+  }
+
+  /**
+   * @return {@code true} if this tool supports extra installations, {@code false} otherwise.
+   */
+  protected boolean isExtraToolSupported() {
+    // GraalVM already uses extra path, so extra tool feature is not needed
+    if ("graalvm".equals(getName())) {
+      return false;
+    }
+    // IDEs don't typically need parallel installations
+    if (getTags().contains(Tag.IDE)) {
+      return false;
+    }
+    return true;
+  }
+
+  /**
    * @return the {@link Path} where the executables of the tool can be found. Typically a "bin" folder inside {@link #getToolPath() tool path}.
    */
   public Path getToolBinPath() {
@@ -91,28 +135,40 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
+    boolean toolWasInstalled = false;
     if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation())
         || (configuredVersion.matches(installedVersion) && context.isSkipUpdatesMode())) {
-      return toolAlreadyInstalled(silent, installedVersion, processContext);
-    }
-    if (!isIgnoreSoftwareRepo()) {
-      // we need to link the version or update the link.
-      Path toolPath = getToolPath();
-      FileAccess fileAccess = this.context.getFileAccess();
-      if (Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
-        fileAccess.backup(toolPath);
-      }
-      fileAccess.mkdirs(toolPath.getParent());
-      fileAccess.symlink(installation.linkDir(), toolPath);
-    }
-    this.context.getPath().setPath(this.tool, installation.binDir());
-    postInstall(true, processContext);
-    if (installedVersion == null) {
-      asSuccess(step).log("Successfully installed {} in version {}", this.tool, resolvedVersion);
+      toolWasInstalled = toolAlreadyInstalled(silent, installedVersion, processContext);
     } else {
-      asSuccess(step).log("Successfully installed {} in version {} replacing previous version {}", this.tool, resolvedVersion, installedVersion);
+      if (!isIgnoreSoftwareRepo()) {
+        // we need to link the version or update the link.
+        Path toolPath = getToolPath();
+        FileAccess fileAccess = this.context.getFileAccess();
+        if (Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
+          fileAccess.backup(toolPath);
+        }
+        fileAccess.mkdirs(toolPath.getParent());
+        fileAccess.symlink(installation.linkDir(), toolPath);
+      }
+      this.context.getPath().setPath(this.tool, installation.binDir());
+      postInstall(true, processContext);
+      if (installedVersion == null) {
+        asSuccess(step).log("Successfully installed {} in version {}", this.tool, resolvedVersion);
+      } else {
+        asSuccess(step).log("Successfully installed {} in version {} replacing previous version {}", this.tool, resolvedVersion, installedVersion);
+      }
+      toolWasInstalled = true;
     }
-    return true;
+
+    // Handle extra tool installation
+    if (isExtraToolSupported()) {
+      VersionIdentifier extraVersion = getExtraConfiguredVersion();
+      if (extraVersion != null) {
+        installExtraTool(extraVersion, processContext, step);
+      }
+    }
+    
+    return toolWasInstalled;
   }
 
   /**
@@ -268,6 +324,46 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return toolInstallation.newInstallation();
   }
 
+  /**
+   * Installs the extra tool if configured.
+   *
+   * @param extraVersion the {@link VersionIdentifier} of the extra tool to install.
+   * @param processContext the {@link ProcessContext} to use.
+   * @param step the {@link Step} to track the installation. May be {@code null}.
+   */
+  private void installExtraTool(VersionIdentifier extraVersion, ProcessContext processContext, Step step) {
+    
+    String extraEdition = getExtraConfiguredEdition();
+    
+    // Check if extra version/edition is identical to regular version/edition
+    VersionIdentifier configuredVersion = getConfiguredVersion();
+    String configuredEdition = getConfiguredEdition();
+    
+    if (configuredVersion.equals(extraVersion) && configuredEdition.equals(extraEdition)) {
+      this.context.warning("Extra tool configuration for {} is identical to regular configuration (version: {}, edition: {}). "
+          + "This extra installation will be identical to the regular tool installation.", 
+          this.tool, extraVersion, extraEdition);
+    }
+    
+    // Install extra tool to software repository
+    ToolInstallation extraInstallation = installTool(extraVersion, processContext, extraEdition);
+    
+    // Create link to extra tool path
+    Path extraToolPath = getExtraToolPath();
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (Files.exists(extraToolPath, LinkOption.NOFOLLOW_LINKS)) {
+      fileAccess.backup(extraToolPath);
+    }
+    fileAccess.mkdirs(extraToolPath.getParent());
+    fileAccess.symlink(extraInstallation.linkDir(), extraToolPath);
+    
+    // Set extra tool environment variables (but don't add to PATH)
+    String extraHomeVar = "EXTRA_" + EnvironmentVariables.getToolVariablePrefix(this.tool) + "_HOME";
+    processContext.withEnvVar(extraHomeVar, extraInstallation.linkDir().toString());
+    
+    this.context.info("Successfully installed extra {} in version {} (edition: {})", this.tool, extraVersion, extraEdition);
+  }
+
   private void installToolDependencies(VersionIdentifier version, String edition, ProcessContext processContext) {
     Collection<ToolDependency> dependencies = getToolRepository().findDependencies(this.tool, edition, version);
     String toolWithEdition = getToolWithEdition(this.tool, edition);
@@ -293,6 +389,17 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public VersionIdentifier getInstalledVersion() {
 
     return getInstalledVersion(this.context.getSoftwarePath().resolve(getName()));
+  }
+
+  /**
+   * @return the currently installed {@link VersionIdentifier version} of the extra tool or {@code null} if not installed.
+   */
+  public VersionIdentifier getExtraInstalledVersion() {
+    Path extraToolPath = getExtraToolPath();
+    if (extraToolPath == null) {
+      return null;
+    }
+    return getInstalledVersion(extraToolPath);
   }
 
   /**

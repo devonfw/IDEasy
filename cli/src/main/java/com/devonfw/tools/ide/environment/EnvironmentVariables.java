@@ -90,6 +90,33 @@ public interface EnvironmentVariables {
   VersionIdentifier getToolVersion(String tool);
 
   /**
+   * @param tool the name of the tool (e.g. "java").
+   * @return the {@link VersionIdentifier} with the extra version of the tool to use. May also be a {@link VersionIdentifier#isPattern() version pattern}. Will be
+   *     {@code null} if undefined.
+   */
+  default VersionIdentifier getExtraToolVersion(String tool) {
+    String variable = getExtraToolVersionVariable(tool);
+    String value = get(variable);
+    if (value == null) {
+      return null;
+    }
+    return VersionIdentifier.of(value);
+  }
+
+  /**
+   * @param tool the name of the tool (e.g. "java").
+   * @return the edition of the extra tool to use. Will be {@code null} if undefined.
+   */
+  default String getExtraToolEdition(String tool) {
+    String variable = getExtraToolEditionVariable(tool);
+    String value = get(variable);
+    if (value == null) {
+      return null;
+    }
+    return value;
+  }
+
+  /**
    * @return the {@link EnvironmentVariablesType type} of this {@link EnvironmentVariables}.
    */
   EnvironmentVariablesType getType();
@@ -272,6 +299,24 @@ public interface EnvironmentVariables {
   static String getToolEditionVariable(String tool) {
 
     return getToolVariablePrefix(tool) + "_EDITION";
+  }
+
+  /**
+   * @param tool the name of the tool.
+   * @return the name of the extra version variable.
+   */
+  static String getExtraToolVersionVariable(String tool) {
+
+    return "EXTRA_" + getToolVariablePrefix(tool) + "_VERSION";
+  }
+
+  /**
+   * @param tool the name of the tool.
+   * @return the name of the extra edition variable.
+   */
+  static String getExtraToolEditionVariable(String tool) {
+
+    return "EXTRA_" + getToolVariablePrefix(tool) + "_EDITION";
   }
 
   /**
