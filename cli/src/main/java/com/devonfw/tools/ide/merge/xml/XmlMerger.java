@@ -137,7 +137,7 @@ public class XmlMerger extends FileMerger implements XmlMergeSupport {
                   + "proceed correctly.", source);
         }
       }
-      ElementMatcher elementMatcher = new ElementMatcher(this.context);
+      ElementMatcher elementMatcher = new ElementMatcher(this.context, templateDocument.getPath(), workspaceDocument.getPath());
       strategy.merge(templateRoot, workspaceRoot, elementMatcher);
       resultDocument = workspaceDocument.getDocument();
     } else {

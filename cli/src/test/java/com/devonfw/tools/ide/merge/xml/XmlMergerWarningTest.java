@@ -7,13 +7,17 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
+import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 
-public class TestWarning {
+public class XmlMergerWarningTest extends AbstractIdeContextTest {
     
+    /**
+     * Test that the warning message includes both file paths for better user experience.
+     */
     @Test
-    public void testWarning(@TempDir Path tempDir) throws Exception {
+    public void testWarningMessageIncludesFilePaths(@TempDir Path tempDir) throws Exception {
         // arrange
         IdeTestContext context = new IdeTestContext();
         EnvironmentVariables variables = context.getVariables();
@@ -27,6 +31,8 @@ public class TestWarning {
         // act
         merger.merge(null, sourcePath, variables, targetPath);
         
-        // This should produce a warning message that needs to be improved
+        // assert - check that the warning message contains both file paths
+        assertThat(context).logAtWarning().hasEntries(
+            "2 matches found for XPath configuration[@default='true' and @type='JUnit'] in workspace XML file `" + targetPath + "` at /project[@version='4']/component[@name='RunManager' @selected='Application.IDEasy'] for template file `" + sourcePath + "`");
     }
 }
