@@ -1,0 +1,3 @@
+Welcome to your new IDEasy project!
+
+This is a test welcome message to verify the welcome functionality works correctly.
