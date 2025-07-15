@@ -80,7 +80,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   /**
    * @return {@code true} if this tool supports extra installations, {@code false} otherwise.
    */
-  protected boolean isExtraToolSupported() {
+  public boolean isExtraToolSupported() {
     // GraalVM already uses extra path, so extra tool feature is not needed
     if ("graalvm".equals(getName())) {
       return false;
