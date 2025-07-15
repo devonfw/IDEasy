@@ -139,4 +139,42 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     // act
     assertThat(cc);
   }
+
+  /**
+   * Tests that IDE project creation works correctly when MAVEN_ARGS environment variable
+   * is set to point to a different project's settings file.
+   * <p>
+   * This test addresses the issue where ide create fails when MAVEN_ARGS from a previous project
+   * is still in the environment, causing Maven settings security file creation to fail.
+   * <p>
+   * See: <a href="https://github.com/devonfw/IDEasy/issues/1362">#1362</a>
+   */
+  @Test
+  public void testCreateCommandletWithMavenArgsSet() {
+    // arrange
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(false); // Allow tools to be installed to trigger Maven setup
+    
+    // Simulate MAVEN_ARGS pointing to a different project's settings file
+    String otherProjectSettingsFile = "/path/to/other/project/conf/mvn/settings.xml";
+    context.getVariables().set("MAVEN_ARGS", "-s " + otherProjectSettingsFile);
+    context.setAnswers("testLogin", "testPassword");
+    
+    // act
+    cc.run();
+    
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    assertThat(newProjectPath).exists();
+    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
+    
+    // Verify that Maven settings security file was created despite MAVEN_ARGS pointing elsewhere
+    Path settingsSecurityFile = newProjectPath.resolve(IdeContext.FOLDER_CONF).resolve("mvn").resolve("settings-security.xml");
+    assertThat(settingsSecurityFile).exists();
+  }
 }

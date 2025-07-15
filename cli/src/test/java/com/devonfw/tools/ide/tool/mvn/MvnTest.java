@@ -130,6 +130,39 @@ public class MvnTest extends AbstractIdeContextTest {
     assertThat(IdeVariables.M2_REPO.get(context)).isEqualTo(mavenRepository);
   }
 
+  /**
+   * Tests that createSettingsSecurityFile works correctly even when MAVEN_ARGS environment variable 
+   * is set to point to a different project's settings file.
+   * <p>
+   * This test addresses the issue where ide create fails when MAVEN_ARGS from a previous project
+   * is still in the environment, causing Maven to look for settings files in the wrong location.
+   * <p>
+   * See: <a href="https://github.com/devonfw/IDEasy/issues/1362">#1362</a>
+   */
+  @Test
+  public void testMvnSettingsSecurityFileCreationWithMavenArgsSet() throws IOException {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_MVN);
+    context.setAnswers("testLogin", "testPassword");
+    
+    // Simulate MAVEN_ARGS pointing to a different project's settings file
+    String otherProjectSettingsFile = "/path/to/other/project/conf/mvn/settings.xml";
+    context.getVariables().set("MAVEN_ARGS", "-s " + otherProjectSettingsFile);
+    
+    Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
+
+    // act
+    mvn.run();
+
+    // assert
+    checkInstallation(context);
+    
+    // Verify that the settings security file was created despite MAVEN_ARGS pointing elsewhere
+    Path settingsSecurityFile = context.getConfPath().resolve(Mvn.MVN_CONFIG_FOLDER).resolve(Mvn.SETTINGS_SECURITY_FILE);
+    assertThat(settingsSecurityFile).exists();
+    assertFileContent(settingsSecurityFile, List.of("masterPassword"));
+  }
+
   private void assertFileContent(Path filePath, List<String> expectedValues) throws IOException {
 
     String content = new String(Files.readAllBytes(filePath));

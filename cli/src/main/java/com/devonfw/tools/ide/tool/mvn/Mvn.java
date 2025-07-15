@@ -176,7 +176,9 @@ public class Mvn extends PluginBasedCommandlet {
 
   private String retrievePassword(String args, String input) {
 
-    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, this.context.newProcess(), args, input,
+    // Create a new ProcessContext without MAVEN_ARGS to avoid conflicts with settings from other projects
+    ProcessContext processContext = this.context.newProcess().withEnvVar("MAVEN_ARGS", "");
+    ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.LOG_WARNING, processContext, args, input,
         getSettingsSecurityProperty());
 
     return result.getSingleOutput(null);
