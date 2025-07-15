@@ -24,35 +24,40 @@ public class CompleteCommandletTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = new IdeTestContext();
     
-    // Capture output
-    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-    PrintStream originalOut = System.out;
-    System.setOut(new PrintStream(outputStream));
-    
-    try {
-      // Create CompleteCommandlet and set args
-      CompleteCommandlet completeCmd = new CompleteCommandlet(context);
-      completeCmd.args.setValue("in");
+    // Capture output using try-with-resource to properly close streams
+    try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+         PrintStream printStream = new PrintStream(outputStream)) {
       
-      // act
-      completeCmd.run();
+      PrintStream originalOut = System.out;
+      System.setOut(printStream);
       
-      // assert
-      String output = outputStream.toString();
-      String[] lines = output.split("\n");
-      
-      // Filter out empty lines
-      String[] nonEmptyLines = Arrays.stream(lines)
-          .filter(line -> !line.trim().isEmpty())
-          .toArray(String[]::new);
-      
-      Set<String> uniqueLines = Arrays.stream(nonEmptyLines)
-          .collect(Collectors.toSet());
-      
-      assertThat(nonEmptyLines.length).as("Should not have duplicate completion lines").isEqualTo(uniqueLines.size());
-      
-    } finally {
-      System.setOut(originalOut);
+      try {
+        // Create CompleteCommandlet and set args
+        CompleteCommandlet completeCmd = new CompleteCommandlet(context);
+        completeCmd.args.setValue("in");
+        
+        // act
+        completeCmd.run();
+        
+        // assert
+        String output = outputStream.toString();
+        String[] lines = output.split("\n");
+        
+        // Filter out empty lines
+        String[] nonEmptyLines = Arrays.stream(lines)
+            .filter(line -> !line.trim().isEmpty())
+            .toArray(String[]::new);
+        
+        Set<String> uniqueLines = Arrays.stream(nonEmptyLines)
+            .collect(Collectors.toSet());
+        
+        assertThat(nonEmptyLines.length).as("Should not have duplicate completion lines").isEqualTo(uniqueLines.size());
+        
+      } finally {
+        System.setOut(originalOut);
+      }
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to test completion", e);
     }
   }
 }
