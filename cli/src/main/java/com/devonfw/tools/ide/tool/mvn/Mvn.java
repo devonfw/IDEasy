@@ -262,6 +262,32 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   /**
+   * @return the {@link Path} pointing to the maven configuration directory (where "settings.xml" or "settings-security.xml" are located).
+   * This method provides the same behavior as the original IdeContext.getMavenConfigurationFolder() method.
+   */
+  public Path getMavenConfigurationFolder() {
+
+    Path confPath = this.context.getConfPath();
+    Path mvnConfFolder = null;
+    if (confPath != null) {
+      mvnConfFolder = confPath.resolve(MVN_CONFIG_FOLDER);
+      if (!Files.isDirectory(mvnConfFolder)) {
+        Path m2LegacyFolder = confPath.resolve(MVN_CONFIG_LEGACY_FOLDER);
+        if (Files.isDirectory(m2LegacyFolder)) {
+          mvnConfFolder = m2LegacyFolder;
+        } else {
+          mvnConfFolder = null; // see fallback below
+        }
+      }
+    }
+    if (mvnConfFolder == null) {
+      // fallback to USER_HOME/.m2 folder
+      mvnConfFolder = this.context.getUserHome().resolve(MVN_CONFIG_LEGACY_FOLDER);
+    }
+    return mvnConfFolder;
+  }
+
+  /**
    * @return the maven arguments (MVN_ARGS).
    */
   public String getMavenArgs() {
