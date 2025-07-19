@@ -675,5 +675,51 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   private void postExtract(Path path) {
   }
 
+  /**
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} when broken junctions exist. This simulates the scenario
+   * described in issue #1169 where mklink fails with "Cannot create a file when that file already exists" when trying
+   * to create a junction over a broken junction.
+   */
+  @Test
+  public void testSymlinkOverwritesBrokenJunction(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    if (!windowsJunctionsAreUsed(context, tempDir)) {
+      context.info("Test skipped: Windows junctions are not used in this environment.");
+      return;
+    }
+
+    FileAccess fileAccess = new FileAccessImpl(context);
+    Path sourceDir = tempDir.resolve("source");
+    Path targetLink = tempDir.resolve("junction");
+    
+    // Create initial source directory and junction
+    fileAccess.mkdirs(sourceDir);
+    fileAccess.symlink(sourceDir, targetLink, false);
+    
+    // Verify junction was created and works
+    assertThat(targetLink).existsNoFollowLinks();
+    assertThat(targetLink.toRealPath()).isEqualTo(sourceDir);
+    
+    // Simulate the scenario: delete the source directory to break the junction
+    fileAccess.delete(sourceDir);
+    
+    // Verify the junction is now broken (exists but points to non-existent target)
+    assertThat(targetLink).existsNoFollowLinks(); // junction still exists
+    assertThat(sourceDir).doesNotExist(); // but target is gone
+    
+    // Create a new source directory at different location  
+    Path newSourceDir = tempDir.resolve("newSource");
+    fileAccess.mkdirs(newSourceDir);
+
+    // act - This should not fail even though a broken junction exists at targetLink
+    fileAccess.symlink(newSourceDir, targetLink, false);
+
+    // assert - The junction should now point to the new source
+    assertThat(targetLink).existsNoFollowLinks();
+    assertThat(targetLink.toRealPath()).isEqualTo(newSourceDir);
+  }
+
 
 }

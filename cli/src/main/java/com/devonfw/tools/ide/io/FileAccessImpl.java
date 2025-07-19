@@ -267,8 +267,15 @@ public class FileAccessImpl implements FileAccess {
     } catch (NoSuchFileException e) {
       return false; // file doesn't exist
     } catch (IOException e) {
-      // errors in reading the attributes of the file
-      throw new IllegalStateException("An unexpected error occurred whilst checking if the file: " + path + " is a junction", e);
+      // For broken junctions, reading attributes might fail with various IOExceptions.
+      // In such cases, we should check if the path exists without following links.
+      // If it exists but we can't read its attributes, it's likely a broken junction.
+      if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+        this.context.debug("Path " + path + " exists but attributes cannot be read, likely a broken junction: " + e.getMessage());
+        return true; // Assume it's a broken junction
+      }
+      // If it doesn't exist at all, it's not a junction
+      return false;
     }
   }
 
@@ -405,6 +412,28 @@ public class FileAccessImpl implements FileAccess {
     if (isJunction || isSymlink) {
       this.context.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
       Files.delete(path);
+    } else if (SystemInfoImpl.INSTANCE.isWindows() && Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+      // On Windows, there might be broken junctions that are not detected by isJunction()
+      // but still exist and would cause mklink to fail. Try to detect and handle them.
+      try {
+        BasicFileAttributes attrs = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+        if (attrs.isOther()) {
+          // This could be a broken junction or other special file that needs to be removed
+          this.context.info("Deleting previous special file (possibly broken junction) at " + path);
+          Files.delete(path);
+        }
+      } catch (IOException e) {
+        // If we can't read attributes, it might be a broken junction
+        this.context.debug("Could not read attributes of " + path + ", attempting to delete as it may be a broken junction: " + e.getMessage());
+        try {
+          Files.delete(path);
+          this.context.info("Successfully deleted potentially broken junction at " + path);
+        } catch (IOException deleteEx) {
+          this.context.debug("Failed to delete " + path + ": " + deleteEx.getMessage());
+          // Re-throw the original exception if deletion fails
+          throw e;
+        }
+      }
     }
   }
 
