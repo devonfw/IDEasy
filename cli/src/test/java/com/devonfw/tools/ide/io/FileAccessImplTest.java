@@ -721,5 +721,56 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(targetLink.toRealPath()).isEqualTo(newSourceDir);
   }
 
+  /**
+   * Test of enhanced {@link FileAccessImpl#isJunction(Path)} method to ensure it handles broken junctions gracefully.
+   * This simulates the enhanced logic for detecting broken junctions on non-Windows systems.
+   */
+  @Test
+  public void testIsJunctionHandlesBrokenLinks(@TempDir Path tempDir) throws IOException {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    FileAccess fileAccess = new FileAccessImpl(context);
+    
+    if (!context.getSystemInfo().isWindows()) {
+      // On non-Windows, create a broken symlink to simulate a broken junction
+      Path sourceDir = tempDir.resolve("source");
+      Path brokenLink = tempDir.resolve("brokenLink");
+      
+      fileAccess.mkdirs(sourceDir);
+      fileAccess.symlink(sourceDir, brokenLink, false);
+      
+      // Verify link works initially
+      assertThat(brokenLink).existsNoFollowLinks();
+      assertThat(brokenLink.toRealPath()).isEqualTo(sourceDir);
+      
+      // Delete the source to break the link
+      fileAccess.delete(sourceDir);
+      
+      // The broken symlink should still exist but point to nothing
+      assertThat(brokenLink).existsNoFollowLinks();
+      assertThat(sourceDir).doesNotExist();
+      
+      // act & assert - the enhanced symlink method should handle the broken link
+      Path newSource = tempDir.resolve("newSource");
+      fileAccess.mkdirs(newSource);
+      
+      // This should not fail, even with the broken symlink
+      fileAccess.symlink(newSource, brokenLink, false);
+      assertThat(brokenLink.toRealPath()).isEqualTo(newSource);
+    } else {
+      context.info("Test adapted for Windows environment - testing basic junction functionality");
+      // On Windows, just test that basic junction functionality works
+      Path sourceDir = tempDir.resolve("source");
+      Path junctionLink = tempDir.resolve("junction");
+      
+      fileAccess.mkdirs(sourceDir);
+      fileAccess.symlink(sourceDir, junctionLink, false);
+      
+      assertThat(junctionLink).existsNoFollowLinks();
+      assertThat(junctionLink.toRealPath()).isEqualTo(sourceDir);
+    }
+  }
+
 
 }

@@ -406,6 +406,11 @@ public class FileAccessImpl implements FileAccess {
 
     boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
     boolean isSymlink = Files.exists(path) && Files.isSymbolicLink(path);
+    
+    // Also check for broken symlinks that exist but don't resolve (Files.exists() returns false for these)
+    if (!isSymlink && Files.exists(path, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(path)) {
+      isSymlink = true; // This is a broken symlink
+    }
 
     assert !(isSymlink && isJunction);
 
