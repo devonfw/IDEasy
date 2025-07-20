@@ -1,21 +1,22 @@
 package com.devonfw.tools.ide.tool;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.common.SimpleSystemPath;
-import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.IniFile;
+import com.devonfw.tools.ide.io.IniSection;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -105,6 +106,8 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   @Override
   public boolean install(boolean silent) {
 
+    this.context.requireOnline("upgrade of IDEasy", true);
+
     if (IdeVersion.isUndefined()) {
       this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", IdeVersion.getVersionString());
       return false;
@@ -132,6 +135,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public boolean checkIfUpdateIsAvailable() {
     VersionIdentifier installedVersion = getInstalledVersion();
+    if (this.context.isOffline()) {
+      this.context.success("Your version of IDEasy is {}.", installedVersion);
+      this.context.warning("Skipping check for newer version of IDEasy because you are offline.");
+      return false;
+    }
     VersionIdentifier latestVersion = getLatestVersion();
     if (installedVersion.equals(latestVersion)) {
       this.context.success("Your version of IDEasy is {} which is the latest released version.", installedVersion);
@@ -218,78 +226,14 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   private void setGitLongpaths() {
-    SystemPath systemPath = this.context.getPath();
-    Path gitPath = systemPath.getPath("git");
-    if (gitPath == null) {
-      this.context.error("Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
-          + "https://git-scm.com/download/");
-    } else {
-      setGitConfigProperty("core", "longpaths", "true", this.context.getUserHome().resolve(".gitconfig"));
-    }
-  }
-
-  /**
-   * @param section the section to modify
-   * @param property the property to set
-   * @param value the value to set
-   * @param configPath the path of the config file
-   */
-  public void setGitConfigProperty(String section, String property, String value, Path configPath) {
-    String gitconfig;
-    // read files
+    GitContext gitContext = new GitContextImpl(this.context);
+    gitContext.verifyGitInstalled();
+    Path configPath = this.context.getUserHome().resolve(".gitconfig");
     FileAccess fileAccess = this.context.getFileAccess();
-    gitconfig = fileAccess.readFileContent(configPath);
-    if (gitconfig == null) {
-      gitconfig = "";
-    }
-
-    LinkedHashMap<String, LinkedHashMap<String, String>> iniMap = parseIniFile(gitconfig);
-
-    // check if section exists
-    if (!iniMap.containsKey(section)) {
-      iniMap.put(section, new LinkedHashMap<>());
-    }
-
-    // set property
-    iniMap.get(section).put(property, value);
-
-    // write out new file
-    StringBuilder newConfig = new StringBuilder();
-    for (String configSection : iniMap.keySet()) {
-      newConfig.append(String.format("[%s]\n", configSection));
-      LinkedHashMap<String, String> properties = iniMap.get(configSection);
-      for (String sectionProperty : properties.keySet()) {
-        String propertyValue = properties.get(sectionProperty);
-        newConfig.append(String.format("\t%s = %s\n", sectionProperty, propertyValue));
-      }
-    }
-
-    try {
-      Files.writeString(configPath, newConfig.toString());
-    } catch (IOException e) {
-      this.context.error("could not write git config file at %s", configPath);
-    }
-  }
-
-  private LinkedHashMap<String, LinkedHashMap<String, String>> parseIniFile(String iniFile) {
-    List<String> iniLines = iniFile.lines().toList();
-    LinkedHashMap<String, LinkedHashMap<String, String>> iniMap = new LinkedHashMap<>();
-    String currentSection = "";
-    for (String line : iniLines) {
-      if (line.isEmpty()) {
-        continue;
-      }
-      if (line.startsWith("[")) {
-        currentSection = line.replace("[", "").replace("]", "");
-        iniMap.put(currentSection, new LinkedHashMap<>());
-      } else {
-        String[] parts = line.split("=");
-        String propertyName = parts[0].trim();
-        String propertyValue = parts[1].trim();
-        iniMap.get(currentSection).put(propertyName, propertyValue);
-      }
-    }
-    return iniMap;
+    IniFile iniFile = fileAccess.readIniFile(configPath);
+    IniSection coreSection = iniFile.getOrCreateSection("core");
+    coreSection.getProperties().put("longpaths", "true");
+    fileAccess.writeIniFile(iniFile, configPath);
   }
 
   static String removeObsoleteEntryFromWindowsPath(String userPath) {

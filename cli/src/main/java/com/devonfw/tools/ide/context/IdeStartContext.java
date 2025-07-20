@@ -27,6 +27,11 @@ public interface IdeStartContext extends IdeLogger {
   boolean isForceMode();
 
   /**
+   * @return {@code true} in case of privacy mode, {@code false} otherwise.
+   */
+  boolean isPrivacyMode();
+
+  /**
    * @return {@code true} in case of force pull, {@code false} otherwise.
    */
   boolean isForcePull();
