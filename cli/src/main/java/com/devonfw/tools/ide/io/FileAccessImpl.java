@@ -11,6 +11,7 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.file.FileSystem;
@@ -93,16 +94,33 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void download(String url, Path target) {
+    // #1393 simply try download with two different http versions in a row ....
+    try {
+      this.downloadWithHttpVersion(url, target, Version.HTTP_2);
+    } catch(Exception ex) {
+      try {
+        this.downloadWithHttpVersion(url, target, Version.HTTP_1_1);
+      } catch (Exception e) {
+        throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, e);
+      }
+    }
+  }
+
+  private void downloadWithHttpVersion(String url, Path target, HttpClient.Version httpClientVersion) throws Exception {
 
     this.context.info("Trying to download {} from {}", target.getFileName(), url);
     mkdirs(target.getParent());
-    try {
+    //try {
       if (this.context.isOffline()) {
         throw CliOfflineException.ofDownloadViaUrl(url);
       }
       if (url.startsWith("http")) {
 
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .GET()
+            .version(httpClientVersion)
+            .build();
         HttpClient client = createHttpClient(url);
         HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
         int statusCode = response.statusCode();
@@ -123,9 +141,9 @@ public class FileAccessImpl implements FileAccess {
           throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
         }
       }
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, e);
-    }
+    //} catch (Exception e) {
+    //  throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, e);
+    //}
   }
 
   /**
