@@ -110,40 +110,37 @@ public class FileAccessImpl implements FileAccess {
 
     this.context.info("Trying to download {} from {}", target.getFileName(), url);
     mkdirs(target.getParent());
-    //try {
-      if (this.context.isOffline()) {
-        throw CliOfflineException.ofDownloadViaUrl(url);
-      }
-      if (url.startsWith("http")) {
 
-        HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(url))
-            .GET()
-            .version(httpClientVersion)
-            .build();
-        HttpClient client = createHttpClient(url);
-        HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-        int statusCode = response.statusCode();
-        if (statusCode == 200) {
-          downloadFileWithProgressBar(url, target, response);
-        } else {
-          throw new IllegalStateException("Download failed with status code " + statusCode);
-        }
-      } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
-        throw new IllegalArgumentException("Unsupported download URL: " + url);
+    if (this.context.isOffline()) {
+      throw CliOfflineException.ofDownloadViaUrl(url);
+    }
+    if (url.startsWith("http")) {
+
+      HttpRequest request = HttpRequest.newBuilder()
+          .uri(URI.create(url))
+          .GET()
+          .version(httpClientVersion)
+          .build();
+      HttpClient client = createHttpClient(url);
+      HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+      int statusCode = response.statusCode();
+      if (statusCode == 200) {
+        downloadFileWithProgressBar(url, target, response);
       } else {
-        Path source = Path.of(url);
-        if (isFile(source)) {
-          // network drive
-
-          copyFileWithProgressBar(source, target);
-        } else {
-          throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
-        }
+        throw new IllegalStateException("Download failed with status code " + statusCode);
       }
-    //} catch (Exception e) {
-    //  throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, e);
-    //}
+    } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
+      throw new IllegalArgumentException("Unsupported download URL: " + url);
+    } else {
+      Path source = Path.of(url);
+      if (isFile(source)) {
+        // network drive
+
+        copyFileWithProgressBar(source, target);
+      } else {
+        throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
+      }
+    }
   }
 
   /**
