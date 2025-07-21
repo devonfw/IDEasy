@@ -2,6 +2,8 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+* https://github.com/devonfw/IDEasy/issues/1393[#1393]: Download of java fails in ZScaler VPN due to invalid TLS certificate
+
 == 2025.07.001
 
 Release with new features and bugfixes:
