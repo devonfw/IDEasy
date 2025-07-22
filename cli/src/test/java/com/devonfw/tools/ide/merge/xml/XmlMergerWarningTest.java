@@ -21,7 +21,7 @@ public class XmlMergerWarningTest extends AbstractIdeContextTest {
         // arrange
         IdeTestContext context = new IdeTestContext();
         EnvironmentVariables variables = context.getVariables();
-        // Do NOT set FAIL_ON_AMBIGOUS_MERGE to true to get warning instead of error
+        // Do NOT set FAIL_ON_AMBIGUOUS_MERGE to true to get warning instead of error
         XmlMerger merger = new XmlMerger(context);
         Path folder = Path.of("src/test/resources/xmlmerger/ambiguous-id");
         Path sourcePath = folder.resolve("template.xml");
