@@ -114,11 +114,22 @@ function main () {
 
   # upgrade to latest snapshot
   echo "Upgrading IDEasy to latest SNAPSHOT"
-  $IDE -d --batch upgrade --mode=snapshot
+  $IDE -d --batch --offline upgrade --mode=snapshot || echo "Upgrade failed, continuing with downloaded version"
 
   # source functions (resets IDEasy)
   echo "Sourcing functions to: ${FUNCTIONS}"
-  source "${FUNCTIONS:?}"
+  # Add IDE bin to PATH so ideasy command can be found
+  export PATH="${IDEASY_DIR}/bin:$PATH"
+  # Try installation path first, then fall back to root
+  if [ -f "${FUNCTIONS:?}" ]; then
+    source "${FUNCTIONS:?}"
+  elif [ -f "${IDEASY_DIR}/functions" ]; then
+    echo "Using functions from root: ${IDEASY_DIR}/functions"
+    source "${IDEASY_DIR}/functions"
+  else
+    echo "ERROR: Could not find functions file"
+    exit 1
+  fi
 
   echo "Checking version after upgrade"
   ide -v

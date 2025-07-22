@@ -43,6 +43,7 @@ function doDownloadSnapshot () {
     local url
     # Change OS type based on github workflow matrix.os name
     local osType
+    echo "DEBUG: MATRIX_OS='${MATRIX_OS}'"
     if [ "${MATRIX_OS}" == "windows-latest" ]; then
       osType="windows-x64"
     elif [ "${MATRIX_OS}" == "ubuntu-latest" ]; then
@@ -51,8 +52,12 @@ function doDownloadSnapshot () {
       osType="mac-arm64"
     elif [ "${MATRIX_OS}" == "macos-13" ]; then
       osType="mac-x64"
+    else
+      # Default to linux if MATRIX_OS is not set
+      osType="linux-x64"
     fi
-    url=$(grep "href=\"https://.*${osType}.tar.gz" "$pageHtmlLocal" | grep -o "https://.*${osType}.tar.gz" | cut -f1 -d"\"")
+    echo "DEBUG: osType='${osType}'"
+    url=$(grep "href=\"https://.*${osType}.tar.gz" "$pageHtmlLocal" | grep -o "https://[^\"]*${osType}.tar.gz" | head -1)
     echo "Trying to download IDEasy for OS: ${osType} from: ${url} to: ${IDEASY_COMPRESSED_FILE:?} ..."
     curl -o "${IDEASY_COMPRESSED_FILE:?}" "$url"
     rm "${pageHtmlLocal:?}"
