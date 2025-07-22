@@ -47,7 +47,7 @@ public final class MavenRepository extends AbstractToolRepository {
   public static final String MAVEN_CENTRAL = "https://repo1.maven.org/maven2";
 
   /** Base URL for Maven Snapshots repository */
-  public static final String MAVEN_SNAPSHOTS = "https://s01.oss.sonatype.org/content/repositories/snapshots";
+  public static final String MAVEN_SNAPSHOTS = "https://central.sonatype.com/repository/maven-snapshots";
 
   /** The {@link #getId() repository ID}. */
   public static final String ID = "maven";
