@@ -235,7 +235,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     IniFile iniFile = fileAccess.readIniFile(configPath);
     IniSection coreSection = iniFile.getOrCreateSection("core");
-    coreSection.getProperties().put("longpaths", "true");
+    coreSection.setProperty("longpaths", "true", 1);
     fileAccess.writeIniFile(iniFile, configPath);
   }
 
