@@ -68,8 +68,6 @@ You have to delete this folder manually as we do not want to be responsible for 
 
 == Testing SNAPSHOT releases
 
-You can find the latest IDEasy SNAPSHOT releases https://central.sonatype.com/repository/maven-snapshots/com/devonfw/tools/IDEasy/ide-cli/maven-metadata.xml[here].
-
 Whenever a story in `IDEasy` is completed by merging a https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests[PR], our https://github.com/features/actions[github actions] will build a new SNAPSHOT release and on success deploy it to maven central portal.
 In order to install and test the latest SNAPSHOT version use the following command:
 
