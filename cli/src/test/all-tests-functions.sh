@@ -52,6 +52,29 @@ function doDownloadSnapshot () {
     elif [ "${MATRIX_OS}" == "macos-13" ]; then
       osType="mac-x64"
     fi
+    # Fallback in case this script is executed aside of the github workflow
+    if [ -z "$osType" ]; then
+      case "$OSTYPE" in
+        msys*|cygwin*|win32*)
+          osType="windows-x64"
+          ;;
+        linux*|gnu*)
+          osType="linux-x64"
+          ;;
+        darwin*|macos*)
+          # Try to distinguish between Apple Silicon and Intel Macs
+          if sysctl -n machdep.cpu.brand_string 2>/dev/null | grep -qi "Apple"; then
+            osType="mac-arm64"
+          else
+            osType="mac-x64"
+          fi
+          ;;
+        *)
+          echo "Unknown OSTYPE: $OSTYPE"
+          exit 1
+          ;;
+      esac
+    fi
     url=$(grep "href=\"https://.*${osType}.tar.gz" "$pageHtmlLocal" | grep -o "https://.*${osType}.tar.gz" | cut -f1 -d"\"")
     echo "Trying to download IDEasy for OS: ${osType} from: ${url} to: ${IDEASY_COMPRESSED_FILE:?} ..."
     curl -o "${IDEASY_COMPRESSED_FILE:?}" "$url"
