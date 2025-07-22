@@ -61,4 +61,11 @@ public final class IdeVersion {
     return VERSION_UNDEFINED.equals(INSTANCE.version);
   }
 
+  /**
+   * @return {@code true} if the {@link #getVersionString() current version} is a {@code SNAPSHOT} version, {@code false} otherwise.
+   */
+  public static boolean isSnapshot() {
+    return getVersionString().contains("SNAPSHOT");
+  }
+
 }
