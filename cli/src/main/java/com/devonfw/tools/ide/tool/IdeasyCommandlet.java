@@ -84,7 +84,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
     UpgradeMode upgradeMode = this.mode;
     if (upgradeMode == null) {
-      if (IdeVersion.getVersionString().contains("SNAPSHOT")) {
+      if (IdeVersion.isSnapshot()) {
         upgradeMode = UpgradeMode.SNAPSHOT;
       } else {
         if (IdeVersion.getVersionIdentifier().getDevelopmentPhase().isStable()) {
@@ -108,7 +108,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
     this.context.requireOnline("upgrade of IDEasy", true);
 
-    if (IdeVersion.isUndefined()) {
+    if (IdeVersion.isUndefined() && !this.context.isForceMode()) {
       this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", IdeVersion.getVersionString());
       return false;
     }
@@ -135,14 +135,17 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public boolean checkIfUpdateIsAvailable() {
     VersionIdentifier installedVersion = getInstalledVersion();
+    this.context.success("Your version of IDEasy is {}.", installedVersion);
+    if (IdeVersion.isSnapshot()) {
+      this.context.warning("You are using a SNAPSHOT version of IDEasy. For stability consider switching to a stable release via 'ide upgrade --mode=stable'");
+    }
     if (this.context.isOffline()) {
-      this.context.success("Your version of IDEasy is {}.", installedVersion);
       this.context.warning("Skipping check for newer version of IDEasy because you are offline.");
       return false;
     }
     VersionIdentifier latestVersion = getLatestVersion();
     if (installedVersion.equals(latestVersion)) {
-      this.context.success("Your version of IDEasy is {} which is the latest released version.", installedVersion);
+      this.context.success("Your are using the latest version of IDEasy and no update is available.");
       return false;
     } else {
       this.context.interaction("Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
