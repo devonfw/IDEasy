@@ -6,7 +6,7 @@ import java.io.StringWriter;
 /**
  * {@link Enum} with the available details logged for an {@link Throwable error}.
  */
-enum IdeLogExceptionDetails {
+public enum IdeLogExceptionDetails {
 
   /** Log the entire stacktrace. */
   STACKTRACE(512) {

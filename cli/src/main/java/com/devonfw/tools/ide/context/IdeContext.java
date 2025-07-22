@@ -15,17 +15,20 @@ import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
 import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -187,6 +190,11 @@ public interface IdeContext extends IdeStartContext {
       """.replace('╲', '\\');
 
   /**
+   * The keyword for project name convention.
+   */
+  String SETTINGS_REPOSITORY_KEYWORD = "settings";
+
+  /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
    */
   default boolean isOffline() {
@@ -226,12 +234,13 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param question the question to ask.
+   * @param args arguments for filling the templates
    * @return {@code true} if the user answered with "yes", {@code false} otherwise ("no").
    */
-  default boolean question(String question) {
+  default boolean question(String question, Object... args) {
 
     String yes = "yes";
-    String option = question(question, yes, "no");
+    String option = question(new String[] { yes, "no" }, question, args);
     if (yes.equals(option)) {
       return true;
     }
@@ -240,23 +249,23 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param <O> type of the option. E.g. {@link String}.
-   * @param question the question to ask.
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
+   * @param question the question to ask.
    * @return the option selected by the user as answer.
    */
   @SuppressWarnings("unchecked")
-  <O> O question(String question, O... options);
+  <O> O question(O[] options, String question, Object... args);
 
   /**
    * Will ask the given question. If the user answers with "yes" the method will return and the process can continue. Otherwise if the user answers with "no" an
    * exception is thrown to abort further processing.
    *
-   * @param question the yes/no question to {@link #question(String) ask}.
+   * @param questionTemplate the yes/no question to {@link #question(String, Object...) ask}.
+   * @param args the arguments to fill the placeholders in the question template.
    * @throws CliAbortException if the user answered with "no" and further processing shall be aborted.
    */
-  default void askToContinue(String question) {
-
-    boolean yesContinue = question(question);
+  default void askToContinue(String questionTemplate, Object... args) {
+    boolean yesContinue = question(questionTemplate, args);
     if (!yesContinue) {
       throw new CliAbortException();
     }
@@ -264,12 +273,19 @@ public interface IdeContext extends IdeStartContext {
 
   /**
    * @param purpose the purpose why Internet connection is required.
+   * @param explicitOnlineCheck if {@code true}, perform an explicit {@link #isOffline()} check; if {@code false} use {@link #isOfflineMode()}.
    * @throws CliException if you are {@link #isOffline() offline}.
    */
-  default void requireOnline(String purpose) {
+  default void requireOnline(String purpose, boolean explicitOnlineCheck) {
 
-    if (isOfflineMode()) {
-      throw CliOfflineException.ofPurpose(purpose);
+    if (explicitOnlineCheck) {
+      if (isOffline()) {
+        throw CliOfflineException.ofPurpose(purpose);
+      }
+    } else {
+      if (isOfflineMode()) {
+        throw CliOfflineException.ofPurpose(purpose);
+      }
     }
   }
 
@@ -573,6 +589,14 @@ public interface IdeContext extends IdeStartContext {
   }
 
   /**
+   * @param size the {@link IdeProgressBar#getMaxSize() expected maximum} plugin count.
+   * @return the new {@link IdeProgressBar} to use.
+   */
+  default IdeProgressBar newProgressBarForPlugins(long size) {
+    return newProgressBar(IdeProgressBar.TITLE_INSTALL_PLUGIN, size, IdeProgressBar.UNIT_NAME_PLUGIN, IdeProgressBar.UNIT_SIZE_PLUGIN);
+  }
+
+  /**
    * @return the {@link DirectoryMerger} used to configure and merge the workspace for an {@link com.devonfw.tools.ide.tool.ide.IdeToolCommandlet IDE}.
    */
   DirectoryMerger getWorkspaceMerger();
@@ -602,6 +626,18 @@ public interface IdeContext extends IdeStartContext {
     }
     Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
     return mvn.getMavenArgs();
+  }
+
+  /**
+   * @return the path for the variable GRADLE_USER_HOME, or null if called outside an IDEasy installation.
+   */
+  default Path getGradleUserHome() {
+
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Gradle gradle = getCommandletManager().getCommandlet(Gradle.class);
+    return gradle.getOrCreateGradleConfFolder();
   }
 
   /**
@@ -665,6 +701,24 @@ public interface IdeContext extends IdeStartContext {
   Step newStep(boolean silent, String name, Object... parameters);
 
   /**
+   * @param lambda the {@link Runnable} to {@link Runnable#run() run} while the {@link com.devonfw.tools.ide.log.IdeLogger logging} is entirely disabled.
+   *     After this the logging will be enabled again. Collected log messages will then be logged at the end.
+   */
+  default void runWithoutLogging(Runnable lambda) {
+
+    runWithoutLogging(lambda, IdeLogLevel.TRACE);
+  }
+
+  /**
+   * @param lambda the {@link Runnable} to {@link Runnable#run() run} while the {@link com.devonfw.tools.ide.log.IdeLogger logging} is entirely disabled.
+   *     After this the logging will be enabled again. Collected log messages will then be logged at the end.
+   * @param threshold the {@link IdeLogLevel} to use as threshold for filtering logs while logging is disabled and log messages are collected. Use
+   *     {@link IdeLogLevel#TRACE} to collect all logs and ensure nothing gets lost (will still not log anything that is generally not active in regular
+   *     logging) and e.g. use {@link IdeLogLevel#ERROR} to discard all logs except errors.
+   */
+  void runWithoutLogging(Runnable lambda, IdeLogLevel threshold);
+
+  /**
    * Updates the current working directory (CWD) and configures the environment paths according to the specified parameters. This method is central to changing
    * the IDE's notion of where it operates, affecting where configurations, workspaces, settings, and other resources are located or loaded from.
    *
@@ -726,9 +780,9 @@ public interface IdeContext extends IdeStartContext {
   void writeVersionFile(VersionIdentifier version, Path installationPath);
 
   /**
-   * checks if the ide version is at least IDE_MIN_VERSION
+   * Verifies that current {@link IdeVersion} satisfies {@link IdeVariables#IDE_MIN_VERSION}.
    *
-   * @param throwException whether to throw a CliException or just log a warning
+   * @param throwException whether to throw a {@link CliException} or just log a warning.
    */
   void verifyIdeMinVersion(boolean throwException);
 
