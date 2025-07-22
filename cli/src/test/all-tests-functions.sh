@@ -43,6 +43,7 @@ function doDownloadSnapshot () {
     local url
     # Change OS type based on github workflow matrix.os name
     local osType
+    echo "DEBUG: MATRIX_OS='${MATRIX_OS}'"
     if [ "${MATRIX_OS}" == "windows-latest" ]; then
       osType="windows-x64"
     elif [ "${MATRIX_OS}" == "ubuntu-latest" ]; then
@@ -51,6 +52,9 @@ function doDownloadSnapshot () {
       osType="mac-arm64"
     elif [ "${MATRIX_OS}" == "macos-13" ]; then
       osType="mac-x64"
+    else
+      # Default to linux if MATRIX_OS is not set
+      osType="linux-x64"
     fi
     # Fallback in case this script is executed aside of the github workflow
     if [ -z "$osType" ]; then
