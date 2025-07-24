@@ -35,6 +35,14 @@ public class CompletionCandidateCollectorDefault implements CompletionCandidateC
   @Override
   public void add(String text, String description, Property<?> property, Commandlet commandlet) {
 
+    // Check if this candidate already exists to avoid duplicates
+    for (CompletionCandidate existing : this.candidates) {
+      if (existing.text().equals(text)) {
+        // Duplicate candidate found, do not add
+        return;
+      }
+    }
+    
     CompletionCandidate candidate = createCandidate(text, description, property, commandlet);
     this.candidates.add(candidate);
     this.context.trace("Added {} for auto-completion of property {}.{}", candidate, commandlet, property);
