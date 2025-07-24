@@ -44,9 +44,13 @@ diff /tmp/env_before_force.txt /tmp/env_after_force.txt || true
 
 # Test that the git longpaths configuration gets set (original test purpose)
 echo "=== Testing git longpaths configuration ==="
-gitconfig_path="$HOME"/.gitconfig
-fileContent=$(cat "$gitconfig_path")
-assertThat "$fileContent" contains "longpaths"
+if doIsWindows; then
+  gitconfig_path="$HOME"/.gitconfig
+  fileContent=$(cat "$gitconfig_path")
+  assertThat "$fileContent" contains "longpaths"
+else
+  echo "Skipping git longpaths test - only applicable on Windows"
+fi
 
 # Test that subsequent IDE commands still work
 echo "=== Testing subsequent IDE commands ==="
