@@ -139,4 +139,37 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     // act
     assertThat(cc);
   }
+
+  @Test
+  public void testWelcomeMessageDisplayed(@TempDir Path tempDir) {
+    // arrange - create a new project
+    ProcessContextGitMock gitMock = new ProcessContextGitMock(tempDir);
+    context.setProcessContext(gitMock);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+    
+    // act - run the create command
+    cc.run();
+    
+    // Manually create the settings folder and welcome file to simulate proper git clone
+    Path settingsPath = context.getSettingsPath();
+    context.getFileAccess().mkdirs(settingsPath);
+    context.getFileAccess().writeFileContent("Welcome to your new IDEasy project!\n\nThis is a test welcome message to verify the welcome functionality works correctly.", settingsPath.resolve("welcome.txt"));
+    
+    // Now test the welcome message by calling logWelcomeMessage directly via reflection
+    try {
+      java.lang.reflect.Method logWelcomeMethod = CreateCommandlet.class.getDeclaredMethod("logWelcomeMessage");
+      logWelcomeMethod.setAccessible(true);
+      logWelcomeMethod.invoke(cc);
+    } catch (Exception e) {
+      throw new RuntimeException("Failed to call logWelcomeMessage", e);
+    }
+    
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    assertThat(newProjectPath).exists();
+    assertThat(context).logAtInfo().hasMessageContaining("Welcome to your new IDEasy project!");
+  }
 }
