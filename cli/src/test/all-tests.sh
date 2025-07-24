@@ -12,7 +12,32 @@ source "$(dirname "${0}")"/all-tests-functions.sh
 BAK_IDE_ROOT="${IDE_ROOT}"
 BAK_PATH="${PATH}"
 DEBUG_INTEGRATION_TEST_PREFIX="${HOME}/tmp/ideasy-integration-test-debug"
-trap "export PATH=\"${BAK_PATH}\" && export IDE_ROOT=\"${BAK_IDE_ROOT}\" && rm -rf \"${DEBUG_INTEGRATION_TEST_PREFIX}\" && echo \"PATH and IDE_ROOT restored\"" EXIT
+
+# Create backups of shell RC files to prevent destroying user's existing configuration
+BAK_BASHRC=""
+BAK_ZSHRC=""
+if [ -f "$HOME/.bashrc" ]; then
+  BAK_BASHRC="$HOME/.bashrc.ideasy-test-backup"
+  cp "$HOME/.bashrc" "$BAK_BASHRC"
+fi
+if [ -f "$HOME/.zshrc" ]; then
+  BAK_ZSHRC="$HOME/.zshrc.ideasy-test-backup"
+  cp "$HOME/.zshrc" "$BAK_ZSHRC"
+fi
+
+trap "export PATH=\"${BAK_PATH}\" && export IDE_ROOT=\"${BAK_IDE_ROOT}\" && rm -rf \"${DEBUG_INTEGRATION_TEST_PREFIX}\" && doRestoreRcFiles && echo \"PATH, IDE_ROOT, and shell RC files restored\"" EXIT
+
+function doRestoreRcFiles() {
+  # Restore shell RC files from backups to preserve user's existing configuration
+  if [ -n "$BAK_BASHRC" ] && [ -f "$BAK_BASHRC" ]; then
+    mv "$BAK_BASHRC" "$HOME/.bashrc"
+    echo "Restored ~/.bashrc from backup"
+  fi
+  if [ -n "$BAK_ZSHRC" ] && [ -f "$BAK_ZSHRC" ]; then
+    mv "$BAK_ZSHRC" "$HOME/.zshrc"
+    echo "Restored ~/.zshrc from backup"
+  fi
+}
 
 function doResetVariables() {
   IDE_HOME="${DEBUG_INTEGRATION_TEST}/home-dir"
@@ -21,19 +46,6 @@ function doResetVariables() {
   FUNCTIONS="${IDEASY_DIR}/installation/functions"
   IDE="${DEBUG_INTEGRATION_TEST}/home-dir/projects/_ide/bin/${BINARY_FILE_NAME}"
   TEST_RESULTS_FILE="${IDE_ROOT}/testResults"
-  
-  # Clean up shell RC files from any IDEasy configuration added by force install
-  # This prevents interference between tests when force install is used
-  if [ -f "$HOME/.bashrc" ]; then
-    # Remove lines containing IDE_ROOT export or IDEasy functions source
-    sed -i '/^export IDE_ROOT=/d' "$HOME/.bashrc"
-    sed -i '/^source.*_ide.*functions/d' "$HOME/.bashrc"
-  fi
-  if [ -f "$HOME/.zshrc" ]; then
-    # Remove lines containing IDE_ROOT export or IDEasy functions source  
-    sed -i '/^export IDE_ROOT=/d' "$HOME/.zshrc"
-    sed -i '/^source.*_ide.*functions/d' "$HOME/.zshrc"
-  fi
 }
 
 # Switch IDEasy binary file name based on github workflow matrix.os name (first argument of all-tests.sh)
