@@ -20,8 +20,8 @@ env | sort > /tmp/env_before_force.txt
 echo "Shell RC files before:"
 echo "~/.bashrc exists: $(test -f ~/.bashrc && echo "yes" || echo "no")"
 if [ -f ~/.bashrc ]; then
-  echo "Last 3 lines of ~/.bashrc:"
-  tail -3 ~/.bashrc
+  echo "Last 20 lines of ~/.bashrc:"
+  tail -20 ~/.bashrc
 fi
 
 # Run force install to reproduce the issue
@@ -34,8 +34,8 @@ env | sort > /tmp/env_after_force.txt
 echo "Shell RC files after:"
 echo "~/.bashrc exists: $(test -f ~/.bashrc && echo "yes" || echo "no")" 
 if [ -f ~/.bashrc ]; then
-  echo "Last 5 lines of ~/.bashrc:"
-  tail -5 ~/.bashrc
+  echo "Last 20 lines of ~/.bashrc:"
+  tail -20 ~/.bashrc
 fi
 
 # Show the differences
