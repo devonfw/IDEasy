@@ -15,6 +15,7 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.ProcessContextGitMock;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.git.GitContextImplMock;
 import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
@@ -138,5 +139,26 @@ class CreateCommandletTest extends AbstractIdeContextTest {
         + "ide upgrade", ideVersion, ideVersion);
     // act
     assertThat(cc);
+  }
+
+  @Test
+  public void testWelcomeMessageDisplayed() {
+
+    // arrange - create a new project
+    GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
+
+    context.setGitContext(gitContextImplMock);
+    CreateCommandlet cc = context.getCommandletManager().getCommandlet(CreateCommandlet.class);
+    cc.newProject.setValueAsString(NEW_PROJECT_NAME, context);
+    cc.settingsRepo.setValue(IdeContext.DEFAULT_SETTINGS_REPO_URL);
+    cc.skipTools.setValue(true);
+
+    // act - run the create command
+    cc.run();
+
+    // assert
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+    assertThat(newProjectPath).exists();
+    assertThat(context).logAtInfo().hasMessageContaining("Welcome to your new IDEasy project!");
   }
 }
