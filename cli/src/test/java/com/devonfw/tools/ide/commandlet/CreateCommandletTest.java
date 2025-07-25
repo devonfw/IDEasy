@@ -142,7 +142,7 @@ class CreateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testWelcomeMessageDisplayed(@TempDir Path tempDir) {
+  public void testWelcomeMessageDisplayed() {
 
     // arrange - create a new project
     GitContextImplMock gitContextImplMock = new GitContextImplMock(context, TEST_RESOURCES.resolve("settings"));
