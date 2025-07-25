@@ -47,21 +47,6 @@ public interface IdeStartContext extends IdeLogger {
   boolean isForceRepositories();
 
   /**
-   * @param forcePull new value of {@link #isForcePull()}.
-   */
-  void setForcePull(boolean forcePull);
-
-  /**
-   * @param forcePlugins new value of {@link #isForcePlugins()}.
-   */
-  void setForcePlugins(boolean forcePlugins);
-
-  /**
-   * @param forceRepositories new value of {@link #isForceRepositories()}.
-   */
-  void setForceRepositories(boolean forceRepositories);
-
-  /**
    * @return {@code true} if offline mode is activated (-o/--offline), {@code false} otherwise.
    */
   boolean isOfflineMode();

@@ -889,7 +889,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         interaction(message);
       }
       if (isBatchMode()) {
-        if (isForceMode() || isForcePull()) {
+        if (isForceMode()) {
           return defaultValue;
         } else {
           throw new CliAbortException();
@@ -932,7 +932,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
     O option = null;
     if (isBatchMode()) {
-      if (isForceMode() || isForcePull()) {
+      if (isForceMode()) {
         option = options[0];
         interaction("" + option);
       }

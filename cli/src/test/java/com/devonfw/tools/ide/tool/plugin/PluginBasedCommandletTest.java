@@ -57,7 +57,7 @@ public class PluginBasedCommandletTest extends AbstractIdeContextTest {
   void testInstallPluginsWithForce() {
 
     //arrange
-    context.setForcePlugins(true);
+    context.getStartContext().setForcePlugins(true);
     final ExamplePluginBasedCommandlet pluginBasedCommandlet = new ExamplePluginBasedCommandlet(context, TOOL, tags);
 
     //act

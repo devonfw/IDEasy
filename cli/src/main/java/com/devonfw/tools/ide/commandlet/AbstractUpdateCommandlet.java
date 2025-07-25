@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeStartContextImpl;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.git.repository.RepositoryCommandlet;
@@ -78,9 +79,10 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
   @Override
   public void run() {
 
-    this.context.setForcePull(forcePull.isTrue());
-    this.context.setForcePlugins(forcePlugins.isTrue());
-    this.context.setForceRepositories(forceRepositories.isTrue());
+    IdeStartContextImpl startContext = ((AbstractIdeContext) this.context).getStartContext();
+    startContext.setForcePull(forcePull.isTrue());
+    startContext.setForcePlugins(forcePlugins.isTrue());
+    startContext.setForceRepositories(forceRepositories.isTrue());
 
     if (!this.context.isSettingsRepositorySymlinkOrJunction() || this.context.isForceMode() || forcePull.isTrue()) {
       updateSettings();
@@ -161,8 +163,12 @@ public abstract class AbstractUpdateCommandlet extends Commandlet {
     GitContext gitContext = this.context.getGitContext();
     // here we do not use pullOrClone to prevent asking a pointless question for repository URL...
     if (Files.isDirectory(settingsPath) && !this.context.getFileAccess().isEmptyDir(settingsPath)) {
-      gitContext.pull(settingsPath);
-      this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
+      if (this.context.isForcePull() || this.context.isForceMode() || Files.isDirectory(settingsPath.resolve(GitContext.GIT_FOLDER))) {
+        gitContext.pull(settingsPath);
+        this.context.getGitContext().saveCurrentCommitId(settingsPath, this.context.getSettingsCommitIdPath());
+      } else {
+        this.context.info("Skipping git pull in settings due to code repository. Use --force-pull to enforce pulling.");
+      }
     } else {
       String repositoryUrl = getOrAskSettingsUrl();
       GitUrl gitUrl = GitUrl.of(repositoryUrl);
