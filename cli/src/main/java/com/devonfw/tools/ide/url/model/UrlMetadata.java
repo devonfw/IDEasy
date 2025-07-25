@@ -87,7 +87,7 @@ public class UrlMetadata implements AbstractUrlMetadata {
       try {
         urlVersion.getMatchingUrls(sys.getOs(), sys.getArchitecture());
         list.add(versionIdentifier);
-      } catch (IllegalStateException e) {
+      } catch (CliException e) {
         // ignore, but do not add versionIdentifier as there is no download available for the current system
       }
     }
