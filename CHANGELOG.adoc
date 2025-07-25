@@ -8,7 +8,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1399[#1399]: Welcome message not working on Linux
 
-The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/32?closed=1[milestone 2025.08.001].
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/31?closed=1[milestone 2025.08.001].
 
 == 2025.07.001
 
