@@ -7,6 +7,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1399[#1399]: Welcome message not working on Linux
+* https://github.com/devonfw/IDEasy/issues/1387[#1387]: Hide exception from user when a tool version is not supported
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/31?closed=1[milestone 2025.08.001].
 
