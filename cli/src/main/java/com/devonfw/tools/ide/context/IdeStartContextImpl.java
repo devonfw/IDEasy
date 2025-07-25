@@ -153,7 +153,7 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
   }
 
   /**
-   * @param skipUpdatesMode new value of {@link #isSkipUpdatesMode()} ()}.
+   * @param skipUpdatesMode new value of {@link #isSkipUpdatesMode()}.
    */
   public void setSkipUpdatesMode(boolean skipUpdatesMode) {
 

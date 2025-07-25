@@ -884,30 +884,26 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public String askForInput(String message, String defaultValue) {
 
-    if (!message.isBlank()) {
-      info(message);
-    }
-    if (isBatchMode()) {
-      if (isForceMode() || isForcePull()) {
-        return defaultValue;
+    while (true) {
+      if (!message.isBlank()) {
+        interaction(message);
+      }
+      if (isBatchMode()) {
+        if (isForceMode() || isForcePull()) {
+          return defaultValue;
+        } else {
+          throw new CliAbortException();
+        }
+      }
+      String input = readLine().trim();
+      if (!input.isEmpty()) {
+        return input;
       } else {
-        throw new CliAbortException();
+        if (defaultValue != null) {
+          return defaultValue;
+        }
       }
     }
-    String input = readLine().trim();
-    return input.isEmpty() ? defaultValue : input;
-  }
-
-  @Override
-  public String askForInput(String message) {
-
-    String input;
-    do {
-      info(message);
-      input = readLine().trim();
-    } while (input.isEmpty());
-
-    return input;
   }
 
   @SuppressWarnings("unchecked")

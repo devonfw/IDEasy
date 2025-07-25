@@ -219,7 +219,7 @@ public interface IdeContext extends IdeStartContext {
    * Asks the user for a single string input.
    *
    * @param message The information message to display.
-   * @param defaultValue The default value to return when no input is provided.
+   * @param defaultValue The default value to return when no input is provided or {@code null} to keep asking until the user entered a non empty value.
    * @return The string input from the user, or the default value if no input is provided.
    */
   String askForInput(String message, String defaultValue);
@@ -228,9 +228,11 @@ public interface IdeContext extends IdeStartContext {
    * Asks the user for a single string input.
    *
    * @param message The information message to display.
-   * @return The string input from the user, or the default value if no input is provided.
+   * @return The string input from the user.
    */
-  String askForInput(String message);
+  default String askForInput(String message) {
+    return askForInput(message, null);
+  }
 
   /**
    * @param question the question to ask.
