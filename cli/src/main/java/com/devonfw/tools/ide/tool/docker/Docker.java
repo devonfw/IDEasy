@@ -9,6 +9,8 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManager;
@@ -23,6 +25,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class Docker extends GlobalToolCommandlet {
 
+  private static final String PODMAN = "podman";
+
   /**
    * The constructor.
    *
@@ -31,6 +35,36 @@ public class Docker extends GlobalToolCommandlet {
   public Docker(IdeContext context) {
 
     super(context, "docker", Set.of(Tag.DOCKER));
+  }
+
+  @Override
+  public String getBinaryName() {
+    return detectContainerRuntime();
+  }
+
+  private String detectContainerRuntime() {
+    if (isCommandAvailable(this.getName())) {
+      return this.getName();
+    } else if (isCommandAvailable(PODMAN)) {
+      return PODMAN;
+    } else {
+      return this.getName();
+    }
+  }
+
+  private boolean isCommandAvailable(String command) {
+    ProcessMode mode = ProcessMode.DEFAULT_CAPTURE;
+    try {
+      ProcessContext processContext = this.context.newProcess().executable(command);
+      processContext.addArgs("--version");
+      ProcessResult result = processContext.run(mode);
+      if (result.getExitCode() != 0) {
+        return false;
+      }
+    } catch (Exception e) {
+      return false;
+    }
+    return true;
   }
 
   @Override
