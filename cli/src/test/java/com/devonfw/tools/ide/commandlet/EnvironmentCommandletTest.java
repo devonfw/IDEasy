@@ -49,6 +49,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("BAR=\"bar-some-${UNDEFINED}\""), //
         IdeLogEntry.ofProcessable("ECLIPSE_VERSION=\"2023-03\""), //
         IdeLogEntry.ofProcessable("IDE_TOOLS=\"mvn,eclipse\""), //
+        IdeLogEntry.ofProcessable("HTTP_PROTOCOLS=\"HTTP_1_1,HTTP_2\""), //
         IdeLogEntry.ofProcessable("INTELLIJ_EDITION=\"ultimate\""), //
         IdeLogEntry.ofProcessable("JAVA_VERSION=\"17*\""), //
         IdeLogEntry.ofProcessable("TEST_ARGS4=\" settings4\""), //
@@ -116,6 +117,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("HOME=\"" + normalize(context.getUserHome()) + "\""), //
         IdeLogEntry.ofProcessable("IDE_HOME=\"" + normalize(context.getIdeHome()) + "\""), //
         IdeLogEntry.ofProcessable("IDE_TOOLS=\"mvn,eclipse\""), //
+        IdeLogEntry.ofProcessable("HTTP_PROTOCOLS=\"HTTP_1_1,HTTP_2\""), //
         IdeLogEntry.ofProcessable("INTELLIJ_EDITION=\"ultimate\""), //
         IdeLogEntry.ofProcessable(
             "export JAVA_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "java\""), //

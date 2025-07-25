@@ -25,4 +25,16 @@ public class IdeVariablesTest extends Assertions {
     assertThat(ideTools).containsExactly("mvn", "npm");
   }
 
+  /** Test of {@link IdeVariables#HTTP_PROTOCOLS}. */
+  @Test
+  public void testHtmlProtocols() {
+
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    // act
+    List<String> ideTools = IdeVariables.HTTP_PROTOCOLS.get(context);
+    // assert
+    assertThat(ideTools).containsExactly("HTTP_2");
+  }
+
 }
