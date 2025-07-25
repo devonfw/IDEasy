@@ -110,8 +110,7 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
             urls = getUrls(os, SystemArchitecture.X64);
           }
           if (urls == null) {
-            Path path = getPath();
-            throw new CliException("No download was found for OS " + os + "@" + arch + " in " + path);
+            throw new CliException("No download was found for OS " + os + "@" + arch + " in " + getPath());
           }
         }
       }
