@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.docker;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,8 +11,6 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessMode;
-import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManager;
@@ -53,18 +53,8 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   private boolean isCommandAvailable(String command) {
-    ProcessMode mode = ProcessMode.DEFAULT_CAPTURE;
-    try {
-      ProcessContext processContext = this.context.newProcess().executable(command);
-      processContext.addArgs("--version");
-      ProcessResult result = processContext.run(mode);
-      if (result.getExitCode() != 0) {
-        return false;
-      }
-    } catch (Exception e) {
-      return false;
-    }
-    return true;
+    Path foundPath = this.context.getPath().findBinaryPathByName(command);
+    return Files.exists(foundPath);
   }
 
   @Override

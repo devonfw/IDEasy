@@ -177,8 +177,18 @@ public class SystemPath {
   }
 
   /**
+   * @param binaryName the name of the tool.
+   * @return the {@link Path} to the binary executable of the tool. E.g. if "mvn" is given then ".../software/mvn/bin/mvn" could be returned. If the executable
+   *     was not found on PATH, the same {@link Path} instance is returned that was given as argument.
+   */
+  public Path findBinaryPathByName(String binaryName) {
+    return findBinary(Path.of(binaryName));
+  }
+
+  /**
    * @param toolPath the {@link Path} to the tool installation.
-   * @return the {@link Path} to the binary executable of the tool. E.g. is "software/mvn" is given "software/mvn/bin/mvn" could be returned.
+   * @return the {@link Path} to the binary executable of the tool. E.g. if "mvn" is given then ".../software/mvn/bin/mvn" could be returned. If the executable
+   *     was not found on PATH, the same {@link Path} instance is returned that was given as argument.
    */
   public Path findBinary(Path toolPath) {
 
