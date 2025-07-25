@@ -121,7 +121,7 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
   public void testSetupSpecificRepositoryWithForceOption() {
 
     // arrange
-    this.context.setForceRepositories(true);
+    this.context.getStartContext().setForceRepositories(true);
     RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
     saveProperties();
     rc.repository.setValueAsString("test", this.context);
