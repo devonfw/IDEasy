@@ -27,7 +27,7 @@ public class IdeVariablesTest extends Assertions {
 
   /** Test of {@link IdeVariables#HTTP_PROTOCOLS}. */
   @Test
-  public void testHtmlProtocols() {
+  public void testHttpProtocols() {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();

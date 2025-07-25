@@ -34,7 +34,7 @@ public interface IdeVariables {
   VariableDefinitionStringList IDE_TOOLS = new VariableDefinitionStringList("IDE_TOOLS", "DEVON_IDE_TOOLS", c -> List.of("mvn", "npm"));
 
   /** {@link VariableDefinition} for list of HTTP protocols to use by default. */
-  VariableDefinitionStringList HTTP_PROTOCOLS = new VariableDefinitionStringList("HTTP_PROTOCOLS", null, c -> List.of("HTTP_2"));
+  VariableDefinitionStringList HTTP_PROTOCOLS = new VariableDefinitionStringList("HTTP_PROTOCOLS", null, c -> List.of());
 
   /** {@link VariableDefinition} for list of IDE tools to create start scripts for. */
   VariableDefinitionStringList CREATE_START_SCRIPTS = new VariableDefinitionStringList("CREATE_START_SCRIPTS", "DEVON_CREATE_START_SCRIPTS");

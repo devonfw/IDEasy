@@ -12,6 +12,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemException;
@@ -113,6 +114,13 @@ public class FileAccessImpl implements FileAccess {
     }
 
     Exception lastException = null;
+    if (protocolVersions.isEmpty()) {
+      try {
+        this.downloadWithHttpVersion(url, target, null);
+      } catch (Exception e) {
+        lastException = e;
+      }
+    }
     for (HttpClient.Version version : protocolVersions) {
       try {
         this.context.debug("Trying to download: {} with HTTP protocol version: {}", url, version);
@@ -136,11 +144,13 @@ public class FileAccessImpl implements FileAccess {
     }
     if (url.startsWith("http")) {
 
-      HttpRequest request = HttpRequest.newBuilder()
+      Builder builder = HttpRequest.newBuilder()
           .uri(URI.create(url))
-          .GET()
-          .version(httpClientVersion)
-          .build();
+          .GET();
+      if (httpClientVersion != null) {
+        builder.version(httpClientVersion);
+      }
+      HttpRequest request = builder.build();
       HttpResponse<InputStream> response;
       try (HttpClient client = createHttpClient(url)) {
         response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
