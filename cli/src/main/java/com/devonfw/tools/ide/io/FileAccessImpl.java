@@ -98,18 +98,20 @@ public class FileAccessImpl implements FileAccess {
     List<String> httpProtocols = IdeVariables.HTTP_PROTOCOLS.get(context);
     List<HttpClient.Version> protocolVersions = new ArrayList<>();
 
-    for (String httpProtocol : httpProtocols) {
-      switch (httpProtocol) {
-        case "HTTP_1_1":
-          protocolVersions.add(HttpClient.Version.HTTP_1_1);
-          this.context.debug("Added HTTP_1_1 protocol");
-          break;
-        case "HTTP_2":
-          protocolVersions.add(HttpClient.Version.HTTP_2);
-          this.context.debug("Added HTTP_2 protocol");
-          break;
-        default:
-          this.context.error("Unsupported protocol was set in HTTP_PROTOCOLS: " + httpProtocol);
+    if (!httpProtocols.isEmpty()) {
+      for (String httpProtocol : httpProtocols) {
+        switch (httpProtocol) {
+          case "HTTP_1_1":
+            protocolVersions.add(HttpClient.Version.HTTP_1_1);
+            this.context.debug("Added HTTP_1_1 protocol");
+            break;
+          case "HTTP_2":
+            protocolVersions.add(HttpClient.Version.HTTP_2);
+            this.context.debug("Added HTTP_2 protocol");
+            break;
+          default:
+            this.context.error("Unsupported protocol was set in HTTP_PROTOCOLS: " + httpProtocol);
+        }
       }
     }
 
@@ -117,17 +119,20 @@ public class FileAccessImpl implements FileAccess {
     if (protocolVersions.isEmpty()) {
       try {
         this.downloadWithHttpVersion(url, target, null);
+        return; // success
       } catch (Exception e) {
         lastException = e;
       }
     }
-    for (HttpClient.Version version : protocolVersions) {
-      try {
-        this.context.debug("Trying to download: {} with HTTP protocol version: {}", url, version);
-        this.downloadWithHttpVersion(url, target, version);
-        return; // success
-      } catch (Exception ex) {
-        lastException = ex;
+    if (!protocolVersions.isEmpty()) {
+      for (HttpClient.Version version : protocolVersions) {
+        try {
+          this.context.debug("Trying to download: {} with HTTP protocol version: {}", url, version);
+          this.downloadWithHttpVersion(url, target, version);
+          return; // success
+        } catch (Exception ex) {
+          lastException = ex;
+        }
       }
     }
 

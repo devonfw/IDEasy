@@ -34,7 +34,7 @@ public class IdeVariablesTest extends Assertions {
     // act
     List<String> ideTools = IdeVariables.HTTP_PROTOCOLS.get(context);
     // assert
-    assertThat(ideTools).containsExactly("HTTP_2");
+    assertThat(ideTools).isEmpty();
   }
 
 }
