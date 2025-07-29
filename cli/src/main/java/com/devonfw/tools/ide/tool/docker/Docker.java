@@ -43,12 +43,12 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   private String detectContainerRuntime() {
-    if (isCommandAvailable(getName())) {
-      return getName();
+    if (isCommandAvailable(this.tool)) {
+      return this.tool;
     } else if (isCommandAvailable(PODMAN)) {
       return PODMAN;
     } else {
-      return getName();
+      return this.tool;
     }
   }
 
