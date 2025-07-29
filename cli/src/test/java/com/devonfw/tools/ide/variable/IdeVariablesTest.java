@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.variable;
 
+import java.net.http.HttpClient.Version;
 import java.util.List;
 
 import org.assertj.core.api.Assertions;
@@ -25,16 +26,18 @@ public class IdeVariablesTest extends Assertions {
     assertThat(ideTools).containsExactly("mvn", "npm");
   }
 
-  /** Test of {@link IdeVariables#HTTP_PROTOCOLS}. */
+  /** Test of {@link IdeVariables#HTTP_VERSIONS}. */
   @Test
   public void testHttpProtocols() {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
     // act
-    List<String> ideTools = IdeVariables.HTTP_PROTOCOLS.get(context);
+    List<Version> httpVersionsEmpty = IdeVariables.HTTP_VERSIONS.get(context);
+    List<Version> httpVersions2_11 = IdeVariables.HTTP_VERSIONS.fromString("HTTP_2, http_1_1", context);
     // assert
-    assertThat(ideTools).isEmpty();
+    assertThat(httpVersionsEmpty).isEmpty();
+    assertThat(httpVersions2_11).containsExactly(Version.HTTP_2, Version.HTTP_1_1);
   }
 
 }

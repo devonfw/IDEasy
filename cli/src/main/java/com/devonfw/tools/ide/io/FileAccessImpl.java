@@ -11,6 +11,7 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
@@ -95,37 +96,18 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void download(String url, Path target) {
-    List<String> httpProtocols = IdeVariables.HTTP_PROTOCOLS.get(context);
-    List<HttpClient.Version> protocolVersions = new ArrayList<>();
-
-    if (!httpProtocols.isEmpty()) {
-      for (String httpProtocol : httpProtocols) {
-        switch (httpProtocol) {
-          case "HTTP_1_1":
-            protocolVersions.add(HttpClient.Version.HTTP_1_1);
-            this.context.debug("Added HTTP_1_1 protocol");
-            break;
-          case "HTTP_2":
-            protocolVersions.add(HttpClient.Version.HTTP_2);
-            this.context.debug("Added HTTP_2 protocol");
-            break;
-          default:
-            this.context.error("Unsupported protocol was set in HTTP_PROTOCOLS: " + httpProtocol);
-        }
-      }
-    }
+    List<Version> httpProtocols = IdeVariables.HTTP_VERSIONS.get(context);
 
     Exception lastException = null;
-    if (protocolVersions.isEmpty()) {
+    if (httpProtocols.isEmpty()) {
       try {
         this.downloadWithHttpVersion(url, target, null);
         return; // success
       } catch (Exception e) {
         lastException = e;
       }
-    }
-    if (!protocolVersions.isEmpty()) {
-      for (HttpClient.Version version : protocolVersions) {
+    } else {
+      for (Version version : httpProtocols) {
         try {
           this.context.debug("Trying to download: {} with HTTP protocol version: {}", url, version);
           this.downloadWithHttpVersion(url, target, version);
@@ -139,7 +121,7 @@ public class FileAccessImpl implements FileAccess {
     throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, lastException);
   }
 
-  private void downloadWithHttpVersion(String url, Path target, HttpClient.Version httpClientVersion) throws Exception {
+  private void downloadWithHttpVersion(String url, Path target, Version httpVersion) throws Exception {
 
     this.context.info("Trying to download {} from {}", target.getFileName(), url);
     mkdirs(target.getParent());
@@ -152,8 +134,8 @@ public class FileAccessImpl implements FileAccess {
       Builder builder = HttpRequest.newBuilder()
           .uri(URI.create(url))
           .GET();
-      if (httpClientVersion != null) {
-        builder.version(httpClientVersion);
+      if (httpVersion != null) {
+        builder.version(httpVersion);
       }
       HttpRequest request = builder.build();
       HttpResponse<InputStream> response;
