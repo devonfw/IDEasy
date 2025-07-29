@@ -18,6 +18,12 @@ public interface GitContext {
   /** The name of the internal metadata folder of a git repository. */
   String GIT_FOLDER = ".git";
 
+  /** The name of the HEAD file inside {@link #GIT_FOLDER}. */
+  String FILE_HEAD = "HEAD";
+
+  /** The name of the FETCH_HEAD file inside {@link #GIT_FOLDER}. */
+  String FILE_FETCH_HEAD = "FETCH_HEAD";
+
   /**
    * Checks if the Git repository in the specified target folder needs an update by inspecting the modification time of a magic file.
    *
