@@ -7,14 +7,13 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.devonfw.tools.ide.url.tool.AbstractUrlUpdaterTest;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdaterTest;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -28,7 +27,7 @@ public class AwsGithubUrlUpdaterTest extends AbstractUrlUpdaterTest {
   /**
    * Test resource location
    */
-  private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/AwsGithubUrlUpdater";
+  private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/AwsUrlUpdater";
 
   /**
    * Test of {@link JsonUrlUpdater} for the creation of {@link AwsUrlUpdater} download URLs and checksums.
@@ -42,7 +41,7 @@ public class AwsGithubUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
     // arrange
     stubFor(get(urlMatching("/repos/.*")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("github-tags.json")))));
+        .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("AwsUrlUpdater").resolve("github-tags.json"), wmRuntimeInfo))));
 
     stubFor(any(urlMatching("/download/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
 
@@ -53,8 +52,10 @@ public class AwsGithubUrlUpdaterTest extends AbstractUrlUpdaterTest {
     updater.update(urlRepository);
 
     // assert
-    assertThat(tempDir.resolve("aws").resolve("aws").resolve("2.7.22").resolve("status.json")).exists();
-
+    Path awsEditionDir = tempDir.resolve("aws").resolve("aws");
+    for (String version : new String[] { "2.7.22", "2.7.23", "2.7.24" }) {
+      assertUrlVersionOsX64(awsEditionDir.resolve(version));
+    }
   }
 
 }
