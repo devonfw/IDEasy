@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.docker;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -9,6 +11,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.GlobalToolCommandlet;
 import com.devonfw.tools.ide.tool.PackageManager;
 import com.devonfw.tools.ide.tool.PackageManagerCommand;
@@ -22,6 +25,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class Docker extends GlobalToolCommandlet {
 
+  private static final String PODMAN = "podman";
+
   /**
    * The constructor.
    *
@@ -30,6 +35,25 @@ public class Docker extends GlobalToolCommandlet {
   public Docker(IdeContext context) {
 
     super(context, "docker", Set.of(Tag.DOCKER));
+  }
+
+  @Override
+  public String getBinaryName() {
+    return detectContainerRuntime();
+  }
+
+  private String detectContainerRuntime() {
+    if (isCommandAvailable(this.tool)) {
+      return this.tool;
+    } else if (isCommandAvailable(PODMAN)) {
+      return PODMAN;
+    } else {
+      return this.tool;
+    }
+  }
+
+  private boolean isCommandAvailable(String command) {
+    return this.context.getPath().hasBinaryOnPath(command);
   }
 
   @Override
@@ -43,12 +67,12 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent, ProcessContext processContext) {
+  public boolean install(boolean silent, ProcessContext processContext, Step step) {
 
     if (this.context.getSystemInfo().isLinux()) {
       return runWithPackageManager(silent, getPackageManagerCommandsInstall());
     } else {
-      return super.install(silent, processContext);
+      return super.install(silent, processContext, step);
     }
   }
 
@@ -94,17 +118,6 @@ public class Docker extends GlobalToolCommandlet {
         new PackageManagerCommand(PackageManager.APT, Arrays.asList("sudo apt -y autoremove rancher-desktop")));
 
     return pmCommands;
-  }
-
-  @Override
-  protected String getBinaryName() {
-
-    if (this.context.getSystemInfo().isLinux()) {
-      // TODO this is wrong. The install method may need to run this on linux but the binary name is always docker (read the JavaDoc)
-      return "rancher-desktop";
-    } else {
-      return super.getBinaryName();
-    }
   }
 
   @Override
