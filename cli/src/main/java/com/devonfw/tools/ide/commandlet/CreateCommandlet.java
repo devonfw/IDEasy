@@ -79,18 +79,14 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   }
 
   @Override
-  protected void processRepository() {
-    RepositoryStrategy repositoryStrategy = new SettingsRepositoryStrategy();
-    if (isCodeRepository()) {
-      repositoryStrategy = new CodeRepositoryStrategy();
-    }
-
-    processRepositoryUsingStrategy(repositoryStrategy);
+  protected boolean isCodeRepository() {
+    return this.codeRepositoryFlag.isTrue();
   }
 
   @Override
-  protected boolean isCodeRepository() {
-    return this.codeRepositoryFlag.isTrue();
+  protected String getStepMessage() {
+
+    return "Create (clone) " + (isCodeRepository() ? "code" : "settings") + " repository";
   }
 
   private void logWelcomeMessage() {
