@@ -29,7 +29,7 @@ public class ToolSecurity {
     super();
   }
 
-  private ToolSecurity(List<CVE> issues) {
+  public ToolSecurity(List<CVE> issues) {
 
     super();
     this.issues = issues;

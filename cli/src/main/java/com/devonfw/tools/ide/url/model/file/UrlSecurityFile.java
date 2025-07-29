@@ -1,17 +1,15 @@
 package com.devonfw.tools.ide.url.model.file;
 
 import java.io.BufferedWriter;
-import java.math.BigDecimal;
 import java.nio.file.Files;
-import java.util.Collection;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
+import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
-import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
 import com.devonfw.tools.ide.url.model.folder.AbstractUrlToolOrEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -26,9 +24,8 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   /** {@link #getName() Name} of security file. */
   public static final String SECURITY_JSON = "security.json";
 
-  private final Collection<UrlSecurityWarning> urlSecurityWarnings;
 
-  private ToolSecurity security;
+  private ToolSecurity security = ToolSecurity.getEmpty();
 
   private final ObjectMapper MAPPER = JsonMapping.create();
 
@@ -40,7 +37,6 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   public UrlSecurityFile(AbstractUrlToolOrEdition<?, ?> parent) {
 
     super(parent, SECURITY_JSON);
-    this.urlSecurityWarnings = new HashSet<>();
   }
 
   /**
@@ -71,13 +67,13 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   @Override
   public void doSave() {
 
-    if (this.urlSecurityWarnings.isEmpty() && !Files.exists(getPath())) {
+    if ((security == null || security.getIssues().isEmpty()) && !Files.exists(getPath())) {
       System.out.println("Skipping save for " + getPath() + " (no warnings and file doesn't exist)");
       return;
     }
 
     try (BufferedWriter writer = Files.newBufferedWriter(getPath())) {
-      MAPPER.writeValue(writer, urlSecurityWarnings);
+      MAPPER.writeValue(writer, security);
     } catch (Exception e) {
       throw new IllegalStateException("Failed to save file " + getPath(), e);
     }
@@ -85,39 +81,27 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
   }
 
   /**
-   * Adds a new security warning for a specified version range.
-   *
-   * @param versionRange the {@link VersionRange} of the tool or edition for which to add the warning.
+   * Adds a new CVE warning with detailed information, such as severity, CVE ID and a versionRange
    */
-  public void addSecurityWarning(VersionRange versionRange) {
 
-    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, null, null);
-    boolean added = urlSecurityWarnings.add(newWarning);
-    this.modified = this.modified || added;
-  }
-
-  /**
-   * Adds a new security warning with detailed information, such as severity, CVE ID and a versionRange
-   *
-   * @param versionRange the {@link VersionRange} of the tool or edition for which to add the warning.
-   * @param severity the severity of the security issue.
-   * @param cveName the CVE ID of the vulnerability.
-   * @return {@code true} if the warning was successfully added, {@code false} if it already exists.
-   */
-  public boolean addSecurityWarning(VersionRange versionRange, BigDecimal severity, String cveName) {
-    UrlSecurityWarning newWarning = new UrlSecurityWarning(versionRange, severity, cveName);
-    boolean added = urlSecurityWarnings.add(newWarning);
-    this.modified = this.modified || added;
-    return added;
+  public void addCve(CVE cve) {
+    if (this.security == null || this.security == ToolSecurity.getEmpty()) {
+      this.security = new ToolSecurity(new ArrayList<>());
+    }
+    this.security.getIssues().add(cve);
+    this.modified = true;
   }
 
   /**
    * Clears all security warnings from this {@link UrlSecurityFile}.
    */
   public void clearSecurityWarnings() {
-    this.urlSecurityWarnings.clear();
-    this.modified = true;
+    if (this.security != null) {
+      this.security.getIssues().clear();
+      this.modified = true;
+    }
   }
+
 
   /**
    * Checks if a security warning exists for a given version. Optionally, warnings affecting all versions can be ignored.
@@ -128,32 +112,37 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
    * @param edition the {@link UrlEdition} to check for security warnings.
    * @return {@code true} if a security warning exists for the given version, {@code false} otherwise.
    */
+
   public boolean contains(VersionIdentifier version, boolean ignoreWarningsThatAffectAllVersions, IdeContext context,
       UrlEdition edition) {
 
     List<VersionIdentifier> sortedVersions = List.of();
     if (ignoreWarningsThatAffectAllVersions) {
-      sortedVersions = Objects.requireNonNull(context).getUrls().getSortedVersions(edition.getName(),
-          edition.getName(), null);
+      sortedVersions = Objects.requireNonNull(context).getUrls().getSortedVersions(
+          edition.getName(), edition.getName(), null);
     }
 
-    for (UrlSecurityWarning warning : this.urlSecurityWarnings) {
-      VersionRange versionRange = warning.getVersions();
-      if (ignoreWarningsThatAffectAllVersions) {
-        boolean includesOldestVersion = versionRange.getMin() == null
-            || warning.getVersions().contains(sortedVersions.get(sortedVersions.size() - 1));
-        boolean includesNewestVersion = versionRange.getMax() == null
-            || warning.getVersions().contains(sortedVersions.get(0));
-        if (includesOldestVersion && includesNewestVersion) {
-          continue;
+    List<CVE> issues = this.security != null ? this.security.getIssues() : List.of();
+
+    for (CVE cve : issues) {
+      for (VersionRange versionRange : cve.versions()) {
+        if (ignoreWarningsThatAffectAllVersions) {
+          boolean includesOldestVersion = versionRange.getMin() == null
+              || versionRange.contains(sortedVersions.get(sortedVersions.size() - 1));
+          boolean includesNewestVersion = versionRange.getMax() == null
+              || versionRange.contains(sortedVersions.get(0));
+          if (includesOldestVersion && includesNewestVersion) {
+            continue;
+          }
         }
-      }
-      if (warning.getVersions().contains(version)) {
-        return true;
+        if (versionRange.contains(version)) {
+          return true;
+        }
       }
     }
     return false;
   }
+
 
   /**
    * Checks if a security warning exists for a given version.

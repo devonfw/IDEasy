@@ -48,7 +48,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
-import com.devonfw.tools.ide.url.model.file.json.UrlSecurityWarning;
+import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
@@ -194,13 +194,12 @@ public class BuildSecurityJsonFiles {
   }
 
   /**
-   * Adds a {@link UrlSecurityWarning} to the {@link UrlSecurityFile} of the tool and edition to which the vulnerability applies.
-   *
    * @param vulnerability the {@link Vulnerability} determined by OWASP dependency check.
    * @param securityFile the {@link UrlSecurityFile} of the tool and edition to which the vulnerability applies.
    * @param cpeToUrlVersion a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
    * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get maps between CPE Version and {@link UrlVersion#getName() Url Version} naming.
    */
+
   public static void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityFile securityFile,
       Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater) {
 
@@ -211,6 +210,10 @@ public class BuildSecurityJsonFiles {
     }
 
     BigDecimal severity = getBigDecimalSeverity(vulnerability);
+    if (severity == null) {
+      return;
+    }
+
     if (vulnerability.getCvssV3() != null) {
       if (severity.compareTo(minV3Severity) < 0) {
         return;
@@ -229,8 +232,12 @@ public class BuildSecurityJsonFiles {
       return;
     }
 
-    securityFile.addSecurityWarning(versionRange, severity, cveName);
+    CVE cve = new CVE(cveName, severity.doubleValue(), List.of(versionRange));
+    securityFile.addCve(cve);
+
+
   }
+
 
   /**
    * Prints debug information about the vulnerability.
