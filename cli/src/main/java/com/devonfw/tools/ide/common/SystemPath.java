@@ -178,6 +178,16 @@ public class SystemPath {
 
   /**
    * @param binaryName the name of the tool.
+   * @return {@code true} if the given {@code tool} is a binary that can be found on the PATH, {@code false} otherwise.
+   */
+  public boolean hasBinaryOnPath(String binaryName) {
+    Path binary = Path.of(binaryName);
+    Path resolvedBinary = findBinary(binary);
+    return (resolvedBinary != binary);
+  }
+
+  /**
+   * @param binaryName the name of the tool.
    * @return the {@link Path} to the binary executable of the tool. E.g. if "mvn" is given then ".../software/mvn/bin/mvn" could be returned. If the executable
    *     was not found on PATH, the same {@link Path} instance is returned that was given as argument.
    */
