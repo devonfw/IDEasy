@@ -53,8 +53,7 @@ public class Docker extends GlobalToolCommandlet {
   }
 
   private boolean isCommandAvailable(String command) {
-    Path foundPath = this.context.getPath().findBinaryPathByName(command);
-    return Files.exists(foundPath);
+    return this.context.getPath().hasBinaryOnPath(command);
   }
 
   @Override
