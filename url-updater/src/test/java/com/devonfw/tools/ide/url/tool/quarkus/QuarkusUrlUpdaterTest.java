@@ -7,7 +7,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
@@ -24,8 +23,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 @WireMockTest
 class QuarkusUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
-  private static final String TEST_DATA_ROOT = "src/test/resources/integrationtest/QuarkusUrlUpdater";
-
   /**
    * Integration test for QuarkusUrlUpdater: verifies that update creates expected files for Quarkus versions.
    */
@@ -33,7 +30,7 @@ class QuarkusUrlUpdaterTest extends AbstractUrlUpdaterTest {
   void testQuarkusUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     // arrange
     stubFor(get(urlMatching("/repos/quarkusio/quarkus/git/refs/tags")).willReturn(aResponse().withStatus(200)
-        .withBody(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("quarkus-tags.json")))));
+        .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("QuarkusUrlUpdater").resolve("quarkus-tags.json"), wmRuntimeInfo))));
     stubFor(
         any(urlMatching("/quarkusio/quarkus/releases/download/.*/quarkus-cli-.*\\.(zip|tar\\.gz)")).willReturn(
             aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
