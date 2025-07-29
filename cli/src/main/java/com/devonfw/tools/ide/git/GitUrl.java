@@ -34,15 +34,6 @@ public record GitUrl(String url, String branch) {
     return syntax.format(this);
   }
 
-  @Override
-  public String toString() {
-
-    if (this.branch == null) {
-      return this.url;
-    }
-    return this.url + "#" + this.branch;
-  }
-
   /**
    * Extracts the project name from an git URL. For URLs like "https://github.com/devonfw/ide-urls.git" returns "ide-urls"
    *
@@ -61,6 +52,15 @@ public record GitUrl(String url, String branch) {
       path = path.substring(0, path.length() - 4);
     }
     return path;
+  }
+
+  @Override
+  public String toString() {
+
+    if (this.branch == null) {
+      return this.url;
+    }
+    return this.url + "#" + this.branch;
   }
 
   /**

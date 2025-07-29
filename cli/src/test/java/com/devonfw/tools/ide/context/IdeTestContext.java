@@ -80,13 +80,6 @@ public class IdeTestContext extends AbstractIdeTestContext {
     return new IdeTestContext(Path.of("/"));
   }
 
-  @Override
-  public String askForInput(String message) {
-
-    return super.askForInput(message);
-    // return this.inputValues.isEmpty() ? null : this.inputValues.poll();
-  }
-
   /**
    * @return the {@link IdeTestLogger}.
    */

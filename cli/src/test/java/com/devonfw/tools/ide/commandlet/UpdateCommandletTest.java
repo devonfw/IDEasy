@@ -22,6 +22,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 class UpdateCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_UPDATE = "update";
+  private static final String SUCCESS_UPDATE_SETTINGS = "Successfully ended step 'update (pull) settings repository'.";
+  private static final String SUCCESS_INSTALL_OR_UPDATE_SOFTWARE = "Install or update software";
 
   @Test
   public void testRunPullSettingsAndUpdateSoftware() {
@@ -33,7 +35,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     uc.run();
 
     // assert
-    assertThat(context).logAtSuccess().hasMessage("Successfully updated settings repository.");
+    assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
     assertThat(context.getConfPath()).exists();
     assertThat(context.getSoftwarePath().resolve("java")).exists();
     assertThat(context.getSoftwarePath().resolve("mvn")).exists();
@@ -54,7 +56,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     uc.run();
 
     // assert
-    assertThat(context).logAtSuccess().hasMessage("Successfully updated settings repository.");
+    assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
     verifyStartScriptsForAllWorkspacesAndAllIdes(context, activeIdes);
   }
 
@@ -104,8 +106,8 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).logAtError().hasMessage("Step 'Install java' ended with failure.");
     assertThat(context).logAtError().hasMessage("Step 'Install mvn' ended with failure.");
-    assertThat(context).logAtSuccess().hasMessage("Successfully updated settings repository.");
-    assertThat(context).logAtSuccess().hasMessageContaining("Install or update software");
+    assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
+    assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
   }
 
   @Test
@@ -122,7 +124,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     update.run();
     //
     // assert
-    assertThat(context).logAtSuccess().hasMessage("Successfully updated settings repository.");
-    assertThat(context).logAtSuccess().hasMessageContaining("Install or update software");
+    assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
+    assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
   }
 }
