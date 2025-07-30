@@ -38,7 +38,9 @@ public class JavaUrlUpdaterTest extends AbstractUrlUpdaterTest {
     stubFor(get(urlMatching("/versions/")).willReturn(aResponse().withStatus(200)
         .withBody(readAndResolve(PATH_INTEGRATION_TEST.resolve("JavaUrlUpdater").resolve("java-version.json"), wmRuntimeInfo))));
 
-    stubFor(any(urlMatching("/downloads/.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+    stubFor(any(urlMatching(
+        "/temurin[0-9]*-binaries/releases/download/jdk-[0-9A-Z.%]+/OpenJDK[0-9U]*-jdk_(x64|aarch64)_(windows|linux|mac)_hotspot_[0-9._]+\\.(zip|tar\\.gz)")).willReturn(
+        aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     JavaUrlUpdaterMock updater = new JavaUrlUpdaterMock(wmRuntimeInfo);
