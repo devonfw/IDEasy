@@ -15,7 +15,7 @@ public class TerraformUrlUpdaterMock extends TerraformUrlUpdater {
   }
 
   @Override
-  public String getBaseUrl() {
+  public String getDownloadBaseUrl() {
 
     return this.baseUrl;
   }

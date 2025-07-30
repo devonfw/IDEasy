@@ -15,7 +15,7 @@ public class VsCodeUrlUpdaterMock extends VsCodeUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
     return this.baseUrl;
   }
 

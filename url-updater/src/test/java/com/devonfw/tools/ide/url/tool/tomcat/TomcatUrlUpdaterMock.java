@@ -15,7 +15,7 @@ public class TomcatUrlUpdaterMock extends TomcatUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
     return this.baseUrl;
   }
 

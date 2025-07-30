@@ -15,7 +15,7 @@ public class AzureUrlUpdaterMock extends AzureUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
     return this.baseUrl;
   }
 

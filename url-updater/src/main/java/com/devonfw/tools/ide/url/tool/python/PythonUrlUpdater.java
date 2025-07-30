@@ -32,6 +32,12 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
   }
 
   @Override
+  protected String getDownloadBaseUrl() {
+
+    return "undefined-taken-from-JSON";
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion, PythonRelease release) {
 
     String version = release.version();
@@ -55,9 +61,7 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
     }
   }
 
-  /**
-   * @return String of version base Url
-   */
+  @Override
   protected String getVersionBaseUrl() {
 
     return VERSION_BASE_URL;

@@ -15,7 +15,7 @@ public class SonarUrlUpdaterMock extends SonarUrlUpdater {
   }
 
   @Override
-  public String getBaseUrl() {
+  public String getDownloadBaseUrl() {
 
     return this.baseUrl;
   }
