@@ -8,7 +8,10 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
 /**
  * {@link WebsiteUrlUpdater} for Kotlin.
  */
+// TODO refactor me to GithubUrlUpdater
 public class KotlincUrlUpdater extends WebsiteUrlUpdater {
+
+  private static final Pattern VERSION_PATTERN = Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+");
 
   @Override
   protected String getTool() {
@@ -20,19 +23,31 @@ public class KotlincUrlUpdater extends WebsiteUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     doAddVersion(urlVersion,
-        "https://github.com/JetBrains/kotlin/releases/download/v${version}/kotlin-compiler-${version}.zip");
+        getDownloadBaseUrl() + "/JetBrains/kotlin/releases/download/v${version}/kotlin-compiler-${version}.zip");
+  }
+
+  @Override
+  protected String getDownloadBaseUrl() {
+
+    return "https://github.com";
   }
 
   @Override
   protected String getVersionUrl() {
 
-    return "https://api.github.com/repos/JetBrains/kotlin/releases";
+    return getVersionBaseUrl() + "/repos/JetBrains/kotlin/releases";
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return "https://api.github.com";
   }
 
   @Override
   protected Pattern getVersionPattern() {
 
-    return Pattern.compile("[0-9]+\\.[0-9]+\\.[0-9]+");
+    return VERSION_PATTERN;
   }
 
   @Override

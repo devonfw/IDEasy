@@ -11,7 +11,6 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class AzureUrlUpdater extends GithubUrlUpdater {
 
   private static final VersionIdentifier MIN_AZURE_VID = VersionIdentifier.of("2.17.0");
-  private static final String BASE_URL = "https://azcliprod.blob.core.windows.net";
 
   @Override
   protected String getTool() {
@@ -22,7 +21,7 @@ public class AzureUrlUpdater extends GithubUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    doAddVersion(urlVersion, getBaseUrl() + "/msi/azure-cli-${version}.msi",
+    doAddVersion(urlVersion, getDownloadBaseUrl() + "/msi/azure-cli-${version}.msi",
         OperatingSystem.WINDOWS);
   }
 
@@ -39,9 +38,9 @@ public class AzureUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
 
-    return BASE_URL;
+    return "https://azcliprod.blob.core.windows.net";
   }
 
   @Override

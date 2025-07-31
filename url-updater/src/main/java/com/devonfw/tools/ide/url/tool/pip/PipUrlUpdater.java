@@ -10,6 +10,8 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
  */
 public class PipUrlUpdater extends WebsiteUrlUpdater {
 
+  private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d+\\.\\d(\\.\\d)?)");
+
   @Override
   protected String getTool() {
 
@@ -19,7 +21,13 @@ public class PipUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    doAddVersion(urlVersion, "https://bootstrap.pypa.io/pip/${version}/get-pip.py");
+    doAddVersion(urlVersion, getDownloadBaseUrl() + "/pip/${version}/get-pip.py");
+  }
+
+  @Override
+  protected String getDownloadBaseUrl() {
+
+    return "https://bootstrap.pypa.io";
   }
 
   @Override
@@ -31,13 +39,19 @@ public class PipUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected String getVersionUrl() {
 
-    return "https://bootstrap.pypa.io/pip/";
+    return getVersionBaseUrl() + "/pip/";
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return getDownloadBaseUrl();
   }
 
   @Override
   protected Pattern getVersionPattern() {
 
-    return Pattern.compile("(\\d+\\.\\d(\\.\\d)?)");
+    return VERSION_PATTERN;
   }
 
   @Override

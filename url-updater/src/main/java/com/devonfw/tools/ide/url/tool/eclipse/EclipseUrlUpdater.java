@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.url.tool.eclipse;
 
+import java.util.List;
 import java.util.regex.Pattern;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
@@ -13,10 +14,14 @@ import com.devonfw.tools.ide.version.VersionSegment;
  */
 public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
 
-  private static final String[] MIRRORS = {
-      "https://download.eclipse.org/technology/epp/downloads",
+  private static final String BASE_URL = "https://download.eclipse.org/technology/epp/downloads";
+
+  private static final List<String> MIRRORS = List.of(
+      BASE_URL,
       "https://archive.eclipse.org/technology/epp/downloads",
-      "https://ftp.osuosl.org/pub/eclipse/technology/epp/downloads" };
+      "https://ftp.osuosl.org/pub/eclipse/technology/epp/downloads");
+
+  private static final Pattern VERSION_PATTERN = Pattern.compile("\\d{4}-\\d{2}");
 
   @Override
   protected String getTool() {
@@ -50,11 +55,29 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
       segment = segment.getNextOrNull();
     }
     String edition = getEclipseEdition();
-    for (String mirror : MIRRORS) {
+    for (String mirror : getMirrors()) {
       String baseUrl = mirror + "/release/" + version + "/" + releaseType + "/eclipse-" + edition + "-" + version + "-"
           + releaseType + "-";
       doUpdateVersions(urlVersion, baseUrl);
     }
+  }
+
+  @Override
+  protected String getDownloadBaseUrl() {
+
+    return BASE_URL;
+  }
+
+  protected List<String> getMirrors() {
+
+    String downloadBaseUrl = getDownloadBaseUrl();
+    if (!BASE_URL.equals(downloadBaseUrl)) {
+      return List.of(downloadBaseUrl);
+    }
+    return List.of(
+        BASE_URL,
+        "https://archive.eclipse.org/technology/epp/downloads",
+        "https://ftp.osuosl.org/pub/eclipse/technology/epp/downloads");
   }
 
   private boolean doUpdateVersions(UrlVersion urlVersion, String baseUrl) {
@@ -74,13 +97,19 @@ public abstract class EclipseUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected String getVersionUrl() {
 
-    return "https://www.eclipse.org/downloads/packages/release";
+    return getVersionBaseUrl() + "/downloads/packages/release";
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return "https://www.eclipse.org";
   }
 
   @Override
   protected Pattern getVersionPattern() {
 
-    return Pattern.compile("\\d{4}-\\d{2}");
+    return VERSION_PATTERN;
   }
 
   @Override

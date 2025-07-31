@@ -10,7 +10,6 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 public class HelmUrlUpdater extends GithubUrlUpdater {
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("3.4.0");
-  private static final String BASE_URL = "https://get.helm.sh";
 
   @Override
   protected String getTool() {
@@ -31,9 +30,9 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
 
-    return BASE_URL;
+    return "https://get.helm.sh";
   }
 
   @Override
@@ -65,7 +64,7 @@ public class HelmUrlUpdater extends GithubUrlUpdater {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
 
-    String baseUrl = getBaseUrl() + "/helm-${version}-";
+    String baseUrl = getDownloadBaseUrl() + "/helm-${version}-";
     doAddVersion(urlVersion, baseUrl + "windows-amd64.zip", WINDOWS);
     doAddVersion(urlVersion, baseUrl + "linux-amd64.tar.gz", LINUX);
     doAddVersion(urlVersion, baseUrl + "darwin-amd64.tar.gz", MAC);

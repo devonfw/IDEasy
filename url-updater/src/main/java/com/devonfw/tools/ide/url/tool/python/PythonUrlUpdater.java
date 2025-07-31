@@ -13,18 +13,15 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * The {@link JsonUrlUpdater} for Python
+ * The {@link JsonUrlUpdater} for Python.
  */
 public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRelease> {
 
-  /**
-   * The base Url of the Python versions Json
-   */
-  private final String VERSION_BASE_URL = "https://raw.githubusercontent.com";
+  private static final String VERSION_BASE_URL = "https://raw.githubusercontent.com";
 
-  private final static String VERSION_FILENAME = "actions/python-versions/main/versions-manifest.json";
+  private static final String VERSION_FILENAME = "actions/python-versions/main/versions-manifest.json";
 
-  final static ObjectMapper MAPPER = JsonMapping.create();
+  private static final ObjectMapper MAPPER = JsonMapping.create();
 
   private static final Logger logger = LoggerFactory.getLogger(PythonUrlUpdater.class);
 
@@ -32,6 +29,12 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
   protected String getTool() {
 
     return "python";
+  }
+
+  @Override
+  protected String getDownloadBaseUrl() {
+
+    return "undefined-taken-from-JSON";
   }
 
   @Override
@@ -58,12 +61,10 @@ public class PythonUrlUpdater extends JsonUrlUpdater<PythonJsonObject, PythonRel
     }
   }
 
-  /**
-   * @return String of version base Url
-   */
+  @Override
   protected String getVersionBaseUrl() {
 
-    return this.VERSION_BASE_URL;
+    return VERSION_BASE_URL;
   }
 
   @Override

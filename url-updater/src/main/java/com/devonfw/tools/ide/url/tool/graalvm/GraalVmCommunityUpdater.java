@@ -22,7 +22,7 @@ public class GraalVmCommunityUpdater extends GraalVmUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = getBaseUrl() + "/graalvm/graalvm-ce-builds/releases/download/jdk-${version}/graalvm-community-jdk-${version}_";
+    String baseUrl = getDownloadBaseUrl() + "/graalvm/graalvm-ce-builds/releases/download/jdk-${version}/graalvm-community-jdk-${version}_";
     doAddVersion(urlVersion, baseUrl + "windows-x64_bin.zip", WINDOWS, X64);
     doAddVersion(urlVersion, baseUrl + "linux-x64_bin.tar.gz", LINUX, X64);
     doAddVersion(urlVersion, baseUrl + "macos-x64_bin.tar.gz", MAC, X64);
@@ -39,9 +39,4 @@ public class GraalVmCommunityUpdater extends GraalVmUrlUpdater {
     }
   }
 
-  @Override
-  protected String getBaseUrl() {
-
-    return GITHUB_BASE_URL;
-  }
 }

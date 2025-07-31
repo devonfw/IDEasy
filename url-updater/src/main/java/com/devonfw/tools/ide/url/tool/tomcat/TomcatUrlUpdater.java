@@ -8,8 +8,6 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
  */
 public class TomcatUrlUpdater extends GithubUrlUpdater {
 
-  private static final String BASE_URL = "https://archive.apache.org";
-
   @Override
   protected String getTool() {
 
@@ -20,7 +18,7 @@ public class TomcatUrlUpdater extends GithubUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     doAddVersion(urlVersion,
-        getBaseUrl() + "/dist/tomcat/tomcat-${major}/v${version}/bin/apache-tomcat-${version}.tar.gz");
+        getDownloadBaseUrl() + "/dist/tomcat/tomcat-${major}/v${version}/bin/apache-tomcat-${version}.tar.gz");
   }
 
   @Override
@@ -36,9 +34,9 @@ public class TomcatUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
 
-    return BASE_URL;
+    return "https://archive.apache.org";
   }
 
   @Override

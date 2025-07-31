@@ -1,11 +1,10 @@
-package com.devonfw.tools.ide.url.tool;
+package com.devonfw.tools.ide.url.updater;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.UrlUpdater;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
