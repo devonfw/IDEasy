@@ -46,6 +46,7 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
    */
   public void setSecurity(ToolSecurity security) {
     this.security = security;
+    this.modified = true;
   }
 
   /**
@@ -88,9 +89,14 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
     if (this.security == null || this.security == ToolSecurity.getEmpty()) {
       this.security = new ToolSecurity(new ArrayList<>());
     }
-    this.security.getIssues().add(cve);
-    this.modified = true;
+
+    List<CVE> issues = this.security.getIssues();
+    if (!issues.contains(cve)) {
+      issues.add(cve);
+      this.modified = true;
+    }
   }
+
 
   /**
    * Clears all security warnings from this {@link UrlSecurityFile}.
