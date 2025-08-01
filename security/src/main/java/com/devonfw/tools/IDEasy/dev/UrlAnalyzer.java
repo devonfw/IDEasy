@@ -1,7 +1,9 @@
 package com.devonfw.tools.IDEasy.dev;
 
-import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
-import com.devonfw.tools.ide.url.updater.UpdateManager;
+import java.io.FileFilter;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractFileTypeAnalyzer;
 import org.owasp.dependencycheck.analyzer.AnalysisPhase;
@@ -11,9 +13,9 @@ import org.owasp.dependencycheck.dependency.Evidence;
 import org.owasp.dependencycheck.dependency.EvidenceType;
 import org.owasp.dependencycheck.exception.InitializationException;
 
-import java.io.FileFilter;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import com.devonfw.tools.ide.url.model.file.UrlStatusFile;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
+import com.devonfw.tools.ide.url.updater.UpdateManager;
 
 
 /**
@@ -21,96 +23,94 @@ import java.nio.file.Paths;
  */
 public class UrlAnalyzer extends AbstractFileTypeAnalyzer {
 
-    // The file filter is used to filter supported files.
-    private final FileFilter fileFilter;
+  // The file filter is used to filter supported files.
+  private final FileFilter fileFilter;
 
-    private static final String ANALYZER_NAME = "UrlAnalyzer";
+  private static final String ANALYZER_NAME = "UrlAnalyzer";
 
-    private final UpdateManager updateManager;
+  private final UpdateManager updateManager;
 
-    /**
-     * The constructor which initializes its {@link FileFilter} with a {@link UrlFileFilter}.
-     *
-     * @param updateManager the {@link UpdateManager} used to convert IDEasys tool/edition/version naming to the naming conventions of official CPEs.
-     */
-    public UrlAnalyzer(UpdateManager updateManager) {
+  /**
+   * @param updateManager the {@link UpdateManager} used to convert IDEasys tool/edition/version naming to the naming conventions of official CPEs.
+   */
+  public UrlAnalyzer(UpdateManager updateManager) {
 
-        this.fileFilter = new UrlFileFilter();
-        this.updateManager = updateManager;
+    this.fileFilter = f -> f.getName().equals(UrlStatusFile.STATUS_JSON);
+    this.updateManager = updateManager;
+  }
+
+  @Override
+  protected void analyzeDependency(Dependency dependency, Engine engine) {
+
+    Path versionFolder = Paths.get(dependency.getFilePath()).getParent();
+    String tool = versionFolder.getParent().getParent().getFileName().toString();
+    String edition = versionFolder.getParent().getFileName().toString();
+
+    AbstractUrlUpdater urlUpdater = this.updateManager.retrieveUrlUpdater(tool, edition);
+
+    if (urlUpdater == null) {
+      return;
     }
 
-    @Override
-    protected void analyzeDependency(Dependency dependency, Engine engine) {
+    String cpeVendor = urlUpdater.getCpeVendor();
+    String cpeProduct = urlUpdater.getCpeProduct();
+    String cpeEdition = urlUpdater.getCpeEdition();
+    String cpeVersion = urlUpdater.mapUrlVersionToCpeVersion(versionFolder.getFileName().toString());
 
-        Path versionFolder = Paths.get(dependency.getFilePath()).getParent();
-        String tool = versionFolder.getParent().getParent().getFileName().toString();
-        String edition = versionFolder.getParent().getFileName().toString();
+    if (cpeVendor.isBlank() || cpeProduct.isBlank()) {
+      return;
+    }
+    Evidence evidence;
+    evidence = new Evidence(ANALYZER_NAME, "CpeVendor", cpeVendor, Confidence.HIGH);
+    dependency.addEvidence(EvidenceType.VENDOR, evidence);
 
-        AbstractUrlUpdater urlUpdater = this.updateManager.retrieveUrlUpdater(tool, edition);
+    evidence = new Evidence(ANALYZER_NAME, "CpeProduct", cpeProduct, Confidence.HIGH);
+    dependency.addEvidence(EvidenceType.PRODUCT, evidence);
 
-        if (urlUpdater == null) {
-            return;
-        }
+    if (cpeEdition.isBlank()) {
 
-        String cpeVendor = urlUpdater.getCpeVendor();
-        String cpeProduct = urlUpdater.getCpeProduct();
-        String cpeEdition = urlUpdater.getCpeEdition();
-        String cpeVersion = urlUpdater.mapUrlVersionToCpeVersion(versionFolder.getFileName().toString());
-
-        if (cpeVendor.isBlank() || cpeProduct.isBlank()) {
-            return;
-        }
-        Evidence evidence;
-        evidence = new Evidence(ANALYZER_NAME, "CpeVendor", cpeVendor, Confidence.HIGH);
-        dependency.addEvidence(EvidenceType.VENDOR, evidence);
-
-        evidence = new Evidence(ANALYZER_NAME, "CpeProduct", cpeProduct, Confidence.HIGH);
-        dependency.addEvidence(EvidenceType.PRODUCT, evidence);
-
-        if (cpeEdition.isBlank()) {
-
-            evidence = new Evidence(ANALYZER_NAME, "CpeEdition", cpeEdition, Confidence.HIGH);
-            dependency.addEvidence(EvidenceType.PRODUCT, evidence);
-        }
-
-        evidence = new Evidence(ANALYZER_NAME, "CpeVersion", cpeVersion, Confidence.HIGH);
-        dependency.addEvidence(EvidenceType.VERSION, evidence);
+      evidence = new Evidence(ANALYZER_NAME, "CpeEdition", cpeEdition, Confidence.HIGH);
+      dependency.addEvidence(EvidenceType.PRODUCT, evidence);
     }
 
-    @Override
-    public boolean isEnabled() {
+    evidence = new Evidence(ANALYZER_NAME, "CpeVersion", cpeVersion, Confidence.HIGH);
+    dependency.addEvidence(EvidenceType.VERSION, evidence);
+  }
 
-        return true;
-    }
+  @Override
+  public boolean isEnabled() {
 
-    @Override
-    protected String getAnalyzerEnabledSettingKey() {
+    return true;
+  }
 
-        // whether this Analyzer is enabled or not is not configurable but fixed by isEnabled()
-        return null;
-    }
+  @Override
+  protected String getAnalyzerEnabledSettingKey() {
 
-    @Override
-    protected FileFilter getFileFilter() {
+    // whether this Analyzer is enabled or not is not configurable but fixed by isEnabled()
+    return null;
+  }
 
-        return this.fileFilter;
-    }
+  @Override
+  protected FileFilter getFileFilter() {
 
-    @Override
-    protected void prepareFileTypeAnalyzer(Engine engine) throws InitializationException {
+    return this.fileFilter;
+  }
 
-        // nothing to prepare
-    }
+  @Override
+  protected void prepareFileTypeAnalyzer(Engine engine) throws InitializationException {
 
-    @Override
-    public String getName() {
+    // nothing to prepare
+  }
 
-        return ANALYZER_NAME;
-    }
+  @Override
+  public String getName() {
 
-    @Override
-    public AnalysisPhase getAnalysisPhase() {
+    return ANALYZER_NAME;
+  }
 
-        return AnalysisPhase.INFORMATION_COLLECTION;
-    }
+  @Override
+  public AnalysisPhase getAnalysisPhase() {
+
+    return AnalysisPhase.INFORMATION_COLLECTION;
+  }
 }

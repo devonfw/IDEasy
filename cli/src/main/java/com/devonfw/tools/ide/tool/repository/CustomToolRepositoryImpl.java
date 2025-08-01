@@ -137,7 +137,7 @@ public class CustomToolRepositoryImpl extends AbstractToolRepository implements 
     CustomToolMetadata customTool = getCustomTool(tool);
     return List.of(customTool.getVersion());
   }
-  
+
   @Override
   public Collection<CustomToolMetadata> getTools() {
 

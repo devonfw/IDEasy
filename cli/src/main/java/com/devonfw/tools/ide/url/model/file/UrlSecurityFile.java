@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.url.model.file;
 
 import java.io.BufferedWriter;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -87,7 +86,7 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
 
   public void addCve(CVE cve) {
     if (this.security == null || this.security == ToolSecurity.getEmpty()) {
-      this.security = new ToolSecurity(new ArrayList<>());
+      this.security = new ToolSecurity();
     }
 
     List<CVE> issues = this.security.getIssues();

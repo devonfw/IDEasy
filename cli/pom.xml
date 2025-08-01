@@ -110,12 +110,6 @@
       <artifactId>xmlunit-assertj3</artifactId>
       <scope>test</scope>
     </dependency>
-    <dependency>
-      <groupId>org.owasp</groupId>
-      <artifactId>dependency-check-core</artifactId>
-      <version>12.1.0</version>
-      <scope>test</scope>
-    </dependency>
   </dependencies>
 
   <build>

@@ -26,7 +26,7 @@ public class ToolSecurity {
 
 
   public ToolSecurity() {
-    super();
+    this(new ArrayList<>());
   }
 
   public ToolSecurity(List<CVE> issues) {

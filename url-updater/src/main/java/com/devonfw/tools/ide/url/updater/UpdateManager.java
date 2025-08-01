@@ -130,9 +130,6 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
   public AbstractUrlUpdater retrieveUrlUpdater(String tool, String edition) {
 
     for (AbstractUrlUpdater updater : updaters) {
-      if (updater.getTool().equals(tool) && edition.equals("intellij")) {
-        return updater;
-      }
       if (updater.getTool().equals(tool) && updater.getEdition().equals(edition)) {
         return updater;
       }

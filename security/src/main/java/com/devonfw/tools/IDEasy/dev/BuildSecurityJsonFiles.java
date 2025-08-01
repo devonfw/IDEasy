@@ -7,11 +7,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.analyzer.AbstractAnalyzer;
@@ -52,7 +52,6 @@ import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
 import com.devonfw.tools.ide.url.updater.UpdateManager;
-import com.devonfw.tools.ide.util.MapUtil;
 import com.devonfw.tools.ide.version.BoundaryType;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
@@ -85,10 +84,8 @@ public class BuildSecurityJsonFiles {
 
   private static final Set<String> actuallyIgnoredCves = new HashSet<>();
 
-  private static final IdeContext context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
-
-
   public static void main(String[] args) {
+    IdeContext context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
     UpdateManager updateManager = new UpdateManager(context.getUrlsPath(), null, Instant.now());
     List<Dependency> dependencies = loadDependenciesWithVulnerabilities(updateManager);
     processDependenciesWithVulnerabilities(dependencies, updateManager, context);
@@ -113,7 +110,7 @@ public class BuildSecurityJsonFiles {
       }
 
       UrlSecurityFile securityFile = context.getUrls().getEdition(tool, edition).getSecurityFile();
-      saveSecurityFile(dependency, foundToolsAndEditions, tool, edition, securityFile, urlUpdater);
+      saveSecurityFile(dependency, foundToolsAndEditions, tool, edition, securityFile, urlUpdater, context);
     }
 
     actuallyIgnoredCves.forEach(cve -> context.debug("Ignored CVE " + cve + " because it is listed in CVES_TO_IGNORE."));
@@ -121,16 +118,16 @@ public class BuildSecurityJsonFiles {
   }
 
   public static void saveSecurityFile(Dependency dependency, Set<Pair<String, String>> foundToolsAndEditions, String tool, String edition,
-      UrlSecurityFile securityFile, AbstractUrlUpdater urlUpdater) {
+      UrlSecurityFile securityFile, AbstractUrlUpdater urlUpdater, IdeContext context) {
     boolean newlyAdded = foundToolsAndEditions.add(new Pair<>(tool, edition));
     if (newlyAdded) {
       securityFile.clearSecurityWarnings();
     }
 
-    Map<String, String> cpeToUrlVersion = buildCpeToUrlVersionMap(tool, edition, urlUpdater);
+    Map<String, String> cpeToUrlVersion = buildCpeToUrlVersionMap(tool, edition, urlUpdater, context);
     Set<Vulnerability> vulnerabilities = dependency.getVulnerabilities(true);
     for (Vulnerability vulnerability : vulnerabilities) {
-      addVulnerabilityToSecurityFile(vulnerability, securityFile, cpeToUrlVersion, urlUpdater);
+      addVulnerabilityToSecurityFile(vulnerability, securityFile, cpeToUrlVersion, urlUpdater, context);
     }
     securityFile.save();
   }
@@ -147,14 +144,19 @@ public class BuildSecurityJsonFiles {
    * @return the {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
    */
   private static Map<String, String> buildCpeToUrlVersionMap(String tool, String edition,
-      AbstractUrlUpdater urlUpdater) {
+      AbstractUrlUpdater urlUpdater, IdeContext context) {
 
     List<String> sortedVersions = context.getUrls().getSortedVersions(tool, edition, null).stream()
         .map(VersionIdentifier::toString).toList();
 
     List<String> sortedCpeVersions = sortedVersions.stream().map(urlUpdater::mapUrlVersionToCpeVersion)
-        .collect(Collectors.toList());
-    Map<String, String> cpeToUrlVersion = MapUtil.createMapfromLists(sortedCpeVersions, sortedVersions);
+        .toList();
+
+    Map<String, String> cpeToUrlVersion = new HashMap<>();
+    for (int i = 0; i < sortedCpeVersions.size(); i++) {
+      cpeToUrlVersion.put(sortedCpeVersions.get(i), sortedVersions.get(i));
+    }
+
     return cpeToUrlVersion;
   }
 
@@ -201,7 +203,7 @@ public class BuildSecurityJsonFiles {
    */
 
   public static void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityFile securityFile,
-      Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater) {
+      Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater, IdeContext context) {
 
     String cveName = vulnerability.getName();
     if (CVES_TO_IGNORE.contains(cveName)) {
@@ -209,7 +211,7 @@ public class BuildSecurityJsonFiles {
       return;
     }
 
-    BigDecimal severity = getBigDecimalSeverity(vulnerability);
+    BigDecimal severity = getBigDecimalSeverity(vulnerability, context);
     if (severity == null) {
       return;
     }
@@ -251,7 +253,7 @@ public class BuildSecurityJsonFiles {
    * @param securityFile the {@link UrlSecurityFile} of the tool and edition to which the vulnerability is added.
    */
   private static void debugInfo(Vulnerability vulnerability, VersionRange versionRange, BigDecimal severity,
-      String cveName, String description, String nistUrl, UrlSecurityFile securityFile) {
+      String cveName, String description, String nistUrl, UrlSecurityFile securityFile, IdeContext context) {
 
     context.debug("Writing vulnerability {} to security file at {}.", cveName, securityFile.getPath());
     VulnerableSoftware matchedVulnerableSoftware = vulnerability.getMatchedVulnerableSoftware();
@@ -275,7 +277,7 @@ public class BuildSecurityJsonFiles {
    * @param vulnerability the vulnerability determined by OWASP dependency check.
    * @return the {@link BigDecimal severity} of the vulnerability.
    */
-  protected static BigDecimal getBigDecimalSeverity(Vulnerability vulnerability) {
+  protected static BigDecimal getBigDecimalSeverity(Vulnerability vulnerability, IdeContext context) {
 
     if (vulnerability.getCvssV2() == null && vulnerability.getCvssV3() == null) {
       context.warning("Vulnerability without severity found: " + vulnerability.getName());
