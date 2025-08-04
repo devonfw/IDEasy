@@ -29,6 +29,7 @@ public class CVEFinder {
     this.allVersions = tool.getVersions();
     this.version = version;
     this.cves = toolSecurity.findCVEs(version);
+    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("[2025.1.4.0,2025.1.4.1]"))));
     cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(2023.1)"))));
     cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(2025.0)"))));
     cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(2025.0)"))));
@@ -52,8 +53,10 @@ public class CVEFinder {
   public Collection<CVE> getCVEs(VersionIdentifier versionIdentifier) {
     List<CVE> cvesOfVersion = new ArrayList<>();
     for (CVE cve : cves) {
-      if (cve.versions().contains(versionIdentifier)) {
-        cvesOfVersion.add(cve);
+      for (VersionRange range : cve.versions()) {
+        if (range.contains(versionIdentifier)) {
+          cvesOfVersion.add(cve);
+        }
       }
     }
     return cvesOfVersion;

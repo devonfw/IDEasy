@@ -289,7 +289,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier safestNearestVersion = version;
     VersionIdentifier safestLatestVersion = version;
     //Todo remove Test cve
-
     if (cves.isEmpty()) {
 
       context.info("No CVEs found for tool {} in version {}", this.getName(), version);
@@ -302,19 +301,19 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       safestNearestVersion = cveFinder.findSafestNearestVersion();
       context.info("The nearest version {} is only affected by the following CVE(s).", safestNearestVersion);
       cveFinder.listCVEs(safestNearestVersion);
-    }
 
-    String answer = context.question("Which version do you want to use?", "current (keep current version - WARNING insecure)",
-        "nearest",
-        "latest");
-    if (answer.equals("current")) {
-      return version;
-    }
-    if (answer.equals("nearest")) {
-      return safestNearestVersion;
-    }
-    if (answer.equals("latest")) {
-      return safestLatestVersion;
+      String answer = context.question(new String[] { "current (keep current version - WARNING insecure)",
+          "nearest",
+          "latest" }, "Which version do you want to use?");
+      if (answer.equals("current")) {
+        return version;
+      }
+      if (answer.equals("nearest")) {
+        return safestNearestVersion;
+      }
+      if (answer.equals("latest")) {
+        return safestLatestVersion;
+      }
     }
     return null;
   }

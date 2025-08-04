@@ -249,6 +249,10 @@ public interface IdeContext extends IdeStartContext {
     return false;
   }
 
+  //default boolean multipleChoiceQuestion(String question, Object... args){
+  //  return
+  //}
+
   /**
    * @param <O> type of the option. E.g. {@link String}.
    * @param options the available options for the user to answer. There should be at least two options given as otherwise the question cannot make sense.
