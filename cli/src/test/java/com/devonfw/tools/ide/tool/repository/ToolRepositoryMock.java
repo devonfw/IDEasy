@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -162,22 +163,28 @@ public class ToolRepositoryMock extends DefaultToolRepository {
       while (iterator.hasNext()) {
         Path child = iterator.next();
         String relativeChildPath = relativePath + "/" + child.getFileName().toString();
+        boolean isDirectory = Files.isDirectory(child);
         E archiveEntry = out.createArchiveEntry(child, relativeChildPath);
-        out.putArchiveEntry(archiveEntry);
-        if (Files.isDirectory(child)) {
-          out.closeArchiveEntry();
-          writeReleaseDownload(child, out, relativeChildPath);
-        } else {
-          if (archiveEntry instanceof TarArchiveEntry tarEntry) {
-            tarEntry.setModTime(0);
-            if (relativeChildPath.endsWith("bin")) {
-              tarEntry.setMode(tarEntry.getMode() | 0111);
-            }
+        if (archiveEntry instanceof TarArchiveEntry tarEntry) {
+          FileTime none = FileTime.fromMillis(0);
+          tarEntry.setCreationTime(none);
+          tarEntry.setModTime(none);
+          tarEntry.setLastAccessTime(none);
+          tarEntry.setUserName("user");
+          tarEntry.setGroupName("group");
+          if (relativePath.endsWith("bin") && !isDirectory) {
+            tarEntry.setMode(tarEntry.getMode() | 0111);
           }
+        }
+        out.putArchiveEntry(archiveEntry);
+        if (!isDirectory) {
           try (InputStream in = Files.newInputStream(child)) {
             IOUtils.copy(in, out);
           }
-          out.closeArchiveEntry();
+        }
+        out.closeArchiveEntry();
+        if (isDirectory) {
+          writeReleaseDownload(child, out, relativeChildPath);
         }
       }
     } catch (IOException e) {
