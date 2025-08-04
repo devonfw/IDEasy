@@ -2,48 +2,25 @@ package com.devonfw.tools.ide.url.tool.mvn;
 
 import java.util.regex.Pattern;
 
-import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
 
 /**
  * {@link WebsiteUrlUpdater} for mvn (maven).
  */
-public class MvnUrlUpdater extends WebsiteUrlUpdater {
+public class MvnUrlUpdater extends AbstractMvnUrlUpdater {
+
+  private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d\\.\\d\\.\\d)");
 
   @Override
-  protected String getTool() {
+  protected String getMvnVersionFolder() {
 
-    return "mvn";
-  }
-
-  @Override
-  protected void addVersion(UrlVersion urlVersion) {
-
-    doAddVersion(urlVersion,
-        "https://archive.apache.org/dist/maven/maven-3/${version}/binaries/apache-maven-${version}-bin.tar.gz");
-  }
-
-  @Override
-  protected String getVersionUrl() {
-
-    return "https://archive.apache.org/dist/maven/maven-3/";
+    return "maven-3";
   }
 
   @Override
   protected Pattern getVersionPattern() {
 
-    return Pattern.compile("(\\d\\.\\d\\.\\d)");
+    return VERSION_PATTERN;
   }
 
-  @Override
-  public String getCpeVendor() {
-
-    return "apache";
-  }
-
-  @Override
-  public String getCpeProduct() {
-
-    return "maven";
-  }
 }

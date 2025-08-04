@@ -1,12 +1,10 @@
-package com.devonfw.tools.ide.url.tool;
+package com.devonfw.tools.ide.url.updater;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.AbstractUrlUpdater;
-import com.devonfw.tools.ide.url.updater.UrlUpdater;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
@@ -40,10 +38,22 @@ public class UrlUpdaterMock extends AbstractUrlUpdater {
   }
 
   @Override
+  protected String getVersionBaseUrl() {
+
+    return getDownloadBaseUrl();
+  }
+
+  @Override
+  protected String getDownloadBaseUrl() {
+
+    return this.wmRuntimeInfo.getHttpBaseUrl();
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
-    doAddVersion(urlVersion, this.wmRuntimeInfo.getHttpBaseUrl() + "/os/windows_x64_url.tgz", WINDOWS, X64, "123");
-    doAddVersion(urlVersion, this.wmRuntimeInfo.getHttpBaseUrl() + "/os/linux_x64_url.tgz", LINUX, X64, "123");
-    doAddVersion(urlVersion, this.wmRuntimeInfo.getHttpBaseUrl() + "/os/mac_x64_url.tgz", MAC, X64, "123");
-    doAddVersion(urlVersion, this.wmRuntimeInfo.getHttpBaseUrl() + "/os/mac_Arm64_url.tgz", MAC, ARM64, "123");
+    doAddVersion(urlVersion, getDownloadBaseUrl() + "/os/windows_x64_url.tgz", WINDOWS, X64, "123");
+    doAddVersion(urlVersion, getDownloadBaseUrl() + "/os/linux_x64_url.tgz", LINUX, X64, "123");
+    doAddVersion(urlVersion, getDownloadBaseUrl() + "/os/mac_x64_url.tgz", MAC, X64, "123");
+    doAddVersion(urlVersion, getDownloadBaseUrl() + "/os/mac_Arm64_url.tgz", MAC, ARM64, "123");
   }
 }
