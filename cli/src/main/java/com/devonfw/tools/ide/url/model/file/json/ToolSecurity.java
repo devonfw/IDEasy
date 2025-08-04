@@ -40,7 +40,7 @@ public class ToolSecurity {
    * @return The {@link List} of {@link CVE}s for the given tool version.
    */
   public List<CVE> findCVEs(VersionIdentifier version) {
-    List<CVE> cves = new ArrayList<>();
+    ArrayList<CVE> cves = new ArrayList<>();
     for (CVE cve : issues) {
       for (VersionRange versionRange : cve.versions()) {
         if (versionRange.contains(version)) {

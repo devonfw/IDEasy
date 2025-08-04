@@ -2,7 +2,6 @@ package com.devonfw.tools.ide;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
@@ -29,17 +28,6 @@ public class CVEFinder {
     this.allVersions = tool.getVersions();
     this.version = version;
     this.cves = toolSecurity.findCVEs(version);
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("[2025.1.4.0,2025.1.4.1]"))));
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(2023.1)"))));
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(2025.0)"))));
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(2025.0)"))));
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(2025.0)"))));
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(2025.0)"))));
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(2025.0)"))));
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(2025.1)"))));
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(1.1)"))));
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(1.1)"))));
-    cves.add(new CVE("Test", 2.2, Collections.singletonList(VersionRange.of("(1.1)"))));
   }
 
   public void listCVEs(VersionIdentifier versionIdentifier) {

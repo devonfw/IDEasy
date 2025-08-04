@@ -188,7 +188,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     boolean extraInstallation = (version instanceof VersionRange);
     ToolRepository toolRepository = getToolRepository();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
-    lookForCVEs(resolvedVersion, edition, processContext);
+    resolvedVersion = lookForCVEs(resolvedVersion, edition, processContext);
     installToolDependencies(resolvedVersion, edition, processContext);
 
     Path installationPath;
@@ -288,9 +288,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     Collection<CVE> cves = cveFinder.getCVEs(version);
     VersionIdentifier safestNearestVersion = version;
     VersionIdentifier safestLatestVersion = version;
-    //Todo remove Test cve
-    if (cves.isEmpty()) {
 
+    if (cves.isEmpty()) {
       context.info("No CVEs found for tool {} in version {}", this.getName(), version);
     } else {
       cveFinder.listCVEs(version);
@@ -315,7 +314,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         return safestLatestVersion;
       }
     }
-    return null;
+    return version;
   }
 
 
