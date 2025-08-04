@@ -7,15 +7,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdaterTest;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -24,15 +24,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test class for integrations of the {@link AndroidStudioUrlUpdater}.
  */
 @WireMockTest
-public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
-
-  /**
-   * Test resource location
-   */
-  private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/AndroidStudioJsonUrlUpdater";
-
-  /** This is the SHA256 checksum of aBody (a placeholder body which gets returned by WireMock) */
-  private static final String EXPECTED_ABODY_CHECKSUM = "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30";
+public class AndroidStudioUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   private static String androidVersionJson;
   private static String androidVersionWithoutChecksumJson;
@@ -42,16 +34,14 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
    * url and port of the {@link WireMockRuntimeInfo}.
    *
    * @param wmRuntimeInfo wireMock server on a random port
-   * @throws IOException
+   * @throws IOException on error.
    */
   @BeforeAll
   public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
-    androidVersionJson = Files.readString(Path.of(TEST_DATA_ROOT).resolve("android-version.json"));
-    androidVersionJson = androidVersionJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
-
-    androidVersionWithoutChecksumJson = Files.readString(Path.of(TEST_DATA_ROOT).resolve("android-version-without-checksum.json"));
-    androidVersionWithoutChecksumJson = androidVersionWithoutChecksumJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
+    Path testDataPath = PATH_INTEGRATION_TEST.resolve("AndroidStudioUrlUpdater");
+    androidVersionJson = readAndResolve(testDataPath.resolve("android-version.json"), wmRuntimeInfo);
+    androidVersionWithoutChecksumJson = readAndResolve(testDataPath.resolve("android-version-without-checksum.json"), wmRuntimeInfo);
   }
 
   /**
@@ -63,30 +53,19 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
   @Test
   public void testJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    // given
-    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionJson.getBytes())));
-
-    stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+    // arrange
+    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionJson)));
+    stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     AndroidStudioUrlUpdaterMock updater = new AndroidStudioUrlUpdaterMock(wmRuntimeInfo);
 
-    // when
+    // act
     updater.update(urlRepository);
 
+    // assert
     Path androidStudioVersionsPath = tempDir.resolve("android-studio").resolve("android-studio").resolve("2023.1.1.2");
-
-    // then
-    assertThat(androidStudioVersionsPath.resolve("status.json")).exists();
-    assertThat(androidStudioVersionsPath.resolve("linux_x64.urls")).exists();
-    assertThat(androidStudioVersionsPath.resolve("linux_x64.urls.sha256")).exists();
-    assertThat(androidStudioVersionsPath.resolve("mac_arm64.urls")).exists();
-    assertThat(androidStudioVersionsPath.resolve("mac_arm64.urls.sha256")).exists();
-    assertThat(androidStudioVersionsPath.resolve("mac_x64.urls")).exists();
-    assertThat(androidStudioVersionsPath.resolve("mac_x64.urls.sha256")).exists();
-    assertThat(androidStudioVersionsPath.resolve("windows_x64.urls")).exists();
-    assertThat(androidStudioVersionsPath.resolve("windows_x64.urls.sha256")).exists();
-
+    assertUrlVersionOsX64MacArm(androidStudioVersionsPath);
   }
 
   /**
@@ -99,9 +78,8 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
   public void testJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
-    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionJson.getBytes())));
-
-    stubFor(get(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(404)));
+    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionJson)));
+    stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(404)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     AndroidStudioUrlUpdaterMock updater = new AndroidStudioUrlUpdaterMock(wmRuntimeInfo);
@@ -126,21 +104,19 @@ public class AndroidStudioJsonUrlUpdaterTest extends Assertions {
   @Test
   public void testJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    // given
-    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionWithoutChecksumJson.getBytes())));
-
-    stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+    // arrange
+    stubFor(get(urlMatching("/android-studio-releases-list.*")).willReturn(aResponse().withStatus(200).withBody(androidVersionWithoutChecksumJson)));
+    stubFor(any(urlMatching("/edgedl/android/studio/ide-zips.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     AndroidStudioUrlUpdaterMock updater = new AndroidStudioUrlUpdaterMock(wmRuntimeInfo);
 
-    // when
+    // act
     updater.update(urlRepository);
 
+    // assert
     Path androidStudioVersionsPath = tempDir.resolve("android-studio").resolve("android-studio").resolve("2023.1.1.2");
-
-    // then
-    assertThat(androidStudioVersionsPath.resolve("windows_x64.urls.sha256")).exists().hasContent(EXPECTED_ABODY_CHECKSUM);
+    assertUrlVersion(androidStudioVersionsPath, List.of("windows_x64"));
 
   }
 }

@@ -110,7 +110,6 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
    * @param response String from the JSON API request
    * @param edition the data to get from the response corresponding to a specific edition.
    * @return {@link JsonObject} holding the available versions and possibly download urls of the tool.
-   * @throws JsonProcessingException
    */
   protected J getJsonObjectFromResponse(String response, String edition) throws JsonProcessingException {
     return MAPPER.readValue(response, getJsonObjectType());
@@ -146,11 +145,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
     addVersion(urlVersion);
   }
 
-  /**
-   * Updates the version of a given URL version.
-   *
-   * @param urlVersion the {@link UrlVersion} to be updated
-   */
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     throw new UnsupportedOperationException();

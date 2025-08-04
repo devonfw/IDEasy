@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.url.tool;
+package com.devonfw.tools.ide.url.updater;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;

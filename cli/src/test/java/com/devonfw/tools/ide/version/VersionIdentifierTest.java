@@ -27,6 +27,7 @@ public class VersionIdentifierTest extends Assertions {
     VersionIdentifier vid = VersionIdentifier.of(version);
     // then
     assertThat(vid.isPattern()).isFalse();
+    assertThat(vid.getBoundaryType()).isSameAs(BoundaryType.CLOSED);
     VersionSegment segment1 = vid.getStart();
     assertThat(segment1.getSeparator()).isEmpty();
     assertThat(segment1.getLettersString()).isEmpty();

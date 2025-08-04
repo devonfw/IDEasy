@@ -8,8 +8,6 @@ import com.devonfw.tools.ide.url.updater.GithubUrlUpdater;
  */
 public class DotNetUrlUpdater extends GithubUrlUpdater {
 
-  private static final String BASE_URL = "https://dotnetcli.azureedge.net";
-
   @Override
   protected String getTool() {
 
@@ -25,7 +23,7 @@ public class DotNetUrlUpdater extends GithubUrlUpdater {
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = getBaseUrl() + "/dotnet/Sdk/${version}/dotnet-sdk-${version}-";
+    String baseUrl = getDownloadBaseUrl() + "/dotnet/Sdk/${version}/dotnet-sdk-${version}-";
     boolean ok1 = doAddVersion(urlVersion, baseUrl + "win-x64.zip", WINDOWS, X64);
     boolean ok2 = doAddVersion(urlVersion, baseUrl + "win-arm64.zip", WINDOWS, ARM64);
     if (!ok1 && !ok2) {
@@ -50,9 +48,9 @@ public class DotNetUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
 
-    return BASE_URL;
+    return "https://dotnetcli.azureedge.net";
   }
 
   @Override

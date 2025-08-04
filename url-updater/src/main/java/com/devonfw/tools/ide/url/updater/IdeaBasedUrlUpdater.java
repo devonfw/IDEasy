@@ -17,14 +17,18 @@ public abstract class IdeaBasedUrlUpdater extends JsonUrlUpdater<IntellijJsonObj
 
   protected static final String VERSION_BASE_URL = "https://data.services.jetbrains.com";
 
-  /**
-   * @return String of version base URL
-   */
+  @Override
   protected String getVersionBaseUrl() {
 
     return VERSION_BASE_URL;
   }
 
+  @Override
+  protected String getDownloadBaseUrl() {
+
+    return "undefined-taken-from-JSON";
+  }
+  
   @Override
   protected Collection<IntellijJsonRelease> getVersionItems(IntellijJsonObject jsonObject) {
 

@@ -10,6 +10,8 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
  */
 public class JenkinsUrlUpdater extends WebsiteUrlUpdater {
 
+  private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d\\.\\d{2,3}\\.\\d)");
+
   @Override
   protected String getTool() {
 
@@ -19,20 +21,31 @@ public class JenkinsUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected String getVersionUrl() {
 
-    return "https://mirrors.jenkins.io/war-stable/";
+    return getVersionBaseUrl() + "/war-stable/";
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return getDownloadBaseUrl();
   }
 
   @Override
   protected Pattern getVersionPattern() {
 
-    return Pattern.compile("(\\d\\.\\d{2,3}\\.\\d)");
+    return VERSION_PATTERN;
+  }
 
+  @Override
+  protected String getDownloadBaseUrl() {
+
+    return "https://mirrors.jenkins.io";
   }
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    doAddVersion(urlVersion, "https://mirrors.jenkins.io/war-stable/${version}/jenkins.war");
+    doAddVersion(urlVersion, getDownloadBaseUrl() + "/war-stable/${version}/jenkins.war");
   }
 
   @Override
