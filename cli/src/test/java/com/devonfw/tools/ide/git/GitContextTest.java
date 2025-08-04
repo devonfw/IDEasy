@@ -130,7 +130,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     fileAccess.mkdirs(objects);
     Path referenceFile = objects.resolve("referenceFile");
     Path modifiedFile = tempDir.resolve("trackedFile");
-    fileAccess.touch(gitFolderPath.resolve("HEAD"));
+    fileAccess.touch(gitFolderPath.resolve(GitContext.FILE_HEAD));
     fileAccess.writeFileContent(CONTENT_ORIGINAL, referenceFile);
     fileAccess.writeFileContent(CONTENT_CHANGED, modifiedFile);
     return modifiedFile;
