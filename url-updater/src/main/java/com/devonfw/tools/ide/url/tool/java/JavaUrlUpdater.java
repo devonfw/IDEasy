@@ -6,7 +6,7 @@ import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 
 /**
- * {@link JsonUrlUpdater} for Java.
+ * URL updater for Java.
  */
 public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersion> {
 
@@ -37,11 +37,11 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
 
     return "temurin";
   }
-  
+
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String mirror = getMirror();
+    String mirror = getDownloadBaseUrl() + "/temurin";
     String version = urlVersion.getName();
     int i = 0;
     int length = version.length();
@@ -77,15 +77,23 @@ public class JavaUrlUpdater extends JsonUrlUpdater<JavaJsonObject, JavaJsonVersi
     doAddVersion(urlVersion, baseUrl + "U-jdk_x64_linux_hotspot_${version}.tar.gz", LINUX);
   }
 
-  protected String getMirror() {
+  @Override
+  protected String getDownloadBaseUrl() {
 
-    return "https://github.com/adoptium/temurin";
+    return "https://github.com/adoptium";
   }
 
   @Override
   protected String doGetVersionUrl() {
 
-    return "https://api.adoptium.net/v3/info/release_versions?architecture=x64&heap_size=normal&image_type=jdk&jvm_impl=hotspot&page=0&page_size=50&project=jdk&release_type=ga&sort_method=DEFAULT&sort_order=DESC&vendor=eclipse";
+    return getVersionBaseUrl()
+        + "/v3/info/release_versions?architecture=x64&heap_size=normal&image_type=jdk&jvm_impl=hotspot&page=0&page_size=50&project=jdk&release_type=ga&sort_method=DEFAULT&sort_order=DESC&vendor=eclipse";
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return "https://api.adoptium.net";
   }
 
   @Override

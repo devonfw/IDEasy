@@ -10,6 +10,8 @@ import com.devonfw.tools.ide.url.updater.WebsiteUrlUpdater;
  */
 public class OcUrlUpdater extends WebsiteUrlUpdater {
 
+  private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d\\.\\d\\.\\d*)");
+
   @Override
   protected String getTool() {
 
@@ -17,13 +19,18 @@ public class OcUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
+  protected String getDownloadBaseUrl() {
+
+    return "https://mirror.openshift.com";
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
-    String baseUrl = "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/${version}/openshift-client-";
+    String baseUrl = getDownloadBaseUrl() + "/pub/openshift-v4/clients/ocp/${version}/openshift-client-";
     doAddVersion(urlVersion, baseUrl + "windows-${version}.zip", WINDOWS);
     doAddVersion(urlVersion, baseUrl + "linux-${version}.tar.gz", LINUX);
     doAddVersion(urlVersion, baseUrl + "mac-${version}.tar.gz", MAC);
-
   }
 
   @Override
@@ -39,12 +46,18 @@ public class OcUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected String getVersionUrl() {
 
-    return "https://mirror.openshift.com/pub/openshift-v4/clients/ocp/";
+    return getVersionBaseUrl() + "/pub/openshift-v4/clients/ocp/";
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return getDownloadBaseUrl();
   }
 
   @Override
   protected Pattern getVersionPattern() {
 
-    return Pattern.compile("(\\d\\.\\d\\.\\d*)");
+    return VERSION_PATTERN;
   }
 }
