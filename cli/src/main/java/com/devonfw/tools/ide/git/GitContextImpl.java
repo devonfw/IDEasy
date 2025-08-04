@@ -343,7 +343,7 @@ public class GitContextImpl implements GitContext {
    * @return the current commit ID of the given {@link Path repository}.
    */
   protected String determineCurrentCommitId(Path repository) {
-    return runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
+    return runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", FILE_HEAD);
   }
 }
 
