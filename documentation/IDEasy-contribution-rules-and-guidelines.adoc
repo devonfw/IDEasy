@@ -3,24 +3,29 @@ toc::[]
 
 == Project Board
 
-The IDEasy *Project Board* with its Columns should be used as followed:
+The IDEasy *Project Board* with its Columns should be used as follows:
 
-* *New*: [.underline]#Issues# that are newly created and have yet to be refined
-* *Backlog*: [.underline]#Issues# that are refined but not yet being worked on
-* *Research*: [.underline]#Issues# that are blocked or need complex research/analysis to make progress.
-Typically, these are issues that somebody tried to solve but it turned out to be hard to make progress and find a solution.
+* *New*: [.underline]#Issues# our backlog with issues to work on.
+When you want to work on an issue from this backlog please follow these suggestions:
+** Ensure there is no assignee set for the issue. Otherwise someone else is already working on it and you should look for another story.
+** Check the `Priority` and `Size` of the issue. Issues with higher `Priority` should typically be addressed first. Issues with higher `Size` are typically more complex. Depending on your experience consider if you want to deal with the story or check if easier tasks are there fore you to work on first.
+** If the issue was not created from `jan-vcapgemini` or `hohwille` and there is no sign of comments or refinement, please ask the team before working on it.
+** Check the `Development` section of the issue if there is already a PR assigned to it. Then typically someone else worked on the story and was not able to finish it (e.g. before he left the team). Then pick up from the existing PR(s) instead of starting from scratch.
+** If you finally decided to work on the story, ensure you are assigned to it (as the only assignee) and move it to `In Progress`.
+* *Research*: [.underline]#Issues# or #PRs# that are blocked or need complex research/analysis to make progress.
+Typically, these are tickets that somebody tried to solve but it turned out to be hard to make progress and find a solution.
 * *In Progress*: [.underline]#Issues# that are currently being worked on, they must be assigned to the person (or people) working on it.
 You can see on the board if there is a pull-request linked to it.
 If not, the developer is still working on the story “in the dark”.
 Otherwise, there is already a solution implemented.
 The PR may be in draft state, otherwise the PR should be in one of the following two columns.
 * *Team Review*: [.underline]#Pull Request# that is to be or currently under review by a member of the dev team.
-The reviewer is the assignee of the PR and the author remains assignee (2 assignees).
+The reviewer is the assignee of the PR and the author remains assignee (2 assignees). Once the team review is completed (all findings resolved) it is moved to `In Review` (by the team reviewer).
 * *In Review*: [.underline]#Pull Request# that is to be or currently under review by a final reviewer that is the assignee of the PR together with the author (2 assignees).
 Typically the final reviewer is the Project Owner (currently hohwille) but it may also be done by team members with longer experience in the project.
-* *Done*: [.underline]#Issues# and [.underline]#Pull Request# that have been completed and merged.
+* *Done*: [.underline]#Issues# and [.underline]#Pull Requests# that have been completed and merged.
 
-To better organize the board and avoid overload, only pull request are allowed in the review columns.
+To better organize the board and avoid overload, only pull requests are allowed in the review columns.
 Issues remain `in progress` until completed via merge of PR.
 
 General conventions for contributions to devonfw can be found
@@ -35,20 +40,20 @@ The following conventions are added on top by the IDEasy team from the learnings
 ** Closes
 ** For more info see (https://docs.github.com/en/issues/tracking-your-work-with-issues/linking-a-pull-request-to-an-issue)
 * The description can also contain additional information for the PR and changed files.
-* More complicated pull request should contain a short summary of the changed files and commits.
-* In addition, other issue or PRs can be linked, most commonly with keyword like:
+* More complicated pull requests should contain a short summary of the changed files and commits.
+* In addition, other issues or PRs can be linked, most commonly with keyword like:
 ** Blocked by
 ** Related
 ** Merge first
 * Comments requested changes and other conversations in a pull request should only be resolved by the person that started them and NOT the creator of the pull request.
-(As the permissions might not always allow this, a final comment by the creator of the conversations, saying it can be resolved is the second 0ption.)
-* Conversations should be answered by the owner of the pull request, so to show that the suggestion was either implemented or acknowledged.
+(As the permissions might not always allow this, a final comment by the creator of the conversations, saying it can be resolved is the second option.)
+* Conversations should be answered by the owner of the pull request to show that the suggestion was either implemented or acknowledged.
 * The pull request should be assigned to the person that has work on the PR, either the reviewer or the owner depending on whether a review is to be done or the review needs to be addressed.
-* A pull request should not be a draft when it is in a review.
+* A pull request should not be a draft when it is in review.
 
 == Commit
 
-* Commit messages should always start with the issue number and a hashtag, so to automatically link the corresponding issue.
+* Commit messages should always start with the issue number and a hashtag to automatically link the corresponding issue.
 * The title of a commit should be kept short and informative.
 * The description of a commit message can be used to elaborate on the title.
 * Always commit your changes in small logical units associated with an issue (see above section) using the commit message format:
@@ -89,7 +94,7 @@ devonfw/IDEasy#5: added REST service for tablemanagement
 
 * The reviewer should be assigned to the PR, if a review is needed, or the requested changes need to be checked and conversations need to be resolved.
 * After completing the review, the owner of the PR should be assigned.
-* After the team review is finished the PO (hohwille) should be assigned.
+* After the team review is finished, the PO (hohwille) should be assigned.
 * While reviewing a useful tool is the web ide provided by github.
 Simply open the `files changed` tab and press `.` on the keyboard.
 * Another useful tool is to use the feature “insert a suggestion” while writing a comment (for more detail see

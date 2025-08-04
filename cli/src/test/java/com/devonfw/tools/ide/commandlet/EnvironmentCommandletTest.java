@@ -73,9 +73,11 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("TEST_ARGSc=\" user1 settings1 workspace1 conf1 userc settingsc confc\""), //
 
         IdeLogEntry.ofDebug("from RESOLVED:"), //
+        IdeLogEntry.ofProcessable("export GRADLE_USER_HOME=\"" + normalize(context.getGradleUserHome()) + "\""), //
         IdeLogEntry.ofProcessable("HOME=\"" + normalize(context.getUserHome()) + "\""), //
         IdeLogEntry.ofProcessable("IDE_HOME=\"" + normalize(context.getIdeHome()) + "\""), //
         IdeLogEntry.ofProcessable("export M2_REPO=\"" + context.getUserHome() + "/.m2/repository\""), //
+        new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export MAVEN_ARGS=\"-s ", true), //
         new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export PATH=", true), //
         IdeLogEntry.ofProcessable("WORKSPACE=\"foo-test\""), //
         IdeLogEntry.ofProcessable("WORKSPACE_PATH=\"" + normalize(context.getWorkspacePath()) + "\""), //
@@ -110,6 +112,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("DOCKER_EDITION=\"docker\""), //
         IdeLogEntry.ofProcessable("ECLIPSE_VERSION=\"2023-03\""), //
         IdeLogEntry.ofProcessable("FOO=\"foo-bar-some-${UNDEFINED}\""), //
+        IdeLogEntry.ofProcessable("export GRADLE_USER_HOME=\"" + normalize(context.getGradleUserHome()) + "\""), //
         IdeLogEntry.ofProcessable("HOME=\"" + normalize(context.getUserHome()) + "\""), //
         IdeLogEntry.ofProcessable("IDE_HOME=\"" + normalize(context.getIdeHome()) + "\""), //
         IdeLogEntry.ofProcessable("IDE_TOOLS=\"mvn,eclipse\""), //
@@ -118,7 +121,8 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
             "export JAVA_HOME=\"" + context.getSoftwarePath() + FileSystems.getDefault().getSeparator() + "java\""), //
         IdeLogEntry.ofProcessable("JAVA_VERSION=\"17*\""), //
         IdeLogEntry.ofProcessable("export M2_REPO=\"" + context.getUserHome() + "/.m2/repository\""), //
-        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + softwarePath + FileSystems.getDefault().getSeparator() + "mvn\""),
+        new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export MAVEN_ARGS=\"-s ", true), //
+        IdeLogEntry.ofProcessable("export MVN_HOME=\"" + softwarePath.resolve("mvn") + "\""),
         IdeLogEntry.ofProcessable("MVN_VERSION=\"3.9.1\""), //
         IdeLogEntry.ofProcessable("export NPM_HOME=\"" + softwarePath + FileSystems.getDefault().getSeparator() + "npm\""), //
         new IdeLogEntry(IdeLogLevel.PROCESSABLE, "export PATH=", true), //

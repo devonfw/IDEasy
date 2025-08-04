@@ -38,7 +38,6 @@
     <asciidoctorj.pdf.version>1.5.0-alpha.18</asciidoctorj.pdf.version>
     <jruby.version>9.2.6.0</jruby.version>
     <asciidoctor.skip>false</asciidoctor.skip>
-    <flatten.mode>resolveCiFriendliesOnly</flatten.mode>
     <revision>dev-SNAPSHOT</revision>
   </properties>
 
@@ -295,6 +294,29 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>flatten-maven-plugin</artifactId>
+        <configuration>
+          <flattenMode>${flatten.mode}</flattenMode>
+        </configuration>
+        <executions>
+          <execution>
+            <id>flatten</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>flatten</goal>
+            </goals>
+          </execution>
+          <execution>
+            <id>flatten.clean</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>clean</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>      
     </plugins>
   </build>
 

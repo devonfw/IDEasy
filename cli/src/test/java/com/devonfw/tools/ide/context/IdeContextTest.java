@@ -4,13 +4,17 @@ import java.nio.file.Path;
 
 import org.junit.jupiter.api.Test;
 
+import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.IdeVersion;
 
 /**
- * Integration test of {@link IdeContext}.
+ * Test of {@link IdeContext}.
  */
 public class IdeContextTest extends AbstractIdeContextTest {
 
@@ -126,6 +130,72 @@ public class IdeContextTest extends AbstractIdeContextTest {
     assertThat(IdeVariables.WORKSPACE.get(context)).isEqualTo(workspaceName);
     assertThat(workspacePath).isEqualTo(TEST_PROJECTS.resolve(PROJECT_BASIC).resolve(path).toAbsolutePath());
     assertThat(workspaceName).isEqualTo("foo-test");
+  }
+
+  // hier test einfügen mit idetestcontext
+  @Test
+  public void testIdeVersionTooSmall() {
+    // arrange
+    String path = "project/workspaces/foo-test";
+    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
+    EnvironmentVariables variables = context.getVariables();
+    String ideMinVersion = String.valueOf(Integer.MAX_VALUE);
+    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_MIN_VERSION", ideMinVersion);
+    CliArguments args = new CliArguments();
+    String warningMessage = String.format("Your version of IDEasy is currently %s\n"
+        + "However, this is too old as your project requires at latest version %s\n"
+        + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
+        + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), ideMinVersion);
+    // act
+    context.run(args);
+    // assert
+    assertThat(context).logAtWarning().hasMessage(warningMessage);
+  }
+
+  @Test
+  public void testIdeVersionOk() {
+    // arrange
+    String path = "project/workspaces/foo-test";
+    IdeTestContext context = newContext(PROJECT_BASIC, path, false);
+    EnvironmentVariables variables = context.getVariables();
+    String ideVersion = IdeVersion.getVersionIdentifier().toString();
+    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_MIN_VERSION", ideVersion);
+    CliArguments args = new CliArguments();
+    // act
+    context.run(args);
+    // assert
+    assertThat(context).log().hasNoMessageContaining("However, this is too old as your project requires at latest version");
+  }
+
+  @Test
+  public void testRunWithoutLogging() {
+
+    // arrange
+    String testWarningMessage = "Test warning message";
+    String testWarningMessage2 = "Other warning message";
+    String testWarningMessage3 = "Final warning message";
+    String testInfoMessage = "Test info message";
+    String testDebugMessage = "Test debug message that will be suppressed because of threshold";
+    IdeTestContext context = newContext(PROJECT_BASIC, null, false);
+    // act
+    context.warning(testWarningMessage);
+    // assert
+    assertThat(context).logAtWarning().hasMessage(testWarningMessage);
+    // and act
+    context.runWithoutLogging(() -> {
+      context.warning(testWarningMessage2);
+      context.info(testInfoMessage);
+      context.debug(testDebugMessage);
+      assertThat(context).log().hasNoMessage(testWarningMessage2);
+      assertThat(context).log().hasNoMessage(testInfoMessage);
+      assertThat(context).log().hasNoMessage(testDebugMessage);
+    }, IdeLogLevel.INFO);
+    context.warning(testWarningMessage3);
+
+    assertThat(context).log()
+        .hasEntries(IdeLogEntry.ofWarning(testWarningMessage), IdeLogEntry.ofWarning(testWarningMessage2), IdeLogEntry.ofInfo(testInfoMessage),
+            IdeLogEntry.ofWarning(testWarningMessage3));
+    assertThat(context).log().hasNoMessage(testDebugMessage);
   }
 
 }
