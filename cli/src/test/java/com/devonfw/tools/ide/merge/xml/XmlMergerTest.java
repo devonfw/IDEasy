@@ -145,7 +145,8 @@ class XmlMergerTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtWarning().hasEntries(
-        "XML merge namespace not found. If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
+        "XML merge namespace not found in file " + settingsUpdatePath
+            + ". If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
             + "proceed correctly.");
   }
 

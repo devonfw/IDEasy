@@ -5,7 +5,7 @@ toc::[]
 
 The code should follow general conventions for Java (see http://www.oracle.com/technetwork/java/namingconventions-139351.html[Oracle Naming Conventions], https://google.github.io/styleguide/javaguide.html[Google Java Style], etc.).
 We consider this as common sense instead of repeating this here.
-The following sections give us additional conventions that we consider additionally.
+The following sections give us additional conventions that we consider additional.
 
 == Naming
 
@@ -15,7 +15,7 @@ We follow these additional naming rules:
 * Avoid using existing type names from JDK (from `java.lang.*`, `java.util.*`, etc.) - so e.g. never name your own Java type `List`, `Error`, etc.
 * Strictly avoid special characters in technical names (for files, types, fields, methods, properties, variables, database tables, columns, constraints, etc.).
 In other words only use Latin alphanumeric ASCII characters with the common allowed technical separators for the according context (e.g. underscore) for technical names (even excluding whitespaces).
-* For package segments and type names prefer singular forms (`CustomerEntity` instead of [line-through]`CustomersEntity`).
+* For package segments and type names, prefer singular forms (`CustomerEntity` instead of [line-through]`CustomersEntity`).
 Only use plural forms when there is no singular or it is really semantically required (e.g. for a container that contains multiple of such objects).
 * Avoid having duplicate type names.
 The name of a class, interface, enum or annotation should be unique within your project unless this is intentionally desired in a special and reasonable situation.
@@ -23,7 +23,7 @@ The name of a class, interface, enum or annotation should be unique within your 
 * Use CamelCase even for abbreviations (`XmlUtil` instead of [line-through]`XMLUtil`)
 * Avoid property/field names where the second character is upper-case at all (e.g. 'aBc').
 See https://github.com/devonfw/cobigen/issues/1095[#1095] for details.
-* Names of Generics should be easy to understand.
+* Names of generics should be easy to understand.
 Where suitable follow the common rule `E=Element`, `T=Type`, `K=Key`, `V=Value` but feel free to use longer names for more specific cases such as `ID`, `DTO` or `ENTITY`.
 The capitalized naming helps to distinguish a generic type from a regular class.
 * For `boolean` getter methods use `is` prefix instead of `get` but for `boolean` variable names avoid the `is` prefix (`boolean force = ...` instead of `boolean isForce = ...`) unless the name is a reserved keyword (e.g. `boolean abstract = true` will result in a compile error so consider using `boolean isAbstract = true` instead).
@@ -37,7 +37,7 @@ A reasonable configuration of formatter, save actions, etc. will ensure:
 * no start imports are used (`import java.util.*`)
 * no diff-wars in git (if every developer in the team uses the same formatter settings the diffs in git will only show what really changed)
 * import statements are properly grouped and sorted
-* code has properly indentation and formatting (e.g. newlines after opening curly braces)
+* code has proper indentation and formatting (e.g. newlines after opening curly braces)
 
 == Obsolete APIs
 
@@ -58,12 +58,12 @@ Please avoid using the following APIs:
 == Code-Documentation
 
 As a general goal, the code should be easy to read and understand.
-Besides, clear naming the documentation is important.
+Besides clear naming, the documentation is important.
 We follow these rules:
 
 * APIs (especially component interfaces) are properly documented with JavaDoc.
 * JavaDoc shall provide actual value - we do not write JavaDoc to satisfy tools such as checkstyle but to express information not already available in the signature.
-* We make use of `{@link}` tags in JavaDoc to make it more expressive.
+* We use `{@link}` tags in JavaDoc to make it more expressive.
 * JavaDoc of APIs describes how to use the type or method and not how the implementation internally works.
 * To document implementation details, we use code comments (e.g. `// we have to flush explicitly to ensure version is up-to-date`).
 This is only needed for complex logic.
@@ -71,7 +71,7 @@ This is only needed for complex logic.
 
 == Clean Code
 
-The book https://www.pearson.de/clean-code-a-handbook-of-agile-software-craftsmanship-9780132350884[Clean Code] gives a collection of helpful rules and guidelines for coding.
+The book https://www.pearson.de/clean-code-a-handbook-of-agile-software-craftsmanship-9780132350884[Clean Code] provides a collection of helpful rules and guidelines for coding.
 A https://gist.github.com/wojteklu/73c6914cc446146b8b533c0988cf8d29[summary] can be found here.
 
 Most important explicit aspects are:
@@ -110,12 +110,41 @@ public class MyClass {
 With SLF4J we have to create the logger via `LoggerFactory`.
 In IDEasy for commandlets, etc. we do not need to define `LOG` and can simply use `this.context` instead of `LOG`.
 
+=== Log-Messages
+
+Log-messages should be helpful and give contextual information.
+
+Bad:
+
+> an unknown error ocurred!
+
+Good:
+
+> While downloading https://repo1.maven.org/maven2/com/devonfw/tools/IDEasy/ide-cli/maven-metadata.xml the following error ocurred: SSLHandshakeException: PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target
+
+=== Log-message parameters
+
+In order to create good log messages you typically need to fill in dynamic values.
+For this loggers already support a simple pattern syntax that we can see in the logging example above.
+We simply write `{}` in the log message and provide the value to fill into this placeholder as argument.
+If multiple such placeholders are used, the parameters have to be given in the exact same order.
+
+```java
+debug(String.format("Installing %s version %s", tool, version)); // bad
+debug("Installing {} version {}", tool, version); // good
+```
+
+The advantage is that if the log-level is not enabled, then no String operations (search and replace) will take place.
+Once you are used to the pattern, it is good to follow it strickly for logging to make the code homogenous.
+
+=== Log-levels
+
 .Usage of Log-Levels
 [options="header"]
 |=======================
 |*Level*|*Type*|*Meaning*
 |`error`|Standard|Only for real errors that should raise the end-users attention. If an error is logged something went wrong and action needs to be taken and usually the operation failed.
-|`warning`|Standard|For warnings when something is not correct and the end-user should have a look. E.g. if something is misconfigured. Unlike error the process can continue and may hopefully success.
+|`warning`|Standard|For warnings when something is not correct and the end-user should have a look. E.g. if something is misconfigured. Unlike error the process can continue and may hopefully succeed.
 |`interaction`|Proprietary|For interaction with the end-user. Typically for questions the end-user needs to answer (use dedicated `question` or `askForInput` methods of `context`).
 |`step`|Proprietary|For steps of advanced processing. Allows to divide some processing into logical steps (use `newStep` method of `context`). This increases the user-experience as the end-user sees the progress and can get a report of these steps and see how long they took and if they succeeded or not.
 |`debug`|Standard|Only used for debugging. Disabled by default to avoid "spamming" the end-user. Can be enabled with `-d` or `--debug` option to get more details and analyze what happens in detail.
@@ -146,10 +175,10 @@ Always use the logger to output messages and never use `System.out` or `System.e
 When catching exceptions always ensure the following:
 
 * Never call `printStackTrace()` method on an exception
-* Either log or wrap and re-throw the entire catched exception.
+* Either log or wrap and re-throw the entire caught exception.
 Be aware that the cause(s) of an exception is very valuable information.
-If you loose such information by improper exception-handling you may be unable to properly analyse production problems what can cause severe issues.
-** If you wrap and re-throw an exception ensure that the catched exception is passed as cause to the newly created and thrown exception.
+If you lose such information by improper exception-handling you may be unable to properly analyze production problems what can cause severe issues.
+** If you wrap and re-throw an exception ensure that the caught exception is passed as cause to the newly created and thrown exception.
 ** If you log an exception ensure that the entire exception is passed as argument to the logger (and not only the result of `getMessage()` or `toString()` on the exception).
 
 [source,java]
@@ -170,7 +199,7 @@ Exception in thread "main" java.lang.IllegalStateException: Something failed
 	at com.devonfw.tools.ide.ExceptionHandling.main(ExceptionHandling.java:14)
 ----
 
-As you can see we have no information and clue what the catched `Exception` was and what really went wrong in `doSomething()`.
+As you can see we have no information and clue what the caught `Exception` was and what really went wrong in `doSomething()`.
 
 Instead always rethrow with the original exception:
 
@@ -195,7 +224,7 @@ Caused by: java.lang.IllegalArgumentException: Very important information
 	at com.devonfw.tools.ide.ExceptionHandling.main(ExceptionHandling.java:12)
 ----
 
-Never do this severe mistake to lose this original exception cause!
+Never do this severe mistake of losing this original exception cause!
 
 The same applies when logging the exception:
 
@@ -264,7 +293,7 @@ public boolean isEmpty {
 
 == Constants
 
-Literals and values used in multiple places that do not change, shall be defined as constants.
+Literals and values used in multiple places that do not change, should be defined as constants.
 A constant in a Java class is a type variable declared with the modifiers `static final`.
 In an interface, `public static final` can and should be omitted since it is there by default.
 
@@ -333,7 +362,7 @@ Otherwise your diff may show that a file has been deleted somewhere and another 
 So e.g. when changing a method name, adding or removing a parameter, always use refactoring as otherwise you easily break references (and JavaDoc references will not give you compile errors so you break things without noticing).
 * when adding parameters to methods, please always consider to keep the existing signature and just create a new variant of the method with an additional parameter.
 
-Lets assume we have this method:
+Let's assume we have this method:
 
 [source,java]
 ----
@@ -372,9 +401,9 @@ That is why we are passing `false` in the example from the existing method to th
 
 == Optionals
 
-With `Optional` you can wrap values to avoid a `NullPointerException` (NPE).
+With `Optional`, you can wrap values to avoid a `NullPointerException` (NPE).
 However, it is not a good code-style to use `Optional` for every parameter or result to express that it may be null.
-For such case use JavaDoc (or consider `@Nullable` or even better instead annotate `@NotNull` where `null` is not acceptable).
+For such cases, use JavaDoc (or consider `@Nullable` or even better instead annotate `@NotNull` where `null` is not acceptable).
 
 However, `Optional` can be used to prevent NPEs in fluent calls (due to the lack of the elvis operator):
 
@@ -618,7 +647,7 @@ if (condition()) {
 
 == Field Initialization
 
-Non-static fields should never been initialized outside of the constructor call.
+Non-static fields should never be initialized outside of the constructor call.
 
 First of all even Java developers with many years of experience will not see anything wrong with such code:
 
@@ -630,7 +659,7 @@ public class MyClass {
 
 However, when inheritance comes into play you can easily get tricked by Java internals that average developers are not aware of.
 To understand the problem and why such assignments are bad code-style you need to understand what the Java compiler makes out of such code and when it gets executed.
-So let us look at the following example code (and lets not discuss if this example code makes much sense or not):
+So let us look at the following example code (and let's not discuss if this example code makes much sense or not):
 
 ```java
 public class MyClass {
@@ -706,10 +735,10 @@ So your constructor will actually look like this:
 ```
 
 So if you would have written the code yourself in this way instead of assigning the fields directly when declared, you would more easily understand what is going wrong.
-Since the `name` field is properly assigned within the `super` call the assignment of `name` to the value `null` overrides this resulting in the actual program output.
+Since the `name` field is properly assigned within the `super` call, the assignment of `name` to the value `null` overrides this, resulting in the actual program output.
 However, you can imagine how easily you can be tricked by such behavior and waste hours debugging your code until you find such problem.
-To avoid this, we recommend to never initialize non-static fields outside the constructor.
-If you further want to be more strict, then also avoid calling non-final methods from constructor calls.
+To avoid this, we recommend never initializing non-static fields outside the constructor.
+If you want to be more strict, then also avoid calling non-final methods from constructor calls.
 
 == Lambdas and Streams
 
@@ -722,8 +751,8 @@ Developers are often keen on using cool new features.
 When you do your first experiments in your project code you will cause deep pain and might be ashamed afterwards.
 Please study the features properly.
 Even Java8 experts still write for loops to iterate over collections, so only use these features where it really makes sense.
-. Streams shall only be used in fluent API calls as a Stream can not be forked or reused.
-. Each stream has to have exactly one terminal operation.
+. Streams should only be used in fluent API calls as a Stream can not be forked or reused.
+. Each stream must have exactly one terminal operation.
 . Do not write multiple statements into lambda code:
 +
 [source,java]
@@ -749,7 +778,7 @@ collection.stream().map(this::convertToFoo).collect(Collectors.toList());
 Some developers might think that using parallel streams is a good idea as it will make the code faster.
 However, if you want to do performance optimizations talk to your technical lead (architect).
 Many features such as security and transactions will rely on contextual information that is associated with the current thread.
-Hence, using parallel streams will most probably cause serious bugs.
+Hence, using parallel streams will most likely cause serious bugs.
 Only use them for standalone (CLI) applications or for code that is just processing large amounts of data.
 . Do not perform operations on a sub-stream inside a lambda:
 +
@@ -795,25 +824,26 @@ Use Filter method & comprehension
 [source,java]
 ----
 // bad
-static public Iterator<String> TwitterHandles(Iterator<Author> authors, string company) {
-    final List result = new ArrayList<String> ();
-    foreach (Author a : authors) {
-      if (a.Company.equals(company)) {
-        String handle = a.TwitterHandle;
-        if (handle != null)
-          result.Add(handle);
+public static List<String> twitterHandles(Collection<Author> authors, String company) {
+  final List<String> result = new ArrayList<>();
+  authors.stream().forEach(a -> {
+    if (a.getCompany().equals(company)) {
+      String handle = a.getTwitterHandle();
+      if (handle != null) {
+        result.add(handle);
       }
     }
-    return result;
-  }
+  });
+  return result;
+}
 ----
 +
 [source,java]
 ----
 // fine
-public List<String> twitterHandles(List<Author> authors, String company) {
+public List<String> twitterHandles(Collection<Author> authors, String company) {
     return authors.stream()
-            .filter(a -> null != a && a.getCompany().equals(company))
+            .filter(a -> (a != null) && a.getCompany().equals(company))
             .map(a -> a.getTwitterHandle())
             .collect(toList());
   }
