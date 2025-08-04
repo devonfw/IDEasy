@@ -47,9 +47,13 @@ public class JavaTest extends AbstractIdeContextTest {
     context.getFileAccess().mkdirs(fakedJavaLibDir);
     Path srcZip = fakedJavaLibDir.resolve("src.zip");
     Random random = new Random(1);
+    byte[] buffer = new byte[1000];
     try (OutputStream out = Files.newOutputStream(srcZip)) {
-      for (int i = 0; i < 100_000; i++) {
-        out.write((byte) random.nextInt());
+      for (int i = 0; i < 100; i++) {
+        for (int j = 0; j < buffer.length; j++) {
+          buffer[j] = (byte) random.nextInt();
+        }
+        out.write(buffer);
       }
     } catch (IOException e) {
       throw new RuntimeException(e);
