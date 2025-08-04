@@ -170,7 +170,9 @@ public class ToolRepositoryMock extends DefaultToolRepository {
         } else {
           if (archiveEntry instanceof TarArchiveEntry tarEntry) {
             tarEntry.setModTime(0);
-            tarEntry.setSize(0);
+            if (relativeChildPath.endsWith("bin")) {
+              tarEntry.setMode(tarEntry.getMode() | 0111);
+            }
           }
           try (InputStream in = Files.newInputStream(child)) {
             IOUtils.copy(in, out);
