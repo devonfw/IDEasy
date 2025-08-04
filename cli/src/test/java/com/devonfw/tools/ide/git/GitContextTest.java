@@ -222,7 +222,7 @@ public class GitContextTest extends AbstractIdeContextTest {
 
     Path gitDir = tempDir.resolve(GitContext.GIT_FOLDER);
     Files.createDirectories(gitDir);
-    Path fetchHead = gitDir.resolve("FETCH_HEAD");
+    Path fetchHead = gitDir.resolve(GitContext.FILE_FETCH_HEAD);
     Files.createFile(fetchHead);
     Files.setLastModifiedTime(fetchHead, FileTime.fromMillis(System.currentTimeMillis()));
 
