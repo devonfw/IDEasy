@@ -108,14 +108,16 @@ public abstract class AbstractToolRepository implements ToolRepository {
       Collections.shuffle(urlList);
     }
     UrlChecksums checksums = metadata.getChecksums();
+    Exception error = null;
     for (String url : urlList) {
       try {
         return download(url, target, resolvedVersion, checksums);
       } catch (Exception e) {
         this.context.error(e, "Failed to download from " + url);
+        error = e;
       }
     }
-    throw new CliException("Download of " + target.getFileName() + " failed after trying " + urlList.size() + " URL(s).");
+    throw new CliException("Download of " + target.getFileName() + " failed after trying " + urlList.size() + " URL(s).", error);
   }
 
   /**
