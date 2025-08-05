@@ -208,8 +208,8 @@ public class FileAccessImpl implements FileAccess {
   private void copyFileWithProgressBar(Path source, Path target) {
 
     long size = getFileSize(source);
-    if (size < 1_000_000) {
-      copy(source, target, FileCopyMode.COPY_FILE_OVERRIDE);
+    if (size < 100_000) {
+      copy(source, target, FileCopyMode.COPY_FILE_TO_TARGET_OVERRIDE);
       return;
     }
     try (InputStream in = Files.newInputStream(source);
@@ -363,7 +363,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener) {
 
-    if (mode != FileCopyMode.COPY_TREE_CONTENT) {
+    if (mode.isUseSourceFilename()) {
       // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy
       // source into that folder so that we as a result have a copy in "target/source".
       // With Java NIO the raw copy method will fail as we cannot copy "source" to the path of the "target" folder.
@@ -418,7 +418,7 @@ public class FileAccessImpl implements FileAccess {
       }
       listener.onCopy(source, target, true);
     } else if (Files.exists(source)) {
-      if (mode.isOverrideFile()) {
+      if (mode.isOverride()) {
         delete(target);
       }
       this.context.trace("Starting to {} {} to {}", mode.getOperation(), source, target);
