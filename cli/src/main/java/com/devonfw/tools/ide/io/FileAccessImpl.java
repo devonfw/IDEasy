@@ -913,6 +913,7 @@ public class FileAccessImpl implements FileAccess {
           tarEntry.setCreationTime(none);
           tarEntry.setModTime(none);
           tarEntry.setLastAccessTime(none);
+          tarEntry.setLastModifiedTime(none);
           tarEntry.setUserId(0);
           tarEntry.setUserName("user");
           tarEntry.setGroupId(0);
