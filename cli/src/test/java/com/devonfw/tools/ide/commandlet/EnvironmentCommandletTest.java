@@ -98,7 +98,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
 
     // arrange
     String path = "project/workspaces/foo-test/my-git-repo";
-    IdeTestContext context = newContext(ENVIRONMENT_COMMANDLET, path, false, IdeLogLevel.INFO);
+    IdeTestContext context = newContext(ENVIRONMENT_COMMANDLET, path, false, null, IdeLogLevel.INFO);
     context.setSystemInfo(SystemInfoMock.MAC_ARM64);
     EnvironmentCommandlet env = context.getCommandletManager().getCommandlet(EnvironmentCommandlet.class);
     Path softwarePath = context.getSoftwarePath();
