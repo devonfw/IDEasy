@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.os.WindowsHelperMock;
 public class BashFindingTest extends AbstractIdeContextTest {
 
   @Test
-  public void testFindBashWithWindowsHelper() {
+  public void testFindBash() {
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
     
