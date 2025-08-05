@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.io;
 
 import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -48,8 +47,14 @@ import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.io.IOUtils;
 import org.jline.utils.Log;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -90,73 +95,77 @@ public class FileAccessImpl implements FileAccess {
 
   private HttpClient createHttpClient(String url) {
 
-    HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
-    return builder.build();
+    return HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
   }
 
   @Override
   public void download(String url, Path target) {
-    List<Version> httpProtocols = IdeVariables.HTTP_VERSIONS.get(context);
-
-    Exception lastException = null;
-    if (httpProtocols.isEmpty()) {
-      try {
-        this.downloadWithHttpVersion(url, target, null);
-        return; // success
-      } catch (Exception e) {
-        lastException = e;
-      }
-    } else {
-      for (Version version : httpProtocols) {
-        try {
-          this.context.debug("Trying to download: {} with HTTP protocol version: {}", url, version);
-          this.downloadWithHttpVersion(url, target, version);
-          return; // success
-        } catch (Exception ex) {
-          lastException = ex;
-        }
-      }
-    }
-
-    throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, lastException);
-  }
-
-  private void downloadWithHttpVersion(String url, Path target, Version httpVersion) throws Exception {
-
-    this.context.info("Trying to download {} from {}", target.getFileName(), url);
-    mkdirs(target.getParent());
 
     if (this.context.isOffline()) {
       throw CliOfflineException.ofDownloadViaUrl(url);
     }
     if (url.startsWith("http")) {
-
-      Builder builder = HttpRequest.newBuilder()
-          .uri(URI.create(url))
-          .GET();
-      if (httpVersion != null) {
-        builder.version(httpVersion);
-      }
-      HttpRequest request = builder.build();
-      HttpResponse<InputStream> response;
-      HttpClient client = createHttpClient(url);
-      response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-      int statusCode = response.statusCode();
-      if (statusCode == 200) {
-        downloadFileWithProgressBar(url, target, response);
-      } else {
-        throw new IllegalStateException("Download failed with status code " + statusCode);
-      }
+      downloadViaHttp(url, target);
     } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
       throw new IllegalArgumentException("Unsupported download URL: " + url);
     } else {
       Path source = Path.of(url);
       if (isFile(source)) {
         // network drive
-
         copyFileWithProgressBar(source, target);
       } else {
         throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
+      }
+    }
+  }
+
+  private void downloadViaHttp(String url, Path target) {
+    List<Version> httpProtocols = IdeVariables.HTTP_VERSIONS.get(context);
+    Exception lastException = null;
+    if (httpProtocols.isEmpty()) {
+      try {
+        this.downloadWithHttpVersion(url, target, null);
+        return;
+      } catch (Exception e) {
+        lastException = e;
+      }
+    } else {
+      for (Version version : httpProtocols) {
+        try {
+          this.downloadWithHttpVersion(url, target, version);
+          return;
+        } catch (Exception ex) {
+          lastException = ex;
+        }
+      }
+    }
+    throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, lastException);
+  }
+
+  private void downloadWithHttpVersion(String url, Path target, Version httpVersion) throws Exception {
+
+    if (httpVersion == null) {
+      this.context.info("Trying to download {} from {}", target.getFileName(), url);
+    } else {
+      this.context.info("Trying to download: {} with HTTP protocol version: {}", url, httpVersion);
+    }
+    mkdirs(target.getParent());
+
+    Builder builder = HttpRequest.newBuilder()
+        .uri(URI.create(url))
+        .GET();
+    if (httpVersion != null) {
+      builder.version(httpVersion);
+    }
+    HttpRequest request = builder.build();
+    HttpResponse<InputStream> response;
+    try (HttpClient client = createHttpClient(url)) {
+      response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+      int statusCode = response.statusCode();
+      if (statusCode == 200) {
+        downloadFileWithProgressBar(url, target, response);
+      } else {
+        throw new IllegalStateException("Download failed with status code " + statusCode);
       }
     }
   }
@@ -196,28 +205,27 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  /**
-   * Copies a file while displaying a progress bar.
-   *
-   * @param source Path of file to copy.
-   * @param target Path of target directory.
-   */
-  private void copyFileWithProgressBar(Path source, Path target) throws IOException {
+  private void copyFileWithProgressBar(Path source, Path target) {
 
-    try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
-      long size = getFileSize(source);
+    long size = getFileSize(source);
+    if (size < 1_000_000) {
+      copy(source, target, FileCopyMode.COPY_FILE_OVERRIDE);
+      return;
+    }
+    try (InputStream in = Files.newInputStream(source);
+        OutputStream out = Files.newOutputStream(target)) {
       byte[] buf = new byte[1024];
       try (IdeProgressBar pb = this.context.newProgressbarForCopying(size)) {
         int readBytes;
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
-          if (size > 0) {
-            pb.stepBy(readBytes);
-          }
+          pb.stepBy(readBytes);
         }
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to copy from " + source + " to " + target, e);
     }
   }
 
@@ -601,10 +609,8 @@ public class FileAccessImpl implements FileAccess {
   public void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook, boolean extract) {
 
     if (Files.isDirectory(archiveFile)) {
-      // TODO: check this case
-      Path properInstallDir = archiveFile; // getProperInstallationSubDirOf(archiveFile, archiveFile);
       this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
-      copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_CONTENT);
+      copy(archiveFile, targetDir, FileCopyMode.COPY_TREE_CONTENT);
       postExtractHook(postExtractHook, targetDir);
       return;
     } else if (!extract) {
@@ -823,6 +829,110 @@ public class FileAccessImpl implements FileAccess {
     Path contentPath = findFirst(tmpDirPkg, p -> p.getFileName().toString().equals("Payload"), true);
     extractTar(contentPath, targetDir, TarCompression.GZ);
     delete(tmpDirPkg);
+  }
+
+  @Override
+  public void compress(Path dir, OutputStream out, String format) {
+
+    String extension = FilenameUtil.getExtension(format);
+    TarCompression tarCompression = TarCompression.of(extension);
+    if (tarCompression != null) {
+      compressTar(dir, out, tarCompression);
+    } else if (extension.equals("zip")) {
+      compressZip(dir, out);
+    } else {
+      throw new IllegalArgumentException("Unsupported extension: " + extension);
+    }
+  }
+
+  @Override
+  public void compressTar(Path dir, OutputStream out, TarCompression tarCompression) {
+    switch (tarCompression) {
+      case null -> compressTar(dir, out);
+      case NONE -> compressTar(dir, out);
+      case GZ -> compressTarGz(dir, out);
+      case BZIP2 -> compressTarBzip2(dir, out);
+      default -> throw new IllegalArgumentException("Unsupported tar compression: " + tarCompression);
+    }
+  }
+
+  @Override
+  public void compressTarGz(Path dir, OutputStream out) {
+    try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(out)) {
+      compressTarOrThrow(dir, gzOut);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress directory " + dir + " to tar.gz file.", e);
+    }
+  }
+
+  @Override
+  public void compressTarBzip2(Path dir, OutputStream out) {
+    try (BZip2CompressorOutputStream bzip2Out = new BZip2CompressorOutputStream(out)) {
+      compressTarOrThrow(dir, bzip2Out);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress directory " + dir + " to tar.bz2 file.", e);
+    }
+  }
+
+  @Override
+  public void compressTar(Path dir, OutputStream out) {
+    try {
+      compressTarOrThrow(dir, out);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress directory " + dir + " to tar file.", e);
+    }
+  }
+
+  private void compressTarOrThrow(Path dir, OutputStream out) throws IOException {
+    try (TarArchiveOutputStream tarOut = new TarArchiveOutputStream(out)) {
+      compressRecursive(dir, tarOut, "");
+      tarOut.finish();
+    }
+  }
+
+  @Override
+  public void compressZip(Path dir, OutputStream out) {
+    try (ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(out)) {
+      compressRecursive(dir, zipOut, "");
+      zipOut.finish();
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress directory " + dir + " to zip file.", e);
+    }
+  }
+
+  private <E extends ArchiveEntry> void compressRecursive(Path path, ArchiveOutputStream<E> out, String relativePath) {
+    try (Stream<Path> childStream = Files.list(path)) {
+      Iterator<Path> iterator = childStream.iterator();
+      while (iterator.hasNext()) {
+        Path child = iterator.next();
+        String relativeChildPath = relativePath + "/" + child.getFileName().toString();
+        boolean isDirectory = Files.isDirectory(child);
+        E archiveEntry = out.createArchiveEntry(child, relativeChildPath);
+        if (archiveEntry instanceof TarArchiveEntry tarEntry) {
+          FileTime none = FileTime.fromMillis(0);
+          tarEntry.setCreationTime(none);
+          tarEntry.setModTime(none);
+          tarEntry.setLastAccessTime(none);
+          tarEntry.setUserName("user");
+          tarEntry.setGroupName("group");
+          if (relativePath.endsWith("bin") && !isDirectory) {
+            tarEntry.setMode(tarEntry.getMode() | 0111);
+          }
+        }
+        out.putArchiveEntry(archiveEntry);
+        if (!isDirectory) {
+          try (InputStream in = Files.newInputStream(child)) {
+            IOUtils.copy(in, out);
+          }
+        }
+        out.closeArchiveEntry();
+        if (isDirectory) {
+          compressRecursive(child, out, relativeChildPath);
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress " + path, e);
+    }
   }
 
   @Override
