@@ -77,6 +77,9 @@ public class FileAccessImpl implements FileAccess {
   private static final String WINDOWS_FILE_LOCK_WARNING =
       "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
           + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
+  
+  private static final int MODE_RWX_RX_RX = 040755;
+  private static final int MODE_RW_R_R = 0100644;
 
   private static final Map<String, String> FS_ENV = Map.of("encoding", "UTF-8");
 
@@ -918,8 +921,14 @@ public class FileAccessImpl implements FileAccess {
           tarEntry.setUserName("user");
           tarEntry.setGroupId(0);
           tarEntry.setGroupName("group");
-          if (relativePath.endsWith("bin") && !isDirectory) {
-            tarEntry.setMode(tarEntry.getMode() | 0111);
+          if (isDirectory) {
+            tarEntry.setMode(MODE_RWX_RX_RX);
+          } else {
+            if (relativePath.endsWith("bin")) {
+              tarEntry.setMode(MODE_RWX_RX_RX);
+            } else {
+              tarEntry.setMode(MODE_RW_R_R);
+            }
           }
         }
         out.putArchiveEntry(archiveEntry);
