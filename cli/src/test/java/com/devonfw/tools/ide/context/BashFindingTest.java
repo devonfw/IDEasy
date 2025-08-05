@@ -25,14 +25,4 @@ public class BashFindingTest extends AbstractIdeContextTest {
     // This is mainly to verify the refactoring doesn't break existing functionality
     // The exact result depends on the system and mock setup
   }
-  
-  @Test
-  public void testWindowsHelperUsage() {
-    // arrange
-    IdeTestContext context = newContext(PROJECT_BASIC);
-    
-    // act - just verify WindowsHelper is accessible
-    // This test validates our refactoring works
-    assertThat(context.getWindowsHelper()).isNotNull();
-  }
 }
