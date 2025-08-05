@@ -77,9 +77,9 @@ public class FileAccessImpl implements FileAccess {
   private static final String WINDOWS_FILE_LOCK_WARNING =
       "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
           + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
-  
-  private static final int MODE_RWX_RX_RX = 040755;
-  private static final int MODE_RW_R_R = 0100644;
+
+  private static final int MODE_RWX_RX_RX = 0755;
+  private static final int MODE_RW_R_R = 0644;
 
   private static final Map<String, String> FS_ENV = Map.of("encoding", "UTF-8");
 

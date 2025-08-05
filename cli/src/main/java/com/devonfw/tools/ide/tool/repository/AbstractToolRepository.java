@@ -104,20 +104,25 @@ public abstract class AbstractToolRepository implements ToolRepository {
 
     VersionIdentifier resolvedVersion = metadata.getVersion();
     List<String> urlList = new ArrayList<>(metadata.getUrls());
-    if (urlList.size() > 1) {
+    int size = urlList.size();
+    int max = size - 1;
+    if (size > 1) {
       Collections.shuffle(urlList);
     }
     UrlChecksums checksums = metadata.getChecksums();
     Exception error = null;
-    for (String url : urlList) {
+    for (int i = 0; i < size; i++) {
+      String url = urlList.get(i);
       try {
         return download(url, target, resolvedVersion, checksums);
       } catch (Exception e) {
-        this.context.error(e, "Failed to download from " + url);
         error = e;
       }
+      if (i < max) {
+        this.context.error(error, "Failed to download from " + url);
+      }
     }
-    throw new CliException("Download of " + target.getFileName() + " failed after trying " + urlList.size() + " URL(s).", error);
+    throw new CliException("Download of " + target.getFileName() + " failed after trying " + size + " URL(s).", error);
   }
 
   /**
