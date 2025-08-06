@@ -128,6 +128,12 @@ public class SystemPath {
           String tool = child.getFileName().toString();
           if (!"extra".equals(tool) && Files.isDirectory(child)) {
             Path toolPath = child;
+            if (tool.equals("python")) {
+              Path venvScripts = child.resolve(".venv").resolve("Scripts");
+              if (Files.isDirectory(venvScripts)) {
+                toolPath = venvScripts;
+              }
+            }
             Path bin = child.resolve("bin");
             if (Files.isDirectory(bin)) {
               toolPath = bin;
