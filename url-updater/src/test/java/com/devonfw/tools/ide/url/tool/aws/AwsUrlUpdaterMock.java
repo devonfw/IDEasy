@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 /**
  * Mock of {@link AwsUrlUpdater} to allow integration testing with wiremock.
  */
-public class AwsGithubUrlUpdaterMock extends AwsUrlUpdater {
+public class AwsUrlUpdaterMock extends AwsUrlUpdater {
 
   private final WireMockRuntimeInfo wmRuntimeInfo;
 
@@ -14,12 +14,12 @@ public class AwsGithubUrlUpdaterMock extends AwsUrlUpdater {
    *
    * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} holding the http url and port of the wiremock server.
    */
-  public AwsGithubUrlUpdaterMock(WireMockRuntimeInfo wmRuntimeInfo) {
+  public AwsUrlUpdaterMock(WireMockRuntimeInfo wmRuntimeInfo) {
     this.wmRuntimeInfo = wmRuntimeInfo;
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
     return this.wmRuntimeInfo.getHttpBaseUrl() + "/download/";
   }
 

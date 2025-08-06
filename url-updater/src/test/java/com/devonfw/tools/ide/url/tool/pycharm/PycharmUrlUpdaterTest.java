@@ -6,15 +6,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdaterTest;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -23,13 +23,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test class for integrations of the {@link PycharmUrlUpdater}
  */
 @WireMockTest
-public class PycharmJsonUrlUpdaterTest extends Assertions {
+public class PycharmUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
-  /** Test resource location */
-  private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/PycharmJsonUrlUpdater";
-
-  /** This is the SHA256 checksum of aBody (a placeholder body which gets returned by WireMock) */
-  private static final String EXPECTED_ABODY_CHECKSUM = "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30";
+  private static final String VERSION_2024_3_4 = "2024.3.4";
+  private static final String VERSION_2024_3_5 = "2024.3.5";
 
   private static String pycharmVersionJson;
   private static String pycharmVersionWithoutChecksumJson;
@@ -44,12 +41,9 @@ public class PycharmJsonUrlUpdaterTest extends Assertions {
   @BeforeAll
   public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
-    Path testDataPath = Path.of(TEST_DATA_ROOT);
-    pycharmVersionJson = Files.readString(testDataPath.resolve("pycharm-version.json"));
-    pycharmVersionJson = pycharmVersionJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
-
-    pycharmVersionWithoutChecksumJson = Files.readString(testDataPath.resolve("pycharm-version-without-checksum.json"));
-    pycharmVersionWithoutChecksumJson = pycharmVersionWithoutChecksumJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
+    Path testDataPath = PATH_INTEGRATION_TEST.resolve("PycharmUrlUpdater");
+    pycharmVersionJson = readAndResolve(testDataPath.resolve("pycharm-version.json"), wmRuntimeInfo);
+    pycharmVersionWithoutChecksumJson = readAndResolve(testDataPath.resolve("pycharm-version-without-checksum.json"), wmRuntimeInfo);
   }
 
   /**
@@ -61,36 +55,29 @@ public class PycharmJsonUrlUpdaterTest extends Assertions {
   @Test
   public void testPycharmJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    // given
-    stubFor(any(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(pycharmVersionJson.getBytes())));
+    // arrange
+    stubFor(any(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(pycharmVersionJson)));
 
-    stubFor(any(urlMatching("/python/pycharm.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+    stubFor(any(urlMatching("/python/pycharm.*.tar.gz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
+    stubFor(any(urlMatching("/python/pycharm.*.tar.gz.sha256")).willReturn(aResponse().withStatus(200).withBody(SHA_256)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     PycharmUrlUpdaterMock updater = new PycharmUrlUpdaterMock(wmRuntimeInfo);
 
-    // when
+    // act
     updater.update(urlRepository);
 
-    // then
-    Path pycharmVersionsPath1 = tempDir.resolve("pycharm").resolve("pycharm").resolve("2024.3.5");
-    assertThat(pycharmVersionsPath1.resolve("status.json")).exists();
-    assertThat(pycharmVersionsPath1.resolve("linux_x64.urls")).exists();
-    assertThat(pycharmVersionsPath1.resolve("linux_x64.urls.sha256")).exists();
-    Path pycharmVersionsPath2 = tempDir.resolve("pycharm").resolve("pycharm").resolve("2024.3.4");
-    assertThat(pycharmVersionsPath2.resolve("status.json")).exists();
-    assertThat(pycharmVersionsPath2.resolve("linux_x64.urls")).exists();
-    assertThat(pycharmVersionsPath2.resolve("linux_x64.urls.sha256")).exists();
-    Path pycharmProfessionalVersionsPath1 = tempDir.resolve("pycharm").resolve("professional").resolve("2024.3.5");
-    assertThat(pycharmProfessionalVersionsPath1.resolve("status.json")).exists();
-    assertThat(pycharmProfessionalVersionsPath1.resolve("linux_x64.urls")).exists();
-    assertThat(pycharmProfessionalVersionsPath1.resolve("linux_x64.urls.sha256")).exists();
-    Path pycharmProfessionalVersionsPath2 = tempDir.resolve("pycharm").resolve("professional").resolve("2024.3.4");
-    assertThat(pycharmProfessionalVersionsPath2.resolve("status.json")).exists();
-    assertThat(pycharmProfessionalVersionsPath2.resolve("linux_x64.urls")).exists();
-    assertThat(pycharmProfessionalVersionsPath2.resolve("linux_x64.urls.sha256")).exists();
-
-
+    // assert
+    Path pycharmToolDir = tempDir.resolve("pycharm");
+    for (String edition : List.of("pycharm", "professional")) {
+      Path editionDir = pycharmToolDir.resolve(edition);
+      assertThat(editionDir).exists();
+      for (String version : List.of(VERSION_2024_3_4, VERSION_2024_3_5)) {
+        Path versionDir = editionDir.resolve(version);
+        assertThat(versionDir).exists();
+        assertUrlVersionFile(versionDir, "linux_x64");
+      }
+    }
   }
 
   /**
@@ -104,7 +91,7 @@ public class PycharmJsonUrlUpdaterTest extends Assertions {
   public void testPycharmJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
-    stubFor(any(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(pycharmVersionJson.getBytes())));
+    stubFor(any(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(pycharmVersionJson)));
 
     stubFor(any(urlMatching("/python/pycharm.*")).willReturn(aResponse().withStatus(404)));
 
@@ -114,7 +101,7 @@ public class PycharmJsonUrlUpdaterTest extends Assertions {
     // when
     updater.update(urlRepository);
 
-    Path pycharmVersionsPath = tempDir.resolve("pycharm").resolve("pycharm").resolve("2024.3.5");
+    Path pycharmVersionsPath = tempDir.resolve("pycharm").resolve("pycharm").resolve(VERSION_2024_3_5);
 
     // then
     assertThat(pycharmVersionsPath).doesNotExist();
@@ -131,21 +118,20 @@ public class PycharmJsonUrlUpdaterTest extends Assertions {
   @Test
   public void testPycharmJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    // given
-    stubFor(any(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(pycharmVersionWithoutChecksumJson.getBytes())));
+    // arrange
+    stubFor(any(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(pycharmVersionWithoutChecksumJson)));
 
-    stubFor(any(urlMatching("/python/pycharm.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+    stubFor(any(urlMatching("/python/pycharm.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     PycharmUrlUpdaterMock updater = new PycharmUrlUpdaterMock(wmRuntimeInfo);
 
-    // when
+    // act
     updater.update(urlRepository);
 
-    Path pycharmVersionsPath = tempDir.resolve("pycharm").resolve("pycharm").resolve("2024.3.5");
+    Path pycharmVersionsPath = tempDir.resolve("pycharm").resolve("pycharm").resolve(VERSION_2024_3_5);
 
-    // then
-    assertThat(pycharmVersionsPath.resolve("linux_x64.urls.sha256")).exists().hasContent(EXPECTED_ABODY_CHECKSUM);
-
+    // assert
+    assertUrlVersionFile(pycharmVersionsPath, "linux_x64");
   }
 }
