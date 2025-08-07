@@ -64,13 +64,13 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFile = getIniFile(context);
 
-    String[] expectedSections = { "filter \"lfs\"", "credential", "core", "last section" };
+    String[] expectedSections = { "filter \"lfs\"", "credential", "credential.details", "core", "last section" };
 
     // act
     String[] sections = iniFile.getSectionNames();
 
     // assert
-    assertThat(expectedSections).isEqualTo(sections);
+    assertThat(sections).isEqualTo(expectedSections);
   }
 
 
@@ -84,7 +84,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFile = getIniFile(context);
-    String[] expectedSections = { "filter \"lfs\"", "credential", "core" };
+    String[] expectedSections = { "filter \"lfs\"", "credential", "credential.details", "core" };
     String sectionToRemove = "last section";
 
     // act
@@ -134,10 +134,11 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     List<String> expectedPropertyKeys = new LinkedList<>();
     expectedPropertyKeys.add("helper");
     String expectedHelperValue = "store";
+    String expectedNewFileContent = iniContent + "[missing section]\n";
 
     // act
     IniSection section = iniFile.getOrCreateSection(sectionName);
-    IniSection newSection = iniFile.getOrCreateSection(newSectionName);
+    IniSection newSection = iniFile.getOrCreateSection("[" + newSectionName + "]");
 
     // assert
     assertThat(section.getName()).isEqualTo(sectionName);
@@ -146,6 +147,8 @@ public class IniFileImplTest extends AbstractIdeContextTest {
 
     assertThat(newSection.getName()).isEqualTo(newSectionName);
     assertThat(newSection.getPropertyKeys()).isEmpty();
+
+    assertThat(iniFile.toString()).isEqualTo(expectedNewFileContent);
   }
 
   /**

@@ -20,6 +20,9 @@ public class IniSectionImpl extends IniSection {
    * @param heading the heading line of the section
    */
   public IniSectionImpl(String heading) {
+    if (!heading.isEmpty() && (!heading.contains("[") || !heading.contains("]"))) {
+      throw new IllegalArgumentException("Section name must be surrounded by brackets");
+    }
     this.setContent(heading);
     this.name = heading.replace("[", "").replace("]", "").trim();
     this.properties = new LinkedHashMap<>();
@@ -74,7 +77,9 @@ public class IniSectionImpl extends IniSection {
     StringBuilder stringBuilder = new StringBuilder();
     if (!name.isEmpty()) {
       stringBuilder.append(this.getContent());
-      stringBuilder.append("\n");
+      if (!sectionElements.isEmpty()) {
+        stringBuilder.append("\n");
+      }
     }
     for (int i = 0; i < sectionElements.size(); i++) {
       IniElement element = sectionElements.get(i);

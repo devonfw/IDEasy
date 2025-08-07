@@ -4,6 +4,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Implementation of {@link IniFile} preserves order of sections and properties between reading and writing
@@ -28,7 +29,7 @@ public class IniFileImpl implements IniFile {
 
   @Override
   public String[] getSectionNames() {
-    return iniMap.keySet().toArray(String[]::new);
+    return iniMap.keySet().stream().filter(Objects::nonNull).toArray(String[]::new);
   }
 
   @Override
@@ -50,14 +51,18 @@ public class IniFileImpl implements IniFile {
   }
 
   @Override
-  public IniSection getOrCreateSection(String section) {
-    if (iniMap.containsKey(section)) {
-      return iniMap.get(section);
+  public IniSection getOrCreateSection(String sectionHeading) {
+    if (!sectionHeading.contains("[") || !sectionHeading.contains("]")) {
+      sectionHeading = "[" + sectionHeading + "]";
+    }
+    IniSection iniSection = new IniSectionImpl(sectionHeading);
+    String sectionName = iniSection.getName();
+    if (iniMap.containsKey(sectionName)) {
+      return iniMap.get(sectionName);
     } else {
-      IniSection newSection = new IniSectionImpl(section);
-      iniMap.put(section, newSection);
-      fileElements.add(newSection);
-      return newSection;
+      iniMap.put(sectionName, iniSection);
+      fileElements.add(iniSection);
+      return iniSection;
     }
   }
 
@@ -65,7 +70,10 @@ public class IniFileImpl implements IniFile {
   public String toString() {
     StringBuilder stringBuilder = new StringBuilder();
     for (IniElement element : fileElements) {
-      stringBuilder.append(element).append("\n");
+      String elementString = element.toString();
+      if (!elementString.isEmpty()) {
+        stringBuilder.append(element).append("\n");
+      }
     }
     return stringBuilder.toString();
   }
