@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniFileImpl;
+import com.devonfw.tools.ide.io.ini.IniSection;
 
 /**
  * Test of {@link IniFileImpl}
@@ -24,14 +27,19 @@ public class IniFileImplTest extends AbstractIdeContextTest {
       \trequired = true
       \tclean = git-lfs clean -- %f
       \tsmudge = git-lfs smudge -- %f
-      [credential]
-      \thelper = store
+      \t[credential]
+      \t ; I am a comment inside of a section!
+      \thelper = store\n\n
+      \t[credential.details]
+      # this comment uses another comment symbol
+      \t\tmode = strict
       [core]
       \t; core elements
       \tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe
       \tlongpaths = false
       [last section]
       \trequired = false
+      \t\tindentation = different
       """;
 
   private IniFile getIniFile(IdeContext context) throws IOException {
@@ -134,7 +142,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     // assert
     assertThat(section.getName()).isEqualTo(sectionName);
     assertThat(section.getPropertyKeys()).isEqualTo(expectedPropertyKeys);
-    assertThat(section.getProperty("helper").getValue()).isEqualTo(expectedHelperValue);
+    assertThat(section.getPropertyValue("helper")).isEqualTo(expectedHelperValue);
 
     assertThat(newSection.getName()).isEqualTo(newSectionName);
     assertThat(newSection.getPropertyKeys()).isEmpty();

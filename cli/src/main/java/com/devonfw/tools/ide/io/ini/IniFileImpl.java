@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.io;
+package com.devonfw.tools.ide.io.ini;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
@@ -12,8 +12,6 @@ public class IniFileImpl implements IniFile {
 
   private final Map<String, IniSection> iniMap;
 
-  private final Map<String, IniProperty> properties;
-
   private final List<IniElement> fileElements;
 
   /**
@@ -22,7 +20,10 @@ public class IniFileImpl implements IniFile {
   public IniFileImpl() {
     this.iniMap = new LinkedHashMap<>();
     this.fileElements = new LinkedList<>();
-    this.properties = new LinkedHashMap<>();
+
+    IniSection initialSection = new IniSectionImpl("");
+    iniMap.put(null, initialSection);
+    fileElements.add(initialSection);
   }
 
   @Override
@@ -44,6 +45,11 @@ public class IniFileImpl implements IniFile {
   }
 
   @Override
+  public IniSection getInitialSection() {
+    return iniMap.get(null);
+  }
+
+  @Override
   public IniSection getOrCreateSection(String section) {
     if (iniMap.containsKey(section)) {
       return iniMap.get(section);
@@ -56,27 +62,9 @@ public class IniFileImpl implements IniFile {
   }
 
   @Override
-  public void setProperty(String key, String value) {
-    IniProperty property = new IniPropertyImpl(key, value);
-    fileElements.add(property);
-    properties.put(key, property);
-  }
-
-  @Override
-  public IniProperty getProperty(String key) {
-    return properties.get(key);
-  }
-
-  @Override
-  public void addComment(String comment, int indentLevel) {
-    fileElements.add(new IniCommentImpl(comment, indentLevel));
-  }
-
-  @Override
   public String toString() {
     StringBuilder stringBuilder = new StringBuilder();
     for (IniElement element : fileElements) {
-      stringBuilder.append("\t".repeat(Math.max(0, element.getIndentLevel())));
       stringBuilder.append(element).append("\n");
     }
     return stringBuilder.toString();

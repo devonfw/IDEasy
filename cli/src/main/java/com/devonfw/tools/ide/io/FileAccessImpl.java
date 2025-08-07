@@ -52,6 +52,9 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.ini.IniCommentImpl;
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -1159,33 +1162,16 @@ public class FileAccessImpl implements FileAccess {
       return;
     }
     List<String> iniLines = readFileLines(file);
-    IniSection currentIniSection = null;
+    IniSection currentIniSection = iniFile.getInitialSection();
     for (String line : iniLines) {
-      if (line.isEmpty()) {
-        continue;
-      }
-      int indentLevel = line.length() - line.stripLeading().length();
-      if (line.startsWith("[")) {
-        String sectionName = line.replace("[", "").replace("]", "").trim();
-        currentIniSection = iniFile.getOrCreateSection(sectionName);
-      } else if (line.strip().startsWith(";")) {
-        if (currentIniSection == null) {
-          iniFile.addComment(line.strip(), indentLevel);
-        } else {
-          currentIniSection.addComment(line.strip(), indentLevel);
-        }
+      if (line.trim().startsWith("[")) {
+        currentIniSection = iniFile.getOrCreateSection(line);
+      } else if (line.isBlank() || IniCommentImpl.commentSymbols.contains(line.trim().charAt(0))) {
+        currentIniSection.addComment(line);
       } else {
         int index = line.indexOf('=');
         if (index > 0) {
-          String propertyName = line.substring(0, index).trim();
-          String propertyValue = line.substring(index + 1).trim();
-          if (currentIniSection == null) {
-            iniFile.setProperty(propertyName, propertyValue);
-          } else {
-            currentIniSection.setProperty(propertyName, propertyValue, indentLevel);
-          }
-        } else {
-          // here we can handle empty lines in the future
+          currentIniSection.setProperty(line);
         }
       }
     }

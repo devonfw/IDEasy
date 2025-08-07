@@ -15,8 +15,8 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
-import com.devonfw.tools.ide.io.IniFile;
-import com.devonfw.tools.ide.io.IniSection;
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -232,7 +232,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     FileAccess fileAccess = this.context.getFileAccess();
     IniFile iniFile = fileAccess.readIniFile(configPath);
     IniSection coreSection = iniFile.getOrCreateSection("core");
-    coreSection.setProperty("longpaths", "true", 1);
+    coreSection.setProperty("longpaths", "true");
     fileAccess.writeIniFile(iniFile, configPath);
   }
 
