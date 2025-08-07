@@ -29,7 +29,9 @@ public class IniFileImplTest extends AbstractIdeContextTest {
       \tsmudge = git-lfs smudge -- %f
       \t[credential]
       \t ; I am a comment inside of a section!
-      \thelper = store\n\n
+      \thelper = store
+      
+      
       \t[credential.details]
       # this comment uses another comment symbol
       \t\tmode = strict
@@ -96,7 +98,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
   /**
    * test of {@link IniFileImpl#getSection(String)}
    *
-   * @throws IOException
+   * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
   public void testGetSection() throws IOException {
@@ -104,10 +106,8 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFile = getIniFile(context);
     String sectionName = "credential";
-    String newSectionName = "missing section";
     List<String> expectedPropertyKeys = new LinkedList<>();
     expectedPropertyKeys.add("helper");
-    String expectedHelperValue = "store";
 
     // act
     IniSection section = iniFile.getSection(sectionName);
@@ -122,7 +122,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
   /**
    * test of {@link IniFileImpl#getOrCreateSection(String)}
    *
-   * @throws IOException
+   * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
   public void testGetOrCreateSection() throws IOException {

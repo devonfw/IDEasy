@@ -56,11 +56,11 @@ public class IniSectionImpl extends IniSection {
     } else if (!this.getPropertyKeys().isEmpty()) {
       indentation = properties.get(this.getPropertyKeys().getFirst()).getIndentation();
     }
-    StringBuilder b = new StringBuilder(indentation);
-    b.append(key);
-    b.append(" = ");
-    b.append(value);
-    String propertyContent = b.toString();
+    StringBuilder stringBuilder = new StringBuilder(indentation);
+    stringBuilder.append(key);
+    stringBuilder.append(" = ");
+    stringBuilder.append(value);
+    String propertyContent = stringBuilder.toString();
     setProperty(propertyContent);
   }
 
