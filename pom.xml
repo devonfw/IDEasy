@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.devonfw</groupId>
     <artifactId>maven-parent</artifactId>
-    <version>13</version>
+    <version>14</version>
   </parent>
   <groupId>com.devonfw.tools.IDEasy.dev</groupId>
   <artifactId>ide</artifactId>

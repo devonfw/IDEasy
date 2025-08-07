@@ -11,7 +11,9 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemException;
@@ -60,6 +62,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.util.HexUtil;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Implementation of {@link FileAccess}.
@@ -95,38 +98,68 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void download(String url, Path target) {
+    List<Version> httpProtocols = IdeVariables.HTTP_VERSIONS.get(context);
+
+    Exception lastException = null;
+    if (httpProtocols.isEmpty()) {
+      try {
+        this.downloadWithHttpVersion(url, target, null);
+        return; // success
+      } catch (Exception e) {
+        lastException = e;
+      }
+    } else {
+      for (Version version : httpProtocols) {
+        try {
+          this.context.debug("Trying to download: {} with HTTP protocol version: {}", url, version);
+          this.downloadWithHttpVersion(url, target, version);
+          return; // success
+        } catch (Exception ex) {
+          lastException = ex;
+        }
+      }
+    }
+
+    throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, lastException);
+  }
+
+  private void downloadWithHttpVersion(String url, Path target, Version httpVersion) throws Exception {
 
     this.context.info("Trying to download {} from {}", target.getFileName(), url);
     mkdirs(target.getParent());
-    try {
-      if (this.context.isOffline()) {
-        throw CliOfflineException.ofDownloadViaUrl(url);
-      }
-      if (url.startsWith("http")) {
 
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-        HttpClient client = createHttpClient(url);
-        HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-        int statusCode = response.statusCode();
-        if (statusCode == 200) {
-          downloadFileWithProgressBar(url, target, response);
-        } else {
-          throw new IllegalStateException("Download failed with status code " + statusCode);
-        }
-      } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
-        throw new IllegalArgumentException("Unsupported download URL: " + url);
+    if (this.context.isOffline()) {
+      throw CliOfflineException.ofDownloadViaUrl(url);
+    }
+    if (url.startsWith("http")) {
+
+      Builder builder = HttpRequest.newBuilder()
+          .uri(URI.create(url))
+          .GET();
+      if (httpVersion != null) {
+        builder.version(httpVersion);
+      }
+      HttpRequest request = builder.build();
+      HttpResponse<InputStream> response;
+      HttpClient client = createHttpClient(url);
+      response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+      int statusCode = response.statusCode();
+      if (statusCode == 200) {
+        downloadFileWithProgressBar(url, target, response);
       } else {
-        Path source = Path.of(url);
-        if (isFile(source)) {
-          // network drive
-
-          copyFileWithProgressBar(source, target);
-        } else {
-          throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
-        }
+        throw new IllegalStateException("Download failed with status code " + statusCode);
       }
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, e);
+    } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
+      throw new IllegalArgumentException("Unsupported download URL: " + url);
+    } else {
+      Path source = Path.of(url);
+      if (isFile(source)) {
+        // network drive
+
+        copyFileWithProgressBar(source, target);
+      } else {
+        throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
+      }
     }
   }
 

@@ -2,6 +2,17 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.08.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1399[#1399]: Welcome message not working on Linux
+* https://github.com/devonfw/IDEasy/issues/1387[#1387]: Hide exception from user when a tool version is not supported
+* https://github.com/devonfw/IDEasy/issues/1389[#1389]: support podman as docker alternative
+* https://github.com/devonfw/IDEasy/issues/1393[#1393]: Support configuring HTTP version downgrade to workaround download errors with ZScaler VPN
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/31?closed=1[milestone 2025.08.001].
+
 == 2025.07.001
 
 Release with new features and bugfixes:
@@ -9,6 +20,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1401[#1401]: Privacy option not working properly
 * https://github.com/devonfw/IDEasy/issues/1400[#1400]: ide --offline status does not replicate ide status behavior when offline
 * https://github.com/devonfw/IDEasy/issues/742[#742]: Produce constructive warning if git repo url is not sane
+* https://github.com/devonfw/IDEasy/issues/1297[#1297]: Migration from OSSRH to new Maven Central service
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/30?closed=1[milestone 2025.07.001].
 

@@ -32,12 +32,6 @@ public class LazyDockerUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
-
-    return GITHUB_BASE_URL;
-  }
-
-  @Override
   protected String getVersionPrefixToRemove() {
 
     return "v";
@@ -47,7 +41,7 @@ public class LazyDockerUrlUpdater extends GithubUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
-    String baseUrl = getBaseUrl() + "/jesseduffield/lazydocker/releases/download/v${version}/lazydocker_${version}_";
+    String baseUrl = getDownloadBaseUrl() + "/jesseduffield/lazydocker/releases/download/v${version}/lazydocker_${version}_";
     if (vid.compareVersion(MIN_WIN_VID).isGreater()) {
       doAddVersion(urlVersion, baseUrl + "Windows_x86_64.zip", WINDOWS, X64);
     }

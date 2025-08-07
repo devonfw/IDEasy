@@ -1,0 +1,58 @@
+{
+  "content": {
+    "item": [
+      {
+        "date": "May 2, 2023",
+        "platformBuild": "231.6890.12",
+        "download": [
+          {
+            "size": "904.7 MB",
+            "link": "${testbaseurl}/edgedl/android/studio/install/2023.1.1.2/android-studio-2023.1.1.2-cros.deb",
+            "checksum": "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30"
+          },
+          {
+            "size": "1.2 GB",
+            "link": "${testbaseurl}edgedl/android/studio/install/2023.1.1.2/android-studio-2023.1.1.2-mac_arm.dmg",
+            "checksum": "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30"
+          },
+          {
+            "size": "1.2 GB",
+            "link": "${testbaseurl}/edgedl/android/studio/install/2023.1.1.2/android-studio-2023.1.1.2-mac.dmg",
+            "checksum": "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30"
+          },
+          {
+            "size": "1.1 GB",
+            "link": "${testbaseurl}/edgedl/android/studio/install/2023.1.1.2/android-studio-2023.1.1.2-windows.exe",
+            "checksum": "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30"
+          },
+          {
+            "size": "1.2 GB",
+            "link": "${testbaseurl}/edgedl/android/studio/ide-zips/2023.1.1.2/android-studio-2023.1.1.2-linux.tar.gz",
+            "checksum": "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30"
+          },
+          {
+            "size": "1.2 GB",
+            "link": "${testbaseurl}/edgedl/android/studio/ide-zips/2023.1.1.2/android-studio-2023.1.1.2-mac_arm.zip",
+            "checksum": "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30"
+          },
+          {
+            "size": "1.2 GB",
+            "link": "${testbaseurl}/edgedl/android/studio/ide-zips/2023.1.1.2/android-studio-2023.1.1.2-mac.zip",
+            "checksum": "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30"
+          },
+          {
+            "size": "1.1 GB",
+            "link": "${testbaseurl}/edgedl/android/studio/ide-zips/2023.1.1.2/android-studio-2023.1.1.2-windows.zip",
+            "checksum": "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30"
+          }
+        ],
+        "build": "AI-231.6890.12.2311.10027519",
+        "platformVersion": 2023.1,
+        "name": "Android Studio Hedgehog | 2023.1.1 Canary 2",
+        "channel": "Canary",
+        "version": "2023.1.1.2"
+      }
+    ],
+    "version": 137
+  }
+}

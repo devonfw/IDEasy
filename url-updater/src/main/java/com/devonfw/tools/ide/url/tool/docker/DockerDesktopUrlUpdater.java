@@ -17,6 +17,8 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
       VersionIdentifier.of("4.4.3"), VersionIdentifier.of("4.4.4"), VersionIdentifier.of("4.17.1"),
       VersionIdentifier.of("4.5.1"));
 
+  private static final Pattern VERSION_PATTERN = Pattern.compile("(4\\.\\d{1,4}+\\.\\d+)");
+
   @Override
   protected String getTool() {
 
@@ -29,7 +31,7 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
     VersionIdentifier vid = VersionIdentifier.of(urlVersion.getName());
     String version = urlVersion.getName().replaceAll("\\.", "");
     // get Code for version
-    String body = doGetResponseBodyAsString("https://docs.docker.com/desktop/release-notes/");
+    String body = doGetResponseBodyAsString(getVersionUrl());
     String regex = "href=#" + version
         // .......1.........................................................2.................
         + ".{8,12}(\r\n|\r|\n).{0,350}href=https://desktop\\.docker\\.com.*?(\\d{5,6}).*\\.exe";
@@ -39,27 +41,39 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
     if (matcher.find()) {
       code = matcher.group(2);
       boolean success = doAddVersion(urlVersion,
-          "https://desktop.docker.com/win/main/amd64/" + code + "/Docker%20Desktop%20Installer.exe", WINDOWS);
+          getDownloadBaseUrl() + "/win/main/amd64/" + code + "/Docker%20Desktop%20Installer.exe", WINDOWS);
       if (!success) {
         return;
       }
-      if (!WINDOWS_ONLY_VERSIONS.stream().anyMatch(i -> vid.compareVersion(i).isEqual())) {
-        doAddVersion(urlVersion, "https://desktop.docker.com/mac/main/amd64/" + code + "/Docker.dmg", MAC, X64);
-        doAddVersion(urlVersion, "https://desktop.docker.com/mac/main/arm64/" + code + "/Docker.dmg", MAC, ARM64);
+      if (WINDOWS_ONLY_VERSIONS.stream().noneMatch(i -> vid.compareVersion(i).isEqual())) {
+        doAddVersion(urlVersion, getDownloadBaseUrl() + "/mac/main/amd64/" + code + "/Docker.dmg", MAC, X64);
+        doAddVersion(urlVersion, getDownloadBaseUrl() + "/mac/main/arm64/" + code + "/Docker.dmg", MAC, ARM64);
       }
     }
   }
 
   @Override
+  protected String getDownloadBaseUrl() {
+
+    return "https://desktop.docker.com";
+  }
+
+  @Override
   protected String getVersionUrl() {
 
-    return "https://docs.docker.com/desktop/release-notes/";
+    return getVersionBaseUrl() + "/desktop/release-notes/";
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return "https://docs.docker.com";
   }
 
   @Override
   protected Pattern getVersionPattern() {
 
-    return Pattern.compile("(4\\.\\d{1,4}+\\.\\d+)");
+    return VERSION_PATTERN;
   }
 
   @Override
