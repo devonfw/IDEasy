@@ -15,7 +15,7 @@ public class IniCommentImpl extends IniElement {
 
   /**
    * @param content the content of the comment, including comment marker like ";"
-   * @throws IllegalArgumentException
+   * @throws IllegalArgumentException if argument is not a valid comment
    */
   public IniCommentImpl(String content) throws IllegalArgumentException {
     String trimmedContent = content.trim();
