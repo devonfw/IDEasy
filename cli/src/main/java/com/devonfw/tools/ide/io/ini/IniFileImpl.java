@@ -22,7 +22,7 @@ public class IniFileImpl implements IniFile {
     this.iniMap = new LinkedHashMap<>();
     this.fileElements = new LinkedList<>();
 
-    IniSection initialSection = new IniSectionImpl("");
+    IniSection initialSection = new IniSection("");
     iniMap.put(null, initialSection);
     fileElements.add(initialSection);
   }
@@ -55,7 +55,7 @@ public class IniFileImpl implements IniFile {
     if (!sectionHeading.contains("[") || !sectionHeading.contains("]")) {
       sectionHeading = "[" + sectionHeading + "]";
     }
-    IniSection iniSection = new IniSectionImpl(sectionHeading);
+    IniSection iniSection = new IniSection(sectionHeading);
     String sectionName = iniSection.getName();
     if (iniMap.containsKey(sectionName)) {
       return iniMap.get(sectionName);

@@ -54,7 +54,7 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.io.ini.IniCommentImpl;
+import com.devonfw.tools.ide.io.ini.IniComment;
 import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
@@ -1199,7 +1199,7 @@ public class FileAccessImpl implements FileAccess {
     for (String line : iniLines) {
       if (line.trim().startsWith("[")) {
         currentIniSection = iniFile.getOrCreateSection(line);
-      } else if (line.isBlank() || IniCommentImpl.commentSymbols.contains(line.trim().charAt(0))) {
+      } else if (line.isBlank() || IniComment.COMMENT_SYMBOLS.contains(line.trim().charAt(0))) {
         currentIniSection.addComment(line);
       } else {
         int index = line.indexOf('=');
