@@ -2,7 +2,7 @@ package com.devonfw.tools.ide.io.ini;
 
 abstract class IniElement {
 
-  String content;
+  private String content;
 
   protected String getContent() {
     return content;
