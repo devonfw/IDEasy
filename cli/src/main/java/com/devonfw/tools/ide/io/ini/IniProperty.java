@@ -13,7 +13,5 @@ abstract class IniProperty extends IniElement {
   /**
    * @return property value
    */
-  String getValue() {
-    return null;
-  }
+  public abstract String getValue();
 }
