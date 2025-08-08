@@ -16,9 +16,7 @@ public abstract class IniSection extends IniElement {
   /**
    * @return list of property keys
    */
-  public List<String> getPropertyKeys() {
-    return null;
-  }
+  public abstract List<String> getPropertyKeys();
 
   /**
    * @param key the property key
