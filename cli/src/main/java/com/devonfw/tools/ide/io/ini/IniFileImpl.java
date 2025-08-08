@@ -71,8 +71,9 @@ public class IniFileImpl implements IniFile {
     StringBuilder stringBuilder = new StringBuilder();
     for (IniElement element : fileElements) {
       String elementString = element.toString();
+      stringBuilder.append(element);
       if (!elementString.isEmpty()) {
-        stringBuilder.append(element).append("\n");
+        stringBuilder.append("\n");
       }
     }
     return stringBuilder.toString();
