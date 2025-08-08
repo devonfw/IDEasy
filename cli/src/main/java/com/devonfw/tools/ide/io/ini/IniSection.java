@@ -43,9 +43,7 @@ public abstract class IniSection extends IniElement {
    * @param key property key
    * @param value property value
    */
-  public void setProperty(String key, String value) {
-
-  }
+  public abstract void setProperty(String key, String value);
 
   /**
    * Add a comment to the section
