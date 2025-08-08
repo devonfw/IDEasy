@@ -11,7 +11,7 @@ public class IniCommentImpl extends IniElement {
   /**
    * List of Characters that may mark a comment
    */
-  public static List<Character> commentSymbols = Arrays.asList(';', '#');
+  public static final List<Character> COMMENT_SYMBOLS = List.of(';', '#');
 
   /**
    * @param content the content of the comment, including comment marker like ";"
@@ -19,7 +19,7 @@ public class IniCommentImpl extends IniElement {
    */
   public IniCommentImpl(String content) throws IllegalArgumentException {
     String trimmedContent = content.trim();
-    if (!trimmedContent.isEmpty() && !commentSymbols.contains(trimmedContent.charAt(0))) {
+    if (!trimmedContent.isEmpty() && !COMMENT_SYMBOLS.contains(trimmedContent.charAt(0))) {
       throw new IllegalArgumentException("Comments must begin with comment symbol or contain only whitespace");
     }
     this.content = content;
