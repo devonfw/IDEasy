@@ -26,9 +26,7 @@ public abstract class IniSection extends IniElement {
    * @param key the property key
    * @return the property with the given key
    */
-  public String getPropertyValue(String key) {
-    return null;
-  }
+  public abstract String getPropertyValue(String key);
 
   /**
    * Add or update a property in the section
