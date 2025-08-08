@@ -8,9 +8,7 @@ abstract class IniProperty extends IniElement {
   /**
    * @return property key
    */
-  String getKey() {
-    return null;
-  }
+  public abstract String getKey();
 
   /**
    * @return property value
