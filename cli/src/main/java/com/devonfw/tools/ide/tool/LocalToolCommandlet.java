@@ -288,7 +288,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return toolInstallation.newInstallation();
   }
 
-  protected void installToolDependencies(VersionIdentifier version, String edition, ProcessContext processContext) {
+  private void installToolDependencies(VersionIdentifier version, String edition, ProcessContext processContext) {
     Collection<ToolDependency> dependencies = getToolRepository().findDependencies(this.tool, edition, version);
     String toolWithEdition = getToolWithEdition(this.tool, edition);
     int size = dependencies.size();
@@ -491,7 +491,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
 
-  protected ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile,
+  private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, Path toolVersionFile,
       boolean newInstallation, EnvironmentContext environmentContext, boolean extraInstallation) {
 
     Path linkDir = getMacOsHelper().findLinkDir(rootDir, getBinaryName());
