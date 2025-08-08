@@ -928,4 +928,14 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    */
   protected abstract void addVersion(UrlVersion urlVersion);
 
+  /**
+   * @return the base URL for the release downloads.
+   */
+  protected abstract String getDownloadBaseUrl();
+
+  /**
+   * @return the base URL for the version information.
+   */
+  protected abstract String getVersionBaseUrl();
+
 }
