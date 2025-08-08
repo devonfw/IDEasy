@@ -33,9 +33,7 @@ public abstract class IniSection extends IniElement {
    *
    * @param content the entire file line containing the property
    */
-  public void setProperty(String content) {
-
-  }
+  public abstract void setProperty(String content);
 
   /**
    * Add or update a property in the section
