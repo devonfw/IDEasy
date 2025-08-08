@@ -7,15 +7,15 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdaterTest;
 import com.devonfw.tools.ide.url.updater.JsonUrlUpdater;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -24,13 +24,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
  * Test class for integrations of the {@link IntellijUrlUpdater}
  */
 @WireMockTest
-public class IntellijJsonUrlUpdaterTest extends Assertions {
-
-  /** Test resource location */
-  private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/IntellijJsonUrlUpdater";
-
-  /** This is the SHA256 checksum of aBody (a placeholder body which gets returned by WireMock) */
-  private static final String EXPECTED_ABODY_CHECKSUM = "de08da1685e537e887fbbe1eb3278fed38aff9da5d112d96115150e8771a0f30";
+public class IntellijUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
   private static String intellijVersionJson;
   private static String intellijVersionWithoutChecksumJson;
@@ -40,17 +34,14 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
    * url and port of the {@link WireMockRuntimeInfo}.
    *
    * @param wmRuntimeInfo wireMock server on a random port
-   * @throws IOException
+   * @throws IOException on error.
    */
   @BeforeAll
   public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
-    Path testDataPath = Path.of(TEST_DATA_ROOT);
-    intellijVersionJson = Files.readString(testDataPath.resolve("intellij-version.json"));
-    intellijVersionJson = intellijVersionJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
-
-    intellijVersionWithoutChecksumJson = Files.readString(testDataPath.resolve("intellij-version-without-checksum.json"));
-    intellijVersionWithoutChecksumJson = intellijVersionWithoutChecksumJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
+    Path testDataPath = PATH_INTEGRATION_TEST.resolve("IntellijUrlUpdater");
+    intellijVersionJson = readAndResolve(testDataPath.resolve("intellij-version.json"), wmRuntimeInfo);
+    intellijVersionWithoutChecksumJson = readAndResolve(testDataPath.resolve("intellij-version-without-checksum.json"), wmRuntimeInfo);
   }
 
   /**
@@ -62,36 +53,29 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
   @Test
   public void testIntellijJsonUrlUpdaterCreatesDownloadUrlsAndChecksums(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    // given
-    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionJson.getBytes())));
+    // arrange
+    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionJson)));
 
-    stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+    stubFor(any(urlMatching("/idea/idea.*\\.tar\\.gz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
+    stubFor(any(urlMatching("/idea/idea.*\\.tar\\.gz\\.sha256")).willReturn(aResponse().withStatus(200).withBody(SHA_256)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
 
-    // when
+    // act
     updater.update(urlRepository);
 
-    // then
-    Path intellijVersionsPath1 = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.1");
-    assertThat(intellijVersionsPath1.resolve("status.json")).exists();
-    assertThat(intellijVersionsPath1.resolve("linux_x64.urls")).exists();
-    assertThat(intellijVersionsPath1.resolve("linux_x64.urls.sha256")).exists();
-    Path intellijVersionsPath2 = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.2");
-    assertThat(intellijVersionsPath2.resolve("status.json")).exists();
-    assertThat(intellijVersionsPath2.resolve("linux_x64.urls")).exists();
-    assertThat(intellijVersionsPath2.resolve("linux_x64.urls.sha256")).exists();
-    Path intellijultimateVersionsPath1 = tempDir.resolve("intellij").resolve("ultimate").resolve("2023.1.1");
-    assertThat(intellijultimateVersionsPath1.resolve("status.json")).exists();
-    assertThat(intellijultimateVersionsPath1.resolve("linux_x64.urls")).exists();
-    assertThat(intellijultimateVersionsPath1.resolve("linux_x64.urls.sha256")).exists();
-    Path intellijultimateVersionsPath2 = tempDir.resolve("intellij").resolve("ultimate").resolve("2023.1.2");
-    assertThat(intellijultimateVersionsPath2.resolve("status.json")).exists();
-    assertThat(intellijultimateVersionsPath2.resolve("linux_x64.urls")).exists();
-    assertThat(intellijultimateVersionsPath2.resolve("linux_x64.urls.sha256")).exists();
-
-
+    // assert
+    Path intellijToolPath = tempDir.resolve("intellij");
+    for (String edition : List.of("intellij", "ultimate")) {
+      Path intellijEditionPath = intellijToolPath.resolve(edition);
+      assertThat(intellijEditionPath).exists();
+      for (String version : List.of("2023.1.1", "2023.1.2")) {
+        Path versionPath = intellijEditionPath.resolve(version);
+        assertThat(versionPath).exists();
+        assertUrlVersion(versionPath, List.of("linux_x64"));
+      }
+    }
   }
 
   /**
@@ -104,22 +88,21 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
   @Test
   public void testIntellijJsonUrlUpdaterWithMissingDownloadsDoesNotCreateVersionFolder(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    // given
-    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionJson.getBytes())));
+    // arrange
+    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionJson)));
 
-    stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(404)));
+    stubFor(any(urlMatching("/idea/idea.*\\.tar\\.gz.*")).willReturn(aResponse().withStatus(404)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
 
-    // when
+    // act
     updater.update(urlRepository);
 
     Path intellijVersionsPath = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.3");
 
-    // then
+    // assert
     assertThat(intellijVersionsPath).doesNotExist();
-
   }
 
   /**
@@ -132,21 +115,19 @@ public class IntellijJsonUrlUpdaterTest extends Assertions {
   @Test
   public void testIntellijJsonUrlUpdaterWithMissingChecksumGeneratesChecksum(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    // given
-    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionWithoutChecksumJson.getBytes())));
+    // arrange
+    stubFor(get(urlMatching("/products.*")).willReturn(aResponse().withStatus(200).withBody(intellijVersionWithoutChecksumJson)));
 
-    stubFor(any(urlMatching("/idea/idea.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+    stubFor(any(urlMatching("/idea/idea.*\\.tar\\.gz")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     IntellijUrlUpdaterMock updater = new IntellijUrlUpdaterMock(wmRuntimeInfo);
 
-    // when
+    // act
     updater.update(urlRepository);
 
+    // assert
     Path intellijVersionsPath = tempDir.resolve("intellij").resolve("intellij").resolve("2023.1.2");
-
-    // then
-    assertThat(intellijVersionsPath.resolve("linux_x64.urls.sha256")).exists().hasContent(EXPECTED_ABODY_CHECKSUM);
-
+    assertUrlVersion(intellijVersionsPath, List.of("linux_x64"));
   }
 }
