@@ -23,6 +23,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
 
 /**
@@ -601,7 +602,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     Path targetPath = installationPath.resolve("downloaded.zip");
     boolean extract = false;
     // act
-    fileAccess.extract(downloadArchive, installationPath, this::postExtract, extract);
+    fileAccess.extract(downloadArchive, installationPath, f -> {
+    }, extract);
     // assert
     assertThat(targetPath).exists();
   }
@@ -672,8 +674,65 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     assertThat(foundFile).exists();
   }
 
-  private void postExtract(Path path) {
+
+  /**
+   * Tests if {@link FileAccess#download(String, Path)} of a file path as URL will copy the file and use a progress-bar if the file size is bigger than 100Kb.
+   *
+   * @param tempDir temporary directory to use.
+   */
+  @Test
+  public void testDownloadLargeFileWithProgressBar(@TempDir Path tempDir) throws IOException {
+
+    //arrange
+    String taskName = "Copying";
+    IdeTestContext context = newContext(tempDir);
+    Path tempFile = tempDir.resolve("tempFile");
+    Path archiveFile = tempDir.resolve("targetFolder");
+    FileAccess fileAccess = context.getFileAccess();
+    String line = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+    List<String> lines = new ArrayList<>();
+    for (int i = 0; i < 1000; i++) {
+      lines.add(line);
+    }
+    fileAccess.writeFileLines(lines, tempFile);
+    long fileSize = Files.size(tempFile);
+    String source = tempFile.toString();
+
+    //act
+    fileAccess.download(source, archiveFile);
+
+    //assert
+    assertProgressBar(context, "Copying", fileSize);
+    assertThat(archiveFile).hasSize(fileSize).hasSameBinaryContentAs(tempFile);
+    IdeProgressBarTestImpl progressBar = context.getProgressBarMap().get(taskName);
+    assertThat(progressBar.getMaxSize()).isEqualTo(fileSize);
   }
 
 
+  /**
+   * Tests if {@link FileAccess#download(String, Path)} of a file path as URL will copy the file and not use a progress-bar if the file size is small.
+   *
+   * @param tempDir temporary directory to use.
+   */
+  @Test
+  public void testDownloadSmallFileWithoutProgressBar(@TempDir Path tempDir) throws IOException {
+
+    //arrange
+    String taskName = "Copying";
+    IdeTestContext context = newContext(tempDir);
+    Path tempFile = tempDir.resolve("tempFile");
+    Path archiveFile = tempDir.resolve("targetFolder");
+    FileAccess fileAccess = context.getFileAccess();
+    String line = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789";
+    fileAccess.writeFileContent(line, tempFile);
+    long fileSize = 100;
+    String source = tempFile.toString();
+
+    //act
+    fileAccess.download(source, archiveFile);
+
+    //assert
+    assertThat(context.getProgressBarMap()).isEmpty();
+    assertThat(archiveFile).hasSize(fileSize).hasSameBinaryContentAs(tempFile);
+  }
 }
