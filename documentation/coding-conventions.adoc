@@ -34,7 +34,7 @@ Ensure your IDE (IntelliJ, Eclipse, VSCode, ...) is properly configured.
 This is what https://github.com/devonfw/IDEasy[IDEasy] is all about.
 A reasonable configuration of formatter, save actions, etc. will ensure:
 
-* no start imports are used (`import java.util.*`)
+* no star imports are used (`import java.util.*`)
 * no diff-wars in git (if every developer in the team uses the same formatter settings the diffs in git will only show what really changed)
 * import statements are properly grouped and sorted
 * code has proper indentation and formatting (e.g. newlines after opening curly braces)
