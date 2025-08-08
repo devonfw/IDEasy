@@ -12,9 +12,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-import com.devonfw.tools.ide.io.ini.IniFile;
-import com.devonfw.tools.ide.io.ini.IniFileImpl;
-
 /**
  * Interface that gives access to various operations on files.
  */
