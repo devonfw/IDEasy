@@ -3,14 +3,17 @@ package com.devonfw.tools.ide.io;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContextMock;
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniFileImpl;
+import com.devonfw.tools.ide.io.ini.IniSection;
 
 /**
  * Test of {@link IniFileImpl}
@@ -18,17 +21,27 @@ import com.devonfw.tools.ide.context.IdeTestContextMock;
 public class IniFileImplTest extends AbstractIdeContextTest {
 
   String iniContent = """
+      ; this is an ini file!
+      filetype = ini file
       [filter "lfs"]
       \trequired = true
       \tclean = git-lfs clean -- %f
       \tsmudge = git-lfs smudge -- %f
-      [credential]
+      \t[credential]
+      \t ; I am a comment inside of a section!
       \thelper = store
+      
+      
+      \t[credential.details]
+      # this comment uses another comment symbol
+      \t\tmode = strict
       [core]
+      \t; core elements
       \tsshCommand = C:/Windows/System32/OpenSSH/ssh.exe
       \tlongpaths = false
       [last section]
       \trequired = false
+      \t\tindentation = different
       """;
 
   private IniFile getIniFile(IdeContext context) throws IOException {
@@ -51,13 +64,13 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFile = getIniFile(context);
 
-    String[] expectedSections = { "filter \"lfs\"", "credential", "core", "last section" };
+    String[] expectedSections = { "filter \"lfs\"", "credential", "credential.details", "core", "last section" };
 
     // act
     String[] sections = iniFile.getSectionNames();
 
     // assert
-    assertThat(expectedSections).isEqualTo(sections);
+    assertThat(sections).isEqualTo(expectedSections);
   }
 
 
@@ -71,7 +84,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     // arrange
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFile = getIniFile(context);
-    String[] expectedSections = { "filter \"lfs\"", "credential", "core" };
+    String[] expectedSections = { "filter \"lfs\"", "credential", "credential.details", "core" };
     String sectionToRemove = "last section";
 
     // act
@@ -85,7 +98,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
   /**
    * test of {@link IniFileImpl#getSection(String)}
    *
-   * @throws IOException
+   * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
   public void testGetSection() throws IOException {
@@ -93,8 +106,8 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     IdeContext context = IdeTestContextMock.get();
     IniFile iniFile = getIniFile(context);
     String sectionName = "credential";
-    Map<String, String> expectedProperties = new LinkedHashMap<>();
-    expectedProperties.put("helper", "store");
+    List<String> expectedPropertyKeys = new LinkedList<>();
+    expectedPropertyKeys.add("helper");
 
     // act
     IniSection section = iniFile.getSection(sectionName);
@@ -102,14 +115,14 @@ public class IniFileImplTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(section.getName()).isEqualTo(sectionName);
-    assertThat(section.getProperties()).isEqualTo(expectedProperties);
+    assertThat(section.getPropertyKeys()).isEqualTo(expectedPropertyKeys);
     assertThat(missingSection).isNull();
   }
 
   /**
    * test of {@link IniFileImpl#getOrCreateSection(String)}
    *
-   * @throws IOException
+   * @throws IOException if the temporary ini file couldn't be created
    */
   @Test
   public void testGetOrCreateSection() throws IOException {
@@ -118,19 +131,24 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     IniFile iniFile = getIniFile(context);
     String sectionName = "credential";
     String newSectionName = "missing section";
-    Map<String, String> expectedProperties = new LinkedHashMap<>();
-    expectedProperties.put("helper", "store");
+    List<String> expectedPropertyKeys = new LinkedList<>();
+    expectedPropertyKeys.add("helper");
+    String expectedHelperValue = "store";
+    String expectedNewFileContent = iniContent + "[missing section]\n";
 
     // act
     IniSection section = iniFile.getOrCreateSection(sectionName);
-    IniSection newSection = iniFile.getOrCreateSection(newSectionName);
+    IniSection newSection = iniFile.getOrCreateSection("[" + newSectionName + "]");
 
     // assert
     assertThat(section.getName()).isEqualTo(sectionName);
-    assertThat(section.getProperties()).isEqualTo(expectedProperties);
+    assertThat(section.getPropertyKeys()).isEqualTo(expectedPropertyKeys);
+    assertThat(section.getPropertyValue("helper")).isEqualTo(expectedHelperValue);
 
     assertThat(newSection.getName()).isEqualTo(newSectionName);
-    assertThat(newSection.getProperties()).isEqualTo(new LinkedHashMap<>());
+    assertThat(newSection.getPropertyKeys()).isEmpty();
+
+    assertThat(iniFile.toString()).isEqualTo(expectedNewFileContent);
   }
 
   /**
