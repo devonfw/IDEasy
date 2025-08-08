@@ -11,9 +11,7 @@ public abstract class IniSection extends IniElement {
   /**
    * @return the section name
    */
-  public String getName() {
-    return null;
-  }
+  public abstract String getName();
 
   /**
    * @return list of property keys
