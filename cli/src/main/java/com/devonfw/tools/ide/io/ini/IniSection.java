@@ -52,7 +52,5 @@ public abstract class IniSection extends IniElement {
    *
    * @param comment the comment
    */
-  public void addComment(String comment) {
-
-  }
+  public abstract void addComment(String comment);
 }
