@@ -87,9 +87,7 @@ public class BuildSecurityJsonFiles {
   public static void main(String[] args) {
     IdeContext context = new IdeContextConsole(IdeLogLevel.INFO, null, false);
     Path urlsPath = context.getUrlsPath();
-    if (urlsPath == null) {
-      urlsPath = Paths.get(System.getProperty("user.home"), "default-folder");
-    }
+
     UpdateManager updateManager = new UpdateManager(urlsPath, null, Instant.now());
     List<Dependency> dependencies = loadDependenciesWithVulnerabilities(updateManager);
     processDependenciesWithVulnerabilities(dependencies, updateManager, context);
