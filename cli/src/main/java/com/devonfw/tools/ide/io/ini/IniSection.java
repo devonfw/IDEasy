@@ -93,6 +93,15 @@ public class IniSection extends IniElement {
   }
 
   @Override
+  void write(StringBuilder stringBuilder) {
+    if (!name.isEmpty()) {
+      super.write(stringBuilder);
+    } else {
+      stringBuilder.append(this);
+    }
+  }
+
+  @Override
   public String toString() {
     StringBuilder stringBuilder = new StringBuilder();
     if (!name.isEmpty()) {
@@ -101,12 +110,9 @@ public class IniSection extends IniElement {
         stringBuilder.append("\n");
       }
     }
-    for (int i = 0; i < sectionElements.size(); i++) {
-      IniElement element = sectionElements.get(i);
+    for (IniElement element : sectionElements) {
       stringBuilder.append(element);
-      if (i + 1 < sectionElements.size()) {
-        stringBuilder.append("\n");
-      }
+      stringBuilder.append("\n");
     }
     return stringBuilder.toString();
   }

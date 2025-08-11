@@ -70,11 +70,7 @@ public class IniFileImpl implements IniFile {
   public String toString() {
     StringBuilder stringBuilder = new StringBuilder();
     for (IniElement element : fileElements) {
-      String elementString = element.toString();
-      stringBuilder.append(element);
-      if (!elementString.isEmpty()) {
-        stringBuilder.append("\n");
-      }
+      element.write(stringBuilder);
     }
     return stringBuilder.toString();
   }

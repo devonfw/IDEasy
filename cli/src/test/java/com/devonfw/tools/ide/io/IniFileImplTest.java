@@ -134,7 +134,7 @@ public class IniFileImplTest extends AbstractIdeContextTest {
     List<String> expectedPropertyKeys = new LinkedList<>();
     expectedPropertyKeys.add("helper");
     String expectedHelperValue = "store";
-    String expectedNewFileContent = iniContent + "[missing section]\n";
+    String expectedNewFileContent = iniContent + "[missing section]";
 
     // act
     IniSection section = iniFile.getOrCreateSection(sectionName);
