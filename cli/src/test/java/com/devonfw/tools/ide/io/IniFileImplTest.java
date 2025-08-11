@@ -21,8 +21,6 @@ import com.devonfw.tools.ide.io.ini.IniSection;
 public class IniFileImplTest extends AbstractIdeContextTest {
 
   String iniContent = """
-      ; this is an ini file!
-      filetype = ini file
       [filter "lfs"]
       \trequired = true
       \tclean = git-lfs clean -- %f
@@ -44,9 +42,14 @@ public class IniFileImplTest extends AbstractIdeContextTest {
       \t\tindentation = different
       """;
 
-  private IniFile getIniFile(IdeContext context) throws IOException {
+  String iniContentWithInitialProperties = """
+      ; this is an ini file!
+      filetype = ini file
+      """ + iniContent;
+
+  private IniFile getIniFile(IdeContext context, String content) throws IOException {
     Path file = Files.createTempFile("test", "ini");
-    Files.writeString(file, iniContent);
+    Files.writeString(file, content);
     FileAccess fileAccess = new FileAccessImpl(context);
     IniFileImpl iniFile = new IniFileImpl();
     fileAccess.readIniFile(file, iniFile);
@@ -62,15 +65,18 @@ public class IniFileImplTest extends AbstractIdeContextTest {
   public void testGetSectionNames() throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    IniFile iniFile = getIniFile(context);
+    IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
+    IniFile iniFIleB = getIniFile(context, iniContent);
 
     String[] expectedSections = { "filter \"lfs\"", "credential", "credential.details", "core", "last section" };
 
     // act
-    String[] sections = iniFile.getSectionNames();
+    String[] sectionsA = iniFileA.getSectionNames();
+    String[] sectionsB = iniFIleB.getSectionNames();
 
     // assert
-    assertThat(sections).isEqualTo(expectedSections);
+    assertThat(sectionsA).isEqualTo(expectedSections);
+    assertThat(sectionsB).isEqualTo(expectedSections);
   }
 
 
@@ -83,16 +89,20 @@ public class IniFileImplTest extends AbstractIdeContextTest {
   public void testRemoveSection() throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    IniFile iniFile = getIniFile(context);
+    IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
+    IniFile iniFileB = getIniFile(context, iniContent);
     String[] expectedSections = { "filter \"lfs\"", "credential", "credential.details", "core" };
     String sectionToRemove = "last section";
 
     // act
-    iniFile.removeSection(sectionToRemove);
-    String[] sections = iniFile.getSectionNames();
+    iniFileA.removeSection(sectionToRemove);
+    iniFileB.removeSection(sectionToRemove);
+    String[] sectionsA = iniFileA.getSectionNames();
+    String[] sectionsB = iniFileB.getSectionNames();
 
     // assert
-    assertThat(sections).isEqualTo(expectedSections);
+    assertThat(sectionsA).isEqualTo(expectedSections);
+    assertThat(sectionsB).isEqualTo(expectedSections);
   }
 
   /**
@@ -104,19 +114,25 @@ public class IniFileImplTest extends AbstractIdeContextTest {
   public void testGetSection() throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    IniFile iniFile = getIniFile(context);
+    IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
+    IniFile iniFileB = getIniFile(context, iniContent);
     String sectionName = "credential";
     List<String> expectedPropertyKeys = new LinkedList<>();
     expectedPropertyKeys.add("helper");
 
     // act
-    IniSection section = iniFile.getSection(sectionName);
-    IniSection missingSection = iniFile.getSection("missing section");
+    IniSection sectionA = iniFileA.getSection(sectionName);
+    IniSection missingSectionA = iniFileA.getSection("missing section");
+    IniSection sectionB = iniFileB.getSection(sectionName);
+    IniSection missingSectionB = iniFileB.getSection("missing section");
 
     // assert
-    assertThat(section.getName()).isEqualTo(sectionName);
-    assertThat(section.getPropertyKeys()).isEqualTo(expectedPropertyKeys);
-    assertThat(missingSection).isNull();
+    assertThat(sectionA.getName()).isEqualTo(sectionName);
+    assertThat(sectionA.getPropertyKeys()).isEqualTo(expectedPropertyKeys);
+    assertThat(missingSectionA).isNull();
+    assertThat(sectionB.getName()).isEqualTo(sectionName);
+    assertThat(sectionB.getPropertyKeys()).isEqualTo(expectedPropertyKeys);
+    assertThat(missingSectionB).isNull();
   }
 
   /**
@@ -128,27 +144,37 @@ public class IniFileImplTest extends AbstractIdeContextTest {
   public void testGetOrCreateSection() throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    IniFile iniFile = getIniFile(context);
+    IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
+    IniFile iniFileB = getIniFile(context, iniContent);
     String sectionName = "credential";
     String newSectionName = "missing section";
     List<String> expectedPropertyKeys = new LinkedList<>();
     expectedPropertyKeys.add("helper");
     String expectedHelperValue = "store";
-    String expectedNewFileContent = iniContent + "[missing section]";
+    String expectedNewFileContentA = iniContentWithInitialProperties + "[missing section]";
+    String expectedNewFileContentB = iniContent + "[missing section]";
 
     // act
-    IniSection section = iniFile.getOrCreateSection(sectionName);
-    IniSection newSection = iniFile.getOrCreateSection("[" + newSectionName + "]");
+    IniSection sectionA = iniFileA.getOrCreateSection(sectionName);
+    IniSection newSectionA = iniFileA.getOrCreateSection("[" + newSectionName + "]");
+    IniSection sectionB = iniFileB.getOrCreateSection(sectionName);
+    IniSection newSectionB = iniFileB.getOrCreateSection("[" + newSectionName + "]");
 
     // assert
-    assertThat(section.getName()).isEqualTo(sectionName);
-    assertThat(section.getPropertyKeys()).isEqualTo(expectedPropertyKeys);
-    assertThat(section.getPropertyValue("helper")).isEqualTo(expectedHelperValue);
+    assertThat(sectionA.getName()).isEqualTo(sectionName);
+    assertThat(sectionA.getPropertyKeys()).isEqualTo(expectedPropertyKeys);
+    assertThat(sectionA.getPropertyValue("helper")).isEqualTo(expectedHelperValue);
+    assertThat(sectionB.getName()).isEqualTo(sectionName);
+    assertThat(sectionB.getPropertyKeys()).isEqualTo(expectedPropertyKeys);
+    assertThat(sectionB.getPropertyValue("helper")).isEqualTo(expectedHelperValue);
 
-    assertThat(newSection.getName()).isEqualTo(newSectionName);
-    assertThat(newSection.getPropertyKeys()).isEmpty();
+    assertThat(newSectionA.getName()).isEqualTo(newSectionName);
+    assertThat(newSectionA.getPropertyKeys()).isEmpty();
+    assertThat(newSectionB.getName()).isEqualTo(newSectionName);
+    assertThat(newSectionB.getPropertyKeys()).isEmpty();
 
-    assertThat(iniFile.toString()).isEqualTo(expectedNewFileContent);
+    assertThat(iniFileA.toString()).isEqualTo(expectedNewFileContentA);
+    assertThat(iniFileB.toString()).isEqualTo(expectedNewFileContentB);
   }
 
   /**
@@ -160,12 +186,34 @@ public class IniFileImplTest extends AbstractIdeContextTest {
   public void testToString() throws IOException {
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    IniFile iniFile = getIniFile(context);
+    IniFile iniFileA = getIniFile(context, iniContentWithInitialProperties);
+    IniFile iniFileB = getIniFile(context, iniContent);
 
     // act
-    String stringFromPath = iniFile.toString();
+    String stringFromPathA = iniFileA.toString();
+    String stringFromPathB = iniFileB.toString();
 
     // assert
-    assertThat(stringFromPath).isEqualTo(iniContent);
+    assertThat(stringFromPathA).isEqualTo(iniContentWithInitialProperties);
+    assertThat(stringFromPathB).isEqualTo(iniContent);
+  }
+
+  /**
+   * test of {@link IniSection#toString()} to check that linebreaks are inserted correctly
+   *
+   * @throws IOException if the temporary ini file couldn't be created
+   */
+  @Test
+  public void testAddProperty() throws IOException {
+    // arrange
+    IdeContext context = IdeTestContextMock.get();
+    IniFile iniFileB = getIniFile(context, iniContent);
+    String expectedContent = "variable = value\n" + iniContent;
+
+    // act
+    iniFileB.getInitialSection().setProperty("variable", "value");
+
+    // assert
+    assertThat(iniFileB.toString()).isEqualTo(expectedContent);
   }
 }

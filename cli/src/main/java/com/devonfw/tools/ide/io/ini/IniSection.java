@@ -93,15 +93,6 @@ public class IniSection extends IniElement {
   }
 
   @Override
-  void write(StringBuilder stringBuilder) {
-    if (!name.isEmpty()) {
-      super.write(stringBuilder);
-    } else {
-      stringBuilder.append(this);
-    }
-  }
-
-  @Override
   public String toString() {
     StringBuilder stringBuilder = new StringBuilder();
     if (!name.isEmpty()) {

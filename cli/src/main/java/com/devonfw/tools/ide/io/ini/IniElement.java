@@ -16,10 +16,6 @@ abstract class IniElement {
     return content;
   }
 
-  void write(StringBuilder stringBuilder) {
-    stringBuilder.append(this);
-  }
-
   protected String getIndentation() {
     int nonWhitespaceStart = content.length() - content.stripLeading().length();
     return content.substring(0, nonWhitespaceStart);
