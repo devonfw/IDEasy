@@ -27,7 +27,6 @@ import com.devonfw.tools.ide.url.model.folder.UrlEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
-import com.devonfw.tools.ide.url.updater.UrlUpdater;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -210,7 +209,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Tests if the the tool version gets entirely removed if all versions are broken for a long time.
+   * Tests if the tool version gets entirely removed if all versions are broken for a long time.
    *
    * @param tempDir Temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
@@ -282,7 +281,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} will handle the literally latest version of a tool correctly
+   * Tests if the {@link UrlUpdater} will handle the literally latest version of a tool correctly
    *
    * @param tempDir Temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
