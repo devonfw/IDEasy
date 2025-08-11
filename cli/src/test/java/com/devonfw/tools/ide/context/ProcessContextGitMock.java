@@ -26,7 +26,9 @@ public class ProcessContextGitMock implements ProcessContext {
 
   private final Path directory;
 
-  private List<OutputMessage> outputMessages;
+  private final List<OutputMessage> outputMessages;
+
+  private final List<ProcessResult> results;
 
   /**
    * @param directory the {@link Path} to the git repository.
@@ -36,11 +38,23 @@ public class ProcessContextGitMock implements ProcessContext {
     this.arguments = new ArrayList<>();
     this.directory = directory;
     this.now = LocalDateTime.now();
-    this.outputMessages = new ArrayList<OutputMessage>();
+    this.outputMessages = new ArrayList<>();
+    this.results = new ArrayList<>();
   }
 
+  /**
+   * @param message the {@link OutputMessage} to add.
+   */
   public void addOutputMessage(OutputMessage message) {
     this.outputMessages.add(message);
+  }
+
+  /**
+   * @return the {@link List} of collected {@link ProcessResult}s.
+   */
+  public List<ProcessResult> getResults() {
+
+    return this.results;
   }
 
   @Override
@@ -149,7 +163,9 @@ public class ProcessContextGitMock implements ProcessContext {
     this.arguments.clear();
     List<OutputMessage> outputMessagesCopy = List.copyOf(this.outputMessages);
     this.outputMessages.clear();
-    return new ProcessResultImpl("git", command.toString(), exitCode, outputMessagesCopy);
+    ProcessResultImpl result = new ProcessResultImpl("git", command.toString(), exitCode, outputMessagesCopy);
+    this.results.add(result);
+    return result;
   }
 
 }

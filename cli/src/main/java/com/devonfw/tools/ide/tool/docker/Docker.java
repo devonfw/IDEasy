@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool.docker;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -23,6 +25,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class Docker extends GlobalToolCommandlet {
 
+  private static final String PODMAN = "podman";
+
   /**
    * The constructor.
    *
@@ -31,6 +35,25 @@ public class Docker extends GlobalToolCommandlet {
   public Docker(IdeContext context) {
 
     super(context, "docker", Set.of(Tag.DOCKER));
+  }
+
+  @Override
+  public String getBinaryName() {
+    return detectContainerRuntime();
+  }
+
+  private String detectContainerRuntime() {
+    if (isCommandAvailable(this.tool)) {
+      return this.tool;
+    } else if (isCommandAvailable(PODMAN)) {
+      return PODMAN;
+    } else {
+      return this.tool;
+    }
+  }
+
+  private boolean isCommandAvailable(String command) {
+    return this.context.getPath().hasBinaryOnPath(command);
   }
 
   @Override
