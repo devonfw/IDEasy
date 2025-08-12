@@ -13,6 +13,9 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniFileImpl;
+
 /**
  * Interface that gives access to various operations on files.
  */
@@ -456,7 +459,7 @@ public interface FileAccess {
 
   /**
    * @param file the {@link Path} to read from
-   * @return {@link IniFile}
+   * @return {@link com.devonfw.tools.ide.io.ini.IniFile}
    */
   default IniFile readIniFile(Path file) {
     IniFile iniFile = new IniFileImpl();
