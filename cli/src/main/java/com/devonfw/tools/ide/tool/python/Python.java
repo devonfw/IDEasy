@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.Set;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
@@ -21,6 +22,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link ToolCommandlet} for <a href="https://www.python.org/">python</a>.
  */
 public class Python extends LocalToolCommandlet {
+
+  private final VersionIdentifier PYTHON_MIN_VERSION = VersionIdentifier.of("3.8.2");
 
   /**
    * The constructor.
@@ -47,6 +50,10 @@ public class Python extends LocalToolCommandlet {
   @Override
   protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, FileAccess fileAccess,
       String edition, ProcessContext processContext) {
+
+    if (resolvedVersion.compareVersion(PYTHON_MIN_VERSION).isLess()) {
+      throw new CliException("Python version must be at least " + this.PYTHON_MIN_VERSION);
+    }
 
     if (Files.exists(installationPath)) {
       fileAccess.backup(installationPath);

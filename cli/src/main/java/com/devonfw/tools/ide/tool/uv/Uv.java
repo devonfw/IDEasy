@@ -37,12 +37,6 @@ public class Uv extends LocalToolCommandlet {
     uvInstallCommands.add(resolvedVersion.toString());
 
     ProcessResult result = runTool(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.THROW_ERR, processContext, uvInstallCommands.toArray(String[]::new));
-
-    if (result.isSuccessful()) {
-      this.context.success("Successfully installed and created virtual environment for Python version: {}", resolvedVersion);
-    } else {
-      this.context.warning("Failed to install and create virtual environment for Python version: {}", resolvedVersion);
-    }
+    assert result.isSuccessful();
   }
-
 }
