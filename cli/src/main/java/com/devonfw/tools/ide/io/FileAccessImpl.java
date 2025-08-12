@@ -163,10 +163,9 @@ public class FileAccessImpl implements FileAccess {
     if (httpVersion != null) {
       builder.version(httpVersion);
     }
-    HttpRequest request = builder.build();
-    HttpResponse<InputStream> response;
     try (HttpClient client = createHttpClient(url)) {
-      response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+      HttpRequest request = builder.build();
+      HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
       int statusCode = response.statusCode();
       if (statusCode == 200) {
         downloadFileWithProgressBar(url, target, response);
