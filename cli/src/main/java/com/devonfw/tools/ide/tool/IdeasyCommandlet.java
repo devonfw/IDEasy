@@ -12,7 +12,11 @@ import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.common.SimpleSystemPath;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -80,7 +84,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
     UpgradeMode upgradeMode = this.mode;
     if (upgradeMode == null) {
-      if (IdeVersion.getVersionString().contains("SNAPSHOT")) {
+      if (IdeVersion.isSnapshot()) {
         upgradeMode = UpgradeMode.SNAPSHOT;
       } else {
         if (IdeVersion.getVersionIdentifier().getDevelopmentPhase().isStable()) {
@@ -102,7 +106,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   @Override
   public boolean install(boolean silent) {
 
-    if (IdeVersion.isUndefined()) {
+    this.context.requireOnline("upgrade of IDEasy", true);
+
+    if (IdeVersion.isUndefined() && !this.context.isForceMode()) {
       this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", IdeVersion.getVersionString());
       return false;
     }
@@ -129,9 +135,17 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public boolean checkIfUpdateIsAvailable() {
     VersionIdentifier installedVersion = getInstalledVersion();
+    this.context.success("Your version of IDEasy is {}.", installedVersion);
+    if (IdeVersion.isSnapshot()) {
+      this.context.warning("You are using a SNAPSHOT version of IDEasy. For stability consider switching to a stable release via 'ide upgrade --mode=stable'");
+    }
+    if (this.context.isOffline()) {
+      this.context.warning("Skipping check for newer version of IDEasy because you are offline.");
+      return false;
+    }
     VersionIdentifier latestVersion = getLatestVersion();
     if (installedVersion.equals(latestVersion)) {
-      this.context.success("Your version of IDEasy is {} which is the latest released version.", installedVersion);
+      this.context.success("Your are using the latest version of IDEasy and no update is available.");
       return false;
     } else {
       this.context.interaction("Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
@@ -210,7 +224,19 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       }
       path.getEntries().add(ideasyBinPath.toString());
       helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), path.toString());
+      setGitLongpaths();
     }
+  }
+
+  private void setGitLongpaths() {
+    GitContext gitContext = new GitContextImpl(this.context);
+    gitContext.verifyGitInstalled();
+    Path configPath = this.context.getUserHome().resolve(".gitconfig");
+    FileAccess fileAccess = this.context.getFileAccess();
+    IniFile iniFile = fileAccess.readIniFile(configPath);
+    IniSection coreSection = iniFile.getOrCreateSection("core");
+    coreSection.setProperty("longpaths", "true");
+    fileAccess.writeIniFile(iniFile, configPath);
   }
 
   static String removeObsoleteEntryFromWindowsPath(String userPath) {

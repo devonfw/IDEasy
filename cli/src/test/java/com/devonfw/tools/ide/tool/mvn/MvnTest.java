@@ -10,9 +10,9 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
-import com.devonfw.tools.ide.commandlet.InstallCommandlet;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -22,7 +22,6 @@ public class MvnTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_MVN = "mvn";
 
-  //private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\$\\[(.*?)\\]");
   private static final Pattern VARIABLE_PATTERN = Pattern.compile("<([^>]+)>(.*?)</\\1>");
 
   /**
@@ -36,11 +35,10 @@ public class MvnTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
     context.setAnswers("testLogin", "testPassword");
-    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
-    install.tool.setValueAsString("mvn", context);
+    Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
 
     // act
-    install.run();
+    mvn.run();
 
     // assert
     checkInstallation(context);
@@ -56,18 +54,48 @@ public class MvnTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_MVN);
     context.setAnswers("testLogin", "testPassword");
-    InstallCommandlet install = context.getCommandletManager().getCommandlet(InstallCommandlet.class);
-    install.tool.setValueAsString("mvn", context);
-    Mvn commandlet = (Mvn) install.tool.getValue();
-    commandlet.arguments.addValue("foo");
-    commandlet.arguments.addValue("bar");
+    Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
+    mvn.arguments.addValue("foo");
+    mvn.arguments.addValue("bar");
 
     // act
-    commandlet.run();
+    mvn.run();
 
     // assert
     assertThat(context).logAtInfo().hasMessage("mvn " + "foo bar");
     checkInstallation(context);
+  }
+
+  /**
+   * Tests if mvn run will use a mvn wrapper file if it was found within a valid cwd containing a pom.xml.
+   */
+  @Test
+  public void testMvnRunWithFoundWrapper() {
+    // arrange
+    IdeTestContext context = newContext(PROJECT_MVN);
+    context.setAnswers("testLogin", "testPassword");
+    FileAccess fileAccess = context.getFileAccess();
+    Mvn mvn = context.getCommandletManager().getCommandlet(Mvn.class);
+    Path projectWithoutMvnw = context.getWorkspacePath().resolve("project-without-mvnw");
+    fileAccess.mkdirs(projectWithoutMvnw);
+    context.setCwd(projectWithoutMvnw, "main", context.getIdeHome());
+
+    mvn.arguments.addValue("foo");
+    mvn.arguments.addValue("bar");
+    mvn.install();
+    // create a pom.xml in a directory with no mvn wrapper file to trigger directory traversal
+    fileAccess.touch(projectWithoutMvnw.resolve("pom.xml"));
+    // copy the mvn wrapper file into the workspace
+    fileAccess.copy(mvn.getToolBinPath().resolve("mvnw"), context.getWorkspacePath());
+    // create a pom.xml next to the mvn wrapper file
+    fileAccess.touch(context.getWorkspacePath().resolve("pom.xml"));
+
+    // act
+    mvn.run();
+
+    // assert
+    assertThat(context).logAtDebug().hasMessage("Using wrapper file at: " + context.getWorkspacePath());
+    assertThat(context).logAtInfo().hasMessage("mvnw " + "foo bar");
   }
 
   private void checkInstallation(IdeTestContext context) throws IOException {

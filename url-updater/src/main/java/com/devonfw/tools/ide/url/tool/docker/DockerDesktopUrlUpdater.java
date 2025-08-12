@@ -19,7 +19,8 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
       VersionIdentifier.of("4.4.3"), VersionIdentifier.of("4.4.4"), VersionIdentifier.of("4.17.1"),
       VersionIdentifier.of("4.5.1"));
 
-  private final static String DOCKER_RELEASE_NOTES_URL = "https://docs.docker.com/desktop/release-notes/";
+  private static final Pattern VERSION_PATTERN = Pattern.compile("(4\\.\\d{1,4}+\\.\\d+)");
+
   private final static String AMD_ARCH_TYPE = "amd64";
   private final static String ARM_ARCH_TYPE = "arm64";
   private final static String CHECKSUM_FILE = "checksums.txt";
@@ -58,7 +59,7 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
     VersionIdentifier vid = VersionIdentifier.of(urlVersion.getName());
     String version = urlVersion.getName().replaceAll("\\.", "");
     // get Code for version
-    String body = doGetResponseBodyAsString(DOCKER_RELEASE_NOTES_URL);
+    String body = doGetResponseBodyAsString(getVersionUrl());
     String regexForDockerVersion = format(REGEX_FOR_DOCKER_VERSION, version);
     Pattern patternForDockerVersion = Pattern.compile(regexForDockerVersion, Pattern.DOTALL);
     Matcher matcherForDockerVersion = patternForDockerVersion.matcher(body);
@@ -66,7 +67,11 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
     if (matcherForDockerVersion.find()) {
       code = matcherForDockerVersion.group(1);
       addVersionsForWindows(urlVersion, code, body);
-      if (!WINDOWS_ONLY_VERSIONS.stream().anyMatch(i -> vid.compareVersion(i).isEqual())) {
+      boolean success = addVersionsForWindows(urlVersion, code, body);
+      if (!success) {
+        return;
+      }
+      if (WINDOWS_ONLY_VERSIONS.stream().noneMatch(i -> vid.compareVersion(i).isEqual())) {
         addVersionsForMac(urlVersion, code, body);
       }
     }
@@ -79,7 +84,7 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
    * @param dockerVersion the associated docker version to readable version e.g. 179689
    * @param body the html body to search in
    */
-  private void addVersionsForWindows(UrlVersion urlVersion, String dockerVersion, String body) {
+  private boolean addVersionsForWindows(UrlVersion urlVersion, String dockerVersion, String body) {
     boolean versionExists = checkIfVersionExists(dockerVersion, body, WIN_VERSION, AMD_ARCH_TYPE);
     if (versionExists) {
       String cs = getChecksum(WIN_AMD_URL + dockerVersion + "/" + CHECKSUM_FILE);
@@ -89,7 +94,10 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
     if (versionExists) {
       String cs = getChecksum(WIN_ARM_URL + dockerVersion + "/" + CHECKSUM_FILE);
       doAddVersion(urlVersion, WIN_ARM_URL + dockerVersion + "/" + WIN_FILE, WINDOWS, ARM64, cs);
+    } else {
+      return false;
     }
+    return true;
   }
 
   /**
@@ -144,15 +152,27 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
   }
 
   @Override
+  protected String getDownloadBaseUrl() {
+
+    return "https://desktop.docker.com";
+  }
+
+  @Override
   protected String getVersionUrl() {
 
-    return DOCKER_RELEASE_NOTES_URL;
+    return getVersionBaseUrl() + "/desktop/release-notes/";
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return "https://docs.docker.com";
   }
 
   @Override
   protected Pattern getVersionPattern() {
 
-    return Pattern.compile("(4\\.\\d{1,4}+\\.\\d+)");
+    return VERSION_PATTERN;
   }
 
   @Override

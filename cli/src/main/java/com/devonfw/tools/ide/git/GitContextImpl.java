@@ -20,7 +20,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public class GitContextImpl implements GitContext {
 
-  private final IdeContext context;
+  /** @see #getContext() */
+  protected final IdeContext context;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -114,7 +115,7 @@ public class GitContextImpl implements GitContext {
 
     if (!result.isSuccessful()) {
       String message = "Failed to update git repository at " + targetRepository;
-      if (this.context.isOffline()) {
+      if (this.context.isOfflineMode()) {
         this.context.warning(message);
         this.context.interaction("Continuing as we are in offline mode - results may be outdated!");
       } else {
@@ -136,7 +137,7 @@ public class GitContextImpl implements GitContext {
     GitUrlSyntax gitUrlSyntax = IdeVariables.PREFERRED_GIT_PROTOCOL.get(getContext());
     gitUrl = gitUrlSyntax.format(gitUrl);
     if (this.context.isOfflineMode()) {
-      this.context.requireOnline("git clone of " + gitUrl);
+      this.context.requireOnline("git clone of " + gitUrl, false);
     }
     this.context.getFileAccess().mkdirs(repository);
     List<String> args = new ArrayList<>(7);
@@ -251,16 +252,15 @@ public class GitContextImpl implements GitContext {
     return this.context;
   }
 
-  /**
-   * Checks if there is a git installation and throws an exception if there is none
-   */
-  private void verifyGitInstalled() {
+  @Override
+  public void verifyGitInstalled() {
 
     this.context.findBashRequired();
     Path git = Path.of("git");
     Path binaryGitPath = this.context.getPath().findBinary(git);
     if (git == binaryGitPath) {
-      String message = "Could not find a git installation. We highly recommend installing git since most of our actions require git to work properly!";
+      String message = "Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
+          + "https://git-scm.com/download/";
       throw new CliException(message);
     }
     this.context.trace("Git is installed");
@@ -271,7 +271,7 @@ public class GitContextImpl implements GitContext {
     ProcessResult result = runGitCommand(directory, ProcessMode.DEFAULT, args);
     if (!result.isSuccessful()) {
       String command = result.getCommand();
-      this.context.requireOnline(command);
+      this.context.requireOnline(command, false);
       result.failOnError();
     }
   }
@@ -306,8 +306,16 @@ public class GitContextImpl implements GitContext {
 
   private ProcessResult runGitCommand(Path directory, ProcessMode mode, ProcessErrorHandling errorHandling, String... args) {
 
-    ProcessContext processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").errorHandling(errorHandling)
-        .directory(directory);
+    ProcessContext processContext;
+
+    if (this.context.isBatchMode()) {
+      processContext = this.context.newProcess().executable("git").withEnvVar("GIT_TERMINAL_PROMPT", "0").withEnvVar("GCM_INTERACTIVE", "never")
+          .withEnvVar("GIT_ASKPASS", "echo").withEnvVar("SSH_ASKPASS", "echo").errorHandling(errorHandling).directory(directory);
+    } else {
+      processContext = this.context.newProcess().executable("git").errorHandling(errorHandling)
+          .directory(directory);
+    }
+
     processContext.addArgs(args);
     return processContext.run(mode);
   }
@@ -320,7 +328,7 @@ public class GitContextImpl implements GitContext {
       return;
     }
     this.context.trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
-    String currentCommitId = runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
+    String currentCommitId = determineCurrentCommitId(repository);
     if (currentCommitId != null) {
       try {
         Files.writeString(trackedCommitIdPath, currentCommitId);
@@ -328,6 +336,14 @@ public class GitContextImpl implements GitContext {
         throw new IllegalStateException("Failed to save commit ID", e);
       }
     }
+  }
+
+  /**
+   * @param repository the {@link Path} to the git repository.
+   * @return the current commit ID of the given {@link Path repository}.
+   */
+  protected String determineCurrentCommitId(Path repository) {
+    return runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", FILE_HEAD);
   }
 }
 

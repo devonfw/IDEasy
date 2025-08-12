@@ -15,6 +15,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
@@ -41,6 +42,7 @@ import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
+import com.devonfw.tools.ide.log.IdeLogArgFormatter;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
@@ -65,6 +67,7 @@ import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
+import com.devonfw.tools.ide.util.PrivacyUtil;
 import com.devonfw.tools.ide.validation.ValidationResult;
 import com.devonfw.tools.ide.validation.ValidationResultValid;
 import com.devonfw.tools.ide.validation.ValidationState;
@@ -75,7 +78,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 /**
  * Abstract base implementation of {@link IdeContext}.
  */
-public abstract class AbstractIdeContext implements IdeContext {
+public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatter {
 
   private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
 
@@ -103,7 +106,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private Path downloadPath;
 
-  protected Path userHome;
+  private Path userHome;
 
   private Path userHomeIde;
 
@@ -123,7 +126,7 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private CustomToolRepository customToolRepository;
 
-  private MavenRepository mavenRepository;
+  private final MavenRepository mavenRepository;
 
   private DirectoryMerger workspaceMerger;
 
@@ -141,6 +144,8 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   private WindowsHelper windowsHelper;
 
+  private final Map<String, String> privacyMap;
+
   /**
    * The constructor.
    *
@@ -151,21 +156,31 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     super();
     this.startContext = startContext;
+    this.startContext.setArgFormatter(this);
+    this.privacyMap = new HashMap<>();
     this.systemInfo = SystemInfoImpl.INSTANCE;
     this.commandletManager = new CommandletManagerImpl(this);
     this.fileAccess = new FileAccessImpl(this);
+    String userHomeProperty = getSystem().getProperty("user.home");
+    if (userHomeProperty != null) {
+      this.userHome = Path.of(userHomeProperty);
+    }
     String workspace = WORKSPACE_MAIN;
     if (workingDirectory == null) {
       workingDirectory = Path.of(System.getProperty("user.dir"));
+    }
+    workingDirectory = workingDirectory.toAbsolutePath();
+    if (Files.isDirectory(workingDirectory)) {
+      workingDirectory = this.fileAccess.toCanonicalPath(workingDirectory);
     } else {
-      workingDirectory = workingDirectory.toAbsolutePath();
+      warning("Current working directory does not exist: {}", workingDirectory);
     }
     this.cwd = workingDirectory;
     // detect IDE_HOME and WORKSPACE
     Path currentDir = workingDirectory;
     String name1 = "";
     String name2 = "";
-    Path ideRootPath = getIdeRootPathFromEnv();
+    Path ideRootPath = getIdeRootPathFromEnv(false);
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
@@ -208,9 +223,17 @@ public abstract class AbstractIdeContext implements IdeContext {
 
     Path ideRootPath = null;
     if (ideHomePath != null) {
+      Path ideRootPathFromEnv = getIdeRootPathFromEnv(true);
       ideRootPath = ideHomePath.getParent();
+      if ((ideRootPathFromEnv != null) && !ideRootPath.toString().equals(ideRootPathFromEnv.toString())) {
+        warning(
+            "Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.\n"
+                + "Please check your 'user.dir' or working directory setting and make sure that it matches your IDE_ROOT variable.",
+            ideRootPathFromEnv,
+            ideHomePath.getFileName(), ideRootPath);
+      }
     } else if (!isTest()) {
-      ideRootPath = getIdeRootPathFromEnv();
+      ideRootPath = getIdeRootPathFromEnv(true);
     }
     return ideRootPath;
   }
@@ -218,13 +241,35 @@ public abstract class AbstractIdeContext implements IdeContext {
   /**
    * @return the {@link #getIdeRoot() IDE_ROOT} from the system environment.
    */
-  protected Path getIdeRootPathFromEnv() {
+  protected Path getIdeRootPathFromEnv(boolean withSanityCheck) {
 
     String root = getSystem().getEnv(IdeVariables.IDE_ROOT.getName());
     if (root != null) {
       Path rootPath = Path.of(root);
       if (Files.isDirectory(rootPath)) {
-        return rootPath;
+        Path absoluteRootPath = getFileAccess().toCanonicalPath(rootPath);
+        if (withSanityCheck) {
+          int nameCount = rootPath.getNameCount();
+          int absoluteNameCount = absoluteRootPath.getNameCount();
+          int delta = absoluteNameCount - nameCount;
+          if (delta >= 0) {
+            for (int nameIndex = 0; nameIndex < nameCount; nameIndex++) {
+              String rootName = rootPath.getName(nameIndex).toString();
+              String absoluteRootName = absoluteRootPath.getName(nameIndex + delta).toString();
+              if (!rootName.equals(absoluteRootName)) {
+                warning("IDE_ROOT is set to {} but was expanded to absolute path {} and does not match for segment {} and {} - fix your IDEasy installation!",
+                    rootPath, absoluteRootPath, rootName, absoluteRootName);
+                break;
+              }
+            }
+          } else {
+            warning("IDE_ROOT is set to {} but was expanded to a shorter absolute path {}", rootPath,
+                absoluteRootPath);
+          }
+        }
+        return absoluteRootPath;
+      } else if (withSanityCheck) {
+        warning("IDE_ROOT is set to {} that is not an existing directory - fix your IDEasy installation!", rootPath);
       }
     }
     return null;
@@ -255,23 +300,25 @@ public abstract class AbstractIdeContext implements IdeContext {
       } else {
         this.userHome = this.ideHome.resolve("home");
       }
-    } else {
-      this.userHome = Path.of(getSystem().getProperty("user.home"));
     }
     this.userHomeIde = this.userHome.resolve(FOLDER_DOT_IDE);
     this.downloadPath = this.userHome.resolve("Downloads/ide");
-
+    resetPrivacyMap();
     this.path = computeSystemPath();
   }
 
   private String getMessageIdeHomeFound() {
 
-    return "IDE environment variables have been set for " + this.ideHome + " in workspace " + this.workspaceName;
+    String wks = this.workspaceName;
+    if (isPrivacyMode() && !WORKSPACE_MAIN.equals(wks)) {
+      wks = "*".repeat(wks.length());
+    }
+    return "IDE environment variables have been set for " + formatArgument(this.ideHome) + " in workspace " + wks;
   }
 
   private String getMessageNotInsideIdeProject() {
 
-    return "You are not inside an IDE project: " + this.cwd;
+    return "You are not inside an IDE project: " + formatArgument(this.cwd);
   }
 
   private String getMessageIdeRootNotFound() {
@@ -280,7 +327,8 @@ public abstract class AbstractIdeContext implements IdeContext {
     if (root == null) {
       return "The environment variable IDE_ROOT is undefined. Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     } else {
-      return "The environment variable IDE_ROOT is pointing to an invalid path " + root + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
+      return "The environment variable IDE_ROOT is pointing to an invalid path " + formatArgument(root)
+          + ". Please reinstall IDEasy or manually repair IDE_ROOT variable.";
     }
   }
 
@@ -448,6 +496,17 @@ public abstract class AbstractIdeContext implements IdeContext {
   public Path getUserHome() {
 
     return this.userHome;
+  }
+
+  /**
+   * This method should only be used for tests to mock user home.
+   *
+   * @param userHome the new value of {@link #getUserHome()}.
+   */
+  protected void setUserHome(Path userHome) {
+
+    this.userHome = userHome;
+    resetPrivacyMap();
   }
 
   @Override
@@ -639,6 +698,11 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
+  public boolean isPrivacyMode() {
+    return this.startContext.isPrivacyMode();
+  }
+
+  @Override
   public boolean isSkipUpdatesMode() {
 
     return this.startContext.isSkipUpdatesMode();
@@ -651,15 +715,19 @@ public abstract class AbstractIdeContext implements IdeContext {
       configureNetworkProxy();
       // we currently assume we have only a CLI process that runs shortly
       // therefore we run this check only once to save resources when this method is called many times
+      String url = "https://www.github.com";
       try {
         int timeout = 1000;
         //open a connection to github.com and try to retrieve data
         //getContent fails if there is no connection
-        URLConnection connection = new URL("https://www.github.com").openConnection();
+        URLConnection connection = new URL(url).openConnection();
         connection.setConnectTimeout(timeout);
         connection.getContent();
         this.online = Boolean.TRUE;
-      } catch (Exception ignored) {
+      } catch (Exception e) {
+        if (debug().isEnabled()) {
+          debug().log(e, "Error when trying to connect to {}", url);
+        }
         this.online = Boolean.FALSE;
       }
     }
@@ -754,7 +822,6 @@ public abstract class AbstractIdeContext implements IdeContext {
 
   @Override
   public void logIdeHomeAndRootStatus() {
-
     if (this.ideRoot != null) {
       success("IDE_ROOT is set to {}", this.ideRoot);
     }
@@ -766,40 +833,89 @@ public abstract class AbstractIdeContext implements IdeContext {
   }
 
   @Override
-  public String askForInput(String message, String defaultValue) {
+  public String formatArgument(Object argument) {
 
-    if (!message.isBlank()) {
-      info(message);
+    if (argument == null) {
+      return null;
     }
-    if (isBatchMode()) {
-      if (isForceMode() || isForcePull()) {
-        return defaultValue;
-      } else {
-        throw new CliAbortException();
+    String result = argument.toString();
+    if (isPrivacyMode()) {
+      if ((this.ideRoot != null) && this.privacyMap.isEmpty()) {
+        initializePrivacyMap(this.userHome, "~");
+        String projectName = getProjectName();
+        if (!projectName.isEmpty()) {
+          this.privacyMap.put(projectName, "project");
+        }
       }
+      for (Entry<String, String> entry : this.privacyMap.entrySet()) {
+        result = result.replace(entry.getKey(), entry.getValue());
+      }
+      result = PrivacyUtil.removeSensitivePathInformation(result);
     }
-    String input = readLine().trim();
-    return input.isEmpty() ? defaultValue : input;
+    return result;
   }
 
+  /**
+   * @param path the sensitive {@link Path} to
+   * @param replacement the replacement to mask the {@link Path} in log output.
+   */
+  protected void initializePrivacyMap(Path path, String replacement) {
+
+    if (path == null) {
+      return;
+    }
+    if (this.systemInfo.isWindows()) {
+      this.privacyMap.put(WindowsPathSyntax.WINDOWS.format(path), replacement);
+      this.privacyMap.put(WindowsPathSyntax.MSYS.format(path), replacement);
+    } else {
+      this.privacyMap.put(path.toString(), replacement);
+    }
+  }
+
+  /**
+   * Resets the privacy map in case fundamental values have changed.
+   */
+  private void resetPrivacyMap() {
+
+    this.privacyMap.clear();
+  }
+
+
   @Override
-  public String askForInput(String message) {
+  public String askForInput(String message, String defaultValue) {
 
-    String input;
-    do {
-      info(message);
-      input = readLine().trim();
-    } while (input.isEmpty());
-
-    return input;
+    while (true) {
+      if (!message.isBlank()) {
+        interaction(message);
+      }
+      if (isBatchMode()) {
+        if (isForceMode()) {
+          return defaultValue;
+        } else {
+          throw new CliAbortException();
+        }
+      }
+      String input = readLine().trim();
+      if (!input.isEmpty()) {
+        return input;
+      } else {
+        if (defaultValue != null) {
+          return defaultValue;
+        }
+      }
+    }
   }
 
   @SuppressWarnings("unchecked")
   @Override
-  public <O> O question(String question, O... options) {
+  public <O> O question(O[] options, String question, Object... args) {
 
     assert (options.length >= 2);
-    interaction(question);
+    interaction(question, args);
+    return displayOptionsAndGetAnswer(options);
+  }
+
+  private <O> O displayOptionsAndGetAnswer(O[] options) {
     Map<String, O> mapping = new HashMap<>(options.length);
     int i = 0;
     for (O option : options) {
@@ -816,7 +932,7 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
     O option = null;
     if (isBatchMode()) {
-      if (isForceMode() || isForcePull()) {
+      if (isForceMode()) {
         option = options[0];
         interaction("" + option);
       }
@@ -924,6 +1040,14 @@ public abstract class AbstractIdeContext implements IdeContext {
     }
   }
 
+  @Override
+  public void runWithoutLogging(Runnable lambda, IdeLogLevel threshold) {
+
+    this.startContext.deactivateLogging(threshold);
+    lambda.run();
+    this.startContext.activateLogging();
+  }
+
   /**
    * @param cmd the potential {@link Commandlet} to {@link #apply(CliArguments, Commandlet) apply} and {@link Commandlet#run() run}.
    * @return {@code true} if the given {@link Commandlet} matched and did {@link Commandlet#run() run} successfully, {@code false} otherwise (the
@@ -953,7 +1077,6 @@ public abstract class AbstractIdeContext implements IdeContext {
           this.startContext.activateLogging();
         } else {
           this.startContext.activateLogging();
-          verifyIdeRoot();
           if (cmd.isIdeHomeRequired()) {
             debug(getMessageIdeHomeFound());
           }
@@ -1050,30 +1173,17 @@ public abstract class AbstractIdeContext implements IdeContext {
     return true;
   }
 
-  private void verifyIdeRoot() {
-
-    if (!isTest()) {
-      if (this.ideRoot == null) {
-        warning("Variable IDE_ROOT is undefined. Please check your installation or run setup script again.");
-      } else if (this.ideHome != null) {
-        Path ideRootPath = getIdeRootPathFromEnv();
-        if (!this.ideRoot.equals(ideRootPath)) {
-          warning("Variable IDE_ROOT is set to '{}' but for your project '{}' the path '{}' would have been expected.", ideRootPath,
-              this.ideHome.getFileName(), this.ideRoot);
-        }
-      }
-    }
-  }
-
+  @Override
   public void verifyIdeMinVersion(boolean throwException) {
-    if (IDE_MIN_VERSION.get(this) == null) {
+    VersionIdentifier minVersion = IDE_MIN_VERSION.get(this);
+    if (minVersion == null) {
       return;
     }
-    if (IdeVersion.getVersionIdentifier().compareVersion(IDE_MIN_VERSION.get(this)).isLess()) {
+    if (IdeVersion.getVersionIdentifier().compareVersion(minVersion).isLess()) {
       String message = String.format("Your version of IDEasy is currently %s\n"
           + "However, this is too old as your project requires at latest version %s\n"
           + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
-          + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), IDE_MIN_VERSION.get(this).toString());
+          + "ide upgrade", IdeVersion.getVersionIdentifier().toString(), minVersion.toString());
       if (throwException) {
         throw new CliException(message);
       } else {

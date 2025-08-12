@@ -12,6 +12,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class PgAdminUrlUpdater extends WebsiteUrlUpdater {
 
+  private static final Pattern VERSION_PATTERN = Pattern.compile("v(\\d{1,2}+\\.\\d+)");
+
   @Override
   protected String getTool() {
 
@@ -21,13 +23,25 @@ public class PgAdminUrlUpdater extends WebsiteUrlUpdater {
   @Override
   protected String getVersionUrl() {
 
-    return "https://www.postgresql.org/ftp/pgadmin/pgadmin4/";
+    return getVersionBaseUrl() + "/ftp/pgadmin/pgadmin4/";
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return "https://www.postgresql.org";
+  }
+
+  @Override
+  protected String getDownloadBaseUrl() {
+
+    return "https://ftp.postgresql.org";
   }
 
   @Override
   protected Pattern getVersionPattern() {
 
-    return Pattern.compile("v(\\d{1,2}+\\.\\d+)");
+    return VERSION_PATTERN;
   }
 
   @Override
@@ -41,7 +55,7 @@ public class PgAdminUrlUpdater extends WebsiteUrlUpdater {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
 
-    String baseUrl = "https://ftp.postgresql.org/pub/pgadmin/pgadmin4/";
+    String baseUrl = getDownloadBaseUrl() + "/pub/pgadmin/pgadmin4/";
     doAddVersion(urlVersion, baseUrl + "v${version}/windows/pgadmin4-${version}-x64.exe", OperatingSystem.WINDOWS);
 
     if (vid.compareVersion(VersionIdentifier.of("7.6")).isGreater()) {
