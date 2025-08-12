@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.io.IOException;
-
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -17,6 +15,8 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link InstallCommandlet} run, when Installed Version is null.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
   public void testInstallCommandletRunWithVersion(WireMockRuntimeInfo wmRuntimeInfo) {
@@ -33,9 +33,11 @@ public class InstallCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Test of {@link InstallCommandlet} run, when Installed Version is set.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testInstallCommandletRunWithVersionAndVersionIdentifier(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
+  public void testInstallCommandletRunWithVersionAndVersionIdentifier(WireMockRuntimeInfo wmRuntimeInfo) {
 
     // arrange
     IdeContext context = newContext(PROJECT_BASIC, wmRuntimeInfo);
