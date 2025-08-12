@@ -27,22 +27,22 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
 
   private final static String WIN_VERSION = "win";
   private final static String WIN_FILE = "Docker%20Desktop%20Installer.exe";
-  private final static String WIN_BASE_URL = "https://desktop.docker.com/win/main/";
+  private final static String WIN_BASE_URL = "/win/main/";
   private final static String WIN_AMD_URL = WIN_BASE_URL + AMD_ARCH_TYPE + "/";
   private final static String WIN_ARM_URL = WIN_BASE_URL + ARM_ARCH_TYPE + "/";
 
   private final static String MAC_VERSION = "mac";
   private final static String MAC_FILE = "Docker.dmg";
-  private final static String MAC_BASE_URL = "https://desktop.docker.com/mac/main/";
+  private final static String MAC_BASE_URL = "/mac/main/";
   private final static String MAC_AMD_URL = MAC_BASE_URL + AMD_ARCH_TYPE + "/";
   private final static String MAC_ARM_URL = MAC_BASE_URL + ARM_ARCH_TYPE + "/";
 
-  private final static String REGEX_FOR_DOWNLOAD_URLS = "https://desktop.docker.com/%s/main/%s/%s/";
+  private final static String REGEX_FOR_DOWNLOAD_URLS = "/%s/main/%s/%s/";
   private final static String REGEX_FOR_DOCKER_VERSION =
       "href=#%s"                                  // Find the href with the readable version - %s provided by urlVersion
-          + ".{0,300}"                            // We have to look in close range for the next part (docker lists a summary at top. If this range is to big
+          + ".{0,300}"                            // We have to look in close range for the next part (docker lists a summary at top. If this range is too big
           // we'll find the latest listed version with download links that doesn't match the version we are looking for
-          + "href=https://desktop\\.docker\\.com" // Start of download link
+          + "href=(\")?%s"                         // Start of download link
           + ".*?"                                 // We don't care if its windows or mac - match as least as possible characters
           + "(\\d{5,6})";                         // Associated docker-version to readable version we are looking for
 
@@ -60,14 +60,14 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
     String version = urlVersion.getName().replaceAll("\\.", "");
     // get Code for version
     String body = doGetResponseBodyAsString(getVersionUrl());
-    String regexForDockerVersion = format(REGEX_FOR_DOCKER_VERSION, version);
+    String regexForDockerVersion = format(REGEX_FOR_DOCKER_VERSION, version, getDownloadBaseUrl());
     Pattern patternForDockerVersion = Pattern.compile(regexForDockerVersion, Pattern.DOTALL);
     Matcher matcherForDockerVersion = patternForDockerVersion.matcher(body);
     String code;
     if (matcherForDockerVersion.find()) {
-      code = matcherForDockerVersion.group(1);
-      addVersionsForWindows(urlVersion, code, body);
-      boolean success = addVersionsForWindows(urlVersion, code, body);
+      code = matcherForDockerVersion.group(2);
+      boolean success;
+      success = addVersionsForWindows(urlVersion, code, body);
       if (!success) {
         return;
       }
@@ -83,21 +83,21 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
    * @param urlVersion the readable version e.g. 4332 (4.33.2)
    * @param dockerVersion the associated docker version to readable version e.g. 179689
    * @param body the html body to search in
+   * @return {@code true} if version was added successfully, {@code false} if not.
    */
   private boolean addVersionsForWindows(UrlVersion urlVersion, String dockerVersion, String body) {
     boolean versionExists = checkIfVersionExists(dockerVersion, body, WIN_VERSION, AMD_ARCH_TYPE);
+    boolean success = false;
     if (versionExists) {
-      String cs = getChecksum(WIN_AMD_URL + dockerVersion + "/" + CHECKSUM_FILE);
-      doAddVersion(urlVersion, WIN_AMD_URL + dockerVersion + "/" + WIN_FILE, WINDOWS, X64, cs);
+      String cs = getChecksum(getDownloadBaseUrl() + WIN_AMD_URL + dockerVersion + "/" + CHECKSUM_FILE);
+      success = doAddVersion(urlVersion, getDownloadBaseUrl() + WIN_AMD_URL + dockerVersion + "/" + WIN_FILE, WINDOWS, X64, cs);
     }
     versionExists = checkIfVersionExists(dockerVersion, body, WIN_VERSION, ARM_ARCH_TYPE);
     if (versionExists) {
-      String cs = getChecksum(WIN_ARM_URL + dockerVersion + "/" + CHECKSUM_FILE);
-      doAddVersion(urlVersion, WIN_ARM_URL + dockerVersion + "/" + WIN_FILE, WINDOWS, ARM64, cs);
-    } else {
-      return false;
+      String cs = getChecksum(getDownloadBaseUrl() + WIN_ARM_URL + dockerVersion + "/" + CHECKSUM_FILE);
+      success = doAddVersion(urlVersion, getDownloadBaseUrl() + WIN_ARM_URL + dockerVersion + "/" + WIN_FILE, WINDOWS, ARM64, cs);
     }
-    return true;
+    return success;
   }
 
   /**
@@ -106,18 +106,21 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
    * @param urlVersion the readable version e.g. 4332 (4.33.2)
    * @param dockerVersion the associated docker version to readable version e.g. 179689
    * @param body the html body to search in
+   * @return {@code true} if version was added successfully, {@code false} if not.
    */
-  private void addVersionsForMac(UrlVersion urlVersion, String dockerVersion, String body) {
+  private boolean addVersionsForMac(UrlVersion urlVersion, String dockerVersion, String body) {
     boolean versionExists = checkIfVersionExists(dockerVersion, body, MAC_VERSION, AMD_ARCH_TYPE);
+    boolean success = false;
     if (versionExists) {
-      String cs = getChecksum(MAC_AMD_URL + dockerVersion + "/" + CHECKSUM_FILE);
-      doAddVersion(urlVersion, MAC_AMD_URL + dockerVersion + "/" + MAC_FILE, MAC, X64, cs);
+      String cs = getChecksum(getDownloadBaseUrl() + MAC_AMD_URL + dockerVersion + "/" + CHECKSUM_FILE);
+      success = doAddVersion(urlVersion, getDownloadBaseUrl() + MAC_AMD_URL + dockerVersion + "/" + MAC_FILE, MAC, X64, cs);
     }
     versionExists = checkIfVersionExists(dockerVersion, body, MAC_VERSION, ARM_ARCH_TYPE);
     if (versionExists) {
-      String cs = getChecksum(MAC_ARM_URL + dockerVersion + "/" + CHECKSUM_FILE);
-      doAddVersion(urlVersion, MAC_ARM_URL + dockerVersion + "/" + MAC_FILE, MAC, ARM64, cs);
+      String cs = getChecksum(getDownloadBaseUrl() + MAC_ARM_URL + dockerVersion + "/" + CHECKSUM_FILE);
+      success = doAddVersion(urlVersion, getDownloadBaseUrl() + MAC_ARM_URL + dockerVersion + "/" + MAC_FILE, MAC, ARM64, cs);
     }
+    return success;
   }
 
   /**
@@ -133,7 +136,7 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
    * @return true if the version exists - false if not
    */
   private boolean checkIfVersionExists(String dockerVersion, String body, String osVersion, String archType) {
-    String regexForDownloadUrlS = format(REGEX_FOR_DOWNLOAD_URLS, osVersion, archType, dockerVersion);
+    String regexForDownloadUrlS = format(getDownloadBaseUrl() + REGEX_FOR_DOWNLOAD_URLS, osVersion, archType, dockerVersion);
     Pattern patternForDownloadUrls = Pattern.compile(regexForDownloadUrlS, Pattern.DOTALL);
     Matcher matcherForDownloadUrls = patternForDownloadUrls.matcher(body);
     return matcherForDownloadUrls.find();
