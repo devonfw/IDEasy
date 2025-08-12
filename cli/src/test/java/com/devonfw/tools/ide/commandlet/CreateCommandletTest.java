@@ -133,12 +133,29 @@ class CreateCommandletTest extends AbstractIdeContextTest {
     cc.skipTools.setValue(true);
     EnvironmentVariables variables = context.getVariables();
     String ideVersion = IdeVersion.getVersionIdentifier().toString();
+    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_MIN_VERSION", ideVersion);
     String errorMessage = String.format("Your version of IDEasy is currently %s\n"
         + "However, this is too old as your project requires at latest version %s\n"
         + "Please run the following command to update to the latest version of IDEasy and fix the problem:\n"
         + "ide upgrade", ideVersion, ideVersion);
+    Path newProjectPath = context.getIdeRoot().resolve(NEW_PROJECT_NAME);
+
     // act
-    assertThat(cc);
+    cc.run();
+
+    // assert
+    assertThat(newProjectPath).exists();
+    assertThat(context.getIdeHome()).isEqualTo(newProjectPath);
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_PLUGINS)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_SOFTWARE)).exists();
+    assertThat(newProjectPath.resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN)).exists();
+    assertThat(context.getFileAccess().readFileContent(newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION)))
+        .isEqualTo(IdeVersion.getVersionString());
+    assertThat(context).logAtError().hasNoMessageContaining(errorMessage);
+    assertThat(context).logAtWarning()
+        .hasNoMessageContaining("However, this is too old as your project requires at latest version");
+    assertThat(context).logAtSuccess()
+        .hasMessageContaining("Successfully created new project '" + NEW_PROJECT_NAME + "'.");
   }
 
   @Test

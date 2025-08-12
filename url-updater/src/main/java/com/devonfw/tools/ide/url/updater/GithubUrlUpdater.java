@@ -16,9 +16,21 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, Github
   protected static final String GITHUB_BASE_URL = "https://github.com";
 
   @Override
+  protected String getDownloadBaseUrl() {
+
+    return GITHUB_BASE_URL;
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return "https://api.github.com/repos/";
+  }
+
+  @Override
   protected String doGetVersionUrl() {
 
-    return "https://api.github.com/repos/" + getGithubOrganization() + "/" + getGithubRepository() + "/git/refs/tags";
+    return getVersionBaseUrl() + getGithubOrganization() + "/" + getGithubRepository() + "/git/refs/tags";
 
   }
 
@@ -47,8 +59,4 @@ public abstract class GithubUrlUpdater extends JsonUrlUpdater<GithubTags, Github
     return jsonObject;
   }
 
-  /**
-   * @return the base url.
-   */
-  protected abstract String getBaseUrl();
 }

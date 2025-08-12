@@ -72,7 +72,12 @@ public final class VersionIdentifier implements VersionObject<VersionIdentifier>
       version = LATEST;
     }
     if (!version.isPattern()) {
-      return (VersionIdentifier) version;
+      for (VersionIdentifier vi : versions) {
+        if (vi.equals(version)) {
+          logger.debug("Resolved version {} to version {}", version, vi);
+          return vi;
+        }
+      }
     }
     for (VersionIdentifier vi : versions) {
       if (version.contains(vi)) {

@@ -7,27 +7,23 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdaterTest;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * {@link WireMockTest} using {@link PythonUrlUpdaterMock}.
+ * Test of {@link PythonUrlUpdater}.
  */
 @WireMockTest
-public class PythonUrlUpdaterTest extends Assertions {
+public class PythonUrlUpdaterTest extends AbstractUrlUpdaterTest {
 
-  /** Test resource location */
-  private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/PythonJsonUrlUpdater";
   private static String pythonVersionJson;
 
   /**
@@ -40,8 +36,7 @@ public class PythonUrlUpdaterTest extends Assertions {
   @BeforeAll
   public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
-    pythonVersionJson = new String(Files.readAllBytes(Path.of(TEST_DATA_ROOT).resolve("python-version.json")), StandardCharsets.UTF_8);
-    pythonVersionJson = pythonVersionJson.replaceAll("\\$\\{testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
+    pythonVersionJson = readAndResolve(PATH_INTEGRATION_TEST.resolve("PythonUrlUpdater").resolve("python-version.json"), wmRuntimeInfo);
   }
 
 
@@ -55,22 +50,15 @@ public class PythonUrlUpdaterTest extends Assertions {
   public void testPythonURl(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
     // given
-    stubFor(get(urlMatching("/actions/python-versions/main/.*")).willReturn(aResponse().withStatus(200).withBody(pythonVersionJson.getBytes())));
+    stubFor(get(urlMatching("/actions/python-versions/main/.*")).willReturn(aResponse().withStatus(200).withBody(pythonVersionJson)));
 
-    stubFor(any(urlMatching("/actions/python-versions/releases/download.*")).willReturn(aResponse().withStatus(200).withBody("aBody")));
+    stubFor(any(urlMatching("/actions/python-versions/releases/download.*")).willReturn(aResponse().withStatus(200).withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     PythonUrlUpdaterMock pythonUpdaterMock = new PythonUrlUpdaterMock(wmRuntimeInfo);
     pythonUpdaterMock.update(urlRepository);
     Path pythonPath = tempDir.resolve("python").resolve("python").resolve("3.12.0");
 
-    assertThat(pythonPath.resolve("status.json")).exists();
-    assertThat(pythonPath.resolve("linux_x64.urls")).exists();
-    assertThat(pythonPath.resolve("linux_x64.urls.sha256")).exists();
-    assertThat(pythonPath.resolve("mac_arm64.urls")).exists();
-    assertThat(pythonPath.resolve("mac_arm64.urls.sha256")).exists();
-    assertThat(pythonPath.resolve("windows_x64.urls")).exists();
-    assertThat(pythonPath.resolve("windows_x64.urls.sha256")).exists();
-
+    assertUrlVersionOsDefArch(pythonPath);
   }
 }

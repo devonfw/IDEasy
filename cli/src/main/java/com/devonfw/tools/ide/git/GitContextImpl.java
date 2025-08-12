@@ -20,7 +20,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public class GitContextImpl implements GitContext {
 
-  private final IdeContext context;
+  /** @see #getContext() */
+  protected final IdeContext context;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -327,7 +328,7 @@ public class GitContextImpl implements GitContext {
       return;
     }
     this.context.trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
-    String currentCommitId = runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
+    String currentCommitId = determineCurrentCommitId(repository);
     if (currentCommitId != null) {
       try {
         Files.writeString(trackedCommitIdPath, currentCommitId);
@@ -335,6 +336,14 @@ public class GitContextImpl implements GitContext {
         throw new IllegalStateException("Failed to save commit ID", e);
       }
     }
+  }
+
+  /**
+   * @param repository the {@link Path} to the git repository.
+   * @return the current commit ID of the given {@link Path repository}.
+   */
+  protected String determineCurrentCommitId(Path repository) {
+    return runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", FILE_HEAD);
   }
 }
 
