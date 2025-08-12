@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.io;
+package com.devonfw.tools.ide.io.ini;
 
 /**
  * Interface that allows parsing of .ini files such as .gitignore files
@@ -21,6 +21,13 @@ public interface IniFile {
    * @return {@link IniSection} if section exists, null otherwise
    */
   IniSection getSection(String section);
+
+  /**
+   * returns the initial section containing all sectionless attributes
+   *
+   * @return {@link IniSection} the initial section
+   */
+  IniSection getInitialSection();
 
   /**
    * @param section the section to get or create
