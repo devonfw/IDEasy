@@ -47,6 +47,21 @@ public class UrlDownloadFile extends AbstractUrlFile<UrlVersion> implements UrlD
   }
 
   /**
+   * The constructor.
+   *
+   * @param parent the {@link #getParent() parent folder}.
+   * @param name the {@link #getName() filename}.
+   * @param urls the predefined {@link Set} of download URLs to prevent loading from disc.
+   */
+  public UrlDownloadFile(UrlVersion parent, String name, Set<String> urls) {
+
+    super(parent, name);
+    this.urls = urls;
+    this.loaded = true;
+    this.modified = false;
+  }
+
+  /**
    * @return the number of #getUrl
    */
   public int getUrlCount() {

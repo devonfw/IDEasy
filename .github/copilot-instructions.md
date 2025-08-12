@@ -1,7 +1,7 @@
 # Project Overview
 
 This project is a software orchestration and setup tool called IDEasy, which enables automated provisioning and configuration of software packages on local hardware. 
-To keep multiple configurations in sync, there a settings folder can be distributed via git. 
+To keep multiple configurations in sync, there a settings folder can be distributed via git.
 The standard configuration of the IDEasy is maintained in the repository https://github.com/devonfw/ide-settings.
 
 ## Folder Structure
@@ -28,3 +28,9 @@ The standard configuration of the IDEasy is maintained in the repository https:/
 ## Pull-Request Guidelines
 
 - Please ALWAYS add the Checklist from https://github.com/devonfw/IDEasy/blob/main/.github/PULL_REQUEST_TEMPLATE.md as acceptance criteria for all pull requests
+
+## Testing Guidelines
+
+- Always use AssertJ for assertions in all Java tests.
+- Extend your test classes from org.assertj.core.api.Assertions to avoid static imports.
+- Do not use JUnit static imports for assertions.
