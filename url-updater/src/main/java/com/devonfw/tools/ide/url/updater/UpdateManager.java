@@ -127,4 +127,20 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
     }
   }
 
+  public AbstractUrlUpdater retrieveUrlUpdater(String tool, String edition) {
+
+    for (AbstractUrlUpdater updater : updaters) {
+      if (updater.getTool().equals(tool) && updater.getEdition().equals(edition)) {
+        return updater;
+      }
+    }
+    return null;
+  }
+
+  public UrlRepository getUrlRepository() {
+
+    return this.urlRepository;
+  }
+
+
 }
