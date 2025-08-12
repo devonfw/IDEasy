@@ -7,21 +7,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
 import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
-
-import org.apache.commons.compress.archivers.ArchiveEntry;
-import org.apache.commons.compress.archivers.ArchiveOutputStream;
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
-import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
-import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
-import org.apache.commons.io.IOUtils;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
@@ -112,17 +102,19 @@ public class ToolRepositoryMock extends DefaultToolRepository {
       String url = metadata.getUrls().iterator().next();
       if (url.startsWith(VARIABLE_TESTBASEURL)) {
         String extension = FilenameUtil.getExtension(url);
-        byte[] body = createReleaseDownload(archiveFolder, extension);
-        String path = url.substring(VARIABLE_TESTBASEURL.length());
-        stubFor(get(urlMatching(path)).willReturn(
-            aResponse().withStatus(200).withBody(body)));
-        String resolvedUrl = url.replace(VARIABLE_TESTBASEURL, this.wmRuntimeInfo.getHttpBaseUrl());
-        UrlDownloadFile urlDownloadFile = (UrlDownloadFile) metadata;
-        metadata = new UrlDownloadFile(urlDownloadFile.getParent(), urlDownloadFile.getName());
-        Set<String> urls = metadata.getUrls();
-        urls.clear(); // this is a hack since the file was just loaded again from disc
-        urls.add(resolvedUrl);
-        return super.download(metadata);
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(1024)) {
+          this.context.getFileAccess().compress(archiveFolder, baos, url);
+          byte[] body = baos.toByteArray();
+          String path = url.substring(VARIABLE_TESTBASEURL.length());
+          stubFor(get(urlMatching(path)).willReturn(
+              aResponse().withStatus(200).withBody(body)));
+          String resolvedUrl = url.replace(VARIABLE_TESTBASEURL, this.wmRuntimeInfo.getHttpBaseUrl());
+          UrlDownloadFile urlDownloadFile = (UrlDownloadFile) metadata;
+          metadata = new UrlDownloadFile(urlDownloadFile.getParent(), urlDownloadFile.getName(), Set.of(resolvedUrl));
+          return super.download(metadata);
+        } catch (IOException e) {
+          throw new IllegalStateException("Failed to create mock archive for " + url, e);
+        }
       } else {
         throw new IllegalStateException("Invalid URL: " + url);
       }
@@ -130,65 +122,4 @@ public class ToolRepositoryMock extends DefaultToolRepository {
     return archiveFolder;
   }
 
-  private byte[] createReleaseDownload(Path releaseContentFolder, String extension) {
-
-    try {
-      ByteArrayOutputStream out;
-      try (ByteArrayOutputStream baos = new ByteArrayOutputStream(1024)) {
-        out = baos;
-        if (extension.equals("zip")) {
-          try (ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(baos)) {
-            writeReleaseDownload(releaseContentFolder, zipOut, "");
-            zipOut.finish();
-          }
-        } else if (extension.equals("tgz")) {
-          try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(baos);
-              TarArchiveOutputStream tarOut = new TarArchiveOutputStream(gzOut)) {
-            writeReleaseDownload(releaseContentFolder, tarOut, "");
-            tarOut.finish();
-          }
-        } else {
-          throw new IllegalArgumentException("Unsupported extension: " + extension);
-        }
-      }
-      return out.toByteArray();
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to create release download for " + releaseContentFolder, e);
-    }
-  }
-
-  private <E extends ArchiveEntry> void writeReleaseDownload(Path path, ArchiveOutputStream<E> out, String relativePath) {
-    try (Stream<Path> childStream = Files.list(path)) {
-      Iterator<Path> iterator = childStream.iterator();
-      while (iterator.hasNext()) {
-        Path child = iterator.next();
-        String relativeChildPath = relativePath + "/" + child.getFileName().toString();
-        boolean isDirectory = Files.isDirectory(child);
-        E archiveEntry = out.createArchiveEntry(child, relativeChildPath);
-        if (archiveEntry instanceof TarArchiveEntry tarEntry) {
-          FileTime none = FileTime.fromMillis(0);
-          tarEntry.setCreationTime(none);
-          tarEntry.setModTime(none);
-          tarEntry.setLastAccessTime(none);
-          tarEntry.setUserName("user");
-          tarEntry.setGroupName("group");
-          if (relativePath.endsWith("bin") && !isDirectory) {
-            tarEntry.setMode(tarEntry.getMode() | 0111);
-          }
-        }
-        out.putArchiveEntry(archiveEntry);
-        if (!isDirectory) {
-          try (InputStream in = Files.newInputStream(child)) {
-            IOUtils.copy(in, out);
-          }
-        }
-        out.closeArchiveEntry();
-        if (isDirectory) {
-          writeReleaseDownload(child, out, relativeChildPath);
-        }
-      }
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to compress " + path, e);
-    }
-  }
 }
