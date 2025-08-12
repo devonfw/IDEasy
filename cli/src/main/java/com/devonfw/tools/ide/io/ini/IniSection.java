@@ -97,9 +97,7 @@ public class IniSection extends IniElement {
     StringBuilder stringBuilder = new StringBuilder();
     if (!name.isEmpty()) {
       stringBuilder.append(this.getContent());
-      if (!sectionElements.isEmpty()) {
-        stringBuilder.append("\n");
-      }
+      stringBuilder.append("\n");
     }
     for (IniElement element : sectionElements) {
       stringBuilder.append(element);
