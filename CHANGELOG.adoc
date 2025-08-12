@@ -6,6 +6,7 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1443[#1443]: Tool version is being added to settings even though it does not exist
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/33?closed=1[milestone 2025.08.001].
 
