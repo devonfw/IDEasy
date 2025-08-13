@@ -12,8 +12,12 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
+/**
+ * {@link ToolCommandlet} for <a href="https://docs.astral.sh/uv/">uv</a>.
+ */
 public class Uv extends LocalToolCommandlet {
 
 
@@ -27,6 +31,13 @@ public class Uv extends LocalToolCommandlet {
     super(context, "uv", Set.of(Tag.PYTHON));
   }
 
+  /**
+   * Installs a specified version of {@code Python} in the given directory using the {@code uv} environment manager.
+   *
+   * @param installationPath the target {@link Path} where {@code Python} should be installed
+   * @param resolvedVersion the {@link VersionIdentifier} of the {@code Python} version to install
+   * @param processContext the {@link ProcessContext} used to execute the {@code uv} command
+   */
   public void installPython(Path installationPath, VersionIdentifier resolvedVersion, ProcessContext processContext) {
 
     processContext.directory(installationPath);

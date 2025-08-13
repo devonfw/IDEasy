@@ -36,16 +36,16 @@ public class Python extends LocalToolCommandlet {
   }
 
   /**
-   * Installs {@code python} using the {@link Uv#installPython(Path, VersionIdentifier, ProcessContext)} method.
+   * Installs {@code Python} using the {@link Uv#installPython(Path, VersionIdentifier, ProcessContext)} method.
    * <p>
    * Unlike the base implementation, this method requires the {@link ProcessContext} to perform the installation logic specific to {@code python}.
    *
    * @param toolRepository the {@link ToolRepository}, unused in this implementation.
-   * @param resolvedVersion the {@link VersionIdentifier} of the {@code python} tool to install.
+   * @param resolvedVersion the {@link VersionIdentifier} of the {@code Python} tool to install.
    * @param installationPath the target {@link Path} where the tool should be installed.
    * @param fileAccess the {@link FileAccess} utility for file operations.
    * @param edition the edition of the tool to install, unused in this implementation.
-   * @param processContext the {@link ProcessContext} required to install the Python environment.
+   * @param processContext the {@link ProcessContext} required to install the {@code Python} environment.
    */
   @Override
   protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, FileAccess fileAccess,
