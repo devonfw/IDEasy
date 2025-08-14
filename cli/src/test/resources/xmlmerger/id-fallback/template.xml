@@ -4,6 +4,6 @@
   <parent id="parent" attr1="newSomething">
     <child>New Child Text</child>
   </parent>
-  <special class="id1" merge:id="@class">new special1</special>
+  <special class="id1">new special1</special>
   <special class="id2">new special2</special>
 </root>
