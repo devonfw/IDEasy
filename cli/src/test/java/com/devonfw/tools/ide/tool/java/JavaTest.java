@@ -21,7 +21,11 @@ public class JavaTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_JAVA = "java";
 
-  /** Tests the installation and run of {@link Java}. */
+  /**
+   * Tests the installation and run of {@link Java}.
+   *
+   * @param wmRuntimeInfo wireMock server on a random port
+   */
   @Test
   public void testJavaInstallAndRun(WireMockRuntimeInfo wmRuntimeInfo) {
 
