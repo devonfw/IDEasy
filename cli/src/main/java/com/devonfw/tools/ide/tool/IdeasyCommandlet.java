@@ -20,12 +20,16 @@ import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.mvn.MvnBasedLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * {@link MvnBasedLocalToolCommandlet} for IDEasy (ide-cli).
@@ -225,6 +229,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       path.getEntries().add(ideasyBinPath.toString());
       helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), path.toString());
       setGitLongpaths();
+      setupWindowsTerminal();
     }
   }
 
@@ -237,6 +242,164 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     IniSection coreSection = iniFile.getOrCreateSection("core");
     coreSection.setProperty("longpaths", "true");
     fileAccess.writeIniFile(iniFile, configPath);
+  }
+
+  /**
+   * Sets up Windows Terminal with Git Bash integration.
+   */
+  private void setupWindowsTerminal() {
+    if (!this.context.getSystemInfo().isWindows()) {
+      return;
+    }
+    if (!isWindowsTerminalInstalled()) {
+      installWindowsTerminal();
+    }
+    configureWindowsTerminalGitBash();
+  }
+
+  /**
+   * Checks if Windows Terminal is installed.
+   *
+   * @return {@code true} if Windows Terminal is installed, {@code false} otherwise.
+   */
+  private boolean isWindowsTerminalInstalled() {
+    try {
+      ProcessResult result = this.context.newProcess()
+          .executable("powershell")
+          .addArgs("-Command", "Get-AppxPackage -Name Microsoft.WindowsTerminal")
+          .run(ProcessMode.DEFAULT_CAPTURE);
+      return result.isSuccessful() && !result.getOut().isEmpty();
+    } catch (Exception e) {
+      this.context.debug("Failed to check Windows Terminal installation: {}", e.getMessage());
+      return false;
+    }
+  }
+
+  /**
+   * Installs Windows Terminal using winget.
+   */
+  private void installWindowsTerminal() {
+    try {
+      this.context.info("Installing Windows Terminal...");
+      ProcessResult result = this.context.newProcess()
+          .executable("winget")
+          .addArgs("install", "Microsoft.WindowsTerminal")
+          .run(ProcessMode.DEFAULT);
+      if (result.isSuccessful()) {
+        this.context.success("Windows Terminal has been installed successfully.");
+      } else {
+        this.context.warning("Failed to install Windows Terminal. Please install it manually from Microsoft Store.");
+      }
+    } catch (Exception e) {
+      this.context.warning("Failed to install Windows Terminal: {}. Please install it manually from Microsoft Store.", e.getMessage());
+    }
+  }
+
+  /**
+   * Configures Git Bash integration in Windows Terminal.
+   */
+  private void configureWindowsTerminalGitBash() {
+    Path settingsPath = getWindowsTerminalSettingsPath();
+    if (settingsPath == null || !Files.exists(settingsPath)) {
+      this.context.warning("Windows Terminal settings file not found. Cannot configure Git Bash integration.");
+      return;
+    }
+
+    try {
+      String bashPath = this.context.findBash();
+      if (bashPath == null) {
+        this.context.warning("Git Bash not found. Cannot configure Windows Terminal integration.");
+        return;
+      }
+
+      configureGitBashProfile(settingsPath, bashPath);
+      this.context.success("Git Bash has been configured in Windows Terminal.");
+    } catch (Exception e) {
+      this.context.warning("Failed to configure Git Bash in Windows Terminal: {}", e.getMessage());
+    }
+  }
+
+  /**
+   * Gets the Windows Terminal settings file path.
+   *
+   * @return the {@link Path} to the Windows Terminal settings file, or {@code null} if not found.
+   */
+  private Path getWindowsTerminalSettingsPath() {
+    Path localAppData = this.context.getUserHome().resolve("AppData").resolve("Local");
+    Path packagesPath = localAppData.resolve("Packages");
+
+    // Try the new Windows Terminal package first
+    Path newTerminalPath = packagesPath.resolve("Microsoft.WindowsTerminal_8wekyb3d8bbwe")
+        .resolve("LocalState").resolve("settings.json");
+    if (Files.exists(newTerminalPath)) {
+      return newTerminalPath;
+    }
+
+    // Try the old Windows Terminal Preview package
+    Path previewPath = packagesPath.resolve("Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe")
+        .resolve("LocalState").resolve("settings.json");
+    if (Files.exists(previewPath)) {
+      return previewPath;
+    }
+
+    return null;
+  }
+
+  /**
+   * Configures Git Bash profile in Windows Terminal settings.
+   *
+   * @param settingsPath the {@link Path} to the Windows Terminal settings file.
+   * @param bashPath the path to the Git Bash executable.
+   */
+  private void configureGitBashProfile(Path settingsPath, String bashPath) throws Exception {
+    FileAccess fileAccess = this.context.getFileAccess();
+    String settingsContent = fileAccess.readFileContent(settingsPath);
+
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode rootNode = mapper.readTree(settingsContent);
+    ObjectNode root = (ObjectNode) rootNode;
+
+    // Get or create profiles object
+    ObjectNode profiles = (ObjectNode) root.get("profiles");
+    if (profiles == null) {
+      profiles = mapper.createObjectNode();
+      root.set("profiles", profiles);
+    }
+
+    // Get or create list array
+    JsonNode listNode = profiles.get("list");
+    if (listNode == null || !listNode.isArray()) {
+      listNode = mapper.createArrayNode();
+      profiles.set("list", listNode);
+    }
+
+    // Check if Git Bash profile already exists
+    boolean gitBashExists = false;
+    for (JsonNode profile : listNode) {
+      if (profile.has("name") && "Git Bash".equals(profile.get("name").asText())) {
+        gitBashExists = true;
+        break;
+      }
+    }
+
+    // Add Git Bash profile if it doesn't exist
+    if (!gitBashExists) {
+      ObjectNode gitBashProfile = mapper.createObjectNode();
+      gitBashProfile.put("guid", "{2c4de342-38b7-51cf-b940-2309a097f518}");
+      gitBashProfile.put("name", "Git Bash");
+      gitBashProfile.put("commandline", bashPath);
+      gitBashProfile.put("icon", "ms-appx:///ProfileIcons/{0caa0dad-35be-5f56-a8ff-afceeeaa6101}.png");
+      gitBashProfile.put("startingDirectory", "%USERPROFILE%");
+
+      ((com.fasterxml.jackson.databind.node.ArrayNode) listNode).add(gitBashProfile);
+
+      // Set Git Bash as default profile
+      root.put("defaultProfile", "{2c4de342-38b7-51cf-b940-2309a097f518}");
+
+      // Write back to file
+      String updatedContent = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
+      fileAccess.writeFileContent(updatedContent, settingsPath);
+    }
   }
 
   static String removeObsoleteEntryFromWindowsPath(String userPath) {
