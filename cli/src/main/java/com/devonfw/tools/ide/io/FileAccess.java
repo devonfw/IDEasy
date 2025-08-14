@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.io;
 
+import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -11,6 +12,9 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniFileImpl;
 
 /**
  * Interface that gives access to various operations on files.
@@ -208,6 +212,44 @@ public interface FileAccess {
    * @param targetDir the target directory where to extract the contents to.
    */
   void extractPkg(Path file, Path targetDir);
+
+  /**
+   * @param dir the {@link Path directory} to compress.
+   * @param out the {@link OutputStream} to write the compressed data to.
+   * @param format the path, filename or extension to derive the archive format from (e.g. "tgz", "tar.gz", "zip", etc.).
+   */
+  void compress(Path dir, OutputStream out, String format);
+
+  /**
+   * @param dir the {@link Path directory} to compress as TAR with given {@link TarCompression}.
+   * @param out the {@link OutputStream} to write the compressed data to.
+   * @param tarCompression the {@link TarCompression} to use for the TAR archive.
+   */
+  void compressTar(Path dir, OutputStream out, TarCompression tarCompression);
+
+  /**
+   * @param dir the {@link Path directory} to compress as TAR.
+   * @param out the {@link OutputStream} to write the compressed data to.
+   */
+  void compressTar(Path dir, OutputStream out);
+
+  /**
+   * @param dir the {@link Path directory} to compress as TGZ.
+   * @param out the {@link OutputStream} to write the compressed data to.
+   */
+  void compressTarGz(Path dir, OutputStream out);
+
+  /**
+   * @param dir the {@link Path directory} to compress as TBZ2.
+   * @param out the {@link OutputStream} to write the compressed data to.
+   */
+  void compressTarBzip2(Path dir, OutputStream out);
+
+  /**
+   * @param dir the {@link Path directory} to compress as ZIP.
+   * @param out the {@link OutputStream} to write the compressed data to.
+   */
+  void compressZip(Path dir, OutputStream out);
 
   /**
    * @param path the {@link Path} to convert.
@@ -417,7 +459,7 @@ public interface FileAccess {
 
   /**
    * @param file the {@link Path} to read from
-   * @return {@link IniFile}
+   * @return {@link com.devonfw.tools.ide.io.ini.IniFile}
    */
   default IniFile readIniFile(Path file) {
     IniFile iniFile = new IniFileImpl();
