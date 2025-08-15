@@ -9,7 +9,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public class UvUrlUpdater extends GithubUrlUpdater {
 
-  private static final VersionIdentifier MIN_WIN_ARM_VID = VersionIdentifier.of("0.5.25");
+  private static final VersionIdentifier MIN_VID = VersionIdentifier.of("0.5.25");
 
   @Override
   protected String getTool() {
@@ -30,6 +30,14 @@ public class UvUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
+  protected String mapVersion(String version) {
+    if (VersionIdentifier.of(version).isLess(MIN_VID)) {
+      return null;
+    }
+    return super.mapVersion(version);
+  }
+
+  @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
@@ -40,9 +48,7 @@ public class UvUrlUpdater extends GithubUrlUpdater {
     doAddVersion(urlVersion, baseUrl + "aarch64-unknown-linux-gnu.tar.gz", LINUX, ARM64);
     doAddVersion(urlVersion, baseUrl + "x86_64-apple-darwin.tar.gz", MAC, X64);
     doAddVersion(urlVersion, baseUrl + "aarch64-apple-darwin.tar.gz", MAC, ARM64);
-    if (vid.compareVersion(MIN_WIN_ARM_VID).isGreater()) {
-      doAddVersion(urlVersion, baseUrl + "aarch64-pc-windows-msvc.zip", WINDOWS, ARM64);
-    }
+    doAddVersion(urlVersion, baseUrl + "aarch64-pc-windows-msvc.zip", WINDOWS, ARM64);
   }
 
   @Override
