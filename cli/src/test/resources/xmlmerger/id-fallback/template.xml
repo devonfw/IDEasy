@@ -6,4 +6,6 @@
   </parent>
   <special class="id1">new special1</special>
   <special class="id2">new special2</special>
+  <special2 class="id3" key="id4" merge:id="@class">new special3</special2>
+  <special2 class="id5" key="id6">new special4</special2>
 </root>
