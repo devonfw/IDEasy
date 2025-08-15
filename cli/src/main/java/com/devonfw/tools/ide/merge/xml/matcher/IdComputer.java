@@ -71,7 +71,7 @@ public class IdComputer {
       } else if (length == 0) {
         return null;
       } else {
-        String message = length + " matches found for XPath " + xpathExpr + " in workspace XML file `" + workspacePath + "` at " + XmlMergeSupport.getXPath(workspaceElement, true) + " for template file `" + templatePath + "`";
+        String message = length + " matches found for XPath " + xpathExpr + " in workspace XML file '" + workspacePath + "' at " + XmlMergeSupport.getXPath(workspaceElement, true) + " for template file '" + templatePath + "'";
         if ("true".equals(this.context.getVariables().get(FAIL_ON_AMBIGOUS_MERGE))) {
           throw new IllegalStateException(message);
         } else {
