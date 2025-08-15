@@ -284,7 +284,7 @@ public interface XmlMergeSupport {
     for (int i = 0; i < attributeCount; i++) {
       Attr attribute = (Attr) attributes.item(i);
       if (!hasMergeNamespace(attribute)) {
-        if (id != XPATH_ELEMENT_NAME) {
+        if (id == XPATH_ELEMENT_NAME) {
           id = "@" + attribute.getName();
         } else {
           id = null;
