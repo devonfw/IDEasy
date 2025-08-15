@@ -245,6 +245,17 @@ public class Mvn extends PluginBasedCommandlet {
    */
   public Path getMavenConfFolder(boolean legacy) {
 
+    Path mvnConfigFolder = resolveMavenConfFolder(legacy);
+    this.context.getFileAccess().mkdirs(mvnConfigFolder);
+    return mvnConfigFolder;
+  }
+
+  /**
+   * Helper method to resolve maven config folder without creating directories.
+   * @param legacy - {@code true} to prefer legacy folder when neither exists, {@code false} to prefer new folder.
+   * @return the {@link Path} to the maven configuration folder that should be used.
+   */
+  private Path resolveMavenConfFolder(boolean legacy) {
     Path confPath = this.context.getConfPath();
     Path mvnConfigFolder = confPath.resolve(MVN_CONFIG_FOLDER);
     if (!Files.isDirectory(mvnConfigFolder)) {
@@ -255,7 +266,7 @@ public class Mvn extends PluginBasedCommandlet {
         if (legacy) {
           mvnConfigFolder = mvnConfigLegacyFolder;
         }
-        this.context.getFileAccess().mkdirs(mvnConfigFolder);
+        // Note: directories are created by the caller if needed
       }
     }
     return mvnConfigFolder;
@@ -266,25 +277,16 @@ public class Mvn extends PluginBasedCommandlet {
    * This method provides the same behavior as the original IdeContext.getMavenConfigurationFolder() method.
    */
   public Path getMavenConfigurationFolder() {
-
     Path confPath = this.context.getConfPath();
-    Path mvnConfFolder = null;
     if (confPath != null) {
-      mvnConfFolder = confPath.resolve(MVN_CONFIG_FOLDER);
-      if (!Files.isDirectory(mvnConfFolder)) {
-        Path m2LegacyFolder = confPath.resolve(MVN_CONFIG_LEGACY_FOLDER);
-        if (Files.isDirectory(m2LegacyFolder)) {
-          mvnConfFolder = m2LegacyFolder;
-        } else {
-          mvnConfFolder = null; // see fallback below
-        }
+      Path mvnConfigFolder = resolveMavenConfFolder(true);
+      // Only return the path if the directory actually exists
+      if (Files.isDirectory(mvnConfigFolder)) {
+        return mvnConfigFolder;
       }
     }
-    if (mvnConfFolder == null) {
-      // fallback to USER_HOME/.m2 folder
-      mvnConfFolder = this.context.getUserHome().resolve(MVN_CONFIG_LEGACY_FOLDER);
-    }
-    return mvnConfFolder;
+    // fallback to USER_HOME/.m2 folder
+    return this.context.getUserHome().resolve(MVN_CONFIG_LEGACY_FOLDER);
   }
 
   /**
