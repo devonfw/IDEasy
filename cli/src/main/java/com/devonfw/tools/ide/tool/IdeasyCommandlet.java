@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -29,6 +30,7 @@ import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -298,7 +300,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   /**
    * Configures Git Bash integration in Windows Terminal.
    */
-  private void configureWindowsTerminalGitBash() {
+  protected void configureWindowsTerminalGitBash() {
     Path settingsPath = getWindowsTerminalSettingsPath();
     if (settingsPath == null || !Files.exists(settingsPath)) {
       this.context.warning("Windows Terminal settings file not found. Cannot configure Git Bash integration.");
@@ -324,7 +326,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    *
    * @return the {@link Path} to the Windows Terminal settings file, or {@code null} if not found.
    */
-  private Path getWindowsTerminalSettingsPath() {
+  protected Path getWindowsTerminalSettingsPath() {
     Path localAppData = this.context.getUserHome().resolve("AppData").resolve("Local");
     Path packagesPath = localAppData.resolve("Packages");
 
@@ -366,39 +368,54 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       root.set("profiles", profiles);
     }
 
-    // Get or create list array
-    JsonNode listNode = profiles.get("list");
-    if (listNode == null || !listNode.isArray()) {
-      listNode = mapper.createArrayNode();
-      profiles.set("list", listNode);
+    // Get or create list array of profiles object
+    JsonNode profilesList = profiles.get("list");
+    if (profilesList == null || !profilesList.isArray()) {
+      profilesList = mapper.createArrayNode();
+      profiles.set("list", profilesList);
     }
 
     // Check if Git Bash profile already exists
-    boolean gitBashExists = false;
-    for (JsonNode profile : listNode) {
-      if (profile.has("name") && "Git Bash".equals(profile.get("name").asText())) {
-        gitBashExists = true;
+    boolean gitBashProfileExists = false;
+    for (JsonNode profile : profilesList) {
+      if (profile.has("name") && profile.get("name").asText().equals("Git Bash")) {
+        gitBashProfileExists = true;
         break;
       }
     }
 
     // Add Git Bash profile if it doesn't exist
-    if (!gitBashExists) {
+    if (!gitBashProfileExists) {
       ObjectNode gitBashProfile = mapper.createObjectNode();
-      gitBashProfile.put("guid", "{2c4de342-38b7-51cf-b940-2309a097f518}");
+      String newGuid = "{2c4de342-38b7-51cf-b940-2309a097f518}";
+      String iconPath = getGitBashIconPath(bashPath);
+      String startingDirectory = this.context.getIdeRoot().toString();
+
+      gitBashProfile.put("guid", newGuid);
       gitBashProfile.put("name", "Git Bash");
       gitBashProfile.put("commandline", bashPath);
-      gitBashProfile.put("icon", "ms-appx:///ProfileIcons/{0caa0dad-35be-5f56-a8ff-afceeeaa6101}.png");
-      gitBashProfile.put("startingDirectory", "%USERPROFILE%");
+      gitBashProfile.put("icon", iconPath);
+      gitBashProfile.put("startingDirectory", startingDirectory);
 
-      ((com.fasterxml.jackson.databind.node.ArrayNode) listNode).add(gitBashProfile);
+      ((ArrayNode) profilesList).add(gitBashProfile);
 
       // Set Git Bash as default profile
-      root.put("defaultProfile", "{2c4de342-38b7-51cf-b940-2309a097f518}");
+      root.put("defaultProfile", newGuid);
 
       // Write back to file
       String updatedContent = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
       fileAccess.writeFileContent(updatedContent, settingsPath);
+    }
+  }
+
+  private String getGitBashIconPath(String bashPath) {
+    Path gitRootPath = Paths.get(bashPath).getParent().getParent();
+    Path iconPath = gitRootPath.resolve("mingw64").resolve("share").resolve("git").resolve("git-for-windows.ico");
+    if (Files.exists(iconPath)) {
+      return iconPath.toString();
+    } else {
+      this.context.debug("Git Bash icon not found at {}. Using default icon.", iconPath);
+      return "ms-appx:///ProfileIcons/{0caa0dad-35be-5f56-a8ff-afceeeaa6101}.png";
     }
   }
 
