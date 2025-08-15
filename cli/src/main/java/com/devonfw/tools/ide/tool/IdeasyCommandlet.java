@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.tool;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -231,7 +230,6 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       path.getEntries().add(ideasyBinPath.toString());
       helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), path.toString());
       setGitLongpaths();
-      setupWindowsTerminal();
     }
   }
 
@@ -249,7 +247,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   /**
    * Sets up Windows Terminal with Git Bash integration.
    */
-  private void setupWindowsTerminal() {
+  public void setupWindowsTerminal() {
     if (!this.context.getSystemInfo().isWindows()) {
       return;
     }
@@ -308,7 +306,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     }
 
     try {
-      String bashPath = this.context.findBash();
+      String bashPath = this.context.findBashRequired();
       if (bashPath == null) {
         this.context.warning("Git Bash not found. Cannot configure Windows Terminal integration.");
         return;
@@ -409,8 +407,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   }
 
   private String getGitBashIconPath(String bashPath) {
-    Path gitRootPath = Paths.get(bashPath).getParent().getParent();
-    Path iconPath = gitRootPath.resolve("mingw64").resolve("share").resolve("git").resolve("git-for-windows.ico");
+    Path iconPath = Path.of("C:\\Program Files\\Git\\mingw64\\share\\git\\git-for-windows.ico");
     if (Files.exists(iconPath)) {
       return iconPath.toString();
     } else {
