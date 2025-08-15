@@ -16,7 +16,13 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject, N
   @Override
   protected String doGetVersionUrl() {
 
-    return getBaseUrl() + getPackageName();
+    return getVersionBaseUrl() + getPackageName();
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return getDownloadBaseUrl();
   }
 
   @Override
@@ -37,7 +43,8 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject, N
     doAddVersion(urlVersion, jsonVersionItem.dist().tarball());
   }
 
-  protected String getBaseUrl() {
+  @Override
+  protected String getDownloadBaseUrl() {
 
     return REGISTRY_URL;
   }

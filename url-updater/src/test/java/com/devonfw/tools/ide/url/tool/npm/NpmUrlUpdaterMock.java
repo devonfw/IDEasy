@@ -15,7 +15,7 @@ public class NpmUrlUpdaterMock extends NpmUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
 
     return this.baseUrl;
   }
