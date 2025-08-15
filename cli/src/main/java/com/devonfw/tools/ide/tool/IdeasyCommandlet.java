@@ -387,7 +387,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     // Add Git Bash profile if it doesn't exist
     if (!gitBashProfileExists) {
       ObjectNode gitBashProfile = mapper.createObjectNode();
-      String newGuid = "{2c4de342-38b7-51cf-b940-2309a097f518}";
+      String newGuid = "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}";
       String iconPath = getGitBashIconPath(bashPath);
       String startingDirectory = this.context.getIdeRoot().toString();
 
