@@ -306,7 +306,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     }
 
     try {
-      String bashPath = this.context.findBashRequired();
+      String bashPath = this.context.findBash();
       if (bashPath == null) {
         this.context.warning("Git Bash not found. Cannot configure Windows Terminal integration.");
         return;
