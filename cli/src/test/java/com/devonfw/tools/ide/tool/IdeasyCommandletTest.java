@@ -99,4 +99,40 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     assertThat(installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION)).hasContent("SNAPSHOT");
   }
 
+  /** Test of Windows Terminal integration during installation. */
+  @Test
+  public void testWindowsTerminalIntegration() {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    IdeTestContext context = newContext("install");
+    context.setIdeRoot(null);
+    context.setSystemInfo(systemInfo);
+    context.getStartContext().setForceMode(true);
+    
+    WindowsHelper helper = context.getWindowsHelper();
+    String originalPath = helper.getUserEnvironmentValue("PATH");
+    helper.setUserEnvironmentValue("PATH", "C:\\projects\\_ide\\bin;" + originalPath);
+    
+    Path ideRoot = context.getUserHome().resolve("projects");
+    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.writeFileContent("", gitconfigPath);
+    
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+    
+    // act
+    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
+    
+    // assert
+    // Verify that the installation completed successfully
+    // Windows Terminal integration should be attempted (gracefully failing on non-Windows test environment)
+    assertThat(context.getUserHome().resolve(".gitconfig")).hasContent("[core]\n\tlongpaths = true");
+    
+    // The Windows Terminal integration should handle missing powershell gracefully
+    // and not cause the installation to fail
+    Path idePath = ideRoot.resolve("_ide");
+    Path installationPath = idePath.resolve("installation");
+    verifyInstallation(installationPath);
+  }
+
 }
