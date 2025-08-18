@@ -30,6 +30,22 @@ public class CVEFinder {
     this.cves = toolSecurity.findCVEs(version);
   }
 
+  public CVEFinder(IdeContext context, ToolCommandlet tool, VersionIdentifier version, VersionRange allowedVersions) {
+    this.context = context;
+    this.tool = tool;
+    this.toolSecurity = context.getDefaultToolRepository().findSecurity(tool.getName(), tool.getConfiguredEdition());
+    this.allVersions = tool.getVersions();
+    List<VersionIdentifier> filterdAllVersions = new ArrayList<>();
+    for (VersionIdentifier toolVersion : this.allVersions) {
+      if (allowedVersions.contains(toolVersion)) {
+        filterdAllVersions.add(toolVersion);
+      }
+    }
+    allVersions = filterdAllVersions;
+    this.version = version;
+    this.cves = toolSecurity.findCVEs(version);
+  }
+
   public void listCVEs(VersionIdentifier versionIdentifier) {
     for (CVE cve : getCVEs(versionIdentifier)) {
       context.warning(cve.id());
