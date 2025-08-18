@@ -44,10 +44,6 @@ public class MainController {
     this.directoryPath = System.getenv(IdeVariables.IDE_ROOT.getName());
   }
 
-  public void setWorkspaceValue(Path workspaceValue) {
-    this.workspaceValue = workspaceValue;
-  }
-
   @FXML
   private void initialize() {
 
@@ -124,13 +120,10 @@ public class MainController {
             .forEach(name -> selectedWorkspace.getItems().add(name));
 
       } catch (IOException e) {
-        e.printStackTrace();
+        throw new RuntimeException("Error occurred while fetching workspace names." + e);
       }
     }
-
-    //selectedWorkspace.setOnAction(actionEvent -> this.setWorkspaceValue(Path.of("main")));
     this.workspaceValue = Path.of(selectedWorkspace.getValue());
-    //System.out.println(this.workspaceValue);
   }
 
   private void openIDE(String inIde) {
