@@ -39,7 +39,7 @@
         <VBox layoutX="20.0" layoutY="245.0" maxHeight="-Infinity" prefWidth="100.0" styleClass="sideNavigationElement">
           <children>
             <Label maxWidth="1.7976931348623157E308" text="Workspace" />
-            <ComboBox fx:id="selectedWorkspace" disable="true" maxWidth="1.7976931348623157E308" minWidth="-Infinity" prefHeight="40.0" prefWidth="150.0" promptText="Choose workspace" styleClass="chooseProject" VBox.vgrow="ALWAYS" />
+            <ComboBox fx:id="selectedWorkspace" disable="true" maxWidth="1.7976931348623157E308" minWidth="-Infinity" onAction="#setWorkspaceValue" prefHeight="40.0" prefWidth="150.0" promptText="Choose workspace" styleClass="chooseProject" VBox.vgrow="ALWAYS" />
           </children>
           <padding>
             <Insets left="8.0" right="8.0" />

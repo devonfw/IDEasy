@@ -1,7 +1,5 @@
 package com.devonfw.ide.gui;
 
-import static ch.qos.logback.core.util.OptionHelper.getEnv;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -35,10 +33,20 @@ public class MainController {
   @FXML
   private Button vsCodeOpen;
 
-  private final String directoryPath = getEnv(IdeVariables.IDE_ROOT.getName());
+  private final String directoryPath;
   private Path projectValue;
   private Path workspaceValue;
 
+  /**
+   * Constructor
+   */
+  public MainController() {
+    this.directoryPath = System.getenv(IdeVariables.IDE_ROOT.getName());
+  }
+
+  public void setWorkspaceValue(Path workspaceValue) {
+    this.workspaceValue = workspaceValue;
+  }
 
   @FXML
   private void initialize() {
@@ -92,15 +100,17 @@ public class MainController {
     selectedProject.setOnAction(actionEvent -> {
 
       projectValue = Path.of(selectedProject.getValue()).resolve(IdeContext.FOLDER_WORKSPACES);
-      setWorkspaceValue();
       selectedWorkspace.setDisable(false);
       androidStudioOpen.setDisable(false);
       eclipseOpen.setDisable(false);
       intellijOpen.setDisable(false);
       vsCodeOpen.setDisable(false);
+      selectedWorkspace.setValue("main");
+      this.workspaceValue = Path.of("main");
     });
   }
 
+  @FXML
   private void setWorkspaceValue() {
 
     selectedWorkspace.getItems().clear();
@@ -113,13 +123,14 @@ public class MainController {
             .map(Path::toString)
             .forEach(name -> selectedWorkspace.getItems().add(name));
 
-        selectedWorkspace.setValue("main");
       } catch (IOException e) {
         e.printStackTrace();
       }
     }
 
-    selectedWorkspace.setOnAction(actionEvent -> workspaceValue = Path.of(selectedWorkspace.getValue()));
+    //selectedWorkspace.setOnAction(actionEvent -> this.setWorkspaceValue(Path.of("main")));
+    this.workspaceValue = Path.of(selectedWorkspace.getValue());
+    //System.out.println(this.workspaceValue);
   }
 
   private void openIDE(String inIde) {
@@ -127,7 +138,7 @@ public class MainController {
     final IdeLogListenerBuffer buffer = new IdeLogListenerBuffer();
     IdeLogLevel logLevel = IdeLogLevel.INFO;
     IdeStartContextImpl startContext = new IdeStartContextImpl(logLevel, level -> new IdeSubLoggerOut(level, null, true, logLevel, buffer));
-    IdeGuiContext context = new IdeGuiContext(startContext, Path.of(directoryPath).resolve(projectValue).resolve(workspaceValue));
+    IdeGuiContext context = new IdeGuiContext(startContext, Path.of(this.directoryPath).resolve(this.projectValue).resolve(this.workspaceValue));
     context.getCommandletManager().getCommandlet(inIde).run();
   }
 }
