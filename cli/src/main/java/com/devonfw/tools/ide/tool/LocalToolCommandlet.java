@@ -228,6 +228,27 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         }
       }
     }
+    performToolInstallation(toolRepository, resolvedVersion, installationPath, fileAccess, edition, processContext);
+    return createToolInstallation(installationPath, resolvedVersion, toolVersionFile, true, processContext, extraInstallation);
+  }
+
+  /**
+   * Performs the actual installation of the {@link #getName() tool} by downloading its binary, optionally extracting it, backing up any existing installation,
+   * and writing the version file.
+   * <p>
+   * This method assumes that the version has already been resolved and dependencies installed. It handles the final steps of placing the tool into the
+   * appropriate installation directory.
+   *
+   * @param toolRepository the {@link ToolRepository} used to locate and download the tool.
+   * @param resolvedVersion the resolved {@link VersionIdentifier} of the {@link #getName() tool} to install.
+   * @param installationPath the target {@link Path} where the {@link #getName() tool} should be installed.
+   * @param fileAccess the {@link FileAccess} utility for file operations such as backup, extraction, and directory creation.
+   * @param edition the specific edition of the tool to install.
+   * @param processContext the {@link ProcessContext} used to manage the installation process.
+   */
+  protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, FileAccess fileAccess,
+      String edition, ProcessContext processContext) {
+
     Path downloadedToolFile = downloadTool(edition, toolRepository, resolvedVersion);
     boolean extract = isExtract();
     if (!extract) {
@@ -240,7 +261,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     fileAccess.extract(downloadedToolFile, installationPath, this::postExtract, extract);
     this.context.writeVersionFile(resolvedVersion, installationPath);
     this.context.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
-    return createToolInstallation(installationPath, resolvedVersion, toolVersionFile, true, processContext, extraInstallation);
   }
 
   /**

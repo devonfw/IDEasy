@@ -85,6 +85,25 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
         + addedRcLines);
   }
 
+  /** Test of {@link IdeasyCommandlet#configureWindowsTerminalGitBash()}. */
+  @Test
+  public void testConfigureWindowsTerminalGitBash() {
+
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    IdeTestContext context = newContext("install");
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+
+    // act
+    ideasy.configureWindowsTerminalGitBash();
+
+    // assert
+    Path settingsPath = ideasy.getWindowsTerminalSettingsPath();
+    assertThat(settingsPath).exists();
+    assertThat(settingsPath).content().contains("\"name\" : \"Git Bash\"");
+    assertThat(settingsPath).content().contains("\"guid\" : \"{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}\"");
+  }
+
   private void verifyInstallation(Path installationPath) {
 
     assertThat(installationPath).isDirectory();
