@@ -436,19 +436,17 @@ public class BuildSecurityJsonFiles {
 
           } else {
             if (min != null) {
-              LOG.info("Tool " + tool.getName() + " with edition " + edition.getName() + " and versions "
-                  + VersionRange.of(min, version, BoundaryType.of(false, true)) + " are affected by vulnerabilities.");
+              LOG.info("Tool '{}' with edition '{}' and versions '{}' are affected by vulnerabilities.",
+                  tool.getName(), edition.getName(), VersionRange.of(min, null, BoundaryType.of(false, true)));
               min = null;
             }
           }
         }
         if (min != null) {
-          LOG.info("Tool " + tool.getName() + " with edition " + edition.getName() + " and versions "
-              + VersionRange.of(min, null, BoundaryType.of(false, true)) + " are affected by vulnerabilities.");
+          LOG.info("Tool '{}' with edition '{}' and versions '{}' are affected by vulnerabilities.",
+              tool.getName(), edition.getName(), VersionRange.of(min, null, BoundaryType.of(false, true)));
         }
       }
     }
   }
-
-
 }
