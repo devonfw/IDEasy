@@ -328,29 +328,29 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       cveFinder = new CVEFinder(context, this, version, allowedVersions);
     }
     Collection<CVE> cves = cveFinder.getCVEs(version);
-    VersionIdentifier safestNearestVersion = cveFinder.findSafestNearestVersion();
-    VersionIdentifier safestLatestVersion = cveFinder.findSafestLatestVersion();
     if (cves.isEmpty()) {
       context.info("No CVEs found for tool {} in version {}", this.getName(), version);
-    } else {
-      cveFinder.listCVEs(version);
-      context.info("The tool {} in version {} is affected by the CVE(s) logged above.", this.getName(), version);
-      context.info("The latest version {} is only affected by the following CVE(s).", safestLatestVersion);
-      context.info("The nearest version {} is only affected by the following CVE(s).", safestNearestVersion);
-      cveFinder.listCVEs(safestNearestVersion);
+      return version;
+    }
+    VersionIdentifier safestNearestVersion = cveFinder.findSafestNearestVersion();
+    VersionIdentifier safestLatestVersion = cveFinder.findSafestLatestVersion();
+    cveFinder.listCVEs(version);
+    context.info("The tool {} in version {} is affected by the CVE(s) logged above.", this.getName(), version);
+    context.info("The latest version {} is only affected by the following CVE(s).", safestLatestVersion);
+    context.info("The nearest version {} is only affected by the following CVE(s).", safestNearestVersion);
+    cveFinder.listCVEs(safestNearestVersion);
 
-      String answer = context.question(new String[] { "current",
-          "nearest",
-          "latest" }, "Which version do you want to use?");
-      if (answer.equals("current")) {
-        return version;
-      }
-      if (answer.equals("nearest")) {
-        return safestNearestVersion;
-      }
-      if (answer.equals("latest")) {
-        return safestLatestVersion;
-      }
+    String answer = context.question(new String[] { "current",
+        "nearest",
+        "latest" }, "Which version do you want to use?");
+    if (answer.equals("current")) {
+      return version;
+    }
+    if (answer.equals("nearest")) {
+      return safestNearestVersion;
+    }
+    if (answer.equals("latest")) {
+      return safestLatestVersion;
     }
     return version;
   }

@@ -28,11 +28,11 @@ public class VariableDefinitionDoulbe extends AbstractVariableDefinition<Double>
 
   @Override
   public Class<Double> getValueType() {
-    return null;
+    return Double.class;
   }
 
   @Override
   public Double fromString(String value, IdeContext context) {
-    return 0.0;
+    return Double.valueOf(value);
   }
 }

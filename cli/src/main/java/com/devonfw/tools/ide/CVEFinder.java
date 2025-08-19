@@ -8,6 +8,7 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
+import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 
@@ -58,7 +59,7 @@ public class CVEFinder {
     List<CVE> cvesOfVersion = new ArrayList<>();
     for (CVE cve : cves) {
       for (VersionRange range : cve.versions()) {
-        if (range.contains(versionIdentifier)) {
+        if (range.contains(versionIdentifier) && cve.severity() == IdeVariables.CVE_MIN_SEVERIRY.get(context)) {
           cvesOfVersion.add(cve);
         }
       }
