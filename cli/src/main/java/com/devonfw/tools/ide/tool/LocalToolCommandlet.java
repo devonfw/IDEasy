@@ -264,9 +264,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public boolean installAsDependency(VersionRange version, ProcessContext processContext, String toolParent) {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     if (version.contains(configuredVersion)) {
-      // prefer configured version if contained in version range
-      ToolInstallation toolInstallation = installTool(lookForCVEs(configuredVersion, getConfiguredEdition(), processContext, version), processContext, true);
-      return toolInstallation.newInstallation();
+      VersionIdentifier cveAlternativeVersion = lookForCVEs(configuredVersion, getConfiguredEdition(), processContext, version);
+      if (cveAlternativeVersion == configuredVersion) {
+        return install(false, processContext, null, true);
+      } else {
+        ToolInstallation toolInstallation = installTool(cveAlternativeVersion, processContext, true);
+        return toolInstallation.newInstallation();
+      }
     } else {
       if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
@@ -278,7 +282,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
               + " Therefore, we install a compatible version in that range.",
           toolParent, this.tool, version, configuredVersion);
     }
-    ToolInstallation toolInstallation = installTool(version, processContext, true);
+    ToolInstallation toolInstallation = installTool(lookForCVEs(configuredVersion, getConfiguredEdition(), processContext, version), processContext, true);
     return toolInstallation.newInstallation();
   }
 

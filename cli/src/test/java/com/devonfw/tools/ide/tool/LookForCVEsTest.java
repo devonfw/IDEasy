@@ -8,7 +8,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.tool.intellij.Intellij;
 
-public class LookForCVETest extends AbstractIdeContextTest {
+public class LookForCVEsTest extends AbstractIdeContextTest {
 
   protected static final Path URLS_PATH = Path.of("src/test/resources/urls");
   private static final String PROJECT_INTELLIJ = "intellij";
