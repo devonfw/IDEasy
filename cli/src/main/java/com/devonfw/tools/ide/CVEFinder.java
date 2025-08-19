@@ -59,7 +59,7 @@ public class CVEFinder {
     List<CVE> cvesOfVersion = new ArrayList<>();
     for (CVE cve : cves) {
       for (VersionRange range : cve.versions()) {
-        if (range.contains(versionIdentifier) && cve.severity() == IdeVariables.CVE_MIN_SEVERIRY.get(context)) {
+        if (range.contains(versionIdentifier) && cve.severity() >= IdeVariables.CVE_MIN_SEVERIRY.get(context)) {
           cvesOfVersion.add(cve);
         }
       }
