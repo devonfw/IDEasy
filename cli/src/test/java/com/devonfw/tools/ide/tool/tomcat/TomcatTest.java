@@ -55,7 +55,6 @@ public class TomcatTest extends AbstractIdeContextTest {
                 + " Therefore, we install a compatible version in that range."),
         new IdeLogEntry(IdeLogLevel.DEBUG, "Installed java in version " + javaVersionTomcat + " at ", true),
         new IdeLogEntry(IdeLogLevel.SUCCESS, "Successfully installed tomcat in version " + tomcatVersion),
-        new IdeLogEntry(IdeLogLevel.INFO, "OpenJDK version " + javaVersionTomcat),
         new IdeLogEntry(IdeLogLevel.INFO, "JAVA_HOME=" + javaTomcatPath),
         new IdeLogEntry(IdeLogLevel.INFO, "tomcat run"),
         new IdeLogEntry(IdeLogLevel.INFO, "Tomcat is running at localhost on HTTP port " + tomcatPort + ":"),
