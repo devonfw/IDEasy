@@ -1,0 +1,349 @@
+{
+  "_id": "@angular/cli",
+  "_rev": "1149-84c34c43db3ab037bd55fe1675aa2ee9",
+  "name": "@angular/cli",
+  "dist-tags": {
+    "v6-lts": "6.2.9",
+    "v7-lts": "7.3.10",
+    "v8-lts": "8.3.29",
+    "v9-lts": "9.1.15",
+    "v10-lts": "10.2.4",
+    "v11-lts": "11.2.19",
+    "v12-lts": "12.2.18",
+    "v13-lts": "13.3.11",
+    "v14-lts": "14.2.13",
+    "v15-lts": "15.2.11",
+    "v16-lts": "16.2.16",
+    "v17-lts": "17.3.17",
+    "v18-lts": "18.2.20",
+    "v19-lts": "19.2.15",
+    "latest": "20.1.6",
+    "next": "20.2.0-rc.1"
+  },
+  "versions": {
+    "20.1.6": {
+      "name": "@angular/cli",
+      "version": "20.1.6",
+      "keywords": [
+        "Angular CLI",
+        "Angular DevKit",
+        "angular",
+        "angular-cli",
+        "devkit",
+        "sdk"
+      ],
+      "author": {
+        "name": "Angular Authors"
+      },
+      "license": "MIT",
+      "_id": "@angular/cli@20.1.6",
+      "maintainers": [
+        {
+          "name": "angular",
+          "email": "devops+npm@angular.io"
+        },
+        {
+          "name": "google-wombot",
+          "email": "node-team-npm+wombot@google.com"
+        }
+      ],
+      "homepage": "https://github.com/angular/angular-cli",
+      "bugs": {
+        "url": "https://github.com/angular/angular-cli/issues"
+      },
+      "bin": {
+        "ng": "bin/ng.js"
+      },
+      "dist": {
+        "shasum": "7a1200972a1b9b25597e3399ffb6a89bbdbb1096",
+        "tarball": "${testbaseurl}/@angular/cli/-/cli-20.1.6.tgz",
+        "fileCount": 159,
+        "integrity": "sha512-kqncVmYtlDYLwt4l5lFBz4uEnoheMH+teSqAAD/zaDxn41KvpoRLHiEVurQhsNP/GDHxGu+8wg0s4gX3kaFOzg==",
+        "signatures": [
+          {
+            "sig": "MEQCIDqhIkfW1KeGs3YoJjRJWEEjpjP3vzUmrVQbl+kANTtXAiBddjLDbR59rn/Zw0hXQnutXzaFiq5pC6YIL/XR7yoBFA==",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 728726
+      },
+      "main": "lib/cli/index.js",
+      "types": "./lib/cli/index.d.ts",
+      "engines": {
+        "npm": "^6.11.0 || ^7.5.6 || >=8.0.0",
+        "node": "^20.19.0 || ^22.12.0 || >=24.0.0",
+        "yarn": ">= 1.13.0"
+      },
+      "gitHead": "9ba06063e658449bc36c1b39a57b44d4765b164e",
+      "_npmUser": {
+        "name": "google-wombot",
+        "email": "node-team-npm+wombot@google.com"
+      },
+      "ng-update": {
+        "migrations": "@schematics/angular/migrations/migration-collection.json",
+        "packageGroup": {
+          "@angular/cli": "20.1.6",
+          "@angular/ssr": "20.1.6",
+          "@angular/build": "20.1.6",
+          "@angular-devkit/core": "20.1.6",
+          "@angular-devkit/architect": "0.2001.6",
+          "@angular-devkit/schematics": "20.1.6",
+          "@angular-devkit/build-angular": "20.1.6",
+          "@angular-devkit/build-webpack": "0.2001.6"
+        }
+      },
+      "repository": {
+        "url": "git+https://github.com/angular/angular-cli.git",
+        "type": "git"
+      },
+      "_npmVersion": "11.4.2",
+      "description": "CLI tool for Angular",
+      "directories": {
+      },
+      "_nodeVersion": "20.19.1",
+      "dependencies": {
+        "ini": "5.0.0",
+        "zod": "3.25.75",
+        "yargs": "18.0.0",
+        "listr2": "8.3.3",
+        "pacote": "21.0.0",
+        "semver": "7.7.2",
+        "resolve": "1.22.10",
+        "jsonc-parser": "3.3.1",
+        "algoliasearch": "5.32.0",
+        "npm-package-arg": "12.0.2",
+        "@inquirer/prompts": "7.6.0",
+        "@yarnpkg/lockfile": "1.1.0",
+        "npm-pick-manifest": "10.0.0",
+        "@schematics/angular": "20.1.6",
+        "@angular-devkit/core": "20.1.6",
+        "@angular-devkit/architect": "0.2001.6",
+        "@modelcontextprotocol/sdk": "1.13.3",
+        "@angular-devkit/schematics": "20.1.6",
+        "@listr2/prompt-adapter-inquirer": "2.0.22"
+      },
+      "_hasShrinkwrap": false,
+      "packageManager": "pnpm@9.15.9",
+      "_npmOperationalInternal": {
+        "tmp": "tmp/cli_20.1.6_1755087910666_0.9132834652816166",
+        "host": "s3://npm-registry-packages-npm-production"
+      }
+    },
+    "20.2.0-rc.0": {
+      "name": "@angular/cli",
+      "version": "20.2.0-rc.0",
+      "keywords": [
+        "Angular CLI",
+        "Angular DevKit",
+        "angular",
+        "angular-cli",
+        "devkit",
+        "sdk"
+      ],
+      "author": {
+        "name": "Angular Authors"
+      },
+      "license": "MIT",
+      "_id": "@angular/cli@20.2.0-rc.0",
+      "maintainers": [
+        {
+          "name": "angular",
+          "email": "devops+npm@angular.io"
+        },
+        {
+          "name": "google-wombot",
+          "email": "node-team-npm+wombot@google.com"
+        }
+      ],
+      "homepage": "https://github.com/angular/angular-cli",
+      "bugs": {
+        "url": "https://github.com/angular/angular-cli/issues"
+      },
+      "bin": {
+        "ng": "bin/ng.js"
+      },
+      "dist": {
+        "shasum": "9258504828e2f69cbe0fdc6b842632f688d4c97a",
+        "tarball": "${testbaseurl}/@angular/cli/-/cli-20.2.0-rc.0.tgz",
+        "fileCount": 167,
+        "integrity": "sha512-rlv7nQjhwTk14QK4pEDD7aLIlD4XDUvhhbClO0NHZ4ooEUmFBSUwGOygUCwC3ZytCAL8O0/MLvMKVUsqTKrhrA==",
+        "signatures": [
+          {
+            "sig": "MEQCIDJT+luPj+W+AHsW7IUolTwEdGupPCbgsLs41YtPGhfNAiBwPrQr49Iq0cBcj5KU7p6Hc2+IGBVicyX15th4Xzb4nw==",
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U"
+          }
+        ],
+        "unpackedSize": 791116
+      },
+      "main": "lib/cli/index.js",
+      "types": "./lib/cli/index.d.ts",
+      "engines": {
+        "npm": "^6.11.0 || ^7.5.6 || >=8.0.0",
+        "node": "^20.19.0 || ^22.12.0 || >=24.0.0",
+        "yarn": ">= 1.13.0"
+      },
+      "gitHead": "f1f54cc0c7f2f27e262364f07ee072af2f632f20",
+      "_npmUser": {
+        "name": "google-wombot",
+        "email": "node-team-npm+wombot@google.com"
+      },
+      "ng-update": {
+        "migrations": "@schematics/angular/migrations/migration-collection.json",
+        "packageGroup": {
+          "@angular/cli": "20.2.0-rc.0",
+          "@angular/ssr": "20.2.0-rc.0",
+          "@angular/build": "20.2.0-rc.0",
+          "@angular-devkit/core": "20.2.0-rc.0",
+          "@angular-devkit/architect": "0.2002.0-rc.0",
+          "@angular-devkit/schematics": "20.2.0-rc.0",
+          "@angular-devkit/build-angular": "20.2.0-rc.0",
+          "@angular-devkit/build-webpack": "0.2002.0-rc.0"
+        }
+      },
+      "repository": {
+        "url": "git+https://github.com/angular/angular-cli.git",
+        "type": "git"
+      },
+      "_npmVersion": "11.5.2",
+      "description": "CLI tool for Angular",
+      "directories": {
+      },
+      "_nodeVersion": "20.19.1",
+      "dependencies": {
+        "ini": "5.0.0",
+        "zod": "3.25.76",
+        "yargs": "18.0.0",
+        "listr2": "9.0.1",
+        "pacote": "21.0.0",
+        "semver": "7.7.2",
+        "resolve": "1.22.10",
+        "jsonc-parser": "3.3.1",
+        "algoliasearch": "5.35.0",
+        "npm-package-arg": "13.0.0",
+        "@inquirer/prompts": "7.8.1",
+        "@yarnpkg/lockfile": "1.1.0",
+        "@schematics/angular": "20.2.0-rc.0",
+        "@angular-devkit/core": "20.2.0-rc.0",
+        "@angular-devkit/architect": "0.2002.0-rc.0",
+        "@modelcontextprotocol/sdk": "1.17.2",
+        "@angular-devkit/schematics": "20.2.0-rc.0",
+        "@listr2/prompt-adapter-inquirer": "3.0.1"
+      },
+      "_hasShrinkwrap": false,
+      "packageManager": "pnpm@10.14.0",
+      "readmeFilename": "README.md",
+      "_npmOperationalInternal": {
+        "tmp": "tmp/cli_20.2.0-rc.0_1755093999833_0.5275118967488099",
+        "host": "s3://npm-registry-packages-npm-production"
+      }
+    },
+    "20.2.0-rc.1": {
+      "name": "@angular/cli",
+      "version": "20.2.0-rc.1",
+      "description": "CLI tool for Angular",
+      "main": "lib/cli/index.js",
+      "bin": {
+        "ng": "bin/ng.js"
+      },
+      "keywords": [
+        "Angular CLI",
+        "Angular DevKit",
+        "angular",
+        "angular-cli",
+        "devkit",
+        "sdk"
+      ],
+      "repository": {
+        "type": "git",
+        "url": "git+https://github.com/angular/angular-cli.git"
+      },
+      "author": {
+        "name": "Angular Authors"
+      },
+      "license": "MIT",
+      "bugs": {
+        "url": "https://github.com/angular/angular-cli/issues"
+      },
+      "homepage": "https://github.com/angular/angular-cli",
+      "dependencies": {
+        "@angular-devkit/architect": "0.2002.0-rc.1",
+        "@angular-devkit/core": "20.2.0-rc.1",
+        "@angular-devkit/schematics": "20.2.0-rc.1",
+        "@inquirer/prompts": "7.8.2",
+        "@listr2/prompt-adapter-inquirer": "3.0.1",
+        "@modelcontextprotocol/sdk": "1.17.2",
+        "@schematics/angular": "20.2.0-rc.1",
+        "@yarnpkg/lockfile": "1.1.0",
+        "algoliasearch": "5.35.0",
+        "ini": "5.0.0",
+        "jsonc-parser": "3.3.1",
+        "listr2": "9.0.1",
+        "npm-package-arg": "13.0.0",
+        "pacote": "21.0.0",
+        "resolve": "1.22.10",
+        "semver": "7.7.2",
+        "yargs": "18.0.0",
+        "zod": "3.25.76"
+      },
+      "ng-update": {
+        "migrations": "@schematics/angular/migrations/migration-collection.json",
+        "packageGroup": {
+          "@angular/cli": "20.2.0-rc.1",
+          "@angular/build": "20.2.0-rc.1",
+          "@angular/ssr": "20.2.0-rc.1",
+          "@angular-devkit/architect": "0.2002.0-rc.1",
+          "@angular-devkit/build-angular": "20.2.0-rc.1",
+          "@angular-devkit/build-webpack": "0.2002.0-rc.1",
+          "@angular-devkit/core": "20.2.0-rc.1",
+          "@angular-devkit/schematics": "20.2.0-rc.1"
+        }
+      },
+      "packageManager": "pnpm@10.14.0",
+      "engines": {
+        "node": "^20.19.0 || ^22.12.0 || >=24.0.0",
+        "npm": "^6.11.0 || ^7.5.6 || >=8.0.0",
+        "yarn": ">= 1.13.0"
+      },
+      "_id": "@angular/cli@20.2.0-rc.1",
+      "readmeFilename": "README.md",
+      "gitHead": "e1df5d7cd7e7644f5892fd835b157174ffe5b44a",
+      "types": "./lib/cli/index.d.ts",
+      "_nodeVersion": "20.19.1",
+      "_npmVersion": "11.5.2",
+      "dist": {
+        "integrity": "sha512-DTFqprmWXZx3cb3+vVKFQ8KaLegT/m7s7tJiWUV2Z1t5E2FKfB8637oHaqMRY9RpfY/5tTZQpr3M/BdR9AfuXg==",
+        "shasum": "04dcbbeb86075c1388f2253b8b35ec4aac4334f8",
+        "tarball": "${testbaseurl}/@angular/cli/-/cli-20.2.0-rc.1.tgz",
+        "fileCount": 167,
+        "unpackedSize": 791113,
+        "signatures": [
+          {
+            "keyid": "SHA256:DhQ8wR5APBvFHLF/+Tc+AYvPOdTpcIDqOhxsBHRwC7U",
+            "sig": "MEUCIDvXrjagSqa7XxX5gyCvYnkCTvlwF3W0YhIrCvlkfcGmAiEAk6lfxd3KdtNFTTSWiYetRSljuLcP3W6mrWM9A8EsUEI="
+          }
+        ]
+      },
+      "_npmUser": {
+        "name": "google-wombot",
+        "email": "node-team-npm+wombot@google.com"
+      },
+      "directories": {
+      },
+      "maintainers": [
+        {
+          "name": "angular",
+          "email": "devops+npm@angular.io"
+        },
+        {
+          "name": "google-wombot",
+          "email": "node-team-npm+wombot@google.com"
+        }
+      ],
+      "_npmOperationalInternal": {
+        "host": "s3://npm-registry-packages-npm-production",
+        "tmp": "tmp/cli_20.2.0-rc.1_1755243054949_0.9494169107061008"
+      },
+      "_hasShrinkwrap": false
+    }
+  }
+}
