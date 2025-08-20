@@ -105,7 +105,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       fileAccess.mkdirs(toolPath.getParent());
       fileAccess.symlink(installation.linkDir(), toolPath);
     }
-    this.context.getPath().setPath(this.tool, installation.binDir());
+    if (installation.binDir() != null) {
+      this.context.getPath().setPath(this.tool, installation.binDir());
+    }
     postInstall(true, processContext);
     if (installedVersion == null) {
       asSuccess(step).log("Successfully installed {} in version {}", this.tool, resolvedVersion);
@@ -288,7 +290,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return toolInstallation.newInstallation();
   }
 
-  private void installToolDependencies(VersionIdentifier version, String edition, ProcessContext processContext) {
+  protected void installToolDependencies(VersionIdentifier version, String edition, ProcessContext processContext) {
     Collection<ToolDependency> dependencies = getToolRepository().findDependencies(this.tool, edition, version);
     String toolWithEdition = getToolWithEdition(this.tool, edition);
     int size = dependencies.size();
