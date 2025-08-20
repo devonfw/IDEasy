@@ -8,7 +8,8 @@ Here we list such tools we are aware of.
 This list does not claim to be complete but we should have covered the most important onces.
 Surely there are also the "app stores" that come with your operating system with graphical UI that we do not explicitly list here.
 Surely we believe that we offer the perfect solution, if you want to automate the tool setup for your dev project and even maintain it over the project lifecycle with ease.
-However, if your goal is only to easily install arbitrary software on your machine, then generic tool installers (maybe SDKMan) can be the better choice for you.
+
+However, if your goal is only to easily install arbitrary software on your machine, then generic tool installers can be the better choice for you.
 Feel free to try these tools as well and make your choice and see what fits best for your.
 
 == Automate project dev environments
@@ -18,6 +19,7 @@ Feel free to try these tools as well and make your choice and see what fits best
 == Generic tool installers
 
 * https://sdkman.io/[SDKMan] - cross platform software installer as CLI
+* https://mise.jdx.dev/[mise] - cross platform software installer as CLI
 * https://chocolatey.org/[Chocolatey] - Windows software installer as CLI, started early on before WinGet or Scoop were born
 * https://github.com/microsoft/winget-cli[WinGet] - Windows software installer as CLI, driven by Microsoft and therefore widely accepted, frontends and other integrations available.
 * https://scoop.sh/[Scoop] - Windows software installer as CLI, open and collaborative via buckets as git repos
