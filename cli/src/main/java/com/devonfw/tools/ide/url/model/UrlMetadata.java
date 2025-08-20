@@ -39,6 +39,12 @@ public class UrlMetadata implements AbstractUrlMetadata {
     this(context, new UrlRepository(context.getUrlsPath()));
   }
 
+  /**
+   * The constructor.
+   *
+   * @param context the owning {@link IdeContext}.
+   * @param urlRepository the {@link UrlRepository} to use for loading tool metadata.
+   */
   public UrlMetadata(IdeContext context, UrlRepository urlRepository) {
 
     super();

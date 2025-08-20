@@ -72,9 +72,7 @@ import com.devonfw.tools.ide.version.VersionRange;
  */
 public class BuildSecurityJsonFiles {
 
-  private static final String CVE_BASE_URL = "https://nvd.nist.gov/vuln/detail/";
-
-  private static final Set<String> CVES_TO_IGNORE = new HashSet<>(Set.of("CVE-2021-36230")); // terraform https://github.com/anchore/grype/issues/1377
+  //Evtl. Suppression.xml für False Positives: https://jeremylong.github.io/DependencyCheck/general/suppression.html
 
   private static final Set<Class<? extends AbstractAnalyzer>> ANALYZERS_TO_IGNORE = Set.of(ArchiveAnalyzer.class,
       RubyBundlerAnalyzer.class, FileNameAnalyzer.class, JarAnalyzer.class, CentralAnalyzer.class, NexusAnalyzer.class,
@@ -87,14 +85,18 @@ public class BuildSecurityJsonFiles {
 
   private static BigDecimal minV3Severity = new BigDecimal("0.0");
 
-  private static final Set<String> actuallyIgnoredCves = new HashSet<>();
-
   private static final Logger LOG = LoggerFactory.getLogger(BuildSecurityJsonFiles.class);
+
+  /**
+   * Main entry point for building security JSON files. Loads the URL repository, retrieves dependencies with vulnerabilities, and processes them to
+   * generate/update security metadata.
+   *
+   * @param args command-line arguments; expects the first argument to be the path to the ide-urls repository.
+   */
 
   public static void main(String[] args) {
     Path urlsPath = Path.of(args[0]);
     UrlRepository urlRepository = UrlRepository.load(urlsPath);
-    System.out.println("Übergebener Pfad: " + urlsPath);
     UrlFinalReport report = new UrlFinalReport();
     UpdateManager updateManager = new UpdateManager(urlsPath, report, Instant.now());
     List<Dependency> dependencies = loadDependenciesWithVulnerabilities(updateManager);
@@ -102,10 +104,25 @@ public class BuildSecurityJsonFiles {
         urlsPath);
   }
 
+  /**
+   * Loads dependencies that contain known vulnerabilities.
+   *
+   * @param updateManager the {@link UpdateManager} used to access tool metadata.
+   * @return a list of {@link Dependency} objects with associated vulnerabilities.
+   */
   public static List<Dependency> loadDependenciesWithVulnerabilities(UpdateManager updateManager) {
     return getDependenciesWithVulnerabilities(updateManager);
   }
 
+  /**
+   * Processes a list of vulnerable dependencies by updating the corresponding {@link UrlSecurityFile}s. Each vulnerability is mapped to the correct tool and
+   * edition, and saved accordingly.
+   *
+   * @param dependencies the list of vulnerable {@link Dependency} objects.
+   * @param updateManager the {@link UpdateManager} used to retrieve tool updaters.
+   * @param urlMetadata the {@link UrlMetadata} used to resolve tool and version information
+   * @param urlsPath the path to the ide-urls repository.
+   */
   public static void processDependenciesWithVulnerabilities(List<Dependency> dependencies, UpdateManager updateManager, UrlMetadata urlMetadata,
       Path urlsPath) {
     Set<Pair<String, String>> foundToolsAndEditions = new HashSet<>();
@@ -125,10 +142,21 @@ public class BuildSecurityJsonFiles {
       saveSecurityFile(dependency, foundToolsAndEditions, tool, edition, securityFile, urlUpdater, urlMetadata);
     }
 
-    actuallyIgnoredCves.forEach(cve -> LOG.debug("Ignored CVE " + cve + " because it is listed in CVES_TO_IGNORE."));
     printAffectedVersions(urlMetadata, urlsPath);
   }
 
+  /**
+   * Saves vulnerability information to the corresponding {@link UrlSecurityFile}. Clears previous warnings if this is the first time the tool/edition is
+   * processed.
+   *
+   * @param dependency the {@link Dependency} containing vulnerability data.
+   * @param foundToolsAndEditions a set tracking which tool/edition pairs have already been
+   * @param tool the name of the tool (e.g., "java").
+   * @param edition the edition of the tool (e.g., "oracle").
+   * @param securityFile the {@link UrlSecurityFile} to update.
+   * @param urlUpdater the {@link AbstractUrlUpdater} for the tool/edition.
+   * @param urlMetadata the {@link UrlMetadata} used to resolve version and edition information.
+   */
   public static void saveSecurityFile(Dependency dependency, Set<Pair<String, String>> foundToolsAndEditions, String tool, String edition,
       UrlSecurityFile securityFile, AbstractUrlUpdater urlUpdater, UrlMetadata urlMetadata) {
     boolean newlyAdded = foundToolsAndEditions.add(new Pair<>(tool, edition));
@@ -143,7 +171,6 @@ public class BuildSecurityJsonFiles {
     }
     securityFile.save();
   }
-
 
   /**
    * Creates a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version} containing all versions provided by IDEasy for the given tool and
@@ -212,16 +239,13 @@ public class BuildSecurityJsonFiles {
    * @param securityFile the {@link UrlSecurityFile} of the tool and edition to which the vulnerability applies.
    * @param cpeToUrlVersion a {@link Map} from CPE Version to {@link UrlVersion#getName() Url Version}.
    * @param urlUpdater the {@link AbstractUrlUpdater} of the tool to get maps between CPE Version and {@link UrlVersion#getName() Url Version} naming.
+   * @param urlMetadata the {@link UrlMetadata} used to resolve version and edition information.
    */
 
   public static void addVulnerabilityToSecurityFile(Vulnerability vulnerability, UrlSecurityFile securityFile,
       Map<String, String> cpeToUrlVersion, AbstractUrlUpdater urlUpdater, UrlMetadata urlMetadata) {
 
     String cveName = vulnerability.getName();
-    if (CVES_TO_IGNORE.contains(cveName)) {
-      actuallyIgnoredCves.add(cveName);
-      return;
-    }
 
     BigDecimal severity = getBigDecimalSeverity(vulnerability);
     if (severity == null) {
@@ -248,10 +272,7 @@ public class BuildSecurityJsonFiles {
 
     CVE cve = new CVE(cveName, severity.doubleValue(), List.of(versionRange));
     securityFile.addCve(cve);
-
-
   }
-
 
   /**
    * Prints debug information about the vulnerability.
@@ -410,8 +431,6 @@ public class BuildSecurityJsonFiles {
 
   /**
    * Prints the affected versions of each tool and edition.
-   *
-   *
    */
   private static void printAffectedVersions(UrlMetadata urlMetadata, Path urlsPath) {
 
