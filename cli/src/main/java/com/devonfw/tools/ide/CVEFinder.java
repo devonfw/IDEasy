@@ -71,9 +71,12 @@ public class CVEFinder {
     VersionIdentifier safestLatestVersion = allVersions.getFirst();
     double severitySumLatestVersion = severitySum(getCVEs(safestLatestVersion));
     double distancePunishment = (1d / allVersions.size()) * 5;
-    for (int i = 1; i < allVersions.size(); i++) {
+    for (int i = 0; i < allVersions.size(); i++) {
       VersionIdentifier current = allVersions.get(i);
       double severitySumcurrent = severitySum(getCVEs(current));
+      if (severitySumcurrent == 0) {
+        return safestLatestVersion;
+      }
       if (severitySumLatestVersion >= distancePunishment * i + severitySumcurrent) {
         safestLatestVersion = current;
         severitySumLatestVersion = severitySumcurrent + distancePunishment * i;
@@ -99,6 +102,12 @@ public class CVEFinder {
       VersionIdentifier downVersion = allVersions.get(downIndex);
       double severityUp = severitySum(getCVEs(upVersion));
       double severityDown = severitySum(getCVEs(downVersion));
+      if (severityUp == 0) {
+        return safestNearestVersion;
+      }
+      if (severityDown == 0) {
+        return safestNearestVersion;
+      }
       if (severitySumNearestVersion >= distancePunishment * i + severityUp) {
         safestNearestVersion = upVersion;
         severitySumNearestVersion = severityUp + distancePunishment * i;
