@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.url.model.AbstractUrlModelTest;
 import com.devonfw.tools.ide.url.model.folder.AbstractUrlToolOrEdition;
-import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 
 /**
@@ -25,12 +24,12 @@ public class ToolSecurityTest extends AbstractUrlModelTest {
 
     // act
     Collection<CVE> security = context.getDefaultToolRepository()
-        .findSecurity("intellij", "intellij").findCVEs(VersionIdentifier.of("(2.40.1)"));
+        .findSecurity("intellij", "intellij").findCVEs();
     List<VersionRange> versionRanges = new ArrayList<>();
     versionRanges.add(VersionRange.of("(0,2.39.4)"));
     versionRanges.add(VersionRange.of("[2.40.0,2.40.2)"));
 
     // assert
-    assertThat(security).containsExactly(new CVE("CVE-2024-32002", 9.0f, versionRanges));
+    assertThat(security).contains(new CVE("CVE-2024-32002", 9.0f, versionRanges));
   }
 }

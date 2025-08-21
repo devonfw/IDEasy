@@ -3,13 +3,10 @@ package com.devonfw.tools.ide.url.model.file.json;
 import java.io.BufferedReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -36,19 +33,10 @@ public class ToolSecurity {
   }
 
   /**
-   * @param version the {@link VersionIdentifier} of the tool to install.
-   * @return The {@link List} of {@link CVE}s for the given tool version.
+   * @return The {@link List} of {@link CVE}s for the given tool.
    */
-  public List<CVE> findCVEs(VersionIdentifier version) {
-    ArrayList<CVE> cves = new ArrayList<>();
-    for (CVE cve : issues) {
-      for (VersionRange versionRange : cve.versions()) {
-        if (versionRange.contains(version)) {
-          cves.add(cve);
-        }
-      }
-    }
-    return cves;
+  public List<CVE> findCVEs() {
+    return issues;
   }
 
   /**

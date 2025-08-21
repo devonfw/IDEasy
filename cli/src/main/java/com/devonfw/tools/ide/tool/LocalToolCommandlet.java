@@ -337,6 +337,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     cveFinder.listCVEs(version);
     context.info("The tool {} in version {} is affected by the CVE(s) logged above.", this.getName(), version);
     context.info("The latest version {} is only affected by the following CVE(s).", safestLatestVersion);
+    cveFinder.listCVEs(safestLatestVersion);
     context.info("The nearest version {} is only affected by the following CVE(s).", safestNearestVersion);
     cveFinder.listCVEs(safestNearestVersion);
 

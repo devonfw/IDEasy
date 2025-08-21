@@ -28,7 +28,7 @@ public class CVEFinder {
     this.toolSecurity = context.getDefaultToolRepository().findSecurity(tool.getName(), tool.getConfiguredEdition());
     this.allVersions = tool.getVersions();
     this.version = version;
-    this.cves = toolSecurity.findCVEs(version);
+    this.cves = toolSecurity.findCVEs();
   }
 
   public CVEFinder(IdeContext context, ToolCommandlet tool, VersionIdentifier version, VersionRange allowedVersions) {
@@ -44,7 +44,7 @@ public class CVEFinder {
     }
     allVersions = filterdAllVersions;
     this.version = version;
-    this.cves = toolSecurity.findCVEs(version);
+    this.cves = toolSecurity.findCVEs();
   }
 
   public void listCVEs(VersionIdentifier versionIdentifier) {
@@ -68,38 +68,54 @@ public class CVEFinder {
   }
 
   public VersionIdentifier findSafestLatestVersion() {
-    int lowestNumberOfCVE = toolSecurity.findCVEs(allVersions.getFirst()).size();
     VersionIdentifier safestLatestVersion = allVersions.getFirst();
-    for (VersionIdentifier versionIdentifier : allVersions) {
-      if (toolSecurity.findCVEs(versionIdentifier).size() < lowestNumberOfCVE) {
-        lowestNumberOfCVE = toolSecurity.findCVEs(versionIdentifier).size();
-        safestLatestVersion = versionIdentifier;
+    double severitySumLatestVersion = severitySum(getCVEs(safestLatestVersion));
+    double distancePunishment = (1d / allVersions.size()) * 5;
+    for (int i = 1; i < allVersions.size(); i++) {
+      VersionIdentifier current = allVersions.get(i);
+      double severitySumcurrent = severitySum(getCVEs(current));
+      if (severitySumLatestVersion >= distancePunishment * i + severitySumcurrent) {
+        safestLatestVersion = current;
+        severitySumLatestVersion = severitySumcurrent + distancePunishment * i;
       }
     }
     return safestLatestVersion;
   }
 
   public VersionIdentifier findSafestNearestVersion() {
-    int lowestNumberOfCVE = toolSecurity.findCVEs(version).size();
     VersionIdentifier safestNearestVersion = version;
+    double severitySumNearestVersion = severitySum(getCVEs(safestNearestVersion));
+    double distancePunishment = (1d / allVersions.size()) * 5;
     int upIndex = allVersions.indexOf(version);
     int downIndex = upIndex;
-    while (upIndex != 0 || downIndex != allVersions.size() - 1) {
-      if (upIndex > 0) {
-        upIndex -= 1;
+    for (int i = 1; i < allVersions.size() - allVersions.indexOf(version) || i < allVersions.indexOf(version); i++) {
+      if (upIndex < allVersions.size() - allVersions.indexOf(version)) {
+        upIndex++;
       }
-      if (downIndex < allVersions.size() - 1) {
-        downIndex += 1;
+      if (downIndex >= 0) {
+        downIndex--;
       }
-      if (toolSecurity.findCVEs(allVersions.get(upIndex)).size() < lowestNumberOfCVE) {
-        lowestNumberOfCVE = toolSecurity.findCVEs(allVersions.get(upIndex)).size();
-        safestNearestVersion = allVersions.get(upIndex);
-      } else if (toolSecurity.findCVEs(allVersions.get(downIndex)).size() < lowestNumberOfCVE) {
-        lowestNumberOfCVE = toolSecurity.findCVEs(allVersions.get(downIndex)).size();
-        safestNearestVersion = allVersions.get(downIndex);
+      VersionIdentifier upVersion = allVersions.get(upIndex);
+      VersionIdentifier downVersion = allVersions.get(downIndex);
+      double severityUp = severitySum(getCVEs(upVersion));
+      double severityDown = severitySum(getCVEs(downVersion));
+      if (severitySumNearestVersion >= distancePunishment * i + severityUp) {
+        safestNearestVersion = upVersion;
+        severitySumNearestVersion = severityUp + distancePunishment * i;
+      } else if (severitySumNearestVersion >= distancePunishment * i + severityDown) {
+        safestNearestVersion = downVersion;
+        severitySumNearestVersion = severityDown + distancePunishment * i;
       }
     }
     return safestNearestVersion;
+  }
+
+  public double severitySum(Collection<CVE> cves) {
+    double severitySum = 0;
+    for (CVE cve : cves) {
+      severitySum += cve.severity();
+    }
+    return severitySum;
   }
 
 }

@@ -16,6 +16,41 @@
         "[2.40.3,2.40.6)",
         "[2023.3.3]"
       ]
+    },
+    {
+      "id": "Test1",
+      "severity": 1,
+      "versions": [
+        "[2022.3]"
+      ]
+    },
+    {
+      "id": "Test2",
+      "severity": 5,
+      "versions": [
+        "[2024.2.6]"
+      ]
+    },
+    {
+      "id": "Test3",
+      "severity": 1,
+      "versions": [
+        "[2022.3]"
+      ]
+    },
+    {
+      "id": "Haaaalllllooooo",
+      "severity": 9,
+      "versions": [
+        "[2025.1.1]"
+      ]
+    },
+    {
+      "id": "Test",
+      "severity": 4,
+      "versions": [
+        "[2022.3.1]"
+      ]
     }
   ]
 }
