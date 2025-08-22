@@ -154,11 +154,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /**
    * @param args the command-line arguments to run the tool.
+   * @return the {@link ProcessResult result}.
    * @see ToolCommandlet#runTool(ProcessMode, GenericVersionRange, String...)
    */
-  public void runTool(String... args) {
+  public ProcessResult runTool(String... args) {
 
-    runTool(ProcessMode.DEFAULT, null, args);
+    return runTool(ProcessMode.DEFAULT, null, args);
   }
 
   /**
@@ -168,10 +169,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param toolVersion the explicit {@link GenericVersionRange version} to run. Typically {@code null} to run the
    *     {@link #getConfiguredVersion() configured version}. Otherwise, the specified version will be used (from the software repository, if not compatible).
    * @param args the command-line arguments to run the tool.
+   * @return the {@link ProcessResult result}.
    */
-  public final void runTool(ProcessMode processMode, GenericVersionRange toolVersion, String... args) {
+  public final ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, String... args) {
 
-    runTool(processMode, toolVersion, ProcessErrorHandling.THROW_CLI, args);
+    return runTool(processMode, toolVersion, ProcessErrorHandling.THROW_CLI, args);
   }
 
   /**

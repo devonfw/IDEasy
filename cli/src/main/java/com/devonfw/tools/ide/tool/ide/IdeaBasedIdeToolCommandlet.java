@@ -54,9 +54,9 @@ public class IdeaBasedIdeToolCommandlet extends IdeToolCommandlet {
   }
 
   @Override
-  public void runTool(String... args) {
+  public ProcessResult runTool(String... args) {
     List<String> extendedArgs = new ArrayList<>(Arrays.asList(args));
     extendedArgs.add(this.context.getWorkspacePath().toString());
-    super.runTool(extendedArgs.toArray(new String[0]));
+    return super.runTool(extendedArgs.toArray(new String[0]));
   }
 }

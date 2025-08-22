@@ -155,6 +155,38 @@ public interface ProcessContext extends EnvironmentContext {
   }
 
   /**
+   * Runs the given {@code executable} with the given {@code arguments} and returns the output from its {@link ProcessResult#getOut() standard output}.
+   *
+   * @param executable the executable program.
+   * @param arguments the program arguments.
+   * @return the output printed from the command.
+   * @throws IllegalStateException if the command failed.
+   */
+  default List<String> runAndGetOutput(String executable, String... arguments) {
+
+    return runAndGetOutput(null, executable, arguments);
+  }
+
+  /**
+   * Runs the given {@code executable} with the given {@code arguments} and returns the output from its {@link ProcessResult#getOut() standard output}.
+   *
+   * @param logger the {@link IdeSubLogger} used to log errors instead of throwing an exception.
+   * @param executable the executable program.
+   * @param arguments the program arguments.
+   * @return the output printed from the command.
+   * @throws IllegalStateException if the command failed.
+   */
+  default List<String> runAndGetOutput(IdeSubLogger logger, String executable, String... arguments) {
+
+    executable(executable).addArgs(arguments);
+    if (logger == null) {
+      errorHandling(ProcessErrorHandling.THROW_ERR);
+    }
+    ProcessResult result = run(ProcessMode.DEFAULT_CAPTURE);
+    return result.getOutput(logger);
+  }
+
+  /**
    * Runs the given {@code executable} with the given {@code arguments} and returns the expected single line from its
    * {@link ProcessResult#getOut() standard output}.
    *
