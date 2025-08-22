@@ -9,6 +9,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.devonfw.tools.ide.os.WindowsHelper;
@@ -60,6 +62,9 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     Path idePath = ideRoot.resolve("_ide");
     Path installationPath = idePath.resolve("installation");
     Path releasePath = idePath.resolve("software/maven/ideasy/ideasy/SNAPSHOT");
+    Path gitconfigPath = context.getUserHome().resolve(".gitconfig");
+    FileAccess fileAccess = new FileAccessImpl(context);
+    fileAccess.writeFileContent("", gitconfigPath);
     IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
     // act
     ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
@@ -69,6 +74,7 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     if (systemInfo.isWindows()) {
       assertThat(helper.getUserEnvironmentValue("IDE_ROOT")).isEqualTo(ideRoot.toString());
       assertThat(helper.getUserEnvironmentValue("PATH")).isEqualTo(originalPath + ";" + context.getUserHome().resolve("projects/_ide/installation/bin"));
+      assertThat(context.getUserHome().resolve(".gitconfig")).hasContent("[core]\nlongpaths = true");
     }
     assertThat(context.getUserHome().resolve(".bashrc")).hasContent(addedRcLines);
     assertThat(context.getUserHome().resolve(".zshrc")).hasContent("#already exists\n"
@@ -77,6 +83,25 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
         + "devon\n"
         + "source ~/.devon/autocomplete\n"
         + addedRcLines);
+  }
+
+  /** Test of {@link IdeasyCommandlet#configureWindowsTerminalGitBash()}. */
+  @Test
+  public void testConfigureWindowsTerminalGitBash() {
+
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    IdeTestContext context = newContext("install");
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+
+    // act
+    ideasy.configureWindowsTerminalGitBash();
+
+    // assert
+    Path settingsPath = ideasy.getWindowsTerminalSettingsPath();
+    assertThat(settingsPath).exists();
+    assertThat(settingsPath).content().contains("\"name\" : \"Git Bash\"");
+    assertThat(settingsPath).content().contains("\"guid\" : \"{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}\"");
   }
 
   private void verifyInstallation(Path installationPath) {

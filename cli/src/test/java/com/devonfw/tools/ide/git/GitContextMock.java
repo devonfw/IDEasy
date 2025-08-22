@@ -56,6 +56,10 @@ public class GitContextMock implements GitContext {
   }
 
   @Override
+  public void verifyGitInstalled() {
+  }
+
+  @Override
   public boolean fetchIfNeeded(Path repository, String remoteName, String branch) {
 
     return false;
@@ -94,6 +98,6 @@ public class GitContextMock implements GitContext {
 
   @Override
   public void saveCurrentCommitId(Path repository, Path trackedCommitIdPath) {
-    
+
   }
 }

@@ -5,6 +5,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
@@ -69,48 +70,49 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   @Override
-  public boolean install(boolean silent, ProcessContext processContext) {
+  public boolean install(boolean silent, ProcessContext processContext, Step step) {
 
     installDependencies();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     // get installed version before installInRepo actually may install the software
     VersionIdentifier installedVersion = getInstalledVersion();
-    Step step = this.context.newStep(silent, "Install " + this.tool, configuredVersion);
-    try {
-      // install configured version of our tool in the software repository if not already installed
-      ToolInstallation installation = installTool(configuredVersion, processContext);
-
-      // check if we already have this version installed (linked) locally in IDE_HOME/software
-      VersionIdentifier resolvedVersion = installation.resolvedVersion();
-      if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation())
-          || (configuredVersion.matches(installedVersion) && context.isSkipUpdatesMode())) {
-        return toolAlreadyInstalled(silent, installedVersion, step, processContext);
-      }
-      if (!isIgnoreSoftwareRepo()) {
-        // we need to link the version or update the link.
-        Path toolPath = getToolPath();
-        FileAccess fileAccess = this.context.getFileAccess();
-        if (Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
-          fileAccess.backup(toolPath);
-        }
-        fileAccess.mkdirs(toolPath.getParent());
-        fileAccess.symlink(installation.linkDir(), toolPath);
-      }
-      this.context.getPath().setPath(this.tool, installation.binDir());
-      postInstall(true, processContext);
-      if (installedVersion == null) {
-        step.success("Successfully installed {} in version {}", this.tool, resolvedVersion);
-      } else {
-        step.success("Successfully installed {} in version {} replacing previous version {}", this.tool, resolvedVersion, installedVersion);
-      }
-      return true;
-    } catch (RuntimeException e) {
-      step.error(e, true);
-      throw e;
-    } finally {
-      step.close();
+    if (step == null) {
+      return doInstallStep(configuredVersion, installedVersion, silent, processContext, step);
+    } else {
+      return step.call(() -> doInstallStep(configuredVersion, installedVersion, silent, processContext, step), Boolean.FALSE);
     }
+  }
 
+  private boolean doInstallStep(VersionIdentifier configuredVersion, VersionIdentifier installedVersion, boolean silent, ProcessContext processContext,
+      Step step) {
+
+    // install configured version of our tool in the software repository if not already installed
+    ToolInstallation installation = installTool(configuredVersion, processContext);
+
+    // check if we already have this version installed (linked) locally in IDE_HOME/software
+    VersionIdentifier resolvedVersion = installation.resolvedVersion();
+    if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation())
+        || (configuredVersion.matches(installedVersion) && context.isSkipUpdatesMode())) {
+      return toolAlreadyInstalled(silent, installedVersion, processContext);
+    }
+    if (!isIgnoreSoftwareRepo()) {
+      // we need to link the version or update the link.
+      Path toolPath = getToolPath();
+      FileAccess fileAccess = this.context.getFileAccess();
+      if (Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
+        fileAccess.backup(toolPath);
+      }
+      fileAccess.mkdirs(toolPath.getParent());
+      fileAccess.symlink(installation.linkDir(), toolPath);
+    }
+    this.context.getPath().setPath(this.tool, installation.binDir());
+    postInstall(true, processContext);
+    if (installedVersion == null) {
+      asSuccess(step).log("Successfully installed {} in version {}", this.tool, resolvedVersion);
+    } else {
+      asSuccess(step).log("Successfully installed {} in version {} replacing previous version {}", this.tool, resolvedVersion, installedVersion);
+    }
+    return true;
   }
 
   /**
@@ -135,12 +137,11 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     // nothing to do by default
   }
 
-  private boolean toolAlreadyInstalled(boolean silent, VersionIdentifier installedVersion, Step step, ProcessContext pc) {
+  private boolean toolAlreadyInstalled(boolean silent, VersionIdentifier installedVersion, ProcessContext pc) {
     if (!silent) {
       this.context.info("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
     }
     postInstall(false, pc);
-    step.success();
     return false;
   }
 
@@ -213,6 +214,27 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         }
       }
     }
+    performToolInstallation(toolRepository, resolvedVersion, installationPath, fileAccess, edition, processContext);
+    return createToolInstallation(installationPath, resolvedVersion, toolVersionFile, true, processContext, extraInstallation);
+  }
+
+  /**
+   * Performs the actual installation of the {@link #getName() tool} by downloading its binary, optionally extracting it, backing up any existing installation,
+   * and writing the version file.
+   * <p>
+   * This method assumes that the version has already been resolved and dependencies installed. It handles the final steps of placing the tool into the
+   * appropriate installation directory.
+   *
+   * @param toolRepository the {@link ToolRepository} used to locate and download the tool.
+   * @param resolvedVersion the resolved {@link VersionIdentifier} of the {@link #getName() tool} to install.
+   * @param installationPath the target {@link Path} where the {@link #getName() tool} should be installed.
+   * @param fileAccess the {@link FileAccess} utility for file operations such as backup, extraction, and directory creation.
+   * @param edition the specific edition of the tool to install.
+   * @param processContext the {@link ProcessContext} used to manage the installation process.
+   */
+  protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, FileAccess fileAccess,
+      String edition, ProcessContext processContext) {
+
     Path downloadedToolFile = downloadTool(edition, toolRepository, resolvedVersion);
     boolean extract = isExtract();
     if (!extract) {
@@ -225,7 +247,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     fileAccess.extract(downloadedToolFile, installationPath, this::postExtract, extract);
     this.context.writeVersionFile(resolvedVersion, installationPath);
     this.context.debug("Installed {} in version {} at {}", this.tool, resolvedVersion, installationPath);
-    return createToolInstallation(installationPath, resolvedVersion, toolVersionFile, true, processContext, extraInstallation);
   }
 
   /**
@@ -251,7 +272,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     if (version.contains(configuredVersion)) {
       // prefer configured version if contained in version range
-      return install(false, processContext);
+      return install(false, processContext, null);
     } else {
       if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
@@ -392,7 +413,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     int softwareRepoNameCount = softwareRepoPath.getNameCount();
     int toolInstallNameCount = installPath.getNameCount();
     int targetToolInstallNameCount = softwareRepoNameCount + 4;
-    
+
     // installPath can't be shorter than softwareRepoPath
     if (toolInstallNameCount < softwareRepoNameCount) {
       this.context.warning("The installation path is not located within the software repository {}.", installPath);
@@ -512,6 +533,27 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public VersionIdentifier getLatestToolVersion() {
 
     return this.context.getDefaultToolRepository().resolveVersion(this.tool, getConfiguredEdition(), VersionIdentifier.LATEST, this);
+  }
+
+
+  /**
+   * Searches for a wrapper file in valid projects (containing a build file f.e. build.gradle or pom.xml) and returns its path.
+   *
+   * @param wrapperFileName the name of the wrapper file
+   * @param filter the {@link Predicate} to match
+   * @return Path of the wrapper file or {@code null} if none was found.
+   */
+  protected Path findWrapper(String wrapperFileName, Predicate<Path> filter) {
+    Path dir = context.getCwd();
+    // traverse the cwd directory containing a build file up till a wrapper file was found
+    while ((dir != null) && filter.test(dir)) {
+      if (Files.exists(dir.resolve(wrapperFileName))) {
+        context.debug("Using wrapper file at: {}", dir);
+        return dir.resolve(wrapperFileName);
+      }
+      dir = dir.getParent();
+    }
+    return null;
   }
 
 

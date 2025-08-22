@@ -2,9 +2,9 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -66,24 +66,8 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     this.context.verifyIdeMinVersion(true);
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
     this.context.success("Successfully created new project '{}'.", newProjectName);
-  }
 
-  private void initializeCodeRepository(String repoUrl) {
-
-    // clone the given repository into IDE_HOME/workspaces/main
-    GitUrl gitUrl = GitUrl.of(repoUrl);
-    Path codeRepoPath = this.context.getWorkspacePath().resolve(gitUrl.getProjectName());
-    this.context.getGitContext().pullOrClone(gitUrl, codeRepoPath);
-
-    // check for settings folder and create symlink to IDE_HOME/settings
-    Path settingsFolder = codeRepoPath.resolve(IdeContext.FOLDER_SETTINGS);
-    if (Files.exists(settingsFolder)) {
-      this.context.getFileAccess().symlink(settingsFolder, this.context.getSettingsPath());
-      // create a file in IDE_HOME with the current local commit id
-      this.context.getGitContext().saveCurrentCommitId(codeRepoPath, this.context.getSettingsCommitIdPath());
-    } else {
-      this.context.warning("No settings folder was found inside the code repository.");
-    }
+    logWelcomeMessage();
   }
 
   private void initializeProject(Path newInstancePath) {
@@ -95,23 +79,24 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   }
 
   @Override
-  protected void updateSettings() {
+  protected boolean isCodeRepository() {
+    return this.codeRepositoryFlag.isTrue();
+  }
 
-    if (this.codeRepositoryFlag.isTrue()) {
-      String codeRepository = this.settingsRepo.getValue();
-      if (codeRepository == null || codeRepository.isBlank()) {
-        String message = """
-            No code repository was given after '--code'.
-            Please give the code repository below that includes your settings folder.
-            Further details can be found here: https://github.com/devonfw/IDEasy/blob/main/documentation/settings.adoc
-            Code repository URL:
-            """;
-        codeRepository = this.context.askForInput(message);
+  @Override
+  protected String getStepMessage() {
+
+    return "Create (clone) " + (isCodeRepository() ? "code" : "settings") + " repository";
+  }
+
+  private void logWelcomeMessage() {
+    Path settingsFolder = this.context.getSettingsPath();
+    if (Files.exists(settingsFolder)) {
+      Predicate<Path> welcomePredicate = path -> String.valueOf(path.getFileName()).startsWith("welcome.");
+      Path welcomeFilePath = this.context.getFileAccess().findFirst(settingsFolder, welcomePredicate, false);
+      if (welcomeFilePath != null) {
+        this.context.info(this.context.getFileAccess().readFileContent(welcomeFilePath));
       }
-      initializeCodeRepository(codeRepository);
-    } else {
-      super.updateSettings();
     }
-
   }
 }

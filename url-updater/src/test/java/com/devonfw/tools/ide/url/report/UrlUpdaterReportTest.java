@@ -16,8 +16,8 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
 import com.devonfw.tools.ide.url.model.report.UrlUpdaterReport;
-import com.devonfw.tools.ide.url.tool.AbstractUrlUpdaterTest;
-import com.devonfw.tools.ide.url.tool.UrlUpdaterMock;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdaterTest;
+import com.devonfw.tools.ide.url.updater.UrlUpdaterMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 

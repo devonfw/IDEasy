@@ -1,7 +1,7 @@
 package com.devonfw.tools.ide.util;
 
 /**
- * Untility for hexadecimal number conversion.
+ * Utility for hexadecimal number conversion.
  */
 public final class HexUtil {
 

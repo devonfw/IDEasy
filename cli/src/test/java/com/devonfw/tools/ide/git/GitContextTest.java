@@ -26,6 +26,9 @@ import com.devonfw.tools.ide.process.OutputMessage;
  */
 public class GitContextTest extends AbstractIdeContextTest {
 
+  private static final String CONTENT_ORIGINAL = "original";
+  private static final String CONTENT_CHANGED = "changed";
+
   private ProcessContextGitMock processContext;
 
   private IdeTestContext newGitContext(Path dir) {
@@ -77,7 +80,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     // act
     context.getGitContext().pullOrClone(GitUrl.of(gitRepoUrl), tempDir);
     // assert
-    assertThat(tempDir.resolve(".git").resolve("url")).hasContent(gitRepoUrl);
+    assertThat(tempDir.resolve(GitContext.GIT_FOLDER).resolve("url")).hasContent(gitRepoUrl);
   }
 
   /**
@@ -94,12 +97,12 @@ public class GitContextTest extends AbstractIdeContextTest {
     OutputMessage outputMessage = new OutputMessage(false, "test-remote");
     this.processContext.addOutputMessage(outputMessage);
     FileAccess fileAccess = new FileAccessImpl(context);
-    Path gitFolderPath = tempDir.resolve(".git");
+    Path gitFolderPath = tempDir.resolve(GitContext.GIT_FOLDER);
     fileAccess.mkdirs(gitFolderPath);
     // act
     context.getGitContext().pullOrClone(GitUrl.of(gitRepoUrl), tempDir);
     // assert
-    assertThat(tempDir.resolve(".git").resolve("update")).hasContent(this.processContext.getNow().toString());
+    assertThat(tempDir.resolve(GitContext.GIT_FOLDER).resolve("update")).hasContent(this.processContext.getNow().toString());
   }
 
   /**
@@ -112,32 +115,25 @@ public class GitContextTest extends AbstractIdeContextTest {
 
     // arrange
     String gitRepoUrl = "https://github.com/test";
-
-    Path gitFolderPath = tempDir.resolve(".git");
-    try {
-      Files.createDirectory(gitFolderPath);
-      Files.createDirectory(gitFolderPath.resolve("objects"));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
-    Path referenceFile;
-    Path modifiedFile;
-    try {
-      Files.createFile(gitFolderPath.resolve("HEAD"));
-      referenceFile = Files.createFile(gitFolderPath.resolve("objects").resolve("referenceFile"));
-      Files.writeString(referenceFile, "original");
-      modifiedFile = Files.createFile(tempDir.resolve("trackedFile"));
-      Files.writeString(modifiedFile, "changed");
-    } catch (IOException e) {
-      throw new RuntimeException(e);
-    }
     IdeTestContext context = newGitContext(tempDir);
-    OutputMessage outputMessage = new OutputMessage(false, "test-remote");
-    this.processContext.addOutputMessage(outputMessage);
+    Path modifiedFile = prepareGit(tempDir, context);
     // act
     context.getGitContext().pullOrCloneAndResetIfNeeded(new GitUrl(gitRepoUrl, "master"), tempDir, "origin");
     // assert
-    assertThat(modifiedFile).hasContent("original");
+    assertThat(modifiedFile).hasContent(CONTENT_ORIGINAL);
+  }
+
+  private static Path prepareGit(Path tempDir, IdeTestContext context) {
+    FileAccess fileAccess = context.getFileAccess();
+    Path gitFolderPath = tempDir.resolve(GitContext.GIT_FOLDER);
+    Path objects = gitFolderPath.resolve("objects");
+    fileAccess.mkdirs(objects);
+    Path referenceFile = objects.resolve("referenceFile");
+    Path modifiedFile = tempDir.resolve("trackedFile");
+    fileAccess.touch(gitFolderPath.resolve(GitContext.FILE_HEAD));
+    fileAccess.writeFileContent(CONTENT_ORIGINAL, referenceFile);
+    fileAccess.writeFileContent(CONTENT_CHANGED, modifiedFile);
+    return modifiedFile;
   }
 
   /**
@@ -155,7 +151,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     this.processContext.addOutputMessage(outputMessage);
     GitContext gitContext = context.getGitContext();
     FileAccess fileAccess = context.getFileAccess();
-    Path gitFolderPath = tempDir.resolve(".git");
+    Path gitFolderPath = tempDir.resolve(GitContext.GIT_FOLDER);
     fileAccess.mkdirs(gitFolderPath);
     fileAccess.mkdirs(tempDir.resolve("new-folder"));
     try {
@@ -179,18 +175,36 @@ public class GitContextTest extends AbstractIdeContextTest {
     // arrange
     String repoUrl = "https://github.com/test";
     String remoteName = "origin";
-    List<String> errors = new ArrayList<>();
-    List<String> outs = new ArrayList<>();
-    IdeContext context = newGitContext(tempDir);
-    GitContext gitContext = new GitContextImpl(context);
+    IdeTestContext context = newGitContext(tempDir);
+    context.getStartContext().setOfflineMode(true);
+    GitContext gitContext = context.getGitContext();
 
     // act
     gitContext.fetchIfNeeded(tempDir, repoUrl, remoteName);
 
     // assert
-    // Since the context is offline, no actions should be performed
-    assertThat(errors.isEmpty()).isTrue();
-    assertThat(outs.isEmpty()).isTrue();
+    assertThat(this.processContext.getResults()).isEmpty();
+  }
+
+  /**
+   * Test for fetchIfNeeded when the system is online.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  public void testFetchIfNeededOnline(@TempDir Path tempDir) {
+    // arrange
+    String repoUrl = "https://github.com/test";
+    String remoteName = "origin";
+    IdeTestContext context = newGitContext(tempDir);
+    GitContext gitContext = context.getGitContext();
+
+    // act
+    gitContext.fetchIfNeeded(tempDir, repoUrl, remoteName);
+
+    // assert
+    assertThat(this.processContext.getResults()).hasSize(1);
+    assertThat(this.processContext.getResults().getFirst().getCommand()).isEqualTo("git fetch " + repoUrl + " " + remoteName);
   }
 
   /**
@@ -203,14 +217,12 @@ public class GitContextTest extends AbstractIdeContextTest {
     // arrange
     String repoUrl = "https://github.com/test";
     String remoteName = "origin";
-    List<String> errors = new ArrayList<>();
-    List<String> outs = new ArrayList<>();
     IdeContext context = newGitContext(tempDir);
-    GitContext gitContext = new GitContextImpl(context);
+    GitContext gitContext = context.getGitContext();
 
-    Path gitDir = tempDir.resolve(".git");
+    Path gitDir = tempDir.resolve(GitContext.GIT_FOLDER);
     Files.createDirectories(gitDir);
-    Path fetchHead = gitDir.resolve("FETCH_HEAD");
+    Path fetchHead = gitDir.resolve(GitContext.FILE_FETCH_HEAD);
     Files.createFile(fetchHead);
     Files.setLastModifiedTime(fetchHead, FileTime.fromMillis(System.currentTimeMillis()));
 
@@ -218,9 +230,7 @@ public class GitContextTest extends AbstractIdeContextTest {
     gitContext.fetchIfNeeded(tempDir, repoUrl, remoteName);
 
     // assert
-    // Since FETCH_HEAD is recent, no fetch should occur
-    assertThat(errors.isEmpty()).isTrue();
-    assertThat(outs.isEmpty()).isTrue();
+    assertThat(this.processContext.getResults()).isEmpty();
   }
 
   /**
@@ -243,5 +253,25 @@ public class GitContextTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(result).isFalse(); // No updates should be available
+  }
+
+
+  /**
+   * Runs a simulated git rest.
+   *
+   * @param tempDir a {@link TempDir} {@link Path}.
+   */
+  @Test
+  public void testRunGitReset(@TempDir Path tempDir) {
+
+    // arrange
+    String gitRepoUrl = "https://github.com/test";
+    IdeTestContext context = newGitContext(tempDir);
+    Path modifiedFile = prepareGit(tempDir, context);
+    assertThat(modifiedFile).hasContent(CONTENT_CHANGED);
+    // act
+    context.getGitContext().reset(tempDir);
+    // assert
+    assertThat(modifiedFile).hasContent(CONTENT_ORIGINAL);
   }
 }

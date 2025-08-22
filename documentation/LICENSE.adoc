@@ -98,6 +98,7 @@ The column `inclusion` indicates the way the component is included:
 |https://www.oracle.com/java/technologies/jdk-mission-control.html[Java Mission Control]|Optional|https://github.com/openjdk/jmc/blob/master/license/LICENSE.txt[UPL 1.0] and https://github.com/openjdk/jmc/blob/master/license/THIRDPARTYREADME.txt[EPL 2.0]
 |https://github.com/ctongfei/progressbar[Progressbar]|Directly included|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
 |https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
+|https://docs.astral.sh/uv/[uv] |Optional|https://docs.astral.sh/uv/reference/policies/license/[Apache 2.0]
 |===
 
 == Apache Software License - Version 2.0
