@@ -290,6 +290,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return toolInstallation.newInstallation();
   }
 
+  /**
+   * Installs the tool dependencies for the current tool.
+   *
+   * @param version the {@link VersionIdentifier} to use.
+   * @param edition the edition to use.
+   * @param processContext the {@link ProcessContext} to use.
+   */
   protected void installToolDependencies(VersionIdentifier version, String edition, ProcessContext processContext) {
     Collection<ToolDependency> dependencies = getToolRepository().findDependencies(this.tool, edition, version);
     String toolWithEdition = getToolWithEdition(this.tool, edition);

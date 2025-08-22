@@ -8,6 +8,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
@@ -20,6 +21,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link ToolCommandlet} for <a href="https://angular.dev/">angular</a>.
  */
 public class Ng extends LocalToolCommandlet {
+
+  private final static String PACKAGE_ANGULAR_CLI = "@angular/cli";
 
   /**
    * The constructor.
@@ -56,35 +59,41 @@ public class Ng extends LocalToolCommandlet {
     return Files.exists(ngPath);
   }
 
-  @Override
-  public VersionIdentifier getInstalledVersion() {
-
-    if (hasNodeBinary("ng")) {
-      try {
-        List<String> versions = this.context.newProcess()
-            .runAndGetOutput("npm", "list", "-g", "--depth 0");
+  private VersionIdentifier runNpmGetInstalledPackageVersion(String npmPackage) {
+    if (hasNodeBinary(getName())) {
+      List<String> versions;
+      ProcessResult result = runNpm("list", "-g");
+      if (result.isSuccessful()) {
+        versions = result.getOut();
         String parsedVersion = "";
         for (String version : versions) {
-          if (version.contains("@angular/cli")) {
-            parsedVersion = version.replaceAll(".*@angular/cli@", "");
+          if (version.contains(npmPackage)) {
+            parsedVersion = version.replaceAll(".*" + npmPackage + "@", "");
             break;
           }
         }
         return VersionIdentifier.of(parsedVersion);
-      } catch (IllegalStateException e) {
-        this.context.debug("An error occurred while parsing the Ng versions in {}", getToolPath(), e);
+      } else {
+        this.context.debug("An error occurred while parsing the {} versions in {}", getName(), getToolPath(), result.getErr());
         return null;
       }
+    } else {
+      this.context.debug("{} is not installed in {}", getName(), getToolPath());
+      return null;
     }
-    this.context.debug("Ng is not installed in {}", getToolPath());
-    return null;
+  }
+
+  @Override
+  public VersionIdentifier getInstalledVersion() {
+
+    return runNpmGetInstalledPackageVersion(PACKAGE_ANGULAR_CLI);
   }
 
   @Override
   public String getInstalledEdition() {
 
-    if (hasNodeBinary("ng")) {
-      return "ng";
+    if (hasNodeBinary(getName())) {
+      return getName();
     }
     return null;
   }
@@ -96,28 +105,46 @@ public class Ng extends LocalToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
     installToolDependencies(resolvedVersion, edition, pc);
-    if (hasNodeBinary("ng")) {
-      pc.run("npm", "uninstall", "-g", "@angular/cli");
+    if (!resolvedVersion.equals(getInstalledVersion())) {
+      runNpmUninstall(PACKAGE_ANGULAR_CLI);
+    } else {
+      return new ToolInstallation(null, null, null, configuredVersion, false);
     }
-    String ngPackage = "@angular/cli";
+    String ngPackage = PACKAGE_ANGULAR_CLI;
     if (resolvedVersion.isPattern()) {
       this.context.warning("Ng currently does not support version pattern: {}", resolvedVersion);
     } else {
       ngPackage += "@" + resolvedVersion;
     }
-    pc.run("npm", "install", "-g", ngPackage);
+    runNpmInstall(ngPackage);
     return new ToolInstallation(null, null, null, configuredVersion, true);
   }
 
-  private void runNpmInstall(String npmPackage) {
-
-    runNpm("install", "-g", npmPackage);
+  @Override
+  public void uninstall() {
+    runNpmUninstall(PACKAGE_ANGULAR_CLI);
   }
 
-  private void runNpm(String... args) {
+  private void runNpmUninstall(String npmPackage) {
+    if (hasNodeBinary(getName())) {
+      ProcessResult result = runNpm("uninstall", "-g", npmPackage);
+      if (result.isSuccessful()) {
+        this.context.info("Successfully uninstalled {}", getName());
+      } else {
+        this.context.error("An error occurred while uninstalling {}", getName(), result.getErr());
+      }
+    }
+  }
+
+  private ProcessResult runNpmInstall(String npmPackage) {
+
+    return runNpm("install", "-g", npmPackage);
+  }
+
+  private ProcessResult runNpm(String... args) {
 
     Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
-    npm.runTool(args);
+    return npm.runTool(args);
   }
 
   @Override
