@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.tool.ng;
 
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -39,12 +37,18 @@ public class NgTest extends AbstractIdeContextTest {
     checkInstallation(context);
   }
 
-  @Test
-  public void testNgUninstall() {
+  /**
+   * Tests if the {@link Ng} uninstall works correctly across all three operating systems.
+   *
+   * @param os Operating system
+   */
+  @ParameterizedTest
+  @ValueSource(strings = { "windows", "mac", "linux" })
+  public void testNgUninstall(String os) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_NG);
-    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    SystemInfo systemInfo = SystemInfoMock.of(os);
     context.setSystemInfo(systemInfo);
     Ng commandlet = new Ng(context);
 
@@ -58,16 +62,16 @@ public class NgTest extends AbstractIdeContextTest {
     commandlet.uninstall();
 
     // assert II
-    assertThat(context).logAtInfo().hasMessageContaining("uninstall -g @angular/cli");
+    assertThat(context).logAtInfo().hasMessageContaining("npm" + getNpmBinaryName(context) + " " + getOs(context) + " uninstall -g @angular/cli");
+
     assertThat(context).logAtInfo().hasMessage("Successfully uninstalled ng");
   }
 
   /**
-   * Tests if {@link Ng} can be run properly.
+   * Tests if {@link Ng} run works correctly across all three operating systems.
    *
-   * @param os Operating System.
+   * @param os Operating system
    */
-  @Disabled
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
   public void testNgRun(String os) {
@@ -83,12 +87,43 @@ public class NgTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(context).logAtInfo().hasMessageContaining("--version");
+    assertThat(context).logAtInfo().hasMessageContaining("ng" + getNgBinaryName(context) + " " + getOs(context) + " --version");
   }
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context).logAtInfo().hasMessageContaining("install -g @angular/cli@18.0.1");
+    assertThat(context).logAtInfo().hasMessageContaining("npm" + getNpmBinaryName(context) + " " + getOs(context) + " install -g @angular/cli@18.0.1");
+
     assertThat(context).logAtSuccess().hasMessage("Successfully installed ng in version 18.0.1");
+  }
+
+  private String getOs(IdeTestContext context) {
+    String os = "";
+    if (context.getSystemInfo().isWindows()) {
+      os = "windows";
+    }
+    if (context.getSystemInfo().isLinux()) {
+      os = "linux";
+    }
+    if (context.getSystemInfo().isMac()) {
+      os = "mac";
+    }
+    return os;
+  }
+
+  private String getNpmBinaryName(IdeTestContext context) {
+    String os = "";
+    if (context.getSystemInfo().isWindows()) {
+      os = "cmdbin";
+    }
+    return os;
+  }
+
+  private String getNgBinaryName(IdeTestContext context) {
+    String os = "";
+    if (context.getSystemInfo().isWindows()) {
+      os = "cmd";
+    }
+    return os;
   }
 }

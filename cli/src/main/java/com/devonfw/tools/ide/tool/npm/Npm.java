@@ -6,9 +6,9 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.tool.node.Node;
 
 /**
  * {@link ToolCommandlet} for <a href="https://www.npmjs.com/">npm</a>.
@@ -29,12 +29,12 @@ public class Npm extends LocalToolCommandlet {
   protected void postExtract(Path extractedDir) {
 
     FileAccess fileAccess = this.context.getFileAccess();
-    if (this.context.getSystemInfo().isWindows()) {
-      Path nodeHomePath = this.context.getSoftwarePath().resolve("node/");
-      Path npmBinBath = nodeHomePath.resolve("node_modules/npm/bin/");
-      String npm = "npm";
-      String npx = "npx";
-      String cmd = ".cmd";
+    Path nodeHomePath = this.context.getSoftwarePath().resolve("node");
+    Path npmBinBath = nodeHomePath.resolve("node_modules/npm/bin");
+    String npm = "npm";
+    String npx = "npx";
+    String cmd = ".cmd";
+    if (context.getSystemInfo().isWindows()) {
 
       fileAccess.delete(nodeHomePath.resolve(npm));
       fileAccess.delete(nodeHomePath.resolve(npm + cmd));
@@ -45,6 +45,13 @@ public class Npm extends LocalToolCommandlet {
       fileAccess.copy(npmBinBath.resolve(npm + cmd), nodeHomePath);
       fileAccess.copy(npmBinBath.resolve(npx), nodeHomePath);
       fileAccess.copy(npmBinBath.resolve(npx + cmd), nodeHomePath);
+    }
+
+    if (SystemInfoImpl.INSTANCE.isMac() || SystemInfoImpl.INSTANCE.isLinux()) {
+      fileAccess.delete(nodeHomePath.resolve(npm));
+      fileAccess.symlink(npmBinBath.resolve(npm), nodeHomePath.resolve(npm));
+      fileAccess.delete(nodeHomePath.resolve(npx));
+      fileAccess.symlink(npmBinBath.resolve(npx), nodeHomePath.resolve(npx));
     }
   }
 
