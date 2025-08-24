@@ -361,9 +361,7 @@ public class ProcessContextImpl implements ProcessContext {
 
   private void modifyArgumentsOnBackgroundProcess(ProcessMode processMode) {
 
-    if (!processMode.isBackground()) {
-      throw new IllegalStateException("Cannot handle non background process mode!");
-    }
+    assert processMode.isBackground() : "Cannot handle non background process mode!";
 
     String bash = this.context.findBash();
     if (bash == null) {
