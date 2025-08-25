@@ -320,6 +320,15 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
   }
 
+  /**
+   * Checks tool for CVEs and suggests alternative Version to install.
+   *
+   * @param version the required {@link VersionIdentifier}.
+   * @param edition the specific {@link #getConfiguredEdition() edition} to install.
+   * @param processContext the {@link ProcessContext}.
+   * @param allowedVersions the allowed {@link VersionRange}.
+   * @return {@code true} if the tool was newly installed, {@code false} otherwise (installation was already present).
+   */
   private VersionIdentifier lookForCVEs(VersionIdentifier version, String edition, ProcessContext processContext, VersionRange allowedVersions) {
     CVEFinder cveFinder;
     if (allowedVersions == null) {
