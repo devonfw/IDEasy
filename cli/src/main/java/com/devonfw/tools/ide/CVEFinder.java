@@ -49,9 +49,10 @@ public class CVEFinder {
 
   public void listCVEs(VersionIdentifier versionIdentifier) {
     for (CVE cve : getCVEs(versionIdentifier)) {
-      context.warning(cve.id());
-      context.warning(String.valueOf(cve.severity()));
-      context.warning(cve.versions().toString());
+      context.warning("CVE_ID: " + cve.id());
+      context.warning("Severity: " + String.valueOf(cve.severity()));
+      context.warning("Affected versions: " + cve.versions().toString());
+      context.warning("Visit https://nvd.nist.gov/vuln/detail/" + cve.id() + " for more information");
     }
   }
 
