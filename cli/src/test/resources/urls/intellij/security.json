@@ -1,0 +1,56 @@
+{
+  "issues": [
+    {
+      "id": "CVE-2024-32002",
+      "severity": 9.0,
+      "versions": [
+        "(0,2.39.4)",
+        "[2.40.0,2.40.2)"
+      ]
+    },
+    {
+      "id": "CVE-2024-33001",
+      "severity": 5.0,
+      "versions": [
+        "(0,2.39.5)",
+        "[2.40.3,2.40.6)",
+        "[2023.3.3]"
+      ]
+    },
+    {
+      "id": "Test1",
+      "severity": 1,
+      "versions": [
+        "[2022.3]"
+      ]
+    },
+    {
+      "id": "Test2",
+      "severity": 5,
+      "versions": [
+        "[2024.2.6]"
+      ]
+    },
+    {
+      "id": "Test3",
+      "severity": 1,
+      "versions": [
+        "[2022.3]"
+      ]
+    },
+    {
+      "id": "Haaaalllllooooo",
+      "severity": 9,
+      "versions": [
+        "[2025.1.1]"
+      ]
+    },
+    {
+      "id": "Test",
+      "severity": 4,
+      "versions": [
+        "[2022.3.1]"
+      ]
+    }
+  ]
+}
