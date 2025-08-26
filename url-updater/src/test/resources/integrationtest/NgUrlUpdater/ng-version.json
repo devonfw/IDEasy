@@ -2,24 +2,7 @@
   "_id": "@angular/cli",
   "_rev": "1149-84c34c43db3ab037bd55fe1675aa2ee9",
   "name": "@angular/cli",
-  "dist-tags": {
-    "v6-lts": "6.2.9",
-    "v7-lts": "7.3.10",
-    "v8-lts": "8.3.29",
-    "v9-lts": "9.1.15",
-    "v10-lts": "10.2.4",
-    "v11-lts": "11.2.19",
-    "v12-lts": "12.2.18",
-    "v13-lts": "13.3.11",
-    "v14-lts": "14.2.13",
-    "v15-lts": "15.2.11",
-    "v16-lts": "16.2.16",
-    "v17-lts": "17.3.17",
-    "v18-lts": "18.2.20",
-    "v19-lts": "19.2.15",
-    "latest": "20.1.6",
-    "next": "20.2.0-rc.1"
-  },
+  "dist-tags": {},
   "versions": {
     "20.1.6": {
       "name": "@angular/cli",
@@ -81,16 +64,7 @@
       },
       "ng-update": {
         "migrations": "@schematics/angular/migrations/migration-collection.json",
-        "packageGroup": {
-          "@angular/cli": "20.1.6",
-          "@angular/ssr": "20.1.6",
-          "@angular/build": "20.1.6",
-          "@angular-devkit/core": "20.1.6",
-          "@angular-devkit/architect": "0.2001.6",
-          "@angular-devkit/schematics": "20.1.6",
-          "@angular-devkit/build-angular": "20.1.6",
-          "@angular-devkit/build-webpack": "0.2001.6"
-        }
+        "packageGroup": {}
       },
       "repository": {
         "url": "git+https://github.com/angular/angular-cli.git",
@@ -101,27 +75,7 @@
       "directories": {
       },
       "_nodeVersion": "20.19.1",
-      "dependencies": {
-        "ini": "5.0.0",
-        "zod": "3.25.75",
-        "yargs": "18.0.0",
-        "listr2": "8.3.3",
-        "pacote": "21.0.0",
-        "semver": "7.7.2",
-        "resolve": "1.22.10",
-        "jsonc-parser": "3.3.1",
-        "algoliasearch": "5.32.0",
-        "npm-package-arg": "12.0.2",
-        "@inquirer/prompts": "7.6.0",
-        "@yarnpkg/lockfile": "1.1.0",
-        "npm-pick-manifest": "10.0.0",
-        "@schematics/angular": "20.1.6",
-        "@angular-devkit/core": "20.1.6",
-        "@angular-devkit/architect": "0.2001.6",
-        "@modelcontextprotocol/sdk": "1.13.3",
-        "@angular-devkit/schematics": "20.1.6",
-        "@listr2/prompt-adapter-inquirer": "2.0.22"
-      },
+      "dependencies": {},
       "_hasShrinkwrap": false,
       "packageManager": "pnpm@9.15.9",
       "_npmOperationalInternal": {
@@ -189,16 +143,7 @@
       },
       "ng-update": {
         "migrations": "@schematics/angular/migrations/migration-collection.json",
-        "packageGroup": {
-          "@angular/cli": "20.2.0-rc.0",
-          "@angular/ssr": "20.2.0-rc.0",
-          "@angular/build": "20.2.0-rc.0",
-          "@angular-devkit/core": "20.2.0-rc.0",
-          "@angular-devkit/architect": "0.2002.0-rc.0",
-          "@angular-devkit/schematics": "20.2.0-rc.0",
-          "@angular-devkit/build-angular": "20.2.0-rc.0",
-          "@angular-devkit/build-webpack": "0.2002.0-rc.0"
-        }
+        "packageGroup": {}
       },
       "repository": {
         "url": "git+https://github.com/angular/angular-cli.git",
@@ -209,26 +154,7 @@
       "directories": {
       },
       "_nodeVersion": "20.19.1",
-      "dependencies": {
-        "ini": "5.0.0",
-        "zod": "3.25.76",
-        "yargs": "18.0.0",
-        "listr2": "9.0.1",
-        "pacote": "21.0.0",
-        "semver": "7.7.2",
-        "resolve": "1.22.10",
-        "jsonc-parser": "3.3.1",
-        "algoliasearch": "5.35.0",
-        "npm-package-arg": "13.0.0",
-        "@inquirer/prompts": "7.8.1",
-        "@yarnpkg/lockfile": "1.1.0",
-        "@schematics/angular": "20.2.0-rc.0",
-        "@angular-devkit/core": "20.2.0-rc.0",
-        "@angular-devkit/architect": "0.2002.0-rc.0",
-        "@modelcontextprotocol/sdk": "1.17.2",
-        "@angular-devkit/schematics": "20.2.0-rc.0",
-        "@listr2/prompt-adapter-inquirer": "3.0.1"
-      },
+      "dependencies": {},
       "_hasShrinkwrap": false,
       "packageManager": "pnpm@10.14.0",
       "readmeFilename": "README.md",
@@ -265,38 +191,10 @@
         "url": "https://github.com/angular/angular-cli/issues"
       },
       "homepage": "https://github.com/angular/angular-cli",
-      "dependencies": {
-        "@angular-devkit/architect": "0.2002.0-rc.1",
-        "@angular-devkit/core": "20.2.0-rc.1",
-        "@angular-devkit/schematics": "20.2.0-rc.1",
-        "@inquirer/prompts": "7.8.2",
-        "@listr2/prompt-adapter-inquirer": "3.0.1",
-        "@modelcontextprotocol/sdk": "1.17.2",
-        "@schematics/angular": "20.2.0-rc.1",
-        "@yarnpkg/lockfile": "1.1.0",
-        "algoliasearch": "5.35.0",
-        "ini": "5.0.0",
-        "jsonc-parser": "3.3.1",
-        "listr2": "9.0.1",
-        "npm-package-arg": "13.0.0",
-        "pacote": "21.0.0",
-        "resolve": "1.22.10",
-        "semver": "7.7.2",
-        "yargs": "18.0.0",
-        "zod": "3.25.76"
-      },
+      "dependencies": {},
       "ng-update": {
         "migrations": "@schematics/angular/migrations/migration-collection.json",
-        "packageGroup": {
-          "@angular/cli": "20.2.0-rc.1",
-          "@angular/build": "20.2.0-rc.1",
-          "@angular/ssr": "20.2.0-rc.1",
-          "@angular-devkit/architect": "0.2002.0-rc.1",
-          "@angular-devkit/build-angular": "20.2.0-rc.1",
-          "@angular-devkit/build-webpack": "0.2002.0-rc.1",
-          "@angular-devkit/core": "20.2.0-rc.1",
-          "@angular-devkit/schematics": "20.2.0-rc.1"
-        }
+        "packageGroup": {}
       },
       "packageManager": "pnpm@10.14.0",
       "engines": {
