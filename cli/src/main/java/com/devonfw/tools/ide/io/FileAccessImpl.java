@@ -21,6 +21,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.DosFileAttributeView;
@@ -55,7 +56,6 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
-import org.jline.utils.Log;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -518,11 +518,12 @@ public class FileAccessImpl implements FileAccess {
     } else {
       fallbackPath = source;
     }
+
     if (!Files.isDirectory(fallbackPath)) { // if source is a junction. This returns true as well.
-      throw new IllegalStateException(
-          "These junctions can only point to directories or other junctions. Please make sure that the source (" + fallbackPath + ") is one of these.");
+      this.context.newProcess().executable("cmd").addArgs("/c", "mklink", "/d", targetLink.toString(), fallbackPath.toString()).run();
+    } else {
+      this.context.newProcess().executable("cmd").addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), fallbackPath.toString()).run();
     }
-    this.context.newProcess().executable("cmd").addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), fallbackPath.toString()).run();
   }
 
   @Override
@@ -752,40 +753,144 @@ public class FileAccessImpl implements FileAccess {
     return permissionStringBuilder.toString();
   }
 
-  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream<?>> unpacker) {
-
+  private void extractArchive(
+      Path file,
+      Path targetDir,
+      java.util.function.Function<InputStream, ArchiveInputStream<?>> unpacker
+  ) {
     this.context.info("Extracting TAR file {} to {}", file, targetDir);
+
+    class HardLink {
+
+      final Path linkPath;     // where to create the hard link
+      final String targetName; // tar-stored name of the target
+
+      HardLink(Path linkPath, String targetName) {
+        this.linkPath = linkPath;
+        this.targetName = targetName;
+      }
+    }
+    class PendingSymlink {
+
+      final Path linkPath;
+      final String linkName; // textual target from tar (may be relative)
+
+      PendingSymlink(Path linkPath, String linkName) {
+        this.linkPath = linkPath;
+        this.linkName = linkName;
+      }
+    }
+
+    final List<HardLink> hardLinks = new ArrayList<>();
+    final List<PendingSymlink> pendingSymlinkFallbacks = new ArrayList<>();
+
     try (InputStream is = Files.newInputStream(file);
         ArchiveInputStream<?> ais = unpacker.apply(is);
         IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
 
+      final boolean isTar = (ais instanceof TarArchiveInputStream);
+      final boolean isWindows = this.context.getSystemInfo().isWindows();
+      final Path root = targetDir.toAbsolutePath().normalize();
+
       ArchiveEntry entry = ais.getNextEntry();
-      boolean isTar = ais instanceof TarArchiveInputStream;
       while (entry != null) {
-        String permissionStr = null;
+        final String permissionStr;
+        final boolean isSymlink;
+        final boolean isHardlink;
+        final String linkName;
+
         if (isTar) {
-          int tarMode = ((TarArchiveEntry) entry).getMode();
-          permissionStr = generatePermissionString(tarMode);
+          TarArchiveEntry te = (TarArchiveEntry) entry;
+          permissionStr = generatePermissionString(te.getMode());
+          isSymlink = te.isSymbolicLink();
+          isHardlink = te.isLink();
+          linkName = te.getLinkName();
+        } else {
+          permissionStr = null;
+          isSymlink = false;
+          isHardlink = false;
+          linkName = null;
         }
+
         Path entryName = Path.of(entry.getName());
-        Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
-        if (!entryPath.startsWith(targetDir)) {
+        Path entryPath = root.resolve(entryName).normalize();
+        if (!entryPath.startsWith(root)) {
           throw new IOException("Preventing path traversal attack from " + entryName + " to " + entryPath);
         }
+
         if (entry.isDirectory()) {
           mkdirs(entryPath);
-        } else {
-          // ensure the file can also be created if directory entry was missing or out of order...
+
+        } else if (isTar && isSymlink) {
+          // --- Symbolic link ---
           mkdirs(entryPath.getParent());
-          Files.copy(ais, entryPath);
+          Path linkTargetText = Paths.get(linkName); // as recorded in TAR
+
+          try {
+            Files.deleteIfExists(entryPath);
+            Files.createSymbolicLink(entryPath, linkTargetText);
+          } catch (FileSystemException e) {
+            // Likely no symlink privilege on Windows: handle in post-pass.
+            pendingSymlinkFallbacks.add(new PendingSymlink(entryPath, linkName));
+          }
+
+        } else if (isTar && isHardlink) {
+          // --- Hard link (defer until target exists) ---
+          hardLinks.add(new HardLink(entryPath, linkName));
+
+        } else {
+          // --- Regular file ---
+          mkdirs(entryPath.getParent());
+          Files.copy(ais, entryPath, StandardCopyOption.REPLACE_EXISTING);
+
+          // POSIX perms on non-Windows
+          if (isTar && !isWindows && permissionStr != null) {
+            try {
+              Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
+              Files.setPosixFilePermissions(entryPath, permissions);
+            } catch (UnsupportedOperationException ignored) { /* FS has no posix view */ }
+          }
         }
-        if (isTar && !this.context.getSystemInfo().isWindows()) {
-          Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
-          Files.setPosixFilePermissions(entryPath, permissions);
-        }
-        pb.stepBy(entry.getSize());
+
+        pb.stepBy(Math.max(0L, entry.getSize()));
         entry = ais.getNextEntry();
       }
+
+      // --- Post-pass: hard links ---
+      for (HardLink hl : hardLinks) {
+        Path targetInExtract = root.resolve(Path.of(hl.targetName)).normalize();
+        if (!targetInExtract.startsWith(root)) {
+          throw new IOException("Hard link target escapes extraction root: " + hl.targetName);
+        }
+        if (!Files.exists(targetInExtract)) {
+          throw new IOException("Hard link target does not exist: " + hl.targetName);
+        }
+        mkdirs(hl.linkPath.getParent());
+        Files.deleteIfExists(hl.linkPath);
+        Files.createLink(hl.linkPath, targetInExtract);
+      }
+
+      // --- Post-pass: Windows symlink fallback ---
+      if (!pendingSymlinkFallbacks.isEmpty() && isWindows) {
+        for (PendingSymlink ps : pendingSymlinkFallbacks) {
+          Path linkPath = ps.linkPath;
+          Path linkTargetText = Paths.get(ps.linkName);
+          // POSIX semantics: relative link targets resolve against link's parent
+          Path resolvedTarget = linkPath.getParent().resolve(linkTargetText).normalize();
+
+          // Only allow targets inside extraction root
+          if (!resolvedTarget.startsWith(root)) {
+            this.context.info("Skipping symlink fallback outside extraction root: {} -> {}", linkPath, ps.linkName);
+            continue;
+          }
+          if (!Files.exists(resolvedTarget)) {
+            this.context.info("Skipping symlink fallback; missing target: {} -> {}", linkPath, ps.linkName);
+            continue;
+          }
+          createWindowsJunction(resolvedTarget, linkPath);
+        }
+      }
+
     } catch (IOException e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }

@@ -62,7 +62,7 @@ public class NgTest extends AbstractIdeContextTest {
     commandlet.uninstall();
 
     // assert II
-    assertThat(context).logAtInfo().hasMessageContaining("npm" + getNpmBinaryName(context) + " " + getOs(context) + " uninstall -g @angular/cli");
+    assertThat(context).logAtInfo().hasMessageContaining("npm" + getBinaryType(context) + " " + getOs(context) + " uninstall -g @angular/cli");
 
     assertThat(context).logAtInfo().hasMessage("Successfully uninstalled ng");
   }
@@ -87,39 +87,28 @@ public class NgTest extends AbstractIdeContextTest {
     commandlet.run();
 
     // assert
-    assertThat(context).logAtInfo().hasMessageContaining("ng" + getNgBinaryName(context) + " " + getOs(context) + " --version");
+    assertThat(context).logAtInfo().hasMessageContaining("ng" + getBinaryType(context) + " " + getOs(context) + " --version");
   }
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context).logAtInfo().hasMessageContaining("npm" + getNpmBinaryName(context) + " " + getOs(context) + " install -g @angular/cli@18.0.1");
+    assertThat(context).logAtInfo().hasMessageContaining("npm" + getBinaryType(context) + " " + getOs(context) + " install -g @angular/cli@18.0.1");
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed ng in version 18.0.1");
   }
 
   private String getOs(IdeTestContext context) {
-    String os = "";
     if (context.getSystemInfo().isWindows()) {
-      os = "windows";
+      return "windows";
+    } else if (context.getSystemInfo().isLinux()) {
+      return "linux";
+    } else if (context.getSystemInfo().isMac()) {
+      return "mac";
     }
-    if (context.getSystemInfo().isLinux()) {
-      os = "linux";
-    }
-    if (context.getSystemInfo().isMac()) {
-      os = "mac";
-    }
-    return os;
+    return "";
   }
 
-  private String getNpmBinaryName(IdeTestContext context) {
-    String os = "";
-    if (context.getSystemInfo().isWindows()) {
-      os = "cmdbin";
-    }
-    return os;
-  }
-
-  private String getNgBinaryName(IdeTestContext context) {
+  private String getBinaryType(IdeTestContext context) {
     String os = "";
     if (context.getSystemInfo().isWindows()) {
       os = "cmd";
