@@ -92,6 +92,23 @@ public class ProcessResultImpl implements ProcessResult {
   }
 
   @Override
+  public List<String> getOutput(IdeSubLogger logger) throws IllegalStateException {
+    String errorMessage;
+    if (this.isSuccessful()) {
+      List<String> out = this.getOut();
+      return out;
+    } else {
+      errorMessage = "Command " + this.getCommand() + " failed with exit code " + this.getExitCode();
+    }
+    if (logger == null) {
+      throw new IllegalStateException(errorMessage);
+    } else {
+      logger.log(errorMessage);
+      return null;
+    }
+  }
+
+  @Override
   public List<String> getOut() {
 
     return this.outputMessages.stream().filter(outputMessage -> !outputMessage.error()).map(OutputMessage::message).toList();
