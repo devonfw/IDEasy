@@ -26,6 +26,6 @@ public class NgUrlUpdater extends NpmBasedUrlUpdater {
 
   @Override
   public String getCpeProduct() {
-    return "angular_cli";
+    return "angular";
   }
 }
