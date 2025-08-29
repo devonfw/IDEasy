@@ -1,32 +1,26 @@
 name: Update Security Files
-
 on:
   workflow_dispatch:
-
 jobs:
   update-security-json:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout IDEasy Repository
         uses: actions/checkout@v3
         with:
           token: ${{ secrets.ACTION_PUSH_TOKEN }}
-
       - name: Checkout ide-urls Repository
         uses: actions/checkout@v3
         with:
           repository: devonfw/ide-urls
           path: ide-urls
           token: ${{ secrets.ACTION_PUSH_TOKEN }}
-
       - name: Set up Java
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: 'maven'
-
       - name: Cache CVE Database
         id: cache-cve
         uses: actions/cache@v3
@@ -36,10 +30,8 @@ jobs:
           restore-keys: |
             owasp-cve-db-${{ runner.os }}-
             owasp-cve-db-
-      
       - name: Build all modules
         run: mvn -B -ntp install -DskipTests
-
       - name: Run security JSON generator
         working-directory: security
         run: |
@@ -48,7 +40,6 @@ jobs:
             -Dexec.args="${{ github.workspace }}/ide-urls" \
             -X
         continue-on-error: true
-        
       - name: Configure Git
         run: |
           cd ide-urls
