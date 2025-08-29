@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.io;
 
 import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -11,7 +10,9 @@ import java.io.Writer;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpClient.Version;
 import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemException;
@@ -46,18 +47,28 @@ import java.util.stream.Stream;
 
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.ArchiveInputStream;
+import org.apache.commons.compress.archivers.ArchiveOutputStream;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.io.IOUtils;
 import org.jline.utils.Log;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.io.ini.IniComment;
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.util.HexUtil;
+import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
  * Implementation of {@link FileAccess}.
@@ -69,6 +80,9 @@ public class FileAccessImpl implements FileAccess {
   private static final String WINDOWS_FILE_LOCK_WARNING =
       "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
           + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
+
+  private static final int MODE_RWX_RX_RX = 0755;
+  private static final int MODE_RW_R_R = 0644;
 
   private static final Map<String, String> FS_ENV = Map.of("encoding", "UTF-8");
 
@@ -87,44 +101,77 @@ public class FileAccessImpl implements FileAccess {
 
   private HttpClient createHttpClient(String url) {
 
-    HttpClient.Builder builder = HttpClient.newBuilder().followRedirects(Redirect.ALWAYS);
-    return builder.build();
+    return HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
   }
 
   @Override
   public void download(String url, Path target) {
 
-    this.context.info("Trying to download {} from {}", target.getFileName(), url);
-    mkdirs(target.getParent());
-    try {
-      if (this.context.isOffline()) {
-        throw CliOfflineException.ofDownloadViaUrl(url);
-      }
-      if (url.startsWith("http")) {
-
-        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-        HttpClient client = createHttpClient(url);
-        HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-        int statusCode = response.statusCode();
-        if (statusCode == 200) {
-          downloadFileWithProgressBar(url, target, response);
-        } else {
-          throw new IllegalStateException("Download failed with status code " + statusCode);
-        }
-      } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
-        throw new IllegalArgumentException("Unsupported download URL: " + url);
+    if (this.context.isOffline()) {
+      throw CliOfflineException.ofDownloadViaUrl(url);
+    }
+    if (url.startsWith("http")) {
+      downloadViaHttp(url, target);
+    } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
+      throw new IllegalArgumentException("Unsupported download URL: " + url);
+    } else {
+      Path source = Path.of(url);
+      if (isFile(source)) {
+        // network drive
+        copyFileWithProgressBar(source, target);
       } else {
-        Path source = Path.of(url);
-        if (isFile(source)) {
-          // network drive
+        throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
+      }
+    }
+  }
 
-          copyFileWithProgressBar(source, target);
-        } else {
-          throw new IllegalArgumentException("Download path does not point to a downloadable file: " + url);
+  private void downloadViaHttp(String url, Path target) {
+    List<Version> httpProtocols = IdeVariables.HTTP_VERSIONS.get(context);
+    Exception lastException = null;
+    if (httpProtocols.isEmpty()) {
+      try {
+        this.downloadWithHttpVersion(url, target, null);
+        return;
+      } catch (Exception e) {
+        lastException = e;
+      }
+    } else {
+      for (Version version : httpProtocols) {
+        try {
+          this.downloadWithHttpVersion(url, target, version);
+          return;
+        } catch (Exception ex) {
+          lastException = ex;
         }
       }
-    } catch (Exception e) {
-      throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, e);
+    }
+    throw new IllegalStateException("Failed to download file from URL " + url + " to " + target, lastException);
+  }
+
+  private void downloadWithHttpVersion(String url, Path target, Version httpVersion) throws Exception {
+
+    if (httpVersion == null) {
+      this.context.info("Trying to download {} from {}", target.getFileName(), url);
+    } else {
+      this.context.info("Trying to download: {} with HTTP protocol version: {}", url, httpVersion);
+    }
+    mkdirs(target.getParent());
+
+    Builder builder = HttpRequest.newBuilder()
+        .uri(URI.create(url))
+        .GET();
+    if (httpVersion != null) {
+      builder.version(httpVersion);
+    }
+    try (HttpClient client = createHttpClient(url)) {
+      HttpRequest request = builder.build();
+      HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
+      int statusCode = response.statusCode();
+      if (statusCode == 200) {
+        downloadFileWithProgressBar(url, target, response);
+      } else {
+        throw new IllegalStateException("Download failed with status code " + statusCode);
+      }
     }
   }
 
@@ -163,28 +210,27 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  /**
-   * Copies a file while displaying a progress bar.
-   *
-   * @param source Path of file to copy.
-   * @param target Path of target directory.
-   */
-  private void copyFileWithProgressBar(Path source, Path target) throws IOException {
+  private void copyFileWithProgressBar(Path source, Path target) {
 
-    try (InputStream in = new FileInputStream(source.toFile()); OutputStream out = new FileOutputStream(target.toFile())) {
-      long size = getFileSize(source);
+    long size = getFileSize(source);
+    if (size < 100_000) {
+      copy(source, target, FileCopyMode.COPY_FILE_TO_TARGET_OVERRIDE);
+      return;
+    }
+    try (InputStream in = Files.newInputStream(source);
+        OutputStream out = Files.newOutputStream(target)) {
       byte[] buf = new byte[1024];
       try (IdeProgressBar pb = this.context.newProgressbarForCopying(size)) {
         int readBytes;
         while ((readBytes = in.read(buf)) > 0) {
           out.write(buf, 0, readBytes);
-          if (size > 0) {
-            pb.stepBy(readBytes);
-          }
+          pb.stepBy(readBytes);
         }
       } catch (Exception e) {
         throw new RuntimeException(e);
       }
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to copy from " + source + " to " + target, e);
     }
   }
 
@@ -322,7 +368,7 @@ public class FileAccessImpl implements FileAccess {
   @Override
   public void copy(Path source, Path target, FileCopyMode mode, PathCopyListener listener) {
 
-    if (mode != FileCopyMode.COPY_TREE_CONTENT) {
+    if (mode.isUseSourceFilename()) {
       // if we want to copy the file or folder "source" to the existing folder "target" in a shell this will copy
       // source into that folder so that we as a result have a copy in "target/source".
       // With Java NIO the raw copy method will fail as we cannot copy "source" to the path of the "target" folder.
@@ -377,7 +423,7 @@ public class FileAccessImpl implements FileAccess {
       }
       listener.onCopy(source, target, true);
     } else if (Files.exists(source)) {
-      if (mode.isOverrideFile()) {
+      if (mode.isOverride()) {
         delete(target);
       }
       this.context.trace("Starting to {} {} to {}", mode.getOperation(), source, target);
@@ -568,10 +614,8 @@ public class FileAccessImpl implements FileAccess {
   public void extract(Path archiveFile, Path targetDir, Consumer<Path> postExtractHook, boolean extract) {
 
     if (Files.isDirectory(archiveFile)) {
-      // TODO: check this case
-      Path properInstallDir = archiveFile; // getProperInstallationSubDirOf(archiveFile, archiveFile);
       this.context.warning("Found directory for download at {} hence copying without extraction!", archiveFile);
-      copy(properInstallDir, targetDir, FileCopyMode.COPY_TREE_CONTENT);
+      copy(archiveFile, targetDir, FileCopyMode.COPY_TREE_CONTENT);
       postExtractHook(postExtractHook, targetDir);
       return;
     } else if (!extract) {
@@ -790,6 +834,119 @@ public class FileAccessImpl implements FileAccess {
     Path contentPath = findFirst(tmpDirPkg, p -> p.getFileName().toString().equals("Payload"), true);
     extractTar(contentPath, targetDir, TarCompression.GZ);
     delete(tmpDirPkg);
+  }
+
+  @Override
+  public void compress(Path dir, OutputStream out, String format) {
+
+    String extension = FilenameUtil.getExtension(format);
+    TarCompression tarCompression = TarCompression.of(extension);
+    if (tarCompression != null) {
+      compressTar(dir, out, tarCompression);
+    } else if (extension.equals("zip")) {
+      compressZip(dir, out);
+    } else {
+      throw new IllegalArgumentException("Unsupported extension: " + extension);
+    }
+  }
+
+  @Override
+  public void compressTar(Path dir, OutputStream out, TarCompression tarCompression) {
+    switch (tarCompression) {
+      case null -> compressTar(dir, out);
+      case NONE -> compressTar(dir, out);
+      case GZ -> compressTarGz(dir, out);
+      case BZIP2 -> compressTarBzip2(dir, out);
+      default -> throw new IllegalArgumentException("Unsupported tar compression: " + tarCompression);
+    }
+  }
+
+  @Override
+  public void compressTarGz(Path dir, OutputStream out) {
+    try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(out)) {
+      compressTarOrThrow(dir, gzOut);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress directory " + dir + " to tar.gz file.", e);
+    }
+  }
+
+  @Override
+  public void compressTarBzip2(Path dir, OutputStream out) {
+    try (BZip2CompressorOutputStream bzip2Out = new BZip2CompressorOutputStream(out)) {
+      compressTarOrThrow(dir, bzip2Out);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress directory " + dir + " to tar.bz2 file.", e);
+    }
+  }
+
+  @Override
+  public void compressTar(Path dir, OutputStream out) {
+    try {
+      compressTarOrThrow(dir, out);
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress directory " + dir + " to tar file.", e);
+    }
+  }
+
+  private void compressTarOrThrow(Path dir, OutputStream out) throws IOException {
+    try (TarArchiveOutputStream tarOut = new TarArchiveOutputStream(out)) {
+      compressRecursive(dir, tarOut, "");
+      tarOut.finish();
+    }
+  }
+
+  @Override
+  public void compressZip(Path dir, OutputStream out) {
+    try (ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(out)) {
+      compressRecursive(dir, zipOut, "");
+      zipOut.finish();
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress directory " + dir + " to zip file.", e);
+    }
+  }
+
+  private <E extends ArchiveEntry> void compressRecursive(Path path, ArchiveOutputStream<E> out, String relativePath) {
+    try (Stream<Path> childStream = Files.list(path)) {
+      Iterator<Path> iterator = childStream.iterator();
+      while (iterator.hasNext()) {
+        Path child = iterator.next();
+        String relativeChildPath = relativePath + "/" + child.getFileName().toString();
+        boolean isDirectory = Files.isDirectory(child);
+        E archiveEntry = out.createArchiveEntry(child, relativeChildPath);
+        if (archiveEntry instanceof TarArchiveEntry tarEntry) {
+          FileTime none = FileTime.fromMillis(0);
+          tarEntry.setCreationTime(none);
+          tarEntry.setModTime(none);
+          tarEntry.setLastAccessTime(none);
+          tarEntry.setLastModifiedTime(none);
+          tarEntry.setUserId(0);
+          tarEntry.setUserName("user");
+          tarEntry.setGroupId(0);
+          tarEntry.setGroupName("group");
+          if (isDirectory) {
+            tarEntry.setMode(MODE_RWX_RX_RX);
+          } else {
+            if (relativePath.endsWith("bin")) {
+              tarEntry.setMode(MODE_RWX_RX_RX);
+            } else {
+              tarEntry.setMode(MODE_RW_R_R);
+            }
+          }
+        }
+        out.putArchiveEntry(archiveEntry);
+        if (!isDirectory) {
+          try (InputStream in = Files.newInputStream(child)) {
+            IOUtils.copy(in, out);
+          }
+        }
+        out.closeArchiveEntry();
+        if (isDirectory) {
+          compressRecursive(child, out, relativeChildPath);
+        }
+      }
+    } catch (IOException e) {
+      throw new IllegalStateException("Failed to compress " + path, e);
+    }
   }
 
   @Override
@@ -1160,26 +1317,16 @@ public class FileAccessImpl implements FileAccess {
       return;
     }
     List<String> iniLines = readFileLines(file);
-    IniSection currentIniSection = null;
+    IniSection currentIniSection = iniFile.getInitialSection();
     for (String line : iniLines) {
-      if (line.isEmpty()) {
-        continue;
-      }
-      if (line.startsWith("[")) {
-        String sectionName = line.replace("[", "").replace("]", "").trim();
-        currentIniSection = iniFile.getOrCreateSection(sectionName);
+      if (line.trim().startsWith("[")) {
+        currentIniSection = iniFile.getOrCreateSection(line);
+      } else if (line.isBlank() || IniComment.COMMENT_SYMBOLS.contains(line.trim().charAt(0))) {
+        currentIniSection.addComment(line);
       } else {
         int index = line.indexOf('=');
         if (index > 0) {
-          String propertyName = line.substring(0, index).trim();
-          String propertyValue = line.substring(index + 1).trim();
-          if (currentIniSection == null) {
-            Log.warn("Invalid ini-file with property {} before section", propertyName);
-          } else {
-            currentIniSection.getProperties().put(propertyName, propertyValue);
-          }  
-        } else {
-          // here we can handle comments and empty lines in the future
+          currentIniSection.setProperty(line);
         }
       }
     }

@@ -47,6 +47,7 @@ import com.devonfw.tools.ide.url.tool.quarkus.QuarkusUrlUpdater;
 import com.devonfw.tools.ide.url.tool.sonar.SonarUrlUpdater;
 import com.devonfw.tools.ide.url.tool.terraform.TerraformUrlUpdater;
 import com.devonfw.tools.ide.url.tool.tomcat.TomcatUrlUpdater;
+import com.devonfw.tools.ide.url.tool.uv.UvUrlUpdater;
 import com.devonfw.tools.ide.url.tool.vscode.VsCodeUrlUpdater;
 
 /**
@@ -71,7 +72,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new Mvn4UrlUpdater(),
       new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
       new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
-      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new VsCodeUrlUpdater());
+      new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater());
 
   /**
    * The constructor.
