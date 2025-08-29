@@ -1,7 +1,6 @@
 name: Update Security Files
 
 on:
-  schedule:
   workflow_dispatch:
 
 jobs:
