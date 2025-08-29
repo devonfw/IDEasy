@@ -2,7 +2,6 @@ name: Update Security Files
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Täglich um Mitternacht UTC
   workflow_dispatch:
 
 jobs:

@@ -46,7 +46,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.devonfw.tools.ide.context.AbstractIdeContext;
-import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
@@ -62,13 +61,11 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 
 /**
- * This class is used to build the {@link UrlSecurityFile} files for IDEasy. It scans the {@link AbstractIdeContext#getUrlsPath() ide-url} folder for all tools,
- * editions and versions and checks for vulnerabilities by using the OWASP package. You must pass two arguments to the main method: minV2Severity and
- * minV3Severity. V2 and V3 severity are differentiated, because they are often considered not comparable. Vulnerabilities with severity lower than these values
- * will not be added to the {@link UrlSecurityFile}. For this the {@link com.devonfw.tools.ide.url.model.file.UrlStatusFile#STATUS_JSON} must be present in the
- * {@link com.devonfw.tools.ide.url.model.folder.UrlVersion}. If a vulnerability is found, it is added to the {@link UrlSecurityFile} of the corresponding tool
- * and edition. The previous content of the file is overwritten. Sometimes when running this class is takes a long time to finish. This is because of the OWASP
- * package, which is updating the vulnerability database.
+ * Scans the IDEasy URL repository for tools, editions, and versions, and checks for known vulnerabilities using the OWASP Dependency-Check engine.
+ * <p>For each tool and edition, vulnerabilities are collected and written to the corresponding {@link UrlSecurityFile}. Only vulnerabilities above a
+ * configurable severity threshold are included</p>
+ * <p>Note: Running this class may take a long time due to OWASP database updates.</p>
+ * <p> For usage, see the {@link #main(String[]) main method}</p>
  */
 public class BuildSecurityJsonFiles {
 
@@ -272,36 +269,6 @@ public class BuildSecurityJsonFiles {
 
     CVE cve = new CVE(cveName, severity.doubleValue(), List.of(versionRange));
     securityFile.addCve(cve);
-  }
-
-  /**
-   * Prints debug information about the vulnerability.
-   *
-   * @param vulnerability the vulnerability determined by OWASP dependency check.
-   * @param versionRange the {@link VersionRange} to which the vulnerability applies.
-   * @param severity the severity of the vulnerability.
-   * @param cveName the CVE name of the vulnerability.
-   * @param description the description of the vulnerability.
-   * @param nistUrl the NIST url of the vulnerability.
-   * @param securityFile the {@link UrlSecurityFile} of the tool and edition to which the vulnerability is added.
-   */
-  private static void debugInfo(Vulnerability vulnerability, VersionRange versionRange, BigDecimal severity,
-      String cveName, String description, String nistUrl, UrlSecurityFile securityFile, IdeContext context) {
-
-    context.debug("Writing vulnerability {} to security file at {}.", cveName, securityFile.getPath());
-    VulnerableSoftware matchedVulnerableSoftware = vulnerability.getMatchedVulnerableSoftware();
-    context.debug("Matched CPE: {}.", matchedVulnerableSoftware.toCpe23FS());
-    // the fields of cpe2.3 are:
-    // cpe2.3 part, vendor, product, version, update, edition, language, swEdition, targetSw, targetHw, other;
-    context.debug("The severity of the vulnerability is {}.", severity);
-    context.debug("The description of the vulnerability is {}.", description);
-    context.debug("The NIST url of the vulnerability is {}.", nistUrl);
-    context.debug(
-        "The determined VersionRange is {}, given OWASPs versionStartExcluding {}, versionStartIncluding {}, "
-            + "versionEndIncluding {}, versionEndExcluding {}, single Version {} ",
-        versionRange, matchedVulnerableSoftware.getVersionStartExcluding(),
-        matchedVulnerableSoftware.getVersionStartIncluding(), matchedVulnerableSoftware.getVersionEndIncluding(),
-        matchedVulnerableSoftware.getVersionEndExcluding(), matchedVulnerableSoftware.getVersion());
   }
 
   /**
