@@ -61,7 +61,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
 
   private final UrlRepository urlRepository;
 
-  private UrlFinalReport urlFinalReport;
+  private final UrlFinalReport urlFinalReport;
 
   private final List<AbstractUrlUpdater> updaters = Arrays.asList(
       new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
@@ -127,5 +127,33 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       logger.error("Failed to update {}", updater.getToolWithEdition(), e);
     }
   }
+
+  /**
+   * Retrieves a specific {@link AbstractUrlUpdater} based on tool name and edition.
+   *
+   * @param tool the name of the tool (e.g., "java").
+   * @param edition the edition of the tool (e.g., "oracle", "community").
+   * @return the matching {@link AbstractUrlUpdater}, or {@code null} if not found.
+   */
+  public AbstractUrlUpdater retrieveUrlUpdater(String tool, String edition) {
+
+    for (AbstractUrlUpdater updater : updaters) {
+      if (updater.getTool().equals(tool) && updater.getEdition().equals(edition)) {
+        return updater;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns the {@link UrlRepository} instance used for storing and updating tool URLs.
+   *
+   * @return the {@link UrlRepository} instance.
+   */
+  public UrlRepository getUrlRepository() {
+
+    return this.urlRepository;
+  }
+
 
 }
