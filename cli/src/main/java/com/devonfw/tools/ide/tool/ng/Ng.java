@@ -1,10 +1,5 @@
 package com.devonfw.tools.ide.tool.ng;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -16,6 +11,11 @@ import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
 
 /**
  * {@link ToolCommandlet} for <a href="https://angular.dev/">angular</a>.
@@ -32,24 +32,6 @@ public class Ng extends LocalToolCommandlet {
   public Ng(IdeContext context) {
 
     super(context, "ng", Set.of(Tag.JAVA_SCRIPT, Tag.TYPE_SCRIPT, Tag.BUILD));
-  }
-
-  @Override
-  protected boolean isIgnoreSoftwareRepo() {
-
-    return true;
-  }
-
-  @Override
-  public Path getToolPath() {
-
-    return this.context.getSoftwarePath().resolve("node");
-  }
-
-  @Override
-  public Path getToolBinPath() {
-
-    return getToolPath();
   }
 
   private boolean hasNodeBinary(String binary) {
@@ -101,6 +83,7 @@ public class Ng extends LocalToolCommandlet {
   @Override
   public ToolInstallation installTool(GenericVersionRange version, ProcessContext pc, String edition) {
 
+    ToolInstallation installation = super.installTool(version, pc, edition);
     ToolRepository toolRepository = getToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
@@ -108,7 +91,7 @@ public class Ng extends LocalToolCommandlet {
     if (!resolvedVersion.equals(getInstalledVersion())) {
       runNpmUninstall(PACKAGE_ANGULAR_CLI);
     } else {
-      return new ToolInstallation(null, null, null, configuredVersion, false);
+      return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, false);
     }
     String ngPackage = PACKAGE_ANGULAR_CLI;
     if (resolvedVersion.isPattern()) {
@@ -117,7 +100,7 @@ public class Ng extends LocalToolCommandlet {
       ngPackage += "@" + resolvedVersion;
     }
     runNpmInstall(ngPackage);
-    return new ToolInstallation(null, null, null, configuredVersion, true);
+    return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, true);
   }
 
   @Override
