@@ -1,0 +1,25 @@
+{
+  "versions": {
+    "1.1.25": {
+      "name": "npm",
+      "version": "1.1.25",
+      "dist": {
+        "tarball": "${testbaseurl}/npm/-/npm-1.1.25.tgz"
+      }
+    },
+    "1.2.32": {
+      "name": "npm",
+      "version": "1.2.32",
+      "dist": {
+        "tarball": "${testbaseurl}/npm/-/npm-1.2.32.tgz"
+      }
+    },
+    "2.0.0-beta.0": {
+      "name": "npm",
+      "version": "2.0.0-beta.0",
+      "dist": {
+        "tarball": "${testbaseurl}/npm/-/npm-2.0.0-beta.0.tgz"
+      }
+    }
+  }
+}

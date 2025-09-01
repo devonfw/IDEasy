@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
+import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
 import com.devonfw.tools.ide.url.model.AbstractUrlFolderWithParent;
@@ -109,7 +110,7 @@ public class UrlVersion extends AbstractUrlFolderWithParent<UrlEdition, UrlFile<
             urls = getUrls(os, SystemArchitecture.X64);
           }
           if (urls == null) {
-            throw new IllegalStateException("No download was found for OS " + os + "@" + arch + " in " + getPath());
+            throw new CliException("No download was found for OS " + os + "@" + arch + " in " + getPath());
           }
         }
       }

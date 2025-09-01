@@ -91,4 +91,63 @@ class XmlMergerTest extends AbstractIdeContextTest {
     ;
 
   }
+
+  /**
+   * Tests for XML merge of legacy devonfw-ide templates without XML namespace prefix merge.
+   */
+  @Test
+  void testLegacySupportXmlMerge() {
+
+    // arrange
+    String projectDevonfwIde = "devonfw-ide";
+    IdeTestContext context = newContext(projectDevonfwIde);
+    Path devonfwIdePath = TEST_PROJECTS_COPY.resolve(projectDevonfwIde).resolve("project");
+    EnvironmentVariables variables = context.getVariables();
+    variables.getByType(EnvironmentVariablesType.CONF).set("IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED", "true");
+    Path settingsWorkspaceFolder = devonfwIdePath.resolve("settings").resolve("workspace");
+    Path settingsSetupPath = settingsWorkspaceFolder.resolve("setup").resolve("setup.xml");
+    Path settingsUpdatePath = settingsWorkspaceFolder.resolve("update").resolve("update.xml");
+    Path settingsUpdateWithNsPath = settingsWorkspaceFolder.resolve("update").resolve("updateWithNs.xml");
+    Path workspaceSetupPath = devonfwIdePath.resolve("workspaces").resolve("main").resolve("setup.xml");
+    Path workspaceUpdatePath = devonfwIdePath.resolve("workspaces").resolve("main").resolve("update.xml");
+    Path workspaceUpdateWithNsPath = devonfwIdePath.resolve("workspaces").resolve("main").resolve("updateWithNs.xml");
+    Path workspaceResultUpdateWithNsPath = devonfwIdePath.resolve("workspaces").resolve("main").resolve("expectedResultUpdateWithNs.xml");
+    XmlMerger merger = new XmlMerger(context);
+
+    // act
+    merger.doMerge(settingsSetupPath, settingsUpdatePath, variables, workspaceSetupPath);
+    merger.doMerge(settingsSetupPath, settingsUpdatePath, variables, workspaceUpdatePath);
+    merger.doMerge(settingsSetupPath, settingsUpdateWithNsPath, variables, workspaceUpdateWithNsPath);
+
+    // assert
+    XmlAssert.assertThat(settingsSetupPath.toFile()).and(workspaceSetupPath.toFile()).areIdentical();
+    XmlAssert.assertThat(settingsUpdatePath.toFile()).and(settingsUpdatePath.toFile()).areIdentical();
+    XmlAssert.assertThat(workspaceUpdateWithNsPath.toFile()).and(workspaceResultUpdateWithNsPath.toFile()).areIdentical();
+
+  }
+
+  @Test
+  void testLegacySupportWarningWhenEnvNotSetAndNoNamespace() {
+
+    // arrange
+    String projectDevonfwIde = "devonfw-ide";
+    IdeTestContext context = newContext(projectDevonfwIde);
+    Path devonfwIdePath = TEST_PROJECTS_COPY.resolve(projectDevonfwIde).resolve("project");
+    EnvironmentVariables variables = context.getVariables();
+    Path settingsWorkspaceFolder = devonfwIdePath.resolve("settings").resolve("workspace");
+    Path settingsSetupPath = settingsWorkspaceFolder.resolve("setup").resolve("setup.xml");
+    Path settingsUpdatePath = settingsWorkspaceFolder.resolve("update").resolve("update.xml");
+    Path workspaceSetupPath = devonfwIdePath.resolve("workspaces").resolve("main").resolve("setup.xml");
+    XmlMerger merger = new XmlMerger(context);
+
+    // act
+    merger.doMerge(settingsSetupPath, settingsUpdatePath, variables, workspaceSetupPath);
+
+    // assert
+    assertThat(context).logAtWarning().hasEntries(
+        "XML merge namespace not found in file " + settingsUpdatePath
+            + ". If you are working in a legacy devonfw-ide project, please set IDE_XML_MERGE_LEGACY_SUPPORT_ENABLED=true to "
+            + "proceed correctly.");
+  }
+
 }

@@ -8,7 +8,7 @@ toc::[]
 We try to make it as simple as possible for you.
 However, there are some minimal prerequisites:
 
-* You need to have a tool to extract `*.tar.gz` files (`tar` and `gzip`).
+* Unless you use the MSI installer for Windows, you need to have a tool to extract `*.tar.gz` files (`tar` and `gzip`).
 On Windows before Version 10 (1803) use https://www.7-zip.org/[7-zip].
 On all other platforms this comes out of the box.
 * You need to have https://git-scm.com[git].
@@ -43,8 +43,6 @@ tar xvfz ~/Downloads/ide-cli-*.tar.gz
 source setup
 ```
 
-NOTE: We are planning to create a installer that will guide users through the installation process but this is not yet released.
-
 == Uninstall
 
 To "uninstall" your `IDEasy` you only need to call the following command:
@@ -70,13 +68,18 @@ You have to delete this folder manually as we do not want to be responsible for 
 
 == Testing SNAPSHOT releases
 
-You can find the latest IDEasy SNAPSHOT releases https://s01.oss.sonatype.org/content/repositories/snapshots/com/devonfw/tools/IDEasy/ide-cli/[here].
+Whenever a story in `IDEasy` is completed by merging a https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests[PR], our https://github.com/features/actions[github actions] will build a new SNAPSHOT release and on success deploy it to maven central portal.
+In order to install and test the latest SNAPSHOT version use the following command:
 
-Whenever a story in `IDEasy` is completed by merging a https://docs.github.com/en/github/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests[PR], our https://github.com/features/actions[github actions] will build a new SNAPSHOT release and on success deploy it to nexus on OSSRH.
-Simply choose the latest SNAPSHOT version folder and then inside that version folder the `*.tar.gz` file for the latest version and your target platform.
-Please open the download link in a new tab to make the download start properly.
-
-Once downloaded, you can proceed as with official releases (see xref:install[install]).
+```
+ide upgrade --mode=snapshot
+```
 
 If you test the latest SNAPSHOT please also give feedback to bug or feature tickets to let us know if things are working or not.
 Thanks for your testing, support and help to make IDEasy better!
+
+NOTE: After you completed your test or the next official release has been shipped please do not forget to switch back to the stable release channel.
+
+```
+ide upgrade --mode=stable
+```

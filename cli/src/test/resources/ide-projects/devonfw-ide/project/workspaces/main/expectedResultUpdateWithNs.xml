@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<root>
+  <element attr1="updateNsValue1" attr3="value3" name="elem1">This is an element of the updated XML file with namespace</element>
+  <element1 attr1="newValue" attr2="oldValue">New text 1</element1>
+  <element2 attr2="oldValue">2</element2>
+  <element attr2="updateNsValue2" name="elem2">This is another element of the updated XML file with namespace</element>
+</root>

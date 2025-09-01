@@ -12,16 +12,25 @@ import com.devonfw.tools.ide.commandlet.UpgradeMode;
 import com.devonfw.tools.ide.common.SimpleSystemPath;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.git.GitContext;
+import com.devonfw.tools.ide.git.GitContextImpl;
 import com.devonfw.tools.ide.io.FileAccess;
+import com.devonfw.tools.ide.io.ini.IniFile;
+import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.WindowsHelper;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.mvn.MvnBasedLocalToolCommandlet;
 import com.devonfw.tools.ide.tool.repository.MavenRepository;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * {@link MvnBasedLocalToolCommandlet} for IDEasy (ide-cli).
@@ -80,7 +89,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
 
     UpgradeMode upgradeMode = this.mode;
     if (upgradeMode == null) {
-      if (IdeVersion.getVersionString().contains("SNAPSHOT")) {
+      if (IdeVersion.isSnapshot()) {
         upgradeMode = UpgradeMode.SNAPSHOT;
       } else {
         if (IdeVersion.getVersionIdentifier().getDevelopmentPhase().isStable()) {
@@ -102,7 +111,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
   @Override
   public boolean install(boolean silent) {
 
-    if (IdeVersion.isUndefined()) {
+    this.context.requireOnline("upgrade of IDEasy", true);
+
+    if (IdeVersion.isUndefined() && !this.context.isForceMode()) {
       this.context.warning("You are using IDEasy version {} which indicates local development - skipping upgrade.", IdeVersion.getVersionString());
       return false;
     }
@@ -129,9 +140,17 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    */
   public boolean checkIfUpdateIsAvailable() {
     VersionIdentifier installedVersion = getInstalledVersion();
+    this.context.success("Your version of IDEasy is {}.", installedVersion);
+    if (IdeVersion.isSnapshot()) {
+      this.context.warning("You are using a SNAPSHOT version of IDEasy. For stability consider switching to a stable release via 'ide upgrade --mode=stable'");
+    }
+    if (this.context.isOffline()) {
+      this.context.warning("Skipping check for newer version of IDEasy because you are offline.");
+      return false;
+    }
     VersionIdentifier latestVersion = getLatestVersion();
     if (installedVersion.equals(latestVersion)) {
-      this.context.success("Your version of IDEasy is {} which is the latest released version.", installedVersion);
+      this.context.success("Your are using the latest version of IDEasy and no update is available.");
       return false;
     } else {
       this.context.interaction("Your version of IDEasy is {} but version {} is available. Please run the following command to upgrade to the latest version:\n"
@@ -173,6 +192,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     for (Path installationArtifact : installationArtifacts) {
       fileAccess.copy(installationArtifact, ideasyVersionPath);
     }
+    this.context.writeVersionFile(IdeVersion.getVersionIdentifier(), ideasyVersionPath);
     fileAccess.symlink(ideasyVersionPath, installationPath);
     addToShellRc(BASHRC, ideRoot, null);
     addToShellRc(ZSHRC, ideRoot, "autoload -U +X bashcompinit && bashcompinit");
@@ -209,6 +229,190 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       }
       path.getEntries().add(ideasyBinPath.toString());
       helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), path.toString());
+      setGitLongpaths();
+    }
+  }
+
+  private void setGitLongpaths() {
+    GitContext gitContext = new GitContextImpl(this.context);
+    gitContext.verifyGitInstalled();
+    Path configPath = this.context.getUserHome().resolve(".gitconfig");
+    FileAccess fileAccess = this.context.getFileAccess();
+    IniFile iniFile = fileAccess.readIniFile(configPath);
+    IniSection coreSection = iniFile.getOrCreateSection("core");
+    coreSection.setProperty("longpaths", "true");
+    fileAccess.writeIniFile(iniFile, configPath);
+  }
+
+  /**
+   * Sets up Windows Terminal with Git Bash integration.
+   */
+  public void setupWindowsTerminal() {
+    if (!this.context.getSystemInfo().isWindows()) {
+      return;
+    }
+    if (!isWindowsTerminalInstalled()) {
+      installWindowsTerminal();
+    }
+    configureWindowsTerminalGitBash();
+  }
+
+  /**
+   * Checks if Windows Terminal is installed.
+   *
+   * @return {@code true} if Windows Terminal is installed, {@code false} otherwise.
+   */
+  private boolean isWindowsTerminalInstalled() {
+    try {
+      ProcessResult result = this.context.newProcess()
+          .executable("powershell")
+          .addArgs("-Command", "Get-AppxPackage -Name Microsoft.WindowsTerminal")
+          .run(ProcessMode.DEFAULT_CAPTURE);
+      return result.isSuccessful() && !result.getOut().isEmpty();
+    } catch (Exception e) {
+      this.context.debug("Failed to check Windows Terminal installation: {}", e.getMessage());
+      return false;
+    }
+  }
+
+  /**
+   * Installs Windows Terminal using winget.
+   */
+  private void installWindowsTerminal() {
+    try {
+      this.context.info("Installing Windows Terminal...");
+      ProcessResult result = this.context.newProcess()
+          .executable("winget")
+          .addArgs("install", "Microsoft.WindowsTerminal")
+          .run(ProcessMode.DEFAULT);
+      if (result.isSuccessful()) {
+        this.context.success("Windows Terminal has been installed successfully.");
+      } else {
+        this.context.warning("Failed to install Windows Terminal. Please install it manually from Microsoft Store.");
+      }
+    } catch (Exception e) {
+      this.context.warning("Failed to install Windows Terminal: {}. Please install it manually from Microsoft Store.", e.getMessage());
+    }
+  }
+
+  /**
+   * Configures Git Bash integration in Windows Terminal.
+   */
+  protected void configureWindowsTerminalGitBash() {
+    Path settingsPath = getWindowsTerminalSettingsPath();
+    if (settingsPath == null || !Files.exists(settingsPath)) {
+      this.context.warning("Windows Terminal settings file not found. Cannot configure Git Bash integration.");
+      return;
+    }
+
+    try {
+      String bashPath = this.context.findBash();
+      if (bashPath == null) {
+        this.context.warning("Git Bash not found. Cannot configure Windows Terminal integration.");
+        return;
+      }
+
+      configureGitBashProfile(settingsPath, bashPath);
+      this.context.success("Git Bash has been configured in Windows Terminal.");
+    } catch (Exception e) {
+      this.context.warning("Failed to configure Git Bash in Windows Terminal: {}", e.getMessage());
+    }
+  }
+
+  /**
+   * Gets the Windows Terminal settings file path.
+   *
+   * @return the {@link Path} to the Windows Terminal settings file, or {@code null} if not found.
+   */
+  protected Path getWindowsTerminalSettingsPath() {
+    Path localAppData = this.context.getUserHome().resolve("AppData").resolve("Local");
+    Path packagesPath = localAppData.resolve("Packages");
+
+    // Try the new Windows Terminal package first
+    Path newTerminalPath = packagesPath.resolve("Microsoft.WindowsTerminal_8wekyb3d8bbwe")
+        .resolve("LocalState").resolve("settings.json");
+    if (Files.exists(newTerminalPath)) {
+      return newTerminalPath;
+    }
+
+    // Try the old Windows Terminal Preview package
+    Path previewPath = packagesPath.resolve("Microsoft.WindowsTerminalPreview_8wekyb3d8bbwe")
+        .resolve("LocalState").resolve("settings.json");
+    if (Files.exists(previewPath)) {
+      return previewPath;
+    }
+
+    return null;
+  }
+
+  /**
+   * Configures Git Bash profile in Windows Terminal settings.
+   *
+   * @param settingsPath the {@link Path} to the Windows Terminal settings file.
+   * @param bashPath the path to the Git Bash executable.
+   */
+  private void configureGitBashProfile(Path settingsPath, String bashPath) throws Exception {
+    FileAccess fileAccess = this.context.getFileAccess();
+    String settingsContent = fileAccess.readFileContent(settingsPath);
+
+    ObjectMapper mapper = new ObjectMapper();
+    JsonNode rootNode = mapper.readTree(settingsContent);
+    ObjectNode root = (ObjectNode) rootNode;
+
+    // Get or create profiles object
+    ObjectNode profiles = (ObjectNode) root.get("profiles");
+    if (profiles == null) {
+      profiles = mapper.createObjectNode();
+      root.set("profiles", profiles);
+    }
+
+    // Get or create list array of profiles object
+    JsonNode profilesList = profiles.get("list");
+    if (profilesList == null || !profilesList.isArray()) {
+      profilesList = mapper.createArrayNode();
+      profiles.set("list", profilesList);
+    }
+
+    // Check if Git Bash profile already exists
+    boolean gitBashProfileExists = false;
+    for (JsonNode profile : profilesList) {
+      if (profile.has("name") && profile.get("name").asText().equals("Git Bash")) {
+        gitBashProfileExists = true;
+        break;
+      }
+    }
+
+    // Add Git Bash profile if it doesn't exist
+    if (!gitBashProfileExists) {
+      ObjectNode gitBashProfile = mapper.createObjectNode();
+      String newGuid = "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}";
+      String iconPath = getGitBashIconPath(bashPath);
+      String startingDirectory = this.context.getIdeRoot().toString();
+
+      gitBashProfile.put("guid", newGuid);
+      gitBashProfile.put("name", "Git Bash");
+      gitBashProfile.put("commandline", bashPath);
+      gitBashProfile.put("icon", iconPath);
+      gitBashProfile.put("startingDirectory", startingDirectory);
+
+      ((ArrayNode) profilesList).add(gitBashProfile);
+
+      // Set Git Bash as default profile
+      root.put("defaultProfile", newGuid);
+
+      // Write back to file
+      String updatedContent = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
+      fileAccess.writeFileContent(updatedContent, settingsPath);
+    }
+  }
+
+  private String getGitBashIconPath(String bashPath) {
+    Path iconPath = Path.of("C:\\Program Files\\Git\\mingw64\\share\\git\\git-for-windows.ico");
+    if (Files.exists(iconPath)) {
+      return iconPath.toString();
+    } else {
+      this.context.debug("Git Bash icon not found at {}. Using default icon.", iconPath);
+      return "ms-appx:///ProfileIcons/{0caa0dad-35be-5f56-a8ff-afceeeaa6101}.png";
     }
   }
 

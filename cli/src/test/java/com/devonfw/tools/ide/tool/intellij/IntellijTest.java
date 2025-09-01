@@ -63,12 +63,14 @@ public class IntellijTest extends AbstractIdeContextTest {
 
     // assert
     checkInstallation(this.context);
+    assertThat(commandlet.getToolBinPath().resolve("customRepoTest")).hasContent(
+        "custom plugin repo url is: http://customRepo");
 
     // act
     commandlet.uninstallPlugin(commandlet.getPlugins().getById("activePlugin"));
 
     //assert
-    assertThat(context.getPluginsPath().resolve("intellij").resolve("mockedPlugin").resolve("MockedClass.class")).doesNotExist();
+    assertThat(context.getPluginsPath().resolve("intellij").resolve("activePlugin")).doesNotExist();
   }
 
   /**
@@ -93,29 +95,6 @@ public class IntellijTest extends AbstractIdeContextTest {
     checkInstallation(this.context);
     assertThat(commandlet.getToolBinPath().resolve("intellijtest")).hasContent(
         "intellij " + this.context.getSystemInfo().getOs() + " " + this.context.getWorkspacePath());
-  }
-
-  /**
-   * Tests if {@link Intellij IntelliJ IDE} can install plugins with custom url.
-   *
-   * @param os String of the OS to use.
-   */
-  @ParameterizedTest
-  @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testIntellijPluginInstallWithCustomRepoUrl(String os) {
-
-    // arrange
-    SystemInfo systemInfo = SystemInfoMock.of(os);
-    this.context.setSystemInfo(systemInfo);
-    Intellij commandlet = new Intellij(this.context);
-
-    // act
-    commandlet.install();
-
-    // assert
-    checkInstallation(this.context);
-    assertThat(commandlet.getToolBinPath().resolve("customRepoTest")).hasContent(
-        "custom plugin repo url is: http://customRepo");
   }
 
   /**
@@ -170,6 +149,7 @@ public class IntellijTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
+    assertThat(context.getWorkspacePath().resolve("idea.properties")).exists();
     assertThat(context).logAtSuccess().hasEntries("Successfully installed java in version 17.0.10_7",
         "Successfully installed intellij in version 2023.3.3");
     assertThat(context).logAtDebug().hasEntries("Omitting installation of inactive plugin InactivePlugin (inactivePlugin).");

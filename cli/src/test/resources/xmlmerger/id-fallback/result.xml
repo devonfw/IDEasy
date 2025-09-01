@@ -10,5 +10,8 @@
   </parent>
   <special class="id2">new special2</special>
   <special class="id3">old special3</special>
+  <special2 class="id5" key="id6">new special4</special2>
+  <special2 class="id7">old special5</special2>
   <special class="id1">new special1</special>
+  <special2 class="id3" key="id4">new special3</special2>
 </root>

@@ -31,11 +31,13 @@ import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.oc.Oc;
 import com.devonfw.tools.ide.tool.pgadmin.PgAdmin;
+import com.devonfw.tools.ide.tool.pycharm.Pycharm;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.tomcat.Tomcat;
+import com.devonfw.tools.ide.tool.uv.Uv;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 import com.devonfw.tools.ide.tool.yarn.Yarn;
 
@@ -127,6 +129,8 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new PgAdmin(context));
     add(new LazyDocker(context));
     add(new Python(context));
+    add(new Pycharm(context));
+    add(new Uv(context));
     add(new Yarn(context));
   }
 

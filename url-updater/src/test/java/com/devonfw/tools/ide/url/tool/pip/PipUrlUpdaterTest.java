@@ -14,7 +14,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.devonfw.tools.ide.url.model.file.json.StatusJson;
 import com.devonfw.tools.ide.url.model.file.json.UrlStatus;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
-import com.devonfw.tools.ide.url.tool.AbstractUrlUpdaterTest;
+import com.devonfw.tools.ide.url.updater.AbstractUrlUpdaterTest;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -35,9 +35,9 @@ public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
   @Test
   public void testPipUrlUpdaterWithTextContentTypeWillSucceed(@TempDir Path tempDir, WireMockRuntimeInfo wmRuntimeInfo) {
 
-    // given
+    // arrage
     stubFor(any(urlMatching("/pip/.*"))
-        .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain").withBody("aBody")));
+        .willReturn(aResponse().withStatus(200).withHeader("Content-Type", "text/plain").withBody(DOWNLOAD_CONTENT)));
 
     UrlRepository urlRepository = UrlRepository.load(tempDir);
     PipUrlUpdaterMock updater = new PipUrlUpdaterMock(wmRuntimeInfo);
@@ -47,12 +47,12 @@ public class PipUrlUpdaterTest extends AbstractUrlUpdaterTest {
     String editionName = "pip";
     String versionName = "1.0";
 
-    // when
+    // act
     updater.update(urlRepository);
 
     Path versionsPath = tempDir.resolve(toolName).resolve(editionName).resolve(versionName);
 
-    // then
+    // assert
     assertThat(versionsPath.resolve("status.json")).exists();
 
     StatusJson statusJson = retrieveStatusJson(urlRepository, toolName, editionName, versionName);
