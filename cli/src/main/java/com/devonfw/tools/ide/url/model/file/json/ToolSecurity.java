@@ -22,11 +22,11 @@ public class ToolSecurity {
   private List<CVE> issues;
 
 
-  private ToolSecurity() {
-    super();
+  public ToolSecurity() {
+    this(new ArrayList<>());
   }
 
-  private ToolSecurity(List<CVE> issues) {
+  public ToolSecurity(List<CVE> issues) {
 
     super();
     this.issues = issues;
