@@ -86,37 +86,37 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   private boolean doInstallStep(VersionIdentifier configuredVersion, VersionIdentifier installedVersion, boolean silent, ProcessContext processContext,
       Step step) {
 
-      // install configured version of our tool in the software repository if not already installed
-      ToolInstallation installation = installTool(configuredVersion, processContext);
+    // install configured version of our tool in the software repository if not already installed
+    ToolInstallation installation = installTool(configuredVersion, processContext);
 
-      // check if we already have this version installed (linked) locally in IDE_HOME/software
-      VersionIdentifier resolvedVersion = installation.resolvedVersion();
-      if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation()) || (configuredVersion.matches(installedVersion)
-          && context.isSkipUpdatesMode())) {
+    // check if we already have this version installed (linked) locally in IDE_HOME/software
+    VersionIdentifier resolvedVersion = installation.resolvedVersion();
+    if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation()) || (configuredVersion.matches(installedVersion)
+        && context.isSkipUpdatesMode())) {
       return toolAlreadyInstalled(silent, installedVersion, processContext);
-      }
-      if (!isIgnoreSoftwareRepo()) {
-        // we need to link the version or update the link.
-        Path toolPath = getToolPath();
-        FileAccess fileAccess = this.context.getFileAccess();
-        if (Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
-          fileAccess.backup(toolPath);
-        }
-        fileAccess.mkdirs(toolPath.getParent());
-        fileAccess.symlink(installation.linkDir(), toolPath);
-      }
-      Path binDir = installation.binDir();
-      if (binDir != null) {
-        this.context.getPath().setPath(this.tool, binDir);
-      }
-      postInstall(true, processContext);
-      if (installedVersion == null) {
-      asSuccess(step).log("Successfully installed {} in version {}", this.tool, resolvedVersion);
-      } else {
-      asSuccess(step).log("Successfully installed {} in version {} replacing previous version {}", this.tool, resolvedVersion, installedVersion);
-      }
-      return true;
     }
+    if (!isIgnoreSoftwareRepo()) {
+      // we need to link the version or update the link.
+      Path toolPath = getToolPath();
+      FileAccess fileAccess = this.context.getFileAccess();
+      if (Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
+        fileAccess.backup(toolPath);
+      }
+      fileAccess.mkdirs(toolPath.getParent());
+      fileAccess.symlink(installation.linkDir(), toolPath);
+    }
+    Path binDir = installation.binDir();
+    if (binDir != null) {
+      this.context.getPath().setPath(this.tool, binDir);
+    }
+    postInstall(true, processContext);
+    if (installedVersion == null) {
+      asSuccess(step).log("Successfully installed {} in version {}", this.tool, resolvedVersion);
+    } else {
+      asSuccess(step).log("Successfully installed {} in version {} replacing previous version {}", this.tool, resolvedVersion, installedVersion);
+    }
+    return true;
+  }
 
   /**
    * This method is called after a tool was requested to be installed or updated.
@@ -213,10 +213,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
           this.context.warning("Your IDEasy installation is missing the version file at {}", toolVersionFile);
         } else {
-        this.context.warning("Deleting corrupted installation at {}", installationPath);
-        fileAccess.delete(installationPath);
+          this.context.warning("Deleting corrupted installation at {}", installationPath);
+          fileAccess.delete(installationPath);
+        }
       }
-    }
     }
     performToolInstallation(toolRepository, resolvedVersion, installationPath, fileAccess, edition, processContext);
     return createToolInstallation(installationPath, resolvedVersion, toolVersionFile, true, processContext, extraInstallation);
@@ -293,7 +293,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return toolInstallation.newInstallation();
   }
 
-  private void installToolDependencies(VersionIdentifier version, String edition, ProcessContext processContext) {
+  protected void installToolDependencies(VersionIdentifier version, String edition, ProcessContext processContext) {
 
     Collection<ToolDependency> dependencies = getToolRepository().findDependencies(this.tool, edition, version);
     String toolWithEdition = getToolWithEdition(this.tool, edition);
@@ -462,15 +462,15 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
                 + "Deleting " + this.tool + " version " + getInstalledVersion() + " from your machine.");
         uninstallFromSoftwareRepository(toolPath);
       }
-        try {
+      try {
         this.context.getFileAccess().delete(toolPath);
-          this.context.success("Successfully uninstalled " + this.tool);
-        } catch (Exception e) {
+        this.context.success("Successfully uninstalled " + this.tool);
+      } catch (Exception e) {
         this.context.error("Couldn't uninstall " + this.tool + ". ", e);
-        }
+      }
     } catch (Exception e) {
       this.context.error(e.getMessage(), e);
-      }
+    }
   }
 
   /**
@@ -487,13 +487,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       try {
         this.context.getFileAccess().delete(repoPath);
         this.context.success("Successfully deleted " + repoPath + " from your computer.");
-    } catch (Exception e) {
+      } catch (Exception e) {
         this.context.error("Couldn't delete " + this.tool + " from your computer.", e);
-    }
+      }
     } catch (Exception e) {
       throw new IllegalStateException(
           " Couldn't uninstall " + this.tool + ". Couldn't determine the software repository path for " + this.tool + ".", e);
-  }
+    }
   }
 
 

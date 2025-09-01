@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.yarn;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.ToolInstallation;
@@ -30,27 +31,9 @@ public class Yarn extends LocalToolCommandlet {
     super(context, "yarn", Set.of(Tag.JAVA_SCRIPT, Tag.BUILD));
   }
 
-  @Override
-  protected boolean isIgnoreSoftwareRepo() {
-
-    return true;
-  }
-
-  @Override
-  public Path getToolPath() {
-
-    return this.context.getSoftwarePath().resolve("node");
-  }
-
-  @Override
-  public Path getToolBinPath() {
-
-    return getToolPath();
-  }
-
   private boolean hasNodeBinary(String binary) {
 
-    Path toolPath = getToolPath();
+    Path toolPath = getToolBinPath();
     Path yarnPath = toolPath.resolve(binary);
     return Files.exists(yarnPath);
   }
@@ -58,7 +41,7 @@ public class Yarn extends LocalToolCommandlet {
   @Override
   public VersionIdentifier getInstalledVersion() {
 
-    if (hasNodeBinary("yarn")) {
+    if (hasNodeBinary("yarn.js")) {
       String version = this.context.newProcess().runAndGetSingleOutput("yarn", "-v");
       return VersionIdentifier.of(version);
     }
@@ -69,7 +52,7 @@ public class Yarn extends LocalToolCommandlet {
   @Override
   public String getInstalledEdition() {
 
-    if (hasNodeBinary("yarn")) {
+    if (hasNodeBinary("yarn.js")) {
       return "yarn";
     }
     return null;
@@ -78,18 +61,19 @@ public class Yarn extends LocalToolCommandlet {
   @Override
   public ToolInstallation installTool(GenericVersionRange version, ProcessContext pc, String edition) {
 
+    ToolInstallation installation = super.installTool(version, pc, edition);
     ToolRepository toolRepository = getToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     // UrlUpdater required for Yarn...
-    // VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
-    VersionIdentifier resolvedVersion = configuredVersion;
-    if (!hasNodeBinary("corepack")) {
-      if (hasNodeBinary("yarn")) {
-        // uninstall yarn classic to prevent error when installing core-pack
-        pc.run("npm", "uninstall", "-g", "yarn");
-      }
+    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
+    installToolDependencies(resolvedVersion, edition, pc);
+    if (!resolvedVersion.equals(getInstalledVersion())) {
+      runNpmUninstall("yarn");
       runNpmInstall("corepack");
+    } else {
+      return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, false);
     }
+
     String yarnPackage = "yarn";
     if (resolvedVersion.isPattern()) {
       this.context.warning("Yarn currently does not support version pattern: {}", resolvedVersion);
@@ -98,19 +82,29 @@ public class Yarn extends LocalToolCommandlet {
     }
     pc.run("corepack", "prepare", yarnPackage, "--activate");
     pc.run("corepack", "install", "-g", yarnPackage);
-    Path rootDir = null;
-    return new ToolInstallation(rootDir, rootDir, null, configuredVersion, true);
+    return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, true);
   }
 
-  private void runNpmInstall(String npmPackage) {
-
-    runNpm("install", "-g", npmPackage);
+  private void runNpmUninstall(String npmPackage) {
+    if (hasNodeBinary("yarn.js")) {
+      ProcessResult result = runNpm("uninstall", "-g", npmPackage);
+      if (result.isSuccessful()) {
+        this.context.info("Successfully uninstalled {}", getName());
+      } else {
+        this.context.error("An error occurred while uninstalling {}", getName(), result.getErr());
+      }
+    }
   }
 
-  private void runNpm(String... args) {
+  private ProcessResult runNpmInstall(String npmPackage) {
+
+    return runNpm("install", "-g", npmPackage);
+  }
+
+  private ProcessResult runNpm(String... args) {
 
     Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
-    npm.runTool(args);
+    return npm.runTool(args);
   }
 
   @Override
