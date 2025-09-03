@@ -1,5 +1,13 @@
 package com.devonfw.tools.ide.commandlet;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -10,6 +18,7 @@ import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
+import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
@@ -40,14 +49,6 @@ import com.devonfw.tools.ide.tool.tomcat.Tomcat;
 import com.devonfw.tools.ide.tool.uv.Uv;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
 import com.devonfw.tools.ide.tool.yarn.Yarn;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -132,6 +133,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Pycharm(context));
     add(new Uv(context));
     add(new Yarn(context));
+    add(new Corepack(context));
   }
 
   /**

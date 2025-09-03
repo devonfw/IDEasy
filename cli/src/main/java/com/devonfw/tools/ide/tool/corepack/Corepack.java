@@ -1,4 +1,4 @@
-package com.devonfw.tools.ide.tool.yarn;
+package com.devonfw.tools.ide.tool.corepack;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -17,18 +17,26 @@ import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link ToolCommandlet} for <a href="https://yarnpkg.com">yarn</a>.
+ * {@link ToolCommandlet} for <a href="https://www.npmjs.com/package/corepack">corepack</a>.
  */
-public class Yarn extends LocalToolCommandlet {
+public class Corepack extends LocalToolCommandlet {
+
+  private static final String COREPACK_HOME_FOLDER = "corepack";
 
   /**
    * The constructor.
    *
    * @param context the {@link IdeContext}.
    */
-  public Yarn(IdeContext context) {
+  public Corepack(IdeContext context) {
 
-    super(context, "yarn", Set.of(Tag.JAVA_SCRIPT, Tag.BUILD));
+    super(context, "corepack", Set.of(Tag.JAVA_SCRIPT, Tag.BUILD));
+  }
+
+  @Override
+  public Path getToolBinPath() {
+
+    return this.context.getSoftwarePath().resolve("corepack").resolve("shims");
   }
 
   private boolean hasNodeBinary(String binary) {
@@ -41,84 +49,74 @@ public class Yarn extends LocalToolCommandlet {
   @Override
   public VersionIdentifier getInstalledVersion() {
 
-    if (hasNodeBinary("yarn.js")) {
-      String version = this.context.newProcess().runAndGetSingleOutput("yarn", "-v");
+    if (hasNodeBinary("corepack")) {
+      String version = this.context.newProcess().runAndGetSingleOutput("corepack", "-v");
       return VersionIdentifier.of(version);
     }
-    this.context.debug("Yarn is not installed in {}", getToolPath());
-    return null;
-  }
-
-  @Override
-  public String getInstalledEdition() {
-
-    if (hasNodeBinary("yarn.js")) {
-      return "yarn";
-    }
+    this.context.debug("Corepack is not installed in {}", getToolPath());
     return null;
   }
 
   @Override
   public ToolInstallation installTool(GenericVersionRange version, ProcessContext pc, String edition) {
 
-    ToolInstallation installation = super.installTool(version, pc, edition);
     ToolRepository toolRepository = getToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
     installToolDependencies(resolvedVersion, edition, pc);
+
     if (!resolvedVersion.equals(getInstalledVersion())) {
-      runNpmUninstall("yarn");
       runNpmUninstall("corepack");
-      runNpmInstall("corepack");
+      runNpmUninstall("yarn");
+      runNpmUninstall("pnpm");
     } else {
+      ToolInstallation installation = super.installTool(version, pc, edition);
       return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, false);
     }
 
-    String yarnPackage = "yarn";
-    if (resolvedVersion.isPattern()) {
-      this.context.warning("Yarn currently does not support version pattern: {}", resolvedVersion);
-    } else {
-      yarnPackage += "@" + resolvedVersion.toString();
-    }
-    pc.run("corepack", "enable");
-    pc.run("corepack", "prepare", yarnPackage, "--activate");
-    pc.run("corepack", "install", "-g", yarnPackage);
-    return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, true);
-  }
+    String corepackPackage = "corepack";
 
-  private void runNpmUninstall(String npmPackage) {
-    if (hasNodeBinary("yarn.js")) {
-      ProcessResult result = runNpm("uninstall", "-g", npmPackage);
-      if (result.isSuccessful()) {
-        this.context.info("Successfully uninstalled {}", npmPackage);
-      } else {
-        this.context.error("An error occurred while uninstalling {}", npmPackage, result.getErr());
-      }
+    if (resolvedVersion.isPattern()) {
+      this.context.warning("Corepack currently does not support version pattern: {}", resolvedVersion);
+    } else {
+      corepackPackage += "@" + resolvedVersion.toString();
     }
+
+    runNpm("install", "-g", corepackPackage);
+    pc.run("corepack", "enable");
+    ToolInstallation installation = super.installTool(version, pc, edition);
+    return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, true);
   }
 
   @Override
   public void uninstall() {
-
-    runNpmUninstall("yarn");
     runNpmUninstall("corepack");
     super.uninstall();
   }
 
-  private ProcessResult runNpmInstall(String npmPackage) {
-
-    return runNpm("install", "-g", npmPackage);
+  private void runNpmUninstall(String npmPackage) {
+    ProcessResult result = runNpm("uninstall", "-g", npmPackage);
+    if (result.isSuccessful()) {
+      this.context.info("Successfully uninstalled {}", npmPackage);
+    } else {
+      this.context.error("An error occurred while uninstalling {}", npmPackage, result.getErr());
+    }
   }
 
   private ProcessResult runNpm(String... args) {
-
     Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
     return npm.runTool(args);
   }
 
-  @Override
-  public String getToolHelpArguments() {
-
-    return "--help";
+  /**
+   * @return the {@link Path} to the corepack home folder, creates the folder if it was not existing.
+   */
+  public Path getOrCreateCorepackHomeFolder() {
+    Path confPath = this.context.getConfPath();
+    Path corepackConfigFolder = confPath.resolve(COREPACK_HOME_FOLDER);
+    if (!Files.isDirectory(corepackConfigFolder)) {
+      this.context.getFileAccess().mkdirs(corepackConfigFolder);
+    }
+    return corepackConfigFolder;
   }
 }
