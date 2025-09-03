@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.function.Predicate;
 
+import com.devonfw.tools.ide.CVEFinder;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
@@ -16,6 +17,7 @@ import com.devonfw.tools.ide.process.EnvironmentContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.url.model.file.json.CVE;
 import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -72,22 +74,31 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   @Override
   public boolean install(boolean silent, ProcessContext processContext, Step step) {
 
+    return install(silent, processContext, step, false);
+  }
+
+  public boolean install(boolean silent, ProcessContext processContext, Step step, boolean isDependency) {
     installDependencies();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     // get installed version before installInRepo actually may install the software
     VersionIdentifier installedVersion = getInstalledVersion();
     if (step == null) {
-      return doInstallStep(configuredVersion, installedVersion, silent, processContext, step);
+      return doInstallStep(configuredVersion, installedVersion, silent, processContext, step, isDependency);
     } else {
-      return step.call(() -> doInstallStep(configuredVersion, installedVersion, silent, processContext, step), Boolean.FALSE);
+      return step.call(() -> doInstallStep(configuredVersion, installedVersion, silent, processContext, step, isDependency), Boolean.FALSE);
     }
   }
 
   private boolean doInstallStep(VersionIdentifier configuredVersion, VersionIdentifier installedVersion, boolean silent, ProcessContext processContext,
       Step step) {
+    return doInstallStep(configuredVersion, installedVersion, silent, processContext, step, false);
+  }
+
+  private boolean doInstallStep(VersionIdentifier configuredVersion, VersionIdentifier installedVersion, boolean silent, ProcessContext processContext,
+      Step step, boolean isDependency) {
 
     // install configured version of our tool in the software repository if not already installed
-    ToolInstallation installation = installTool(configuredVersion, processContext);
+    ToolInstallation installation = installTool(configuredVersion, processContext, isDependency);
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
@@ -165,9 +176,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    *     {@link #setEnvironment(EnvironmentContext, ToolInstallation, boolean) configure environment variables}.
    * @return the {@link ToolInstallation} matching the given {@code version}.
    */
-  public ToolInstallation installTool(GenericVersionRange version, ProcessContext processContext) {
+  public ToolInstallation installTool(GenericVersionRange version, ProcessContext processContext, boolean isDependency) {
 
-    return installTool(version, processContext, getConfiguredEdition());
+    return installTool(version, processContext, getConfiguredEdition(), isDependency);
   }
 
   /**
@@ -180,12 +191,15 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param edition the specific {@link #getConfiguredEdition() edition} to install.
    * @return the {@link ToolInstallation} matching the given {@code version}.
    */
-  public ToolInstallation installTool(GenericVersionRange version, ProcessContext processContext, String edition) {
+  public ToolInstallation installTool(GenericVersionRange version, ProcessContext processContext, String edition, boolean isDependenny) {
 
     // if version is a VersionRange, we are not called from install() but directly from installAsDependency() due to a version conflict of a dependency
     boolean extraInstallation = (version instanceof VersionRange);
     ToolRepository toolRepository = getToolRepository();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
+    if (!isDependenny) {
+      resolvedVersion = lookForCVEs(resolvedVersion, edition, processContext, null);
+    }
     installToolDependencies(resolvedVersion, edition, processContext);
 
     Path installationPath;
@@ -268,11 +282,15 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @return {@code true} if the tool was newly installed, {@code false} otherwise (installation was already present).
    */
   public boolean installAsDependency(VersionRange version, ProcessContext processContext, String toolParent) {
-
     VersionIdentifier configuredVersion = getConfiguredVersion();
     if (version.contains(configuredVersion)) {
-      // prefer configured version if contained in version range
-      return install(false, processContext, null);
+      VersionIdentifier cveAlternativeVersion = lookForCVEs(configuredVersion, getConfiguredEdition(), processContext, version);
+      if (cveAlternativeVersion == configuredVersion) {
+        return install(false, processContext, null, true);
+      } else {
+        ToolInstallation toolInstallation = installTool(cveAlternativeVersion, processContext, true);
+        return toolInstallation.newInstallation();
+      }
     } else {
       if (isIgnoreSoftwareRepo()) {
         throw new IllegalStateException(
@@ -284,7 +302,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
               + " Therefore, we install a compatible version in that range.",
           toolParent, this.tool, version, configuredVersion);
     }
-    ToolInstallation toolInstallation = installTool(version, processContext);
+    ToolInstallation toolInstallation = installTool(
+        lookForCVEs(getToolRepository().resolveVersion(this.tool, getConfiguredEdition(), version, this), getConfiguredEdition(), processContext, version),
+        processContext, true);
     return toolInstallation.newInstallation();
   }
 
@@ -299,6 +319,52 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       dependencyTool.installAsDependency(dependency.versionRange(), processContext, toolWithEdition);
     }
   }
+
+  /**
+   * Checks tool for CVEs and suggests alternative Version to install.
+   *
+   * @param version the required {@link VersionIdentifier}.
+   * @param edition the specific {@link #getConfiguredEdition() edition} to install.
+   * @param processContext the {@link ProcessContext}.
+   * @param allowedVersions the allowed {@link VersionRange}.
+   * @return {@code true} if the tool was newly installed, {@code false} otherwise (installation was already present).
+   */
+  private VersionIdentifier lookForCVEs(VersionIdentifier version, String edition, ProcessContext processContext, VersionRange allowedVersions) {
+    CVEFinder cveFinder;
+    if (allowedVersions == null) {
+      cveFinder = new CVEFinder(context, this, version);
+    } else {
+      cveFinder = new CVEFinder(context, this, version, allowedVersions);
+    }
+    Collection<CVE> cves = cveFinder.getCVEs(version);
+    if (cves.isEmpty()) {
+      context.info("No CVEs found for tool {} in version {}", this.getName(), version);
+      return version;
+    }
+    VersionIdentifier safestNearestVersion = cveFinder.findSafestNearestVersion();
+    VersionIdentifier safestLatestVersion = cveFinder.findSafestLatestVersion();
+    cveFinder.listCVEs(version);
+    context.info("The tool {} in version {} is affected by the CVE(s) logged above.", this.getName(), version);
+    context.info("The latest version {} is only affected by the following CVE(s).", safestLatestVersion);
+    cveFinder.listCVEs(safestLatestVersion);
+    context.info("The nearest version {} is only affected by the following CVE(s).", safestNearestVersion);
+    cveFinder.listCVEs(safestNearestVersion);
+
+    String answer = context.question(new String[] { "current",
+        "nearest",
+        "latest" }, "Which version do you want to use?");
+    if (answer.equals("current")) {
+      return version;
+    }
+    if (answer.equals("nearest")) {
+      return safestNearestVersion;
+    }
+    if (answer.equals("latest")) {
+      return safestLatestVersion;
+    }
+    return version;
+  }
+
 
   /**
    * Post-extraction hook that can be overridden to add custom processing after unpacking and before moving to the final destination folder.
@@ -515,8 +581,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param environmentContext the {@link EnvironmentContext} where to {@link EnvironmentContext#withEnvVar(String, String) set environment variables} for
    *     this tool.
    * @param toolInstallation the {@link ToolInstallation}.
-   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the
-   *     {@link #getConfiguredVersion() configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
+   * @param extraInstallation {@code true} if the {@link ToolInstallation} is an additional installation to the {@link #getConfiguredVersion()} ()
+   *     configured version} due to a conflicting version of a {@link ToolDependency}, {@code false} otherwise.
    */
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
