@@ -63,7 +63,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   private void mergeMisc(Path repositoryPath) throws IOException {
-    Path workspaceMiscPath = getWorkspaceMiscPath(repositoryPath);
+    Path workspaceMiscPath = getOrCreateWorkspaceXmlFile(repositoryPath, "misc.xml");
 
     XmlMerger xmlMerger = new XmlMerger(context);
     Path templateMiscPath = this.context.getSettingsTemplatePath().resolve("conf/mvn/misc.xml");
@@ -76,13 +76,27 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     xmlMerger.save(mergedMisc, workspaceMiscPath);
   }
 
-  private Path getWorkspaceMiscPath(Path repositoryPath) {
+  private void mergeGradle(Path repositoryPath) throws IOException {
+    Path workspaceMiscPath = getOrCreateWorkspaceXmlFile(repositoryPath, "gradle.xml");
+
+    XmlMerger xmlMerger = new XmlMerger(context);
+    Path templateMiscPath = this.context.getSettingsTemplatePath().resolve("conf/gradle/gradle.xml");
+
+    XmlMergeDocument workspaceMisc = xmlMerger.load(workspaceMiscPath);
+    XmlMergeDocument mavenTemplateMisc = xmlMerger.load(templateMiscPath);
+
+    Document mergedMisc = xmlMerger.merge(mavenTemplateMisc, workspaceMisc, false);
+
+    xmlMerger.save(mergedMisc, workspaceMiscPath);
+  }
+
+  private Path getOrCreateWorkspaceXmlFile(Path repositoryPath, String fileName) {
     Path ideaPath = repositoryPath.resolve("../.idea");
-    Path workspaceMiscPath = ideaPath.resolve("misc.xml");
+    Path workspaceFilePath = ideaPath.resolve(fileName);
     FileAccess fileAccess = new FileAccessImpl(context);
-    if (!fileAccess.isFile(workspaceMiscPath)) {
+    if (!fileAccess.isFile(workspaceFilePath)) {
       fileAccess.mkdirs(ideaPath);
-      fileAccess.touch(workspaceMiscPath);
+      fileAccess.touch(workspaceFilePath);
       // xml merger fails when merging an empty file
       // this should probably be fixed in the xml merger, but for now here is a workaround:
       fileAccess.writeFileContent("""
@@ -90,9 +104,9 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
           <project version="4">
             <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="Java" project-jdk-type="JavaSDK"/>
           </project>
-          """, workspaceMiscPath);
+          """, workspaceFilePath);
     }
-    return workspaceMiscPath;
+    return workspaceFilePath;
   }
 
   @Override
@@ -114,7 +128,11 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     // check if build.gradle exists
     Path gradlePath = repositoryPath.resolve("build.gradle");
     if (Files.exists(gradlePath)) {
-      this.context.debug("build.grade found!");
+      try {
+        mergeGradle(repositoryPath);
+      } catch (IOException e) {
+        this.context.error(e);
+      }
     } else {
       this.context.debug("no build.gradle found!");
     }
