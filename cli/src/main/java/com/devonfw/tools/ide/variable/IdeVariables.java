@@ -66,6 +66,9 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for default build options of gradle */
   VariableDefinitionString GRADLE_BUILD_OPTS = new VariableDefinitionString("GRADLE_BUILD_OPTS", null, c -> "clean dist");
 
+  /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getIdeHome() IDE_HOME}. */
+  VariableDefinitionPath COREPACK_HOME = new VariableDefinitionPath("COREPACK_HOME", null, IdeContext::getCorePackHome, false, true);
+
   /** {@link VariableDefinition} for default user home of gradle */
   VariableDefinitionPath GRADLE_USER_HOME = new VariableDefinitionPath("GRADLE_USER_HOME", null, IdeContext::getGradleUserHome, false, true);
 
@@ -103,7 +106,8 @@ public interface IdeVariables {
   /** A {@link Collection} with all pre-defined {@link VariableDefinition}s. */
   Collection<VariableDefinition<?>> VARIABLES = List.of(PATH, HOME, WORKSPACE_PATH, IDE_HOME, IDE_ROOT, WORKSPACE, IDE_TOOLS, HTTP_VERSIONS,
       CREATE_START_SCRIPTS,
-      IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, GRADLE_BUILD_OPTS, GRADLE_USER_HOME, YARN_BUILD_OPTS, JASYPT_OPTS,
+      IDE_MIN_VERSION, MVN_VERSION, M2_REPO, DOCKER_EDITION, MVN_BUILD_OPTS, NPM_BUILD_OPTS, COREPACK_HOME, GRADLE_BUILD_OPTS, GRADLE_USER_HOME,
+      YARN_BUILD_OPTS, JASYPT_OPTS,
       MAVEN_ARGS,
       PROJECT_NAME, IDE_VARIABLE_SYNTAX_LEGACY_SUPPORT_ENABLED, PREFERRED_GIT_PROTOCOL);
 

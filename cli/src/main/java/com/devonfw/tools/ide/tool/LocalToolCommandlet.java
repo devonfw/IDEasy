@@ -91,8 +91,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
-    if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation())
-        || (configuredVersion.matches(installedVersion) && context.isSkipUpdatesMode())) {
+    if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation()) || (configuredVersion.matches(installedVersion)
+        && context.isSkipUpdatesMode())) {
       return toolAlreadyInstalled(silent, installedVersion, processContext);
     }
     if (!isIgnoreSoftwareRepo()) {
@@ -105,7 +105,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       fileAccess.mkdirs(toolPath.getParent());
       fileAccess.symlink(installation.linkDir(), toolPath);
     }
-    this.context.getPath().setPath(this.tool, installation.binDir());
+    Path binDir = installation.binDir();
+    if (binDir != null) {
+      this.context.getPath().setPath(this.tool, binDir);
+    }
     postInstall(true, processContext);
     if (installedVersion == null) {
       asSuccess(step).log("Successfully installed {} in version {}", this.tool, resolvedVersion);
@@ -138,6 +141,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   private boolean toolAlreadyInstalled(boolean silent, VersionIdentifier installedVersion, ProcessContext pc) {
+
     if (!silent) {
       this.context.info("Version {} of tool {} is already installed", installedVersion, getToolWithEdition());
     }
@@ -180,7 +184,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param edition the specific {@link #getConfiguredEdition() edition} to install.
    * @return the {@link ToolInstallation} matching the given {@code version}.
    */
-  public ToolInstallation installTool(GenericVersionRange version, ProcessContext processContext, String edition) {
+  protected ToolInstallation installTool(GenericVersionRange version, ProcessContext processContext, String edition) {
 
     // if version is a VersionRange, we are not called from install() but directly from installAsDependency() due to a version conflict of a dependency
     boolean extraInstallation = (version instanceof VersionRange);
@@ -256,6 +260,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @return the {@link Path} to the downloaded release file.
    */
   protected Path downloadTool(String edition, ToolRepository toolRepository, VersionIdentifier resolvedVersion) {
+
     return toolRepository.download(this.tool, edition, resolvedVersion, this);
   }
 
@@ -288,7 +293,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     return toolInstallation.newInstallation();
   }
 
-  private void installToolDependencies(VersionIdentifier version, String edition, ProcessContext processContext) {
+  protected void installToolDependencies(VersionIdentifier version, String edition, ProcessContext processContext) {
+
     Collection<ToolDependency> dependencies = getToolRepository().findDependencies(this.tool, edition, version);
     String toolWithEdition = getToolWithEdition(this.tool, edition);
     int size = dependencies.size();
