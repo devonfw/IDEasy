@@ -36,6 +36,7 @@ import com.devonfw.tools.ide.url.tool.kotlinc.KotlincUrlUpdater;
 import com.devonfw.tools.ide.url.tool.lazydocker.LazyDockerUrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvn.Mvn4UrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvn.MvnUrlUpdater;
+import com.devonfw.tools.ide.url.tool.ng.NgUrlUpdater;
 import com.devonfw.tools.ide.url.tool.node.NodeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.npm.NpmUrlUpdater;
 import com.devonfw.tools.ide.url.tool.oc.OcUrlUpdater;
@@ -61,7 +62,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
 
   private final UrlRepository urlRepository;
 
-  private UrlFinalReport urlFinalReport;
+  private final UrlFinalReport urlFinalReport;
 
   private final List<AbstractUrlUpdater> updaters = Arrays.asList(
       new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
@@ -70,7 +71,7 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),
       new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
       new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new Mvn4UrlUpdater(),
-      new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
+      new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
       new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
       new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater());
 
@@ -127,5 +128,33 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
       logger.error("Failed to update {}", updater.getToolWithEdition(), e);
     }
   }
+
+  /**
+   * Retrieves a specific {@link AbstractUrlUpdater} based on tool name and edition.
+   *
+   * @param tool the name of the tool (e.g., "java").
+   * @param edition the edition of the tool (e.g., "oracle", "community").
+   * @return the matching {@link AbstractUrlUpdater}, or {@code null} if not found.
+   */
+  public AbstractUrlUpdater retrieveUrlUpdater(String tool, String edition) {
+
+    for (AbstractUrlUpdater updater : updaters) {
+      if (updater.getTool().equals(tool) && updater.getEdition().equals(edition)) {
+        return updater;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Returns the {@link UrlRepository} instance used for storing and updating tool URLs.
+   *
+   * @return the {@link UrlRepository} instance.
+   */
+  public UrlRepository getUrlRepository() {
+
+    return this.urlRepository;
+  }
+
 
 }
