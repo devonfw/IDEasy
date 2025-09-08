@@ -77,17 +77,17 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   private void mergeGradle(Path repositoryPath) throws IOException {
-    Path workspaceMiscPath = getOrCreateWorkspaceXmlFile(repositoryPath, "gradle.xml");
+    Path workspaceGradlePath = getOrCreateWorkspaceXmlFile(repositoryPath, "gradle.xml");
 
     XmlMerger xmlMerger = new XmlMerger(context);
     Path templateMiscPath = this.context.getSettingsTemplatePath().resolve("conf/gradle/gradle.xml");
 
-    XmlMergeDocument workspaceMisc = xmlMerger.load(workspaceMiscPath);
+    XmlMergeDocument workspaceMisc = xmlMerger.load(workspaceGradlePath);
     XmlMergeDocument mavenTemplateMisc = xmlMerger.load(templateMiscPath);
 
     Document mergedMisc = xmlMerger.merge(mavenTemplateMisc, workspaceMisc, false);
 
-    xmlMerger.save(mergedMisc, workspaceMiscPath);
+    xmlMerger.save(mergedMisc, workspaceGradlePath);
   }
 
   private Path getOrCreateWorkspaceXmlFile(Path repositoryPath, String fileName) {
