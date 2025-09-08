@@ -126,8 +126,9 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     }
 
     // check if build.gradle exists
-    Path gradlePath = repositoryPath.resolve("build.gradle");
-    if (Files.exists(gradlePath)) {
+    Path javaGradlePath = repositoryPath.resolve("build.gradle");
+    Path kotlinGradlePath = repositoryPath.resolve("build.gradle.kts");
+    if (Files.exists(javaGradlePath) || Files.exists(kotlinGradlePath)) {
       try {
         mergeGradle(repositoryPath);
       } catch (IOException e) {
