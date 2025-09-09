@@ -8,7 +8,7 @@ jobs:
       - name: Checkout IDEasy Repository
         uses: actions/checkout@v3
         with:
-          token: ${{ secrets.ACTION_PUSH_TOKEN }}
+          submodules: recursive
       - name: Checkout ide-urls Repository
         uses: actions/checkout@v3
         with:
@@ -40,20 +40,16 @@ jobs:
             -Dexec.args="${{ github.workspace }}/ide-urls" \
             -X
         continue-on-error: true
-      - name: Configure Git
+      - name: Commit and push to ide-urls
         run: |
           cd ide-urls
-          git config --global user.name "${{ secrets.BUILD_USER }}"
-          git config --global user.email "${{ secrets.BUILD_USER_EMAIL }}"
-      - name: Commit and Push changes to ide-urls
-        run: |
-          cd ide-urls
-          git add .
-          if git diff --cached --quiet; then
-            echo "No changes to commit."
-          else
-            git commit -m "Update security.json files [auto]"
+          git config --global user.name ${{ secrets.BUILD_USER }}
+          git config --global user.email ${{ secrets.BUILD_USER_EMAIL }}
+          if git status -z | grep -q .
+          then
+            git add .
+            git commit -m  "Update security.json files [auto]"
             git push
+          else
+            echo "No changes, nothing to commit."
           fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACTION_PUSH_TOKEN }}
