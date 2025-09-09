@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.tool.ng;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.Set;
+
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -11,11 +16,6 @@ import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.List;
-import java.util.Set;
 
 /**
  * {@link ToolCommandlet} for <a href="https://angular.dev/">angular</a>.
@@ -36,8 +36,11 @@ public class Ng extends LocalToolCommandlet {
 
   private boolean hasNodeBinary(String binary) {
 
-    Path toolPath = getToolPath();
+    Path toolPath = context.getSoftwarePath().resolve("node");
     Path ngPath = toolPath.resolve(binary);
+    if (!this.context.getSystemInfo().isWindows()) {
+      ngPath = toolPath.resolve("bin").resolve(binary);
+    }
     return Files.exists(ngPath);
   }
 
