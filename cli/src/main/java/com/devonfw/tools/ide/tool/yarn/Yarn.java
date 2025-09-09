@@ -1,9 +1,5 @@
 package com.devonfw.tools.ide.tool.yarn;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Set;
-
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -15,6 +11,10 @@ import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Set;
 
 /**
  * {@link ToolCommandlet} for <a href="https://yarnpkg.com">yarn</a>.
@@ -33,15 +33,18 @@ public class Yarn extends LocalToolCommandlet {
 
   private boolean hasNodeBinary(String binary) {
 
-    Path toolPath = getToolBinPath();
-    Path yarnPath = toolPath.resolve(binary);
-    return Files.exists(yarnPath);
+    Path toolPath = this.context.getSoftwarePath().resolve("node");
+    Path ngPath = toolPath.resolve(binary);
+    if (!this.context.getSystemInfo().isWindows()) {
+      ngPath = toolPath.resolve("bin").resolve(binary);
+    }
+    return Files.exists(ngPath);
   }
 
   @Override
   public VersionIdentifier getInstalledVersion() {
 
-    if (hasNodeBinary("yarn.js")) {
+    if (hasNodeBinary(getName())) {
       String version = this.context.newProcess().runAndGetSingleOutput("yarn", "-v");
       return VersionIdentifier.of(version);
     }
@@ -52,7 +55,7 @@ public class Yarn extends LocalToolCommandlet {
   @Override
   public String getInstalledEdition() {
 
-    if (hasNodeBinary("yarn.js")) {
+    if (hasNodeBinary(getName())) {
       return "yarn";
     }
     return null;
@@ -87,7 +90,8 @@ public class Yarn extends LocalToolCommandlet {
   }
 
   private void runNpmUninstall(String npmPackage) {
-    if (hasNodeBinary("yarn.js")) {
+
+    if (hasNodeBinary(getName())) {
       ProcessResult result = runNpm("uninstall", "-g", npmPackage);
       if (result.isSuccessful()) {
         this.context.info("Successfully uninstalled {}", npmPackage);
