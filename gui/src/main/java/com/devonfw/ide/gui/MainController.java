@@ -120,7 +120,7 @@ public class MainController {
             .forEach(name -> selectedWorkspace.getItems().add(name));
 
       } catch (IOException e) {
-        throw new RuntimeException("Error occurred while fetching workspace names." + e);
+        throw new RuntimeException("Error occurred while fetching workspace names.", e);
       }
     }
     this.workspaceValue = Path.of(selectedWorkspace.getValue());
