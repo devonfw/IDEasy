@@ -58,7 +58,7 @@ public class Yarn extends LocalToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
 
-    if (resolvedVersion.equals(getInstalledVersion())) {
+    if (resolvedVersion.equals(getInstalledVersion()) && hasNodeBinary(getName())) {
       // TODO: Fix repeatedly creating installations (always re-creates symlinks)
       return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, false);
     }
@@ -97,6 +97,7 @@ public class Yarn extends LocalToolCommandlet {
 
     // TODO: Check if yarn could be uninstalled via corepack instead of uninstalling the whole corepack package
     runNpmUninstall("corepack");
+    this.context.warning("Uninstalling corepack from node, be aware that this includes yarn and pnpm!");
     super.uninstall();
   }
 

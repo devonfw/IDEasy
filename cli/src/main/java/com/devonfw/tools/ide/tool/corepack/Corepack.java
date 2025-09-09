@@ -56,7 +56,7 @@ public class Corepack extends LocalToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
 
-    if (resolvedVersion.equals(getInstalledVersion())) {
+    if (resolvedVersion.equals(getInstalledVersion()) && hasNodeBinary(getName())) {
       // TODO: Fix repeatedly creating installations (always re-creates symlinks)
       ToolInstallation installation = super.installTool(version, pc, edition);
       return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, false);
@@ -64,7 +64,6 @@ public class Corepack extends LocalToolCommandlet {
 
     // install node
     installToolDependencies(resolvedVersion, edition, pc);
-    runNpmUninstall(getName());
 
     String corepackPackage = getName();
 
