@@ -1,0 +1,8 @@
+{
+  "[0,)": [
+    {
+      "tool": "corepack",
+      "versionRange": "[0,)"
+    }
+  ]
+}
