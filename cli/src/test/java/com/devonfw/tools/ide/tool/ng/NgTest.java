@@ -6,6 +6,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
 /**
@@ -110,7 +111,7 @@ public class NgTest extends AbstractIdeContextTest {
 
   private String getBinaryType(IdeTestContext context) {
     String os = "";
-    if (context.getSystemInfo().isWindows()) {
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
       os = "cmd";
     }
     return os;
