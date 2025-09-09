@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
 import com.devonfw.tools.ide.url.tool.androidstudio.AndroidStudioUrlUpdater;
 import com.devonfw.tools.ide.url.tool.aws.AwsUrlUpdater;
 import com.devonfw.tools.ide.url.tool.az.AzureUrlUpdater;
+import com.devonfw.tools.ide.url.tool.corepack.CorepackUrlUpdater;
 import com.devonfw.tools.ide.url.tool.docker.DockerDesktopUrlUpdater;
 import com.devonfw.tools.ide.url.tool.docker.DockerRancherDesktopUrlUpdater;
 import com.devonfw.tools.ide.url.tool.dotnet.DotNetUrlUpdater;
@@ -65,7 +66,8 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
   private final UrlFinalReport urlFinalReport;
 
   private final List<AbstractUrlUpdater> updaters = Arrays.asList(
-      new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
+      new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(),
+      new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
       new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),
