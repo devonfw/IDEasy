@@ -31,11 +31,10 @@ jobs:
             owasp-cve-db-${{ runner.os }}-
             owasp-cve-db-
       - name: Build all modules
-        run: mvn -B -ntp install -DskipTests
+        run: mvn -B -ntp -Dstyle.color=always -DskipTests -pl security -am install
       - name: Run security JSON generator
-        working-directory: security
         run: |
-          mvn -B -ntp exec:java \
+          mvn -B -ntp -Dstyle.color=always -pl security exec:java \
             -Dexec.mainClass="com.devonfw.tools.IDEasy.dev.BuildSecurityJsonFiles" \
             -Dexec.args="${{ github.workspace }}/ide-urls" \
             -X
