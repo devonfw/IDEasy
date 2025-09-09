@@ -41,20 +41,12 @@ public class Corepack extends LocalToolCommandlet {
 
   private boolean hasNodeBinary(String binary) {
 
-    Path toolPath = getToolBinPath();
-    Path yarnPath = toolPath.resolve(binary);
-    return Files.exists(yarnPath);
-  }
-
-  @Override
-  public VersionIdentifier getInstalledVersion() {
-
-    if (hasNodeBinary("corepack")) {
-      String version = this.context.newProcess().runAndGetSingleOutput("corepack", "-v");
-      return VersionIdentifier.of(version);
+    Path toolPath = this.context.getSoftwarePath().resolve("node");
+    Path binPath = toolPath.resolve(binary);
+    if (!this.context.getSystemInfo().isWindows()) {
+      binPath = toolPath.resolve("bin").resolve(binary);
     }
-    this.context.debug("Corepack is not installed in {}", getToolPath());
-    return null;
+    return Files.exists(binPath);
   }
 
   @Override
@@ -63,43 +55,45 @@ public class Corepack extends LocalToolCommandlet {
     ToolRepository toolRepository = getToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
-    installToolDependencies(resolvedVersion, edition, pc);
 
-    if (!resolvedVersion.equals(getInstalledVersion())) {
-      runNpmUninstall("corepack");
-      runNpmUninstall("yarn");
-      runNpmUninstall("pnpm");
-    } else {
+    if (resolvedVersion.equals(getInstalledVersion())) {
+      // TODO: Fix repeatedly creating installations (always re-creates symlinks)
       ToolInstallation installation = super.installTool(version, pc, edition);
       return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, false);
     }
 
-    String corepackPackage = "corepack";
+    // install node
+    installToolDependencies(resolvedVersion, edition, pc);
+    runNpmUninstall(getName());
+
+    String corepackPackage = getName();
 
     if (resolvedVersion.isPattern()) {
       this.context.warning("Corepack currently does not support version pattern: {}", resolvedVersion);
     } else {
-      corepackPackage += "@" + resolvedVersion.toString();
+      corepackPackage += "@" + resolvedVersion;
     }
 
     runNpm("install", "-g", corepackPackage);
-    pc.run("corepack", "enable");
+    pc.run(getName(), "enable");
     ToolInstallation installation = super.installTool(version, pc, edition);
     return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, true);
   }
 
   @Override
   public void uninstall() {
-    runNpmUninstall("corepack");
+    runNpmUninstall(getName());
     super.uninstall();
   }
 
   private void runNpmUninstall(String npmPackage) {
-    ProcessResult result = runNpm("uninstall", "-g", npmPackage);
-    if (result.isSuccessful()) {
-      this.context.info("Successfully uninstalled {}", npmPackage);
-    } else {
-      this.context.error("An error occurred while uninstalling {}", npmPackage, result.getErr());
+    if (hasNodeBinary(getName())) {
+      ProcessResult result = runNpm("uninstall", "-g", npmPackage);
+      if (result.isSuccessful()) {
+        this.context.info("Successfully uninstalled {}", npmPackage);
+      } else {
+        this.context.error("An error occurred while uninstalling {}", npmPackage, result.getErr());
+      }
     }
   }
 

@@ -34,22 +34,11 @@ public class Yarn extends LocalToolCommandlet {
   private boolean hasNodeBinary(String binary) {
 
     Path toolPath = this.context.getSoftwarePath().resolve("node");
-    Path ngPath = toolPath.resolve(binary);
+    Path binPath = toolPath.resolve(binary);
     if (!this.context.getSystemInfo().isWindows()) {
-      ngPath = toolPath.resolve("bin").resolve(binary);
+      binPath = toolPath.resolve("bin").resolve(binary);
     }
-    return Files.exists(ngPath);
-  }
-
-  @Override
-  public VersionIdentifier getInstalledVersion() {
-
-    if (hasNodeBinary(getName())) {
-      String version = this.context.newProcess().runAndGetSingleOutput("yarn", "-v");
-      return VersionIdentifier.of(version);
-    }
-    this.context.debug("Yarn is not installed in {}", getToolPath());
-    return null;
+    return Files.exists(binPath);
   }
 
   @Override
@@ -68,24 +57,26 @@ public class Yarn extends LocalToolCommandlet {
     ToolRepository toolRepository = getToolRepository();
     VersionIdentifier configuredVersion = getConfiguredVersion();
     VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
-    installToolDependencies(resolvedVersion, edition, pc);
-    if (!resolvedVersion.equals(getInstalledVersion())) {
-      runNpmUninstall("yarn");
-      runNpmUninstall("corepack");
-      runNpmInstall("corepack");
-    } else {
+
+    if (resolvedVersion.equals(getInstalledVersion())) {
+      // TODO: Fix repeatedly creating installations (always re-creates symlinks)
       return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, false);
     }
 
+    // install corepack
+    installToolDependencies(resolvedVersion, edition, pc);
+
     String yarnPackage = "yarn";
+
     if (resolvedVersion.isPattern()) {
       this.context.warning("Yarn currently does not support version pattern: {}", resolvedVersion);
     } else {
-      yarnPackage += "@" + resolvedVersion.toString();
+      yarnPackage += "@" + resolvedVersion;
     }
-    pc.run("corepack", "enable");
+
     pc.run("corepack", "prepare", yarnPackage, "--activate");
     pc.run("corepack", "install", "-g", yarnPackage);
+
     return new ToolInstallation(installation.rootDir(), installation.linkDir(), installation.binDir(), configuredVersion, true);
   }
 
@@ -104,14 +95,9 @@ public class Yarn extends LocalToolCommandlet {
   @Override
   public void uninstall() {
 
-    runNpmUninstall("yarn");
+    // TODO: Check if yarn could be uninstalled via corepack instead of uninstalling the whole corepack package
     runNpmUninstall("corepack");
     super.uninstall();
-  }
-
-  private ProcessResult runNpmInstall(String npmPackage) {
-
-    return runNpm("install", "-g", npmPackage);
   }
 
   private ProcessResult runNpm(String... args) {
