@@ -31,7 +31,7 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
- * Test of {@link com.devonfw.tools.ide.url.updater.UrlUpdater} using wiremock to simulate network downloads.
+ * Test of {@link UrlUpdater} using wiremock to simulate network downloads.
  */
 @WireMockTest
 public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
@@ -42,7 +42,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   private final static String TEST_DATA_ROOT = "src/test/resources/integrationtest/UrlUpdaterTest";
 
   /**
-   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} can automatically add a missing OS (in this case the linux_x64)
+   * Tests if the {@link UrlUpdater} can automatically add a missing OS (in this case the linux_x64)
    *
    * @param tempDir Temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
@@ -209,7 +209,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Tests if the the tool version gets entirely removed if all versions are broken for a long time.
+   * Tests if the tool version gets entirely removed if all versions are broken for a long time.
    *
    * @param tempDir Temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
@@ -254,7 +254,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} will fail resolving a server with a Content-Type:text header response.
+   * Tests if the {@link UrlUpdater} will fail resolving a server with a Content-Type:text header response.
    * <p>
    * See: <a href="https://github.com/devonfw/ide/issues/1343">#1343</a> for reference.
    *
@@ -281,7 +281,7 @@ public class UrlUpdaterTest extends AbstractUrlUpdaterTest {
   }
 
   /**
-   * Tests if the {@link com.devonfw.tools.ide.url.updater.UrlUpdater} will handle the literally latest version of a tool correctly
+   * Tests if the {@link UrlUpdater} will handle the literally latest version of a tool correctly
    *
    * @param tempDir Temporary directory
    * @param wmRuntimeInfo wireMock server on a random port
