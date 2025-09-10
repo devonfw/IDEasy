@@ -71,7 +71,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     XmlMerger xmlMerger = new XmlMerger(context);
     Path templateMiscPath = this.context.getSettingsTemplatePath().resolve("conf/mvn/misc.xml");
 
-    EnvironmentVariables environmentVariables = new EnvironmentVariablesIntellijImport((AbstractEnvironmentVariables) context.getVariables(), repositoryPath);
+    EnvironmentVariables environmentVariables = new EnvironmentVariablesIntellijImport((AbstractEnvironmentVariables) context.getVariables(),
+        repositoryPath.getFileName());
 
     XmlMergeDocument workspaceMisc = xmlMerger.load(workspaceMiscPath);
     XmlMergeDocument mavenTemplateMisc = xmlMerger.loadAndResolve(templateMiscPath, environmentVariables);
@@ -87,7 +88,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     XmlMerger xmlMerger = new XmlMerger(this.context);
     Path templateGradleXmlPath = this.context.getSettingsTemplatePath().resolve("conf/gradle/gradle.xml");
 
-    EnvironmentVariables environmentVariables = new EnvironmentVariablesIntellijImport((AbstractEnvironmentVariables) context.getVariables(), repositoryPath);
+    EnvironmentVariables environmentVariables = new EnvironmentVariablesIntellijImport((AbstractEnvironmentVariables) context.getVariables(),
+        repositoryPath.getFileName());
     XmlMergeDocument workspaceGradleXml = xmlMerger.load(workspaceGradlePath);
     XmlMergeDocument gradleTemplateXml = xmlMerger.loadAndResolve(templateGradleXmlPath, environmentVariables);
 
