@@ -9,6 +9,9 @@ import org.w3c.dom.Document;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariables;
+import com.devonfw.tools.ide.environment.EnvironmentVariablesIntellijImport;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
@@ -68,8 +71,10 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     XmlMerger xmlMerger = new XmlMerger(context);
     Path templateMiscPath = this.context.getSettingsTemplatePath().resolve("conf/mvn/misc.xml");
 
+    EnvironmentVariables environmentVariables = new EnvironmentVariablesIntellijImport((AbstractEnvironmentVariables) context.getVariables(), repositoryPath);
+
     XmlMergeDocument workspaceMisc = xmlMerger.load(workspaceMiscPath);
-    XmlMergeDocument mavenTemplateMisc = xmlMerger.load(templateMiscPath);
+    XmlMergeDocument mavenTemplateMisc = xmlMerger.loadAndResolve(templateMiscPath, environmentVariables);
 
     Document mergedMisc = xmlMerger.merge(mavenTemplateMisc, workspaceMisc, false);
 
@@ -79,13 +84,14 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private void mergeGradle(Path repositoryPath) throws IOException {
     Path workspaceGradlePath = getOrCreateWorkspaceXmlFile(repositoryPath, "gradle.xml");
 
-    XmlMerger xmlMerger = new XmlMerger(context);
-    Path templateMiscPath = this.context.getSettingsTemplatePath().resolve("conf/gradle/gradle.xml");
+    XmlMerger xmlMerger = new XmlMerger(this.context);
+    Path templateGradleXmlPath = this.context.getSettingsTemplatePath().resolve("conf/gradle/gradle.xml");
 
-    XmlMergeDocument workspaceMisc = xmlMerger.load(workspaceGradlePath);
-    XmlMergeDocument mavenTemplateMisc = xmlMerger.load(templateMiscPath);
+    EnvironmentVariables environmentVariables = new EnvironmentVariablesIntellijImport((AbstractEnvironmentVariables) context.getVariables(), repositoryPath);
+    XmlMergeDocument workspaceGradleXml = xmlMerger.load(workspaceGradlePath);
+    XmlMergeDocument gradleTemplateXml = xmlMerger.loadAndResolve(templateGradleXmlPath, environmentVariables);
 
-    Document mergedMisc = xmlMerger.merge(mavenTemplateMisc, workspaceMisc, false);
+    Document mergedMisc = xmlMerger.merge(gradleTemplateXml, workspaceGradleXml, false);
 
     xmlMerger.save(mergedMisc, workspaceGradlePath);
   }
@@ -102,7 +108,6 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
       fileAccess.writeFileContent("""
           <?xml version="1.0" encoding="UTF-8"?>
           <project version="4">
-            <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="Java" project-jdk-type="JavaSDK"/>
           </project>
           """, workspaceFilePath);
     }
