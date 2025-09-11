@@ -58,7 +58,7 @@ public class CVEFinder {
         filterdAllVersions.add(toolVersion);
       }
     }
-    allVersions = filterdAllVersions;
+    this.allVersions = filterdAllVersions;
     this.version = version;
     this.cves = toolSecurity.findCVEs();
   }
