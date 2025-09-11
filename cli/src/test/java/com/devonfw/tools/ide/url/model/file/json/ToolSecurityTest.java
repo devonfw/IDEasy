@@ -24,7 +24,7 @@ public class ToolSecurityTest extends AbstractUrlModelTest {
 
     // act
     Collection<CVE> security = context.getDefaultToolRepository()
-        .findSecurity("intellij", "intellij").findCVEs();
+        .findSecurity("intellij", "intellij").getIssues();
     List<VersionRange> versionRanges = new ArrayList<>();
     versionRanges.add(VersionRange.of("(0,2.39.4)"));
     versionRanges.add(VersionRange.of("[2.40.0,2.40.2)"));

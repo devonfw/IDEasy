@@ -37,7 +37,7 @@ public class CVEFinder {
     this.toolSecurity = context.getDefaultToolRepository().findSecurity(tool.getName(), tool.getConfiguredEdition());
     this.allVersions = tool.getVersions();
     this.version = version;
-    this.cves = toolSecurity.findCVEs();
+    this.cves = toolSecurity.getIssues();
   }
 
   /**
@@ -60,7 +60,7 @@ public class CVEFinder {
     }
     this.allVersions = filterdAllVersions;
     this.version = version;
-    this.cves = toolSecurity.findCVEs();
+    this.cves = toolSecurity.getIssues();
   }
 
   /**

@@ -21,7 +21,7 @@ public class LookForCVEsTest extends AbstractIdeContextTest {
    * Tests lookForCVEs with Intellij install.
    */
   @Test
-  public void testInstallTool() {
+  public void testInstallToolCurrent() {
     //arrange
     context.setUrlsPath(URLS_PATH);
     Intellij commandlet = new Intellij(this.context);
@@ -33,6 +33,36 @@ public class LookForCVEsTest extends AbstractIdeContextTest {
     //assert
     assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2023.3.3");
     assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent("17.0.10_7");
+  }
+
+  @Test
+  public void testInstallToolNearest() {
+    //arrange
+    context.setUrlsPath(URLS_PATH);
+    Intellij commandlet = new Intellij(this.context);
+    context.setAnswers("nearest");
+
+    //act
+    commandlet.install();
+
+    //assert
+    assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2022.3.2");
+    assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent("17.0.10_7");
+  }
+
+  @Test
+  public void testInstallToolLatest() {
+    //arrange
+    context.setUrlsPath(URLS_PATH);
+    Intellij commandlet = new Intellij(this.context);
+    context.setAnswers("latest");
+
+    //act
+    commandlet.install();
+
+    //assert
+    assertThat(context.getSoftwarePath().resolve("intellij/.ide.software.version")).exists().hasContent("2025.1.1.1");
+    //assertThat(context.getSoftwarePath().resolve("java/.ide.software.version")).exists().hasContent("21.0.6_7");
   }
 
 }

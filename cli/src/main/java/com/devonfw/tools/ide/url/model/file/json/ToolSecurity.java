@@ -34,13 +34,6 @@ public class ToolSecurity {
   }
 
   /**
-   * @return The {@link List} of {@link CVE}s for the given tool.
-   */
-  public List<CVE> findCVEs() {
-    return issues;
-  }
-
-  /**
    * @param file the {@link Path} to the JSON file to load.
    * @return the loaded {@link ToolSecurity} or the {@link #getEmpty() empty instance} if given {@link Path} does not exist.
    */

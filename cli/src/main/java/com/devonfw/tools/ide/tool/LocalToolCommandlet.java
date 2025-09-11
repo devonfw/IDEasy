@@ -343,16 +343,31 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     VersionIdentifier safestNearestVersion = cveFinder.findSafestNearestVersion();
     VersionIdentifier safestLatestVersion = cveFinder.findSafestLatestVersion();
-    cveFinder.listCVEs(version);
-    context.info("The tool {} in version {} is affected by the CVE(s) logged above.", this.getName(), version);
-    context.info("The latest version {} is only affected by the following CVE(s).", safestLatestVersion);
-    cveFinder.listCVEs(safestLatestVersion);
-    context.info("The nearest version {} is only affected by the following CVE(s).", safestNearestVersion);
-    cveFinder.listCVEs(safestNearestVersion);
+    String answer = null;
+    if (safestNearestVersion.equals(safestLatestVersion.equals(safestNearestVersion) && safestNearestVersion.equals(version))) {
+      context.info("Current version is the safest version but is affected by the following CVE(s)");
+      cveFinder.listCVEs(version);
+    } else if (safestNearestVersion.equals(safestLatestVersion)) {
+      context.info("The latest version {} is only affected by the following CVE(s).", safestLatestVersion);
+      cveFinder.listCVEs(safestLatestVersion);
+      answer = context.question(new String[] { "current",
+          "latest" }, "Which version do you want to use?");
+      cveFinder.listCVEs(version);
+      context.info("The tool {} in version {} is affected by the CVE(s) logged above.", this.getName(), version);
+      context.info("The latest version {} is only affected by the following CVE(s).", safestLatestVersion);
+      cveFinder.listCVEs(safestLatestVersion);
+    } else {
+      cveFinder.listCVEs(version);
+      context.info("The tool {} in version {} is affected by the CVE(s) logged above.", this.getName(), version);
+      context.info("The latest version {} is only affected by the following CVE(s).", safestLatestVersion);
+      cveFinder.listCVEs(safestLatestVersion);
+      context.info("The nearest version {} is only affected by the following CVE(s).", safestNearestVersion);
+      cveFinder.listCVEs(safestNearestVersion);
+      answer = context.question(new String[] { "current",
+          "nearest",
+          "latest" }, "Which version do you want to use?");
+    }
 
-    String answer = context.question(new String[] { "current",
-        "nearest",
-        "latest" }, "Which version do you want to use?");
     if (answer.equals("current")) {
       return version;
     }
