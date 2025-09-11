@@ -285,7 +285,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier configuredVersion = getConfiguredVersion();
     if (version.contains(configuredVersion)) {
       VersionIdentifier cveAlternativeVersion = lookForCVEs(configuredVersion, getConfiguredEdition(), processContext, version);
-      if (cveAlternativeVersion == configuredVersion) {
+      if (cveAlternativeVersion.equals(configuredVersion)) {
         return install(false, processContext, null, true);
       } else {
         ToolInstallation toolInstallation = installTool(cveAlternativeVersion, processContext, true);
