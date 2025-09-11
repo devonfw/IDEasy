@@ -69,6 +69,9 @@ public class CVEFinder {
    * @param versionIdentifier {@link VersionIdentifier}.
    */
   public void listCVEs(VersionIdentifier versionIdentifier) {
+    if (getCVEs(versionIdentifier).size() == 0) {
+      context.info("No CVEs found for this version");
+    }
     for (CVE cve : getCVEs(versionIdentifier)) {
       context.warning("CVE_ID: " + cve.id());
       context.warning("Severity: " + String.valueOf(cve.severity()));
@@ -104,7 +107,7 @@ public class CVEFinder {
       VersionIdentifier current = allVersions.get(i);
       double severitySumcurrent = severitySum(getCVEs(current));
       if (severitySumcurrent == 0) {
-        return safestLatestVersion;
+        return current;
       }
       if (severitySumLatestVersion >= distancePunishment * i + severitySumcurrent) {
         safestLatestVersion = current;
@@ -135,10 +138,10 @@ public class CVEFinder {
       double severityUp = severitySum(getCVEs(upVersion));
       double severityDown = severitySum(getCVEs(downVersion));
       if (severityUp == 0) {
-        return safestNearestVersion;
+        return upVersion;
       }
       if (severityDown == 0) {
-        return safestNearestVersion;
+        return downVersion;
       }
       if (severitySumNearestVersion >= distancePunishment * i + severityUp) {
         safestNearestVersion = upVersion;
