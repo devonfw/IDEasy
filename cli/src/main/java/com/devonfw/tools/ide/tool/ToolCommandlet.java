@@ -338,7 +338,7 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   }
 
   /**
-   * @return the {@link com.devonfw.tools.ide.tool.repository.DefaultToolRepository#getSortedVersions(String, String, ToolCommandlet)}  SortedVersions}. of this
+   * @return the {@link com.devonfw.tools.ide.tool.repository.DefaultToolRepository#getSortedVersions(String, String, ToolCommandlet) sorted versions} of this
    *     tool.
    */
   public List<VersionIdentifier> getVersions() {
