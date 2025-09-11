@@ -17,12 +17,12 @@ import com.devonfw.tools.ide.version.VersionRange;
  */
 public class CVEFinder {
 
-  IdeContext context;
-  ToolCommandlet tool;
-  ToolSecurity toolSecurity;
-  List<VersionIdentifier> allVersions;
-  VersionIdentifier version;
-  List<CVE> cves;
+  private final IdeContext context;
+  private final ToolCommandlet tool;
+  private final ToolSecurity toolSecurity;
+  private final List<VersionIdentifier> allVersions;
+  private final VersionIdentifier version;
+  private final List<CVE> cves;
 
   /**
    * The constructor
