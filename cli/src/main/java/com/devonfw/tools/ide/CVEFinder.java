@@ -52,7 +52,6 @@ public class CVEFinder {
     this.context = context;
     this.tool = tool;
     this.toolSecurity = context.getDefaultToolRepository().findSecurity(tool.getName(), tool.getConfiguredEdition());
-    this.allVersions = tool.getVersions();
     List<VersionIdentifier> filterdAllVersions = new ArrayList<>();
     for (VersionIdentifier toolVersion : this.allVersions) {
       if (allowedVersions.contains(toolVersion)) {
