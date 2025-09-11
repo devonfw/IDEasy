@@ -32,7 +32,7 @@ public interface IdeVariables {
   VariableDefinitionPath WORKSPACE_PATH = new VariableDefinitionPath("WORKSPACE_PATH", null, c -> c.getWorkspacePath(), true);
 
   /** {@link VariableDefinition} for default CVE_MIN_SEVERITY. */
-  VariableDefinitionDoulbe CVE_MIN_SEVERIRY = new VariableDefinitionDoulbe("CVE_MIN_SEVERITY", null, c -> 1.0);
+  VariableDefinitionDoulbe CVE_MIN_SEVERIRY = new VariableDefinitionDoulbe("CVE_MIN_SEVERITY", null, c -> 0.1);
 
   /** {@link VariableDefinition} for list of tools to install by default. */
   VariableDefinitionStringList IDE_TOOLS = new VariableDefinitionStringList("IDE_TOOLS", "DEVON_IDE_TOOLS", c -> List.of("mvn", "npm"));
