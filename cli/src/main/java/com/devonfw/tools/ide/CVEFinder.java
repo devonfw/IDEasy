@@ -155,7 +155,7 @@ public class CVEFinder {
    * @param cves list of {@link CVE}s
    * @return sum of {@link CVE#severity()}
    */
-  public double severitySum(Collection<CVE> cves) {
+  public static double severitySum(Collection<CVE> cves) {
     double severitySum = 0;
     for (CVE cve : cves) {
       severitySum += cve.severity();
