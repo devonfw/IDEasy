@@ -302,9 +302,13 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
               + " Therefore, we install a compatible version in that range.",
           toolParent, this.tool, version, configuredVersion);
     }
-    ToolInstallation toolInstallation = installTool(
-        lookForCVEs(getToolRepository().resolveVersion(this.tool, getConfiguredEdition(), version, this), getConfiguredEdition(), processContext, version),
-        processContext, true);
+    VersionIdentifier resolvedVersion = getToolRepository().resolveVersion(this.tool, getConfiguredEdition(), version, this);
+    ToolInstallation toolInstallation = null;
+    if (lookForCVEs(resolvedVersion, getConfiguredEdition(), processContext, version) != resolvedVersion) {
+      toolInstallation = installTool(resolvedVersion, processContext, true);
+    } else {
+      toolInstallation = installTool(version, processContext, true);
+    }
     return toolInstallation.newInstallation();
   }
 
