@@ -94,7 +94,7 @@ public class GitContextImpl implements GitContext {
       String remote = determineRemote(repository);
       if (remote == null) {
         String message = repository + " is a local git repository with no remote - if you did this for testing, you may continue...\n"
-          + "Do you want to ignore the problem and continue anyhow?";
+            + "Do you want to ignore the problem and continue anyhow?";
         this.context.askToContinue(message);
       } else {
         pull(repository);
