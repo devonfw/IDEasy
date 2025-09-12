@@ -47,17 +47,7 @@ public class PathPermissions {
   }
 
   private static int mask(PosixFilePermission permission) {
-    return switch (permission) {
-      case OWNER_EXECUTE -> 0b1;
-      case OWNER_WRITE -> 0b10;
-      case OWNER_READ -> 0b100;
-      case GROUP_EXECUTE -> 0b1000;
-      case GROUP_WRITE -> 0b10000;
-      case GROUP_READ -> 0b100000;
-      case OTHERS_EXECUTE -> 0b1000000;
-      case OTHERS_WRITE -> 0b10000000;
-      case OTHERS_READ -> 0b100000000;
-    };
+    return 1 << (8 - permission.ordinal());
   }
 
   @Override
