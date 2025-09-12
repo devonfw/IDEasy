@@ -73,6 +73,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
         IdeLogEntry.ofProcessable("TEST_ARGSc=\" user1 settings1 workspace1 conf1 userc settingsc confc\""), //
 
         IdeLogEntry.ofDebug("from RESOLVED:"), //
+        IdeLogEntry.ofProcessable("export COREPACK_HOME=\"" + normalize(context.getCorePackHome()) + "\""), //
         IdeLogEntry.ofProcessable("export GRADLE_USER_HOME=\"" + normalize(context.getGradleUserHome()) + "\""), //
         IdeLogEntry.ofProcessable("HOME=\"" + normalize(context.getUserHome()) + "\""), //
         IdeLogEntry.ofProcessable("IDE_HOME=\"" + normalize(context.getIdeHome()) + "\""), //
@@ -109,6 +110,7 @@ public class EnvironmentCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).log().hasEntriesWithNothingElseInBetween( //
         IdeLogEntry.ofProcessable("BAR=\"bar-some-${UNDEFINED}\""), //
+        IdeLogEntry.ofProcessable("export COREPACK_HOME=\"" + normalize(context.getCorePackHome()) + "\""), //
         IdeLogEntry.ofProcessable("DOCKER_EDITION=\"docker\""), //
         IdeLogEntry.ofProcessable("ECLIPSE_VERSION=\"2023-03\""), //
         IdeLogEntry.ofProcessable("FOO=\"foo-bar-some-${UNDEFINED}\""), //
