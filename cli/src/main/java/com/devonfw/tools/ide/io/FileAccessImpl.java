@@ -729,7 +729,8 @@ public class FileAccessImpl implements FileAccess {
     return permissionStringBuilder.toString();
   }
 
-private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream<?>> unpacker) {
+  private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream<?>> unpacker) {
+
     this.context.info("Extracting TAR file {} to {}", file, targetDir);
 
     final List<PathLink> links = new ArrayList<>();
