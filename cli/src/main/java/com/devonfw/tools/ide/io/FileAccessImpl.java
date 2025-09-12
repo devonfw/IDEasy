@@ -518,11 +518,11 @@ public class FileAccessImpl implements FileAccess {
     } else {
       fallbackPath = source;
     }
-    if (!Files.isDirectory(fallbackPath)) { // if source is a junction. This returns true as well.
-      throw new IllegalStateException(
-          "These junctions can only point to directories or other junctions. Please make sure that the source (" + fallbackPath + ") is one of these.");
+    ProcessContext pc = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", "/d");
+    if (Files.isDirectory(fallbackPath)) {
+      pc.addArg("/j");
     }
-    this.context.newProcess().executable("cmd").addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), fallbackPath.toString()).run();
+    pc.addArgs(targetLink.toString(), fallbackPath.toString()).run();
   }
 
   @Override
