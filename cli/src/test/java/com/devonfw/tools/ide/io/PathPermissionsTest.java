@@ -68,4 +68,15 @@ public class PathPermissionsTest extends Assertions {
     assertThat(PathPermissions.of(0b100000000).toPosix()).containsExactly(PosixFilePermission.OWNER_READ);
     assertThat(PathPermissions.of(0b111111111).toPosix()).containsExactlyElementsOf(EnumSet.allOf(PosixFilePermission.class));
   }
+
+  /**
+   * Test of {@link PathPermissions#makeExecutable()}
+   */
+  @Test
+  public void testMakeExecutable() {
+
+    PathPermissions permissions = PathPermissions.of(0b110100010);
+    assertThat(permissions).hasToString("rw-r---w-");
+    assertThat(permissions.makeExecutable()).hasToString("rwxr-x-wx");
+  }
 }

@@ -24,7 +24,7 @@ public class PathPermissions {
    * @return a new instance of {@link PathPermissions} with executable permissions set for everyone.
    */
   public PathPermissions makeExecutable() {
-    int newPermissions = this.permissions & MASK_EXECUTABLE;
+    int newPermissions = this.permissions | MASK_EXECUTABLE;
     if (newPermissions == this.permissions) {
       return this;
     }
