@@ -17,6 +17,7 @@ Please note that we are trying to minimize any potential side-effect from `IDEas
 |`IDE_HOME`|e.g. `/projects/my-project`|The top level directory of your `IDEasy` project.
 |`IDE_OPTIONS`| |General options that will be applied to each call of `IDEasy`. Should typically be used for JVM options like link:proxy-support.adoc[proxy-support].
 |*`PATH`*|`$IDE_HOME/software/«tool»:...:$PATH`|Your system path is adjusted by `ide` link:cli.adoc[command].
+|`BASH_PATH`| |Absolute path to your bash. Only used as fallback on Windows if bash could not be found from registry.
 |`IDE_TOOLS`|`(java mvn node npm)`|List of tools that should be installed by default on project creation.
 |`CREATE_START_SCRIPTS`| |List of IDEs that shall be used by developers in the project and therefore start-scripts are created on setup. E.g. `(eclipse intellij vscode)`
 |`WORKSPACE`|`main`|The link:workspaces.adoc[workspace] you are currently in. Defaults to `main` if you are not inside a link:workspaces.adoc[workspace]. Never set this variable in any `ide.properties` file.

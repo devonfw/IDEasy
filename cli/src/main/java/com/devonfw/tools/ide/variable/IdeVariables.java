@@ -28,6 +28,9 @@ public interface IdeVariables {
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getPath() PATH}. */
   VariableDefinitionSystemPath PATH = new VariableDefinitionSystemPath("PATH", null, c -> c.getPath(), true, true);
 
+  /** {@link VariableDefinition} for {@link IdeContext#findBash()} path to bash} (fallback if not found otherwise). */
+  VariableDefinitionPath BASH_PATH = new VariableDefinitionPath("BASH_PATH", null);
+
   /** {@link VariableDefinition} for {@link com.devonfw.tools.ide.context.IdeContext#getWorkspacePath() WORKSPACE_PATH}. */
   VariableDefinitionPath WORKSPACE_PATH = new VariableDefinitionPath("WORKSPACE_PATH", null, c -> c.getWorkspacePath(), true);
 
