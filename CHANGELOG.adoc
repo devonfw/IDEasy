@@ -2,6 +2,14 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.09.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1464[#1464]: IDEasy setup does not find bash
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/34?closed=1[milestone 2025.09.001].
+
 == 2025.08.001
 
 Release with new features and bugfixes:

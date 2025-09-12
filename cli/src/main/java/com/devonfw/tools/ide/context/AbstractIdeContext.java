@@ -83,6 +83,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
 
   private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
+  public static final String BASH = "bash";
 
   private final IdeStartContextImpl startContext;
 
@@ -1340,11 +1341,28 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public String findBash() {
 
-    String bash = "bash";
+    String bash = BASH;
     if (SystemInfoImpl.INSTANCE.isWindows()) {
       bash = findBashOnWindows();
+      if (bash == null) {
+        String variable = IdeVariables.BASH_PATH.getName();
+        bash = getVariables().get(variable);
+        if (bash == null) {
+          trace("Bash not found. Trying to search on system PATH.");
+          variable = IdeVariables.PATH.getName();
+          Path plainBash = Path.of(BASH);
+          Path bashPath = getPath().findBinary(plainBash);
+          bash = bashPath.toAbsolutePath().toString();
+          if (bash.contains("AppData\\Local\\Microsoft\\WindowsApps")) {
+            warning("Only found windows fake bash that is not usable!");
+            bash = null;
+          }
+        }
+        if (bash == null) {
+          info("Could not find bash in Windows registry, using bash from {} as fallback: {}", variable, bash);
+        }
+      }
     }
-
     return bash;
   }
 
@@ -1361,7 +1379,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
     String regQueryResult;
     for (String bashVariant : bashVariants) {
+      trace("Trying to find bash variant: {}", bashVariant);
       for (String registryKey : registryKeys) {
+        trace("Trying to find bash from registry key: {}", registryKey);
         String toolValueName = ("GitForWindows".equals(bashVariant)) ? "InstallPath" : "rootdir";
         String command = "reg query " + registryKey + "\\Software\\" + bashVariant + "  /v " + toolValueName + " 2>nul";
 
@@ -1377,20 +1397,22 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
             int exitCode = process.waitFor();
             if (exitCode != 0) {
+              warning("Query to windows registry for finding bash failed with exit code {}", exitCode);
               return null;
             }
 
             regQueryResult = output.toString();
-            if (regQueryResult != null) {
-              int index = regQueryResult.indexOf("REG_SZ");
-              if (index != -1) {
-                String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
-                return path + "\\bin\\bash.exe";
-              }
+            trace("Result from windows registry was: {}", regQueryResult);
+            int index = regQueryResult.indexOf("REG_SZ");
+            if (index != -1) {
+              String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
+              String bashPath = path + "\\bin\\bash.exe";
+              debug("Found bash at: {}", bashPath);
+              return bashPath;
             }
-
           }
         } catch (Exception e) {
+          error(e, "Query to windows registry for finding bash failed!");
           return null;
         }
       }
