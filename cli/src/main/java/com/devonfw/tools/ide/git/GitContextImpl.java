@@ -283,7 +283,6 @@ public class GitContextImpl implements GitContext {
 
   private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
 
-    // return this.context.newProcess().directory(directory).runAndGetSingleOutput(this.context.warning(), "git", args);
     ProcessResult result = runGitCommand(directory, ProcessMode.DEFAULT_CAPTURE, args);
     if (result.isSuccessful()) {
       List<String> out = result.getOut();
