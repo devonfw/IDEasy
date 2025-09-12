@@ -8,8 +8,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -33,22 +31,6 @@ public class ToolSecurity {
 
     super();
     this.issues = issues;
-  }
-
-  /**
-   * @param version the {@link VersionIdentifier} of the tool to install.
-   * @return The {@link List} of {@link CVE}s for the given tool version.
-   */
-  public List<CVE> findCVEs(VersionIdentifier version) {
-    List<CVE> cves = new ArrayList<>();
-    for (CVE cve : issues) {
-      for (VersionRange versionRange : cve.versions()) {
-        if (versionRange.contains(version)) {
-          cves.add(cve);
-        }
-      }
-    }
-    return cves;
   }
 
   /**
