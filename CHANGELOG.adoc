@@ -7,6 +7,9 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/907[#907]: Implement ToolCommandlet for Yarn
+* https://github.com/devonfw/IDEasy/issues/1464[#1464]: IDEasy setup does not find bash
+* https://github.com/devonfw/IDEasy/issues/1476[#1476]: IDEasy does not create links on extraction
+* https://github.com/devonfw/IDEasy/issues/1477[#1477]: IDEasy cannot create link to file on Windows
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/34?closed=1[milestone 2025.09.001].
 
