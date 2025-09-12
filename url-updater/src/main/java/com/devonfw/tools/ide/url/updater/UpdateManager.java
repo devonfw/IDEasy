@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
 import com.devonfw.tools.ide.url.tool.androidstudio.AndroidStudioUrlUpdater;
 import com.devonfw.tools.ide.url.tool.aws.AwsUrlUpdater;
 import com.devonfw.tools.ide.url.tool.az.AzureUrlUpdater;
+import com.devonfw.tools.ide.url.tool.corepack.CorepackUrlUpdater;
 import com.devonfw.tools.ide.url.tool.docker.DockerDesktopUrlUpdater;
 import com.devonfw.tools.ide.url.tool.docker.DockerRancherDesktopUrlUpdater;
 import com.devonfw.tools.ide.url.tool.dotnet.DotNetUrlUpdater;
@@ -36,6 +37,7 @@ import com.devonfw.tools.ide.url.tool.kotlinc.KotlincUrlUpdater;
 import com.devonfw.tools.ide.url.tool.lazydocker.LazyDockerUrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvn.Mvn4UrlUpdater;
 import com.devonfw.tools.ide.url.tool.mvn.MvnUrlUpdater;
+import com.devonfw.tools.ide.url.tool.ng.NgUrlUpdater;
 import com.devonfw.tools.ide.url.tool.node.NodeUrlUpdater;
 import com.devonfw.tools.ide.url.tool.npm.NpmUrlUpdater;
 import com.devonfw.tools.ide.url.tool.oc.OcUrlUpdater;
@@ -64,13 +66,14 @@ public class UpdateManager extends AbstractProcessorWithTimeout {
   private final UrlFinalReport urlFinalReport;
 
   private final List<AbstractUrlUpdater> updaters = Arrays.asList(
-      new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new DockerDesktopUrlUpdater(), new DotNetUrlUpdater(),
+      new AndroidStudioUrlUpdater(), new AwsUrlUpdater(), new AzureUrlUpdater(), new CorepackUrlUpdater(), new DockerDesktopUrlUpdater(),
+      new DotNetUrlUpdater(),
       new EclipseCppUrlUpdater(), new EclipseJeeUrlUpdater(), new EclipseJavaUrlUpdater(), new GCloudUrlUpdater(),
       new GcViewerUrlUpdater(), new GhUrlUpdater(), new GraalVmCommunityUpdater(), new GraalVmOracleUrlUpdater(),
       new GradleUrlUpdater(), new HelmUrlUpdater(), new IntellijUrlUpdater(), new JasyptUrlUpdater(),
       new JavaUrlUpdater(), new JenkinsUrlUpdater(), new JmcUrlUpdater(), new KotlincUrlUpdater(),
       new KotlincNativeUrlUpdater(), new LazyDockerUrlUpdater(), new MvnUrlUpdater(), new Mvn4UrlUpdater(),
-      new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
+      new NgUrlUpdater(), new NodeUrlUpdater(), new NpmUrlUpdater(), new OcUrlUpdater(), new PgAdminUrlUpdater(), new PipUrlUpdater(), new PycharmUrlUpdater(),
       new PythonUrlUpdater(), new QuarkusUrlUpdater(), new DockerRancherDesktopUrlUpdater(), new SonarUrlUpdater(),
       new TerraformUrlUpdater(), new TomcatUrlUpdater(), new UvUrlUpdater(), new VsCodeUrlUpdater());
 
