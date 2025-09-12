@@ -52,7 +52,8 @@ public class VersionSegment implements VersionObject<VersionSegment> {
     super();
     this.separator = separator;
     this.letters = VersionLetters.of(letters);
-    if (!pattern.isEmpty() && !PATTERN_MATCH_ANY_STABLE_VERSION.equals(pattern) && !PATTERN_MATCH_ANY_VERSION.equals(pattern)) {
+    if (!pattern.isEmpty() && !PATTERN_MATCH_ANY_STABLE_VERSION.equals(pattern) 
+        && !PATTERN_MATCH_ANY_VERSION.equals(pattern)) {
       throw new IllegalArgumentException("Invalid pattern: " + pattern);
     }
     this.pattern = pattern;
@@ -69,7 +70,8 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       this.number = Integer.parseInt(this.digits);
     }
     if (EMPTY != null) {
-      assert (!this.letters.isEmpty() || !this.digits.isEmpty() || !this.separator.isEmpty() || !this.pattern.isEmpty());
+      assert (!this.letters.isEmpty() || !this.digits.isEmpty() || !this.separator.isEmpty()
+          || !this.pattern.isEmpty());
     }
   }
 
