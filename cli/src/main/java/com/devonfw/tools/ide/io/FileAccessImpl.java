@@ -761,7 +761,6 @@ private void extractArchive(Path file, Path targetDir, Function<InputStream, Arc
             mkdirs(entryPath.getParent());
           }
         }
-
         if (entry.isDirectory()) {
           mkdirs(entryPath);
         } else if (linkType == null) { // regular file
