@@ -67,8 +67,7 @@ public class InstallCommandlet extends Commandlet {
             + "The current command will install IDEasy on your computer. Are you sure?");
       }
       ideasy.installIdeasy(cwd);
-      // TODO https://github.com/devonfw/IDEasy/issues/1221
-      //ideasy.setupWindowsTerminal();
+      ideasy.setupWindowsTerminal();
       return;
     }
     ToolCommandlet commandlet = this.tool.getValue();
