@@ -9,6 +9,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1464[#1464]: IDEasy setup does not find bash
 * https://github.com/devonfw/IDEasy/issues/1476[#1476]: IDEasy does not create links on extraction
 * https://github.com/devonfw/IDEasy/issues/1477[#1477]: IDEasy cannot create link to file on Windows
+* https://github.com/devonfw/IDEasy/issues/1221[#1221]: Improve Windows terminal integration on installation
 * https://github.com/devonfw/IDEasy/issues/1460[#1460]: Prevent strange ansi-codes in logs
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/34?closed=1[milestone 2025.09.001].
