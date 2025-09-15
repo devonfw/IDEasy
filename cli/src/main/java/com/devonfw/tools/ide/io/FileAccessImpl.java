@@ -28,7 +28,6 @@ import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -65,6 +64,8 @@ import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.util.HexUtil;
@@ -301,12 +302,12 @@ public class FileAccessImpl implements FileAccess {
     return HexUtil.toHexString(digestBytes);
   }
 
+  @Override
   public boolean isJunction(Path path) {
 
     if (!SystemInfoImpl.INSTANCE.isWindows()) {
       return false;
     }
-
     try {
       BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
       return attr.isOther() && attr.isDirectory();
@@ -439,9 +440,8 @@ public class FileAccessImpl implements FileAccess {
    * {@link Path} that is neither a symbolic link nor a Windows junction.
    *
    * @param path the {@link Path} to delete.
-   * @throws IOException if the actual {@link Files#delete(Path) deletion} fails.
    */
-  private void deleteLinkIfExists(Path path) throws IOException {
+  private void deleteLinkIfExists(Path path) {
 
     boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
     boolean isSymlink = Files.exists(path) && Files.isSymbolicLink(path);
@@ -450,113 +450,90 @@ public class FileAccessImpl implements FileAccess {
 
     if (isJunction || isSymlink) {
       this.context.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
-      Files.delete(path);
+      try {
+        Files.delete(path);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to delete link at " + path, e);
+      }
     }
   }
 
   /**
    * Adapts the given {@link Path} to be relative or absolute depending on the given {@code relative} flag. Additionally, {@link Path#toRealPath(LinkOption...)}
-   * is applied to {@code source}.
+   * is applied to {@code target}.
    *
-   * @param source the {@link Path} to adapt.
-   * @param targetLink the {@link Path} used to calculate the relative path to the {@code source} if {@code relative} is set to {@code true}.
+   * @param target the {@link Path} the link should point to and that is to be adapted.
+   * @param link the {@link Path} to the link. It is used to calculate the relative path to the {@code target} if {@code relative} is set to {@code true}.
    * @param relative the {@code relative} flag.
    * @return the adapted {@link Path}.
-   * @see FileAccessImpl#symlink(Path, Path, boolean)
+   * @see #symlink(Path, Path, boolean)
    */
-  private Path adaptPath(Path source, Path targetLink, boolean relative) throws IOException {
+  private Path adaptPath(Path target, Path link, boolean relative) {
 
-    if (source.isAbsolute()) {
-      try {
-        source = source.toRealPath(LinkOption.NOFOLLOW_LINKS); // to transform ../d1/../d2 to ../d2
-      } catch (IOException e) {
-        throw new IOException("Calling toRealPath() on the source (" + source + ") in method FileAccessImpl.adaptPath() failed.", e);
-      }
-      if (relative) {
-        source = targetLink.getParent().relativize(source);
-        // to make relative links like this work: dir/link -> dir
-        source = (source.toString().isEmpty()) ? Path.of(".") : source;
-      }
-    } else { // source is relative
-      if (relative) {
-        // even though the source is already relative, toRealPath should be called to transform paths like
-        // this ../d1/../d2 to ../d2
-        source = targetLink.getParent().relativize(targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS));
-        source = (source.toString().isEmpty()) ? Path.of(".") : source;
-      } else { // !relative
-        try {
-          source = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
-        } catch (IOException e) {
-          throw new IOException("Calling toRealPath() on " + targetLink + ".resolveSibling(" + source + ") in method FileAccessImpl.adaptPath() failed.", e);
-        }
-      }
+    if (!target.isAbsolute()) {
+      target = link.resolveSibling(target);
     }
-    return source;
+    try {
+      target = target.toRealPath(LinkOption.NOFOLLOW_LINKS); // to transform ../d1/../d2 to ../d2
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to get real path of " + target, e);
+    }
+    if (relative) {
+      target = link.getParent().relativize(target);
+      // to make relative links like this work: dir/link -> dir
+      target = (target.toString().isEmpty()) ? Path.of(".") : target;
+    }
+    return target;
   }
 
   /**
-   * Creates a Windows junction at {@code targetLink} pointing to {@code source}.
+   * Creates a Windows link using mklink at {@code link} pointing to {@code target}.
    *
-   * @param source must be another Windows junction or a directory.
-   * @param targetLink the location of the Windows junction.
+   * @param target the {@link Path} the link will point to.
+   * @param link the {@link Path} where to create the link.
+   * @param type the {@link PathLinkType}.
    */
-  private void createWindowsJunction(Path source, Path targetLink) {
+  private void mklinkOnWindows(Path target, Path link, PathLinkType type) {
 
-    this.context.trace("Creating a Windows junction at " + targetLink + " with " + source + " as source.");
-    Path fallbackPath;
-    if (!source.isAbsolute()) {
-      this.context.warning("You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
-          + "alternative, however, these can not point to relative paths. So the source (" + source + ") is interpreted as an absolute path.");
-      try {
-        fallbackPath = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
-      } catch (IOException e) {
-        throw new IllegalStateException(
-            "Since Windows junctions are used, the source must be an absolute path. The transformation of the passed " + "source (" + source
-                + ") to an absolute path failed.", e);
-      }
-
-    } else {
-      fallbackPath = source;
-    }
-
-    if (!Files.isDirectory(fallbackPath)) { // if source is a junction. This returns true as well.
-      this.context.newProcess().executable("cmd").addArgs("/c", "mklink", "/d", targetLink.toString(), fallbackPath.toString()).run();
-    } else {
-      this.context.newProcess().executable("cmd").addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), fallbackPath.toString()).run();
-    }
+    this.context.trace("Creating a Windows link at {} pointing to {}", link, target);
+    ProcessResult result = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", type.getMklinkOption(), link.toString(), target.toString())
+        .run(ProcessMode.DEFAULT);
+    result.failOnError();
   }
 
   @Override
-  public void symlink(Path source, Path targetLink, boolean relative) {
+  public void link(Path target, Path link, boolean relative, PathLinkType type) {
 
-    Path adaptedSource = null;
+    final Path finalTarget;
     try {
-      adaptedSource = adaptPath(source, targetLink, relative);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to adapt source for source (" + source + ") target (" + targetLink + ") and relative (" + relative + ")", e);
+      finalTarget = adaptPath(target, link, relative);
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to adapt target (" + target + ") for link (" + link + ") and relative (" + relative + ")", e);
     }
-    this.context.debug("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative", targetLink, adaptedSource);
-
+    String relativeOrAbsolute = finalTarget.isAbsolute() ? "absolute" : "relative";
+    this.context.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, link, finalTarget);
+    deleteLinkIfExists(link);
     try {
-      deleteLinkIfExists(targetLink);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to delete previous symlink or Windows junction at " + targetLink, e);
-    }
-
-    try {
-      Files.createSymbolicLink(targetLink, adaptedSource);
+      if (type == PathLinkType.SYMBOLIC_LINK) {
+        Files.createSymbolicLink(link, finalTarget);
+      } else if (type == PathLinkType.HARD_LINK) {
+        Files.createLink(link, finalTarget);
+      } else {
+        throw new IllegalStateException("" + type);
+      }
     } catch (FileSystemException e) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
-            + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for " + "further details. Error was: "
-            + e.getMessage());
-        createWindowsJunction(adaptedSource, targetLink);
+        this.context.info(
+            "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
+                + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
+                + e.getMessage());
+        mklinkOnWindows(finalTarget, link, type);
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
       throw new IllegalStateException(
-          "Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative") + "symbolic link " + targetLink + " pointing to " + source, e);
+          "Failed to create a " + relativeOrAbsolute + " " + type + " at " + link + " pointing to " + target, e);
     }
   }
 
@@ -760,30 +737,7 @@ public class FileAccessImpl implements FileAccess {
   ) {
     this.context.info("Extracting TAR file {} to {}", file, targetDir);
 
-    class HardLink {
-
-      final Path linkPath;     // where to create the hard link
-      final String targetName; // tar-stored name of the target
-
-      HardLink(Path linkPath, String targetName) {
-        this.linkPath = linkPath;
-        this.targetName = targetName;
-      }
-    }
-    class PendingSymlink {
-
-      final Path linkPath;
-      final String linkName; // textual target from tar (may be relative)
-
-      PendingSymlink(Path linkPath, String linkName) {
-        this.linkPath = linkPath;
-        this.linkName = linkName;
-      }
-    }
-
-    final List<HardLink> hardLinks = new ArrayList<>();
-    final List<PendingSymlink> pendingSymlinkFallbacks = new ArrayList<>();
-
+    final List<PathLink> links = new ArrayList<>();
     try (InputStream is = Files.newInputStream(file);
         ArchiveInputStream<?> ais = unpacker.apply(is);
         IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
@@ -794,107 +748,64 @@ public class FileAccessImpl implements FileAccess {
 
       ArchiveEntry entry = ais.getNextEntry();
       while (entry != null) {
-        final String permissionStr;
-        final boolean isSymlink;
-        final boolean isHardlink;
-        final String linkName;
-
-        if (isTar) {
-          TarArchiveEntry te = (TarArchiveEntry) entry;
-          permissionStr = generatePermissionString(te.getMode());
-          isSymlink = te.isSymbolicLink();
-          isHardlink = te.isLink();
-          linkName = te.getLinkName();
-        } else {
-          permissionStr = null;
-          isSymlink = false;
-          isHardlink = false;
-          linkName = null;
-        }
-
-        Path entryName = Path.of(entry.getName());
-        Path entryPath = root.resolve(entryName).normalize();
-        if (!entryPath.startsWith(root)) {
-          throw new IOException("Preventing path traversal attack from " + entryName + " to " + entryPath);
+        String entryName = entry.getName();
+        Path entryPath = resolveRelativePathSecure(entryName, root);
+        PathPermissions permissions = null;
+        PathLinkType linkType = null;
+        if (entry instanceof TarArchiveEntry tae) {
+          if (tae.isSymbolicLink()) {
+            linkType = PathLinkType.SYMBOLIC_LINK;
+          } else if (tae.isLink()) {
+            linkType = PathLinkType.HARD_LINK;
+          }
+          if (linkType == null) {
+            permissions = PathPermissions.of(tae.getMode());
+          } else {
+            Path parent = entryPath.getParent();
+            String linkName = tae.getLinkName();
+            Path linkTarget = parent.resolve(linkName).normalize();
+            Path target = resolveRelativePathSecure(linkTarget, root, linkName);
+            links.add(new PathLink(entryPath, target, linkType));
+            mkdirs(parent);
+          }
         }
 
         if (entry.isDirectory()) {
           mkdirs(entryPath);
-
-        } else if (isTar && isSymlink) {
-          // --- Symbolic link ---
-          mkdirs(entryPath.getParent());
-          Path linkTargetText = Paths.get(linkName); // as recorded in TAR
-
-          try {
-            Files.deleteIfExists(entryPath);
-            Files.createSymbolicLink(entryPath, linkTargetText);
-          } catch (FileSystemException e) {
-            // Likely no symlink privilege on Windows: handle in post-pass.
-            pendingSymlinkFallbacks.add(new PendingSymlink(entryPath, linkName));
-          }
-
-        } else if (isTar && isHardlink) {
-          // --- Hard link (defer until target exists) ---
-          hardLinks.add(new HardLink(entryPath, linkName));
-
-        } else {
-          // --- Regular file ---
+        } else if (linkType == null) { // regular file
           mkdirs(entryPath.getParent());
           Files.copy(ais, entryPath, StandardCopyOption.REPLACE_EXISTING);
-
           // POSIX perms on non-Windows
-          if (isTar && !isWindows && permissionStr != null) {
-            try {
-              Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
-              Files.setPosixFilePermissions(entryPath, permissions);
-            } catch (UnsupportedOperationException ignored) { /* FS has no posix view */ }
+          if (!isWindows && (permissions != null)) {
+            setFilePermissions(entryPath, permissions, false);
           }
         }
-
         pb.stepBy(Math.max(0L, entry.getSize()));
         entry = ais.getNextEntry();
       }
-
-      // --- Post-pass: hard links ---
-      for (HardLink hl : hardLinks) {
-        Path targetInExtract = root.resolve(Path.of(hl.targetName)).normalize();
-        if (!targetInExtract.startsWith(root)) {
-          throw new IOException("Hard link target escapes extraction root: " + hl.targetName);
-        }
-        if (!Files.exists(targetInExtract)) {
-          throw new IOException("Hard link target does not exist: " + hl.targetName);
-        }
-        mkdirs(hl.linkPath.getParent());
-        Files.deleteIfExists(hl.linkPath);
-        Files.createLink(hl.linkPath, targetInExtract);
+      // post process links
+      for (PathLink link : links) {
+        link(link);
       }
-
-      // --- Post-pass: Windows symlink fallback ---
-      if (!pendingSymlinkFallbacks.isEmpty() && isWindows) {
-        for (PendingSymlink ps : pendingSymlinkFallbacks) {
-          Path linkPath = ps.linkPath;
-          Path linkTargetText = Paths.get(ps.linkName);
-          // POSIX semantics: relative link targets resolve against link's parent
-          Path resolvedTarget = linkPath.getParent().resolve(linkTargetText).normalize();
-
-          // Only allow targets inside extraction root
-          if (!resolvedTarget.startsWith(root)) {
-            this.context.info("Skipping symlink fallback outside extraction root: {} -> {}", linkPath, ps.linkName);
-            continue;
-          }
-          if (!Files.exists(resolvedTarget)) {
-            this.context.info("Skipping symlink fallback; missing target: {} -> {}", linkPath, ps.linkName);
-            continue;
-          }
-          createWindowsJunction(resolvedTarget, linkPath);
-        }
-      }
-
-    } catch (IOException e) {
+    } catch (Exception e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
   }
+
+  private Path resolveRelativePathSecure(String entryName, Path root) {
+
+    Path entryPath = root.resolve(entryName).normalize();
+    return resolveRelativePathSecure(entryPath, root, entryName);
+  }
+
+  private Path resolveRelativePathSecure(Path entryPath, Path root, String entryName) {
+
+    if (!entryPath.startsWith(root)) {
+      throw new IllegalStateException("Preventing path traversal attack from " + entryName + " to " + entryPath + " leaving " + root);
+    }
+    return entryPath;
+  }
+
 
   @Override
   public void extractDmg(Path file, Path targetDir) {
@@ -1249,51 +1160,71 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void makeExecutable(Path file, boolean confirm) {
+  public void makeExecutable(Path path, boolean confirm) {
 
-    if (Files.exists(file)) {
-      if (SystemInfoImpl.INSTANCE.isWindows()) {
-        this.context.trace("Windows does not have executable flags hence omitting for file {}", file);
+    if (Files.exists(path)) {
+      if (skipPermissionsIfWindows(path)) {
         return;
       }
+      Set<PosixFilePermission> existingPosixPermissions;
       try {
         // Read the current file permissions
-        Set<PosixFilePermission> existingPermissions = Files.getPosixFilePermissions(file);
-
-        // Add execute permission for all users
-        Set<PosixFilePermission> executablePermissions = new HashSet<>(existingPermissions);
-        boolean update = false;
-        update |= executablePermissions.add(PosixFilePermission.OWNER_EXECUTE);
-        update |= executablePermissions.add(PosixFilePermission.GROUP_EXECUTE);
-        update |= executablePermissions.add(PosixFilePermission.OTHERS_EXECUTE);
-
-        if (update) {
-          if (confirm) {
-            boolean yesContinue = this.context.question(
-                "We want to execute " + file.getFileName() + " but this command seems to lack executable permissions!\n"
-                    + "Most probably the tool vendor did forgot to add x-flags in the binary release package.\n"
-                    + "Before running the command, we suggest to set executable permissions to the file:\n"
-                    + file + "\n"
-                    + "For security reasons we ask for your confirmation so please check this request.\n"
-                    + "Changing permissions from " + PosixFilePermissions.toString(existingPermissions) + " to " + PosixFilePermissions.toString(
-                    executablePermissions) + ".\n"
-                    + "Do you confirm to make the command executable before running it?");
-            if (!yesContinue) {
-              return;
-            }
-          }
-          this.context.debug("Setting executable flags for file {}", file);
-          // Set the new permissions
-          Files.setPosixFilePermissions(file, executablePermissions);
-        } else {
-          this.context.trace("Executable flags already present so no need to set them for file {}", file);
-        }
+        existingPosixPermissions = Files.getPosixFilePermissions(path);
       } catch (IOException e) {
-        throw new RuntimeException(e);
+        throw new RuntimeException("Failed to get permissions for " + path, e);
+      }
+
+      PathPermissions existingPermissions = PathPermissions.of(existingPosixPermissions);
+      PathPermissions executablePermissions = existingPermissions.makeExecutable();
+      boolean update = (executablePermissions != existingPermissions);
+      if (update) {
+        if (confirm) {
+          boolean yesContinue = this.context.question(
+              "We want to execute {} but this command seems to lack executable permissions!\n"
+                  + "Most probably the tool vendor did forgot to add x-flags in the binary release package.\n"
+                  + "Before running the command, we suggest to set executable permissions to the file:\n"
+                  + "{}\n"
+                  + "For security reasons we ask for your confirmation so please check this request.\n"
+                  + "Changing permissions from {} to {}.\n"
+                  + "Do you confirm to make the command executable before running it?", path.getFileName(), path, existingPermissions, executablePermissions);
+          if (!yesContinue) {
+            return;
+          }
+        }
+        setFilePermissions(path, executablePermissions, false);
+      } else {
+        this.context.trace("Executable flags already present so no need to set them for file {}", path);
       }
     } else {
-      this.context.warning("Cannot set executable flag on file that does not exist: {}", file);
+      this.context.warning("Cannot set executable flag on file that does not exist: {}", path);
     }
+  }
+
+  @Override
+  public void setFilePermissions(Path path, PathPermissions permissions, boolean logErrorAndContinue) {
+
+    if (skipPermissionsIfWindows(path)) {
+      return;
+    }
+    try {
+      this.context.debug("Setting permissions for {} to {}", path, permissions);
+      // Set the new permissions
+      Files.setPosixFilePermissions(path, permissions.toPosix());
+    } catch (IOException e) {
+      if (logErrorAndContinue) {
+        this.context.warning().log(e, "Failed to set permissions to {} for path {}", permissions, path);
+      } else {
+        throw new RuntimeException("Failed to set permissions to " + permissions + " for path " + path, e);
+      }
+    }
+  }
+
+  private boolean skipPermissionsIfWindows(Path path) {
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      this.context.trace("Windows does not have file permissions hence omitting for {}", path);
+      return true;
+    }
+    return false;
   }
 
   @Override
