@@ -420,14 +420,16 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     Path bashPath = Path.of(bashPathString);
     // "C:\\Program Files\\Git\\bin\\bash.exe"
     // "C:\\Program Files\\Git\\mingw64\\share\\git\\git-for-windows.ico"
-    Path iconPath = bashPath.getParent().resolve("mingw64/share/git/git-for-windows.ico");
-    if (Files.exists(iconPath)) {
-      this.context.debug("Found git-bash icon at {}", iconPath);
-      return iconPath.toString();
-    } else {
+    Path parent = bashPath.getParent();
+    if (parent != null) {
+      Path iconPath = parent.resolve("mingw64/share/git/git-for-windows.ico");
+      if (Files.exists(iconPath)) {
+        this.context.debug("Found git-bash icon at {}", iconPath);
+        return iconPath.toString();
+      }
       this.context.debug("Git Bash icon not found at {}. Using default icon.", iconPath);
-      return "ms-appx:///ProfileIcons/{0caa0dad-35be-5f56-a8ff-afceeeaa6101}.png";
     }
+    return "ms-appx:///ProfileIcons/{0caa0dad-35be-5f56-a8ff-afceeeaa6101}.png";
   }
 
   static String removeObsoleteEntryFromWindowsPath(String userPath) {
