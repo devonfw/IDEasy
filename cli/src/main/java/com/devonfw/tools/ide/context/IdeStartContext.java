@@ -57,6 +57,11 @@ public interface IdeStartContext extends IdeLogger {
   boolean isSkipUpdatesMode();
 
   /**
+   * @return {@code true} if no-colours mode is activated (--no-colours), {@code false} otherwise.
+   */
+  boolean isNoColorsMode();
+
+  /**
    * @return the current {@link Locale}. Either configured via command-line option or {@link Locale#getDefault() default}.
    */
   Locale getLocale();
