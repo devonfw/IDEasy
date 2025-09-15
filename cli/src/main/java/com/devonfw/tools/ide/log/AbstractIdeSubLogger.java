@@ -14,7 +14,7 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
 
   final IdeLogListener listener;
 
-  protected final boolean colored;
+  protected boolean colored;
 
   private boolean enabled;
 
@@ -58,6 +58,11 @@ public abstract class AbstractIdeSubLogger implements IdeSubLogger {
   void setEnabled(boolean enabled) {
 
     this.enabled = enabled;
+  }
+
+  void setColored(boolean colored) {
+    
+    this.colored = colored;
   }
 
   /**

@@ -710,6 +710,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
+  public boolean isNoColorsMode() {
+
+    return this.startContext.isNoColorsMode();
+  }
+
+  @Override
   public boolean isOnline() {
 
     if (this.online == null) {
