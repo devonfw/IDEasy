@@ -457,7 +457,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         this.context.warning("An installed version of {} does not exist.", this.tool);
         return;
       }
-      if (this.context.isForceMode() && isIgnoreSoftwareRepo()) {
+      if (this.context.isForceMode() && !isIgnoreSoftwareRepo()) {
         this.context.warning(
             "You triggered an uninstall of {} in version {} with force mode!\n"
                 + "This will physically delete the currently installed version from the machine.\n"
