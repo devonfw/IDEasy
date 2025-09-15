@@ -455,24 +455,21 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     try {
       Path toolPath = getToolPath();
       if (!Files.exists(toolPath)) {
-        this.context.warning("An installed version of " + this.tool + " does not exist.");
+        this.context.warning("An installed version of {} does not exist.", this.tool);
         return;
       }
       if (this.context.isForceMode()) {
         this.context.warning(
-            "Sub-command uninstall via force mode will physically delete the currently installed version of " + this.tool + " from the machine.\n"
-                + "This may cause issues with other projects, that use the same version of " + this.tool + ".\n"
-                + "Deleting " + this.tool + " version " + getInstalledVersion() + " from your machine.");
+            "You triggered an uninstall of {} in version {} with force mode!\n"
+                + "This will physically delete the currently installed version from the machine.\n"
+                + "This may cause issues with other projects, that use the same version of that tool."
+            , this.tool, getInstalledVersion());
         uninstallFromSoftwareRepository(toolPath);
       }
-      try {
-        this.context.getFileAccess().delete(toolPath);
-        this.context.success("Successfully uninstalled " + this.tool);
-      } catch (Exception e) {
-        this.context.error("Couldn't uninstall " + this.tool + ". ", e);
-      }
+      this.context.getFileAccess().delete(toolPath);
+      this.context.success("Successfully uninstalled {}", this.tool);
     } catch (Exception e) {
-      this.context.error(e.getMessage(), e);
+      this.context.error(e, "Failed to uninstall {}", this.tool);
     }
   }
 
@@ -480,23 +477,14 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * Deletes the installed version of the tool from the shared software repository.
    */
   private void uninstallFromSoftwareRepository(Path toolPath) {
-    try {
-      Path repoPath = getInstalledSoftwareRepoPath(toolPath);
-      if (!Files.exists(repoPath)) {
-        this.context.warning("An installed version of " + this.tool + " does not exist.");
-        return;
-      }
-      this.context.info("Physically deleting " + repoPath + " as requested by the user via force mode.");
-      try {
-        this.context.getFileAccess().delete(repoPath);
-        this.context.success("Successfully deleted " + repoPath + " from your computer.");
-      } catch (Exception e) {
-        this.context.error("Couldn't delete " + this.tool + " from your computer.", e);
-      }
-    } catch (Exception e) {
-      throw new IllegalStateException(
-          " Couldn't uninstall " + this.tool + ". Couldn't determine the software repository path for " + this.tool + ".", e);
+    Path repoPath = getInstalledSoftwareRepoPath(toolPath);
+    if ((repoPath == null) || !Files.exists(repoPath)) {
+      this.context.warning("An installed version of {} does not exist.", this.tool);
+      return;
     }
+    this.context.info("Physically deleting {} as requested by the user via force mode.", repoPath);
+    this.context.getFileAccess().delete(repoPath);
+    this.context.success("Successfully deleted {} from your computer.", repoPath);
   }
 
 
