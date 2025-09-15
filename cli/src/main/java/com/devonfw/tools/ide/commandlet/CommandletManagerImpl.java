@@ -1,13 +1,5 @@
 package com.devonfw.tools.ide.commandlet;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-
 import com.devonfw.tools.ide.cli.CliArgument;
 import com.devonfw.tools.ide.cli.CliArguments;
 import com.devonfw.tools.ide.completion.CompletionCandidateCollector;
@@ -47,6 +39,15 @@ import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.tomcat.Tomcat;
 import com.devonfw.tools.ide.tool.uv.Uv;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
+import com.devonfw.tools.ide.tool.yarn.Yarn;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -130,6 +131,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Python(context));
     add(new Pycharm(context));
     add(new Uv(context));
+    add(new Yarn(context));
   }
 
   /**
@@ -269,6 +271,7 @@ public class CommandletManagerImpl implements CommandletManager {
     }
 
     private Commandlet findNext() {
+
       while (this.commandletIterator.hasNext()) {
         Commandlet cmd = this.commandletIterator.next();
         if ((cmd != this.firstCandidate) && isSuitable(cmd)) {
