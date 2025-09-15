@@ -757,9 +757,12 @@ public class FileAccessImpl implements FileAccess {
           if (linkType == null) {
             permissions = PathPermissions.of(tae.getMode());
           } else {
-            Path target = resolveRelativePathSecure(tae.getLinkName(), root);
+            Path parent = entryPath.getParent();
+            String linkName = tae.getLinkName();
+            Path linkTarget = parent.resolve(linkName).normalize();
+            Path target = resolveRelativePathSecure(linkTarget, root, linkName);
             links.add(new PathLink(entryPath, target, linkType));
-            mkdirs(entryPath.getParent());
+            mkdirs(parent);
           }
         }
         if (entry.isDirectory()) {
@@ -787,8 +790,13 @@ public class FileAccessImpl implements FileAccess {
   private Path resolveRelativePathSecure(String entryName, Path root) {
 
     Path entryPath = root.resolve(entryName).normalize();
+    return resolveRelativePathSecure(entryPath, root, entryName);
+  }
+
+  private Path resolveRelativePathSecure(Path entryPath, Path root, String entryName) {
+
     if (!entryPath.startsWith(root)) {
-      throw new IllegalStateException("Preventing path traversal attack from " + entryName + " to " + entryPath);
+      throw new IllegalStateException("Preventing path traversal attack from " + entryName + " to " + entryPath + " leaving " + root);
     }
     return entryPath;
   }
