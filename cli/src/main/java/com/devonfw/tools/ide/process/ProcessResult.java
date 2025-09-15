@@ -75,6 +75,13 @@ public interface ProcessResult {
   String getSingleOutput(IdeSubLogger logger) throws IllegalStateException;
 
   /**
+   * @param logger the {@link IdeSubLogger logger} to use.
+   * @return the first captured standard out. Will be {@code null} if not captured but redirected.
+   * @throws IllegalStateException if the {@link IdeSubLogger logger} was null.
+   */
+  List<String> getOutput(IdeSubLogger logger) throws IllegalStateException;
+
+  /**
    * @return the {@link List} with the lines captured on standard out. Will be {@code null} if not captured but redirected.
    */
   List<String> getOut();
