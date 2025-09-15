@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.tool;
 
+import java.io.Reader;
+import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -252,7 +254,11 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       return;
     }
     if (!isWindowsTerminalInstalled()) {
-      installWindowsTerminal();
+      try {
+        installWindowsTerminal();
+      } catch (Exception e) {
+        this.context.error(e, "Failed to install Windows Terminal!");
+      }
     }
     configureWindowsTerminalGitBash();
   }
@@ -352,12 +358,13 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
    * @param bashPath the path to the Git Bash executable.
    */
   private void configureGitBashProfile(Path settingsPath, String bashPath) throws Exception {
-    FileAccess fileAccess = this.context.getFileAccess();
-    String settingsContent = fileAccess.readFileContent(settingsPath);
 
     ObjectMapper mapper = new ObjectMapper();
-    JsonNode rootNode = mapper.readTree(settingsContent);
-    ObjectNode root = (ObjectNode) rootNode;
+    ObjectNode root;
+    try (Reader reader = Files.newBufferedReader(settingsPath)) {
+      JsonNode rootNode = mapper.readTree(reader);
+      root = (ObjectNode) rootNode;
+    }
 
     // Get or create profiles object
     ObjectNode profiles = (ObjectNode) root.get("profiles");
@@ -383,7 +390,9 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     }
 
     // Add Git Bash profile if it doesn't exist
-    if (!gitBashProfileExists) {
+    if (gitBashProfileExists) {
+      this.context.info("Git Bash profile already exists in {}.", settingsPath);
+    } else {
       ObjectNode gitBashProfile = mapper.createObjectNode();
       String newGuid = "{2ece5bfe-50ed-5f3a-ab87-5cd4baafed2b}";
       String iconPath = getGitBashIconPath(bashPath);
@@ -401,14 +410,19 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
       root.put("defaultProfile", newGuid);
 
       // Write back to file
-      String updatedContent = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(root);
-      fileAccess.writeFileContent(updatedContent, settingsPath);
+      try (Writer writer = Files.newBufferedWriter(settingsPath)) {
+        mapper.writerWithDefaultPrettyPrinter().writeValue(writer, root);
+      }
     }
   }
 
-  private String getGitBashIconPath(String bashPath) {
-    Path iconPath = Path.of("C:\\Program Files\\Git\\mingw64\\share\\git\\git-for-windows.ico");
+  private String getGitBashIconPath(String bashPathString) {
+    Path bashPath = Path.of(bashPathString);
+    // "C:\\Program Files\\Git\\bin\\bash.exe"
+    // "C:\\Program Files\\Git\\mingw64\\share\\git\\git-for-windows.ico"
+    Path iconPath = bashPath.getParent().resolve("mingw64/share/git/git-for-windows.ico");
     if (Files.exists(iconPath)) {
+      this.context.debug("Found git-bash icon at {}", iconPath);
       return iconPath.toString();
     } else {
       this.context.debug("Git Bash icon not found at {}. Using default icon.", iconPath);
