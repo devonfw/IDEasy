@@ -765,7 +765,6 @@ public class FileAccessImpl implements FileAccess {
             mkdirs(parent);
           }
         }
-
         if (entry.isDirectory()) {
           mkdirs(entryPath);
         } else if (linkType == null) { // regular file
