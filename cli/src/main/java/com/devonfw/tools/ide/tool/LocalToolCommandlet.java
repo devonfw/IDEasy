@@ -205,7 +205,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       installationPath = softwareRepoPath.resolve(resolvedVersion.toString());
     }
     VersionIdentifier installedVersion = getInstalledVersion();
-    if (resolvedVersion.equals(installedVersion)) {
+    String installedEdition = getInstalledEdition();
+    if (resolvedVersion.equals(installedVersion) && edition.equals(installedEdition)) {
       this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
       return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
     }
