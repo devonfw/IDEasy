@@ -1,2 +1,2 @@
 @echo off
-echo ngcmd windows %*
+echo ng windows %*

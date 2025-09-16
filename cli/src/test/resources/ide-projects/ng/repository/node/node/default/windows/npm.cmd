@@ -1,2 +1,2 @@
 @echo off
-echo npmcmd windows %*
+echo npm windows %*
