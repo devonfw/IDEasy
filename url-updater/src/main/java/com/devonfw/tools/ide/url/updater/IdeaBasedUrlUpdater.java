@@ -28,7 +28,7 @@ public abstract class IdeaBasedUrlUpdater extends JsonUrlUpdater<IntellijJsonObj
 
     return "undefined-taken-from-JSON";
   }
-  
+
   @Override
   protected Collection<IntellijJsonRelease> getVersionItems(IntellijJsonObject jsonObject) {
 
@@ -47,7 +47,7 @@ public abstract class IdeaBasedUrlUpdater extends JsonUrlUpdater<IntellijJsonObj
    */
   private String getCheckSum(String checksumLink) {
 
-    String responseCS = doGetResponseBodyAsString(checksumLink);
+    String responseCS = downloadAsString(checksumLink);
     return responseCS.split(" ")[0];
   }
 

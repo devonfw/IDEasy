@@ -4,14 +4,13 @@ import java.util.Collection;
 
 import com.devonfw.tools.ide.npm.NpmJsonObject;
 import com.devonfw.tools.ide.npm.NpmJsonVersion;
+import com.devonfw.tools.ide.tool.repository.NpmRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 
 /**
  * {@link JsonUrlUpdater} for packages from the Npm registry.
  */
 public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject, NpmJsonVersion> {
-
-  private static final String REGISTRY_URL = "https://registry.npmjs.org/";
 
   @Override
   protected String doGetVersionUrl() {
@@ -46,7 +45,7 @@ public abstract class NpmBasedUrlUpdater extends JsonUrlUpdater<NpmJsonObject, N
   @Override
   protected String getDownloadBaseUrl() {
 
-    return REGISTRY_URL;
+    return NpmRepository.REGISTRY_URL;
   }
 
   protected abstract String getPackageName();

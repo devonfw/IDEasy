@@ -61,7 +61,7 @@ class NpmJsonObjectTest extends Assertions {
   }
 
   private void addVersion(NpmJsonVersions versions, String version) {
-    NpmJsonDist dist = new NpmJsonDist("https://registry.npmjs.org/npm/-/npm-" + version + ".tgz");
+    NpmJsonDist dist = new NpmJsonDist("https://registry.npmjs.org/npm/-/npm-" + version + ".tgz", "f783874393588901af1a4824a145fa009f174d9d");
     NpmJsonVersion npmVersion = new NpmJsonVersion(version, dist);
     versions.setDetails(version, npmVersion);
   }

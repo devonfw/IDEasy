@@ -55,8 +55,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public Path getToolBinPath() {
 
     Path toolPath = getToolPath();
-    Path binPath = this.context.getFileAccess().findFirst(toolPath, path -> path.getFileName().toString().equals("bin"), false);
-    if ((binPath != null) && Files.isDirectory(binPath)) {
+    Path binPath = toolPath.resolve("bin");
+    if (Files.isDirectory(binPath)) {
       return binPath;
     }
     return toolPath;

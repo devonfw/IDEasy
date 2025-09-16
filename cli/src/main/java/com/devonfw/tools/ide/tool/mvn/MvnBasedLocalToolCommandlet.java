@@ -43,15 +43,15 @@ public abstract class MvnBasedLocalToolCommandlet extends LocalToolCommandlet {
   @Override
   public ToolRepository getToolRepository() {
 
-    return this.context.getMavenToolRepository();
+    return this.context.getMavenRepository();
   }
 
   @Override
   protected Path downloadTool(String edition, ToolRepository toolRepository, VersionIdentifier resolvedVersion) {
 
-    MavenRepository mavenRepository = this.context.getMavenToolRepository();
+    MavenRepository mavenRepository = this.context.getMavenRepository();
     MvnArtifact mavenArtifact = getArtifact(edition);
-    MavenArtifactMetadata mavenArtifactMetadata = mavenRepository.resolveArtifact(mavenArtifact, this.tool, edition, resolvedVersion);
+    MavenArtifactMetadata mavenArtifactMetadata = mavenRepository.getMetadata(mavenArtifact, this.tool, edition);
     return mavenRepository.download(mavenArtifactMetadata);
   }
 }

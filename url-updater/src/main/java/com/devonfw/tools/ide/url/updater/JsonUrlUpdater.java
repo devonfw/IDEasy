@@ -38,7 +38,7 @@ public abstract class JsonUrlUpdater<J extends JsonObject, JVI extends JsonVersi
 
     UrlTool tool = urlRepository.getOrCreateChild(getTool());
     try {
-      String response = doGetResponseBodyAsString(doGetVersionUrl());
+      String response = downloadAsString(doGetVersionUrl());
       for (String edition : getEditions()) {
         J jsonObj = getJsonObjectFromResponse(response, edition);
         if (jsonObj != null) {

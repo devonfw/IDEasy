@@ -35,6 +35,12 @@ public interface FileAccess {
   void download(String url, Path targetFile);
 
   /**
+   * @param url the URL of the text to download.
+   * @return the downloaded body as {@link String} (e.g. JSON or XML).
+   */
+  String download(String url);
+
+  /**
    * Creates the entire {@link Path} as directories if not already existing.
    *
    * @param directory the {@link Path} to {@link java.nio.file.Files#createDirectories(Path, java.nio.file.attribute.FileAttribute...) create}.

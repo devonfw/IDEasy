@@ -188,6 +188,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
 
+    if (toolVersion != null) {
+      throw new UnsupportedOperationException("Not implemented yet");
+    }
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
     install(true, pc, null);
     return runTool(processMode, errorHandling, pc, args);

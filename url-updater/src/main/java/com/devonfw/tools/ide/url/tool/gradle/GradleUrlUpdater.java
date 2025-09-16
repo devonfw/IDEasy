@@ -15,7 +15,7 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
   private static final String HASHSUM_GRAB_PATTERN = "((.*)\\s){5}";
 
   private static final Pattern VERSION_PATTERN = Pattern.compile("release-checksums#v(\\d\\.\\d[\\.\\d]*)\"");
-  
+
   private static final Pattern SHA256_PATTERN = Pattern.compile("[a-fA-F0-9]{64}");
 
   private String responseBody;
@@ -54,7 +54,7 @@ public class GradleUrlUpdater extends WebsiteUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     if (this.responseBody == null) {
-      this.responseBody = doGetResponseBodyAsString(getVersionBaseUrl() + "/release-checksums");
+      this.responseBody = downloadAsString(getVersionBaseUrl() + "/release-checksums");
     }
 
     String hashSum = "";

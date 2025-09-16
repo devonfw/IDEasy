@@ -19,18 +19,12 @@ public class Ng extends NpmBasedCommandlet {
    */
   public Ng(IdeContext context) {
 
-    super(context, "ng", Set.of(Tag.JAVA_SCRIPT, Tag.TYPE_SCRIPT, Tag.BUILD));
+    super(context, "ng", Set.of(Tag.TYPE_SCRIPT, Tag.BUILD));
   }
 
   @Override
-  protected String getNpmPackage() {
+  public String getPackageName() {
 
     return "@angular/cli";
-  }
-
-  @Override
-  public String getToolHelpArguments() {
-
-    return "--help";
   }
 }

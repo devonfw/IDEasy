@@ -17,8 +17,8 @@ class NpmJsonVersionsTest extends Assertions {
   void testNpmJsonVersions() {
     // arrange
     NpmJsonVersions versions = new NpmJsonVersions();
-    NpmJsonVersion v1 = new NpmJsonVersion("1.0.0", new NpmJsonDist("url1"));
-    NpmJsonVersion v2 = new NpmJsonVersion("2.0.0", new NpmJsonDist("url2"));
+    NpmJsonVersion v1 = new NpmJsonVersion("1.0.0", new NpmJsonDist("url1", "sha1-1"));
+    NpmJsonVersion v2 = new NpmJsonVersion("2.0.0", new NpmJsonDist("url2", "sha1-2"));
     versions.setDetails("1.0.0", v1);
     versions.setDetails("2.0.0", v2);
     // act

@@ -73,8 +73,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
     if (urlCollection.isEmpty()) {
       throw new IllegalStateException("Invalid download metadata with empty urls file for " + metadata);
     }
-    Path target = doDownload(metadata);
-    return target;
+    return doDownload(metadata);
   }
 
   /**

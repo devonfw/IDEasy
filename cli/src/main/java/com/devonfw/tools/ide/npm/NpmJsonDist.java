@@ -7,6 +7,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @see NpmJsonObject#versions()
  */
-public record NpmJsonDist(@JsonProperty("tarball") String tarball) {
+public record NpmJsonDist(@JsonProperty("tarball") String tarball, @JsonProperty("shasum") String sha1) {
 
 }

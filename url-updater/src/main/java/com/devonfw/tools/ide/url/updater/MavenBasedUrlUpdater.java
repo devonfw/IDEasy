@@ -82,7 +82,7 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
 
     Set<String> versions = new HashSet<>();
     try {
-      String response = doGetResponseBodyAsString(url);
+      String response = downloadAsString(url);
       XmlMapper mapper = new XmlMapper();
       MavenMetadata metaData = mapper.readValue(response, MavenMetadata.class);
       for (String version : metaData.getVersioning().getVersions()) {

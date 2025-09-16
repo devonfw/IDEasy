@@ -221,7 +221,7 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContextMock context = IdeTestContextMock.get();
-    MavenRepository mavenRepository = context.getMavenToolRepository();
+    MavenRepository mavenRepository = context.getMavenRepository();
     Document metadata = parseXml(XML_SNAPSNOT_METADATA);
 
     // act
@@ -237,7 +237,7 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContextMock context = IdeTestContextMock.get();
-    MavenRepository mavenRepository = context.getMavenToolRepository();
+    MavenRepository mavenRepository = context.getMavenRepository();
     Document metadata = parseXml(XML_RELEASE_METADATA);
 
     // act

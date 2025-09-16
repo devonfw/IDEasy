@@ -1,0 +1,139 @@
+package com.devonfw.tools.ide.tool.node;
+
+import java.nio.file.Path;
+import java.util.Set;
+
+import com.devonfw.tools.ide.cache.CachedValue;
+import com.devonfw.tools.ide.common.Tag;
+import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessErrorHandling;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
+import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.version.VersionIdentifier;
+
+/**
+ * {@link LocalToolCommandlet} for tools based on <a href="https://www.npmjs.com/">npm</a>.
+ */
+public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
+
+  private final CachedValue<VersionIdentifier> installedVersion;
+
+  /**
+   * The constructor.
+   *
+   * @param context the {@link IdeContext}.
+   * @param tool the {@link #getName() tool name}.
+   * @param tags the {@link #getTags() tags} classifying the tool. Should be created via {@link Set#of(Object) Set.of} method.
+   */
+  public NodeBasedCommandlet(IdeContext context, String tool, Set<Tag> tags) {
+
+    super(context, tool, tags);
+    this.installedVersion = new CachedValue<>(this::computeInstalledVersion);
+  }
+
+  /**
+   * @return the computed value of the {@link #getInstalledVersion() installed version}.
+   */
+  protected abstract VersionIdentifier computeInstalledVersion();
+
+  @Override
+  protected boolean isIgnoreSoftwareRepo() {
+
+    // node and node.js are messy - see https://github.com/devonfw/IDEasy/issues/352
+    return true;
+  }
+
+  /**
+   * @return the package of this tool from the NPM registry.
+   */
+  public String getPackageName() {
+
+    return this.tool;
+  }
+
+  @Override
+  public Path getToolPath() {
+
+    Path toolPath = this.context.getSoftwarePath().resolve("node");
+    if (!this.context.getSystemInfo().isWindows()) {
+      toolPath = toolPath.resolve("bin");
+    }
+    return toolPath;
+  }
+
+  @Override
+  public VersionIdentifier getInstalledVersion() {
+
+    return this.installedVersion.get();
+  }
+
+  @Override
+  public String getInstalledEdition() {
+
+    if (getInstalledVersion() != null) {
+      return this.tool;
+    }
+    return null;
+  }
+
+  @Override
+  protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, String edition,
+      ProcessContext processContext) {
+
+    runPackageInstall(getPackageName() + "@" + resolvedVersion);
+    this.installedVersion.invalidate();
+  }
+
+  @Override
+  protected void performUninstall(Path toolPath) {
+
+    runPackageUninstall(getPackageName());
+    this.installedVersion.invalidate();
+  }
+
+  /**
+   * Performs a global npm uninstall.
+   *
+   * @param npmPackage the npm package to uninstall.
+   */
+  protected void runPackageUninstall(String npmPackage) {
+    runPackageManager("uninstall", "-g", npmPackage).failOnError();
+  }
+
+  /**
+   * Performs a global npm install.
+   *
+   * @param npmPackage the npm package to install.
+   * @return the {@link ProcessResult} of the npm execution.
+   */
+  protected ProcessResult runPackageInstall(String npmPackage) {
+
+    return runPackageManager("install", "-g", npmPackage);
+  }
+
+  /**
+   * @param args the arguments for the package manager.
+   * @return the {@link ProcessResult}.
+   */
+  protected ProcessResult runPackageManager(String... args) {
+
+    return runPackageManager(ProcessMode.DEFAULT, ProcessErrorHandling.THROW_CLI, args);
+  }
+
+  /**
+   * @param processMode the {@link ProcessMode}.
+   * @param errorHandling the {@link ProcessErrorHandling}.
+   * @param args the arguments for the package manager.
+   * @return the {@link ProcessResult}.
+   */
+  protected abstract ProcessResult runPackageManager(ProcessMode processMode, ProcessErrorHandling errorHandling, String... args);
+
+  @Override
+  public String getToolHelpArguments() {
+
+    return "--help";
+  }
+}

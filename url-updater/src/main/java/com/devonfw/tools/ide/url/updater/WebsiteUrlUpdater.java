@@ -22,7 +22,7 @@ public abstract class WebsiteUrlUpdater extends AbstractUrlUpdater {
   @Override
   protected Set<String> getVersions() {
 
-    return doGetRegexMatchesAsList(doGetResponseBodyAsString(getVersionUrl()));
+    return doGetRegexMatchesAsList(downloadAsString(getVersionUrl()));
   }
 
   /**

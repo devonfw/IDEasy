@@ -31,7 +31,7 @@ public class DockerDesktopUrlUpdater extends WebsiteUrlUpdater {
     VersionIdentifier vid = VersionIdentifier.of(urlVersion.getName());
     String version = urlVersion.getName().replaceAll("\\.", "");
     // get Code for version
-    String body = doGetResponseBodyAsString(getVersionUrl());
+    String body = downloadAsString(getVersionUrl());
     String regex = "href=#" + version
         // .......1.........................................................2.................
         + ".{8,12}(\r\n|\r|\n).{0,350}href=https://desktop\\.docker\\.com.*?(\\d{5,6}).*\\.exe";

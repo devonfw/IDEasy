@@ -185,7 +185,7 @@ public abstract class AbstractUrlUpdater extends AbstractProcessorWithTimeout im
    * @return a string representing the response body.
    * @throws IllegalStateException if the response body could not be retrieved.
    */
-  protected String doGetResponseBodyAsString(String url) {
+  protected String downloadAsString(String url) {
 
     try {
       HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
