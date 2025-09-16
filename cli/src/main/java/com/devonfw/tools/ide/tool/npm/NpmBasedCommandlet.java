@@ -1,6 +1,6 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import java.nio.file.Path;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
 
@@ -44,10 +44,8 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet {
   }
 
   protected VersionIdentifier runPackageManagerGetInstalledVersion(String npmPackage) {
-    Path npm = Path.of("npm");
-    Path npmPath = this.context.getPath().findBinary(npm);
-    if (npmPath == npm) {
-      this.context.trace("Since npm is not installed, also package {} for tool {} cannot be installed.", npmPackage, this.tool);
+    if (!Files.isDirectory(this.context.getSoftwarePath().resolve("node"))) {
+      this.context.trace("Since node is not installed, also package {} for tool {} cannot be installed.", npmPackage, this.tool);
       return null;
     }
     ProcessResult result = runPackageManager(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.NONE, "list", "-g", npmPackage, "--depth=0");

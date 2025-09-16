@@ -1,7 +1,5 @@
 package com.devonfw.tools.ide.tool.repository;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -11,8 +9,6 @@ import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
-import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
-import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -84,17 +80,5 @@ public abstract class ArtifactToolRepository<A extends SoftwareArtifact, M exten
    * @return the resolved {@link UrlDownloadFileMetadata}.
    */
   public abstract M getMetadata(A artifact, String tool, String edition);
-
-  @Override
-  public Collection<ToolDependency> findDependencies(String groupId, String artifactId, VersionIdentifier version) {
-
-    // For our use-case we only download bundled packages from repository so we do KISS for now.
-    return Collections.emptyList();
-  }
-
-  @Override
-  public ToolSecurity findSecurity(String tool, String edition) {
-    return ToolSecurity.getEmpty();
-  }
 
 }
