@@ -97,22 +97,20 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       return toolAlreadyInstalled(silent, installedVersion, processContext);
     }
     FileAccess fileAccess = this.context.getFileAccess();
-    Path toolPath = getToolPath();
     boolean ignoreSoftwareRepo = isIgnoreSoftwareRepo();
     if (!ignoreSoftwareRepo) {
+      Path toolPath = getToolPath();
       // we need to link the version or update the link.
       if (Files.exists(toolPath, LinkOption.NOFOLLOW_LINKS)) {
         fileAccess.backup(toolPath);
       }
       fileAccess.mkdirs(toolPath.getParent());
+      fileAccess.symlink(installation.linkDir(), toolPath);
     }
     if (installation.binDir() != null) {
       this.context.getPath().setPath(this.tool, installation.binDir());
     }
     postInstall(true, processContext);
-    if (!ignoreSoftwareRepo) {
-      fileAccess.symlink(installation.linkDir(), toolPath);
-    }
     if (installedVersion == null) {
       asSuccess(step).log("Successfully installed {} in version {}", this.tool, resolvedVersion);
     } else {
