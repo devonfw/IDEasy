@@ -4,6 +4,7 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
+import com.devonfw.tools.ide.cache.CachedValue;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
@@ -19,6 +20,8 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  */
 public abstract class NpmBasedCommandlet extends LocalToolCommandlet {
 
+  private final CachedValue<VersionIdentifier> installedVersion;
+
   /**
    * The constructor.
    *
@@ -29,6 +32,7 @@ public abstract class NpmBasedCommandlet extends LocalToolCommandlet {
   public NpmBasedCommandlet(IdeContext context, String tool, Set<Tag> tags) {
 
     super(context, tool, tags);
+    this.installedVersion = new CachedValue<>(() -> runNpmGetInstalledPackageVersion(getNpmPackage()));
   }
 
   @Override
@@ -76,7 +80,7 @@ public abstract class NpmBasedCommandlet extends LocalToolCommandlet {
   @Override
   public VersionIdentifier getInstalledVersion() {
 
-    return runNpmGetInstalledPackageVersion(getNpmPackage());
+    return this.installedVersion.get();
   }
 
   @Override
@@ -94,12 +98,14 @@ public abstract class NpmBasedCommandlet extends LocalToolCommandlet {
 
     // runNpmUninstall(getNpmPackage()); // first uninstall a previously installed version
     runNpmInstall(getNpmPackage() + "@" + resolvedVersion);
+    this.installedVersion.invalidate();
   }
 
   @Override
   protected void performUninstall(Path toolPath) {
 
     runNpmUninstall(getNpmPackage());
+    this.installedVersion.invalidate();
   }
 
   /**
