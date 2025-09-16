@@ -43,18 +43,18 @@ public class Python extends LocalToolCommandlet {
    * @param toolRepository the {@link ToolRepository}, unused in this implementation.
    * @param resolvedVersion the {@link VersionIdentifier} of the {@code Python} tool to install.
    * @param installationPath the target {@link Path} where the tool should be installed.
-   * @param fileAccess the {@link FileAccess} utility for file operations.
    * @param edition the edition of the tool to install, unused in this implementation.
    * @param processContext the {@link ProcessContext} required to install the {@code Python} environment.
    */
   @Override
-  protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, FileAccess fileAccess,
+  protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath,
       String edition, ProcessContext processContext) {
 
     if (resolvedVersion.compareVersion(PYTHON_MIN_VERSION).isLess()) {
       throw new CliException("Python version must be at least " + this.PYTHON_MIN_VERSION);
     }
 
+    FileAccess fileAccess = this.context.getFileAccess();
     if (Files.exists(installationPath)) {
       fileAccess.backup(installationPath);
     }
