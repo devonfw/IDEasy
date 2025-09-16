@@ -57,7 +57,6 @@ public abstract class NpmBasedCommandlet extends LocalToolCommandlet {
     ProcessResult result = runNpm(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.NONE, "list", "-g", npmPackage, "--depth=0");
     if (result.isSuccessful()) {
       List<String> versions = result.getOut();
-      assert versions.size() == 2;
       String parsedVersion = null;
       for (String version : versions) {
         if (version.contains(npmPackage)) {
