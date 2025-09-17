@@ -207,12 +207,12 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     VersionIdentifier installedVersion = getInstalledVersion();
     String installedEdition = getInstalledEdition();
     if (resolvedVersion.equals(installedVersion) && edition.equals(installedEdition)) {
-          this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
+      this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
       return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
-        }
+    }
     performToolInstallation(toolRepository, resolvedVersion, installationPath, edition, processContext);
     return createToolInstallation(installationPath, resolvedVersion, true, processContext, extraInstallation);
-        }
+  }
 
   /**
    * Performs the actual installation of the {@link #getName() tool} by downloading its binary, optionally extracting it, backing up any existing installation,
@@ -240,8 +240,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
         this.context.warning("Your IDEasy installation is missing the version file.");
       } else {
-      fileAccess.backup(installationPath);
-    }
+        fileAccess.backup(installationPath);
+      }
     }
     fileAccess.mkdirs(installationPath.getParent());
     fileAccess.extract(downloadedToolFile, installationPath, this::postExtract, extract);
@@ -467,10 +467,10 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       }
       performUninstall(toolPath);
       this.context.success("Successfully uninstalled {}", this.tool);
-      } catch (Exception e) {
+    } catch (Exception e) {
       this.context.error(e, "Failed to uninstall {}", this.tool);
-      }
     }
+  }
 
   /**
    * Performs the actual uninstallation of this tool.
@@ -485,15 +485,15 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * Deletes the installed version of the tool from the shared software repository.
    */
   private void uninstallFromSoftwareRepository(Path toolPath) {
-      Path repoPath = getInstalledSoftwareRepoPath(toolPath);
+    Path repoPath = getInstalledSoftwareRepoPath(toolPath);
     if ((repoPath == null) || !Files.exists(repoPath)) {
       this.context.warning("An installed version of {} does not exist in software repository.", this.tool);
-        return;
-      }
+      return;
+    }
     this.context.info("Physically deleting {} as requested by the user via force mode.", repoPath);
-        this.context.getFileAccess().delete(repoPath);
+    this.context.getFileAccess().delete(repoPath);
     this.context.success("Successfully deleted {} from your computer.", repoPath);
-      }
+  }
 
 
   private ToolInstallation createToolInstallation(Path rootDir, VersionIdentifier resolvedVersion, boolean newInstallation,
@@ -509,8 +509,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       assert (!linkDir.equals(rootDir));
       Path toolVersionFile = rootDir.resolve(IdeContext.FILE_SOFTWARE_VERSION);
       if (Files.exists(toolVersionFile)) {
-      this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
-    }
+        this.context.getFileAccess().copy(toolVersionFile, linkDir, FileCopyMode.COPY_FILE_OVERRIDE);
+      }
     }
     ToolInstallation toolInstallation = new ToolInstallation(rootDir, linkDir, binDir, resolvedVersion, newInstallation);
     setEnvironment(environmentContext, toolInstallation, extraInstallation);
