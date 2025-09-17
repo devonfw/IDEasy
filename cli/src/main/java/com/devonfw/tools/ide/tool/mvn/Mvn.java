@@ -245,6 +245,17 @@ public class Mvn extends PluginBasedCommandlet {
    */
   public Path getMavenConfFolder(boolean legacy) {
 
+    Path mvnConfigFolder = resolveMavenConfFolder(legacy);
+    this.context.getFileAccess().mkdirs(mvnConfigFolder);
+    return mvnConfigFolder;
+  }
+
+  /**
+   * Helper method to resolve maven config folder without creating directories.
+   * @param legacy - {@code true} to prefer legacy folder when neither exists, {@code false} to prefer new folder.
+   * @return the {@link Path} to the maven configuration folder that should be used.
+   */
+  private Path resolveMavenConfFolder(boolean legacy) {
     Path confPath = this.context.getConfPath();
     Path mvnConfigFolder = confPath.resolve(MVN_CONFIG_FOLDER);
     if (!Files.isDirectory(mvnConfigFolder)) {
@@ -255,10 +266,27 @@ public class Mvn extends PluginBasedCommandlet {
         if (legacy) {
           mvnConfigFolder = mvnConfigLegacyFolder;
         }
-        this.context.getFileAccess().mkdirs(mvnConfigFolder);
+        // Note: directories are created by the caller if needed
       }
     }
     return mvnConfigFolder;
+  }
+
+  /**
+   * @return the {@link Path} pointing to the maven configuration directory (where "settings.xml" or "settings-security.xml" are located).
+   * This method provides the same behavior as the original IdeContext.getMavenConfigurationFolder() method.
+   */
+  public Path getMavenConfigurationFolder() {
+    Path confPath = this.context.getConfPath();
+    if (confPath != null) {
+      Path mvnConfigFolder = resolveMavenConfFolder(true);
+      // Only return the path if the directory actually exists
+      if (Files.isDirectory(mvnConfigFolder)) {
+        return mvnConfigFolder;
+      }
+    }
+    // fallback to USER_HOME/.m2 folder
+    return this.context.getUserHome().resolve(MVN_CONFIG_LEGACY_FOLDER);
   }
 
   /**
@@ -288,7 +316,7 @@ public class Mvn extends PluginBasedCommandlet {
   }
 
   private String getSettingsSecurityProperty() {
-    return "-Dsettings.security=" + this.context.getMavenConfigurationFolder().resolve(SETTINGS_SECURITY_FILE).toString().replace("\\", "\\\\");
+    return "-Dsettings.security=" + this.getMavenConfigurationFolder().resolve(SETTINGS_SECURITY_FILE).toString().replace("\\", "\\\\");
   }
 
   /**
