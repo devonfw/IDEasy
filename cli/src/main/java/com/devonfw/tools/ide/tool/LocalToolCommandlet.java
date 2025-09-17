@@ -188,7 +188,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @param edition the specific {@link #getConfiguredEdition() edition} to install.
    * @return the {@link ToolInstallation} matching the given {@code version}.
    */
-  protected ToolInstallation installTool(GenericVersionRange version, ProcessContext processContext, String edition) {
+  public ToolInstallation installTool(GenericVersionRange version, ProcessContext processContext, String edition) {
 
     // if version is a VersionRange, we are not called from install() but directly from installAsDependency() due to a version conflict of a dependency
     boolean extraInstallation = (version instanceof VersionRange);
@@ -256,7 +256,6 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
    * @return the {@link Path} to the downloaded release file.
    */
   protected Path downloadTool(String edition, ToolRepository toolRepository, VersionIdentifier resolvedVersion) {
-
     return toolRepository.download(this.tool, edition, resolvedVersion, this);
   }
 
