@@ -495,7 +495,14 @@ public class FileAccessImpl implements FileAccess {
   private void mklinkOnWindows(Path target, Path link, PathLinkType type) {
 
     this.context.trace("Creating a Windows link at {} pointing to {}", link, target);
-    ProcessResult result = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", type.getMklinkOption(), link.toString(), target.toString())
+    ProcessContext pc = this.context.newProcess().executable("cmd")
+        .addArgs("/c", "mklink", type.getMklinkOption());
+    if (type == PathLinkType.SYMBOLIC_LINK && Files.isDirectory(target)) {
+      pc.addArg("/j");
+      target = target.toAbsolutePath();
+    }
+    pc = pc.addArgs(link.toString(), target.toString());
+    ProcessResult result = pc
         .run(ProcessMode.DEFAULT);
     result.failOnError();
   }
@@ -757,9 +764,12 @@ public class FileAccessImpl implements FileAccess {
           if (linkType == null) {
             permissions = PathPermissions.of(tae.getMode());
           } else {
-            Path target = resolveRelativePathSecure(tae.getLinkName(), root);
+            Path parent = entryPath.getParent();
+            String linkName = tae.getLinkName();
+            Path linkTarget = parent.resolve(linkName).normalize();
+            Path target = resolveRelativePathSecure(linkTarget, root, linkName);
             links.add(new PathLink(entryPath, target, linkType));
-            mkdirs(entryPath.getParent());
+            mkdirs(parent);
           }
         }
         if (entry.isDirectory()) {
@@ -787,8 +797,13 @@ public class FileAccessImpl implements FileAccess {
   private Path resolveRelativePathSecure(String entryName, Path root) {
 
     Path entryPath = root.resolve(entryName).normalize();
+    return resolveRelativePathSecure(entryPath, root, entryName);
+  }
+
+  private Path resolveRelativePathSecure(Path entryPath, Path root, String entryName) {
+
     if (!entryPath.startsWith(root)) {
-      throw new IllegalStateException("Preventing path traversal attack from " + entryName + " to " + entryPath);
+      throw new IllegalStateException("Preventing path traversal attack from " + entryName + " to " + entryPath + " leaving " + root);
     }
     return entryPath;
   }
