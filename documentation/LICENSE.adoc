@@ -16,11 +16,11 @@ Such code included in this product is either also unter Apache License 2.0 or an
 
 However, our product allows to install and run other software.
 All of this is optional and can be configured as needed.
-Since such software is executed as a seperated process and is fully optional, it is not to be considered as derivative work.
+Since such software is executed as a separated process and is fully optional, it is not to be considered as derivative work.
 Without IDEasy you just install such software manually and the only difference is that we automate this for you.
 However, due to automation you may not explicitly decide and notice what the license of such software is.
 Therefore, we list such software with their licenses explicitly below esp. those that require reproduction of the license text in the distribution.
-Before using our product and installig additional software with it you need to agree to such licenses and be aware of this.
+Before using our product and installing additional software with it you need to agree to such licenses and be aware of this.
 
 NOTE: Please be aware that it is even possible to configure and automatically install some commercial software that is NOT open-source and requires a license to be used (e.g. IntelliJ ultimate edition).
 Hence, only configure and use such software if you have an according license.
@@ -62,6 +62,7 @@ The column `inclusion` indicates the way the component is included:
 |https://nodejs.org/[Node.js] |Default Setup|https://raw.githubusercontent.com/nodejs/node/master/LICENSE[License]
 |https://www.npmjs.com/[NPM] |Default Setup|https://github.com/npm/cli/blob/latest/LICENSE[Artistic License 2.0] (https://www.npmjs.com/policies/terms[Terms])
 |https://www.npmjs.com/package/corepack/[corepack] |Optional|https://github.com/nodejs/corepack/blob/main/LICENSE.md[MIT License]
+|https://yarnpkg.com/[yarnpkg] |Optional|https://github.com/yarnpkg/berry/blob/master/LICENSE.md[BSD 2-Clause License]
 |https://cli.angular.io/[Angular CLI] (ng) |Optional|https://cli.angular.io/license.html[MIT]
 |http://groovy-lang.org/[Groovy]|Optional|https://github.com/apache/groovy/blob/master/LICENSE[Apache 2.0]
 |https://ant.apache.org/[Apache Ant]|Optional|https://github.com/apache/ant/blob/master/LICENSE[Apache 2.0]
@@ -2315,6 +2316,21 @@ The externally maintained libraries used by Node.js are:
     The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
     THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  """
+
+- yarnpkg, located at tools/yarn.js, is licensed as follows:
+  """
+    BSD 2-Clause License
+
+  Copyright (c) 2016-present, Yarn Contributors. All rights reserved.
+
+  Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+    Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+
+    Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+
+  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
   """
 
 - cpplint.py, located at tools/cpplint.py, is licensed as follows:
