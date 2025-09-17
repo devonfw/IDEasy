@@ -210,6 +210,27 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
       this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
       return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
     }
+    Path toolVersionFile = installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (Files.isDirectory(installationPath)) {
+      if (Files.exists(toolVersionFile)) {
+        if (!ignoreSoftwareRepo) {
+          assert installedVersion.toString().equals(fileAccess.readFileContent(toolVersionFile));
+          this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
+          return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
+        }
+      } else {
+        // Makes sure that IDEasy will not delete itself
+        if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
+          this.context.warning("Your IDEasy installation is missing the version file at {}", toolVersionFile);
+          return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
+        } else {
+          // TODO: fixme for NPM based tools
+          this.context.warning("Deleting corrupted installation at {}", installationPath);
+          fileAccess.delete(installationPath);
+        }
+      }
+    }
     performToolInstallation(toolRepository, resolvedVersion, installationPath, edition, processContext);
     return createToolInstallation(installationPath, resolvedVersion, true, processContext, extraInstallation);
   }
