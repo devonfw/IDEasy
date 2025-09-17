@@ -224,7 +224,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (Files.isDirectory(installationPath)) {
       if (Files.exists(toolVersionFile)) {
         if (!ignoreSoftwareRepo) {
-          assert resolvedVersion.toString().equals(fileAccess.readFileContent(toolVersionFile));
+          assert resolvedVersion.equals(getInstalledVersion(installationPath)) :
+              "Found version " + getInstalledVersion(installationPath) + " in " + toolVersionFile + " but expected " + resolvedVersion;
           this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
           return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
         }
