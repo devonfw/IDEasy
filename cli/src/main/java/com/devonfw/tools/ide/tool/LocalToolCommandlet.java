@@ -63,6 +63,15 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
+   * @return {@code true} to ignore a missing {@link IdeContext#FILE_SOFTWARE_VERSION software version file} in an installation, {@code false} delete the broken
+   *     installation (default).
+   */
+  protected boolean isIgnoreMissingSoftwareVersionFile() {
+
+    return false;
+  }
+
+  /**
    * @deprecated will be removed once all "dependencies.json" are created in ide-urls.
    */
   @Deprecated
@@ -215,7 +224,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (Files.isDirectory(installationPath)) {
       if (Files.exists(toolVersionFile)) {
         if (!ignoreSoftwareRepo) {
-          assert installedVersion.toString().equals(fileAccess.readFileContent(toolVersionFile));
+          assert resolvedVersion.toString().equals(fileAccess.readFileContent(toolVersionFile));
           this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
           return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
         }
@@ -224,8 +233,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
         if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
           this.context.warning("Your IDEasy installation is missing the version file at {}", toolVersionFile);
           return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
-        } else {
-          // TODO: fixme for NPM based tools
+        } else if (!isIgnoreMissingSoftwareVersionFile()) {
           this.context.warning("Deleting corrupted installation at {}", installationPath);
           fileAccess.delete(installationPath);
         }
