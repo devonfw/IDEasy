@@ -5,12 +5,12 @@ import com.devonfw.tools.ide.url.updater.MavenBasedUrlUpdater;
 /**
  * {@link MavenBasedUrlUpdater} for spring-boot-cli
  */
-public class SpringBootUrlUpdater extends MavenBasedUrlUpdater {
+public class SpringUrlUpdater extends MavenBasedUrlUpdater {
 
   @Override
   protected String getTool() {
 
-    return "springboot";
+    return "spring";
   }
 
   @Override
