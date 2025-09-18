@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.tool.npm;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -44,17 +43,6 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet {
 
     return true;
   }
-
-  @Override
-  protected boolean isIgnoreMissingSoftwareVersionFile() {
-
-    return true;
-  }
-
-  /**
-   * @return the package of this tool from the NPM registry.
-   */
-  protected abstract String getNpmPackage();
 
   @Override
   protected VersionIdentifier computeInstalledVersion() {
