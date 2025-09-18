@@ -62,7 +62,7 @@ public class NpmTest extends AbstractIdeContextTest {
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context.getSoftwarePath().resolve("npm/.ide.software.version")).exists().hasContent("9.9.2");
+    assertThat(context.getSoftwarePath().resolve("node/.ide.software.version")).exists().hasContent("v18.19.1");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed npm in version 9.9.2");
   }
 

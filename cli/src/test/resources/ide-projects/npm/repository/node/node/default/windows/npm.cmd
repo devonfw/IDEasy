@@ -1,3 +1,3 @@
 #!/bin/bash
 node "npm"
-echo "npmcmd windows $*"
+echo "npm windows $*"
