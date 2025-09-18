@@ -31,7 +31,7 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
 
   private String getDownloadArtifactUrl() {
 
-    return getDownloadBaseUrl() + "/" + getMavenGroupIdPath() + "/" + getMavenArtifcatId() + "/";
+    return getDownloadBaseUrl() + "/" + getMavenGroupIdPath() + "/" + getMavenArtifactId() + "/";
   }
 
   /**
@@ -42,7 +42,7 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
   /**
    * @return the maven artifactId.
    */
-  protected abstract String getMavenArtifcatId();
+  protected abstract String getMavenArtifactId();
 
   /**
    * @return the artifact extension including the dot (e.g. ".jar").
@@ -68,7 +68,7 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
   protected void addVersion(UrlVersion urlVersion) {
 
     String version = urlVersion.getName();
-    String url = getDownloadArtifactUrl() + version + "/" + getMavenArtifcatId() + "-" + version + getExtension();
+    String url = getDownloadArtifactUrl() + version + "/" + getMavenArtifactId() + "-" + version + getExtension();
     doAddVersion(urlVersion, url);
   }
 
