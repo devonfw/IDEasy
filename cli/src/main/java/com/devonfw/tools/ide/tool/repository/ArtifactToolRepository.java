@@ -12,7 +12,7 @@ import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Extends {@link AbstractToolRepository} for artifact repository like {@link MavenRepository} or {@link NpmRepository}.
+ * Extends {@link AbstractToolRepository} for artifact repository like {@link MvnRepository} or {@link NpmRepository}.
  */
 public abstract class ArtifactToolRepository<A extends SoftwareArtifact, M extends UrlDownloadFileMetadata> extends AbstractToolRepository {
 

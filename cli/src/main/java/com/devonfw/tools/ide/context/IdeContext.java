@@ -24,7 +24,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.repository.MvnRepository;
 import com.devonfw.tools.ide.tool.repository.NpmRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
@@ -323,9 +323,9 @@ public interface IdeContext extends IdeStartContext {
   CustomToolRepository getCustomToolRepository();
 
   /**
-   * @return the {@link MavenRepository}.
+   * @return the {@link MvnRepository}.
    */
-  MavenRepository getMavenRepository();
+  MvnRepository getMvnRepository();
 
   /**
    * @return the {@link NpmRepository}.

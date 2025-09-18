@@ -1,5 +1,8 @@
 package com.devonfw.tools.ide.tool.repository;
 
+/**
+ * Abstract base class for software artifacts like {@link com.devonfw.tools.ide.tool.mvn.MvnArtifact} or {@link com.devonfw.tools.ide.tool.npm.NpmArtifact}.
+ */
 public abstract class SoftwareArtifact {
 
   protected final String version;

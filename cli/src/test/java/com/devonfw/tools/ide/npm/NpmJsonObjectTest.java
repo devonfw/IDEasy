@@ -34,15 +34,13 @@ class NpmJsonObjectTest extends Assertions {
             "1.0.0": {
               "version": "1.0.0",
               "dist": {
-                "tarball": "https://registry.npmjs.org/npm/-/npm-1.0.0.tgz",
-                "shasum": "sha1-of-1.0.0"
+                "tarball": "https://registry.npmjs.org/npm/-/npm-1.0.0.tgz"
               }
             },
             "2.1.0": {
               "version": "2.1.0",
               "dist": {
-                "tarball": "https://registry.npmjs.org/npm/-/npm-2.1.0.tgz",
-                "shasum": "sha1-of-2.1.0"
+                "tarball": "https://registry.npmjs.org/npm/-/npm-2.1.0.tgz"
               }
             }
           }
@@ -63,7 +61,7 @@ class NpmJsonObjectTest extends Assertions {
   }
 
   private void addVersion(NpmJsonVersions versions, String version) {
-    NpmJsonDist dist = new NpmJsonDist("https://registry.npmjs.org/npm/-/npm-" + version + ".tgz", "sha1-of-" + version);
+    NpmJsonDist dist = new NpmJsonDist("https://registry.npmjs.org/npm/-/npm-" + version + ".tgz");
     NpmJsonVersion npmVersion = new NpmJsonVersion(version, dist);
     versions.setDetails(version, npmVersion);
   }

@@ -38,7 +38,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link com.devonfw.tools.ide.tool.mvn.Mvn maven} was the first famous build management tool with a central repository. Meanwhile, there are others like
  * {@link com.devonfw.tools.ide.tool.gradle.Gradle}. However, it is still called maven-repository and not java-repository.
  */
-public final class MavenRepository extends ArtifactToolRepository<MvnArtifact, MavenArtifactMetadata> {
+public final class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifactMetadata> {
 
   /** Base URL for Maven Central repository */
   public static final String MAVEN_CENTRAL = "https://repo1.maven.org/maven2";
@@ -67,7 +67,7 @@ public final class MavenRepository extends ArtifactToolRepository<MvnArtifact, M
    *
    * @param context the owning {@link IdeContext}.
    */
-  public MavenRepository(IdeContext context) {
+  public MvnRepository(IdeContext context) {
 
     super(context);
     this.localMavenRepository = IdeVariables.M2_REPO.get(this.context);
@@ -107,7 +107,7 @@ public final class MavenRepository extends ArtifactToolRepository<MvnArtifact, M
   }
 
   @Override
-  public MavenArtifactMetadata getMetadata(MvnArtifact artifact, String tool, String edition) {
+  public MvnArtifactMetadata getMetadata(MvnArtifact artifact, String tool, String edition) {
     OperatingSystem os = null;
     SystemArchitecture arch = null;
     String classifier = artifact.getClassifier();
@@ -131,7 +131,7 @@ public final class MavenRepository extends ArtifactToolRepository<MvnArtifact, M
     if (!artifact.isMavenMetadata()) {
       chekcsums = new UrlLazyChecksums(artifact);
     }
-    return new MavenArtifactMetadata(artifact, tool, edition, chekcsums, os, arch);
+    return new MvnArtifactMetadata(artifact, tool, edition, chekcsums, os, arch);
   }
 
   private UrlGenericChecksum getChecksum(MvnArtifact artifact, String hashAlgorithm) {
@@ -232,17 +232,17 @@ public final class MavenRepository extends ArtifactToolRepository<MvnArtifact, M
   @Override
   public Path download(UrlDownloadFileMetadata metadata) {
 
-    if (metadata instanceof MavenArtifactMetadata mvnMetadata) {
+    if (metadata instanceof MvnArtifactMetadata mvnMetadata) {
       return download(mvnMetadata);
     }
     return super.download(metadata);
   }
 
   /**
-   * @param metadata the {@link MavenArtifactMetadata}.
+   * @param metadata the {@link MvnArtifactMetadata}.
    * @return the {@link Path} to the downloaded artifact.
    */
-  public Path download(MavenArtifactMetadata metadata) {
+  public Path download(MvnArtifactMetadata metadata) {
 
     return getDownloadedArtifact(metadata.getMvnArtifact(), metadata.getChecksums());
   }

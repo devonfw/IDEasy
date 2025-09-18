@@ -147,7 +147,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       this.context.info("Trying to download: {} with HTTP protocol version: {}", url, httpVersion);
     }
     mkdirs(target.getParent());
-    httpGetAsString(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
+    httpGet(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
   }
 
   /**

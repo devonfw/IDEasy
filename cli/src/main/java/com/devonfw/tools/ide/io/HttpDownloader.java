@@ -16,20 +16,28 @@ import java.util.function.Consumer;
  */
 public abstract class HttpDownloader {
 
+  /** @see Builder#GET() */
   protected static final String HTTP_METHOD_GET = "GET";
 
+  /** @see Builder#POST(BodyPublisher) */
   protected static final String HTTP_METHOD_POST = "POST";
 
+  /** @see Builder#PUT(BodyPublisher) */
   protected static final String HTTP_METHOD_PUT = "PUT";
 
+  /** @see Builder#DELETE() */
   protected static final String HTTP_METHOD_DELETE = "DELETE";
 
+  /** @see Builder#HEAD() */
   protected static final String HTTP_METHOD_HEAD = "HEAD";
 
+  /** HTTP method: {@value} */
   protected static final String HTTP_METHOD_OPTIONS = "OPTIONS";
 
+  /** HTTP method: {@value} */
   protected static final String HTTP_METHOD_TRACE = "TRACE";
 
+  /** HTTP method: {@value} */
   protected static final String HTTP_METHOD_PATCH = "PATCH";
 
   protected static HttpClient createHttpClient() {
@@ -58,7 +66,15 @@ public abstract class HttpDownloader {
     }
   }
 
-  protected static void httpGetAsString(String url, Version httpVersion, Consumer<HttpResponse<InputStream>> bodyConsumer) {
+  /**
+   * Retrieves the {@link HttpResponse} body as {@link InputStream} and processes it by the given {@link Consumer}.
+   *
+   * @param url the URL to retrieve the response body from.
+   * @param httpVersion the HTTP {@link Version} to use.
+   * @param bodyConsumer the {@link Consumer} to process the response body as {@link
+   * @throws IllegalStateException if the response body could not be retrieved.
+   */
+  protected static void httpGet(String url, Version httpVersion, Consumer<HttpResponse<InputStream>> bodyConsumer) {
 
     try (HttpClient client = createHttpClient()) {
       HttpRequest request = createGetRequest(url, httpVersion);

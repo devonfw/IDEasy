@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.repository.MvnRepository;
 import com.devonfw.tools.ide.tool.repository.SoftwareArtifact;
 
 /**
@@ -260,7 +260,7 @@ public final class MvnArtifact extends SoftwareArtifact {
    */
   public String getDownloadUrl() {
     if (this.downloadUrl == null) {
-      String baseUrl = isSnapshot() ? MavenRepository.MAVEN_SNAPSHOTS : MavenRepository.MAVEN_CENTRAL;
+      String baseUrl = isSnapshot() ? MvnRepository.MAVEN_SNAPSHOTS : MvnRepository.MAVEN_CENTRAL;
       this.downloadUrl = baseUrl + "/" + getPath();
     }
     return this.downloadUrl;

@@ -71,7 +71,7 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
       }
       return versions;
     } catch (JsonProcessingException e) {
-      throw new RuntimeException(e);
+      throw new RuntimeException("Failed to process JSON from " + url, e);
     }
   }
 

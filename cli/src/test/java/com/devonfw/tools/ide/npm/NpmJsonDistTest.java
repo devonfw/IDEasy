@@ -15,12 +15,10 @@ class NpmJsonDistTest extends Assertions {
   void testNpmJsonDist() {
     // arrange
     String url = "https://registry.npmjs.org/npm/-/npm-2.0.0.tgz";
-    String sha1 = "f783874393588901af1a4824a145fa009f174d9d";
     // act
-    NpmJsonDist dist = new NpmJsonDist(url, sha1);
+    NpmJsonDist dist = new NpmJsonDist(url);
     // assert
     assertThat(dist.tarball()).isEqualTo(url);
-    assertThat(dist.sha1()).isEqualTo(sha1);
   }
 }
 

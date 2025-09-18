@@ -6,13 +6,13 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
-import com.devonfw.tools.ide.tool.repository.MavenArtifactMetadata;
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.repository.MvnArtifactMetadata;
+import com.devonfw.tools.ide.tool.repository.MvnRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Extends {@link LocalToolCommandlet} for {@link Mvn Maven} based tools via {@link com.devonfw.tools.ide.tool.repository.MavenRepository}.
+ * Extends {@link LocalToolCommandlet} for {@link Mvn Maven} based tools via {@link MvnRepository}.
  */
 public abstract class MvnBasedLocalToolCommandlet extends LocalToolCommandlet {
 
@@ -43,15 +43,15 @@ public abstract class MvnBasedLocalToolCommandlet extends LocalToolCommandlet {
   @Override
   public ToolRepository getToolRepository() {
 
-    return this.context.getMavenRepository();
+    return this.context.getMvnRepository();
   }
 
   @Override
   protected Path downloadTool(String edition, ToolRepository toolRepository, VersionIdentifier resolvedVersion) {
 
-    MavenRepository mavenRepository = this.context.getMavenRepository();
+    MvnRepository mvnRepository = this.context.getMvnRepository();
     MvnArtifact mavenArtifact = getArtifact(edition);
-    MavenArtifactMetadata mavenArtifactMetadata = mavenRepository.getMetadata(mavenArtifact, this.tool, edition);
-    return mavenRepository.download(mavenArtifactMetadata);
+    MvnArtifactMetadata mavenArtifactMetadata = mvnRepository.getMetadata(mavenArtifact, this.tool, edition);
+    return mvnRepository.download(mavenArtifactMetadata);
   }
 }

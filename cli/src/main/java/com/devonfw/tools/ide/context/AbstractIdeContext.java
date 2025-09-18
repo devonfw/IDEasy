@@ -63,7 +63,7 @@ import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.repository.MvnRepository;
 import com.devonfw.tools.ide.tool.repository.NpmRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
@@ -128,7 +128,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private CustomToolRepository customToolRepository;
 
-  private final MavenRepository mavenRepository;
+  private final MvnRepository mvnRepository;
 
   private final NpmRepository npmRepository;
 
@@ -220,7 +220,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
 
     this.defaultToolRepository = new DefaultToolRepository(this);
-    this.mavenRepository = new MavenRepository(this);
+    this.mvnRepository = new MvnRepository(this);
     this.npmRepository = new NpmRepository(this);
   }
 
@@ -402,9 +402,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public MavenRepository getMavenRepository() {
+  public MvnRepository getMvnRepository() {
 
-    return this.mavenRepository;
+    return this.mvnRepository;
   }
 
   @Override

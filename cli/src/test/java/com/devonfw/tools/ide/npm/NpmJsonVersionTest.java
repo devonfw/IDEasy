@@ -15,10 +15,8 @@ class NpmJsonVersionTest extends Assertions {
   void testNpmJsonVersion() {
 
     // arrange
-    String url = "https://registry.npmjs.org/npm/-/npm-2.0.0.tgz";
-    String sha1 = "f783874393588901af1a4824a145fa009f174d9d";
     String version = "2.0.0";
-    NpmJsonDist dist = new NpmJsonDist(url, sha1);
+    NpmJsonDist dist = new NpmJsonDist("https://registry.npmjs.org/npm/-/npm-" + version + ".tgz");
 
     // act
     NpmJsonVersion npmVersion = new NpmJsonVersion(version, dist);
