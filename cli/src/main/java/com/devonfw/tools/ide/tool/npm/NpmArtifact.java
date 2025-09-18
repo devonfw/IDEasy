@@ -5,7 +5,7 @@ import java.util.Objects;
 import com.devonfw.tools.ide.tool.repository.SoftwareArtifact;
 
 /**
- * Simple type representing a maven artifact.
+ * Simple type representing a npm artifact.
  */
 public final class NpmArtifact extends SoftwareArtifact {
 
