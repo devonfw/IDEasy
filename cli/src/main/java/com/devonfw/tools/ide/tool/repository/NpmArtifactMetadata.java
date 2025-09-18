@@ -5,17 +5,18 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.os.OperatingSystem;
 import com.devonfw.tools.ide.os.SystemArchitecture;
-import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
+import com.devonfw.tools.ide.tool.npm.NpmArtifact;
 import com.devonfw.tools.ide.url.model.file.UrlChecksums;
+import com.devonfw.tools.ide.url.model.file.UrlChecksumsEmpty;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link UrlDownloadFileMetadata} representing Metadata of a {@link com.devonfw.tools.ide.tool.mvn.Mvn maven} artifact.
+ * {@link UrlDownloadFileMetadata} representing Metadata of a {@link com.devonfw.tools.ide.tool.npm.Npm npm} artifact.
  */
-public class MavenArtifactMetadata implements UrlDownloadFileMetadata {
+public class NpmArtifactMetadata implements UrlDownloadFileMetadata {
 
-  private final MvnArtifact mvnArtifact;
+  private final NpmArtifact npmArtifact;
 
   private final String tool;
 
@@ -23,30 +24,20 @@ public class MavenArtifactMetadata implements UrlDownloadFileMetadata {
 
   private final VersionIdentifier version;
 
-  private final UrlChecksums checksums;
+  NpmArtifactMetadata(NpmArtifact npmArtifact, String tool, String edition) {
 
-  private final OperatingSystem os;
-
-  private final SystemArchitecture arch;
-
-  MavenArtifactMetadata(MvnArtifact mvnArtifact, String tool, String edition, UrlChecksums checksums, OperatingSystem os,
-      SystemArchitecture arch) {
-
-    this.mvnArtifact = mvnArtifact;
-    this.version = VersionIdentifier.of(mvnArtifact.getVersion());
+    this.npmArtifact = npmArtifact;
+    this.version = VersionIdentifier.of(npmArtifact.getVersion());
     this.tool = tool;
     this.edition = edition;
-    this.checksums = checksums;
-    this.os = os;
-    this.arch = arch;
   }
 
   /**
-   * @return the {@link MvnArtifact}.
+   * @return the {@link NpmArtifact}.
    */
-  public MvnArtifact getMvnArtifact() {
+  public NpmArtifact getNpmArtifact() {
 
-    return this.mvnArtifact;
+    return this.npmArtifact;
   }
 
   @Override
@@ -70,30 +61,30 @@ public class MavenArtifactMetadata implements UrlDownloadFileMetadata {
   @Override
   public Set<String> getUrls() {
 
-    return Collections.singleton(this.mvnArtifact.getDownloadUrl());
+    return Collections.emptySet();
   }
 
   @Override
   public OperatingSystem getOs() {
 
-    return this.os;
+    return null;
   }
 
   @Override
   public SystemArchitecture getArch() {
 
-    return this.arch;
+    return null;
   }
 
   @Override
   public UrlChecksums getChecksums() {
 
-    return this.checksums;
+    return UrlChecksumsEmpty.of();
   }
 
   @Override
   public String toString() {
 
-    return this.mvnArtifact.toString();
+    return this.npmArtifact.toString();
   }
 }

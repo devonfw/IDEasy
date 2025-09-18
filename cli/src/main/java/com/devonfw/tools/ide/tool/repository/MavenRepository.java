@@ -6,9 +6,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -32,16 +29,16 @@ import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksumType;
-import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
-import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Implementation of {@link AbstractToolRepository} for maven-based artifacts.
+ * Implementation of {@link AbstractToolRepository} for {@link com.devonfw.tools.ide.tool.java.Java java}-based artifacts. Actually
+ * {@link com.devonfw.tools.ide.tool.mvn.Mvn maven} was the first famous build management tool with a central repository. Meanwhile, there are others like
+ * {@link com.devonfw.tools.ide.tool.gradle.Gradle}. However, it is still called maven-repository and not java-repository.
  */
-public final class MavenRepository extends AbstractToolRepository {
+public final class MavenRepository extends ArtifactToolRepository<MvnArtifact, MavenArtifactMetadata> {
 
   /** Base URL for Maven Central repository */
   public static final String MAVEN_CENTRAL = "https://repo1.maven.org/maven2";
@@ -88,7 +85,8 @@ public final class MavenRepository extends AbstractToolRepository {
     return ID;
   }
 
-  private MvnArtifact resolveArtifact(String tool, String edition, ToolCommandlet toolCommandlet) {
+  @Override
+  protected MvnArtifact resolveArtifact(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
     MvnArtifact artifact;
     if (toolCommandlet instanceof MvnBasedLocalToolCommandlet mvnBasedTool) {
       artifact = mvnBasedTool.getArtifact(edition);
@@ -102,17 +100,14 @@ public final class MavenRepository extends AbstractToolRepository {
         throw new UnsupportedOperationException("Tool '" + key + "' is not supported by Maven repository.");
       }
     }
+    if (version != null) {
+      artifact = artifact.withVersion(version.toString());
+    }
     return artifact;
   }
 
-  /**
-   * @param artifact the {@link MvnArtifact} to resolve.
-   * @param tool the {@link MavenArtifactMetadata#getTool() tool name}.
-   * @param edition the {@link MavenArtifactMetadata#getEdition() tool edition}.
-   * @param version the {@link MavenArtifactMetadata#getVersion() tool version}.
-   * @return the resolved {@link MavenArtifactMetadata}.
-   */
-  public MavenArtifactMetadata resolveArtifact(MvnArtifact artifact, String tool, String edition, VersionIdentifier version) {
+  @Override
+  public MavenArtifactMetadata getMetadata(MvnArtifact artifact, String tool, String edition) {
     OperatingSystem os = null;
     SystemArchitecture arch = null;
     String classifier = artifact.getClassifier();
@@ -133,8 +128,7 @@ public final class MavenRepository extends AbstractToolRepository {
       artifact = artifact.withClassifier(resolvedClassifier);
     }
     UrlChecksums chekcsums = null;
-    if (version != null) {
-      artifact = artifact.withVersion(version.toString());
+    if (!artifact.isMavenMetadata()) {
       chekcsums = new UrlLazyChecksums(artifact);
     }
     return new MavenArtifactMetadata(artifact, tool, edition, chekcsums, os, arch);
@@ -173,17 +167,9 @@ public final class MavenRepository extends AbstractToolRepository {
   }
 
   @Override
-  protected UrlDownloadFileMetadata getMetadata(String tool, String edition, VersionIdentifier version, ToolCommandlet toolCommandlet) {
-
-    MvnArtifact artifact = resolveArtifact(tool, edition, toolCommandlet);
-    return resolveArtifact(artifact, tool, edition, version);
-  }
-
-
-  @Override
   public VersionIdentifier resolveVersion(String tool, String edition, GenericVersionRange version, ToolCommandlet toolCommandlet) {
 
-    MvnArtifact artifact = resolveArtifact(tool, edition, toolCommandlet);
+    MvnArtifact artifact = resolveArtifact(tool, edition, null, toolCommandlet);
     return resolveVersion(artifact, version);
   }
 
@@ -209,7 +195,8 @@ public final class MavenRepository extends AbstractToolRepository {
     return resolvedVersion;
   }
 
-  private List<VersionIdentifier> fetchVersions(MvnArtifact artifact) {
+  @Override
+  protected List<VersionIdentifier> fetchVersions(MvnArtifact artifact) {
 
     String metadataUrl = artifact.withMavenMetadata().getDownloadUrl();
     Document metadata = fetchXmlMetadata(metadataUrl);
@@ -225,7 +212,6 @@ public final class MavenRepository extends AbstractToolRepository {
     for (int i = 0; i < length; i++) {
       versionList.add(VersionIdentifier.of(versionsChildren.item(i).getTextContent()));
     }
-    versionList.sort(Comparator.reverseOrder());
     return versionList;
   }
 
@@ -241,32 +227,6 @@ public final class MavenRepository extends AbstractToolRepository {
     String buildNumber = getFirstChildElement(snapshot, "buildNumber", source).getTextContent();
     String version = baseVersion.replace("-SNAPSHOT", "-" + timestamp + "-" + buildNumber);
     return VersionIdentifier.of(version);
-  }
-
-  @Override
-  public List<String> getSortedEditions(String tool) {
-
-    return List.of(tool);
-  }
-
-  @Override
-  public List<VersionIdentifier> getSortedVersions(String tool, String edition, ToolCommandlet toolCommandlet) {
-
-    MvnArtifact artifact = resolveArtifact(tool, edition, toolCommandlet);
-    return fetchVersions(artifact);
-  }
-
-  @Override
-  public Collection<ToolDependency> findDependencies(String groupId, String artifactId, VersionIdentifier version) {
-
-    // We could read POM here and find dependencies but we do not want to reimplement maven here.
-    // For our use-case we only download bundled packages from maven central so we do KISS for now.
-    return Collections.emptyList();
-  }
-
-  @Override
-  public ToolSecurity findSecurity(String tool, String edition) {
-    return ToolSecurity.getEmpty();
   }
 
   @Override

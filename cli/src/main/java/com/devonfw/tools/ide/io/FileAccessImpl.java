@@ -8,11 +8,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemException;
@@ -73,7 +69,7 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 /**
  * Implementation of {@link FileAccess}.
  */
-public class FileAccessImpl implements FileAccess {
+public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private static final String WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/windows-file-lock.adoc";
 
@@ -97,11 +93,6 @@ public class FileAccessImpl implements FileAccess {
 
     super();
     this.context = context;
-  }
-
-  private HttpClient createHttpClient(String url) {
-
-    return HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
   }
 
   @Override
@@ -156,23 +147,7 @@ public class FileAccessImpl implements FileAccess {
       this.context.info("Trying to download: {} with HTTP protocol version: {}", url, httpVersion);
     }
     mkdirs(target.getParent());
-
-    Builder builder = HttpRequest.newBuilder()
-        .uri(URI.create(url))
-        .GET();
-    if (httpVersion != null) {
-      builder.version(httpVersion);
-    }
-    try (HttpClient client = createHttpClient(url)) {
-      HttpRequest request = builder.build();
-      HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-      int statusCode = response.statusCode();
-      if (statusCode == 200) {
-        downloadFileWithProgressBar(url, target, response);
-      } else {
-        throw new IllegalStateException("Download failed with status code " + statusCode);
-      }
-    }
+    httpGetAsString(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
   }
 
   /**
@@ -185,7 +160,9 @@ public class FileAccessImpl implements FileAccess {
   private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(-1);
-    informAboutMissingContentLength(contentLength, url);
+    if (contentLength < 0) {
+      this.context.warning("Content-Length was not provided by download from {}", url);
+    }
 
     byte[] data = new byte[1024];
     boolean fileComplete = false;
@@ -204,7 +181,6 @@ public class FileAccessImpl implements FileAccess {
           pb.stepBy(count);
         }
       }
-
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -234,11 +210,11 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  private void informAboutMissingContentLength(long contentLength, String url) {
+  @Override
+  public String download(String url) {
 
-    if (contentLength < 0) {
-      this.context.warning("Content-Length was not provided by download from {}", url);
-    }
+    this.context.debug("Downloading text body from {}", url);
+    return httpGetAsString(url);
   }
 
   @Override

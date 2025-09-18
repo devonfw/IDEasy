@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.repository;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
@@ -221,7 +222,7 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContextMock context = IdeTestContextMock.get();
-    MavenRepository mavenRepository = context.getMavenToolRepository();
+    MavenRepository mavenRepository = context.getMavenRepository();
     Document metadata = parseXml(XML_SNAPSNOT_METADATA);
 
     // act
@@ -237,11 +238,12 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContextMock context = IdeTestContextMock.get();
-    MavenRepository mavenRepository = context.getMavenToolRepository();
+    MavenRepository mavenRepository = context.getMavenRepository();
     Document metadata = parseXml(XML_RELEASE_METADATA);
 
     // act
     List<VersionIdentifier> versions = mavenRepository.fetchVersions(metadata, "testdata");
+    versions.sort(Comparator.reverseOrder());
 
     // assert
     assertThat(versions.stream().map(VersionIdentifier::toString)).containsExactly("2025.01.003-beta", "2025.01.002-beta", "2025.01.001-beta",

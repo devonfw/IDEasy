@@ -14,11 +14,13 @@ class NpmJsonDistTest extends Assertions {
   @Test
   void testNpmJsonDist() {
     // arrange
-    String url = "https://example.com/npm-1.0.0.tgz";
+    String url = "https://registry.npmjs.org/npm/-/npm-2.0.0.tgz";
+    String sha1 = "f783874393588901af1a4824a145fa009f174d9d";
     // act
-    NpmJsonDist dist = new NpmJsonDist(url);
+    NpmJsonDist dist = new NpmJsonDist(url, sha1);
     // assert
     assertThat(dist.tarball()).isEqualTo(url);
+    assertThat(dist.sha1()).isEqualTo(sha1);
   }
 }
 
