@@ -1,6 +1,7 @@
 package com.devonfw.tools.ide.tool.npm;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -39,6 +40,17 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet {
   }
 
   @Override
+  protected boolean isIgnoreMissingSoftwareVersionFile() {
+
+    return true;
+  }
+
+  /**
+   * @return the package of this tool from the NPM registry.
+   */
+  protected abstract String getNpmPackage();
+
+  @Override
   protected VersionIdentifier computeInstalledVersion() {
     return runPackageManagerGetInstalledVersion(getPackageName());
   }
@@ -48,7 +60,15 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet {
       this.context.trace("Since node is not installed, also package {} for tool {} cannot be installed.", npmPackage, this.tool);
       return null;
     }
-    ProcessResult result = runPackageManager(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.NONE, "list", "-g", npmPackage, "--depth=0");
+    return toolPath;
+  }
+
+  protected VersionIdentifier runNpmGetInstalledPackageVersion(String npmPackage) {
+    if (!Files.isDirectory(this.context.getSoftwarePath().resolve("node"))) {
+      this.context.trace("Since node is not installed, also package {} for tool {} cannot be installed.", npmPackage, this.tool);
+      return null;
+    }
+    ProcessResult result = runNpm(ProcessMode.DEFAULT_CAPTURE, ProcessErrorHandling.NONE, "list", "-g", npmPackage, "--depth=0");
     if (result.isSuccessful()) {
       List<String> versions = result.getOut();
       String parsedVersion = null;

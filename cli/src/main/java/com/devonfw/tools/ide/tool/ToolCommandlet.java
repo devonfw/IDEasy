@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -381,8 +380,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     String edition = getConfiguredEdition();
     ToolRepository toolRepository = getToolRepository();
-    VersionIdentifier versionIdentifier = toolRepository.resolveVersion(this.tool, edition, version, this);
-    Objects.requireNonNull(versionIdentifier);
 
     EnvironmentVariables variables = this.context.getVariables();
     if (destination == null) {
@@ -392,13 +389,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
     String name = EnvironmentVariables.getToolVersionVariable(this.tool);
 
-    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
-    if (version.isPattern()) {
-      this.context.debug("Resolved version {} to {} for tool {}/{}", version, resolvedVersion, this.tool, edition);
-    }
-    settingsVariables.set(name, resolvedVersion.toString(), false);
+    toolRepository.resolveVersion(this.tool, edition, version, this); // verify that the version actually exists
+    settingsVariables.set(name, version.toString(), false);
     settingsVariables.save();
-    this.context.info("{}={} has been set in {}", name, version, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
       this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,

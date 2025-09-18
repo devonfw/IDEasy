@@ -63,6 +63,15 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
+   * @return {@code true} to ignore a missing {@link IdeContext#FILE_SOFTWARE_VERSION software version file} in an installation, {@code false} delete the broken
+   *     installation (default).
+   */
+  protected boolean isIgnoreMissingSoftwareVersionFile() {
+
+    return false;
+  }
+
+  /**
    * @deprecated will be removed once all "dependencies.json" are created in ide-urls.
    */
   @Deprecated
@@ -209,6 +218,27 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     if (resolvedVersion.equals(installedVersion) && edition.equals(installedEdition)) {
       this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
       return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
+    }
+    Path toolVersionFile = installationPath.resolve(IdeContext.FILE_SOFTWARE_VERSION);
+    FileAccess fileAccess = this.context.getFileAccess();
+    if (Files.isDirectory(installationPath)) {
+      if (Files.exists(toolVersionFile)) {
+        if (!ignoreSoftwareRepo) {
+          assert resolvedVersion.equals(getInstalledVersion(installationPath)) :
+              "Found version " + getInstalledVersion(installationPath) + " in " + toolVersionFile + " but expected " + resolvedVersion;
+          this.context.debug("Version {} of tool {} is already installed at {}", resolvedVersion, getToolWithEdition(this.tool, edition), installationPath);
+          return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
+        }
+      } else {
+        // Makes sure that IDEasy will not delete itself
+        if (this.tool.equals(IdeasyCommandlet.TOOL_NAME)) {
+          this.context.warning("Your IDEasy installation is missing the version file at {}", toolVersionFile);
+          return createToolInstallation(installationPath, resolvedVersion, false, processContext, extraInstallation);
+        } else if (!isIgnoreMissingSoftwareVersionFile()) {
+          this.context.warning("Deleting corrupted installation at {}", installationPath);
+          fileAccess.delete(installationPath);
+        }
+      }
     }
     performToolInstallation(toolRepository, resolvedVersion, installationPath, edition, processContext);
     return createToolInstallation(installationPath, resolvedVersion, true, processContext, extraInstallation);
