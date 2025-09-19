@@ -101,8 +101,8 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
-    if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation())
-        || (configuredVersion.matches(installedVersion) && context.isSkipUpdatesMode())) {
+    if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation()) || (configuredVersion.matches(installedVersion)
+        && context.isSkipUpdatesMode())) {
       return toolAlreadyInstalled(silent, installedVersion, processContext);
     }
     FileAccess fileAccess = this.context.getFileAccess();
