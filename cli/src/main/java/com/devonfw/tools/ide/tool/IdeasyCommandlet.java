@@ -25,7 +25,7 @@ import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.mvn.MvnBasedLocalToolCommandlet;
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.repository.MvnRepository;
 import com.devonfw.tools.ide.variable.IdeVariables;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -171,7 +171,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
     Path ideRoot = determineIdeRoot(cwd);
     Path idePath = ideRoot.resolve(IdeContext.FOLDER_UNDERSCORE_IDE);
     Path installationPath = idePath.resolve(IdeContext.FOLDER_INSTALLATION);
-    Path ideasySoftwarePath = idePath.resolve(IdeContext.FOLDER_SOFTWARE).resolve(MavenRepository.ID).resolve(IdeasyCommandlet.TOOL_NAME)
+    Path ideasySoftwarePath = idePath.resolve(IdeContext.FOLDER_SOFTWARE).resolve(MvnRepository.ID).resolve(IdeasyCommandlet.TOOL_NAME)
         .resolve(IdeasyCommandlet.TOOL_NAME);
     Path ideasyVersionPath = ideasySoftwarePath.resolve(IdeVersion.getVersionString());
     if (Files.isDirectory(ideasyVersionPath)) {

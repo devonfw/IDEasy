@@ -14,7 +14,7 @@ class NpmJsonDistTest extends Assertions {
   @Test
   void testNpmJsonDist() {
     // arrange
-    String url = "https://example.com/npm-1.0.0.tgz";
+    String url = "https://registry.npmjs.org/npm/-/npm-2.0.0.tgz";
     // act
     NpmJsonDist dist = new NpmJsonDist(url);
     // assert
