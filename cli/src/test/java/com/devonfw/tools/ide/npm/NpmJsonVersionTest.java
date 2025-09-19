@@ -16,7 +16,7 @@ class NpmJsonVersionTest extends Assertions {
 
     // arrange
     String version = "2.0.0";
-    NpmJsonDist dist = new NpmJsonDist("https://example.com/npm-" + version + ".tgz");
+    NpmJsonDist dist = new NpmJsonDist("https://registry.npmjs.org/npm/-/npm-" + version + ".tgz");
 
     // act
     NpmJsonVersion npmVersion = new NpmJsonVersion(version, dist);

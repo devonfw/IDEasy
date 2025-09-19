@@ -25,9 +25,9 @@ public class CachedValue<T> implements Supplier<T> {
    * @param supplier the {@link Supplier} function to compute the actual value.
    */
   public CachedValue(Supplier<T> supplier) {
+
     this(supplier, DEFAULT_RETENTION);
   }
-
 
   /**
    * The constructor.
@@ -35,6 +35,7 @@ public class CachedValue<T> implements Supplier<T> {
    * @param supplier the {@link Supplier} function to compute the actual value.
    */
   public CachedValue(Supplier<T> supplier, long retention) {
+
     super();
     this.supplier = supplier;
     this.retention = retention;
@@ -45,8 +46,8 @@ public class CachedValue<T> implements Supplier<T> {
 
     long now = System.currentTimeMillis();
     if ((now - this.timestamp) > retention) {
-      this.timestamp = now;
       this.value = this.supplier.get();
+      this.timestamp = now;
     }
     return this.value;
   }

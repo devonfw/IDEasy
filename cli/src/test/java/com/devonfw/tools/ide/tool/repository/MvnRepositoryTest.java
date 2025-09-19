@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.tool.repository;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
@@ -22,9 +23,9 @@ import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * Test of {@link MavenRepository}.
+ * Test of {@link MvnRepository}.
  */
-class MavenRepositoryTest extends AbstractIdeContextTest {
+class MvnRepositoryTest extends AbstractIdeContextTest {
 
   private static final String XML_SNAPSNOT_METADATA = """
       <?xml version="1.0" encoding="UTF-8"?>
@@ -140,7 +141,7 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    MavenRepository mavenRepo = new MavenRepository(context);
+    MvnRepository mavenRepo = new MvnRepository(context);
     String tool = "ideasy";
     String edition = tool;
     VersionIdentifier version = VersionIdentifier.of("2025.01.001-beta");
@@ -180,7 +181,7 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
-    MavenRepository mavenRepo = new MavenRepository(context);
+    MvnRepository mavenRepo = new MvnRepository(context);
     String tool = "ideasy";
     String edition = tool;
     VersionIdentifier version = VersionIdentifier.of("2025.01.001-beta-20250121.023134-9");
@@ -215,33 +216,34 @@ class MavenRepositoryTest extends AbstractIdeContextTest {
     }
   }
 
-  /** Test of {@link MavenRepository#resolveSnapshotVersion(Document, String, String)}. */
+  /** Test of {@link MvnRepository#resolveSnapshotVersion(Document, String, String)}. */
   @Test
   void testResolveSnapshotVersion() {
 
     // arrange
     IdeTestContextMock context = IdeTestContextMock.get();
-    MavenRepository mavenRepository = context.getMavenToolRepository();
+    MvnRepository mvnRepository = context.getMvnRepository();
     Document metadata = parseXml(XML_SNAPSNOT_METADATA);
 
     // act
-    VersionIdentifier version = mavenRepository.resolveSnapshotVersion(metadata, "2025.02.001-beta-SNAPSHOT", "testdata");
+    VersionIdentifier version = mvnRepository.resolveSnapshotVersion(metadata, "2025.02.001-beta-SNAPSHOT", "testdata");
 
     // assert
     assertThat(version).hasToString("2025.02.001-beta-20250204.023111-1");
   }
 
-  /** Test of {@link MavenRepository#fetchVersions(Document, String)}. */
+  /** Test of {@link MvnRepository#fetchVersions(Document, String)}. */
   @Test
   void testResolveVersion() {
 
     // arrange
     IdeTestContextMock context = IdeTestContextMock.get();
-    MavenRepository mavenRepository = context.getMavenToolRepository();
+    MvnRepository mvnRepository = context.getMvnRepository();
     Document metadata = parseXml(XML_RELEASE_METADATA);
 
     // act
-    List<VersionIdentifier> versions = mavenRepository.fetchVersions(metadata, "testdata");
+    List<VersionIdentifier> versions = mvnRepository.fetchVersions(metadata, "testdata");
+    versions.sort(Comparator.reverseOrder());
 
     // assert
     assertThat(versions.stream().map(VersionIdentifier::toString)).containsExactly("2025.01.003-beta", "2025.01.002-beta", "2025.01.001-beta",

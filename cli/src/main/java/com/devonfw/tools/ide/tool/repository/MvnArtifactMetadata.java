@@ -11,9 +11,9 @@ import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
- * {@link UrlDownloadFileMetadata} representing Metadata of a maven artifact.
+ * {@link UrlDownloadFileMetadata} representing Metadata of a {@link com.devonfw.tools.ide.tool.mvn.Mvn maven} artifact.
  */
-public class MavenArtifactMetadata implements UrlDownloadFileMetadata {
+public class MvnArtifactMetadata implements UrlDownloadFileMetadata {
 
   private final MvnArtifact mvnArtifact;
 
@@ -29,12 +29,8 @@ public class MavenArtifactMetadata implements UrlDownloadFileMetadata {
 
   private final SystemArchitecture arch;
 
-  MavenArtifactMetadata(MvnArtifact mvnArtifact, String tool, String edition, UrlChecksums checksums) {
-
-    this(mvnArtifact, tool, edition, checksums, null, null);
-  }
-
-  MavenArtifactMetadata(MvnArtifact mvnArtifact, String tool, String edition, UrlChecksums checksums, OperatingSystem os, SystemArchitecture arch) {
+  MvnArtifactMetadata(MvnArtifact mvnArtifact, String tool, String edition, UrlChecksums checksums, OperatingSystem os,
+      SystemArchitecture arch) {
 
     this.mvnArtifact = mvnArtifact;
     this.version = VersionIdentifier.of(mvnArtifact.getVersion());
