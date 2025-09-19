@@ -25,7 +25,8 @@ import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.repository.MvnRepository;
+import com.devonfw.tools.ide.tool.repository.NpmRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -323,9 +324,14 @@ public interface IdeContext extends IdeStartContext {
   CustomToolRepository getCustomToolRepository();
 
   /**
-   * @return the {@link MavenRepository}.
+   * @return the {@link MvnRepository}.
    */
-  MavenRepository getMavenToolRepository();
+  MvnRepository getMvnRepository();
+
+  /**
+   * @return the {@link NpmRepository}.
+   */
+  NpmRepository getNpmRepository();
 
   /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different
