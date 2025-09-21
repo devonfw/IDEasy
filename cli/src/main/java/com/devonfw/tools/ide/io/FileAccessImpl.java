@@ -470,12 +470,12 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
    */
   private void mklinkOnWindows(Path target, Path link, PathLinkType type) {
 
-    this.context.trace("Creating a Windows link at {} pointing to {}", link, target);
+    this.context.trace("Creating a Windows {} at {} pointing to {}", type, link, target);
     ProcessContext pc = this.context.newProcess().executable("cmd")
         .addArgs("/c", "mklink", type.getMklinkOption());
     if (type == PathLinkType.SYMBOLIC_LINK && Files.isDirectory(target)) {
-      pc.addArg("/j");
-      target = target.toAbsolutePath();
+      pc = pc.addArg("/j");
+      target = target.toAbsolutePath().normalize();
     }
     pc = pc.addArgs(link.toString(), target.toString());
     ProcessResult result = pc
