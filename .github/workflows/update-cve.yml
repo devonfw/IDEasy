@@ -37,7 +37,6 @@ jobs:
           mvn -B -ntp -Dstyle.color=always -pl security exec:java \
             -Dexec.mainClass="com.devonfw.tools.IDEasy.dev.BuildSecurityJsonFiles" \
             -Dexec.args="${{ github.workspace }}/ide-urls" \
-            -X
         continue-on-error: true
       - name: Commit and push to ide-urls
         run: |
@@ -48,7 +47,7 @@ jobs:
           then
             git add .
             git commit -m  "Update security.json files [auto]"
-            git push
+            git push --force
           else
             echo "No changes, nothing to commit."
           fi

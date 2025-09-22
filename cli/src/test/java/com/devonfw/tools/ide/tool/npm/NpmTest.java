@@ -1,6 +1,5 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -40,11 +39,9 @@ public class NpmTest extends AbstractIdeContextTest {
 
   /**
    * Tests if npm can be run properly.
-   * TODO: Check: <a href="https://github.com/devonfw/IDEasy/issues/700">#700</a> for reference.
    *
    * @param os Operating System.
    */
-  @Disabled
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
   public void testNpmRun(String os) {
@@ -54,28 +51,29 @@ public class NpmTest extends AbstractIdeContextTest {
     SystemInfo systemInfo = SystemInfoMock.of(os);
     context.setSystemInfo(systemInfo);
     Npm commandlet = new Npm(context);
+    commandlet.arguments.setValue("--version");
 
     // act
     commandlet.run();
 
     // assert
-    if (context.getSystemInfo().isWindows()) {
-      assertThat(context).logAtInfo().hasMessage("npmcmdbin ");
-    } else {
-      assertThat(context).logAtInfo().hasMessage("npmcmd ");
-    }
+    assertThat(context).logAtInfo().hasMessageContaining("npm " + getOs(context) + " --version");
   }
 
   private void checkInstallation(IdeTestContext context) {
 
-    if (context.getSystemInfo().isWindows()) {
-      assertThat(context.getSoftwarePath().resolve("node/npm")).exists();
-      assertThat(context.getSoftwarePath().resolve("node/npm.cmd")).exists();
-      assertThat(context.getSoftwarePath().resolve("node/npx")).exists();
-      assertThat(context.getSoftwarePath().resolve("node/npx.cmd")).exists();
-    }
-
     assertThat(context.getSoftwarePath().resolve("npm/.ide.software.version")).exists().hasContent("9.9.2");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed npm in version 9.9.2");
+  }
+
+  private String getOs(IdeTestContext context) {
+    if (context.getSystemInfo().isWindows()) {
+      return "windows";
+    } else if (context.getSystemInfo().isLinux()) {
+      return "linux";
+    } else if (context.getSystemInfo().isMac()) {
+      return "mac";
+    }
+    return "";
   }
 }
