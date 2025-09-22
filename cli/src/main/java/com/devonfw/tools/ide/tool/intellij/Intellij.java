@@ -11,7 +11,7 @@ import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.environment.AbstractEnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
-import com.devonfw.tools.ide.environment.EnvironmentVariablesIntellijImport;
+import com.devonfw.tools.ide.environment.ExtensibleEnvironmentVariables;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.io.FileAccessImpl;
 import com.devonfw.tools.ide.merge.xml.XmlMergeDocument;
@@ -65,14 +65,19 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     environmentContext.withEnvVar("IDEA_PROPERTIES", this.context.getWorkspacePath().resolve("idea.properties").toString());
   }
 
+  private EnvironmentVariables getIntellijEnvironmentVariables(Path projectPath) {
+    ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables((AbstractEnvironmentVariables) context.getVariables());
+    environmentVariables.addVariableResolver("PROJECT_PATH", projectPath.toString());
+    return environmentVariables;
+  }
+
   private void mergeMisc(Path repositoryPath) throws IOException {
     Path workspaceMiscPath = getOrCreateWorkspaceXmlFile(repositoryPath, "misc.xml");
 
     XmlMerger xmlMerger = new XmlMerger(context);
     Path templateMiscPath = this.context.getSettingsTemplatePath().resolve("conf/mvn/misc.xml");
 
-    EnvironmentVariables environmentVariables = new EnvironmentVariablesIntellijImport((AbstractEnvironmentVariables) context.getVariables(),
-        repositoryPath.getFileName());
+    EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
 
     XmlMergeDocument workspaceMisc = xmlMerger.load(workspaceMiscPath);
     XmlMergeDocument mavenTemplateMisc = xmlMerger.loadAndResolve(templateMiscPath, environmentVariables);
@@ -88,8 +93,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     XmlMerger xmlMerger = new XmlMerger(this.context);
     Path templateGradleXmlPath = this.context.getSettingsTemplatePath().resolve("conf/gradle/gradle.xml");
 
-    EnvironmentVariables environmentVariables = new EnvironmentVariablesIntellijImport((AbstractEnvironmentVariables) context.getVariables(),
-        repositoryPath.getFileName());
+    EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
     XmlMergeDocument workspaceGradleXml = xmlMerger.load(workspaceGradlePath);
     XmlMergeDocument gradleTemplateXml = xmlMerger.loadAndResolve(templateGradleXmlPath, environmentVariables);
 
