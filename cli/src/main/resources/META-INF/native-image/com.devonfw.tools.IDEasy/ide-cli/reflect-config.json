@@ -16,5 +16,21 @@
         "parameterTypes": []
       }
     ]
+  },
+  {
+    "name": "com.devonfw.tools.ide.npm.NpmJsonObject",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.devonfw.tools.ide.npm.NpmJsonVersions",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.devonfw.tools.ide.npm.NpmJsonVersion",
+    "allDeclaredConstructors": true
+  },
+  {
+    "name": "com.devonfw.tools.ide.npm.NpmJsonDist",
+    "allDeclaredConstructors": true
   }
 ]
