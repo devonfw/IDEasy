@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.migration.v2025.Mig202502001;
+import com.devonfw.tools.ide.migration.v2025.Mig202509001;
 import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.version.IdeVersion;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -24,7 +25,7 @@ public class IdeMigrator implements IdeMigration {
   public IdeMigrator() {
 
     // migrations must be strictly in ascending order (from oldest to newest version)
-    this(List.of(new Mig202502001()));
+    this(List.of(new Mig202502001(), new Mig202509001()));
   }
 
   /**
