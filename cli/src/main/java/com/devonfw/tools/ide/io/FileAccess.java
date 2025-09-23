@@ -152,8 +152,8 @@ public interface FileAccess {
   /**
    * @param source the source {@link Path file or folder} to copy.
    * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not take the filename of {@code source}
-   *     and copy that to {@code target} in case that is an existing folder. Instead it will always be simple and stupid and just copy from {@code source} to
-   *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
+   *     and copy that to {@code target} in case that is an existing folder. Instead, it will always be simple and stupid and just copy from {@code source} to
+   *     {@code target}. Therefore, the result is always clear and easy to predict and understand. Also, you can easily rename a file to copy. While
    *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
    *     the same content of {@code source} in {@code target}.
    * @param mode the {@link FileCopyMode}.
@@ -166,8 +166,8 @@ public interface FileAccess {
   /**
    * @param source the source {@link Path file or folder} to copy.
    * @param target the {@link Path} to copy {@code source} to. Unlike the Linux {@code cp} command this method will not take the filename of {@code source}
-   *     and copy that to {@code target} in case that is an existing folder. Instead it will always be simple and stupid and just copy from {@code source} to
-   *     {@code target}. Therefore the result is always clear and easy to predict and understand. Also you can easily rename a file to copy. While
+   *     and copy that to {@code target} in case that is an existing folder. Instead, it will always be simple and stupid and just copy from {@code source} to
+   *     {@code target}. Therefore, the result is always clear and easy to predict and understand. Also, you can easily rename a file to copy. While
    *     {@code cp my-file target} may lead to a different result than {@code cp my-file target/} this method will always ensure that in the end you will find
    *     the same content of {@code source} in {@code target}.
    * @param mode the {@link FileCopyMode}.
@@ -500,7 +500,7 @@ public interface FileAccess {
   /**
    * @param properties the {@link Properties} to save.
    * @param file the {@link Path} to the file where to save the properties.
-   * @param createParentDir if {@code true}, the parent directory will created if it does not already exist, {@code false} otherwise (fail if parent does
+   * @param createParentDir if {@code true}, the parent directory will be created if it does not already exist, {@code false} otherwise (fail if parent does
    *     not exist).
    */
   void writeProperties(Properties properties, Path file, boolean createParentDir);
