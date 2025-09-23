@@ -38,7 +38,7 @@ import com.devonfw.tools.ide.version.VersionIdentifier;
  * {@link com.devonfw.tools.ide.tool.mvn.Mvn maven} was the first famous build management tool with a central repository. Meanwhile, there are others like
  * {@link com.devonfw.tools.ide.tool.gradle.Gradle}. However, it is still called maven-repository and not java-repository.
  */
-public final class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifactMetadata> {
+public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifactMetadata> {
 
   /** Base URL for Maven Central repository */
   public static final String MAVEN_CENTRAL = "https://repo1.maven.org/maven2";

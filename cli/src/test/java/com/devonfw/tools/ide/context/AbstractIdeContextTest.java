@@ -130,6 +130,8 @@ public abstract class AbstractIdeContextTest extends Assertions {
       toolRepository = new ToolRepositoryMock(context, repositoryFolder, wmRuntimeInfo);
       context.setDefaultToolRepository(toolRepository);
     }
+    context.setMvnRepository(new MvnRepositoryMock(context, wmRuntimeInfo));
+    context.setNpmRepository(new NpmRepositoryMock(context, wmRuntimeInfo));
     return context;
   }
 

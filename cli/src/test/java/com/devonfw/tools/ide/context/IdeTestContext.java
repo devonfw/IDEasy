@@ -1,5 +1,7 @@
 package com.devonfw.tools.ide.context;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import com.devonfw.tools.ide.git.GitContext;
@@ -7,6 +9,7 @@ import com.devonfw.tools.ide.git.GitContextMock;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.log.IdeTestLogger;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
  * Implementation of {@link IdeContext} for testing.
@@ -86,5 +89,22 @@ public class IdeTestContext extends AbstractIdeTestContext {
   public IdeTestLogger getLogger() {
 
     return logger;
+  }
+
+  /**
+   * Reads the content of the given file and replaces the placeholder "${testbaseurl}" with the actual base URL. Copy from AbstractUrlUpdaterTest.
+   *
+   * @param file the {@link Path} to the file to read.
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} providing the base URL.
+   * @return the resolved file content.
+   */
+  public static String readAndResolve(Path file, WireMockRuntimeInfo wmRuntimeInfo) {
+
+    try {
+      String payload = Files.readString(file);
+      return payload.replace("${testbaseurl}", wmRuntimeInfo.getHttpBaseUrl());
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }

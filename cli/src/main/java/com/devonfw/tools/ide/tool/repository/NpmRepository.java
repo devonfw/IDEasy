@@ -60,7 +60,7 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
   @Override
   protected List<VersionIdentifier> fetchVersions(NpmArtifact artifact) {
 
-    String url = REGISTRY_URL + artifact.getName();
+    String url = getRegistryUrl() + artifact.getName();
     String json = this.context.getFileAccess().download(url);
     try {
       NpmJsonObject npmJsonObject = MAPPER.readValue(json, NpmJsonObject.class);
@@ -73,6 +73,13 @@ public class NpmRepository extends ArtifactToolRepository<NpmArtifact, NpmArtifa
     } catch (JsonProcessingException e) {
       throw new RuntimeException("Failed to process JSON from " + url, e);
     }
+  }
+
+  /**
+   * @return the registry URL.
+   */
+  public String getRegistryUrl() {
+    return REGISTRY_URL;
   }
 
   @Override

@@ -1,2 +1,7 @@
 #!/bin/bash
 echo "npm $*"
+
+if [ "$*" == "install -g corepack@0.34.0" ]; then
+  cp target/test-projects/yarn/repository/corepack/corepack/default/corepack target/test-projects/yarn/project/software/node/bin
+  cp target/test-projects/yarn/repository/corepack/corepack/default/corepack target/test-projects/yarn/project/software/node
+fi

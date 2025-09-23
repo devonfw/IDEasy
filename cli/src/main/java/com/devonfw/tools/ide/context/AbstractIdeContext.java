@@ -128,9 +128,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private CustomToolRepository customToolRepository;
 
-  private final MvnRepository mvnRepository;
+  private MvnRepository mvnRepository;
 
-  private final NpmRepository npmRepository;
+  private NpmRepository npmRepository;
 
   private DirectoryMerger workspaceMerger;
 
@@ -1493,6 +1493,26 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     assert (Files.isDirectory(installationPath));
     Path versionFile = installationPath.resolve(FILE_SOFTWARE_VERSION);
     getFileAccess().writeFileContent(version.toString(), versionFile);
+  }
+
+  /**
+   * Sets the Mvn repository.
+   *
+   * @param mvnRepository the {@link MvnRepository} to set
+   */
+  public void setMvnRepository(MvnRepository mvnRepository) {
+
+    this.mvnRepository = mvnRepository;
+  }
+
+  /**
+   * Sets the Npm repository.
+   *
+   * @param npmRepository the {@link NpmRepository} to set
+   */
+  public void setNpmRepository(NpmRepository npmRepository) {
+
+    this.npmRepository = npmRepository;
   }
 
 }
