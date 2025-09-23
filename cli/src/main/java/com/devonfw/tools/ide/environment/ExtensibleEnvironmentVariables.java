@@ -3,7 +3,7 @@ package com.devonfw.tools.ide.environment;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ExtensibleEnvironmentVariables extends AbstractEnvironmentVariables {
+public class ExtensibleEnvironmentVariables extends EnvironmentVariablesResolved {
 
   Map<String, String> additionalEnvironmentVariables;
 
@@ -13,7 +13,7 @@ public class ExtensibleEnvironmentVariables extends AbstractEnvironmentVariables
    * @param parent the parent {@link EnvironmentVariables} to inherit from.
    */
   public ExtensibleEnvironmentVariables(AbstractEnvironmentVariables parent) {
-    super(parent, parent.context);
+    super(parent);
     this.additionalEnvironmentVariables = new HashMap<>();
   }
 

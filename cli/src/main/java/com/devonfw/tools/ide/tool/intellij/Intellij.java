@@ -146,7 +146,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
         this.context.error(e);
       }
     } else {
-      this.context.debug("no build.gradle found!");
+      this.context.debug("no build.gradle found");
     }
   }
 
