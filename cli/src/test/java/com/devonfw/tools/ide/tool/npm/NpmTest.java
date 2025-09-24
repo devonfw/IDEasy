@@ -86,6 +86,7 @@ public class NpmTest extends AbstractIdeContextTest {
     context.setSystemInfo(systemInfo);
     Npm commandlet = new Npm(context);
     commandlet.arguments.setValue("--version");
+    context.setAnswers("yes");
 
     // act
     commandlet.run();
