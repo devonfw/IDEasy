@@ -3,6 +3,9 @@ package com.devonfw.tools.ide.environment;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Subclass of {@link EnvironmentVariablesResolved} that resolves variables recursively and allows new variables to be added to the resolver.
+ */
 public class ExtensibleEnvironmentVariables extends EnvironmentVariablesResolved {
 
   Map<String, String> additionalEnvironmentVariables;
@@ -23,16 +26,6 @@ public class ExtensibleEnvironmentVariables extends EnvironmentVariablesResolved
    */
   public void addVariableResolver(String name, String value) {
     this.additionalEnvironmentVariables.put(name, value);
-  }
-
-  @Override
-  public String getFlat(String name) {
-    return null;
-  }
-
-  @Override
-  public EnvironmentVariablesType getType() {
-    return EnvironmentVariablesType.RESOLVED;
   }
 
   @Override
