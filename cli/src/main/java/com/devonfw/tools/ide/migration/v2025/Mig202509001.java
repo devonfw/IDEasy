@@ -6,7 +6,8 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.migration.IdeVersionMigration;
 
 /**
- * Migration for 2025.02.001-beta. Removes old entries of IDEasy without "installation" folder from Windows PATH and old entries from .bashrc and .zshrc.
+ * Migration for 2025.02.001-beta. Removes "npm" folder from software path as the {@link com.devonfw.tools.ide.tool.npm.Npm} commandlet has changed entirely so
+ * the installation of node based tools will now always happen in the "node" software folder.
  */
 public class Mig202509001 extends IdeVersionMigration {
 
