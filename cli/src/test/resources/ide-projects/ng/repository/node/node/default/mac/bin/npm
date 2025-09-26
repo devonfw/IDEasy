@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "npm mac $*"
+echo "npm $*"

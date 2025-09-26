@@ -66,7 +66,7 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled " + npm),
         IdeLogEntry.ofWarning("Couldn't uninstall " + dotnet + " because we could not find an installation"));
-    assertThat(context.getSoftwarePath().resolve(npm)).doesNotExist();
+    assertThat(context.getSoftwarePath().resolve("node").resolve("npm")).doesNotExist();
   }
 
   @Test
