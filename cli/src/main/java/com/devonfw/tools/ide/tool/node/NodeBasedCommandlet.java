@@ -100,7 +100,7 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
    * @param npmPackage the npm package to uninstall.
    */
   protected void runPackageUninstall(String npmPackage) {
-    runPackageManager("uninstall", "-g", npmPackage).failOnError();
+    runPackageManager("uninstall", "-g", npmPackage, "--prefix", this.context.getSoftwarePath().resolve("node").toAbsolutePath().toString()).failOnError();
   }
 
   /**
@@ -111,7 +111,7 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
    */
   protected ProcessResult runPackageInstall(String npmPackage) {
 
-    return runPackageManager("install", "-g", npmPackage);
+    return runPackageManager("install", "-g", npmPackage, "--prefix", this.context.getSoftwarePath().resolve("node").toAbsolutePath().toString());
   }
 
   /**
