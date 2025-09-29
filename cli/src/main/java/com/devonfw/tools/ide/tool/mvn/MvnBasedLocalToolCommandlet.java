@@ -51,6 +51,7 @@ public abstract class MvnBasedLocalToolCommandlet extends LocalToolCommandlet {
 
     MvnRepository mvnRepository = this.context.getMvnRepository();
     MvnArtifact mavenArtifact = getArtifact(edition);
+    mavenArtifact = mavenArtifact.withVersion(resolvedVersion.toString());
     MvnArtifactMetadata mavenArtifactMetadata = mvnRepository.getMetadata(mavenArtifact, this.tool, edition);
     return mvnRepository.download(mavenArtifactMetadata);
   }
