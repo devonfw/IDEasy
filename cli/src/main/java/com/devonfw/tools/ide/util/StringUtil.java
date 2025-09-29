@@ -19,9 +19,10 @@ public class StringUtil {
     int aLen = (args == null) ? 0 : args.length;
     int eLen = (extraArgs == null) ? 0 : extraArgs.length;
 
-    // If both are empty, return an empty array (not null)
-    if (aLen == 0 && eLen == 0) {
-      return new String[0];
+    if (aLen == 0) {
+      return extraArgs;
+    } else if (eLen == 0) {
+      return args;
     }
 
     String[] out = new String[aLen + eLen];
