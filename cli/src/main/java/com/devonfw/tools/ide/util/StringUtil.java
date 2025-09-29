@@ -29,20 +29,12 @@ public class StringUtil {
 
     if (prepend) {
       // [extraArgs..., args...]
-      if (eLen > 0) {
-        System.arraycopy(extraArgs, 0, out, 0, eLen);
-      }
-      if (aLen > 0) {
-        System.arraycopy(args, 0, out, eLen, aLen);
-      }
+      System.arraycopy(extraArgs, 0, out, 0, eLen);
+      System.arraycopy(args, 0, out, eLen, aLen);
     } else {
       // [args..., extraArgs...]
-      if (aLen > 0) {
-        System.arraycopy(args, 0, out, 0, aLen);
-      }
-      if (eLen > 0) {
-        System.arraycopy(extraArgs, 0, out, aLen, eLen);
-      }
+      System.arraycopy(args, 0, out, 0, aLen);
+      System.arraycopy(extraArgs, 0, out, aLen, eLen);
     }
 
     return out;
