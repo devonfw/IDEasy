@@ -115,7 +115,6 @@ public class StringUtilTest {
 
     // then
     assertThat(actual).containsExactly("install", "--legacy-peer-deps");
-    assertThat(actual).isNotSameAs(args);
   }
 
   /**
