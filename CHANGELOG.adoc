@@ -2,6 +2,14 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.10.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1492[#1492]: Add spring-boot CLI Commandlet.
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/35?closed=1[milestone 2025.10.001].
+
 == 2025.09.001
 
 Release with new features and bugfixes:
@@ -13,7 +21,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1221[#1221]: Improve Windows terminal integration on installation
 * https://github.com/devonfw/IDEasy/issues/1460[#1460]: Prevent strange ansi-codes in logs
 * https://github.com/devonfw/IDEasy/issues/1484[#1484]: Broken error handling: Couldn't uninstall node.
-* https://github.com/devonfw/IDEasy/issues/1492[#1492]: Add spring-boot CLI Commandlet.
+* https://github.com/devonfw/IDEasy/issues/1515[#1515]: cannot upgrade snapshot release of IDEasy
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/34?closed=1[milestone 2025.09.001].
 

@@ -13,6 +13,7 @@ import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
 import com.devonfw.tools.ide.tool.node.NodeBasedCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
+import com.devonfw.tools.ide.util.StringUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -78,7 +79,9 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet {
 
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
     Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
-    return npm.runTool(processMode, null, pc, args);
+
+    return npm.runTool(processMode, null, pc,
+        StringUtil.extendArray(args, false, "--prefix", this.context.getSoftwarePath().resolve("node").toAbsolutePath().toString()));
   }
 
 }
