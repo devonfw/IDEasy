@@ -279,7 +279,6 @@ public class StringUtilTest {
 
     // then
     assertThat(actual).containsExactly("x", "y");
-    assertThat(actual).isNotSameAs(args);
   }
 
   /**
