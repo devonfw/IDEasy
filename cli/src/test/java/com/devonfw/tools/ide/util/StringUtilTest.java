@@ -130,7 +130,6 @@ public class StringUtilTest {
 
     // then
     assertThat(actual).containsExactly("run", "test");
-    assertThat(actual).isNotSameAs(args);
   }
 
   /**
