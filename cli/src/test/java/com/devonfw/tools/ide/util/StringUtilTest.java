@@ -192,7 +192,7 @@ public class StringUtilTest {
     String[] actual = StringUtil.extendArray(args, false, (String[]) null);
 
     // then
-    assertThat(actual).isEmpty();
+    assertThat(actual).isNull();
   }
 
   /**
