@@ -8,7 +8,7 @@ import java.util.Map;
  */
 public class ExtensibleEnvironmentVariables extends EnvironmentVariablesResolved {
 
-  Map<String, String> additionalEnvironmentVariables;
+  private final Map<String, String> additionalEnvironmentVariables;
 
   /**
    * The constructor.
