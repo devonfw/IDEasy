@@ -30,8 +30,9 @@ public class ExtensibleEnvironmentVariables extends EnvironmentVariablesResolved
 
   @Override
   protected String getValue(String name, boolean ignoreDefaultValue) {
-    if (this.additionalEnvironmentVariables.containsKey(name)) {
-      return this.additionalEnvironmentVariables.get(name);
+    String value = this.additionalEnvironmentVariables.get(name);
+    if (value != null) {
+      return value;
     }
     return super.getValue(name, ignoreDefaultValue);
   }
