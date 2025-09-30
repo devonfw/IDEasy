@@ -108,15 +108,12 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   private Path getOrCreateWorkspaceXmlFile(Path repositoryPath, String fileName) {
     Path workspacesPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES);
     int repositoryNameCount = repositoryPath.getNameCount();
-    Path workspaceFolder = null;
+    Path workspaceFolder = workspacesPath;
     for (int i = 0; i < repositoryNameCount; i++) {
       workspaceFolder = workspacesPath.resolve(repositoryPath.getName(i));
       if (Files.exists(workspaceFolder)) {
         break;
       }
-    }
-    if (workspaceFolder == null) {
-      workspaceFolder = repositoryPath.getParent();
     }
     Path workspaceFilePath = workspaceFolder.resolve(".idea").resolve(fileName);
     FileAccess fileAccess = new FileAccessImpl(context);
