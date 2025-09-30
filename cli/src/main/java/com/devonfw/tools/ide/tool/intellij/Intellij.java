@@ -68,7 +68,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   private EnvironmentVariables getIntellijEnvironmentVariables(Path projectPath) {
-    ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables((AbstractEnvironmentVariables) context.getVariables());
+    ExtensibleEnvironmentVariables environmentVariables = new ExtensibleEnvironmentVariables((AbstractEnvironmentVariables) context.getVariables().getParent());
+
     environmentVariables.addVariableResolver("PROJECT_PATH", projectPath.toString());
     return environmentVariables;
   }
@@ -131,7 +132,6 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   @Override
   public void importRepository(Path repositoryPath) {
-    System.out.println("Repo path:" + repositoryPath);
     if (!importTemplatesExist()) {
       this.context.warning("Could not automatically import repository due to missing template files.");
       return;
