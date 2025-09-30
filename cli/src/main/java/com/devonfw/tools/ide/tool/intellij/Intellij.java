@@ -75,7 +75,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   private void mergeMisc(Path repositoryPath) throws IOException {
-    Path workspaceMiscPath = getOrCreateWorkspaceXmlFile("misc.xml");
+    Path workspaceMiscPath = getOrCreateWorkspaceXmlFile(repositoryPath, "misc.xml");
 
     XmlMerger xmlMerger = new XmlMerger(context);
     Path templateMiscPath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve("misc.xml");
@@ -91,7 +91,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   private void mergeGradle(Path repositoryPath) throws IOException {
-    Path workspaceGradlePath = getOrCreateWorkspaceXmlFile("gradle.xml");
+    Path workspaceGradlePath = getOrCreateWorkspaceXmlFile(repositoryPath, "gradle.xml");
 
     XmlMerger xmlMerger = new XmlMerger(this.context);
     Path templateGradleXmlPath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve("gradle.xml");
@@ -105,9 +105,20 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     xmlMerger.save(mergedMisc, workspaceGradlePath);
   }
 
-  private Path getOrCreateWorkspaceXmlFile(String fileName) {
-    Path ideaPath = this.context.getWorkspacePath().resolve(".idea");
-    Path workspaceFilePath = ideaPath.resolve(fileName);
+  private Path getOrCreateWorkspaceXmlFile(Path repositoryPath, String fileName) {
+    Path workspacesPath = this.context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES);
+    int repositoryNameCount = repositoryPath.getNameCount();
+    Path workspaceFolder = null;
+    for (int i = 0; i < repositoryNameCount; i++) {
+      workspaceFolder = workspacesPath.resolve(repositoryPath.getName(i));
+      if (Files.exists(workspaceFolder)) {
+        break;
+      }
+    }
+    if (workspaceFolder == null) {
+      workspaceFolder = repositoryPath.getParent();
+    }
+    Path workspaceFilePath = workspaceFolder.resolve(".idea").resolve(fileName);
     FileAccess fileAccess = new FileAccessImpl(context);
     if (!fileAccess.isFile(workspaceFilePath)) {
       // xml merger fails when merging an empty file
