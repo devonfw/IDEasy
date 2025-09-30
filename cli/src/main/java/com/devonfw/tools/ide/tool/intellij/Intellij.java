@@ -72,10 +72,10 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   private void mergeMisc(Path repositoryPath) throws IOException {
-    Path workspaceMiscPath = getOrCreateWorkspaceXmlFile(repositoryPath, "misc.xml");
+    Path workspaceMiscPath = getOrCreateWorkspaceXmlFile("misc.xml");
 
     XmlMerger xmlMerger = new XmlMerger(context);
-    Path templateMiscPath = this.context.getSettingsTemplatePath().resolve("conf/mvn/misc.xml");
+    Path templateMiscPath = this.context.getSettingsPath().resolve("intellij/workspace/repository/.idea/misc.xml");
 
     EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
 
@@ -88,10 +88,10 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
   }
 
   private void mergeGradle(Path repositoryPath) throws IOException {
-    Path workspaceGradlePath = getOrCreateWorkspaceXmlFile(repositoryPath, "gradle.xml");
+    Path workspaceGradlePath = getOrCreateWorkspaceXmlFile("gradle.xml");
 
     XmlMerger xmlMerger = new XmlMerger(this.context);
-    Path templateGradleXmlPath = this.context.getSettingsTemplatePath().resolve("conf/gradle/gradle.xml");
+    Path templateGradleXmlPath = this.context.getSettingsPath().resolve("intellij/workspace/repository/.idea/gradle.xml");
 
     EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
     XmlMergeDocument workspaceGradleXml = xmlMerger.load(workspaceGradlePath);
@@ -102,8 +102,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     xmlMerger.save(mergedMisc, workspaceGradlePath);
   }
 
-  private Path getOrCreateWorkspaceXmlFile(Path repositoryPath, String fileName) {
-    Path ideaPath = repositoryPath.resolve("../.idea");
+  private Path getOrCreateWorkspaceXmlFile(String fileName) {
+    Path ideaPath = this.context.getWorkspacePath().resolve(".idea");
     Path workspaceFilePath = ideaPath.resolve(fileName);
     FileAccess fileAccess = new FileAccessImpl(context);
     if (!fileAccess.isFile(workspaceFilePath)) {
