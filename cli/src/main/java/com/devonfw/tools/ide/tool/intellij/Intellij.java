@@ -32,6 +32,8 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
 
   private static final String IDEA_BASH_SCRIPT = IDEA + ".sh";
 
+  private static final String TEMPLATE_LOCATION = "intellij/workspace/repository/.idea";
+
   /**
    * The constructor.
    *
@@ -75,7 +77,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     Path workspaceMiscPath = getOrCreateWorkspaceXmlFile("misc.xml");
 
     XmlMerger xmlMerger = new XmlMerger(context);
-    Path templateMiscPath = this.context.getSettingsPath().resolve("intellij/workspace/repository/.idea/misc.xml");
+    Path templateMiscPath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve("misc.xml");
 
     EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
 
@@ -91,7 +93,7 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     Path workspaceGradlePath = getOrCreateWorkspaceXmlFile("gradle.xml");
 
     XmlMerger xmlMerger = new XmlMerger(this.context);
-    Path templateGradleXmlPath = this.context.getSettingsPath().resolve("intellij/workspace/repository/.idea/gradle.xml");
+    Path templateGradleXmlPath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION).resolve("gradle.xml");
 
     EnvironmentVariables environmentVariables = getIntellijEnvironmentVariables(repositoryPath.getFileName());
     XmlMergeDocument workspaceGradleXml = xmlMerger.load(workspaceGradlePath);
@@ -120,9 +122,20 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     return workspaceFilePath;
   }
 
+  private boolean importTemplatesExist() {
+    Path templatePath = this.context.getSettingsPath().resolve(TEMPLATE_LOCATION);
+    Path miscXml = templatePath.resolve("misc.xml");
+    Path gradleXml = templatePath.resolve("gradle.xml");
+    return Files.exists(miscXml) && Files.exists(gradleXml);
+  }
+
   @Override
   public void importRepository(Path repositoryPath) {
     System.out.println("Repo path:" + repositoryPath);
+    if (!importTemplatesExist()) {
+      this.context.warning("Could not automatically import repository due to missing template files.");
+      return;
+    }
     // check if pom.xml exists
     Path pomPath = repositoryPath.resolve("pom.xml");
     if (Files.exists(pomPath)) {
