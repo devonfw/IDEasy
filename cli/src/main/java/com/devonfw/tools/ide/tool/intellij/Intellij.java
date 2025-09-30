@@ -110,15 +110,13 @@ public class Intellij extends IdeaBasedIdeToolCommandlet {
     Path workspaceFilePath = ideaPath.resolve(fileName);
     FileAccess fileAccess = new FileAccessImpl(context);
     if (!fileAccess.isFile(workspaceFilePath)) {
-      fileAccess.mkdirs(ideaPath);
-      fileAccess.touch(workspaceFilePath);
       // xml merger fails when merging an empty file
       // this should probably be fixed in the xml merger, but for now here is a workaround:
       fileAccess.writeFileContent("""
           <?xml version="1.0" encoding="UTF-8"?>
           <project version="4">
           </project>
-          """, workspaceFilePath);
+          """, workspaceFilePath, true);
     }
     return workspaceFilePath;
   }
