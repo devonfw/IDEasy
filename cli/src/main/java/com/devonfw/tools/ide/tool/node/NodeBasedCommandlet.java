@@ -111,9 +111,10 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
    * Performs a global npm uninstall.
    *
    * @param npmPackage the npm package to uninstall.
+   * @return the {@link ProcessResult} of the npm execution.
    */
-  protected void runPackageUninstall(String npmPackage) {
-    runPackageManager("uninstall", "-g", npmPackage).failOnError();
+  protected ProcessResult runPackageUninstall(String npmPackage) {
+    return runPackageManager("uninstall", "-g", npmPackage);
   }
 
   /**

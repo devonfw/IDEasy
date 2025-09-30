@@ -18,7 +18,8 @@ import com.devonfw.tools.ide.property.ToolProperty;
 import com.devonfw.tools.ide.tool.az.Azure;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
-import com.devonfw.tools.ide.tool.npm.Npm;
+import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.variable.IdeVariables;
 
 /**
@@ -46,27 +47,27 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
    * Test of {@link UninstallCommandlet} run.
    */
   @Test
-  public void testUninstallNpmAndDontButDotNetNotInstalled() {
+  public void testUninstallMvnAndDotnetButDotNetNotInstalled() {
 
     // arrange
-    String npm = "npm";
+    String mvn = "mvn";
     String dotnet = "dotnet";
     IdeTestContext context = newContext(PROJECT_BASIC);
     CommandletManager commandletManager = context.getCommandletManager();
     UninstallCommandlet uninstallCommandlet = commandletManager.getCommandlet(UninstallCommandlet.class);
-    Npm npmCommandlet = commandletManager.getCommandlet(Npm.class);
+    Mvn mvnCommandlet = commandletManager.getCommandlet(Mvn.class);
     DotNet dotnetCommandlet = commandletManager.getCommandlet(DotNet.class);
 
     ToolProperty tools = uninstallCommandlet.tools;
-    tools.addValue(npmCommandlet);
+    tools.addValue(mvnCommandlet);
     tools.addValue(dotnetCommandlet);
 
     // act
     uninstallCommandlet.run();
     // assert
-    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled " + npm),
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled " + mvn),
         IdeLogEntry.ofWarning("Couldn't uninstall " + dotnet + " because we could not find an installation"));
-    assertThat(context.getSoftwarePath().resolve("node").resolve("npm")).doesNotExist();
+    assertThat(context.getSoftwarePath().resolve("mvn")).doesNotExist();
   }
 
   @Test
@@ -87,20 +88,20 @@ public class UninstallCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testUninstallNpm() {
+  public void testUninstallNode() {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_BASIC);
 
     CommandletManager commandletManager = context.getCommandletManager();
     UninstallCommandlet uninstallCommandlet = commandletManager.getCommandlet(UninstallCommandlet.class);
-    Npm npmCommandlet = commandletManager.getCommandlet(Npm.class);
-    uninstallCommandlet.tools.addValue(npmCommandlet);
+    Node nodeCommandlet = commandletManager.getCommandlet(Node.class);
+    uninstallCommandlet.tools.addValue(nodeCommandlet);
 
     // act
     uninstallCommandlet.run();
     //assert
-    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled npm"));
+    assertThat(context).log().hasEntries(IdeLogEntry.ofSuccess("Successfully uninstalled node"));
   }
 
   /** Test of {@link UninstallCommandlet} run with --force. */

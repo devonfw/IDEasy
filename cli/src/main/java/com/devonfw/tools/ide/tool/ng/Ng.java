@@ -4,6 +4,7 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.tool.npm.NpmBasedCommandlet;
 
@@ -20,6 +21,14 @@ public class Ng extends NpmBasedCommandlet {
   public Ng(IdeContext context) {
 
     super(context, "ng", Set.of(Tag.TYPE_SCRIPT, Tag.BUILD));
+  }
+
+  @Override
+  public void uninstall() {
+    ProcessResult result = runPackageUninstall(getPackageName());
+    if (result.isSuccessful()) {
+      this.context.success("Successfully uninstalled {}", getPackageName());
+    }
   }
 
   @Override
