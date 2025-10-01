@@ -24,6 +24,7 @@ import com.devonfw.tools.ide.step.Step;
 import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
 import com.devonfw.tools.ide.tool.repository.MvnRepository;
 import com.devonfw.tools.ide.tool.repository.NpmRepository;
@@ -804,5 +805,16 @@ public interface IdeContext extends IdeStartContext {
     }
     Corepack corepack = getCommandletManager().getCommandlet(Corepack.class);
     return corepack.getOrCreateCorepackHomeFolder();
+  }
+
+  /**
+   * @return the path for the variable NPM_CONFIG_USERCONFIG, or null if called outside an IDEasy installation.
+   */
+  default Path getNpmConfigUserConfig() {
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Npm npm = getCommandletManager().getCommandlet(Npm.class);
+    return npm.getOrCreateNpmConfigUserConfig();
   }
 }
