@@ -1,2 +1,2 @@
 #!/bin/bash
-echo "ng linux $*"
+echo "ng $*"

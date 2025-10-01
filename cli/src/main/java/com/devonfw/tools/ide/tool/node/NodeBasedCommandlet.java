@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.node;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
@@ -82,9 +83,10 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   @Override
   protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, String edition,
       ProcessContext processContext) {
-
-    runPackageInstall(getPackageName() + "@" + resolvedVersion);
-    this.installedVersion.invalidate();
+    if (!Files.exists(getToolPath().resolve(getPackageName()))) {
+      runPackageInstall(getPackageName() + "@" + resolvedVersion);
+      this.installedVersion.invalidate();
+    }
   }
 
   @Override
@@ -95,12 +97,24 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
+   * Checks if a provided binary can be found within node.
+   *
+   * @param binary name of the binary.
+   * @return {@code true} if a binary was found in the node installation, {@code false} if not.
+   */
+  protected boolean hasNodeBinary(String binary) {
+
+    return Files.exists(getToolPath().resolve(binary));
+  }
+
+  /**
    * Performs a global npm uninstall.
    *
    * @param npmPackage the npm package to uninstall.
+   * @return the {@link ProcessResult} of the npm execution.
    */
-  protected void runPackageUninstall(String npmPackage) {
-    runPackageManager("uninstall", "-g", npmPackage).failOnError();
+  protected ProcessResult runPackageUninstall(String npmPackage) {
+    return runPackageManager("uninstall", "-g", npmPackage);
   }
 
   /**
@@ -124,12 +138,30 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
+   * @param args the arguments for {@link com.devonfw.tools.ide.tool.corepack.Corepack}.
+   * @return the {@link ProcessResult}.
+   */
+  protected ProcessResult runCorepack(String... args) {
+
+    return runCorepack(ProcessMode.DEFAULT, ProcessErrorHandling.THROW_CLI, args);
+  }
+
+  /**
    * @param processMode the {@link ProcessMode}.
    * @param errorHandling the {@link ProcessErrorHandling}.
    * @param args the arguments for the package manager.
    * @return the {@link ProcessResult}.
    */
   protected abstract ProcessResult runPackageManager(ProcessMode processMode, ProcessErrorHandling errorHandling, String... args);
+
+  /**
+   * @param processMode the {@link ProcessMode}.
+   * @param errorHandling the {@link ProcessErrorHandling}.
+   * @param args the arguments for {@link com.devonfw.tools.ide.tool.corepack.Corepack}.
+   * @return the {@link ProcessResult}.
+   */
+  protected abstract ProcessResult runCorepack(ProcessMode processMode, ProcessErrorHandling errorHandling, String... args);
+
 
   @Override
   public String getToolHelpArguments() {

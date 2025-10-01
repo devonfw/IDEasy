@@ -1,0 +1,10 @@
+{
+  "versions": {
+    "0.34.0": {
+      "version": "0.34.0",
+      "dist": {
+        "tarball": "${testbaseurl}/corepack/-/corepack-0.34.0.tgz"
+      }
+    }
+  }
+}
