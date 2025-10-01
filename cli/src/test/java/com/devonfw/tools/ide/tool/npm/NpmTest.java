@@ -61,6 +61,7 @@ public class NpmTest extends AbstractIdeContextTest {
     SystemInfo systemInfo = SystemInfoMock.of(os);
     context.setSystemInfo(systemInfo);
     Npm commandlet = new Npm(context);
+    context.setAnswers("yes");
 
     // act
     commandlet.install();
