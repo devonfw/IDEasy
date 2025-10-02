@@ -403,6 +403,14 @@ public interface FileAccess {
   void setFilePermissions(Path path, PathPermissions permissions, boolean logErrorAndContinue);
 
   /**
+   * Gets the {@link PathPermissions} from the specified {@link Path}.
+   *
+   * @param path the {@link Path} to the file or directory.
+   * @return the {@link PathPermissions} of the specified {@link Path}.
+   */
+  PathPermissions getFilePermissions(Path path);
+
+  /**
    * Like the linux touch command this method will update the modification time of the given {@link Path} to the current
    * {@link System#currentTimeMillis() system time}. In case the file does not exist, it will be created as empty file. If already the
    * {@link Path#getParent() parent folder} does not exist, the operation will fail.
