@@ -124,14 +124,13 @@ public abstract class AbstractIdeContextTest extends Assertions {
     }
     Path userDir = ideRoot.resolve(projectPath);
     ToolRepositoryMock toolRepository = null;
-    IdeTestContext context = new IdeTestContext(userDir, logLevel);
+    IdeTestContext context = new IdeTestContext(userDir, logLevel, wmRuntimeInfo);
+
     Path repositoryFolder = ideRoot.resolve("repository");
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(context, repositoryFolder, wmRuntimeInfo);
       context.setDefaultToolRepository(toolRepository);
     }
-    context.setMvnRepository(new MvnRepositoryMock(context, wmRuntimeInfo));
-    context.setNpmRepository(new NpmRepositoryMock(context, wmRuntimeInfo));
     return context;
   }
 
@@ -141,7 +140,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static IdeTestContext newContext(Path projectPath) {
 
-    return new IdeTestContext(projectPath);
+    return new IdeTestContext(projectPath, null);
   }
 
   protected static IdeTestContextAssertion assertThat(IdeTestContext context) {

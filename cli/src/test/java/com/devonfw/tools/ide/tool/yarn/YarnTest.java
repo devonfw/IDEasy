@@ -25,8 +25,6 @@ public class YarnTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_YARN = "yarn";
 
-  private static final Path PATH_INTEGRATION_TEST = Path.of("src/test/resources/ide-projects");
-
   private static String yarnVersion;
   private static String corepackVersion;
 
@@ -40,7 +38,7 @@ public class YarnTest extends AbstractIdeContextTest {
   @BeforeAll
   public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
     //preparing test data with dynamic port
-    Path testDataPath = PATH_INTEGRATION_TEST.resolve(PROJECT_YARN);
+    Path testDataPath = TEST_PROJECTS.resolve(PROJECT_YARN);
     yarnVersion = readAndResolve(testDataPath.resolve("yarn-version.json"), wmRuntimeInfo);
     corepackVersion = readAndResolve(testDataPath.resolve("corepack-version.json"), wmRuntimeInfo);
   }

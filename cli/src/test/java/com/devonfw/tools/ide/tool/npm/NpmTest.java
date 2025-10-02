@@ -1,15 +1,5 @@
 package com.devonfw.tools.ide.tool.npm;
 
-import static com.devonfw.tools.ide.context.IdeTestContext.readAndResolve;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-
-import java.io.IOException;
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
@@ -27,23 +17,6 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 public class NpmTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_NPM = "npm";
-  private static final Path PATH_INTEGRATION_TEST = Path.of("src/test/resources/ide-projects");
-
-  private static String npmVersion;
-
-  /**
-   * Creates a npm-version json file based on the given test resource in a temporary directory according to the http url and port of the
-   * {@link WireMockRuntimeInfo}.
-   *
-   * @param wmRuntimeInfo wireMock server on a random port
-   * @throws IOException on error.
-   */
-  @BeforeAll
-  public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-    //preparing test data with dynamic port
-    Path testDataPath = PATH_INTEGRATION_TEST.resolve(PROJECT_NPM);
-    npmVersion = readAndResolve(testDataPath.resolve("npm-version.json"), wmRuntimeInfo);
-  }
 
   /**
    * Tests if the {@link Npm} install works correctly across all three operating systems.
@@ -56,12 +29,10 @@ public class NpmTest extends AbstractIdeContextTest {
   public void testNpmInstall(String os, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/npm")).willReturn(aResponse().withStatus(200).withBody(npmVersion)));
     IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     context.setSystemInfo(systemInfo);
     Npm commandlet = new Npm(context);
-    context.setAnswers("yes");
 
     // act
     commandlet.install();
@@ -81,13 +52,11 @@ public class NpmTest extends AbstractIdeContextTest {
   public void testNpmRun(String os, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/npm")).willReturn(aResponse().withStatus(200).withBody(npmVersion)));
     IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     context.setSystemInfo(systemInfo);
     Npm commandlet = new Npm(context);
     commandlet.arguments.setValue("--version");
-    context.setAnswers("yes");
 
     // act
     commandlet.run();

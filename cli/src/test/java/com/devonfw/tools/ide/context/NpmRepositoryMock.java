@@ -3,6 +3,9 @@ package com.devonfw.tools.ide.context;
 import com.devonfw.tools.ide.tool.repository.NpmRepository;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
+/**
+ * Mock class for {@link NpmRepository}.
+ */
 public class NpmRepositoryMock extends NpmRepository {
 
   WireMockRuntimeInfo wmRuntimeInfo;
@@ -11,6 +14,7 @@ public class NpmRepositoryMock extends NpmRepository {
    * The constructor.
    *
    * @param context the {@link IdeContext}.
+   * @param wmRuntimeInfo wireMock server on a random port
    */
   public NpmRepositoryMock(IdeContext context, WireMockRuntimeInfo wmRuntimeInfo) {
 

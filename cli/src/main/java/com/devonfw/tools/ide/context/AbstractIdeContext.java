@@ -220,8 +220,20 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
 
     this.defaultToolRepository = new DefaultToolRepository(this);
-    this.mvnRepository = new MvnRepository(this);
-    this.npmRepository = new NpmRepository(this);
+  }
+
+  /**
+   * @return a new {@link MvnRepository}
+   */
+  protected MvnRepository createMvnRepository() {
+    return new MvnRepository(this);
+  }
+
+  /**
+   * @return a new {@link NpmRepository}
+   */
+  protected NpmRepository createNpmRepository() {
+    return new NpmRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -403,13 +415,17 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   @Override
   public MvnRepository getMvnRepository() {
-
+    if (this.mvnRepository == null) {
+      this.mvnRepository = createMvnRepository();
+    }
     return this.mvnRepository;
   }
 
   @Override
   public NpmRepository getNpmRepository() {
-
+    if (this.npmRepository == null) {
+      this.npmRepository = createNpmRepository();
+    }
     return this.npmRepository;
   }
 
@@ -1493,26 +1509,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     assert (Files.isDirectory(installationPath));
     Path versionFile = installationPath.resolve(FILE_SOFTWARE_VERSION);
     getFileAccess().writeFileContent(version.toString(), versionFile);
-  }
-
-  /**
-   * Sets the Mvn repository.
-   *
-   * @param mvnRepository the {@link MvnRepository} to set
-   */
-  public void setMvnRepository(MvnRepository mvnRepository) {
-
-    this.mvnRepository = mvnRepository;
-  }
-
-  /**
-   * Sets the Npm repository.
-   *
-   * @param npmRepository the {@link NpmRepository} to set
-   */
-  public void setNpmRepository(NpmRepository npmRepository) {
-
-    this.npmRepository = npmRepository;
   }
 
 }
