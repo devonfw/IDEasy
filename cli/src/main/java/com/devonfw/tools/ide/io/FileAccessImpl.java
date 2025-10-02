@@ -720,8 +720,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         ArchiveInputStream<?> ais = unpacker.apply(is);
         IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
 
-      final boolean isTar = (ais instanceof TarArchiveInputStream);
-      final boolean isWindows = this.context.getSystemInfo().isWindows();
       final Path root = targetDir.toAbsolutePath().normalize();
 
       ArchiveEntry entry = ais.getNextEntry();
@@ -753,7 +751,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
           mkdirs(entryPath.getParent());
           Files.copy(ais, entryPath, StandardCopyOption.REPLACE_EXISTING);
           // POSIX perms on non-Windows
-          if (!isWindows && (permissions != null)) {
+          if (permissions != null) {
             setFilePermissions(entryPath, permissions, false);
           }
         }
