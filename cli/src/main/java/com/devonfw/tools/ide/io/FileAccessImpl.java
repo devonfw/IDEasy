@@ -903,7 +903,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private <E extends ArchiveEntry> void compressRecursive(Path path, ArchiveOutputStream<E> out, String relativePath) {
 
-    boolean isWindows = SystemInfoImpl.INSTANCE.isWindows();
     try (Stream<Path> childStream = Files.list(path)) {
       Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
