@@ -286,8 +286,15 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     } catch (NoSuchFileException e) {
       return false; // file doesn't exist
     } catch (IOException e) {
-      // errors in reading the attributes of the file
-      throw new IllegalStateException("An unexpected error occurred whilst checking if the file: " + path + " is a junction", e);
+      // For broken junctions, reading attributes might fail with various IOExceptions.
+      // In such cases, we should check if the path exists without following links.
+      // If it exists but we can't read its attributes, it's likely a broken junction.
+      if (Files.exists(path, LinkOption.NOFOLLOW_LINKS)) {
+        this.context.debug("Path " + path + " exists but attributes cannot be read, likely a broken junction: " + e.getMessage());
+        return true; // Assume it's a broken junction
+      }
+      // If it doesn't exist at all, it's not a junction
+      return false;
     }
   }
 
@@ -416,7 +423,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   private void deleteLinkIfExists(Path path) {
 
     boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
-    boolean isSymlink = Files.exists(path) && Files.isSymbolicLink(path);
+    boolean isSymlink = Files.exists(path, LinkOption.NOFOLLOW_LINKS) && Files.isSymbolicLink(path);
 
     assert !(isSymlink && isJunction);
 
