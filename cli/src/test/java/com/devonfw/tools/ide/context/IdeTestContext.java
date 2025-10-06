@@ -3,11 +3,13 @@ package com.devonfw.tools.ide.context;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.git.GitContext;
 import com.devonfw.tools.ide.git.GitContextMock;
@@ -118,21 +120,46 @@ public class IdeTestContext extends AbstractIdeTestContext {
     }
   }
 
+  private void mockNpmPackageResponses(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    Path npmRoot = this.getIdeHome()
+        .getParent()
+        .resolve("repository")
+        .resolve("npmjs");
+
+    try (Stream<Path> files = Files.walk(npmRoot)) {
+      files.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".json"))
+          .forEach(jsonFile -> {
+            // Derive package path from relative file path, e.g.
+            //   <root>/@angular/cli.json  -> "/@angular/cli"
+            //   <root>/yarn.json          -> "/yarn"
+            Path rel = npmRoot.relativize(jsonFile);
+            String packagePath = "/" + rel.toString()
+                .replace(File.separatorChar, '/')
+                .replaceAll("\\.json$", "");
+
+            String body = readAndResolve(jsonFile, wireMockRuntimeInfo);
+
+            stubFor(get(urlPathEqualTo(packagePath))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/json")
+                    .withBody(body)));
+
+          });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+  }
+
   /**
    * Creates a npm-version json file based on the given test resource in a temporary directory according to the http url and port of the
    * {@link WireMockRuntimeInfo}.
+   *
+   * @param wireMockRuntimeInfo the {@link WireMockRuntimeInfo} providing the base URL.
    */
-  public void mockNpmJsonVersionCheck() {
+  public void mockNpmJsonVersionCheck(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
-    for (Path jsonFile : this.getFileAccess().listChildren(this.getIdeHome().getParent().resolve("repository").resolve("npmjs"), Files::isRegularFile)) {
-      try {
-        String content = Files.readString(jsonFile);
-        stubFor(get(urlMatching("/npm/*")).willReturn(aResponse().withStatus(200).withBody(content)));
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-    }
-    // TODO: stub all files using wiremock lambdas with dynamic functions
+    mockNpmPackageResponses(wireMockRuntimeInfo);
   }
 
   private void mockMvnJsonVersionCheck() {
@@ -151,7 +178,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
   @Override
   protected NpmRepository createNpmRepository() {
     if (this.wireMockRuntimeInfo != null) {
-      mockNpmJsonVersionCheck();
+      mockNpmJsonVersionCheck(this.wireMockRuntimeInfo);
       return new NpmRepositoryMock(this, this.wireMockRuntimeInfo);
     }
     return super.createNpmRepository();

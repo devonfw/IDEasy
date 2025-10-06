@@ -1,15 +1,5 @@
 package com.devonfw.tools.ide.tool.ng;
 
-import static com.devonfw.tools.ide.context.IdeTestContext.readAndResolve;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
-
-import java.io.IOException;
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -28,24 +18,6 @@ public class NgTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_NG = "ng";
 
-  private static final Path PATH_INTEGRATION_TEST = Path.of("src/test/resources/ide-projects");
-
-  private static String ngVersion;
-
-  /**
-   * Creates a ng-version json file based on the given test resource in a temporary directory according to the http url and port of the
-   * {@link WireMockRuntimeInfo}.
-   *
-   * @param wmRuntimeInfo wireMock server on a random port
-   * @throws IOException on error.
-   */
-  @BeforeAll
-  public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-    //preparing test data with dynamic port
-    Path testDataPath = PATH_INTEGRATION_TEST.resolve(PROJECT_NG);
-    ngVersion = readAndResolve(testDataPath.resolve("ng-version.json"), wmRuntimeInfo);
-  }
-
   /**
    * Tests if the {@link Ng} install works correctly on windows (temporarily disabled until file permission bug is fixed). Check:
    * https://github.com/devonfw/IDEasy/issues/1509
@@ -57,7 +29,6 @@ public class NgTest extends AbstractIdeContextTest {
   public void testNgInstallWindows(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/@angular/cli")).willReturn(aResponse().withStatus(200).withBody(ngVersion)));
     IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of("windows");
     context.setSystemInfo(systemInfo);
@@ -79,7 +50,6 @@ public class NgTest extends AbstractIdeContextTest {
   public void testNgInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/@angular/cli")).willReturn(aResponse().withStatus(200).withBody(ngVersion)));
     IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of("linux");
     context.setSystemInfo(systemInfo);
@@ -101,7 +71,6 @@ public class NgTest extends AbstractIdeContextTest {
   public void testNgUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/@angular/cli")).willReturn(aResponse().withStatus(200).withBody(ngVersion)));
     IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of("linux");
     context.setSystemInfo(systemInfo);
@@ -131,7 +100,6 @@ public class NgTest extends AbstractIdeContextTest {
   public void testNgRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    stubFor(get(urlMatching("/@angular/cli")).willReturn(aResponse().withStatus(200).withBody(ngVersion)));
     IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of("linux");
     context.setSystemInfo(systemInfo);

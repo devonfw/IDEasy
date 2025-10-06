@@ -1,16 +1,7 @@
 package com.devonfw.tools.ide.commandlet;
 
-import static com.devonfw.tools.ide.context.IdeTestContext.readAndResolve;
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.io.IOException;
-import java.nio.file.Path;
-
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.cli.CliException;
@@ -31,24 +22,6 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
   private static final String PROJECT_BUILD = "build";
 
   private static final String JAVA_VERSION = "17.0.10_7";
-
-  private static final Path PATH_INTEGRATION_TEST = Path.of("src/test/resources/ide-projects");
-
-  private static String npmVersion;
-
-  /**
-   * Creates a npm-version json file based on the given test resource in a temporary directory according to the http url and port of the
-   * {@link WireMockRuntimeInfo}.
-   *
-   * @param wmRuntimeInfo wireMock server on a random port
-   * @throws IOException on error.
-   */
-  @BeforeAll
-  public static void setupTestVersionJson(WireMockRuntimeInfo wmRuntimeInfo) throws IOException {
-    //preparing test data with dynamic port
-    Path testDataPath = PATH_INTEGRATION_TEST.resolve(PROJECT_BUILD);
-    npmVersion = readAndResolve(testDataPath.resolve("npm-version.json"), wmRuntimeInfo);
-  }
 
   /**
    * Tests a {@link com.devonfw.tools.ide.tool.mvn.Mvn} build without arguments and expects defaults to be taken from ide.properties.
@@ -102,12 +75,13 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Tests a {@link com.devonfw.tools.ide.tool.npm.Npm} build with provided arguments.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
   public void testNpmBuildWithProvidedArguments(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     SystemInfo systemInfo = SystemInfoMock.of("linux");
-    stubFor(get(urlMatching("/npm")).willReturn(aResponse().withStatus(200).withBody(npmVersion)));
     IdeTestContext context = newContext(PROJECT_BUILD, wireMockRuntimeInfo);
     context.setSystemInfo(systemInfo);
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
