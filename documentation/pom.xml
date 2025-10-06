@@ -35,7 +35,7 @@
     <buildtime>${maven.build.timestamp}</buildtime>
     <maven.build.timestamp.format>yyyy-MM-dd_HH.mm.ss</maven.build.timestamp.format>
     <asciidoctor.maven.plugin.version>3.2.0</asciidoctor.maven.plugin.version>
-    <asciidoctorj.pdf.version>1.5.0-alpha.18</asciidoctorj.pdf.version>
+    <asciidoctorj.pdf.version>2.3.20</asciidoctorj.pdf.version>
     <jruby.version>9.2.6.0</jruby.version>
     <asciidoctor.skip>false</asciidoctor.skip>
     <revision>dev-SNAPSHOT</revision>
