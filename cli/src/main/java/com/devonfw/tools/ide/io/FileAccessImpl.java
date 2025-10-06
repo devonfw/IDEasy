@@ -73,12 +73,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private static final String WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/windows-file-lock.adoc";
 
-  private static final String WINDOWS_FILE_LOCK_WARNING = "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
-      + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
-
-  private static final int MODE_RWX_RX_RX = 0755;
-
-  private static final int MODE_RW_R_R = 0644;
+  private static final String WINDOWS_FILE_LOCK_WARNING =
+      "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
+          + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
 
   private static final Map<String, String> FS_ENV = Map.of("encoding", "UTF-8");
 
@@ -623,7 +620,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   /**
    * @param path the {@link Path} to start the recursive search from.
    * @return the deepest subdir {@code s} of the passed path such that all directories between {@code s} and the passed path (including {@code s}) are the sole
-   *         item in their respective directory and {@code s} is not named "bin".
+   *     item in their respective directory and {@code s} is not named "bin".
    */
   private Path getProperInstallationSubDirOf(Path path, Path archiveFile) {
 
@@ -723,8 +720,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         ArchiveInputStream<?> ais = unpacker.apply(is);
         IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
 
-      final boolean isTar = (ais instanceof TarArchiveInputStream);
-      final boolean isWindows = this.context.getSystemInfo().isWindows();
       final Path root = targetDir.toAbsolutePath().normalize();
 
       ArchiveEntry entry = ais.getNextEntry();
@@ -756,7 +751,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
           mkdirs(entryPath.getParent());
           Files.copy(ais, entryPath, StandardCopyOption.REPLACE_EXISTING);
           // POSIX perms on non-Windows
-          if (!isWindows && (permissions != null)) {
+          if (permissions != null) {
             setFilePermissions(entryPath, permissions, false);
           }
         }
@@ -925,15 +920,8 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
           tarEntry.setUserName("user");
           tarEntry.setGroupId(0);
           tarEntry.setGroupName("group");
-          if (isDirectory) {
-            tarEntry.setMode(MODE_RWX_RX_RX);
-          } else {
-            if (relativePath.endsWith("bin")) {
-              tarEntry.setMode(MODE_RWX_RX_RX);
-            } else {
-              tarEntry.setMode(MODE_RW_R_R);
-            }
-          }
+          PathPermissions filePermissions = getFilePermissions(child);
+          tarEntry.setMode(filePermissions.toMode());
         }
         out.putArchiveEntry(archiveEntry);
         if (!isDirectory) {
@@ -1153,15 +1141,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       if (skipPermissionsIfWindows(path)) {
         return;
       }
-      Set<PosixFilePermission> existingPosixPermissions;
-      try {
-        // Read the current file permissions
-        existingPosixPermissions = Files.getPosixFilePermissions(path);
-      } catch (IOException e) {
-        throw new RuntimeException("Failed to get permissions for " + path, e);
-      }
-
-      PathPermissions existingPermissions = PathPermissions.of(existingPosixPermissions);
+      PathPermissions existingPermissions = getFilePermissions(path);
       PathPermissions executablePermissions = existingPermissions.makeExecutable();
       boolean update = (executablePermissions != existingPermissions);
       if (update) {
@@ -1185,6 +1165,37 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     } else {
       this.context.warning("Cannot set executable flag on file that does not exist: {}", path);
     }
+  }
+
+  @Override
+  public PathPermissions getFilePermissions(Path path) {
+
+    PathPermissions pathPermissions;
+    String info = "";
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      info = "mocked-";
+      if (Files.isDirectory(path)) {
+        pathPermissions = PathPermissions.MODE_RWX_RX_RX;
+      } else {
+        Path parent = path.getParent();
+        if ((parent != null) && (parent.getFileName().toString().equals("bin"))) {
+          pathPermissions = PathPermissions.MODE_RWX_RX_RX;
+        } else {
+          pathPermissions = PathPermissions.MODE_RW_R_R;
+        }
+      }
+    } else {
+      Set<PosixFilePermission> permissions;
+      try {
+        // Read the current file permissions
+        permissions = Files.getPosixFilePermissions(path);
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to get permissions for " + path, e);
+      }
+      pathPermissions = PathPermissions.of(permissions);
+    }
+    this.context.trace("Read {}permissions of {} as {}.", info, path, pathPermissions);
+    return pathPermissions;
   }
 
   @Override
