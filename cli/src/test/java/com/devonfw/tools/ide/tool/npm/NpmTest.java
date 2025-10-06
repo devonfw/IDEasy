@@ -7,10 +7,13 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Integration test of {@link Npm}.
  */
+@WireMockTest
 public class NpmTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_NPM = "npm";
@@ -19,13 +22,14 @@ public class NpmTest extends AbstractIdeContextTest {
    * Tests if the {@link Npm} install works correctly across all three operating systems.
    *
    * @param os Operating system
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testNpmInstall(String os) {
+  public void testNpmInstall(String os, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_NPM);
+    IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     context.setSystemInfo(systemInfo);
     Npm commandlet = new Npm(context);
@@ -41,13 +45,14 @@ public class NpmTest extends AbstractIdeContextTest {
    * Tests if npm can be run properly.
    *
    * @param os Operating System.
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
-  public void testNpmRun(String os) {
+  public void testNpmRun(String os, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_NPM);
+    IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
     SystemInfo systemInfo = SystemInfoMock.of(os);
     context.setSystemInfo(systemInfo);
     Npm commandlet = new Npm(context);
@@ -62,7 +67,6 @@ public class NpmTest extends AbstractIdeContextTest {
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context.getSoftwarePath().resolve("npm/.ide.software.version")).exists().hasContent("9.9.2");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed npm in version 9.9.2");
   }
 

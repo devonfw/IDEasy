@@ -26,7 +26,7 @@ public class IdeSlf4jContext extends AbstractIdeTestContext {
    */
   public IdeSlf4jContext(Path workingDirectory) {
 
-    super(new IdeStartContextImpl(IdeLogLevel.TRACE, IdeSubLoggerSlf4j::new), workingDirectory);
+    super(new IdeStartContextImpl(IdeLogLevel.TRACE, IdeSubLoggerSlf4j::new), workingDirectory, null);
   }
 
 }

@@ -10,10 +10,13 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.log.IdeLogEntry;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link BuildCommandlet}.
  */
+@WireMockTest
 public class BuildCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_BUILD = "build";
@@ -72,12 +75,14 @@ public class BuildCommandletTest extends AbstractIdeContextTest {
 
   /**
    * Tests a {@link com.devonfw.tools.ide.tool.npm.Npm} build with provided arguments.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
    */
   @Test
-  public void testNpmBuildWithProvidedArguments() {
+  public void testNpmBuildWithProvidedArguments(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     SystemInfo systemInfo = SystemInfoMock.of("linux");
-    IdeTestContext context = newContext(PROJECT_BUILD);
+    IdeTestContext context = newContext(PROJECT_BUILD, wireMockRuntimeInfo);
     context.setSystemInfo(systemInfo);
     BuildCommandlet buildCommandlet = context.getCommandletManager().getCommandlet(BuildCommandlet.class);
     context.setCwd(context.getWorkspacePath().resolve("npm"), context.getWorkspacePath().toString(), context.getIdeHome());

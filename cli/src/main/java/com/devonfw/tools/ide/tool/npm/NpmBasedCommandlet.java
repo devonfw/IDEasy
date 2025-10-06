@@ -11,9 +11,9 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.node.NodeBasedCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
-import com.devonfw.tools.ide.util.StringUtil;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -80,8 +80,15 @@ public abstract class NpmBasedCommandlet extends NodeBasedCommandlet {
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
     Npm npm = this.context.getCommandletManager().getCommandlet(Npm.class);
 
-    return npm.runTool(processMode, null, pc,
-        StringUtil.extendArray(args, false, "--prefix", this.context.getSoftwarePath().resolve("node").toAbsolutePath().toString()));
+    return npm.runTool(processMode, null, pc, args);
+  }
+
+  @Override
+  protected ProcessResult runCorepack(ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
+
+    ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
+    Corepack corepack = this.context.getCommandletManager().getCommandlet(Corepack.class);
+    return corepack.runTool(processMode, null, pc, args);
   }
 
 }
