@@ -45,7 +45,7 @@ jobs:
     needs: updateURLS
     if: ${{ needs.updateURLS.outputs.RUN_BUILD == 'true' }}
     steps:
-      - name: Trigger update CVE reports
+      - name: Trigger Update Security Files
         run: |
           curl -X POST \
             -H "Accept: application/vnd.github.v3+json" \
