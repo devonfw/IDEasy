@@ -40,3 +40,15 @@ jobs:
           else
             echo "No changes, nothing to commit."
           fi
+  trigger_update_cve:
+    runs-on: ubuntu-latest
+    needs: updateURLS
+    if: ${{ needs.updateURLS.outputs.RUN_BUILD == 'true' }}
+    steps:
+      - name: Trigger update CVE reports
+        run: |
+          curl -X POST \
+            -H "Accept: application/vnd.github.v3+json" \
+            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/actions/workflows/update-cve.yml/dispatches \
+            -d '{"ref":"main"}'
