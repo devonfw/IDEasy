@@ -54,7 +54,7 @@ public class GitContextImpl implements GitContext {
 
     verifyGitInstalled();
     String localCommitId = runGitCommandAndGetSingleOutput("Failed to get the local commit id.", repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "HEAD");
-    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "@{u}");
+    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id, missing remote upstream branch?", repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "@{u}");
     if ((localCommitId == null) || (remoteCommitId == null)) {
       return false;
     }
@@ -72,7 +72,7 @@ public class GitContextImpl implements GitContext {
       return false;
     }
 
-    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "@{u}");
+    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id, missing remote upstream branch?", repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "@{u}");
     return !trackedCommitId.equals(remoteCommitId);
   }
 
