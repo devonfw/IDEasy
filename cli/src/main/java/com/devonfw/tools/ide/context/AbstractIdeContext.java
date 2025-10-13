@@ -150,6 +150,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private final Map<String, String> privacyMap;
 
+  /** Context used for logging */
+  private static IdeContext loggingContext;
+
   /**
    * The constructor.
    *
@@ -220,6 +223,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
 
     this.defaultToolRepository = new DefaultToolRepository(this);
+    loggingContext = this;
     this.mvnRepository = new MvnRepository(this);
     this.npmRepository = new NpmRepository(this);
   }
@@ -1493,6 +1497,16 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     assert (Files.isDirectory(installationPath));
     Path versionFile = installationPath.resolve(FILE_SOFTWARE_VERSION);
     getFileAccess().writeFileContent(version.toString(), versionFile);
+  }
+
+  /**
+   * Gets the logging context.
+   *
+   * @return {@link IdeContext}.
+   */
+  public static IdeContext getLoggingContext() {
+
+    return loggingContext;
   }
 
 }
