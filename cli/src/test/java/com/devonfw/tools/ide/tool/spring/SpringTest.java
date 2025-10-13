@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.tool.repository.MvnRepository;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -16,9 +15,10 @@ public class SpringTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_SPRING = "spring";
 
-
   /**
    * Tests if {@link Spring} can be installed properly.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port.
    */
   @Test
   public void testSpringInstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
@@ -26,10 +26,8 @@ public class SpringTest extends AbstractIdeContextTest {
     // arrange
     IdeTestContext context = newContext(PROJECT_SPRING, wireMockRuntimeInfo);
     Spring commandlet = new Spring(context);
-
-    MvnRepository mavenRepo = new MvnRepository(context);
-//    UrlDownloadFileMetadata metadata = mavenRepo.getMetadata(tool, edition, version, toolCommandlet);
     context.info("Starting testSpringInstall");
+    
     // act
     commandlet.install();
 
@@ -39,6 +37,8 @@ public class SpringTest extends AbstractIdeContextTest {
 
   /**
    * Tests if {@link Spring spring-boot-cli} can be run.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port.
    */
   @Test
   public void testSpringRun(WireMockRuntimeInfo wireMockRuntimeInfo) {
