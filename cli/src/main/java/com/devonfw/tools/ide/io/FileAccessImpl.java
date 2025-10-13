@@ -8,11 +8,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpClient.Version;
-import java.net.http.HttpRequest;
-import java.net.http.HttpRequest.Builder;
 import java.net.http.HttpResponse;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystemException;
@@ -27,7 +23,6 @@ import java.nio.file.attribute.DosFileAttributeView;
 import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.PosixFilePermissions;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -55,7 +50,6 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
 import org.apache.commons.compress.compressors.bzip2.BZip2CompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
-import org.jline.utils.Log;
 
 import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.cli.CliOfflineException;
@@ -65,6 +59,8 @@ import com.devonfw.tools.ide.io.ini.IniFile;
 import com.devonfw.tools.ide.io.ini.IniSection;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
+import com.devonfw.tools.ide.process.ProcessMode;
+import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.util.DateTimeUtil;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.util.HexUtil;
@@ -73,16 +69,13 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 /**
  * Implementation of {@link FileAccess}.
  */
-public class FileAccessImpl implements FileAccess {
+public class FileAccessImpl extends HttpDownloader implements FileAccess {
 
   private static final String WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE = "https://github.com/devonfw/IDEasy/blob/main/documentation/windows-file-lock.adoc";
 
   private static final String WINDOWS_FILE_LOCK_WARNING =
       "On Windows, file operations could fail due to file locks. Please ensure the files in the moved directory are not in use. For further details, see: \n"
           + WINDOWS_FILE_LOCK_DOCUMENTATION_PAGE;
-
-  private static final int MODE_RWX_RX_RX = 0755;
-  private static final int MODE_RW_R_R = 0644;
 
   private static final Map<String, String> FS_ENV = Map.of("encoding", "UTF-8");
 
@@ -97,11 +90,6 @@ public class FileAccessImpl implements FileAccess {
 
     super();
     this.context = context;
-  }
-
-  private HttpClient createHttpClient(String url) {
-
-    return HttpClient.newBuilder().followRedirects(Redirect.ALWAYS).build();
   }
 
   @Override
@@ -126,11 +114,12 @@ public class FileAccessImpl implements FileAccess {
   }
 
   private void downloadViaHttp(String url, Path target) {
-    List<Version> httpProtocols = IdeVariables.HTTP_VERSIONS.get(context);
+
+    List<Version> httpProtocols = IdeVariables.HTTP_VERSIONS.get(this.context);
     Exception lastException = null;
     if (httpProtocols.isEmpty()) {
       try {
-        this.downloadWithHttpVersion(url, target, null);
+        downloadWithHttpVersion(url, target, null);
         return;
       } catch (Exception e) {
         lastException = e;
@@ -138,7 +127,7 @@ public class FileAccessImpl implements FileAccess {
     } else {
       for (Version version : httpProtocols) {
         try {
-          this.downloadWithHttpVersion(url, target, version);
+          downloadWithHttpVersion(url, target, version);
           return;
         } catch (Exception ex) {
           lastException = ex;
@@ -156,23 +145,7 @@ public class FileAccessImpl implements FileAccess {
       this.context.info("Trying to download: {} with HTTP protocol version: {}", url, httpVersion);
     }
     mkdirs(target.getParent());
-
-    Builder builder = HttpRequest.newBuilder()
-        .uri(URI.create(url))
-        .GET();
-    if (httpVersion != null) {
-      builder.version(httpVersion);
-    }
-    try (HttpClient client = createHttpClient(url)) {
-      HttpRequest request = builder.build();
-      HttpResponse<InputStream> response = client.send(request, HttpResponse.BodyHandlers.ofInputStream());
-      int statusCode = response.statusCode();
-      if (statusCode == 200) {
-        downloadFileWithProgressBar(url, target, response);
-      } else {
-        throw new IllegalStateException("Download failed with status code " + statusCode);
-      }
-    }
+    httpGet(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
   }
 
   /**
@@ -185,7 +158,9 @@ public class FileAccessImpl implements FileAccess {
   private void downloadFileWithProgressBar(String url, Path target, HttpResponse<InputStream> response) {
 
     long contentLength = response.headers().firstValueAsLong("content-length").orElse(-1);
-    informAboutMissingContentLength(contentLength, url);
+    if (contentLength < 0) {
+      this.context.warning("Content-Length was not provided by download from {}", url);
+    }
 
     byte[] data = new byte[1024];
     boolean fileComplete = false;
@@ -204,7 +179,6 @@ public class FileAccessImpl implements FileAccess {
           pb.stepBy(count);
         }
       }
-
     } catch (Exception e) {
       throw new RuntimeException(e);
     }
@@ -217,8 +191,7 @@ public class FileAccessImpl implements FileAccess {
       copy(source, target, FileCopyMode.COPY_FILE_TO_TARGET_OVERRIDE);
       return;
     }
-    try (InputStream in = Files.newInputStream(source);
-        OutputStream out = Files.newOutputStream(target)) {
+    try (InputStream in = Files.newInputStream(source); OutputStream out = Files.newOutputStream(target)) {
       byte[] buf = new byte[1024];
       try (IdeProgressBar pb = this.context.newProgressbarForCopying(size)) {
         int readBytes;
@@ -234,11 +207,11 @@ public class FileAccessImpl implements FileAccess {
     }
   }
 
-  private void informAboutMissingContentLength(long contentLength, String url) {
+  @Override
+  public String download(String url) {
 
-    if (contentLength < 0) {
-      this.context.warning("Content-Length was not provided by download from {}", url);
-    }
+    this.context.debug("Downloading text body from {}", url);
+    return httpGetAsString(url);
   }
 
   @Override
@@ -301,12 +274,12 @@ public class FileAccessImpl implements FileAccess {
     return HexUtil.toHexString(digestBytes);
   }
 
+  @Override
   public boolean isJunction(Path path) {
 
     if (!SystemInfoImpl.INSTANCE.isWindows()) {
       return false;
     }
-
     try {
       BasicFileAttributes attr = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
       return attr.isOther() && attr.isDirectory();
@@ -439,9 +412,8 @@ public class FileAccessImpl implements FileAccess {
    * {@link Path} that is neither a symbolic link nor a Windows junction.
    *
    * @param path the {@link Path} to delete.
-   * @throws IOException if the actual {@link Files#delete(Path) deletion} fails.
    */
-  private void deleteLinkIfExists(Path path) throws IOException {
+  private void deleteLinkIfExists(Path path) {
 
     boolean isJunction = isJunction(path); // since broken junctions are not detected by Files.exists()
     boolean isSymlink = Files.exists(path) && Files.isSymbolicLink(path);
@@ -450,112 +422,99 @@ public class FileAccessImpl implements FileAccess {
 
     if (isJunction || isSymlink) {
       this.context.info("Deleting previous " + (isJunction ? "junction" : "symlink") + " at " + path);
-      Files.delete(path);
+      try {
+        Files.delete(path);
+      } catch (IOException e) {
+        throw new IllegalStateException("Failed to delete link at " + path, e);
+      }
     }
   }
 
   /**
    * Adapts the given {@link Path} to be relative or absolute depending on the given {@code relative} flag. Additionally, {@link Path#toRealPath(LinkOption...)}
-   * is applied to {@code source}.
+   * is applied to {@code target}.
    *
-   * @param source the {@link Path} to adapt.
-   * @param targetLink the {@link Path} used to calculate the relative path to the {@code source} if {@code relative} is set to {@code true}.
+   * @param target the {@link Path} the link should point to and that is to be adapted.
+   * @param link the {@link Path} to the link. It is used to calculate the relative path to the {@code target} if {@code relative} is set to {@code true}.
    * @param relative the {@code relative} flag.
    * @return the adapted {@link Path}.
-   * @see FileAccessImpl#symlink(Path, Path, boolean)
+   * @see #symlink(Path, Path, boolean)
    */
-  private Path adaptPath(Path source, Path targetLink, boolean relative) throws IOException {
+  private Path adaptPath(Path target, Path link, boolean relative) {
 
-    if (source.isAbsolute()) {
-      try {
-        source = source.toRealPath(LinkOption.NOFOLLOW_LINKS); // to transform ../d1/../d2 to ../d2
-      } catch (IOException e) {
-        throw new IOException("Calling toRealPath() on the source (" + source + ") in method FileAccessImpl.adaptPath() failed.", e);
-      }
-      if (relative) {
-        source = targetLink.getParent().relativize(source);
-        // to make relative links like this work: dir/link -> dir
-        source = (source.toString().isEmpty()) ? Path.of(".") : source;
-      }
-    } else { // source is relative
-      if (relative) {
-        // even though the source is already relative, toRealPath should be called to transform paths like
-        // this ../d1/../d2 to ../d2
-        source = targetLink.getParent().relativize(targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS));
-        source = (source.toString().isEmpty()) ? Path.of(".") : source;
-      } else { // !relative
-        try {
-          source = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
-        } catch (IOException e) {
-          throw new IOException("Calling toRealPath() on " + targetLink + ".resolveSibling(" + source + ") in method FileAccessImpl.adaptPath() failed.", e);
-        }
-      }
+    if (!target.isAbsolute()) {
+      target = link.resolveSibling(target);
     }
-    return source;
+    try {
+      target = target.toRealPath(LinkOption.NOFOLLOW_LINKS); // to transform ../d1/../d2 to ../d2
+    } catch (IOException e) {
+      throw new RuntimeException("Failed to get real path of " + target, e);
+    }
+    if (relative) {
+      target = link.getParent().relativize(target);
+      // to make relative links like this work: dir/link -> dir
+      target = (target.toString().isEmpty()) ? Path.of(".") : target;
+    }
+    return target;
   }
 
   /**
-   * Creates a Windows junction at {@code targetLink} pointing to {@code source}.
+   * Creates a Windows link using mklink at {@code link} pointing to {@code target}.
    *
-   * @param source must be another Windows junction or a directory.
-   * @param targetLink the location of the Windows junction.
+   * @param target the {@link Path} the link will point to.
+   * @param link the {@link Path} where to create the link.
+   * @param type the {@link PathLinkType}.
    */
-  private void createWindowsJunction(Path source, Path targetLink) {
+  private void mklinkOnWindows(Path target, Path link, PathLinkType type) {
 
-    this.context.trace("Creating a Windows junction at " + targetLink + " with " + source + " as source.");
-    Path fallbackPath;
-    if (!source.isAbsolute()) {
-      this.context.warning("You are on Windows and you do not have permissions to create symbolic links. Junctions are used as an "
-          + "alternative, however, these can not point to relative paths. So the source (" + source + ") is interpreted as an absolute path.");
-      try {
-        fallbackPath = targetLink.resolveSibling(source).toRealPath(LinkOption.NOFOLLOW_LINKS);
-      } catch (IOException e) {
-        throw new IllegalStateException(
-            "Since Windows junctions are used, the source must be an absolute path. The transformation of the passed " + "source (" + source
-                + ") to an absolute path failed.", e);
-      }
-
-    } else {
-      fallbackPath = source;
+    this.context.trace("Creating a Windows {} at {} pointing to {}", type, link, target);
+    ProcessContext pc = this.context.newProcess().executable("cmd").addArgs("/c", "mklink", type.getMklinkOption());
+    Path parent = link.getParent();
+    if (parent == null) {
+      parent = Path.of(".");
     }
-    if (!Files.isDirectory(fallbackPath)) { // if source is a junction. This returns true as well.
-      throw new IllegalStateException(
-          "These junctions can only point to directories or other junctions. Please make sure that the source (" + fallbackPath + ") is one of these.");
+    Path absolute = parent.resolve(target).toAbsolutePath().normalize();
+    if (type == PathLinkType.SYMBOLIC_LINK && Files.isDirectory(absolute)) {
+      pc = pc.addArg("/j");
+      target = absolute;
     }
-    this.context.newProcess().executable("cmd").addArgs("/c", "mklink", "/d", "/j", targetLink.toString(), fallbackPath.toString()).run();
+    pc = pc.addArgs(link.toString(), target.toString());
+    ProcessResult result = pc.run(ProcessMode.DEFAULT);
+    result.failOnError();
   }
 
   @Override
-  public void symlink(Path source, Path targetLink, boolean relative) {
+  public void link(Path target, Path link, boolean relative, PathLinkType type) {
 
-    Path adaptedSource = null;
+    final Path finalTarget;
     try {
-      adaptedSource = adaptPath(source, targetLink, relative);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to adapt source for source (" + source + ") target (" + targetLink + ") and relative (" + relative + ")", e);
+      finalTarget = adaptPath(target, link, relative);
+    } catch (Exception e) {
+      throw new IllegalStateException("Failed to adapt target (" + target + ") for link (" + link + ") and relative (" + relative + ")", e);
     }
-    this.context.debug("Creating {} symbolic link {} pointing to {}", adaptedSource.isAbsolute() ? "" : "relative", targetLink, adaptedSource);
-
+    String relativeOrAbsolute = finalTarget.isAbsolute() ? "absolute" : "relative";
+    this.context.debug("Creating {} {} at {} pointing to {}", relativeOrAbsolute, type, link, finalTarget);
+    deleteLinkIfExists(link);
     try {
-      deleteLinkIfExists(targetLink);
-    } catch (IOException e) {
-      throw new IllegalStateException("Failed to delete previous symlink or Windows junction at " + targetLink, e);
-    }
-
-    try {
-      Files.createSymbolicLink(targetLink, adaptedSource);
+      if (type == PathLinkType.SYMBOLIC_LINK) {
+        Files.createSymbolicLink(link, finalTarget);
+      } else if (type == PathLinkType.HARD_LINK) {
+        Files.createLink(link, finalTarget);
+      } else {
+        throw new IllegalStateException("" + type);
+      }
     } catch (FileSystemException e) {
       if (SystemInfoImpl.INSTANCE.isWindows()) {
-        this.context.info("Due to lack of permissions, Microsoft's mklink with junction had to be used to create "
-            + "a Symlink. See https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for " + "further details. Error was: "
-            + e.getMessage());
-        createWindowsJunction(adaptedSource, targetLink);
+        this.context.info(
+            "Due to lack of permissions, Microsoft's mklink with junction had to be used to create a Symlink. See\n"
+                + "https://github.com/devonfw/IDEasy/blob/main/documentation/symlink.adoc for further details. Error was: "
+                + e.getMessage());
+        mklinkOnWindows(finalTarget, link, type);
       } else {
         throw new RuntimeException(e);
       }
     } catch (IOException e) {
-      throw new IllegalStateException(
-          "Failed to create a " + (adaptedSource.isAbsolute() ? "" : "relative") + "symbolic link " + targetLink + " pointing to " + source, e);
+      throw new IllegalStateException("Failed to create a " + relativeOrAbsolute + " " + type + " at " + link + " pointing to " + target, e);
     }
   }
 
@@ -708,14 +667,14 @@ public class FileAccessImpl implements FileAccess {
     if (directory) {
       return;
     }
-    if (!context.getSystemInfo().isWindows()) {
+    if (!this.context.getSystemInfo().isWindows()) {
       try {
         Object attribute = Files.getAttribute(source, "zip:permissions");
         if (attribute instanceof Set<?> permissionSet) {
           Files.setPosixFilePermissions(target, (Set<PosixFilePermission>) permissionSet);
         }
       } catch (Exception e) {
-        context.error(e, "Failed to transfer zip permissions for {}", target);
+        this.context.error(e, "Failed to transfer zip permissions for {}", target);
       }
     }
     progressBar.stepBy(getFileSize(target));
@@ -755,40 +714,71 @@ public class FileAccessImpl implements FileAccess {
   private void extractArchive(Path file, Path targetDir, Function<InputStream, ArchiveInputStream<?>> unpacker) {
 
     this.context.info("Extracting TAR file {} to {}", file, targetDir);
+
+    final List<PathLink> links = new ArrayList<>();
     try (InputStream is = Files.newInputStream(file);
         ArchiveInputStream<?> ais = unpacker.apply(is);
         IdeProgressBar pb = this.context.newProgressbarForExtracting(getFileSize(file))) {
 
+      final Path root = targetDir.toAbsolutePath().normalize();
+
       ArchiveEntry entry = ais.getNextEntry();
-      boolean isTar = ais instanceof TarArchiveInputStream;
       while (entry != null) {
-        String permissionStr = null;
-        if (isTar) {
-          int tarMode = ((TarArchiveEntry) entry).getMode();
-          permissionStr = generatePermissionString(tarMode);
-        }
-        Path entryName = Path.of(entry.getName());
-        Path entryPath = targetDir.resolve(entryName).toAbsolutePath();
-        if (!entryPath.startsWith(targetDir)) {
-          throw new IOException("Preventing path traversal attack from " + entryName + " to " + entryPath);
+        String entryName = entry.getName();
+        Path entryPath = resolveRelativePathSecure(entryName, root);
+        PathPermissions permissions = null;
+        PathLinkType linkType = null;
+        if (entry instanceof TarArchiveEntry tae) {
+          if (tae.isSymbolicLink()) {
+            linkType = PathLinkType.SYMBOLIC_LINK;
+          } else if (tae.isLink()) {
+            linkType = PathLinkType.HARD_LINK;
+          }
+          if (linkType == null) {
+            permissions = PathPermissions.of(tae.getMode());
+          } else {
+            Path parent = entryPath.getParent();
+            String linkName = tae.getLinkName();
+            Path linkTarget = parent.resolve(linkName).normalize();
+            Path target = resolveRelativePathSecure(linkTarget, root, linkName);
+            links.add(new PathLink(entryPath, target, linkType));
+            mkdirs(parent);
+          }
         }
         if (entry.isDirectory()) {
           mkdirs(entryPath);
-        } else {
-          // ensure the file can also be created if directory entry was missing or out of order...
+        } else if (linkType == null) { // regular file
           mkdirs(entryPath.getParent());
-          Files.copy(ais, entryPath);
+          Files.copy(ais, entryPath, StandardCopyOption.REPLACE_EXISTING);
+          // POSIX perms on non-Windows
+          if (permissions != null) {
+            setFilePermissions(entryPath, permissions, false);
+          }
         }
-        if (isTar && !this.context.getSystemInfo().isWindows()) {
-          Set<PosixFilePermission> permissions = PosixFilePermissions.fromString(permissionStr);
-          Files.setPosixFilePermissions(entryPath, permissions);
-        }
-        pb.stepBy(entry.getSize());
+        pb.stepBy(Math.max(0L, entry.getSize()));
         entry = ais.getNextEntry();
       }
-    } catch (IOException e) {
+      // post process links
+      for (PathLink link : links) {
+        link(link);
+      }
+    } catch (Exception e) {
       throw new IllegalStateException("Failed to extract " + file + " to " + targetDir, e);
     }
+  }
+
+  private Path resolveRelativePathSecure(String entryName, Path root) {
+
+    Path entryPath = root.resolve(entryName).normalize();
+    return resolveRelativePathSecure(entryPath, root, entryName);
+  }
+
+  private Path resolveRelativePathSecure(Path entryPath, Path root, String entryName) {
+
+    if (!entryPath.startsWith(root)) {
+      throw new IllegalStateException("Preventing path traversal attack from " + entryName + " to " + entryPath + " leaving " + root);
+    }
+    return entryPath;
   }
 
   @Override
@@ -852,6 +842,7 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void compressTar(Path dir, OutputStream out, TarCompression tarCompression) {
+
     switch (tarCompression) {
       case null -> compressTar(dir, out);
       case NONE -> compressTar(dir, out);
@@ -863,6 +854,7 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void compressTarGz(Path dir, OutputStream out) {
+
     try (GzipCompressorOutputStream gzOut = new GzipCompressorOutputStream(out)) {
       compressTarOrThrow(dir, gzOut);
     } catch (IOException e) {
@@ -872,6 +864,7 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void compressTarBzip2(Path dir, OutputStream out) {
+
     try (BZip2CompressorOutputStream bzip2Out = new BZip2CompressorOutputStream(out)) {
       compressTarOrThrow(dir, bzip2Out);
     } catch (IOException e) {
@@ -881,6 +874,7 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void compressTar(Path dir, OutputStream out) {
+
     try {
       compressTarOrThrow(dir, out);
     } catch (IOException e) {
@@ -889,6 +883,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   private void compressTarOrThrow(Path dir, OutputStream out) throws IOException {
+
     try (TarArchiveOutputStream tarOut = new TarArchiveOutputStream(out)) {
       compressRecursive(dir, tarOut, "");
       tarOut.finish();
@@ -897,6 +892,7 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void compressZip(Path dir, OutputStream out) {
+
     try (ZipArchiveOutputStream zipOut = new ZipArchiveOutputStream(out)) {
       compressRecursive(dir, zipOut, "");
       zipOut.finish();
@@ -906,6 +902,7 @@ public class FileAccessImpl implements FileAccess {
   }
 
   private <E extends ArchiveEntry> void compressRecursive(Path path, ArchiveOutputStream<E> out, String relativePath) {
+
     try (Stream<Path> childStream = Files.list(path)) {
       Iterator<Path> iterator = childStream.iterator();
       while (iterator.hasNext()) {
@@ -923,15 +920,8 @@ public class FileAccessImpl implements FileAccess {
           tarEntry.setUserName("user");
           tarEntry.setGroupId(0);
           tarEntry.setGroupName("group");
-          if (isDirectory) {
-            tarEntry.setMode(MODE_RWX_RX_RX);
-          } else {
-            if (relativePath.endsWith("bin")) {
-              tarEntry.setMode(MODE_RWX_RX_RX);
-            } else {
-              tarEntry.setMode(MODE_RW_R_R);
-            }
-          }
+          PathPermissions filePermissions = getFilePermissions(child);
+          tarEntry.setMode(filePermissions.toMode());
         }
         out.putArchiveEntry(archiveEntry);
         if (!isDirectory) {
@@ -1110,6 +1100,7 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public boolean setWritable(Path file, boolean writable) {
+
     try {
       // POSIX
       PosixFileAttributeView posix = Files.getFileAttributeView(file, PosixFileAttributeView.class);
@@ -1144,51 +1135,95 @@ public class FileAccessImpl implements FileAccess {
   }
 
   @Override
-  public void makeExecutable(Path file, boolean confirm) {
+  public void makeExecutable(Path path, boolean confirm) {
 
-    if (Files.exists(file)) {
-      if (SystemInfoImpl.INSTANCE.isWindows()) {
-        this.context.trace("Windows does not have executable flags hence omitting for file {}", file);
+    if (Files.exists(path)) {
+      if (skipPermissionsIfWindows(path)) {
         return;
       }
-      try {
-        // Read the current file permissions
-        Set<PosixFilePermission> existingPermissions = Files.getPosixFilePermissions(file);
-
-        // Add execute permission for all users
-        Set<PosixFilePermission> executablePermissions = new HashSet<>(existingPermissions);
-        boolean update = false;
-        update |= executablePermissions.add(PosixFilePermission.OWNER_EXECUTE);
-        update |= executablePermissions.add(PosixFilePermission.GROUP_EXECUTE);
-        update |= executablePermissions.add(PosixFilePermission.OTHERS_EXECUTE);
-
-        if (update) {
-          if (confirm) {
-            boolean yesContinue = this.context.question(
-                "We want to execute " + file.getFileName() + " but this command seems to lack executable permissions!\n"
-                    + "Most probably the tool vendor did forgot to add x-flags in the binary release package.\n"
-                    + "Before running the command, we suggest to set executable permissions to the file:\n"
-                    + file + "\n"
-                    + "For security reasons we ask for your confirmation so please check this request.\n"
-                    + "Changing permissions from " + PosixFilePermissions.toString(existingPermissions) + " to " + PosixFilePermissions.toString(
-                    executablePermissions) + ".\n"
-                    + "Do you confirm to make the command executable before running it?");
-            if (!yesContinue) {
-              return;
-            }
+      PathPermissions existingPermissions = getFilePermissions(path);
+      PathPermissions executablePermissions = existingPermissions.makeExecutable();
+      boolean update = (executablePermissions != existingPermissions);
+      if (update) {
+        if (confirm) {
+          boolean yesContinue = this.context.question(
+              "We want to execute {} but this command seems to lack executable permissions!\n"
+                  + "Most probably the tool vendor did forgot to add x-flags in the binary release package.\n"
+                  + "Before running the command, we suggest to set executable permissions to the file:\n"
+                  + "{}\n"
+                  + "For security reasons we ask for your confirmation so please check this request.\n"
+                  + "Changing permissions from {} to {}.\n"
+                  + "Do you confirm to make the command executable before running it?", path.getFileName(), path, existingPermissions, executablePermissions);
+          if (!yesContinue) {
+            return;
           }
-          this.context.debug("Setting executable flags for file {}", file);
-          // Set the new permissions
-          Files.setPosixFilePermissions(file, executablePermissions);
-        } else {
-          this.context.trace("Executable flags already present so no need to set them for file {}", file);
         }
-      } catch (IOException e) {
-        throw new RuntimeException(e);
+        setFilePermissions(path, executablePermissions, false);
+      } else {
+        this.context.trace("Executable flags already present so no need to set them for file {}", path);
       }
     } else {
-      this.context.warning("Cannot set executable flag on file that does not exist: {}", file);
+      this.context.warning("Cannot set executable flag on file that does not exist: {}", path);
     }
+  }
+
+  @Override
+  public PathPermissions getFilePermissions(Path path) {
+
+    PathPermissions pathPermissions;
+    String info = "";
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      info = "mocked-";
+      if (Files.isDirectory(path)) {
+        pathPermissions = PathPermissions.MODE_RWX_RX_RX;
+      } else {
+        Path parent = path.getParent();
+        if ((parent != null) && (parent.getFileName().toString().equals("bin"))) {
+          pathPermissions = PathPermissions.MODE_RWX_RX_RX;
+        } else {
+          pathPermissions = PathPermissions.MODE_RW_R_R;
+        }
+      }
+    } else {
+      Set<PosixFilePermission> permissions;
+      try {
+        // Read the current file permissions
+        permissions = Files.getPosixFilePermissions(path);
+      } catch (IOException e) {
+        throw new RuntimeException("Failed to get permissions for " + path, e);
+      }
+      pathPermissions = PathPermissions.of(permissions);
+    }
+    this.context.trace("Read {}permissions of {} as {}.", info, path, pathPermissions);
+    return pathPermissions;
+  }
+
+  @Override
+  public void setFilePermissions(Path path, PathPermissions permissions, boolean logErrorAndContinue) {
+
+    if (skipPermissionsIfWindows(path)) {
+      return;
+    }
+    try {
+      this.context.debug("Setting permissions for {} to {}", path, permissions);
+      // Set the new permissions
+      Files.setPosixFilePermissions(path, permissions.toPosix());
+    } catch (IOException e) {
+      if (logErrorAndContinue) {
+        this.context.warning().log(e, "Failed to set permissions to {} for path {}", permissions, path);
+      } else {
+        throw new RuntimeException("Failed to set permissions to " + permissions + " for path " + path, e);
+      }
+    }
+  }
+
+  private boolean skipPermissionsIfWindows(Path path) {
+
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      this.context.trace("Windows does not have file permissions hence omitting for {}", path);
+      return true;
+    }
+    return false;
   }
 
   @Override
@@ -1312,6 +1347,7 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void readIniFile(Path file, IniFile iniFile) {
+
     if (!Files.exists(file)) {
       this.context.debug("INI file {} does not exist.", iniFile);
       return;
@@ -1334,12 +1370,14 @@ public class FileAccessImpl implements FileAccess {
 
   @Override
   public void writeIniFile(IniFile iniFile, Path file, boolean createParentDir) {
+
     String iniString = iniFile.toString();
     writeFileContent(iniString, file, createParentDir);
   }
 
   @Override
   public Duration getFileAge(Path path) {
+
     if (Files.exists(path)) {
       try {
         long currentTime = System.currentTimeMillis();
@@ -1361,7 +1399,7 @@ public class FileAccessImpl implements FileAccess {
     if (age == null) {
       return false;
     }
-    context.debug("The path {} was last updated {} ago and caching duration is {}.", path, age, cacheDuration);
+    this.context.debug("The path {} was last updated {} ago and caching duration is {}.", path, age, cacheDuration);
     return (age.toMillis() <= cacheDuration.toMillis());
   }
 }

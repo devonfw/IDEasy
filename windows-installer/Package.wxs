@@ -35,7 +35,7 @@
 		<!-- Execution of install command-->
 		<SetProperty
 			Id="RunInstallAction"
-			Value='"[%SystemFolder]cmd.exe" /c "cd /d [INSTALLFOLDER] &amp;&amp; bin\ideasy.exe -fb install > install.log"'
+			Value='"[%SystemFolder]cmd.exe" /c "cd /d [INSTALLFOLDER] &amp;&amp; bin\ideasy.exe -ftb --no-colors install > install.log 2>&amp;1"'
 			Before="RunInstallAction"
 			Sequence="execute"
 			/>
@@ -51,7 +51,7 @@
     <!-- Execution of uninstall command-->
     <SetProperty
       Id="RunUninstallAction"
-			Value='"[%SystemFolder]cmd.exe" /c "[%IDE_ROOT]\_ide\installation\bin\ideasy.exe -f uninstall > [%IDE_ROOT]\uninstall.log"'
+			Value='"[%SystemFolder]cmd.exe" /c "[%IDE_ROOT]\_ide\installation\bin\ideasy.exe -ft --no-colors uninstall > [%IDE_ROOT]\uninstall.log 2>&amp;1"'
       Before="RunUninstallAction"
       Sequence="execute"
       />
