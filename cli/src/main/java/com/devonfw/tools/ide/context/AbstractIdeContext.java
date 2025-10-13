@@ -224,7 +224,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     this.defaultToolRepository = new DefaultToolRepository(this);
     loggingContext = this;
-    this.mavenRepository = new MavenRepository(this);
     this.mvnRepository = new MvnRepository(this);
     this.npmRepository = new NpmRepository(this);
   }
@@ -270,8 +269,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
                 warning("IDE_ROOT is set to {} but was expanded to absolute path {} and does not match for segment {} and {} - fix your IDEasy installation!",
                     rootPath, absoluteRootPath, rootName, absoluteRootName);
                 break;
-      }
-    }
+              }
+            }
           } else {
             warning("IDE_ROOT is set to {} but was expanded to a shorter absolute path {}", rootPath,
                 absoluteRootPath);
@@ -322,7 +321,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     String wks = this.workspaceName;
     if (isPrivacyMode() && !WORKSPACE_MAIN.equals(wks)) {
       wks = "*".repeat(wks.length());
-  }
+    }
     return "IDE environment variables have been set for " + formatArgument(this.ideHome) + " in workspace " + wks;
   }
 
