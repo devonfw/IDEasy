@@ -53,8 +53,10 @@ public class GitContextImpl implements GitContext {
   public boolean isRepositoryUpdateAvailable(Path repository) {
 
     verifyGitInstalled();
-    String localCommitId = runGitCommandAndGetSingleOutput("Failed to get the local commit id.", repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "HEAD");
-    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id, missing remote upstream branch?", repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "@{u}");
+    String localFailureMessage = String.format("Failed to get the local commit id of setting repository '%s'.",repository);
+    String remoteFailureMessage = String.format("Failed to get the remote commit id of setting repository '%s', missing remote upstream branch?",repository);
+    String localCommitId = runGitCommandAndGetSingleOutput(localFailureMessage, repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "HEAD");
+    String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "@{u}");
     if ((localCommitId == null) || (remoteCommitId == null)) {
       return false;
     }
@@ -71,8 +73,8 @@ public class GitContextImpl implements GitContext {
     } catch (IOException e) {
       return false;
     }
-
-    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id, missing remote upstream branch?", repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "@{u}");
+    String remoteFailureMessage = String.format("Failed to get the remote commit id of setting repository '%s', missing remote upstream branch?",repository);
+    String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "@{u}");
     return !trackedCommitId.equals(remoteCommitId);
   }
 
