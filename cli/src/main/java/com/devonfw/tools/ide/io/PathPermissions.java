@@ -9,9 +9,15 @@ import java.util.Set;
  */
 public class PathPermissions {
 
-  private static final String ALL_PERMISSIONS = "rwxrwxrwx";
+  /** {@link PathPermissions} for rwxr-xr-x so only owner can write but everything else allowed (e.g. common default for folder). */
+  public static final PathPermissions MODE_RWX_RX_RX = of(0_755);
 
-  private static final int MASK_EXECUTABLE = 0111;
+  /** {@link PathPermissions} for rw-r--r-- so only owner can write but reading is allowed for everyone (e.g. common default for files). */
+  public static final PathPermissions MODE_RW_R_R = of(0_644);
+
+  private static final String ALL_PERMISSIONS = "rwxrwxrwx";
+ 
+  private static final int MASK_EXECUTABLE = 0_111;
 
   private final int permissions;
 
@@ -29,6 +35,14 @@ public class PathPermissions {
       return this;
     }
     return of(newPermissions);
+  }
+
+  /**
+   * @return the mode of this {@link PathPermissions}. The mode is a bit-mask representing the actual flags. It is often displayed in octal notation to make it
+   *     more readable since every part (user, group, others) is represented by an octal.
+   */
+  public int toMode() {
+    return this.permissions;
   }
 
   /**
