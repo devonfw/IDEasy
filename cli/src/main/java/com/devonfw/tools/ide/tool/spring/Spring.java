@@ -23,6 +23,6 @@ public class Spring extends MvnBasedLocalToolCommandlet {
    */
   public Spring(IdeContext context) {
 
-    super(context, "spring", ARTIFACT, Set.of(Tag.JAVA, Tag.ARCHITECTURE));
+    super(context, "spring", ARTIFACT, Set.of(Tag.JAVA, Tag.ARCHITECTURE, Tag.FRAMEWORK));
   }
 }
