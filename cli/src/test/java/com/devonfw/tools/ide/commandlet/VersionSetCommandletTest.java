@@ -58,7 +58,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
     VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
     versionSet.tool.setValueAsString("mvn", context);
     versionSet.cfg.setValue(EnvironmentVariablesFiles.CONF);
-    versionSet.version.setValueAsString("3.2.conf", context);
+    versionSet.version.setValueAsString("3.2.0", context);
     // act
     versionSet.run();
     // assert
@@ -67,7 +67,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
         #********************************************************************************
         # This file contains project specific environment variables defined by the user
         #********************************************************************************
-        MVN_VERSION=3.2.conf""");
+        MVN_VERSION=3.2.0""");
   }
 
   @Test
@@ -78,7 +78,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
     VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
     versionSet.tool.setValueAsString("mvn", context);
     versionSet.cfg.setValue(EnvironmentVariablesFiles.WORKSPACE);
-    versionSet.version.setValueAsString("3.2.workspace", context);
+    versionSet.version.setValueAsString("3.2.1", context);
     // act
     versionSet.run();
     // assert
@@ -87,7 +87,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
         #********************************************************************************
         # This file contains workspace specific environment variables
         #********************************************************************************
-        MVN_VERSION=3.2.workspace""");
+        MVN_VERSION=3.2.1""");
   }
 
   @Test
@@ -98,7 +98,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
     VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
     versionSet.tool.setValueAsString("mvn", context);
     versionSet.cfg.setValue(EnvironmentVariablesFiles.USER);
-    versionSet.version.setValueAsString("3.2.user", context);
+    versionSet.version.setValueAsString("3.2.2", context);
     // act
     versionSet.run();
     // assert
@@ -107,7 +107,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
         #********************************************************************************
         # This file contains the global configuration from the user HOME directory.
         #********************************************************************************
-        MVN_VERSION=3.2.user""");
+        MVN_VERSION=3.2.2""");
   }
 
   @Test
@@ -118,7 +118,7 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
     VersionSetCommandlet versionSet = context.getCommandletManager().getCommandlet(VersionSetCommandlet.class);
     versionSet.tool.setValueAsString("mvn", context);
     versionSet.cfg.setValue(EnvironmentVariablesFiles.SETTINGS);
-    versionSet.version.setValueAsString("3.2.settings", context);
+    versionSet.version.setValueAsString("3.2.3", context);
     // act
     versionSet.run();
     // assert
@@ -127,6 +127,6 @@ public class VersionSetCommandletTest extends AbstractIdeContextTest {
         #********************************************************************************
         # This file contains project specific environment variables
         #********************************************************************************
-        MVN_VERSION=3.2.settings""");
+        MVN_VERSION=3.2.3""");
   }
 }

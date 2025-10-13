@@ -25,7 +25,6 @@ public class AppBaseTest extends ApplicationTest {
   /**
    * Set up headless testing
    *
-   * @throws IOException
    */
   @BeforeAll
   public static void setupHeadlessMode() {

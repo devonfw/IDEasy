@@ -70,9 +70,6 @@ The column `inclusion` indicates the way the component is included:
 |https://github.com/fusesource/jansi[jansi] |Directly included|https://github.com/fusesource/jansi/blob/master/license.txt[Apache 2.0]
 |https://www.sonarsource.com/plans-and-pricing/community/[SonarQube (Community Edition)] |Optional|https://github.com/SonarSource/sonarqube/blob/master/LICENSE.txt[LGPL 3.0]
 |https://www.sonarlint.org/eclipse/[SonarLint] |Optional|https://github.com/SonarSource/sonarlint-eclipse/blob/master/LICENSE.txt[LGPL 3+]
-|https://github.com/devonfw/devon4j[devon4j] |Optional|https://github.com/devonfw/devon4j/blob/develop/LICENSE[Apache 2.0]
-|https://github.com/devonfw/devon4ng[devon4ng] |Optional|https://github.com/devonfw/devon4ng/blob/master/LICENSE.txt[Apache 2.0]
-|https://github.com/devonfw/devon4node[devon4node] |Optional|https://github.com/devonfw/devon4node/blob/develop/LICENSE.txt[Apache 2.0]
 |https://www.jetbrains.com/idea/[IntelliJ IDEA] |Optional|https://www.jetbrains.com/opensource/idea/[Apache 2.0]
 |https://developer.android.com/studio[Android Studio] |Optional|https://developer.android.com/license[Apache 2.0]
 |https://www.jetbrains.com/pycharm/[Pycharm] |Optional|https://www.jetbrains.com/legal/docs/toolbox/user_community/[Apache 2.0]
@@ -98,6 +95,7 @@ The column `inclusion` indicates the way the component is included:
 |https://www.oracle.com/java/technologies/jdk-mission-control.html[Java Mission Control]|Optional|https://github.com/openjdk/jmc/blob/master/license/LICENSE.txt[UPL 1.0] and https://github.com/openjdk/jmc/blob/master/license/THIRDPARTYREADME.txt[EPL 2.0]
 |https://github.com/ctongfei/progressbar[Progressbar]|Directly included|https://github.com/ctongfei/progressbar/blob/main/LICENSE[MIT]
 |https://www.pgadmin.org/[pgAdmin]|Optional|https://www.pgadmin.org/licence/#postgresql[The PostgreSQL Licence]
+|https://docs.astral.sh/uv/[uv] |Optional|https://docs.astral.sh/uv/reference/policies/license/[Apache 2.0]
 |===
 
 == Apache Software License - Version 2.0

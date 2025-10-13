@@ -2,10 +2,35 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.10.001
+
+Release with new features and bugfixes:
+
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/35?closed=1[milestone 2025.10.001].
+
+== 2025.09.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1454[#1454]: Support for ng (angular CLI)
+* https://github.com/devonfw/IDEasy/issues/1464[#1464]: IDEasy setup does not find bash
+* https://github.com/devonfw/IDEasy/issues/1476[#1476]: IDEasy does not create links on extraction
+* https://github.com/devonfw/IDEasy/issues/1477[#1477]: IDEasy cannot create link to file on Windows
+* https://github.com/devonfw/IDEasy/issues/1221[#1221]: Improve Windows terminal integration on installation
+* https://github.com/devonfw/IDEasy/issues/1460[#1460]: Prevent strange ansi-codes in logs
+* https://github.com/devonfw/IDEasy/issues/1484[#1484]: Broken error handling: Couldn't uninstall node.
+* https://github.com/devonfw/IDEasy/issues/1515[#1515]: cannot upgrade snapshot release of IDEasy
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/34?closed=1[milestone 2025.09.001].
+
 == 2025.08.001
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1384[#1384]: Python support not working at all
+* https://github.com/devonfw/IDEasy/issues/1443[#1443]: Tool version is being added to settings even though it does not exist
+* https://github.com/devonfw/IDEasy/issues/1451[#1451]: XmlMerger requires merge:id for single attribute
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/33?closed=1[milestone 2025.08.001].
 
