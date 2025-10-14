@@ -73,7 +73,7 @@ public class GitContextImpl implements GitContext {
     } catch (IOException e) {
       return false;
     }
-    String remoteFailureMessage = String.format("Failed to get the remote commit id of setting repository '%s', missing remote upstream branch?",repository);
+    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?",repository);
     String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "@{u}");
     return !trackedCommitId.equals(remoteCommitId);
   }
