@@ -17,7 +17,6 @@ import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFile;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
-import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
@@ -28,7 +27,9 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 public class ToolRepositoryMock extends DefaultToolRepository {
 
   private static final String VERSION_DEFAULT = "default";
-  private static final String VARIABLE_TESTBASEURL = "${testbaseurl}";
+
+  /** Variable to be used as base url for WireMock url replacement */
+  public static final String VARIABLE_TESTBASEURL = "${testbaseurl}";
 
   private final Path repositoryFolder;
 
@@ -101,7 +102,6 @@ public class ToolRepositoryMock extends DefaultToolRepository {
       UrlDownloadFileMetadata metadata = getMetadata(tool, edition, version, toolCommandlet);
       String url = metadata.getUrls().iterator().next();
       if (url.startsWith(VARIABLE_TESTBASEURL)) {
-        String extension = FilenameUtil.getExtension(url);
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(1024)) {
           this.context.getFileAccess().compress(archiveFolder, baos, url);
           byte[] body = baos.toByteArray();
