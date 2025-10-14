@@ -171,20 +171,24 @@ public class ProcessContextImpl implements ProcessContext {
       Process process = this.processBuilder.start();
 
       try {
-        if (Redirect.PIPE == processMode.getRedirectOutput()) {
-          CompletableFuture<Void> outFut = readInputStream(process.getInputStream(), false, output);
-          outFut.get();
-        }
-
-        if (Redirect.PIPE == processMode.getRedirectError()) {
-          CompletableFuture<Void> errFut = readInputStream(process.getErrorStream(), true, output);
-          errFut.get();
-        }
-
         if (Redirect.PIPE == processMode.getRedirectOutput() || Redirect.PIPE == processMode.getRedirectError()) {
-          if (this.outputListener != null) {
-            for (OutputMessage msg : output) {
-              this.outputListener.onOutput(msg.message(), msg.error());
+          CompletableFuture<Void> outFut = readInputStream(process.getInputStream(), false, output);
+          CompletableFuture<Void> errFut = readInputStream(process.getErrorStream(), true, output);
+          if (Redirect.PIPE == processMode.getRedirectOutput()) {
+            outFut.get();
+            if (this.outputListener != null) {
+              for (OutputMessage msg : output) {
+                this.outputListener.onOutput(msg.message(), msg.error());
+              }
+            }
+          }
+
+          if (Redirect.PIPE == processMode.getRedirectError()) {
+            errFut.get();
+            if (this.outputListener != null) {
+              for (OutputMessage msg : output) {
+                this.outputListener.onOutput(msg.message(), msg.error());
+              }
             }
           }
         }
