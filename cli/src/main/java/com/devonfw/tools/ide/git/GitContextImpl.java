@@ -53,7 +53,7 @@ public class GitContextImpl implements GitContext {
   public boolean isRepositoryUpdateAvailable(Path repository) {
 
     verifyGitInstalled();
-    String localFailureMessage = String.format("Failed to get the local commit id of setting repository '%s'.",repository);
+    String localFailureMessage = String.format("Failed to get the local commit id of settings repository '%s'.",repository);
     String remoteFailureMessage = String.format("Failed to get the remote commit id of setting repository '%s', missing remote upstream branch?",repository);
     String localCommitId = runGitCommandAndGetSingleOutput(localFailureMessage, repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "HEAD");
     String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_SILENT, "rev-parse", "@{u}");
