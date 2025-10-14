@@ -67,6 +67,16 @@ That is great!
 But please follow best-practices and common sense and publish them as a new release with a new unique and increased version.
 * Tools that have been published and then after some time the download disappeared leading to errors like 404.
 
+=== Proper release archives
+
+If you download a portable release as `.tar.gz` or `zip` file and unpack it, also file permissions have to be properly.
+However, we have seen things like this:
+```
+Cannot run program "~/projects/IDEasy/software/extra/graalvm/bin/native-image-configure": error=13, Permission denied
+```
+This is a buggy release then and not the fault of IDEasy that just unpacks the archive.
+Tool vendors have to properly set executable flags in `tar` (or `zip`) files to make it work.
+
 === Proper file format
 
 On Linux and Mac binaries and scripts need executable permission to be run (`chmod a+x «binary»`).
