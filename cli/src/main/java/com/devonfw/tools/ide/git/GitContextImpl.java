@@ -55,8 +55,8 @@ public class GitContextImpl implements GitContext {
     verifyGitInstalled();
     String localFailureMessage = String.format("Failed to get the local commit id of settings repository '%s'.",repository);
     String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?",repository);
-    String localCommitId = runGitCommandAndGetSingleOutput(localFailureMessage, repository, ProcessMode.CAPTURE_IGNORE_ERROR, "rev-parse", "HEAD");
-    String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.CAPTURE_IGNORE_ERROR, "rev-parse", "@{u}");
+    String localCommitId = runGitCommandAndGetSingleOutput(localFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "HEAD");
+    String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     if ((localCommitId == null) || (remoteCommitId == null)) {
       return false;
     }
@@ -74,7 +74,7 @@ public class GitContextImpl implements GitContext {
       return false;
     }
     String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?",repository);
-    String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.CAPTURE_IGNORE_ERROR, "rev-parse", "@{u}");
+    String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     return !trackedCommitId.equals(remoteCommitId);
   }
 
@@ -289,9 +289,9 @@ public class GitContextImpl implements GitContext {
   }
 
   private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, ProcessMode mode, String... args) {
-    ProcessErrorHandling errorHandling = ProcessErrorHandling.LOG_WARNING;
-    if (ProcessMode.CAPTURE_IGNORE_ERROR.equals(mode)) {
-      errorHandling = ProcessErrorHandling.NONE;
+    ProcessErrorHandling errorHandling = ProcessErrorHandling.NONE;
+    if (this.context.debug().isEnabled()){
+      errorHandling = ProcessErrorHandling.LOG_WARNING;
     }
     ProcessResult result = runGitCommand(directory, mode, errorHandling, args);
     if (result.isSuccessful()) {

@@ -116,30 +116,6 @@ public enum ProcessMode {
 
       return Redirect.INHERIT;
     }
-  },
-
-  /**
-   * Like {@link #DEFAULT_CAPTURE} the parent and child process will not be detached, the subprocess error will be discarded (to the operating system "null file" )
-   * using {@link ProcessBuilder.Redirect#DISCARD}.
-   */
-  CAPTURE_IGNORE_ERROR {
-    @Override
-    public Redirect getRedirectOutput() {
-
-      return Redirect.PIPE;
-    }
-
-    @Override
-    public Redirect getRedirectError() {
-
-      return Redirect.DISCARD;
-    }
-
-    @Override
-    public Redirect getRedirectInput() {
-
-      return Redirect.INHERIT;
-    }
   };
 
   /**
