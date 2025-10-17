@@ -1,0 +1,10 @@
+{
+  "versions": {
+    "2.4.3": {
+      "version": "2.4.3",
+      "dist": {
+        "tarball": "${testbaseurl}/yarn/-/yarn-2.4.3.tgz"
+      }
+    }
+  }
+}
