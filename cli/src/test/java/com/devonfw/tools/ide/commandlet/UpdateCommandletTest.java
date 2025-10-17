@@ -5,6 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
@@ -19,6 +22,7 @@ import com.devonfw.tools.ide.variable.IdeVariables;
 /**
  * Test of {@link UpdateCommandlet}.
  */
+@WireMockTest
 class UpdateCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_UPDATE = "update";
@@ -111,10 +115,10 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testRunUpdateSoftwareDoesNotFailWhenSettingPathIsDeleted() {
+  public void testRunUpdateSoftwareDoesNotFailWhenSettingPathIsDeleted(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_UPDATE);
+    IdeTestContext context = newContext(PROJECT_UPDATE, wireMockRuntimeInfo);
     Path settingsPath = context.getSettingsPath();
     context.getFileAccess().delete(settingsPath);
     UpdateCommandlet update = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
