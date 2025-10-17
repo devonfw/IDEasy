@@ -30,15 +30,4 @@ public class Yarn extends NpmBasedCommandlet {
       ProcessContext processContext) {
     runPackageInstall("yarn@" + resolvedVersion);
   }
-
-  @Override
-  protected VersionIdentifier computeInstalledVersion() {
-    if (hasNodeBinary("yarn")) {
-      VersionIdentifier version = VersionIdentifier.of(this.context.newProcess().runAndGetSingleOutput("yarn", "--version"));
-      this.context.debug("Determined installed version of yarn: {}", version);
-      return version;
-    }
-    this.context.debug("Yarn is not installed yet.");
-    return null;
-  }
 }
