@@ -41,8 +41,6 @@ public class Npm extends NpmBasedCommandlet {
     if (result.isSuccessful()) {
       this.context.success("Setting npm config prefix to: {} was successful", getToolPath());
     }
-    VersionIdentifier version = this.context.getNpmRepository().resolveVersion(this.tool, getConfiguredEdition(), getConfiguredVersion(), this);
-    runPackageManager("install", "-g", "npm@" + version);
   }
 
   @Override
