@@ -1,0 +1,7 @@
+#!/bin/bash
+echo "npm $*"
+
+if [ "$1" == "install" ]; then
+  cp target/test-projects/corepack/repository/corepack/corepack/default/corepack target/test-projects/corepack/project/software/node/bin
+  cp target/test-projects/corepack/repository/corepack/corepack/default/corepack target/test-projects/corepack/project/software/node
+fi

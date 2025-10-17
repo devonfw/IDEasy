@@ -1,5 +1,6 @@
 package com.devonfw.tools.ide.tool.node;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Set;
 
@@ -11,6 +12,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -57,11 +59,7 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   @Override
   public Path getToolPath() {
 
-    Path toolPath = this.context.getSoftwarePath().resolve("node");
-    if (!this.context.getSystemInfo().isWindows()) {
-      toolPath = toolPath.resolve("bin");
-    }
-    return toolPath;
+    return this.context.getSoftwarePath().resolve("node");
   }
 
   @Override
@@ -95,23 +93,34 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * Performs a global npm uninstall.
+   * Checks if a provided binary can be found within node.
+   *
+   * @param binary name of the binary.
+   * @return {@code true} if a binary was found in the node installation, {@code false} if not.
+   */
+  protected boolean hasNodeBinary(String binary) {
+
+    return Files.exists(getToolBinPath().resolve(binary));
+  }
+
+  /**
+   * Runs uninstall using the package manager.
    *
    * @param npmPackage the npm package to uninstall.
    */
   protected void runPackageUninstall(String npmPackage) {
+    
     runPackageManager("uninstall", "-g", npmPackage).failOnError();
   }
 
   /**
-   * Performs a global npm install.
+   * Runs install using the package manager.
    *
    * @param npmPackage the npm package to install.
-   * @return the {@link ProcessResult} of the npm execution.
    */
-  protected ProcessResult runPackageInstall(String npmPackage) {
+  protected void runPackageInstall(String npmPackage) {
 
-    return runPackageManager("install", "-g", npmPackage);
+    runPackageManager("install", "-g", npmPackage).failOnError();
   }
 
   /**
@@ -124,12 +133,34 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
+   * @param args the arguments for {@link com.devonfw.tools.ide.tool.corepack.Corepack}.
+   * @return the {@link ProcessResult}.
+   */
+  protected ProcessResult runCorepack(String... args) {
+
+    return runCorepack(ProcessMode.DEFAULT, ProcessErrorHandling.THROW_CLI, args);
+  }
+
+  /**
    * @param processMode the {@link ProcessMode}.
    * @param errorHandling the {@link ProcessErrorHandling}.
    * @param args the arguments for the package manager.
    * @return the {@link ProcessResult}.
    */
   protected abstract ProcessResult runPackageManager(ProcessMode processMode, ProcessErrorHandling errorHandling, String... args);
+
+  /**
+   * @param processMode the {@link ProcessMode}.
+   * @param errorHandling the {@link ProcessErrorHandling}.
+   * @param args the arguments for {@link com.devonfw.tools.ide.tool.corepack.Corepack}.
+   * @return the {@link ProcessResult}.
+   */
+  protected ProcessResult runCorepack(ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
+    ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
+    Corepack corepack = this.context.getCommandletManager().getCommandlet(Corepack.class);
+    return corepack.runTool(processMode, null, pc, args);
+  }
+
 
   @Override
   public String getToolHelpArguments() {
