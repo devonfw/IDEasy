@@ -80,6 +80,7 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   @Override
   protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, String edition,
       ProcessContext processContext) {
+
     runPackageInstall(getPackageName() + "@" + resolvedVersion);
     this.installedVersion.invalidate();
   }
@@ -89,6 +90,11 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
 
     runPackageUninstall(getPackageName());
     this.installedVersion.invalidate();
+  }
+
+  @Override
+  protected void performUninstall(Path toolPath) {
+    runPackageUninstall(getPackageName());
   }
 
   /**
