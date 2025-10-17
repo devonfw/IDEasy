@@ -24,14 +24,6 @@ public class Ng extends NpmBasedCommandlet {
   }
 
   @Override
-  public void uninstall() {
-    ProcessResult result = runPackageUninstall(getPackageName());
-    if (result.isSuccessful()) {
-      this.context.success("Successfully uninstalled {}", getPackageName());
-    }
-  }
-
-  @Override
   public String getPackageName() {
 
     return "@angular/cli";
