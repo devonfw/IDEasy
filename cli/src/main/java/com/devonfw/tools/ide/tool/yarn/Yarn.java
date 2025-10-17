@@ -24,35 +24,4 @@ public class Yarn extends NpmBasedCommandlet {
 
     super(context, "yarn", Set.of(Tag.TYPE_SCRIPT, Tag.BUILD));
   }
-
-  @Override
-  public String getInstalledEdition() {
-
-    if (hasNodeBinary(getName())) {
-      return "yarn";
-    }
-    return null;
-  }
-
-  @Override
-  protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, String edition,
-      ProcessContext processContext) {
-    runPackageInstall("yarn@" + resolvedVersion);
-  }
-
-  @Override
-  protected void performUninstall(Path toolPath) {
-    runPackageUninstall("yarn");
-  }
-
-  @Override
-  protected VersionIdentifier computeInstalledVersion() {
-    if (hasNodeBinary("yarn")) {
-      VersionIdentifier version = VersionIdentifier.of(this.context.newProcess().runAndGetSingleOutput("yarn", "--version"));
-      this.context.debug("Determined installed version of yarn: {}", version);
-      return version;
-    }
-    this.context.debug("Yarn is not installed yet.");
-    return null;
-  }
 }

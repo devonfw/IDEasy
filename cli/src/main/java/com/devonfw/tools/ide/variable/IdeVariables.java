@@ -71,7 +71,6 @@ public interface IdeVariables {
 
   /** {@link VariableDefinition} for default build options of gradle */
   VariableDefinitionString GRADLE_BUILD_OPTS = new VariableDefinitionString("GRADLE_BUILD_OPTS", null, c -> "clean dist");
-  
   /** {@link VariableDefinition} for default user home of gradle */
   VariableDefinitionPath GRADLE_USER_HOME = new VariableDefinitionPath("GRADLE_USER_HOME", null, IdeContext::getGradleUserHome, false, true);
 
