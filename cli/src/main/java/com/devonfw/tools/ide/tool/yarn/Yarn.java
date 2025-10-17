@@ -24,10 +24,4 @@ public class Yarn extends NpmBasedCommandlet {
 
     super(context, "yarn", Set.of(Tag.TYPE_SCRIPT, Tag.BUILD));
   }
-
-  @Override
-  protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, String edition,
-      ProcessContext processContext) {
-    runPackageInstall("yarn@" + resolvedVersion);
-  }
 }
