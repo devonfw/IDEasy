@@ -1,0 +1,10 @@
+#!/bin/bash
+echo "corepack $*"
+
+if [ "${1}" == "--version" ]; then
+  echo "corepack version: 0.34.0"
+fi
+
+if [ "$*" == "install -g yarn@2.4.3" ]; then
+  cp target/test-projects/yarn/repository/yarn/yarn/default/yarn target/test-projects/yarn/project/software/node/bin
+fi

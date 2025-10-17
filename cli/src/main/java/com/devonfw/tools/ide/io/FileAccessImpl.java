@@ -1148,7 +1148,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
         if (confirm) {
           boolean yesContinue = this.context.question(
               "We want to execute {} but this command seems to lack executable permissions!\n"
-                  + "Most probably the tool vendor did forgot to add x-flags in the binary release package.\n"
+                  + "Most probably the tool vendor did forget to add x-flags in the binary release package.\n"
                   + "Before running the command, we suggest to set executable permissions to the file:\n"
                   + "{}\n"
                   + "For security reasons we ask for your confirmation so please check this request.\n"
