@@ -28,12 +28,6 @@ public class Corepack extends NpmBasedCommandlet {
   }
 
   @Override
-  public Path getToolBinPath() {
-
-    return this.context.getSoftwarePath().resolve("corepack").resolve("shims");
-  }
-
-  @Override
   public String getToolHelpArguments() {
 
     return "help";
