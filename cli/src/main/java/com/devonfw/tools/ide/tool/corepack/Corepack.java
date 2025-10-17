@@ -7,6 +7,7 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
+import com.devonfw.tools.ide.tool.ToolInstallation;
 import com.devonfw.tools.ide.tool.npm.NpmBasedCommandlet;
 
 /**
@@ -41,6 +42,11 @@ public class Corepack extends NpmBasedCommandlet {
   @Override
   protected void performUninstall(Path toolPath) {
     runPackageUninstall(getPackageName());
+  }
+
+  @Override
+  protected Path getToolHomePath(ToolInstallation toolInstallation) {
+    return getOrCreateCorepackHomeFolder();
   }
 
   /**

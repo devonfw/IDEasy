@@ -558,10 +558,21 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   public void setEnvironment(EnvironmentContext environmentContext, ToolInstallation toolInstallation, boolean extraInstallation) {
 
     String pathVariable = EnvironmentVariables.getToolVariablePrefix(this.tool) + "_HOME";
-    environmentContext.withEnvVar(pathVariable, toolInstallation.linkDir().toString());
+    Path toolHomePath = getToolHomePath(toolInstallation);
+    environmentContext.withEnvVar(pathVariable, toolHomePath.toString());
     if (extraInstallation) {
       environmentContext.withPathEntry(toolInstallation.binDir());
     }
+  }
+
+  /**
+   * Method to get the home path of the given {@link ToolInstallation}.
+   *
+   * @param toolInstallation the {@link ToolInstallation}.
+   * @return the Path to the home of the tool
+   */
+  protected Path getToolHomePath(ToolInstallation toolInstallation) {
+    return toolInstallation.linkDir();
   }
 
   /**
