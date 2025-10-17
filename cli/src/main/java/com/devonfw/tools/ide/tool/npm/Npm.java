@@ -27,13 +27,11 @@ public class Npm extends NpmBasedCommandlet {
   }
 
   @Override
-  public VersionIdentifier getInstalledVersion() {
-    return getVersion();
-  }
-
-  @Override
   protected VersionIdentifier computeInstalledVersion() {
-    return getVersion();
+    if (hasNodeBinary("npm")) {
+      return VersionIdentifier.of(this.context.newProcess().runAndGetSingleOutput("npm", "--version"));
+    }
+    return null;
   }
 
   @Override
@@ -64,12 +62,5 @@ public class Npm extends NpmBasedCommandlet {
       this.context.getFileAccess().touch(npmConfigFile);
     }
     return npmConfigFile;
-  }
-
-  private VersionIdentifier getVersion() {
-    if (hasNodeBinary("npm")) {
-      return VersionIdentifier.of(this.context.newProcess().runAndGetSingleOutput("npm", "--version"));
-    }
-    return null;
   }
 }
