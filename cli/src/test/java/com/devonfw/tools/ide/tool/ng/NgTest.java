@@ -88,7 +88,7 @@ public class NgTest extends AbstractIdeContextTest {
     // assert II
     assertThat(context).logAtInfo().hasMessageContaining("npm uninstall -g @angular/cli");
 
-    assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled @angular/cli");
+    assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled ng");
   }
 
   /**
