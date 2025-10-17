@@ -26,15 +26,6 @@ public class Yarn extends NpmBasedCommandlet {
   }
 
   @Override
-  public String getInstalledEdition() {
-
-    if (hasNodeBinary(getName())) {
-      return "yarn";
-    }
-    return null;
-  }
-
-  @Override
   protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, String edition,
       ProcessContext processContext) {
     runPackageInstall("yarn@" + resolvedVersion);
