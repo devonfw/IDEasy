@@ -230,10 +230,16 @@ public class VersionSegment implements VersionObject<VersionSegment> {
       }
     }
 
-    if (this.number < other.number) {
-      return VersionComparisonResult.LESS;
-    } else if (this.number > other.number) {
-      return VersionComparisonResult.GREATER;
+    if (this.number != other.number) {
+      if ((this.number < 0) && isPattern()) {
+        return VersionComparisonResult.LESS_UNSAFE;
+      } else if ((other.number < 0) && other.isPattern()) {
+        return VersionComparisonResult.GREATER_UNSAFE;
+      } else if (this.number < other.number) {
+        return VersionComparisonResult.LESS;
+      } else {
+        return VersionComparisonResult.GREATER;
+      }
     } else if (this.separator.equals(other.separator)) {
       return VersionComparisonResult.EQUAL;
     } else {
@@ -292,9 +298,9 @@ public class VersionSegment implements VersionObject<VersionSegment> {
 
   /**
    * @return the {@link VersionLetters} that represent a {@link VersionLetters#isDevelopmentPhase() development phase} searching from this
-   *     {@link VersionSegment} to all {@link #getNextOrNull() next segments}. Will be {@link VersionPhase#NONE} if no
-   *     {@link VersionPhase#isDevelopmentPhase() development phase} was found and {@link VersionPhase#UNDEFINED} if multiple
-   *     {@link VersionPhase#isDevelopmentPhase() development phase}s have been found.
+   * {@link VersionSegment} to all {@link #getNextOrNull() next segments}. Will be {@link VersionPhase#NONE} if no
+   * {@link VersionPhase#isDevelopmentPhase() development phase} was found and {@link VersionPhase#UNDEFINED} if multiple
+   * {@link VersionPhase#isDevelopmentPhase() development phase}s have been found.
    * @see VersionIdentifier#getDevelopmentPhase()
    */
   protected VersionLetters getDevelopmentPhase() {
