@@ -41,11 +41,6 @@ public class Yarn extends NpmBasedCommandlet {
   }
 
   @Override
-  protected void performUninstall(Path toolPath) {
-    runPackageUninstall("yarn");
-  }
-
-  @Override
   protected VersionIdentifier computeInstalledVersion() {
     if (hasNodeBinary("yarn")) {
       VersionIdentifier version = VersionIdentifier.of(this.context.newProcess().runAndGetSingleOutput("yarn", "--version"));
