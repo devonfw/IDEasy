@@ -51,8 +51,6 @@ public class NgTest extends AbstractIdeContextTest {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_NG, wireMockRuntimeInfo);
-    SystemInfo systemInfo = SystemInfoMock.of("linux");
-    context.setSystemInfo(systemInfo);
     Ng commandlet = new Ng(context);
 
     // act
