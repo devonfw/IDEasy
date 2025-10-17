@@ -271,7 +271,7 @@ public class Mvn extends PluginBasedCommandlet {
     boolean settingsFileExists = Files.exists(mvnSettingsFile);
     boolean securityFileExists = Files.exists(settingsSecurityFile);
     if (!settingsFileExists && !securityFileExists) {
-      return null;
+      return ""; // this clears the MAVEN_ARGS
     }
     StringBuilder sb = new StringBuilder();
     if (settingsFileExists) {
