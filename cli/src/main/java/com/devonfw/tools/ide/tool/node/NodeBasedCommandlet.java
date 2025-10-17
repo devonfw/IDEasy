@@ -92,11 +92,6 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
     this.installedVersion.invalidate();
   }
 
-  @Override
-  protected void performUninstall(Path toolPath) {
-    runPackageUninstall(getPackageName());
-  }
-
   /**
    * Checks if a provided binary can be found within node.
    *
@@ -109,24 +104,23 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * Performs a global npm uninstall.
+   * Runs uninstall using the package manager.
    *
    * @param npmPackage the npm package to uninstall.
-   * @return the {@link ProcessResult} of the npm execution.
    */
   protected ProcessResult runPackageUninstall(String npmPackage) {
-    return runPackageManager("uninstall", "-g", npmPackage);
+    
+    runPackageManager("uninstall", "-g", npmPackage).failOnError();
   }
 
   /**
-   * Performs a global npm install.
+   * Runs install using the package manager.
    *
    * @param npmPackage the npm package to install.
-   * @return the {@link ProcessResult} of the npm execution.
    */
-  protected ProcessResult runPackageInstall(String npmPackage) {
+  protected void runPackageInstall(String npmPackage) {
 
-    return runPackageManager("install", "-g", npmPackage);
+    runPackageManager("install", "-g", npmPackage).failOnError();
   }
 
   /**
