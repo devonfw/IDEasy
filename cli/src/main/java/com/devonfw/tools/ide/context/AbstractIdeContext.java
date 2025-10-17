@@ -128,9 +128,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private CustomToolRepository customToolRepository;
 
-  private final MvnRepository mvnRepository;
+  private MvnRepository mvnRepository;
 
-  private final NpmRepository npmRepository;
+  private NpmRepository npmRepository;
 
   private DirectoryMerger workspaceMerger;
 
@@ -220,8 +220,20 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
 
     this.defaultToolRepository = new DefaultToolRepository(this);
-    this.mvnRepository = new MvnRepository(this);
-    this.npmRepository = new NpmRepository(this);
+  }
+
+  /**
+   * @return a new {@link MvnRepository}
+   */
+  protected MvnRepository createMvnRepository() {
+    return new MvnRepository(this);
+  }
+
+  /**
+   * @return a new {@link NpmRepository}
+   */
+  protected NpmRepository createNpmRepository() {
+    return new NpmRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -403,13 +415,17 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   @Override
   public MvnRepository getMvnRepository() {
-
+    if (this.mvnRepository == null) {
+      this.mvnRepository = createMvnRepository();
+    }
     return this.mvnRepository;
   }
 
   @Override
   public NpmRepository getNpmRepository() {
-
+    if (this.npmRepository == null) {
+      this.npmRepository = createNpmRepository();
+    }
     return this.npmRepository;
   }
 
