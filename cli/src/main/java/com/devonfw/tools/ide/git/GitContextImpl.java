@@ -53,8 +53,10 @@ public class GitContextImpl implements GitContext {
   public boolean isRepositoryUpdateAvailable(Path repository) {
 
     verifyGitInstalled();
-    String localCommitId = runGitCommandAndGetSingleOutput("Failed to get the local commit id.", repository, "rev-parse", "HEAD");
-    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
+    String localFailureMessage = String.format("Failed to get the local commit id of settings repository '%s'.",repository);
+    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?",repository);
+    String localCommitId = runGitCommandAndGetSingleOutput(localFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "HEAD");
+    String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     if ((localCommitId == null) || (remoteCommitId == null)) {
       return false;
     }
@@ -71,8 +73,8 @@ public class GitContextImpl implements GitContext {
     } catch (IOException e) {
       return false;
     }
-
-    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
+    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?",repository);
+    String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     return !trackedCommitId.equals(remoteCommitId);
   }
 
@@ -283,7 +285,15 @@ public class GitContextImpl implements GitContext {
 
   private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
 
-    ProcessResult result = runGitCommand(directory, ProcessMode.DEFAULT_CAPTURE, args);
+    return runGitCommandAndGetSingleOutput(warningOnError,directory, ProcessMode.DEFAULT_CAPTURE, args);
+  }
+
+  private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, ProcessMode mode, String... args) {
+    ProcessErrorHandling errorHandling = ProcessErrorHandling.NONE;
+    if (this.context.debug().isEnabled()){
+      errorHandling = ProcessErrorHandling.LOG_WARNING;
+    }
+    ProcessResult result = runGitCommand(directory, mode, errorHandling, args);
     if (result.isSuccessful()) {
       List<String> out = result.getOut();
       int size = out.size();
