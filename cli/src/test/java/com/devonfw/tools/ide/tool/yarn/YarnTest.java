@@ -56,7 +56,7 @@ public class YarnTest extends AbstractIdeContextTest {
     commandlet.uninstall();
 
     // assert II
-    assertThat(context).logAtInfo().hasMessageContaining("corepack disable yarn");
+    assertThat(context).logAtInfo().hasMessageContaining("npm uninstall -g yarn");
 
     assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled yarn");
   }
@@ -79,13 +79,12 @@ public class YarnTest extends AbstractIdeContextTest {
 
     // assert
     assertThat(context).logAtInfo().hasMessageContaining("yarn --version");
+    assertThat(context).logAtInfo().hasMessageContaining("yarn version: 2.4.3");
   }
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context).logAtInfo().hasMessageContaining("npm install -g corepack@0.34.0");
-    assertThat(context).logAtInfo().hasMessageContaining("corepack prepare yarn@2.4.3 --activate");
-    assertThat(context).logAtInfo().hasMessageContaining("corepack install -g yarn@2.4.3");
+    assertThat(context).logAtInfo().hasMessageContaining("npm install -g yarn@2.4.3");
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed yarn in version 2.4.3");
   }

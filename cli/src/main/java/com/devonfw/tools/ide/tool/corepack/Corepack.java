@@ -39,8 +39,8 @@ public class Corepack extends NpmBasedCommandlet {
   }
 
   @Override
-  public void uninstall() {
-    runPackageUninstall(getName());
+  protected void performUninstall(Path toolPath) {
+    runPackageUninstall(getPackageName());
   }
 
   /**

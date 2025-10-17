@@ -1,7 +1,7 @@
 {
   "[0,)": [
     {
-      "tool": "corepack",
+      "tool": "node",
       "versionRange": "[0,)"
     }
   ]

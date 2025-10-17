@@ -1,7 +1,6 @@
 #!/bin/bash
 echo "npm $*"
 
-if [ "$1" == "install" ]; then
-  cp target/test-projects/yarn/repository/corepack/corepack/default/corepack target/test-projects/yarn/project/software/node/bin
-  cp target/test-projects/yarn/repository/corepack/corepack/default/corepack target/test-projects/yarn/project/software/node
+if [ "$*" == "install -g yarn@2.4.3" ]; then
+  cp target/test-projects/yarn/repository/yarn/yarn/default/yarn target/test-projects/yarn/project/software/node/bin
 fi

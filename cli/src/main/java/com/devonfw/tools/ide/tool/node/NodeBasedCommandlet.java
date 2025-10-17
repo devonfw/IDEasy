@@ -12,6 +12,7 @@ import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
 import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.LocalToolCommandlet;
+import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
@@ -58,11 +59,7 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   @Override
   public Path getToolPath() {
 
-    Path toolPath = this.context.getSoftwarePath().resolve("node");
-    if (!this.context.getSystemInfo().isWindows()) {
-      toolPath = toolPath.resolve("bin");
-    }
-    return toolPath;
+    return this.context.getSoftwarePath().resolve("node");
   }
 
   @Override
@@ -83,10 +80,8 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   @Override
   protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, String edition,
       ProcessContext processContext) {
-    if (!Files.exists(getToolPath().resolve(getPackageName()))) {
-      runPackageInstall(getPackageName() + "@" + resolvedVersion);
-      this.installedVersion.invalidate();
-    }
+    runPackageInstall(getPackageName() + "@" + resolvedVersion);
+    this.installedVersion.invalidate();
   }
 
   @Override
@@ -104,7 +99,7 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
    */
   protected boolean hasNodeBinary(String binary) {
 
-    return Files.exists(getToolPath().resolve(binary));
+    return Files.exists(getToolBinPath().resolve(binary));
   }
 
   /**
@@ -160,7 +155,11 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
    * @param args the arguments for {@link com.devonfw.tools.ide.tool.corepack.Corepack}.
    * @return the {@link ProcessResult}.
    */
-  protected abstract ProcessResult runCorepack(ProcessMode processMode, ProcessErrorHandling errorHandling, String... args);
+  protected ProcessResult runCorepack(ProcessMode processMode, ProcessErrorHandling errorHandling, String... args) {
+    ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
+    Corepack corepack = this.context.getCommandletManager().getCommandlet(Corepack.class);
+    return corepack.runTool(processMode, null, pc, args);
+  }
 
 
   @Override

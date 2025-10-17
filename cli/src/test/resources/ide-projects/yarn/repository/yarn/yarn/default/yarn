@@ -1,6 +1,6 @@
 #!/bin/bash
 echo "yarn $*"
 
-if [ "${1}" == "yarn --version" ]; then
-  echo "2.4.3"
+if [ "${1}" == "--version" ]; then
+  echo "yarn version: 2.4.3"
 fi

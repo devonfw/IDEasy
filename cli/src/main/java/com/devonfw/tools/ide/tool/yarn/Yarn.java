@@ -6,7 +6,6 @@ import java.util.Set;
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
-import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.tool.npm.NpmBasedCommandlet;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -38,20 +37,12 @@ public class Yarn extends NpmBasedCommandlet {
   @Override
   protected void performToolInstallation(ToolRepository toolRepository, VersionIdentifier resolvedVersion, Path installationPath, String edition,
       ProcessContext processContext) {
-    if (hasNodeBinary("corepack")) {
-      runCorepack("prepare", getName() + "@" + resolvedVersion, "--activate");
-      runCorepack("install", "-g", getName() + "@" + resolvedVersion);
-    }
+    runPackageInstall("yarn@" + resolvedVersion);
   }
 
   @Override
-  public void uninstall() {
-    if (hasNodeBinary("corepack")) {
-      ProcessResult result = runCorepack("disable", "yarn");
-      if (result.isSuccessful()) {
-        this.context.success("Successfully uninstalled {}", this.tool);
-      }
-    }
+  protected void performUninstall(Path toolPath) {
+    runPackageUninstall("yarn");
   }
 
   @Override
@@ -63,11 +54,14 @@ public class Yarn extends NpmBasedCommandlet {
   public VersionIdentifier getInstalledVersion() {
     return getVersion();
   }
-  
+
   private VersionIdentifier getVersion() {
     if (hasNodeBinary("yarn")) {
-      return VersionIdentifier.of(this.context.newProcess().runAndGetSingleOutput("yarn", "--version"));
+      VersionIdentifier version = VersionIdentifier.of(this.context.newProcess().runAndGetSingleOutput("yarn", "--version"));
+      this.context.debug("Determined installed version of yarn: {}", version);
+      return version;
     }
+    this.context.debug("Yarn is not installed yet.");
     return null;
   }
 

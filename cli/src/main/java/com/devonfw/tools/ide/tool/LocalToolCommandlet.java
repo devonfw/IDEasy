@@ -50,7 +50,7 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   }
 
   /**
-   * @return the {@link Path} where the executables of the tool can be found. Typically a "bin" folder inside {@link #getToolPath() tool path}.
+   * @return the {@link Path} where the executables of the tool can be found. Typically, a "bin" folder inside {@link #getToolPath() tool path}.
    */
   public Path getToolBinPath() {
 
