@@ -40,11 +40,6 @@ public class Corepack extends NpmBasedCommandlet {
   }
 
   @Override
-  protected void performUninstall(Path toolPath) {
-    runPackageUninstall(getPackageName());
-  }
-
-  @Override
   protected Path getToolHomePath(ToolInstallation toolInstallation) {
     return getOrCreateCorepackHomeFolder();
   }
