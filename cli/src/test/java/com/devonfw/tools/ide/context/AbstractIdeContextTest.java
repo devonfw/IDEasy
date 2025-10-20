@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.context;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -15,11 +20,6 @@ import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.repository.ToolRepositoryMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.any;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 
 /**
  * Abstract base class for tests that need mocked instances of {@link IdeContext}.
@@ -136,7 +136,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
       toolRepository = new ToolRepositoryMock(context, repositoryFolder, wmRuntimeInfo);
       context.setDefaultToolRepository(toolRepository);
     }
-    if (wmRuntimeInfo != null){
+    if (wmRuntimeInfo != null) {
       stubFor(any(urlEqualTo("/health")).willReturn(
           aResponse().withStatus(200).withHeader("Content-Type", "text").withHeader("Content-Length", String.valueOf("ok".length()))
               .withBody("ok")));
