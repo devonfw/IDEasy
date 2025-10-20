@@ -406,6 +406,9 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
     }
     Path toolRepoFolder = context.getSoftwareRepositoryPath().resolve(ToolRepository.ID_DEFAULT).resolve(this.tool);
     String edition = getEdition(toolRepoFolder, realPath);
+    if (edition == null) {
+      edition = this.tool;
+    }
     if (!getToolRepository().getSortedEditions(this.tool).contains(edition)) {
       this.context.warning("Undefined edition {} of tool {}", edition, this.tool);
     }
