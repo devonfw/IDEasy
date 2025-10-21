@@ -85,7 +85,7 @@ public class YarnTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context).logAtInfo().hasMessageContaining("npm install -g yarn@2.4.3");
-
+    assertThat(context).logAtSuccess().hasMessageContaining("Setting npm config prefix to: " + context.getSoftwarePath().resolve("node") + " was successful");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed yarn in version 2.4.3");
   }
 }
