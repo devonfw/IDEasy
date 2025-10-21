@@ -179,6 +179,16 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     return new SystemPath(this, envPath);
   }
 
+  @Override
+  public boolean isOnline() {
+
+    if (this.wireMockRuntimeInfo == null) {
+      return super.isOnline();
+    }
+    String url = wireMockRuntimeInfo.getHttpBaseUrl() + "/health";
+    return isUrlReachable(url);
+  }
+
   /**
    * @param online the mocked {@link #isOnline()} result.
    */

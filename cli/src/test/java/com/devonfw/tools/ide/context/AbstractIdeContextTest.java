@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.context;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -130,6 +135,11 @@ public abstract class AbstractIdeContextTest extends Assertions {
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(context, repositoryFolder, wmRuntimeInfo);
       context.setDefaultToolRepository(toolRepository);
+    }
+    if (wmRuntimeInfo != null) {
+      stubFor(any(urlEqualTo("/health")).willReturn(
+          aResponse().withStatus(200).withHeader("Content-Type", "text").withHeader("Content-Length", String.valueOf("ok".length()))
+              .withBody("ok")));
     }
     return context;
   }
