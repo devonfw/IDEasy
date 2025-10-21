@@ -85,13 +85,7 @@ public class CorepackTest extends AbstractIdeContextTest {
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context).logAtInfo().hasMessageContaining("npm install -g corepack@0.34.0");
-
+    assertThat(context).logAtSuccess().hasMessageContaining("Setting npm config prefix to: " + context.getSoftwarePath().resolve("node") + " was successful");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed corepack in version 0.34.0");
-  }
-
-  private void checkYarnInstallation(IdeTestContext context) {
-    assertThat(context).logAtInfo().hasMessageContaining("npm install -g corepack@0.34.0");
-    assertThat(context).logAtInfo().hasMessageContaining("corepack prepare yarn@2.4.3 --activate");
-    assertThat(context).logAtInfo().hasMessageContaining("corepack install -g yarn@2.4.3");
   }
 }
