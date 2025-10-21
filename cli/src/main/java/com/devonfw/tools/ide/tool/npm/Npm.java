@@ -6,7 +6,6 @@ import java.util.Set;
 
 import com.devonfw.tools.ide.common.Tag;
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.process.ProcessResult;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 
 /**
@@ -39,14 +38,6 @@ public class Npm extends NpmBasedCommandlet {
     return null;
   }
 
-  @Override
-  protected void postInstall() {
-    super.postInstall();
-    ProcessResult result = runPackageManager("config", "set", "prefix", getToolPath().toString());
-    if (result.isSuccessful()) {
-      this.context.success("Setting npm config prefix to: {} was successful", getToolPath());
-    }
-  }
 
   @Override
   public String getToolHelpArguments() {
