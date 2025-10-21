@@ -28,7 +28,7 @@ public class Corepack extends NpmBasedCommandlet {
   }
 
   @Override
-  protected boolean isUninstallDisabled() {
+  protected boolean canBeUninstalled() {
     return true;
   }
 

@@ -86,17 +86,17 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   }
 
   /**
-   * Checks if the uninstall command is disabled for the current tool.
+   * Checks if the tool can be uninstalled e.g. if the uninstall command for the tool should be disabled or not.
    *
-   * @return {@code true} if uninstall is disabled for the current tool, {@code false} if not.
+   * @return {@code true} if the tool can be uninstalled, {@code false} if not.
    */
-  protected boolean isUninstallDisabled() {
+  protected boolean canBeUninstalled() {
     return false;
   }
 
   @Override
   protected void performUninstall(Path toolPath) {
-    if (!isUninstallDisabled()) {
+    if (!canBeUninstalled()) {
       runPackageUninstall(getPackageName());
       this.installedVersion.invalidate();
     } else {

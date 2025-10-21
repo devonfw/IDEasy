@@ -27,7 +27,7 @@ public class Npm extends NpmBasedCommandlet {
   }
 
   @Override
-  protected boolean isUninstallDisabled() {
+  protected boolean canBeUninstalled() {
     return true;
   }
 
