@@ -91,12 +91,12 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
    * @return {@code true} if the tool can be uninstalled, {@code false} if not.
    */
   protected boolean canBeUninstalled() {
-    return false;
+    return true;
   }
 
   @Override
   protected void performUninstall(Path toolPath) {
-    if (!canBeUninstalled()) {
+    if (canBeUninstalled()) {
       runPackageUninstall(getPackageName());
       this.installedVersion.invalidate();
     } else {
