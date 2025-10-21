@@ -26,6 +26,11 @@ public class Npm extends NpmBasedCommandlet {
   }
 
   @Override
+  protected boolean canBeUninstalled() {
+    return false;
+  }
+
+  @Override
   protected VersionIdentifier computeInstalledVersion() {
     if (hasNodeBinary("npm")) {
       return VersionIdentifier.of(this.context.newProcess().runAndGetSingleOutput("npm", "--version"));
