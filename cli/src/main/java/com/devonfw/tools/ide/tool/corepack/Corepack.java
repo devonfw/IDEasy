@@ -28,6 +28,11 @@ public class Corepack extends NpmBasedCommandlet {
   }
 
   @Override
+  protected boolean isUninstallDisabled() {
+    return true;
+  }
+
+  @Override
   public String getToolHelpArguments() {
 
     return "help";
