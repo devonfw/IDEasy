@@ -827,9 +827,9 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   }
 
   @Override
-  public void compress(Path dir, OutputStream out, String format) {
+  public void compress(Path dir, OutputStream out, String path) {
 
-    String extension = FilenameUtil.getExtension(format);
+    String extension = FilenameUtil.getExtension(path);
     TarCompression tarCompression = TarCompression.of(extension);
     if (tarCompression != null) {
       compressTar(dir, out, tarCompression);
