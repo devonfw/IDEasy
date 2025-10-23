@@ -127,11 +127,11 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
       }
       artifact = artifact.withClassifier(resolvedClassifier);
     }
-    UrlChecksums chekcsums = null;
+    UrlChecksums checksums = null;
     if (!artifact.isMavenMetadata()) {
-      chekcsums = new UrlLazyChecksums(artifact);
+      checksums = new UrlLazyChecksums(artifact);
     }
-    return new MvnArtifactMetadata(artifact, tool, edition, chekcsums, os, arch);
+    return new MvnArtifactMetadata(artifact, tool, edition, checksums, os, arch);
   }
 
   private UrlGenericChecksum getChecksum(MvnArtifact artifact, String hashAlgorithm) {
