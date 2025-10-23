@@ -34,17 +34,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
    */
   public IdeTestContext() {
 
-    this(PATH_MOCK);
-  }
-
-  /**
-   * The constructor.
-   *
-   * @param workingDirectory the optional {@link Path} to current working directory.
-   */
-  public IdeTestContext(Path workingDirectory) {
-
-    this(workingDirectory, IdeLogLevel.TRACE, null);
+    this(PATH_MOCK, null);
   }
 
   /**
@@ -101,7 +91,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
    */
   public static IdeTestContext of() {
 
-    return new IdeTestContext(Path.of("/"));
+    return new IdeTestContext(Path.of("/"), null);
   }
 
   /**
@@ -119,7 +109,8 @@ public class IdeTestContext extends AbstractIdeTestContext {
    * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} providing the base URL.
    * @return the resolved file content.
    */
-  public static String readAndResolve(Path file, WireMockRuntimeInfo wmRuntimeInfo) {
+  public static String readAndResolveBaseUrl(Path file, WireMockRuntimeInfo wmRuntimeInfo) {
+
     try {
       String payload = Files.readString(file);
       return payload.replace(ToolRepositoryMock.VARIABLE_TESTBASEURL, wmRuntimeInfo.getHttpBaseUrl());
@@ -157,7 +148,7 @@ public class IdeTestContext extends AbstractIdeTestContext {
                 .replace(File.separatorChar, '/')
                 .replaceAll("\\.xml$", "");
 
-            String body = readAndResolve(xmlFile, wireMockRuntimeInfo);
+            String body = readAndResolveBaseUrl(xmlFile, wireMockRuntimeInfo);
 
             stubFor(get(urlPathEqualTo(packagePath))
                 .willReturn(aResponse()
