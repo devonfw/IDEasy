@@ -134,7 +134,7 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
    */
   protected void runPackageInstall(String npmPackage) {
 
-    runPackageManager("install", "-g", npmPackage).failOnError();
+    runPackageManager("install", "-gf", npmPackage).failOnError();
   }
 
   /**
