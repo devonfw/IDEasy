@@ -6,8 +6,11 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.stream.Stream;
 
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.repository.MvnArtifactMetadata;
@@ -30,6 +33,7 @@ public class MvnRepositoryMock extends MvnRepository {
   public MvnRepositoryMock(IdeContext context, WireMockRuntimeInfo wmRuntimeInfo) {
     super(context);
     this.wmRuntimeInfo = wmRuntimeInfo;
+    mockMvnMetadataResponses(wmRuntimeInfo);
   }
 
   @Override
@@ -47,5 +51,34 @@ public class MvnRepositoryMock extends MvnRepository {
       throw new IllegalStateException("Failed to create mock archive for " + url, e);
     }
     return archiveFolder;
+  }
+
+  private void mockMvnMetadataResponses(WireMockRuntimeInfo wireMockRuntimeInfo) {
+    Path mvnRoot = this.context.getIdeHome()
+        .getParent()
+        .resolve("repository")
+        .resolve("mvn");
+
+    try (Stream<Path> files = Files.walk(mvnRoot)) {
+      files.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".xml"))
+          .forEach(xmlFile -> {
+            // Derive package path from relative file path, e.g.
+            //   <root>/org/springframework/boot  -> "/springboot/cli
+            Path rel = mvnRoot.relativize(xmlFile);
+            String packagePath = "/" + rel.toString()
+                .replace(File.separatorChar, '/')
+                .replaceAll("\\.xml$", "");
+
+            String body = IdeTestContext.readAndResolveBaseUrl(xmlFile, wireMockRuntimeInfo);
+
+            stubFor(get(urlPathEqualTo(packagePath))
+                .willReturn(aResponse()
+                    .withStatus(200)
+                    .withHeader("Content-Type", "application/xml")
+                    .withBody(body)));
+          });
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
   }
 }
