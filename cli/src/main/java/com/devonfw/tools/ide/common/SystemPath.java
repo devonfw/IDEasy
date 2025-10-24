@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.common;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -168,7 +169,7 @@ public class SystemPath {
 
       Path fileToExecute = path.resolve(tool + extension);
 
-      if (Files.exists(fileToExecute)) {
+      if (Files.exists(fileToExecute, LinkOption.NOFOLLOW_LINKS)) {
         return fileToExecute;
       }
     }

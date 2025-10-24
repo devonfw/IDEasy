@@ -2,6 +2,34 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.10.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/907[#907]: Implement ToolCommandlet for Yarn
+* https://github.com/devonfw/IDEasy/issues/908[#908]: Get rid of Git error messages when retrieving settings status
+* https://github.com/devonfw/IDEasy/issues/1362[#1362]: ide create fails when creating mvn settings-security file
+* https://github.com/devonfw/IDEasy/issues/1506[#1506]: Create migration for 2025.10.001 to remove software/npm
+* https://github.com/devonfw/IDEasy/issues/1530[#1530]: NPE on ide update with custom tool
+* https://github.com/devonfw/IDEasy/issues/858[#858]: installing kotlincnative does not work
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/35?closed=1[milestone 2025.10.001].
+
+== 2025.09.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1454[#1454]: Support for ng (angular CLI)
+* https://github.com/devonfw/IDEasy/issues/1464[#1464]: IDEasy setup does not find bash
+* https://github.com/devonfw/IDEasy/issues/1476[#1476]: IDEasy does not create links on extraction
+* https://github.com/devonfw/IDEasy/issues/1477[#1477]: IDEasy cannot create link to file on Windows
+* https://github.com/devonfw/IDEasy/issues/1221[#1221]: Improve Windows terminal integration on installation
+* https://github.com/devonfw/IDEasy/issues/1460[#1460]: Prevent strange ansi-codes in logs
+* https://github.com/devonfw/IDEasy/issues/1484[#1484]: Broken error handling: Couldn't uninstall node.
+* https://github.com/devonfw/IDEasy/issues/1515[#1515]: cannot upgrade snapshot release of IDEasy
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/34?closed=1[milestone 2025.09.001].
+
 == 2025.08.001
 
 Release with new features and bugfixes:

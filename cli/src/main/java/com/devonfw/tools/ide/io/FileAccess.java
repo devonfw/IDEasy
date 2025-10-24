@@ -35,6 +35,12 @@ public interface FileAccess {
   void download(String url, Path targetFile);
 
   /**
+   * @param url the URL of the text to download.
+   * @return the downloaded body as {@link String} (e.g. JSON or XML).
+   */
+  String download(String url);
+
+  /**
    * Creates the entire {@link Path} as directories if not already existing.
    *
    * @param directory the {@link Path} to {@link java.nio.file.Files#createDirectories(Path, java.nio.file.attribute.FileAttribute...) create}.
@@ -77,17 +83,6 @@ public interface FileAccess {
   void move(Path source, Path targetDir, StandardCopyOption... copyOptions);
 
   /**
-   * Creates a symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a Windows junction, it will be replaced. In case of
-   * missing privileges, Windows Junctions may be used as fallback, which must point to absolute paths. Therefore, the created link will be absolute instead of
-   * relative.
-   *
-   * @param source the source {@link Path} to link to, may be relative or absolute.
-   * @param targetLink the {@link Path} where the symbolic link shall be created pointing to {@code source}.
-   * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
-   */
-  void symlink(Path source, Path targetLink, boolean relative);
-
-  /**
    * Creates a relative symbolic link. If the given {@code targetLink} already exists and is a symbolic link or a Windows junction, it will be replaced. In case
    * of missing privileges, Windows Junctions may be used as fallback, which must point to absolute paths. Therefore, the created link will be absolute instead
    * of relative.
@@ -98,6 +93,50 @@ public interface FileAccess {
   default void symlink(Path source, Path targetLink) {
 
     symlink(source, targetLink, true);
+  }
+
+  /**
+   * Creates a {@link PathLinkType#SYMBOLIC_LINK symbolic link}. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will
+   * be replaced. In case of missing privileges, Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative}
+   * flag will be ignored.
+   *
+   * @param target the target {@link Path} to link to, may be relative or absolute.
+   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
+   * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
+   */
+  default void symlink(Path target, Path link, boolean relative) {
+
+    link(target, link, relative, PathLinkType.SYMBOLIC_LINK);
+  }
+
+  /**
+   * Creates a {@link PathLinkType#HARD_LINK hard link}. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be
+   * replaced. In case of missing privileges, Windows mklink may be used as fallback.
+   *
+   * @param target the target {@link Path} to link to, may be relative or absolute.
+   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
+   */
+  default void hardlink(Path target, Path link) {
+
+    link(target, link, false, PathLinkType.HARD_LINK);
+  }
+
+  /**
+   * Creates a link. If the given {@code link} already exists and is a symbolic link or a Windows junction, it will be replaced. In case of missing privileges,
+   * Windows mklink may be used as fallback, which must point to absolute paths. In such case the {@code relative} flag will be ignored.
+   *
+   * @param target the target {@link Path} to link to, may be relative or absolute.
+   * @param link the {@link Path} where the symbolic link shall be created pointing to {@code target}.
+   * @param relative - {@code true} if the symbolic link shall be relative, {@code false} if it shall be absolute.
+   * @param type the {@link PathLinkType}.
+   */
+  void link(Path target, Path link, boolean relative, PathLinkType type);
+
+  /**
+   * @param link the {@link PathLink} to {@link #link(Path, Path, boolean, PathLinkType) create}.
+   */
+  default void link(PathLink link) {
+    link(link.target(), link.link(), true, link.type());
   }
 
   /**
@@ -337,22 +376,39 @@ public interface FileAccess {
   boolean setWritable(Path file, boolean writable);
 
   /**
-   * Makes a file executable (analog to 'chmod a+x').
+   * Makes a path executable (analog to 'chmod a+x').
    *
-   * @param file {@link Path} to the file.
+   * @param path the {@link Path} to the file or directory.
    */
-  default void makeExecutable(Path file) {
+  default void makeExecutable(Path path) {
 
-    makeExecutable(file, false);
+    makeExecutable(path, false);
   }
 
   /**
-   * Makes a file executable (analog to 'chmod a+x').
+   * Makes a path executable (analog to 'chmod a+x').
    *
-   * @param file {@link Path} to the file.
+   * @param path the {@link Path} to the file or directory.
    * @param confirm - {@code true} to get user confirmation before adding missing executable flags, {@code false} otherwise (always set missing flags).
    */
-  void makeExecutable(Path file, boolean confirm);
+  void makeExecutable(Path path, boolean confirm);
+
+  /**
+   * Sets the given {@link PathPermissions} for the specified {@link Path}.
+   *
+   * @param path the {@link Path} to the file or directory.
+   * @param permissions the {@link PathPermissions} to set.
+   * @param logErrorAndContinue - {@code true} to only log errors and continue, {@code false} to fail with an exception on error.
+   */
+  void setFilePermissions(Path path, PathPermissions permissions, boolean logErrorAndContinue);
+
+  /**
+   * Gets the {@link PathPermissions} from the specified {@link Path}.
+   *
+   * @param path the {@link Path} to the file or directory.
+   * @return the {@link PathPermissions} of the specified {@link Path}.
+   */
+  PathPermissions getFilePermissions(Path path);
 
   /**
    * Like the linux touch command this method will update the modification time of the given {@link Path} to the current
@@ -365,7 +421,7 @@ public interface FileAccess {
 
   /**
    * @param file the {@link Path} to the file to read.
-   * @return the content of the specified file (in UTF-8 encoding), or null if the file doesn't exist
+   * @return the content of the specified file (in UTF-8 encoding), or {@code null} if the file doesn't exist.
    * @see java.nio.file.Files#readString(Path)
    */
   String readFileContent(Path file);
@@ -418,7 +474,7 @@ public interface FileAccess {
   void writeFileLines(List<String> lines, Path file, boolean createParentDir);
 
   /**
-   * @param path that is checked whether it is a junction or not.
+   * @param path the {@link Path} to check.
    * @return {@code true} if the given {@link Path} is a junction, false otherwise.
    */
   boolean isJunction(Path path);
