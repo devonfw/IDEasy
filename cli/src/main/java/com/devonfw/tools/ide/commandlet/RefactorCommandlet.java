@@ -32,7 +32,7 @@ public class RefactorCommandlet extends Commandlet {
     super(context);
     addKeyword(getName());
     this.command = add(new EnumProperty<>("", true, "recipe_name", RefactorRecipeEnum.class));
-    this.arguments = new StringProperty("", false, true, "recipe_extra_arguments");
+    this.arguments = new StringProperty("", false, true, "recipe-extra-arguments");
     recipeManager = new RecipeManager();
     add(this.arguments);
     //this.recipe = context.
