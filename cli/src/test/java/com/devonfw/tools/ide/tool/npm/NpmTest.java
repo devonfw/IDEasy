@@ -55,8 +55,39 @@ public class NpmTest extends AbstractIdeContextTest {
     assertThat(context).logAtInfo().hasMessageContaining("npm version: 9.9.2");
   }
 
+  /**
+   * Tests if the {@link Npm} uninstall works correctly.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
+  @Test
+  public void testNpmUninstall(WireMockRuntimeInfo wireMockRuntimeInfo) {
+
+    // arrange
+    IdeTestContext context = newContext(PROJECT_NPM, wireMockRuntimeInfo);
+    Npm commandlet = new Npm(context);
+
+    // act I
+    commandlet.install();
+
+    // assert I
+    checkInstallation(context);
+
+    // act II
+    commandlet.uninstall();
+
+    // assert II
+    assertThat(context).logAtInfo().hasNoMessageContaining("npm uninstall -g npm");
+    assertThat(context).logAtInfo().hasMessageContaining("IDEasy does not support uninstalling the tool npm since this will break your installation.\n"
+        + "If you really want to uninstall it, please uninstall the entire node installation:\n"
+        + "ide uninstall node");
+
+    assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled npm");
+  }
+
   private void checkInstallation(IdeTestContext context) {
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed npm in version 9.9.2");
+    assertThat(context).logAtSuccess().hasMessageContaining("Setting npm config prefix to: " + context.getSoftwarePath().resolve("node") + " was successful");
   }
 }
