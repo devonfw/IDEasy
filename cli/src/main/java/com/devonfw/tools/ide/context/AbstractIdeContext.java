@@ -743,12 +743,20 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   @Override
   public boolean isOnline() {
+    // we currently assume we have only a CLI process that runs shortly
+    // therefore we run this check only once to save resources when this method is called many times
+    String url = "https://www.github.com";
+    return isUrlReachable(url);
+  }
 
+  /**
+   * This method will be used to test the connection to the given url.
+   *
+   * @param url the url to test.
+   */
+  protected boolean isUrlReachable(String url) {
     if (this.online == null) {
       configureNetworkProxy();
-      // we currently assume we have only a CLI process that runs shortly
-      // therefore we run this check only once to save resources when this method is called many times
-      String url = "https://www.github.com";
       try {
         int timeout = 1000;
         //open a connection to github.com and try to retrieve data
@@ -764,7 +772,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         this.online = Boolean.FALSE;
       }
     }
-    return this.online.booleanValue();
+    return this.online;
   }
 
   private void configureNetworkProxy() {
