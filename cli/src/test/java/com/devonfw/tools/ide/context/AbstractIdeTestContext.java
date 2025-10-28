@@ -26,6 +26,7 @@ import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
  * Implementation of {@link IdeContext} for testing.
@@ -53,24 +54,22 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
 
   private Path urlsPath;
 
-  private boolean forcePull = false;
-
-  private boolean forcePlugins = false;
-
-  private boolean forceRepositories = false;
+  protected final WireMockRuntimeInfo wireMockRuntimeInfo;
 
   /**
    * The constructor.
    *
    * @param logger the {@link IdeLogger}.
    * @param workingDirectory the optional {@link Path} to current working directory.
+   * @param wireMockRuntimeInfo wireMock server on a random port.
    */
-  public AbstractIdeTestContext(IdeStartContextImpl logger, Path workingDirectory) {
+  public AbstractIdeTestContext(IdeStartContextImpl logger, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     super(logger, workingDirectory);
     this.answers = new String[0];
     this.progressBarMap = new HashMap<>();
     this.systemInfo = super.getSystemInfo();
+    this.wireMockRuntimeInfo = wireMockRuntimeInfo;
   }
 
   @Override
@@ -178,6 +177,16 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     String envPath = systemVars.get(IdeVariables.PATH.getName());
     envPath = getVariables().resolve(envPath, systemVars.getSource());
     return new SystemPath(this, envPath);
+  }
+
+  @Override
+  public boolean isOnline() {
+
+    if (this.wireMockRuntimeInfo == null) {
+      return super.isOnline();
+    }
+    String url = wireMockRuntimeInfo.getHttpBaseUrl() + "/health";
+    return isUrlReachable(url);
   }
 
   /**
@@ -332,41 +341,5 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
       }
     }
     return null;
-  }
-
-  @Override
-  public boolean isForcePull() {
-
-    return this.forcePull;
-  }
-
-  @Override
-  public boolean isForcePlugins() {
-
-    return this.forcePlugins;
-  }
-
-  @Override
-  public boolean isForceRepositories() {
-
-    return this.forceRepositories;
-  }
-
-  @Override
-  public void setForcePull(boolean forcePull) {
-
-    this.forcePull = forcePull;
-  }
-
-  @Override
-  public void setForcePlugins(boolean forcePlugins) {
-
-    this.forcePlugins = forcePlugins;
-  }
-
-  @Override
-  public void setForceRepositories(boolean forceRepositories) {
-
-    this.forceRepositories = forceRepositories;
   }
 }

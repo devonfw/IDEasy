@@ -17,7 +17,7 @@ public interface IdeStartContext extends IdeLogger {
   boolean isQuietMode();
 
   /**
-   * @return {@code true} in case of batch mode (no {@link IdeContext#question(String) user-interaction}), {@code false} otherwise.
+   * @return {@code true} in case of batch mode (no {@link IdeContext#askForInput(String) user-interaction}), {@code false} otherwise.
    */
   boolean isBatchMode();
 
@@ -32,40 +32,19 @@ public interface IdeStartContext extends IdeLogger {
   boolean isPrivacyMode();
 
   /**
-   * @return {@code true} in case of force pull, {@code false} otherwise.
+   * @return {@code true} to force pulling repositories (e.g. settings from code repository), {@code false} otherwise.
    */
   boolean isForcePull();
 
   /**
-   * @return {@code true} in case of force plugins, {@code false} otherwise.
+   * @return {@code true} to force plugin installation (e.g. if already installed according to marker file), {@code false} otherwise.
    */
   boolean isForcePlugins();
 
   /**
-   * @return {@code true} in case of force repositories, {@code false} otherwise.
+   * @return {@code true} to force repositories (including cloning inactive and pull existing ones), {@code false} otherwise.
    */
   boolean isForceRepositories();
-
-  /**
-   * Sets a new value which indicates if pull from git should be forced
-   *
-   * @param forcePull {@code true} if it should be forced, {@code false} otherwise.
-   */
-  void setForcePull(boolean forcePull);
-
-  /**
-   * Sets a new value which indicates if plugins should be forced to be installed/updated
-   *
-   * @param forcePlugins {@code true} if it should be forced, {@code false} otherwise.
-   */
-  void setForcePlugins(boolean forcePlugins);
-
-  /**
-   * Sets a new value which indicates if repositories should be forced to be pulled
-   *
-   * @param forceRepositories {@code true} if it should be forced, {@code false} otherwise.
-   */
-  void setForceRepositories(boolean forceRepositories);
 
   /**
    * @return {@code true} if offline mode is activated (-o/--offline), {@code false} otherwise.
@@ -76,6 +55,11 @@ public interface IdeStartContext extends IdeLogger {
    * @return {@code true} if quickStart mode is activated (-s/--quickStart), {@code false} otherwise.
    */
   boolean isSkipUpdatesMode();
+
+  /**
+   * @return {@code true} if no-colours mode is activated (--no-colours), {@code false} otherwise.
+   */
+  boolean isNoColorsMode();
 
   /**
    * @return the current {@link Locale}. Either configured via command-line option or {@link Locale#getDefault() default}.

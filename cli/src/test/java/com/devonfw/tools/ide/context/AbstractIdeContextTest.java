@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.context;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -14,6 +19,7 @@ import com.devonfw.tools.ide.io.FileCopyMode;
 import com.devonfw.tools.ide.io.IdeProgressBarTestImpl;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.tool.repository.ToolRepositoryMock;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
  * Abstract base class for tests that need mocked instances of {@link IdeContext}.
@@ -44,7 +50,18 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected IdeTestContext newContext(String testProject) {
 
-    return newContext(testProject, null, true);
+    return newContext(testProject, null, true, null);
+  }
+
+  /**
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}.
+   *     E.g. "basic".
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} or {@code null} if not used.
+   * @return the {@link IdeTestContext} pointing to that project.
+   */
+  protected IdeTestContext newContext(String testProject, WireMockRuntimeInfo wmRuntimeInfo) {
+
+    return newContext(testProject, null, true, wmRuntimeInfo);
   }
 
   /**
@@ -55,7 +72,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static IdeTestContext newContext(String testProject, String projectPath) {
 
-    return newContext(testProject, projectPath, true);
+    return newContext(testProject, projectPath, true, null);
   }
 
   /**
@@ -68,7 +85,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation) {
 
-    return newContext(testProject, projectPath, copyForMutation, IdeLogLevel.TRACE);
+    return newContext(testProject, projectPath, copyForMutation, null);
   }
 
   /**
@@ -77,10 +94,26 @@ public abstract class AbstractIdeContextTest extends Assertions {
    * @param projectPath the relative path inside the test project where to create the context.
    * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test, {@code false} otherwise (only to save resources
    *     if you are 100% sure that your test never modifies anything in that project.)
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} or {@code null} if not used.
+   * @return the {@link IdeTestContext} pointing to that project.
+   */
+  protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation, WireMockRuntimeInfo wmRuntimeInfo) {
+
+    return newContext(testProject, projectPath, copyForMutation, wmRuntimeInfo, IdeLogLevel.TRACE);
+  }
+
+  /**
+   * @param testProject the (folder)name of the project test case, in this folder a 'project' folder represents the test project in {@link #TEST_PROJECTS}.
+   *     E.g. "basic".
+   * @param projectPath the relative path inside the test project where to create the context.
+   * @param copyForMutation - {@code true} to create a copy of the project that can be modified by the test, {@code false} otherwise (only to save resources
+   *     if you are 100% sure that your test never modifies anything in that project.)
+   * @param wmRuntimeInfo the {@link WireMockRuntimeInfo} or {@code null} if not used.
    * @param logLevel the {@link IdeLogLevel} used as threshold for logging.
    * @return the {@link IdeTestContext} pointing to that project.
    */
-  protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation, IdeLogLevel logLevel) {
+  protected static IdeTestContext newContext(String testProject, String projectPath, boolean copyForMutation, WireMockRuntimeInfo wmRuntimeInfo,
+      IdeLogLevel logLevel) {
 
     Path ideRoot = TEST_PROJECTS.resolve(testProject);
     if (copyForMutation) {
@@ -96,11 +129,17 @@ public abstract class AbstractIdeContextTest extends Assertions {
     }
     Path userDir = ideRoot.resolve(projectPath);
     ToolRepositoryMock toolRepository = null;
-    IdeTestContext context = new IdeTestContext(userDir, logLevel);
+    IdeTestContext context = new IdeTestContext(userDir, logLevel, wmRuntimeInfo);
+
     Path repositoryFolder = ideRoot.resolve("repository");
     if (Files.isDirectory(repositoryFolder)) {
-      toolRepository = new ToolRepositoryMock(context, repositoryFolder);
+      toolRepository = new ToolRepositoryMock(context, repositoryFolder, wmRuntimeInfo);
       context.setDefaultToolRepository(toolRepository);
+    }
+    if (wmRuntimeInfo != null) {
+      stubFor(any(urlEqualTo("/health")).willReturn(
+          aResponse().withStatus(200).withHeader("Content-Type", "text").withHeader("Content-Length", String.valueOf("ok".length()))
+              .withBody("ok")));
     }
     return context;
   }
@@ -111,7 +150,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static IdeTestContext newContext(Path projectPath) {
 
-    return new IdeTestContext(projectPath);
+    return new IdeTestContext(projectPath, null);
   }
 
   protected static IdeTestContextAssertion assertThat(IdeTestContext context) {

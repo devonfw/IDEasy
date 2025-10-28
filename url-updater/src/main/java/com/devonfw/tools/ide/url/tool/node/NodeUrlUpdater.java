@@ -14,7 +14,6 @@ public class NodeUrlUpdater extends GithubUrlUpdater {
   private static final VersionIdentifier MIN_WIN_ARM_VID = VersionIdentifier.of("v19.9.9");
 
   private static final VersionIdentifier MIN_MAC_ARM_VID = VersionIdentifier.of("v15.9.9");
-  private static final String BASE_URL = "https://nodejs.org";
 
   @Override
   protected String getTool() {
@@ -41,9 +40,9 @@ public class NodeUrlUpdater extends GithubUrlUpdater {
   }
 
   @Override
-  protected String getBaseUrl() {
+  protected String getDownloadBaseUrl() {
 
-    return BASE_URL;
+    return "https://nodejs.org";
   }
 
   @Override
@@ -52,7 +51,7 @@ public class NodeUrlUpdater extends GithubUrlUpdater {
     VersionIdentifier vid = urlVersion.getVersionIdentifier();
 
     if (vid.compareVersion(MIN_NODE_VID).isGreater()) {
-      String baseUrl = getBaseUrl() + "/dist/${version}/node-${version}-";
+      String baseUrl = getDownloadBaseUrl() + "/dist/${version}/node-${version}-";
       doAddVersion(urlVersion, baseUrl + "win-x64.zip", WINDOWS);
       if (vid.compareVersion(MIN_WIN_ARM_VID).isGreater()) {
         doAddVersion(urlVersion, baseUrl + "win-arm64.zip", WINDOWS, ARM64);

@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.common;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -168,7 +169,7 @@ public class SystemPath {
 
       Path fileToExecute = path.resolve(tool + extension);
 
-      if (Files.exists(fileToExecute)) {
+      if (Files.exists(fileToExecute, LinkOption.NOFOLLOW_LINKS)) {
         return fileToExecute;
       }
     }
@@ -177,8 +178,28 @@ public class SystemPath {
   }
 
   /**
+   * @param binaryName the name of the tool.
+   * @return {@code true} if the given {@code tool} is a binary that can be found on the PATH, {@code false} otherwise.
+   */
+  public boolean hasBinaryOnPath(String binaryName) {
+    Path binary = Path.of(binaryName);
+    Path resolvedBinary = findBinary(binary);
+    return (resolvedBinary != binary);
+  }
+
+  /**
+   * @param binaryName the name of the tool.
+   * @return the {@link Path} to the binary executable of the tool. E.g. if "mvn" is given then ".../software/mvn/bin/mvn" could be returned. If the executable
+   *     was not found on PATH, the same {@link Path} instance is returned that was given as argument.
+   */
+  public Path findBinaryPathByName(String binaryName) {
+    return findBinary(Path.of(binaryName));
+  }
+
+  /**
    * @param toolPath the {@link Path} to the tool installation.
-   * @return the {@link Path} to the binary executable of the tool. E.g. is "software/mvn" is given "software/mvn/bin/mvn" could be returned.
+   * @return the {@link Path} to the binary executable of the tool. E.g. if "mvn" is given then ".../software/mvn/bin/mvn" could be returned. If the executable
+   *     was not found on PATH, the same {@link Path} instance is returned that was given as argument.
    */
   public Path findBinary(Path toolPath) {
 

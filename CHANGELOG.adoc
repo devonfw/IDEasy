@@ -2,6 +2,73 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.11.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1549[#1549]: IDEasy omits error messages when a download fails
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/37?closed=1[milestone 2025.11.001].
+
+== 2025.10.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1492[#1492]: Add spring-boot CLI Commandlet.
+* https://github.com/devonfw/IDEasy/issues/1545[#1545]: Yarn can not be installed after corepack
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/36?closed=1[milestone 2025.10.002].
+
+== 2025.10.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/907[#907]: Implement ToolCommandlet for Yarn
+* https://github.com/devonfw/IDEasy/issues/908[#908]: Get rid of Git error messages when retrieving settings status
+* https://github.com/devonfw/IDEasy/issues/1362[#1362]: ide create fails when creating mvn settings-security file
+* https://github.com/devonfw/IDEasy/issues/1506[#1506]: Create migration for 2025.10.001 to remove software/npm
+* https://github.com/devonfw/IDEasy/issues/1530[#1530]: NPE on ide update with custom tool
+* https://github.com/devonfw/IDEasy/issues/858[#858]: installing kotlincnative does not work
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/35?closed=1[milestone 2025.10.001].
+
+== 2025.09.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1454[#1454]: Support for ng (angular CLI)
+* https://github.com/devonfw/IDEasy/issues/1464[#1464]: IDEasy setup does not find bash
+* https://github.com/devonfw/IDEasy/issues/1476[#1476]: IDEasy does not create links on extraction
+* https://github.com/devonfw/IDEasy/issues/1477[#1477]: IDEasy cannot create link to file on Windows
+* https://github.com/devonfw/IDEasy/issues/1221[#1221]: Improve Windows terminal integration on installation
+* https://github.com/devonfw/IDEasy/issues/1460[#1460]: Prevent strange ansi-codes in logs
+* https://github.com/devonfw/IDEasy/issues/1484[#1484]: Broken error handling: Couldn't uninstall node.
+* https://github.com/devonfw/IDEasy/issues/1515[#1515]: cannot upgrade snapshot release of IDEasy
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/34?closed=1[milestone 2025.09.001].
+
+== 2025.08.001
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1384[#1384]: Python support not working at all
+* https://github.com/devonfw/IDEasy/issues/1443[#1443]: Tool version is being added to settings even though it does not exist
+* https://github.com/devonfw/IDEasy/issues/1451[#1451]: XmlMerger requires merge:id for single attribute
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/33?closed=1[milestone 2025.08.001].
+
+== 2025.07.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1399[#1399]: Welcome message not working on Linux
+* https://github.com/devonfw/IDEasy/issues/1387[#1387]: Hide exception from user when a tool version is not supported
+* https://github.com/devonfw/IDEasy/issues/1389[#1389]: support podman as docker alternative
+* https://github.com/devonfw/IDEasy/issues/1393[#1393]: Support configuring HTTP version downgrade to workaround download errors with ZScaler VPN
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/31?closed=1[milestone 2025.07.002].
+p.s.: Was released on 08.08.2025 but due to technical reasons the version was still on 2025.07.002.
+
 == 2025.07.001
 
 Release with new features and bugfixes:
@@ -9,6 +76,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1401[#1401]: Privacy option not working properly
 * https://github.com/devonfw/IDEasy/issues/1400[#1400]: ide --offline status does not replicate ide status behavior when offline
 * https://github.com/devonfw/IDEasy/issues/742[#742]: Produce constructive warning if git repo url is not sane
+* https://github.com/devonfw/IDEasy/issues/1297[#1297]: Migration from OSSRH to new Maven Central service
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/30?closed=1[milestone 2025.07.001].
 

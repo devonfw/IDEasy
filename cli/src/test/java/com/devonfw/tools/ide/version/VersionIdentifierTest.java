@@ -1,13 +1,13 @@
 package com.devonfw.tools.ide.version;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Test of {@link VersionIdentifier}.
@@ -27,6 +27,7 @@ public class VersionIdentifierTest extends Assertions {
     VersionIdentifier vid = VersionIdentifier.of(version);
     // then
     assertThat(vid.isPattern()).isFalse();
+    assertThat(vid.getBoundaryType()).isSameAs(BoundaryType.CLOSED);
     VersionSegment segment1 = vid.getStart();
     assertThat(segment1.getSeparator()).isEmpty();
     assertThat(segment1.getLettersString()).isEmpty();
@@ -78,7 +79,7 @@ public class VersionIdentifierTest extends Assertions {
   @ParameterizedTest
   // arrange
   @ValueSource(strings = { "0", "0.0", "1.0.pineapple-pen", "1.0-rc", ".1.0", "1.-0", "RC1", "Beta1", "donut", "8u412b08", "0*.0", "*0", "*.", "17.*alpha",
-      "17*.1" })
+    "17*.1" })
   public void testInvalid(String version) {
 
     // act
@@ -95,8 +96,8 @@ public class VersionIdentifierTest extends Assertions {
   @Test
   public void testCompare() {
 
-    String[] versions = { "0.1", "0.2-SNAPSHOT", "0.2-nb5", "0.2-a", "0.2-alpha1", "0.2-beta", "0.2-b2", "0.2.M1",
-        "0.2M9", "0.2M10", "0.2-rc1", "0.2-RC2", "0.2", "0.2-fix9", "0.2-hf1", "0.3", "0.3.1", "1", "1.0", "10-alpha1" };
+    String[] versions = { "0.1", "0.2-SNAPSHOT", "0.2-nb5", "0.2-a", "0.2-alpha1", "0.2-beta", "0.2-b2", "0.2.M1", "0.2M9", "0.2M10", "0.2-rc1", "0.2-RC2",
+      "0.2", "0.2-fix9", "0.2-hf1", "0.3", "0.3.1", "1", "1.0", "10-alpha1" };
     List<VersionIdentifier> vids = new ArrayList<>(versions.length);
     for (String version : versions) {
       VersionIdentifier vid = VersionIdentifier.of(version);
@@ -110,6 +111,17 @@ public class VersionIdentifierTest extends Assertions {
       VersionIdentifier vid = vids.get(i);
       assertThat(vid).hasToString(version);
     }
+  }
+
+  /**
+   * Test of {@link VersionIdentifier#compareVersion(VersionIdentifier)} with {@link VersionComparisonResult#isUnsafe() unsafe results} and other edge-cases.
+   */
+  @Test
+  public void testCompareSpecial() {
+
+    assertThat(VersionIdentifier.LATEST.compareVersion(VersionIdentifier.of("2.0"))).isSameAs(VersionComparisonResult.LESS_UNSAFE);
+    assertThat(VersionIdentifier.of("2").compareVersion(VersionIdentifier.of("2.0"))).isSameAs(VersionComparisonResult.LESS);
+    assertThat(VersionIdentifier.of("2.0").compareVersion(VersionIdentifier.of("2"))).isSameAs(VersionComparisonResult.GREATER);
   }
 
   /**

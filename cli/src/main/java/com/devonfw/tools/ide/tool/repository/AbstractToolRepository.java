@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.tool.repository;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -17,6 +18,11 @@ import com.devonfw.tools.ide.tool.ToolCommandlet;
 import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.devonfw.tools.ide.url.model.file.UrlDownloadFileMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlGenericChecksum;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependencies;
+import com.devonfw.tools.ide.url.model.file.json.ToolDependency;
+import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
+import com.devonfw.tools.ide.url.model.folder.UrlEdition;
+import com.devonfw.tools.ide.url.model.folder.UrlTool;
 import com.devonfw.tools.ide.util.FilenameUtil;
 import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
@@ -73,8 +79,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
     if (urlCollection.isEmpty()) {
       throw new IllegalStateException("Invalid download metadata with empty urls file for " + metadata);
     }
-    Path target = doDownload(metadata);
-    return target;
+    return doDownload(metadata);
   }
 
   /**
@@ -104,18 +109,25 @@ public abstract class AbstractToolRepository implements ToolRepository {
 
     VersionIdentifier resolvedVersion = metadata.getVersion();
     List<String> urlList = new ArrayList<>(metadata.getUrls());
-    if (urlList.size() > 1) {
+    int size = urlList.size();
+    int max = size - 1;
+    if (size > 1) {
       Collections.shuffle(urlList);
     }
     UrlChecksums checksums = metadata.getChecksums();
-    for (String url : urlList) {
+    Exception error = null;
+    for (int i = 0; i < size; i++) {
+      String url = urlList.get(i);
       try {
         return download(url, target, resolvedVersion, checksums);
       } catch (Exception e) {
-        this.context.error(e, "Failed to download from " + url);
+        error = e;
+      }
+      if (i < max) {
+        this.context.error(error, "Failed to download from " + url);
       }
     }
-    throw new CliException("Download of " + target.getFileName() + " failed after trying " + urlList.size() + " URL(s).");
+    throw new IllegalStateException("Download of " + target.getFileName() + " failed after trying " + size + " URL(s).", error);
   }
 
   /**
@@ -275,4 +287,34 @@ public abstract class AbstractToolRepository implements ToolRepository {
     List<VersionIdentifier> versions = getSortedVersions(tool, edition, toolCommandlet);
     return VersionIdentifier.resolveVersionPattern(version, versions, this.context);
   }
+
+  @Override
+  public Collection<ToolDependency> findDependencies(String tool, String edition, VersionIdentifier version) {
+
+    UrlEdition urlEdition = this.context.getUrls().getEdition(tool, edition);
+    ToolDependencies dependencies = urlEdition.getDependencyFile().getDependencies();
+    if (dependencies == ToolDependencies.getEmpty()) {
+      UrlTool urlTool = urlEdition.getParent();
+      dependencies = urlTool.getDependencyFile().getDependencies();
+    }
+    if (dependencies != ToolDependencies.getEmpty()) {
+      this.context.trace("Found dependencies in {}", dependencies);
+    }
+    return dependencies.findDependencies(version, this.context);
+  }
+
+  @Override
+  public ToolSecurity findSecurity(String tool, String edition) {
+    UrlEdition urlEdition = this.context.getUrls().getEdition(tool, edition);
+    ToolSecurity security = urlEdition.getSecurityFile().getSecurity();
+    if (security == ToolSecurity.getEmpty()) {
+      UrlTool urlTool = urlEdition.getParent();
+      security = urlTool.getSecurityFile().getSecurity();
+    }
+    if (security != ToolSecurity.getEmpty()) {
+      this.context.trace("Found dependencies in {}", security);
+    }
+    return security;
+  }
+
 }

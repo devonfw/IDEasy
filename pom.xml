@@ -6,7 +6,7 @@
   <parent>
     <groupId>com.devonfw</groupId>
     <artifactId>maven-parent</artifactId>
-    <version>13</version>
+    <version>14</version>
   </parent>
   <groupId>com.devonfw.tools.IDEasy.dev</groupId>
   <artifactId>ide</artifactId>
@@ -165,6 +165,7 @@
     <module>cli</module>
     <module>gui</module>
     <module>url-updater</module>
+    <module>security</module>
   </modules>
 
   <build>

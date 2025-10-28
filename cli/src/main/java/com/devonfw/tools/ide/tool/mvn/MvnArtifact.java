@@ -4,12 +4,13 @@ import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.repository.MvnRepository;
+import com.devonfw.tools.ide.tool.repository.SoftwareArtifact;
 
 /**
  * Simple type representing a maven artifact.
  */
-public final class MvnArtifact {
+public class MvnArtifact extends SoftwareArtifact {
 
   /** {@link #getGroupId() Group ID} of IDEasy. */
   public static final String GROUP_ID_IDEASY = "com.devonfw.tools.IDEasy";
@@ -35,8 +36,6 @@ public final class MvnArtifact {
 
   private final String artifactId;
 
-  private final String version;
-
   private final String classifier;
 
   private final String type;
@@ -44,8 +43,6 @@ public final class MvnArtifact {
   private final String filename;
 
   private String path;
-
-  private String key;
 
   private String downloadUrl;
 
@@ -86,10 +83,9 @@ public final class MvnArtifact {
   }
 
   MvnArtifact(String groupId, String artifactId, String version, String type, String classifier, String filename) {
-    super();
+    super(version);
     this.groupId = requireNotEmpty(groupId, "groupId");
     this.artifactId = requireNotEmpty(artifactId, "artifactId");
-    this.version = requireNotEmpty(version, "version");
     this.classifier = notNull(classifier);
     this.type = requireNotEmpty(type, "type");
     this.filename = filename;
@@ -107,14 +103,6 @@ public final class MvnArtifact {
    */
   public String getArtifactId() {
     return this.artifactId;
-  }
-
-  /**
-   * @return the version.
-   * @see com.devonfw.tools.ide.version.VersionIdentifier
-   */
-  public String getVersion() {
-    return this.version;
   }
 
   /**
@@ -203,6 +191,14 @@ public final class MvnArtifact {
   }
 
   /**
+   * @return {@code true} if this artifact represents {@link #MAVEN_METADATA_XML}.
+   * @see #withMavenMetadata()
+   */
+  public boolean isMavenMetadata() {
+    return MAVEN_METADATA_XML.equals(this.filename);
+  }
+
+  /**
    * @return the {@link String} with the path to the specified artifact relative to the maven repository base path or URL. For snapshots, includes the
    *     timestamped version in the artifact filename.
    */
@@ -222,21 +218,18 @@ public final class MvnArtifact {
     return this.path;
   }
 
-  /**
-   * @return the artifact key as unique identifier.
-   */
-  String getKey() {
-    if (this.key == null) {
-      int capacity = this.groupId.length() + this.artifactId.length() + this.version.length() + type.length() + classifier.length() + 4;
-      StringBuilder sb = new StringBuilder(capacity);
-      sb.append(this.groupId).append(':').append(this.artifactId).append(':').append(this.version).append(':').append(this.type);
-      if (!this.classifier.isEmpty()) {
-        sb.append(':').append(this.classifier);
-      }
-      this.key = sb.toString();
-      assert (this.key.length() <= capacity);
+  @Override
+  protected String computeKey() {
+
+    int capacity = this.groupId.length() + this.artifactId.length() + this.version.length() + type.length() + classifier.length() + 4;
+    StringBuilder sb = new StringBuilder(capacity);
+    sb.append(this.groupId).append(':').append(this.artifactId).append(':').append(this.version).append(':').append(this.type);
+    if (!this.classifier.isEmpty()) {
+      sb.append(':').append(this.classifier);
     }
-    return this.key;
+    String key = sb.toString();
+    assert (key.length() <= capacity);
+    return key;
   }
 
   /**
@@ -267,10 +260,14 @@ public final class MvnArtifact {
    */
   public String getDownloadUrl() {
     if (this.downloadUrl == null) {
-      String baseUrl = isSnapshot() ? MavenRepository.MAVEN_SNAPSHOTS : MavenRepository.MAVEN_CENTRAL;
+      String baseUrl = getMvnBaseUrl();
       this.downloadUrl = baseUrl + "/" + getPath();
     }
     return this.downloadUrl;
+  }
+
+  public String getMvnBaseUrl() {
+    return isSnapshot() ? MvnRepository.MAVEN_SNAPSHOTS : MvnRepository.MAVEN_CENTRAL;
   }
 
   @Override
@@ -289,30 +286,12 @@ public final class MvnArtifact {
     return false;
   }
 
-  @Override
-  public String toString() {
-    return getKey();
-  }
-
   private static String notNull(String value) {
 
     if (value == null) {
       return "";
     }
     return value;
-  }
-
-  private static String requireNotEmpty(String value, String propertyName) {
-
-    if (isEmpty(value)) {
-      throw new IllegalArgumentException("Maven artifact property " + propertyName + " must not be empty");
-    }
-    return value;
-  }
-
-  private static boolean isEmpty(String value) {
-
-    return ((value == null) || value.isEmpty());
   }
 
   /**

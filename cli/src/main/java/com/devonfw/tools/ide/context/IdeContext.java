@@ -21,10 +21,13 @@ import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
+import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.gradle.Gradle;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.repository.MvnRepository;
+import com.devonfw.tools.ide.tool.repository.NpmRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.variable.IdeVariables;
@@ -219,7 +222,7 @@ public interface IdeContext extends IdeStartContext {
    * Asks the user for a single string input.
    *
    * @param message The information message to display.
-   * @param defaultValue The default value to return when no input is provided.
+   * @param defaultValue The default value to return when no input is provided or {@code null} to keep asking until the user entered a non empty value.
    * @return The string input from the user, or the default value if no input is provided.
    */
   String askForInput(String message, String defaultValue);
@@ -228,9 +231,11 @@ public interface IdeContext extends IdeStartContext {
    * Asks the user for a single string input.
    *
    * @param message The information message to display.
-   * @return The string input from the user, or the default value if no input is provided.
+   * @return The string input from the user.
    */
-  String askForInput(String message);
+  default String askForInput(String message) {
+    return askForInput(message, null);
+  }
 
   /**
    * @param question the question to ask.
@@ -320,9 +325,14 @@ public interface IdeContext extends IdeStartContext {
   CustomToolRepository getCustomToolRepository();
 
   /**
-   * @return the {@link MavenRepository}.
+   * @return the {@link MvnRepository}.
    */
-  MavenRepository getMavenToolRepository();
+  MvnRepository getMvnRepository();
+
+  /**
+   * @return the {@link NpmRepository}.
+   */
+  NpmRepository getNpmRepository();
 
   /**
    * @return the {@link Path} to the IDE instance directory. You can have as many IDE instances on the same computer as independent tenants for different
@@ -786,4 +796,25 @@ public interface IdeContext extends IdeStartContext {
    */
   void verifyIdeMinVersion(boolean throwException);
 
+  /**
+   * @return the path for the variable COREPACK_HOME, or null if called outside an IDEasy installation.
+   */
+  default Path getCorePackHome() {
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Corepack corepack = getCommandletManager().getCommandlet(Corepack.class);
+    return corepack.getOrCreateCorepackHomeFolder();
+  }
+
+  /**
+   * @return the path for the variable NPM_CONFIG_USERCONFIG, or null if called outside an IDEasy installation.
+   */
+  default Path getNpmConfigUserConfig() {
+    if (getIdeHome() == null) {
+      return null;
+    }
+    Npm npm = getCommandletManager().getCommandlet(Npm.class);
+    return npm.getOrCreateNpmConfigUserConfig();
+  }
 }

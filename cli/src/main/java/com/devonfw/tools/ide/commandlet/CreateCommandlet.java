@@ -5,7 +5,6 @@ import java.nio.file.Path;
 import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.context.IdeContext;
-import com.devonfw.tools.ide.git.GitUrl;
 import com.devonfw.tools.ide.io.FileAccess;
 import com.devonfw.tools.ide.property.FlagProperty;
 import com.devonfw.tools.ide.property.StringProperty;
@@ -68,7 +67,7 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
     this.context.getFileAccess().writeFileContent(IdeVersion.getVersionString(), newProjectPath.resolve(IdeContext.FILE_SOFTWARE_VERSION));
     this.context.success("Successfully created new project '{}'.", newProjectName);
 
-    logWelcomeMessage(newProjectPath);
+    logWelcomeMessage();
   }
 
   private void initializeProject(Path newInstancePath) {
@@ -80,24 +79,18 @@ public class CreateCommandlet extends AbstractUpdateCommandlet {
   }
 
   @Override
-  protected void processRepository() {
-    RepositoryStrategy repositoryStrategy = new SettingsRepositoryStrategy();
-    if (isCodeRepository()) {
-      repositoryStrategy = new CodeRepositoryStrategy();
-    }
-
-    processRepositoryUsingStrategy(repositoryStrategy);
-  }
-
-  @Override
   protected boolean isCodeRepository() {
     return this.codeRepositoryFlag.isTrue();
   }
 
-  private void logWelcomeMessage(Path newProjectPath) {
-    GitUrl gitUrl = GitUrl.of(newProjectPath.toString());
-    Path codeRepoPath = this.context.getWorkspacePath().resolve(gitUrl.getProjectName());
-    Path settingsFolder = codeRepoPath.resolve(IdeContext.FOLDER_SETTINGS);
+  @Override
+  protected String getStepMessage() {
+
+    return "Create (clone) " + (isCodeRepository() ? "code" : "settings") + " repository";
+  }
+
+  private void logWelcomeMessage() {
+    Path settingsFolder = this.context.getSettingsPath();
     if (Files.exists(settingsFolder)) {
       Predicate<Path> welcomePredicate = path -> String.valueOf(path.getFileName()).startsWith("welcome.");
       Path welcomeFilePath = this.context.getFileAccess().findFirst(settingsFolder, welcomePredicate, false);

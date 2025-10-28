@@ -18,6 +18,7 @@ import com.devonfw.tools.ide.property.Property;
 import com.devonfw.tools.ide.tool.androidstudio.AndroidStudio;
 import com.devonfw.tools.ide.tool.aws.Aws;
 import com.devonfw.tools.ide.tool.az.Azure;
+import com.devonfw.tools.ide.tool.corepack.Corepack;
 import com.devonfw.tools.ide.tool.docker.Docker;
 import com.devonfw.tools.ide.tool.dotnet.DotNet;
 import com.devonfw.tools.ide.tool.eclipse.Eclipse;
@@ -35,6 +36,7 @@ import com.devonfw.tools.ide.tool.kotlinc.KotlincNative;
 import com.devonfw.tools.ide.tool.kubectl.KubeCtl;
 import com.devonfw.tools.ide.tool.lazydocker.LazyDocker;
 import com.devonfw.tools.ide.tool.mvn.Mvn;
+import com.devonfw.tools.ide.tool.ng.Ng;
 import com.devonfw.tools.ide.tool.node.Node;
 import com.devonfw.tools.ide.tool.npm.Npm;
 import com.devonfw.tools.ide.tool.oc.Oc;
@@ -43,9 +45,12 @@ import com.devonfw.tools.ide.tool.pycharm.Pycharm;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
+import com.devonfw.tools.ide.tool.spring.Spring;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.tomcat.Tomcat;
+import com.devonfw.tools.ide.tool.uv.Uv;
 import com.devonfw.tools.ide.tool.vscode.Vscode;
+import com.devonfw.tools.ide.tool.yarn.Yarn;
 
 /**
  * Implementation of {@link CommandletManager}.
@@ -100,6 +105,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new Gh(context));
     add(new Helm(context));
     add(new Java(context));
+    add(new Ng(context));
     add(new Node(context));
     add(new Npm(context));
     add(new Mvn(context));
@@ -128,6 +134,10 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new LazyDocker(context));
     add(new Python(context));
     add(new Pycharm(context));
+    add(new Spring(context));
+    add(new Uv(context));
+    add(new Yarn(context));
+    add(new Corepack(context));
   }
 
   /**
@@ -267,6 +277,7 @@ public class CommandletManagerImpl implements CommandletManager {
     }
 
     private Commandlet findNext() {
+
       while (this.commandletIterator.hasNext()) {
         Commandlet cmd = this.commandletIterator.next();
         if ((cmd != this.firstCandidate) && isSuitable(cmd)) {

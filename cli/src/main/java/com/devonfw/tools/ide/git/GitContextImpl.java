@@ -20,7 +20,8 @@ import com.devonfw.tools.ide.variable.IdeVariables;
  */
 public class GitContextImpl implements GitContext {
 
-  private final IdeContext context;
+  /** @see #getContext() */
+  protected final IdeContext context;
 
   /**
    * @param context the {@link IdeContext context}.
@@ -52,8 +53,10 @@ public class GitContextImpl implements GitContext {
   public boolean isRepositoryUpdateAvailable(Path repository) {
 
     verifyGitInstalled();
-    String localCommitId = runGitCommandAndGetSingleOutput("Failed to get the local commit id.", repository, "rev-parse", "HEAD");
-    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
+    String localFailureMessage = String.format("Failed to get the local commit id of settings repository '%s'.",repository);
+    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?",repository);
+    String localCommitId = runGitCommandAndGetSingleOutput(localFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "HEAD");
+    String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     if ((localCommitId == null) || (remoteCommitId == null)) {
       return false;
     }
@@ -70,8 +73,8 @@ public class GitContextImpl implements GitContext {
     } catch (IOException e) {
       return false;
     }
-
-    String remoteCommitId = runGitCommandAndGetSingleOutput("Failed to get the remote commit id.", repository, "rev-parse", "@{u}");
+    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?",repository);
+    String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     return !trackedCommitId.equals(remoteCommitId);
   }
 
@@ -282,7 +285,15 @@ public class GitContextImpl implements GitContext {
 
   private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
 
-    ProcessResult result = runGitCommand(directory, ProcessMode.DEFAULT_CAPTURE, args);
+    return runGitCommandAndGetSingleOutput(warningOnError,directory, ProcessMode.DEFAULT_CAPTURE, args);
+  }
+
+  private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, ProcessMode mode, String... args) {
+    ProcessErrorHandling errorHandling = ProcessErrorHandling.NONE;
+    if (this.context.debug().isEnabled()){
+      errorHandling = ProcessErrorHandling.LOG_WARNING;
+    }
+    ProcessResult result = runGitCommand(directory, mode, errorHandling, args);
     if (result.isSuccessful()) {
       List<String> out = result.getOut();
       int size = out.size();
@@ -327,7 +338,7 @@ public class GitContextImpl implements GitContext {
       return;
     }
     this.context.trace("Saving commit Id of {} into {}", repository, trackedCommitIdPath);
-    String currentCommitId = runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", "HEAD");
+    String currentCommitId = determineCurrentCommitId(repository);
     if (currentCommitId != null) {
       try {
         Files.writeString(trackedCommitIdPath, currentCommitId);
@@ -335,6 +346,14 @@ public class GitContextImpl implements GitContext {
         throw new IllegalStateException("Failed to save commit ID", e);
       }
     }
+  }
+
+  /**
+   * @param repository the {@link Path} to the git repository.
+   * @return the current commit ID of the given {@link Path repository}.
+   */
+  protected String determineCurrentCommitId(Path repository) {
+    return runGitCommandAndGetSingleOutput("Failed to get current commit id.", repository, "rev-parse", FILE_HEAD);
   }
 }
 

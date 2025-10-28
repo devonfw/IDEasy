@@ -15,16 +15,23 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
 
   private static final String MAVEN_METADATA_XML = "maven-metadata.xml";
 
-  private final String mavenBaseRepoUrl;
-
   /**
    * The constructor.
    */
   public MavenBasedUrlUpdater() {
 
     super();
-    this.mavenBaseRepoUrl = "https://repo1.maven.org/maven2/" + getMavenGroupIdPath() + "/" + getMavenArtifcatId() + "/";
+  }
 
+  @Override
+  protected String getDownloadBaseUrl() {
+
+    return "https://repo1.maven.org/maven2";
+  }
+
+  private String getDownloadArtifactUrl() {
+
+    return getDownloadBaseUrl() + "/" + getMavenGroupIdPath() + "/" + getMavenArtifcatId() + "/";
   }
 
   /**
@@ -48,14 +55,20 @@ public abstract class MavenBasedUrlUpdater extends AbstractUrlUpdater {
   @Override
   protected Set<String> getVersions() {
 
-    return doGetVersionsFromMavenApi(this.mavenBaseRepoUrl + MAVEN_METADATA_XML);
+    return doGetVersionsFromMavenApi(getDownloadArtifactUrl() + MAVEN_METADATA_XML);
+  }
+
+  @Override
+  protected String getVersionBaseUrl() {
+
+    return getDownloadBaseUrl();
   }
 
   @Override
   protected void addVersion(UrlVersion urlVersion) {
 
     String version = urlVersion.getName();
-    String url = this.mavenBaseRepoUrl + version + "/" + getMavenArtifcatId() + "-" + version + getExtension();
+    String url = getDownloadArtifactUrl() + version + "/" + getMavenArtifcatId() + "-" + version + getExtension();
     doAddVersion(urlVersion, url);
   }
 
