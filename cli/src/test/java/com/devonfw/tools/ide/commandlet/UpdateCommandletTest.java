@@ -15,10 +15,13 @@ import com.devonfw.tools.ide.context.IdeTestContext;
 import com.devonfw.tools.ide.environment.EnvironmentVariables;
 import com.devonfw.tools.ide.environment.EnvironmentVariablesType;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
 /**
  * Test of {@link UpdateCommandlet}.
  */
+@WireMockTest
 class UpdateCommandletTest extends AbstractIdeContextTest {
 
   private static final String PROJECT_UPDATE = "update";
@@ -111,10 +114,10 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
   }
 
   @Test
-  public void testRunUpdateSoftwareDoesNotFailWhenSettingPathIsDeleted() {
+  public void testRunUpdateSoftwareDoesNotFailWhenSettingPathIsDeleted(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
-    IdeTestContext context = newContext(PROJECT_UPDATE);
+    IdeTestContext context = newContext(PROJECT_UPDATE, wireMockRuntimeInfo);
     Path settingsPath = context.getSettingsPath();
     context.getFileAccess().delete(settingsPath);
     UpdateCommandlet update = context.getCommandletManager().getCommandlet(UpdateCommandlet.class);
@@ -122,7 +125,7 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
 
     // act
     update.run();
-    //
+
     // assert
     assertThat(context).logAtSuccess().hasMessage(SUCCESS_UPDATE_SETTINGS);
     assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
