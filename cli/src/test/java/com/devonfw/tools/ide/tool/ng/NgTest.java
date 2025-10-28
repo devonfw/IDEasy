@@ -4,8 +4,6 @@ import org.junit.jupiter.api.Test;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
-import com.devonfw.tools.ide.os.SystemInfo;
-import com.devonfw.tools.ide.os.SystemInfoMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 
@@ -85,7 +83,7 @@ public class NgTest extends AbstractIdeContextTest {
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context).logAtInfo().hasMessageContaining("npm install -g @angular/cli@18.0.1");
+    assertThat(context).logAtInfo().hasMessageContaining("npm install -gf @angular/cli@18.0.1");
 
     assertThat(context).logAtSuccess().hasMessage("Successfully installed ng in version 18.0.1");
   }

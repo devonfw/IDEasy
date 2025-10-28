@@ -85,11 +85,25 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
     this.installedVersion.invalidate();
   }
 
+  /**
+   * Checks if the tool can be uninstalled e.g. if the uninstall command for the tool should be disabled or not.
+   *
+   * @return {@code true} if the tool can be uninstalled, {@code false} if not.
+   */
+  protected boolean canBeUninstalled() {
+    return true;
+  }
+
   @Override
   protected void performUninstall(Path toolPath) {
-
-    runPackageUninstall(getPackageName());
-    this.installedVersion.invalidate();
+    if (canBeUninstalled()) {
+      runPackageUninstall(getPackageName());
+      this.installedVersion.invalidate();
+    } else {
+      this.context.info("IDEasy does not support uninstalling the tool {} since this will break your installation.\n"
+          + "If you really want to uninstall it, please uninstall the entire node installation:\n"
+          + "ide uninstall node", getPackageName());
+    }
   }
 
   /**
@@ -109,7 +123,7 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
    * @param npmPackage the npm package to uninstall.
    */
   protected void runPackageUninstall(String npmPackage) {
-    
+
     runPackageManager("uninstall", "-g", npmPackage).failOnError();
   }
 
@@ -120,7 +134,7 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
    */
   protected void runPackageInstall(String npmPackage) {
 
-    runPackageManager("install", "-g", npmPackage).failOnError();
+    runPackageManager("install", "-gf", npmPackage).failOnError();
   }
 
   /**

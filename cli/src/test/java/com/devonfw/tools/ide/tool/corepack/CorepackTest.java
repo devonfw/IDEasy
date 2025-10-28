@@ -56,7 +56,10 @@ public class CorepackTest extends AbstractIdeContextTest {
     commandlet.uninstall();
 
     // assert II
-    assertThat(context).logAtInfo().hasMessageContaining("npm uninstall -g corepack");
+    assertThat(context).logAtInfo().hasNoMessageContaining("npm uninstall -g corepack");
+    assertThat(context).logAtInfo().hasMessageContaining("IDEasy does not support uninstalling the tool corepack since this will break your installation.\n"
+        + "If you really want to uninstall it, please uninstall the entire node installation:\n"
+        + "ide uninstall node");
 
     assertThat(context).logAtSuccess().hasMessage("Successfully uninstalled corepack");
   }
@@ -84,14 +87,8 @@ public class CorepackTest extends AbstractIdeContextTest {
 
   private void checkInstallation(IdeTestContext context) {
 
-    assertThat(context).logAtInfo().hasMessageContaining("npm install -g corepack@0.34.0");
-
+    assertThat(context).logAtInfo().hasMessageContaining("npm install -gf corepack@0.34.0");
+    assertThat(context).logAtSuccess().hasMessageContaining("Setting npm config prefix to: " + context.getSoftwarePath().resolve("node") + " was successful");
     assertThat(context).logAtSuccess().hasMessage("Successfully installed corepack in version 0.34.0");
-  }
-
-  private void checkYarnInstallation(IdeTestContext context) {
-    assertThat(context).logAtInfo().hasMessageContaining("npm install -g corepack@0.34.0");
-    assertThat(context).logAtInfo().hasMessageContaining("corepack prepare yarn@2.4.3 --activate");
-    assertThat(context).logAtInfo().hasMessageContaining("corepack install -g yarn@2.4.3");
   }
 }
