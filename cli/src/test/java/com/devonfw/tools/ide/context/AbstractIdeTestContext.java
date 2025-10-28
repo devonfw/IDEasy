@@ -61,7 +61,7 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
    *
    * @param logger the {@link IdeLogger}.
    * @param workingDirectory the optional {@link Path} to current working directory.
-   * @param wireMockRuntimeInfo wireMock server on a random port
+   * @param wireMockRuntimeInfo wireMock server on a random port.
    */
   public AbstractIdeTestContext(IdeStartContextImpl logger, Path workingDirectory, WireMockRuntimeInfo wireMockRuntimeInfo) {
 

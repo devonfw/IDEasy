@@ -14,6 +14,7 @@ The full list of changes for this release can be found in https://github.com/dev
 
 Release with new features and bugfixes:
 
+* https://github.com/devonfw/IDEasy/issues/1492[#1492]: Add spring-boot CLI Commandlet.
 * https://github.com/devonfw/IDEasy/issues/1545[#1545]: Yarn can not be installed after corepack
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/36?closed=1[milestone 2025.10.002].
