@@ -59,9 +59,13 @@ public final class Ideasy {
       exitStatus = runOrThrow(args);
     } catch (CliException error) {
       exitStatus = error.getExitCode();
-      String errorMessage = error.getMessage();
-      if ((errorMessage != null) && !errorMessage.isBlank()) {
-        context().error(errorMessage);
+      if (context().debug().isEnabled()) {
+        context().error(error);
+      } else {
+        String errorMessage = error.getMessage();
+        if ((errorMessage != null) && !errorMessage.isBlank()) {
+          context().error(errorMessage);
+        }
       }
     } catch (Throwable error) {
       exitStatus = 255;
