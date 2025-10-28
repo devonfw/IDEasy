@@ -61,12 +61,6 @@ public class MvnRepositoryMock extends MvnRepository {
   }
 
   @Override
-  protected Path download(String url, Path target, Object resolvedVersion, UrlChecksums expectedChecksums) {
-    url = url.replace(MvnRepositoryMock.MAVEN_CENTRAL, wmRuntimeInfo.getHttpBaseUrl());
-    return super.download(url, target, resolvedVersion, expectedChecksums);
-  }
-
-  @Override
   protected String getMavenUrl(MvnArtifact artifact) {
     return artifact.getDownloadUrl().replace(MvnRepository.MAVEN_CENTRAL, this.wmRuntimeInfo.getHttpBaseUrl());
   }
