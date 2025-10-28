@@ -72,6 +72,7 @@ The column `inclusion` indicates the way the component is included:
 |https://github.com/fusesource/jansi[jansi] |Directly included|https://github.com/fusesource/jansi/blob/master/license.txt[Apache 2.0]
 |https://www.sonarsource.com/plans-and-pricing/community/[SonarQube (Community Edition)] |Optional|https://github.com/SonarSource/sonarqube/blob/master/LICENSE.txt[LGPL 3.0]
 |https://www.sonarlint.org/eclipse/[SonarLint] |Optional|https://github.com/SonarSource/sonarlint-eclipse/blob/master/LICENSE.txt[LGPL 3+]
+|https://spring.io/projects/spring-boot/[Spring-Boot] |Optional|https://github.com/spring-projects/spring-boot/blob/main/LICENSE.txt[Apache 2.0]
 |https://www.jetbrains.com/idea/[IntelliJ IDEA] |Optional|https://www.jetbrains.com/opensource/idea/[Apache 2.0]
 |https://developer.android.com/studio[Android Studio] |Optional|https://developer.android.com/license[Apache 2.0]
 |https://www.jetbrains.com/pycharm/[Pycharm] |Optional|https://www.jetbrains.com/legal/docs/toolbox/user_community/[Apache 2.0]
