@@ -127,7 +127,7 @@ public abstract class AbstractToolRepository implements ToolRepository {
         this.context.error(error, "Failed to download from " + url);
       }
     }
-    throw new CliException("Download of " + target.getFileName() + " failed after trying " + size + " URL(s).", error);
+    throw new IllegalStateException("Download of " + target.getFileName() + " failed after trying " + size + " URL(s).", error);
   }
 
   /**
