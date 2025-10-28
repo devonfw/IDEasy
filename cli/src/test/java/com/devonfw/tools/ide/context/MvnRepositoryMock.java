@@ -6,6 +6,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -65,6 +66,11 @@ public class MvnRepositoryMock extends MvnRepository {
     return super.download(url, target, resolvedVersion, expectedChecksums);
   }
 
+  @Override
+  protected String getMavenUrl(MvnArtifact artifact) {
+    return artifact.getDownloadUrl().replace(MvnRepository.MAVEN_CENTRAL, this.wmRuntimeInfo.getHttpBaseUrl());
+  }
+
   private void mockMvnMetadataResponses(WireMockRuntimeInfo wireMockRuntimeInfo) {
     Path mvnRoot = this.context.getIdeHome()
         .getParent()
@@ -76,7 +82,10 @@ public class MvnRepositoryMock extends MvnRepository {
           .forEach(xmlFile -> {
             // Derive package path from relative file path, e.g.
             //   <root>/org/springframework/boot/maven-metadata.xml  -> org/springframework/boot
-            String packagePath = xmlFile.getParent().toString();
+            Path rel = mvnRoot.relativize(xmlFile);
+            String packagePath = "/" + rel.toString()
+                .replace(File.separatorChar, '/');
+
             String body = IdeTestContext.readAndResolveBaseUrl(xmlFile, wireMockRuntimeInfo);
 
             stubFor(get(urlPathEqualTo(packagePath))

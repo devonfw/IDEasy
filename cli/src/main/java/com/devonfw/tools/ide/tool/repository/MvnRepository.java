@@ -159,7 +159,7 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
     Path file = this.localMavenRepository.resolve(artifact.getPath());
     if (isNotUpToDateInLocalRepo(file)) {
       this.context.getFileAccess().mkdirs(file.getParent());
-      download(artifact.getDownloadUrl(), file, artifact.getVersion(), checksums);
+      download(getMavenUrl(artifact), file, artifact.getVersion(), checksums);
     }
     return file;
   }
@@ -202,7 +202,7 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
     versionString = resolvedVersion.toString();
     if (versionString.endsWith("-SNAPSHOT")) {
       artifact = artifact.withVersion(versionString);
-      return resolveSnapshotVersion(artifact.getDownloadUrl(), versionString);
+      return resolveSnapshotVersion(getMavenUrl(artifact), versionString);
     }
     return resolvedVersion;
   }
@@ -210,7 +210,8 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
   @Override
   protected List<VersionIdentifier> fetchVersions(MvnArtifact artifact) {
 
-    String metadataUrl = artifact.withMavenMetadata().getDownloadUrl();
+    String metadataUrl = getMavenUrl(artifact.withMavenMetadata());
+
     Document metadata = fetchXmlMetadata(metadataUrl);
     return fetchVersions(metadata, metadataUrl);
   }
@@ -284,6 +285,16 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
     } catch (Exception e) {
       throw new IllegalStateException("Failed to fetch XML metadata from " + url, e);
     }
+  }
+
+  /**
+   * Used for tests to overwrite Maven base url.
+   *
+   * @param artifact the {@link MvnArtifact} to use
+   * @return the Maven url
+   */
+  protected String getMavenUrl(MvnArtifact artifact) {
+    return artifact.getDownloadUrl();
   }
 
   private class UrlLazyChecksums implements UrlChecksums {
