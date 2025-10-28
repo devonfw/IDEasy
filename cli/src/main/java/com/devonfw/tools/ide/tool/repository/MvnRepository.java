@@ -127,14 +127,26 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
       }
       artifact = artifact.withClassifier(resolvedClassifier);
     }
+    UrlChecksums checksums = getChecksums(artifact);
+    return new MvnArtifactMetadata(artifact, tool, edition, checksums, os, arch);
+  }
+
+  /**
+   * Method is required to disable checksum checks in tests.
+   *
+   * @param artifact the {@link MvnArtifact} to use.
+   * @return the {@link UrlChecksums}.
+   */
+  protected UrlChecksums getChecksums(MvnArtifact artifact) {
+
     UrlChecksums checksums = null;
     if (!artifact.isMavenMetadata()) {
       checksums = new UrlLazyChecksums(artifact);
     }
-    return new MvnArtifactMetadata(artifact, tool, edition, checksums, os, arch);
+    return checksums;
   }
 
-  private UrlGenericChecksum getChecksum(MvnArtifact artifact, String hashAlgorithm) {
+  protected UrlGenericChecksum getChecksum(MvnArtifact artifact, String hashAlgorithm) {
 
     MvnArtifact checksumArtifact = artifact.withType(artifact.getType() + "." + hashAlgorithm.toLowerCase(Locale.ROOT));
     Path checksumFile = getDownloadedArtifact(checksumArtifact, null);
@@ -301,5 +313,4 @@ public class MvnRepository extends ArtifactToolRepository<MvnArtifact, MvnArtifa
       return this.checksums.iterator();
     }
   }
-
 }

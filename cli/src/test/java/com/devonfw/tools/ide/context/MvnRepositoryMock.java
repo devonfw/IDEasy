@@ -6,7 +6,6 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -15,6 +14,7 @@ import java.util.stream.Stream;
 import com.devonfw.tools.ide.tool.mvn.MvnArtifact;
 import com.devonfw.tools.ide.tool.repository.MvnArtifactMetadata;
 import com.devonfw.tools.ide.tool.repository.MvnRepository;
+import com.devonfw.tools.ide.url.model.file.UrlChecksums;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 
 /**
@@ -40,17 +40,29 @@ public class MvnRepositoryMock extends MvnRepository {
   public Path download(MvnArtifactMetadata metadata) {
     MvnArtifact artifact = metadata.getMvnArtifact();
     String path = artifact.getDownloadUrl();
+    path = path.replace(MvnRepositoryMock.MAVEN_CENTRAL, "");
     String url = this.wmRuntimeInfo.getHttpBaseUrl() + path;
-    Path archiveFolder = context.getIdeRoot().resolve("repository").resolve("mvn").resolve(artifact.getGroupId() + "/" + artifact.getArtifactId());
+    Path archiveFolder = this.context.getIdeRoot().resolve("repository").resolve("mvn").resolve(artifact.getGroupId() + "/" + artifact.getArtifactId());
     try (ByteArrayOutputStream baos = new ByteArrayOutputStream(1024)) {
-      context.getFileAccess().compress(archiveFolder, baos, artifact.getFilename());
+      this.context.getFileAccess().compress(archiveFolder, baos, artifact.getFilename());
       byte[] body = baos.toByteArray();
       stubFor(get(urlPathEqualTo(path)).willReturn(
           aResponse().withStatus(200).withBody(body)));
     } catch (IOException e) {
       throw new IllegalStateException("Failed to create mock archive for " + url, e);
     }
-    return archiveFolder;
+    return super.download(metadata);
+  }
+
+  @Override
+  protected UrlChecksums getChecksums(MvnArtifact artifact) {
+    return null;
+  }
+
+  @Override
+  protected Path download(String url, Path target, Object resolvedVersion, UrlChecksums expectedChecksums) {
+    url = url.replace(MvnRepositoryMock.MAVEN_CENTRAL, wmRuntimeInfo.getHttpBaseUrl());
+    return super.download(url, target, resolvedVersion, expectedChecksums);
   }
 
   private void mockMvnMetadataResponses(WireMockRuntimeInfo wireMockRuntimeInfo) {
@@ -63,12 +75,8 @@ public class MvnRepositoryMock extends MvnRepository {
       files.filter(p -> Files.isRegularFile(p) && p.getFileName().toString().endsWith(".xml"))
           .forEach(xmlFile -> {
             // Derive package path from relative file path, e.g.
-            //   <root>/org/springframework/boot  -> "/springboot/cli
-            Path rel = mvnRoot.relativize(xmlFile);
-            String packagePath = "/" + rel.toString()
-                .replace(File.separatorChar, '/')
-                .replaceAll("\\.xml$", "");
-
+            //   <root>/org/springframework/boot/maven-metadata.xml  -> org/springframework/boot
+            String packagePath = xmlFile.getParent().toString();
             String body = IdeTestContext.readAndResolveBaseUrl(xmlFile, wireMockRuntimeInfo);
 
             stubFor(get(urlPathEqualTo(packagePath))
