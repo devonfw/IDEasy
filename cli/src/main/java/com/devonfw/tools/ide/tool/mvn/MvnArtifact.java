@@ -10,7 +10,7 @@ import com.devonfw.tools.ide.tool.repository.SoftwareArtifact;
 /**
  * Simple type representing a maven artifact.
  */
-public final class MvnArtifact extends SoftwareArtifact {
+public class MvnArtifact extends SoftwareArtifact {
 
   /** {@link #getGroupId() Group ID} of IDEasy. */
   public static final String GROUP_ID_IDEASY = "com.devonfw.tools.IDEasy";
@@ -260,10 +260,14 @@ public final class MvnArtifact extends SoftwareArtifact {
    */
   public String getDownloadUrl() {
     if (this.downloadUrl == null) {
-      String baseUrl = isSnapshot() ? MvnRepository.MAVEN_SNAPSHOTS : MvnRepository.MAVEN_CENTRAL;
+      String baseUrl = getMvnBaseUrl();
       this.downloadUrl = baseUrl + "/" + getPath();
     }
     return this.downloadUrl;
+  }
+
+  public String getMvnBaseUrl() {
+    return isSnapshot() ? MvnRepository.MAVEN_SNAPSHOTS : MvnRepository.MAVEN_CENTRAL;
   }
 
   @Override

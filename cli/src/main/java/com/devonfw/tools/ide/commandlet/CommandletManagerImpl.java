@@ -45,6 +45,7 @@ import com.devonfw.tools.ide.tool.pycharm.Pycharm;
 import com.devonfw.tools.ide.tool.python.Python;
 import com.devonfw.tools.ide.tool.quarkus.Quarkus;
 import com.devonfw.tools.ide.tool.sonar.Sonar;
+import com.devonfw.tools.ide.tool.spring.Spring;
 import com.devonfw.tools.ide.tool.terraform.Terraform;
 import com.devonfw.tools.ide.tool.tomcat.Tomcat;
 import com.devonfw.tools.ide.tool.uv.Uv;
@@ -133,6 +134,7 @@ public class CommandletManagerImpl implements CommandletManager {
     add(new LazyDocker(context));
     add(new Python(context));
     add(new Pycharm(context));
+    add(new Spring(context));
     add(new Uv(context));
     add(new Yarn(context));
     add(new Corepack(context));
