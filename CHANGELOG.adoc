@@ -2,6 +2,14 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.10.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1545[#1545]: Yarn can not be installed after corepack
+
+The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/36?closed=1[milestone 2025.10.002].
+
 == 2025.10.001
 
 Release with new features and bugfixes:
@@ -11,6 +19,7 @@ Release with new features and bugfixes:
 * https://github.com/devonfw/IDEasy/issues/1362[#1362]: ide create fails when creating mvn settings-security file
 * https://github.com/devonfw/IDEasy/issues/1506[#1506]: Create migration for 2025.10.001 to remove software/npm
 * https://github.com/devonfw/IDEasy/issues/1530[#1530]: NPE on ide update with custom tool
+* https://github.com/devonfw/IDEasy/issues/858[#858]: installing kotlincnative does not work
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/35?closed=1[milestone 2025.10.001].
 
