@@ -255,9 +255,9 @@ public interface FileAccess {
   /**
    * @param dir the {@link Path directory} to compress.
    * @param out the {@link OutputStream} to write the compressed data to.
-   * @param format the path, filename or extension to derive the archive format from (e.g. "tgz", "tar.gz", "zip", etc.).
+   * @param path the path or filename to derive the archive format from (e.g. "archive.tgz", "archive.tar.gz", "archive.zip", etc.).
    */
-  void compress(Path dir, OutputStream out, String format);
+  void compress(Path dir, OutputStream out, String path);
 
   /**
    * @param dir the {@link Path directory} to compress as TAR with given {@link TarCompression}.
