@@ -6,14 +6,6 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 
 Release with new features and bugfixes:
 
-* https://github.com/devonfw/IDEasy/issues/1549[#1549]: IDEasy omits error messages when a download fails
-
-The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/37?closed=1[milestone 2025.11.001].
-
-== 2025.11.001
-
-Release with new features and bugfixes:
-
 * https://github.com/devonfw/IDEasy/issues/1555[#1555]: Handle npm_config_prefix environment variable
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/37?closed=1[milestone 2025.11.001].
@@ -24,6 +16,7 @@ Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/1492[#1492]: Add spring-boot CLI Commandlet.
 * https://github.com/devonfw/IDEasy/issues/1545[#1545]: Yarn can not be installed after corepack
+* https://github.com/devonfw/IDEasy/issues/1549[#1549]: IDEasy omits error messages when a download fails
 
 The full list of changes for this release can be found in https://github.com/devonfw/IDEasy/milestone/36?closed=1[milestone 2025.10.002].
 
