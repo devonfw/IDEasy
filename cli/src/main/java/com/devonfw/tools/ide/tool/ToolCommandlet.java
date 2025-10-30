@@ -302,6 +302,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public abstract VersionIdentifier getInstalledVersion();
 
   /**
+   * @return {@code true} if this tool is installed, {@code false} otherwise.
+   */
+  public boolean isInstalled() {
+
+    return getInstalledVersion() != null;
+  }
+
+  /**
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   public abstract String getInstalledEdition();

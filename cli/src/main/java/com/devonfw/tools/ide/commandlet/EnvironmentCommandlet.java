@@ -136,8 +136,9 @@ public final class EnvironmentCommandlet extends Commandlet {
     for (Commandlet commandlet : this.context.getCommandletManager().getCommandlets()) {
       if (commandlet instanceof LocalToolCommandlet tool) {
         try {
-          VersionIdentifier installedVersion = tool.getInstalledVersion();
-          if (installedVersion != null) {
+          if (tool.isInstalled()) {
+            // for performance optimization, we do a hack here and assume that the installedVersion is never used by any setEnvironment method implementation.
+            VersionIdentifier installedVersion = VersionIdentifier.LATEST;
             ToolInstallation toolInstallation = new ToolInstallation(tool.getToolPath(), tool.getToolPath(),
                 tool.getToolBinPath(), installedVersion, false);
             tool.setEnvironment(environmentContext, toolInstallation, false);

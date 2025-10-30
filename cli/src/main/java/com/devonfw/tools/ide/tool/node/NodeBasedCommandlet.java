@@ -69,6 +69,12 @@ public abstract class NodeBasedCommandlet extends LocalToolCommandlet {
   }
 
   @Override
+  public boolean isInstalled() {
+
+    return hasNodeBinary(this.tool);
+  }
+
+  @Override
   public String getInstalledEdition() {
 
     if (getInstalledVersion() != null) {
