@@ -2,6 +2,7 @@ package com.devonfw.tools.ide.commandlet;
 
 import java.nio.file.Path;
 import java.util.stream.Stream;
+import javax.net.ssl.SSLHandshakeException;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -10,6 +11,8 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 import com.devonfw.tools.ide.context.IdeTestContext;
+import com.devonfw.tools.ide.log.IdeLogEntry;
+import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoMock;
 
@@ -37,18 +40,64 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
    * Tests the output if {@link StatusCommandlet} is run without internet connection.
    */
   @Test
-  public void testStatusWhenOffline() {
+  public void testStatusWhenOfflineMode() {
 
     // arrange
     IdeTestContext context = new IdeTestContext();
-    context.setOnline(false);
+    context.getStartContext().setOfflineMode(true);
     StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
 
     // act
     status.run();
 
     // assert
-    assertThat(context).logAtWarning().hasMessage("Skipping check for newer version of IDEasy because you are offline.");
+    assertThat(context).log().hasEntries(IdeLogEntry.ofWarning("You are offline because you have enabled offline mode via CLI option."),
+        IdeLogEntry.ofSuccess("Your version of IDEasy is SNAPSHOT."),
+        IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."));
+  }
+
+  /**
+   * Tests the output if {@link StatusCommandlet} is run without internet connection.
+   */
+  @Test
+  public void testStatusWhenOffline() {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    Exception error = context.getNetworkStatus().simulateNetworkError();
+    StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
+
+    // act
+    status.run();
+
+    // assert
+    assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false),
+        IdeLogEntry.ofInteraction("Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation."),
+        IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."));
+  }
+
+  /**
+   * Tests the output if {@link StatusCommandlet} is run with TLS issue.
+   */
+  @Test
+  public void testStatusWhenTlsIssue() throws Exception {
+
+    // arrange
+    IdeTestContext context = new IdeTestContext();
+    SSLHandshakeException error = new SSLHandshakeException(
+        "PKIX path building failed: sun.security.provider.certpath.SunCertPathBuilderException: unable to find valid certification path to requested target");
+    context.getNetworkStatus().getOnlineCheck().set(error);
+    StatusCommandlet status = context.getCommandletManager().getCommandlet(StatusCommandlet.class);
+
+    // act
+    status.run();
+
+    // assert
+    assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false),
+        IdeLogEntry.ofWarning(
+            "You are having TLS issues. We guess you are forced to use a VPN tool breaking end-to-end encryption causing this effect. As a workaround you can call the following command:"),
+        IdeLogEntry.ofInteraction("ide fix-vpn-tls-problem"),
+        IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."));
   }
 
   /**
@@ -76,7 +125,8 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
     status.run();
 
     // assert
-    assertThat(context).logAtSuccess().hasNoMessageContaining("testuser");
+    assertThat(context).log().hasNoMessageContaining("testuser");
+    assertThat(context).logAtInfo().hasMessageContaining("Your operating system is " + os);
   }
 
   private static Stream<Arguments> providePrivacyModeTestCases() {

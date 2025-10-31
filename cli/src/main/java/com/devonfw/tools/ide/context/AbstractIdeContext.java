@@ -4,8 +4,6 @@ import static com.devonfw.tools.ide.variable.IdeVariables.IDE_MIN_VERSION;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -48,7 +46,8 @@ import com.devonfw.tools.ide.log.IdeLogger;
 import com.devonfw.tools.ide.log.IdeSubLogger;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.migration.IdeMigrator;
-import com.devonfw.tools.ide.network.NetworkProxy;
+import com.devonfw.tools.ide.network.NetworkStatus;
+import com.devonfw.tools.ide.network.NetworkStatusImpl;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsHelper;
@@ -140,11 +139,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private StepImpl currentStep;
 
-  protected Boolean online;
+  private NetworkStatus networkStatus;
 
   protected IdeSystem system;
-
-  private NetworkProxy networkProxy;
 
   private WindowsHelper windowsHelper;
 
@@ -396,8 +393,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public FileAccess getFileAccess() {
 
-    // currently FileAccess contains download method and requires network proxy to be configured. Maybe download should be moved to its own interface/class
-    configureNetworkProxy();
     return this.fileAccess;
   }
 
@@ -742,45 +737,12 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public boolean isOnline() {
-    // we currently assume we have only a CLI process that runs shortly
-    // therefore we run this check only once to save resources when this method is called many times
-    String url = "https://www.github.com";
-    return isUrlReachable(url);
-  }
+  public NetworkStatus getNetworkStatus() {
 
-  /**
-   * This method will be used to test the connection to the given url.
-   *
-   * @param url the url to test.
-   */
-  protected boolean isUrlReachable(String url) {
-    if (this.online == null) {
-      configureNetworkProxy();
-      try {
-        int timeout = 1000;
-        //open a connection to github.com and try to retrieve data
-        //getContent fails if there is no connection
-        URLConnection connection = new URL(url).openConnection();
-        connection.setConnectTimeout(timeout);
-        connection.getContent();
-        this.online = Boolean.TRUE;
-      } catch (Exception e) {
-        if (debug().isEnabled()) {
-          debug().log(e, "Error when trying to connect to {}", url);
-        }
-        this.online = Boolean.FALSE;
-      }
+    if (this.networkStatus == null) {
+      this.networkStatus = new NetworkStatusImpl(this);
     }
-    return this.online;
-  }
-
-  private void configureNetworkProxy() {
-
-    if (this.networkProxy == null) {
-      this.networkProxy = new NetworkProxy(this);
-      this.networkProxy.configure();
-    }
+    return this.networkStatus;
   }
 
   @Override
