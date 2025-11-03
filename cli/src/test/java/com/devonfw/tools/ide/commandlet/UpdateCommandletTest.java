@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.commandlet;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 
@@ -78,13 +77,10 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtWarning().hasEntries("Templates folder is missing in settings repository.");
   }
 
-  private void deleteTemplatesFolder(IdeContext context) throws IOException {
+  private void deleteTemplatesFolder(IdeContext context) {
 
-    Path templates = context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES).resolve(IdeContext.FOLDER_CONF)
-        .resolve("readme");
-    Files.delete(templates);
-    Files.delete(templates.getParent());
-    Files.delete(templates.getParent().getParent());
+    Path templates = context.getSettingsPath().resolve(IdeContext.FOLDER_TEMPLATES);
+    context.getFileAccess().delete(templates);
   }
 
   /**
