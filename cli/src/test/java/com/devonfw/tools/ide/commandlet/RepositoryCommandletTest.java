@@ -136,6 +136,65 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     assertThat(this.context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
   }
 
+  @Test
+  public void testSetupRepositoryWithMultipleWorkspaces() {
+
+    // arrange
+    String workspace1 = "workspace1";
+    String workspace2 = "workspace2";
+    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    this.properties.setProperty("workspace", workspace1 + "," + workspace2);
+    saveProperties();
+    rc.repository.setValueAsString("test", this.context);
+
+    // act
+    rc.run();
+
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace1).resolve(TEST_REPO)).isDirectory();
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace2).resolve(TEST_REPO)).isDirectory();
+    assertThat(this.context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+  }
+
+  @Test
+  public void testSetupRepositoryWithMultipleWorkspacesWithSpaces() {
+
+    // arrange
+    String workspace1 = "workspace1";
+    String workspace2 = "workspace2";
+    String workspace3 = "workspace3";
+    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    this.properties.setProperty("workspace", workspace1 + " , " + workspace2 + ", " + workspace3);
+    saveProperties();
+    rc.repository.setValueAsString("test", this.context);
+
+    // act
+    rc.run();
+
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace1).resolve(TEST_REPO)).isDirectory();
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace2).resolve(TEST_REPO)).isDirectory();
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(workspace3).resolve(TEST_REPO)).isDirectory();
+    assertThat(this.context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+  }
+
+  @Test
+  public void testSetupRepositoryWithEmptyWorkspaceDefaultsToMain() {
+
+    // arrange
+    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    this.properties.setProperty("workspace", "");
+    saveProperties();
+    rc.repository.setValueAsString("test", this.context);
+
+    // act
+    rc.run();
+
+    // assert
+    assertThat(context.getIdeHome().resolve(IdeContext.FOLDER_WORKSPACES).resolve(IdeContext.WORKSPACE_MAIN).resolve(TEST_REPO)).isDirectory();
+    assertThat(this.context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+  }
+
   private void saveProperties() {
 
     FileAccess fileAccess = this.context.getFileAccess();

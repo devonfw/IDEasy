@@ -114,4 +114,19 @@ final class RepositoryProperties {
     }
   }
 
+  /**
+   * @return the workspaces where to clone the repository. Returns a set containing "main" as default if not specified.
+   */
+  public Set<String> getWorkspaces() {
+
+    String workspaceProperty = this.properties.getProperty(RepositoryConfig.PROPERTY_WORKSPACE);
+    if (workspaceProperty != null) {
+      if (workspaceProperty.isEmpty()) {
+        return Set.of(IdeContext.WORKSPACE_MAIN);
+      }
+      return Arrays.stream(workspaceProperty.split(",")).map(String::trim).collect(Collectors.toUnmodifiableSet());
+    }
+    return Set.of(IdeContext.WORKSPACE_MAIN);
+  }
+
 }
