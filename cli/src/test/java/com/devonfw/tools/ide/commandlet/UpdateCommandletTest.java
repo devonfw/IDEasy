@@ -109,8 +109,14 @@ class UpdateCommandletTest extends AbstractIdeContextTest {
     assertThat(context).logAtSuccess().hasMessageContaining(SUCCESS_INSTALL_OR_UPDATE_SOFTWARE);
   }
 
+  /**
+   * Tests if the update process can continue even when the settings were deleted. This test is highly mocked using Wiremock and other classes f.e.
+   * {@link com.devonfw.tools.ide.git.GitContextMock} is responsible for this test to succeed and not use our real repository.
+   *
+   * @param wireMockRuntimeInfo wireMock server on a random port
+   */
   @Test
-  public void testRunUpdateSoftwareDoesNotFailWhenSettingPathIsDeleted(WireMockRuntimeInfo wireMockRuntimeInfo) {
+  public void testRunUpdateSoftwareDoesNotFailWhenSettingsPathIsDeleted(WireMockRuntimeInfo wireMockRuntimeInfo) {
 
     // arrange
     IdeTestContext context = newContext(PROJECT_UPDATE, wireMockRuntimeInfo);
