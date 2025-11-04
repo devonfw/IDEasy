@@ -38,7 +38,8 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests if the installation on windows did not add a 2nd path to IDEasy to the PATH environment variable and instead removed the old one and updated it. See:
+   * Tests if the installation on windows did not add a 2nd path to IDEasy to the PATH environment variable and instead removed the old one and updated it.
+   * See:
    * <a href="https://github.com/devonfw/IDEasy/issues/1559">#1559</a> for reference.
    */
   @Test
@@ -77,7 +78,7 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     WindowsHelper helper = context.getWindowsHelper();
     String originalPath = helper.getUserEnvironmentValue("PATH");
     if (systemInfo.isWindows()) {
-      helper.setUserEnvironmentValue("PATH", "C:\\projects\\_ide\\bin;" + originalPath);
+      helper.setUserEnvironmentValue("PATH", "C:\\projects\\_ide\\installation\\bin;" + originalPath);
     }
     Path ideRoot = context.getUserHome().resolve("projects");
     String addedRcLines =
@@ -99,7 +100,8 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     verifyInstallation(releasePath);
     if (systemInfo.isWindows()) {
       assertThat(helper.getUserEnvironmentValue("IDE_ROOT")).isEqualTo(ideRoot.toString());
-      assertThat(helper.getUserEnvironmentValue("PATH")).isEqualTo(originalPath + ";" + context.getUserHome().resolve("projects/_ide/installation/bin"));
+      String newPath = originalPath.replace("C:\\projects\\_ide\\installation\\bin;", "");
+      assertThat(helper.getUserEnvironmentValue("PATH")).isEqualTo(newPath + ";" + context.getUserHome().resolve("projects/_ide/installation/bin"));
       assertThat(context.getUserHome().resolve(".gitconfig")).hasContent("[core]\nlongpaths = true");
     }
     assertThat(context.getUserHome().resolve(".bashrc")).hasContent(addedRcLines);
