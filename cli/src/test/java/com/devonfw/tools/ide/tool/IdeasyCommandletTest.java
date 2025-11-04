@@ -37,7 +37,33 @@ public class IdeasyCommandletTest extends AbstractIdeContextTest {
     assertThat(IdeasyCommandlet.removeObsoleteEntryFromWindowsPath(path)).isEqualTo(path);
   }
 
-  /** Test of {@link IdeasyCommandlet#installIdeasy(Path)}. */
+  /**
+   * Tests if the installation on windows did not add a 2nd path to IDEasy to the PATH environment variable and instead removed the old one and updated it. See:
+   * <a href="https://github.com/devonfw/IDEasy/issues/1559">#1559</a> for reference.
+   */
+  @Test
+  public void testInstallDoesNotAddPathEntryTwiceOnWindows() {
+    // arrange
+    SystemInfo systemInfo = SystemInfoMock.of("windows");
+    IdeTestContext context = newContext("install");
+    context.setIdeRoot(null);
+    context.setSystemInfo(systemInfo);
+    context.getStartContext().setForceMode(true);
+    WindowsHelper helper = context.getWindowsHelper();
+    String originalPath = helper.getUserEnvironmentValue("PATH");
+    IdeasyCommandlet ideasy = new IdeasyCommandlet(context);
+    // act
+    ideasy.installIdeasy(context.getUserHome().resolve("Downloads/ide-cli"));
+    String newPath = originalPath.replace("C:\\projects\\_ide\\installation\\bin;", "");
+    // assert
+    assertThat(helper.getUserEnvironmentValue("PATH")).isEqualTo(newPath + ";" + context.getUserHome().resolve("projects/_ide/installation/bin"));
+  }
+
+  /**
+   * Test of {@link IdeasyCommandlet#installIdeasy(Path)}.
+   *
+   * @param os to use
+   */
   @ParameterizedTest
   @ValueSource(strings = { "windows", "mac", "linux" })
   public void testInstallIdeasy(String os) {
