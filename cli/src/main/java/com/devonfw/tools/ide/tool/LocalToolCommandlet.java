@@ -96,13 +96,17 @@ public abstract class LocalToolCommandlet extends ToolCommandlet {
   private boolean doInstallStep(VersionIdentifier configuredVersion, VersionIdentifier installedVersion, boolean silent, ProcessContext processContext,
       Step step) {
 
+    // check if we should skip updates and the configured version matches the installed version
+    if (context.isSkipUpdatesMode() && configuredVersion.matches(installedVersion) && installedVersion != null) {
+      return toolAlreadyInstalled(silent, installedVersion, processContext);
+    }
+
     // install configured version of our tool in the software repository if not already installed
     ToolInstallation installation = installTool(configuredVersion, processContext);
 
     // check if we already have this version installed (linked) locally in IDE_HOME/software
     VersionIdentifier resolvedVersion = installation.resolvedVersion();
-    if ((resolvedVersion.equals(installedVersion) && !installation.newInstallation()) || (configuredVersion.matches(installedVersion)
-        && context.isSkipUpdatesMode())) {
+    if (resolvedVersion.equals(installedVersion) && !installation.newInstallation()) {
       return toolAlreadyInstalled(silent, installedVersion, processContext);
     }
     FileAccess fileAccess = this.context.getFileAccess();

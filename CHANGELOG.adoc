@@ -2,6 +2,12 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.11.002
+
+Release with new features and bugfixes:
+
+* https://github.com/devonfw/IDEasy/issues/1473[#1473]: option --skip-updates not working
+
 == 2025.11.001
 
 Release with new features and bugfixes:
