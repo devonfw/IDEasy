@@ -179,7 +179,12 @@ public class RepositoryCommandlet extends Commandlet {
       step.run(() -> {
         ToolCommandlet commandlet = this.context.getCommandletManager().getRequiredToolCommandlet(ide);
         if (commandlet instanceof IdeToolCommandlet ideCommandlet) {
-          ideCommandlet.importRepository(repositoryPath);
+          try {
+            ideCommandlet.importRepository(repositoryPath);
+          } catch (UnsupportedOperationException e) {
+            this.context.warning("Repository import is not supported for IDE {}. Skipping automatic import of repository {}.", ide, repositoryId);
+            step.success();
+          }
         } else {
           step.error("Repository {} has import {} configured that is not an IDE!", repositoryId, ide);
         }
