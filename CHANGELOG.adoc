@@ -2,6 +2,10 @@
 
 This file documents all notable changes to https://github.com/devonfw/IDEasy[IDEasy].
 
+== 2025.11.002
+
+* https://github.com/devonfw/IDEasy/issues/1188[#1188]: Use WindowsHelper to find bash
+
 == 2025.11.001
 
 Release with new features and bugfixes:
