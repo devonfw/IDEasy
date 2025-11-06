@@ -656,7 +656,7 @@ public interface IdeContext extends IdeStartContext {
   default Path getMavenConfigurationFolder() {
 
     if (getIdeHome() == null) {
-      // fallback to USER_HOME/.m2 folder if called outside an IDEasy installation
+      // fallback to USER_HOME/.m2 folder if called outside an IDEasy project
       return getUserHome().resolve(Mvn.MVN_CONFIG_LEGACY_FOLDER);
     }
     Mvn mvn = getCommandletManager().getCommandlet(Mvn.class);
