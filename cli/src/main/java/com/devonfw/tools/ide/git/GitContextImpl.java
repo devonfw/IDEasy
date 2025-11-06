@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import com.devonfw.tools.ide.cli.CliException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
@@ -53,8 +52,8 @@ public class GitContextImpl implements GitContext {
   public boolean isRepositoryUpdateAvailable(Path repository) {
 
     verifyGitInstalled();
-    String localFailureMessage = String.format("Failed to get the local commit id of settings repository '%s'.",repository);
-    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?",repository);
+    String localFailureMessage = String.format("Failed to get the local commit id of settings repository '%s'.", repository);
+    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?", repository);
     String localCommitId = runGitCommandAndGetSingleOutput(localFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "HEAD");
     String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     if ((localCommitId == null) || (remoteCommitId == null)) {
@@ -73,7 +72,7 @@ public class GitContextImpl implements GitContext {
     } catch (IOException e) {
       return false;
     }
-    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?",repository);
+    String remoteFailureMessage = String.format("Failed to get the remote commit id of settings repository '%s', missing remote upstream branch?", repository);
     String remoteCommitId = runGitCommandAndGetSingleOutput(remoteFailureMessage, repository, ProcessMode.DEFAULT_CAPTURE, "rev-parse", "@{u}");
     return !trackedCommitId.equals(remoteCommitId);
   }
@@ -257,14 +256,8 @@ public class GitContextImpl implements GitContext {
   @Override
   public void verifyGitInstalled() {
 
-    this.context.findBashRequired();
-    Path git = Path.of("git");
-    Path binaryGitPath = this.context.getPath().findBinary(git);
-    if (git == binaryGitPath) {
-      String message = "Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
-          + "https://git-scm.com/download/";
-      throw new CliException(message);
-    }
+    String bashBinary = this.context.findBashRequired();
+    this.context.trace("Using Bash at: {}", bashBinary);
     this.context.trace("Git is installed");
   }
 
@@ -285,12 +278,12 @@ public class GitContextImpl implements GitContext {
 
   private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, String... args) {
 
-    return runGitCommandAndGetSingleOutput(warningOnError,directory, ProcessMode.DEFAULT_CAPTURE, args);
+    return runGitCommandAndGetSingleOutput(warningOnError, directory, ProcessMode.DEFAULT_CAPTURE, args);
   }
 
   private String runGitCommandAndGetSingleOutput(String warningOnError, Path directory, ProcessMode mode, String... args) {
     ProcessErrorHandling errorHandling = ProcessErrorHandling.NONE;
-    if (this.context.debug().isEnabled()){
+    if (this.context.debug().isEnabled()) {
       errorHandling = ProcessErrorHandling.LOG_WARNING;
     }
     ProcessResult result = runGitCommand(directory, mode, errorHandling, args);

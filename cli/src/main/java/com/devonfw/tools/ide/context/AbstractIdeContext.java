@@ -1383,10 +1383,11 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
     String bash = BASH;
     if (SystemInfoImpl.INSTANCE.isWindows()) {
-      bash = findBashOnWindows();
+      String variable = IdeVariables.BASH_PATH.getName();
+      bash = getVariables().get(variable);
       if (bash == null) {
-        String variable = IdeVariables.BASH_PATH.getName();
-        bash = getVariables().get(variable);
+        trace("BASH_PATH not found. Trying to search in registry.");
+        bash = findBashOnWindows();
         if (bash == null) {
           trace("Bash not found. Trying to search on system PATH.");
           variable = IdeVariables.PATH.getName();
