@@ -2,7 +2,6 @@ package com.devonfw.tools.ide.context;
 
 import static com.devonfw.tools.ide.variable.IdeVariables.IDE_MIN_VERSION;
 
-
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.file.Files;
