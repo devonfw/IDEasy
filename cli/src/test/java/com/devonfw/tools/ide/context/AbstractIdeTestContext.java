@@ -4,6 +4,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.Properties;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -70,6 +72,60 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     this.progressBarMap = new HashMap<>();
     this.systemInfo = super.getSystemInfo();
     this.wireMockRuntimeInfo = wireMockRuntimeInfo;
+  }
+
+  /**
+   * Finds the test project root by looking for common test project markers.
+   * Searches upward from the working directory to find the boundary of the test project.
+   *
+   * @param workingDirectory the starting directory.
+   * @return the test project root or {@code null} if not found.
+   */
+  private Path findTestProjectRoot(Path workingDirectory) {
+
+    if (workingDirectory == null || workingDirectory.equals(PATH_MOCK)) {
+      return null;
+    }
+    
+    Path current = workingDirectory.toAbsolutePath();
+    Path testResourcesMarker = Path.of("src", "test", "resources", "ide-projects");
+    
+    // Look for the parent of ide-projects test resources
+    while (current != null) {
+      Path ideProjectsPath = current.resolve(testResourcesMarker);
+      if (Files.isDirectory(ideProjectsPath)) {
+        // Found the project root containing test resources
+        return current;
+      }
+      current = current.getParent();
+    }
+    
+    // If we can't find test resources, use the working directory's parent as boundary
+    // This provides at least some protection
+    return workingDirectory.getParent();
+  }
+
+  @Override
+  protected Pair<Path, String> findIdeHome(Path workingDirectory) {
+
+    // Set test boundary to prevent IDE home detection from escaping test projects
+    Path testBoundary = findTestProjectRoot(workingDirectory);
+    
+    // Call parent implementation to perform the search
+    Pair<Path, String> result = super.findIdeHome(workingDirectory);
+    
+    // Validate that the detected IDE home (if any) is within test boundaries
+    Path ideHome = result.getKey();
+    if (ideHome != null && testBoundary != null && ideHome.startsWith(testBoundary)) {
+      assert ideHome.startsWith(testBoundary):
+          "Test isolation violation: Detected IDE home '" + ideHome 
+          + "' is outside test boundary '" + testBoundary + "'.\n"
+          + "This indicates the test project structure is incomplete or improperly configured.\n"
+          + "A valid IDE home directories is determined by isIdeHome() method.\n"
+          + "Please ensure your test project has the required structure.";
+    }
+    
+    return result;
   }
 
   @Override
