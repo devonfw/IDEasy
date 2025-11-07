@@ -7,7 +7,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import com.devonfw.tools.ide.cli.CliException;
+import com.devonfw.tools.ide.common.SystemPath;
 import com.devonfw.tools.ide.context.IdeContext;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.process.ProcessErrorHandling;
 import com.devonfw.tools.ide.process.ProcessMode;
@@ -257,6 +260,28 @@ public class GitContextImpl implements GitContext {
   public void verifyGitInstalled() {
 
     String bashBinary = this.context.findBashRequired();
+    String message = "Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
+        + "https://git-scm.com/download/";
+
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      Path bashPath = Path.of(bashBinary);
+      Path gitPath = bashPath.getParent().resolve("git.exe");
+
+      if (Files.exists(gitPath)) {
+        this.context.trace("Git path was extracted from bash path at: {}", gitPath);
+        SystemPath systemPath = this.context.getPath();
+        systemPath.setPath("git", gitPath);
+      } else {
+        throw new CliException(message);
+      }
+    } else {
+      Path git = Path.of("git");
+      Path binaryGitPath = this.context.getPath().findBinary(git);
+      if (git == binaryGitPath) {
+        throw new CliException(message);
+      }
+    }
+
     this.context.trace("Using Bash at: {}", bashBinary);
     this.context.trace("Git is installed");
   }

@@ -763,10 +763,10 @@ public interface IdeContext extends IdeStartContext {
    */
   default String findBashRequired() {
     String bash = findBash();
-    if (bash == null) {
-      String message = "Git is not installed on your computer but required by IDEasy. Please download and install git:\n"
+    if (bash == null || !Files.exists(Path.of(bash))) {
+      String message = "Git Bash is not installed on your computer but required by IDEasy. Please download and install git:\n"
           + "https://git-scm.com/download/";
-      throw new IllegalStateException(message);
+      throw new CliException(message);
     }
     return bash;
   }
