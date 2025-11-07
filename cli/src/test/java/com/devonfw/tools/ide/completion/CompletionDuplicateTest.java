@@ -13,7 +13,7 @@ import com.devonfw.tools.ide.context.AbstractIdeContext;
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
 
 /**
- * Test to verify that completion candidates are not duplicated. This test verifies the fix for issue #536 where
+ * Test to verify that completion candidates are not duplicated. This test verifies the fix for issue <a href="https://github.com/devonfw/IDEasy/issues/536">#536</a> where
  * commandlets were matched twice during completion.
  */
 public class CompletionDuplicateTest extends AbstractIdeContextTest {
