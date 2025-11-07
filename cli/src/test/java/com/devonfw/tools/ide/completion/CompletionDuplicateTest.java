@@ -51,7 +51,7 @@ public class CompletionDuplicateTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test the specific scenario from issue #536: completion for "in" should not produce duplicates and should contain
+   * Test the specific scenario from issue <a href="https://github.com/devonfw/IDEasy/issues/536">#536</a>: completion for "in" should not produce duplicates and should contain
    * expected candidates.
    */
   @Test
