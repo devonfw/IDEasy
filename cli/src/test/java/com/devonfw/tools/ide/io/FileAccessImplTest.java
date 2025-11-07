@@ -19,6 +19,9 @@ import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.api.io.TempDir;
 
 import com.devonfw.tools.ide.context.AbstractIdeContextTest;
@@ -30,30 +33,6 @@ import com.devonfw.tools.ide.context.IdeTestContextMock;
  * Test of {@link FileAccessImpl}.
  */
 public class FileAccessImplTest extends AbstractIdeContextTest {
-
-  /**
-   * Checks if Windows junctions are used.
-   *
-   * @param context the {@link IdeContext} to get system info and file access from.
-   * @param dir the {@link Path} to the directory which is used as temp directory.
-   * @return {@code true} if Windows junctions are used, {@code false} otherwise.
-   */
-  private boolean windowsJunctionsAreUsed(IdeContext context, Path dir) {
-
-    if (!context.getSystemInfo().isWindows()) {
-      return false;
-    }
-
-    Path source = dir.resolve("checkIfWindowsJunctionsAreUsed");
-    Path link = dir.resolve("checkIfWindowsJunctionsAreUsedLink");
-    context.getFileAccess().mkdirs(source);
-    try {
-      Files.createSymbolicLink(link, source);
-      return false;
-    } catch (IOException e) {
-      return true;
-    }
-  }
 
   /**
    * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = false". Passing absolute paths as source.
@@ -68,7 +47,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
-    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
+    boolean readLinks = !context.getSystemInfo().isWindows();
     boolean relative = false;
 
     // act
@@ -90,7 +69,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
-    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
+    boolean readLinks = !context.getSystemInfo().isWindows();
     boolean relative = false;
 
     // act
@@ -106,16 +85,11 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * to absolute paths is tested.
    */
   @Test
+  @EnabledOnOs(OS.WINDOWS)
   public void testSymlinkAbsoluteAsFallback(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    if (!windowsJunctionsAreUsed(context, tempDir)) {
-      context.info(
-          "Can not check the Test: testSymlinkAbsoluteAsFallback since windows junctions are not used and fallback "
-              + "from relative to absolute paths as link target is not used.");
-      return;
-    }
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -144,7 +118,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     createDirs(fileAccess, dir);
     boolean relative = false;
     createSymlinks(fileAccess, dir, relative);
-    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
+    boolean readLinks = !context.getSystemInfo().isWindows();
 
     // act
     Path sibling = dir.resolveSibling("parent2");
@@ -160,14 +134,11 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Passing relative paths as source.
    */
   @Test
+  @DisabledOnOs(OS.WINDOWS)
   public void testSymlinkRelativeWorkAfterMovingPassingRelativeSource(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    if (windowsJunctionsAreUsed(context, tempDir)) {
-      context.info("Can not check the Test: testRelativeLinksWorkAfterMoving since windows junctions are used.");
-      return;
-    }
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -188,14 +159,11 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} with "relative = true". Furthermore, it is tested that the links still work after moving them.
    */
   @Test
+  @DisabledOnOs(OS.WINDOWS)
   public void testSymlinkRelativeWorkAfterMoving(@TempDir Path tempDir) {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    if (windowsJunctionsAreUsed(context, tempDir)) {
-      context.info("Can not check the Test: testRelativeLinksWorkAfterMoving since windows junctions are used.");
-      return;
-    }
     FileAccess fileAccess = new FileAccessImpl(context);
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
@@ -216,15 +184,11 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} when Windows junctions are used and the source is a file.
    */
   @Test
+  @EnabledOnOs(OS.WINDOWS)
   public void testSymlinkWindowsJunctionsCanNotPointToFiles(@TempDir Path tempDir) throws IOException {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    if (!windowsJunctionsAreUsed(context, tempDir)) {
-      context.info(
-          "Can not check the Test: testWindowsJunctionsCanNotPointToFiles since windows junctions are not used.");
-      return;
-    }
     Path file = tempDir.resolve("file");
     Files.createFile(file);
     FileAccess fileAccess = new FileAccessImpl(context);
@@ -249,7 +213,7 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
     Path dir = tempDir.resolve("parent");
     createDirs(fileAccess, dir);
     fileAccess.mkdirs(dir.resolve("d3"));
-    boolean readLinks = !windowsJunctionsAreUsed(context, tempDir);
+    boolean readLinks = !context.getSystemInfo().isWindows();
 
     // act
     fileAccess.symlink(dir.resolve("d3/../d1"), dir.resolve("link1"), false);
@@ -742,15 +706,11 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
    * to create a junction over a broken junction.
    */
   @Test
+  @EnabledOnOs(OS.WINDOWS)
   public void testSymlinkOverwritesBrokenJunction(@TempDir Path tempDir) throws IOException {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
-    if (!windowsJunctionsAreUsed(context, tempDir)) {
-      context.info("Test skipped: Windows junctions are not used in this environment.");
-      return;
-    }
-
     FileAccess fileAccess = new FileAccessImpl(context);
     Path sourceDir = tempDir.resolve("source");
     Path targetLink = tempDir.resolve("junction");
