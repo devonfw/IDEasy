@@ -18,6 +18,8 @@ import com.devonfw.tools.ide.context.AbstractIdeContextTest;
  */
 public class CompletionDuplicateTest extends AbstractIdeContextTest {
 
+  private static final String PROJECT_COMPLETION = "completion";
+
   /**
    * Test to verify that completion candidates are not duplicated for various input scenarios.
    */
@@ -25,7 +27,7 @@ public class CompletionDuplicateTest extends AbstractIdeContextTest {
   public void testCompletionNoDuplicates() {
 
     // arrange
-    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    AbstractIdeContext context = newContext(PROJECT_COMPLETION, null, false);
 
     // Test various completion scenarios that could potentially produce duplicates
     String[] testInputs = { "i", "in", "install", "h", "help", "j", "java" };
@@ -58,7 +60,7 @@ public class CompletionDuplicateTest extends AbstractIdeContextTest {
   public void testCompletionForInPrefix() {
 
     // arrange
-    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    AbstractIdeContext context = newContext(PROJECT_COMPLETION, null, false);
     CliArguments args = CliArguments.ofCompletion("in");
 
     // act
@@ -82,7 +84,7 @@ public class CompletionDuplicateTest extends AbstractIdeContextTest {
   public void testCompletionEmptyInput() {
 
     // arrange
-    AbstractIdeContext context = newContext(PROJECT_BASIC, null, false);
+    AbstractIdeContext context = newContext(PROJECT_COMPLETION, null, false);
     CliArguments args = CliArguments.ofCompletion("");
     args.next(); // move to first argument
 
