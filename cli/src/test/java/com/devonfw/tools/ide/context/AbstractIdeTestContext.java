@@ -72,6 +72,58 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     this.wireMockRuntimeInfo = wireMockRuntimeInfo;
   }
 
+  /**
+   * Finds the test project root by looking for common test project markers. Searches upward from the working directory to find the boundary of the test
+   * project.
+   *
+   * @param workingDirectory the starting directory.
+   * @return the test project root or {@code null} if not found.
+   */
+  private Path findTestProjectRoot(Path workingDirectory) {
+
+    if (workingDirectory == null || workingDirectory.equals(PATH_MOCK)) {
+      return null;
+    }
+
+    Path current = workingDirectory.toAbsolutePath();
+    Path testResourcesMarker = Path.of("src", "test", "resources", "ide-projects");
+
+    // Look for the parent of ide-projects test resources
+    while (current != null) {
+      Path ideProjectsPath = current.resolve(testResourcesMarker);
+      if (Files.isDirectory(ideProjectsPath)) {
+        // Found the project root containing test resources
+        return current;
+      }
+      current = current.getParent();
+    }
+
+    // If we can't find test resources, use the working directory's parent as boundary
+    // This provides at least some protection
+    return workingDirectory.getParent();
+  }
+
+  @Override
+  protected IdeHomeAndWorkspace findIdeHome(Path workingDirectory) {
+
+    // Set test boundary to prevent IDE home detection from escaping test projects
+    Path testBoundary = findTestProjectRoot(workingDirectory);
+
+    // Call parent implementation to perform the search
+    IdeHomeAndWorkspace result = super.findIdeHome(workingDirectory);
+
+    // Validate that the detected IDE home (if any) is within test boundaries
+    Path ideHome = result.home();
+    if (ideHome != null && testBoundary != null && !ideHome.startsWith(testBoundary)) {
+      debug("Test isolation violation: Detected IDE home '{}' is outside test boundary '{}'.\n"
+          + "This indicates the test project structure is incomplete or improperly configured.\n"
+          + "A valid IDE home directories is determined by isIdeHome() method.\n"
+          + "Please ensure your test project has the required structure.", ideHome, testBoundary);
+      return null;
+    }
+    return result;
+  }
+
   @Override
   public boolean isTest() {
 
