@@ -252,7 +252,7 @@ public class Mvn extends PluginBasedCommandlet {
 
   /**
    * Helper method to resolve maven config folder without creating directories.
-   * @param legacy - {@code true} to prefer legacy folder when neither exists, {@code false} to prefer new folder.
+   * @param legacy - {@code true} to prefer devonfw-ide legacy folder when neither exists, {@code false} to prefer new folder.
    * @return the {@link Path} to the maven configuration folder that should be used.
    */
   private Path resolveMavenConfFolder(boolean legacy) {
