@@ -16,6 +16,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+
+import org.apache.commons.lang3.tuple.Pair;
+
 import java.util.Objects;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
@@ -169,7 +172,6 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     if (userHomeProperty != null) {
       this.userHome = Path.of(userHomeProperty);
     }
-    String workspace = WORKSPACE_MAIN;
     if (workingDirectory == null) {
       workingDirectory = Path.of(System.getProperty("user.dir"));
     }
@@ -181,10 +183,43 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
     this.cwd = workingDirectory;
     // detect IDE_HOME and WORKSPACE
+    Pair<Path, String> ideHomeAndWorkspace = findIdeHome(workingDirectory);
+    Path currentDir = ideHomeAndWorkspace.getKey();
+    String workspace = ideHomeAndWorkspace.getValue();
+
+    // detection completed, initializing variables
+    this.ideRoot = findIdeRoot(currentDir);
+
+    setCwd(workingDirectory, workspace, currentDir);
+
+    if (this.ideRoot != null) {
+      Path tempDownloadPath = getTempDownloadPath();
+      if (Files.isDirectory(tempDownloadPath)) {
+        // TODO delete all files older than 1 day here...
+      } else {
+        this.fileAccess.mkdirs(tempDownloadPath);
+      }
+    }
+
+    this.defaultToolRepository = new DefaultToolRepository(this);
+  }
+
+  /**
+   * Searches for the IDE home directory by traversing up the directory tree from the given working directory.
+   * This method can be overridden in test contexts to add additional validation or boundary checks.
+   *
+   * @param workingDirectory the starting directory for the search.
+   * @return a {@link Pair} where the key is the detected IDE home path (or {@code null} if not found) 
+   *         and the value is the detected workspace name.
+   */
+  protected Pair<Path, String> findIdeHome(Path workingDirectory) {
+
     Path currentDir = workingDirectory;
     String name1 = "";
     String name2 = "";
+    String workspace = WORKSPACE_MAIN;
     Path ideRootPath = getIdeRootPathFromEnv(false);
+    
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
@@ -204,22 +239,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         currentDir = null;
       }
     }
-
-    // detection completed, initializing variables
-    this.ideRoot = findIdeRoot(currentDir);
-
-    setCwd(workingDirectory, workspace, currentDir);
-
-    if (this.ideRoot != null) {
-      Path tempDownloadPath = getTempDownloadPath();
-      if (Files.isDirectory(tempDownloadPath)) {
-        // TODO delete all files older than 1 day here...
-      } else {
-        this.fileAccess.mkdirs(tempDownloadPath);
-      }
-    }
-
-    this.defaultToolRepository = new DefaultToolRepository(this);
+    
+    return Pair.of(currentDir, workspace);
   }
 
   /**
@@ -362,7 +383,13 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     return new SystemPath(this);
   }
 
-  private boolean isIdeHome(Path dir) {
+  /**
+   * Checks if the given directory is a valid IDE home by verifying it contains both 'workspaces' and 'settings' directories.
+   *
+   * @param dir the directory to check.
+   * @return {@code true} if the directory is a valid IDE home, {@code false} otherwise.
+   */
+  protected boolean isIdeHome(Path dir) {
 
     if (!Files.isDirectory(dir.resolve("workspaces"))) {
       return false;
