@@ -19,6 +19,6 @@ public class KotlincNative extends LocalToolCommandlet {
    */
   public KotlincNative(IdeContext context) {
 
-    super(context, "kotlincnative", Set.of(Tag.KOTLIN, Tag.RUNTIME));
+    super(context, "kotlinc-native", Set.of(Tag.KOTLIN, Tag.RUNTIME));
   }
 }

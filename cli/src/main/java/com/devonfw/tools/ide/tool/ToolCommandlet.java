@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 
 import com.devonfw.tools.ide.commandlet.Commandlet;
@@ -154,11 +153,12 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
   /**
    * @param args the command-line arguments to run the tool.
+   * @return the {@link ProcessResult result}.
    * @see ToolCommandlet#runTool(ProcessMode, GenericVersionRange, String...)
    */
-  public void runTool(String... args) {
+  public ProcessResult runTool(String... args) {
 
-    runTool(ProcessMode.DEFAULT, null, args);
+    return runTool(ProcessMode.DEFAULT, null, args);
   }
 
   /**
@@ -168,10 +168,11 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    * @param toolVersion the explicit {@link GenericVersionRange version} to run. Typically {@code null} to run the
    *     {@link #getConfiguredVersion() configured version}. Otherwise, the specified version will be used (from the software repository, if not compatible).
    * @param args the command-line arguments to run the tool.
+   * @return the {@link ProcessResult result}.
    */
-  public final void runTool(ProcessMode processMode, GenericVersionRange toolVersion, String... args) {
+  public final ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, String... args) {
 
-    runTool(processMode, toolVersion, ProcessErrorHandling.THROW_CLI, args);
+    return runTool(processMode, toolVersion, ProcessErrorHandling.THROW_CLI, args);
   }
 
   /**
@@ -186,6 +187,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
    */
   public ProcessResult runTool(ProcessMode processMode, GenericVersionRange toolVersion, ProcessErrorHandling errorHandling, String... args) {
 
+    if (toolVersion != null) {
+      throw new UnsupportedOperationException("Not implemented yet");
+    }
     ProcessContext pc = this.context.newProcess().errorHandling(errorHandling);
     install(true, pc, null);
     return runTool(processMode, errorHandling, pc, args);
@@ -298,6 +302,14 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
   public abstract VersionIdentifier getInstalledVersion();
 
   /**
+   * @return {@code true} if this tool is installed, {@code false} otherwise.
+   */
+  public boolean isInstalled() {
+
+    return getInstalledVersion() != null;
+  }
+
+  /**
    * @return the installed edition of this tool or {@code null} if not installed.
    */
   public abstract String getInstalledEdition();
@@ -376,8 +388,6 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
 
     String edition = getConfiguredEdition();
     ToolRepository toolRepository = getToolRepository();
-    VersionIdentifier versionIdentifier = toolRepository.resolveVersion(this.tool, edition, version, this);
-    Objects.requireNonNull(versionIdentifier);
 
     EnvironmentVariables variables = this.context.getVariables();
     if (destination == null) {
@@ -387,13 +397,9 @@ public abstract class ToolCommandlet extends Commandlet implements Tags {
     EnvironmentVariables settingsVariables = variables.getByType(destination.toType());
     String name = EnvironmentVariables.getToolVersionVariable(this.tool);
 
-    VersionIdentifier resolvedVersion = toolRepository.resolveVersion(this.tool, edition, version, this);
-    if (version.isPattern()) {
-      this.context.debug("Resolved version {} to {} for tool {}/{}", version, resolvedVersion, this.tool, edition);
-    }
-    settingsVariables.set(name, resolvedVersion.toString(), false);
+    toolRepository.resolveVersion(this.tool, edition, version, this); // verify that the version actually exists
+    settingsVariables.set(name, version.toString(), false);
     settingsVariables.save();
-    this.context.info("{}={} has been set in {}", name, version, settingsVariables.getSource());
     EnvironmentVariables declaringVariables = variables.findVariable(name);
     if ((declaringVariables != null) && (declaringVariables != settingsVariables)) {
       this.context.warning("The variable {} is overridden in {}. Please remove the overridden declaration in order to make the change affect.", name,

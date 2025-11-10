@@ -63,7 +63,8 @@ import com.devonfw.tools.ide.step.StepImpl;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepository;
 import com.devonfw.tools.ide.tool.repository.CustomToolRepositoryImpl;
 import com.devonfw.tools.ide.tool.repository.DefaultToolRepository;
-import com.devonfw.tools.ide.tool.repository.MavenRepository;
+import com.devonfw.tools.ide.tool.repository.MvnRepository;
+import com.devonfw.tools.ide.tool.repository.NpmRepository;
 import com.devonfw.tools.ide.tool.repository.ToolRepository;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.util.DateTimeUtil;
@@ -83,6 +84,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   private static final GitUrl IDE_URLS_GIT = new GitUrl("https://github.com/devonfw/ide-urls.git", null);
 
   private static final String LICENSE_URL = "https://github.com/devonfw/IDEasy/blob/main/documentation/LICENSE.adoc";
+  public static final String BASH = "bash";
 
   private final IdeStartContextImpl startContext;
 
@@ -126,7 +128,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
   private CustomToolRepository customToolRepository;
 
-  private final MavenRepository mavenRepository;
+  private MvnRepository mvnRepository;
+
+  private NpmRepository npmRepository;
 
   private DirectoryMerger workspaceMerger;
 
@@ -216,7 +220,20 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
 
     this.defaultToolRepository = new DefaultToolRepository(this);
-    this.mavenRepository = new MavenRepository(this);
+  }
+
+  /**
+   * @return a new {@link MvnRepository}
+   */
+  protected MvnRepository createMvnRepository() {
+    return new MvnRepository(this);
+  }
+
+  /**
+   * @return a new {@link NpmRepository}
+   */
+  protected NpmRepository createNpmRepository() {
+    return new NpmRepository(this);
   }
 
   private Path findIdeRoot(Path ideHomePath) {
@@ -397,9 +414,19 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public MavenRepository getMavenToolRepository() {
+  public MvnRepository getMvnRepository() {
+    if (this.mvnRepository == null) {
+      this.mvnRepository = createMvnRepository();
+    }
+    return this.mvnRepository;
+  }
 
-    return this.mavenRepository;
+  @Override
+  public NpmRepository getNpmRepository() {
+    if (this.npmRepository == null) {
+      this.npmRepository = createNpmRepository();
+    }
+    return this.npmRepository;
   }
 
   @Override
@@ -709,13 +736,27 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   @Override
-  public boolean isOnline() {
+  public boolean isNoColorsMode() {
 
+    return this.startContext.isNoColorsMode();
+  }
+
+  @Override
+  public boolean isOnline() {
+    // we currently assume we have only a CLI process that runs shortly
+    // therefore we run this check only once to save resources when this method is called many times
+    String url = "https://www.github.com";
+    return isUrlReachable(url);
+  }
+
+  /**
+   * This method will be used to test the connection to the given url.
+   *
+   * @param url the url to test.
+   */
+  protected boolean isUrlReachable(String url) {
     if (this.online == null) {
       configureNetworkProxy();
-      // we currently assume we have only a CLI process that runs shortly
-      // therefore we run this check only once to save resources when this method is called many times
-      String url = "https://www.github.com";
       try {
         int timeout = 1000;
         //open a connection to github.com and try to retrieve data
@@ -731,7 +772,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         this.online = Boolean.FALSE;
       }
     }
-    return this.online.booleanValue();
+    return this.online;
   }
 
   private void configureNetworkProxy() {
@@ -1340,11 +1381,28 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   @Override
   public String findBash() {
 
-    String bash = "bash";
+    String bash = BASH;
     if (SystemInfoImpl.INSTANCE.isWindows()) {
       bash = findBashOnWindows();
+      if (bash == null) {
+        String variable = IdeVariables.BASH_PATH.getName();
+        bash = getVariables().get(variable);
+        if (bash == null) {
+          trace("Bash not found. Trying to search on system PATH.");
+          variable = IdeVariables.PATH.getName();
+          Path plainBash = Path.of(BASH);
+          Path bashPath = getPath().findBinary(plainBash);
+          bash = bashPath.toAbsolutePath().toString();
+          if (bash.contains("AppData\\Local\\Microsoft\\WindowsApps")) {
+            warning("Only found windows fake bash that is not usable!");
+            bash = null;
+          }
+        }
+        if (bash == null) {
+          info("Could not find bash in Windows registry, using bash from {} as fallback: {}", variable, bash);
+        }
+      }
     }
-
     return bash;
   }
 
@@ -1361,7 +1419,9 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     String[] registryKeys = { "HKEY_LOCAL_MACHINE", "HKEY_CURRENT_USER" };
     String regQueryResult;
     for (String bashVariant : bashVariants) {
+      trace("Trying to find bash variant: {}", bashVariant);
       for (String registryKey : registryKeys) {
+        trace("Trying to find bash from registry key: {}", registryKey);
         String toolValueName = ("GitForWindows".equals(bashVariant)) ? "InstallPath" : "rootdir";
         String command = "reg query " + registryKey + "\\Software\\" + bashVariant + "  /v " + toolValueName + " 2>nul";
 
@@ -1377,20 +1437,22 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
 
             int exitCode = process.waitFor();
             if (exitCode != 0) {
+              warning("Query to windows registry for finding bash failed with exit code {}", exitCode);
               return null;
             }
 
             regQueryResult = output.toString();
-            if (regQueryResult != null) {
-              int index = regQueryResult.indexOf("REG_SZ");
-              if (index != -1) {
-                String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
-                return path + "\\bin\\bash.exe";
-              }
+            trace("Result from windows registry was: {}", regQueryResult);
+            int index = regQueryResult.indexOf("REG_SZ");
+            if (index != -1) {
+              String path = regQueryResult.substring(index + "REG_SZ".length()).trim();
+              String bashPath = path + "\\bin\\bash.exe";
+              debug("Found bash at: {}", bashPath);
+              return bashPath;
             }
-
           }
         } catch (Exception e) {
+          error(e, "Query to windows registry for finding bash failed!");
           return null;
         }
       }

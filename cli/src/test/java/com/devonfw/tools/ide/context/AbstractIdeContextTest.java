@@ -1,5 +1,10 @@
 package com.devonfw.tools.ide.context;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.any;
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -124,11 +129,17 @@ public abstract class AbstractIdeContextTest extends Assertions {
     }
     Path userDir = ideRoot.resolve(projectPath);
     ToolRepositoryMock toolRepository = null;
-    IdeTestContext context = new IdeTestContext(userDir, logLevel);
+    IdeTestContext context = new IdeTestContext(userDir, logLevel, wmRuntimeInfo);
+
     Path repositoryFolder = ideRoot.resolve("repository");
     if (Files.isDirectory(repositoryFolder)) {
       toolRepository = new ToolRepositoryMock(context, repositoryFolder, wmRuntimeInfo);
       context.setDefaultToolRepository(toolRepository);
+    }
+    if (wmRuntimeInfo != null) {
+      stubFor(any(urlEqualTo("/health")).willReturn(
+          aResponse().withStatus(200).withHeader("Content-Type", "text").withHeader("Content-Length", String.valueOf("ok".length()))
+              .withBody("ok")));
     }
     return context;
   }
@@ -139,7 +150,7 @@ public abstract class AbstractIdeContextTest extends Assertions {
    */
   protected static IdeTestContext newContext(Path projectPath) {
 
-    return new IdeTestContext(projectPath);
+    return new IdeTestContext(projectPath, null);
   }
 
   protected static IdeTestContextAssertion assertThat(IdeTestContext context) {

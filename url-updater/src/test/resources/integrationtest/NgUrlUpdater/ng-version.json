@@ -1,0 +1,10 @@
+{
+  "versions": {
+    "20.1.6": {
+      "version": "20.1.6",
+      "dist": {
+        "tarball": "${testbaseurl}/@angular/cli/-/cli-20.1.6.tgz"
+      }
+    }
+  }
+}

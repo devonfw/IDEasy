@@ -31,6 +31,8 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
 
   private boolean privacyMode;
 
+  private boolean noColorsMode;
+
   private Locale locale;
 
   /**
@@ -172,7 +174,6 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     return this.locale;
   }
 
-
   /**
    * @param locale new value of {@link #getLocale()}.
    */
@@ -181,4 +182,18 @@ public class IdeStartContextImpl extends IdeLoggerImpl implements IdeStartContex
     this.locale = locale;
   }
 
+  @Override
+  public boolean isNoColorsMode() {
+
+    return this.noColorsMode;
+  }
+
+  /**
+   * @param noColoursMode new value of {@link #isNoColorsMode()}.
+   */
+  public void setNoColorsMode(boolean noColoursMode) {
+
+    this.noColorsMode = noColoursMode;
+    setLogColors(!noColoursMode);
+  }
 }
