@@ -59,7 +59,25 @@ public class HelpCommandletTest extends AbstractIdeContextTest {
     for (Commandlet cmd : context.getCommandletManager().getCommandlets()) {
       assertThat(context).log().hasMessageContaining(cmd.getName());
     }
+    assertThat(context).logAtInfo().hasMessageContaining("Hint: Use 'icd' command to easily navigate");
     assertOptionLogMessages(context);
+  }
+
+  /**
+   * Test of {@link HelpCommandlet} includes icd hint in English.
+   */
+  @Test
+  public void testIcdHint() {
+
+    // arrange
+    IdeTestContext context = IdeTestContext.of();
+    context.getStartContext().setLocale(Locale.ENGLISH);
+    HelpCommandlet help = new HelpCommandlet(context);
+
+    // act
+    help.run();
+    // assert
+    assertThat(context).logAtInfo().hasMessageContaining("Hint: Use 'icd' command to easily navigate");
   }
 
   /**
