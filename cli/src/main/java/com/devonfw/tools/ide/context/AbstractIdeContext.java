@@ -16,9 +16,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import org.apache.commons.lang3.tuple.Pair;
-
 import java.util.Objects;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
@@ -183,14 +180,18 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     }
     this.cwd = workingDirectory;
     // detect IDE_HOME and WORKSPACE
-    Pair<Path, String> ideHomeAndWorkspace = findIdeHome(workingDirectory);
-    Path currentDir = ideHomeAndWorkspace.getKey();
-    String workspace = ideHomeAndWorkspace.getValue();
+    String workspace = null;
+    Path ideHomeDir = null;
+    IdeHomeAndWorkspace ideHomeAndWorkspace = findIdeHome(workingDirectory);
+    if (ideHomeAndWorkspace != null) {
+      ideHomeDir = ideHomeAndWorkspace.home();
+      workspace = ideHomeAndWorkspace.workspace();
+    }
 
     // detection completed, initializing variables
-    this.ideRoot = findIdeRoot(currentDir);
+    this.ideRoot = findIdeRoot(ideHomeDir);
 
-    setCwd(workingDirectory, workspace, currentDir);
+    setCwd(workingDirectory, workspace, ideHomeDir);
 
     if (this.ideRoot != null) {
       Path tempDownloadPath = getTempDownloadPath();
@@ -205,21 +206,20 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
   }
 
   /**
-   * Searches for the IDE home directory by traversing up the directory tree from the given working directory.
-   * This method can be overridden in test contexts to add additional validation or boundary checks.
+   * Searches for the IDE home directory by traversing up the directory tree from the given working directory. This method can be overridden in test contexts to
+   * add additional validation or boundary checks.
    *
    * @param workingDirectory the starting directory for the search.
-   * @return a {@link Pair} where the key is the detected IDE home path (or {@code null} if not found) 
-   *         and the value is the detected workspace name.
+   * @return an instance of {@link IdeHomeAndWorkspace} where the IDE_HOME was found or {@code null} if not found.
    */
-  protected Pair<Path, String> findIdeHome(Path workingDirectory) {
+  protected IdeHomeAndWorkspace findIdeHome(Path workingDirectory) {
 
     Path currentDir = workingDirectory;
     String name1 = "";
     String name2 = "";
     String workspace = WORKSPACE_MAIN;
     Path ideRootPath = getIdeRootPathFromEnv(false);
-    
+
     while (currentDir != null) {
       trace("Looking for IDE_HOME in {}", currentDir);
       if (isIdeHome(currentDir)) {
@@ -239,8 +239,8 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         currentDir = null;
       }
     }
-    
-    return Pair.of(currentDir, workspace);
+
+    return new IdeHomeAndWorkspace(currentDir, workspace);
   }
 
   /**
@@ -1544,6 +1544,14 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
     assert (Files.isDirectory(installationPath));
     Path versionFile = installationPath.resolve(FILE_SOFTWARE_VERSION);
     getFileAccess().writeFileContent(version.toString(), versionFile);
+  }
+
+  /**
+   * @param home the IDE_HOME directory.
+   * @param workspace the name of the active workspace folder.
+   */
+  protected static record IdeHomeAndWorkspace(Path home, String workspace) {
+
   }
 
 }
