@@ -1,7 +1,6 @@
 package com.devonfw.tools.ide.io;
 
 import static com.devonfw.tools.ide.io.FileAccessImpl.generatePermissionString;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -189,15 +188,16 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
 
     // arrange
     IdeContext context = IdeTestContextMock.get();
+    FileAccess fileAccess = context.getFileAccess();
     Path file = tempDir.resolve("file");
     Files.createFile(file);
-    FileAccess fileAccess = new FileAccessImpl(context);
+    Path linkToFile = tempDir.resolve("linkToFile");
 
-    // act & assert
-    IllegalStateException e1 = assertThrows(IllegalStateException.class, () -> {
-      fileAccess.symlink(file, tempDir.resolve("linkToFile"));
-    });
-    assertThat(e1).hasMessageContaining("These junctions can only point to directories or other junctions");
+    // act
+    fileAccess.symlink(file, linkToFile);
+
+    // assert
+    assertThat(linkToFile.toRealPath()).isEqualTo(file.toRealPath());
   }
 
   /**
@@ -701,9 +701,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} when broken junctions exist. This simulates the scenario
-   * described in issue #1169 where mklink fails with "Cannot create a file when that file already exists" when trying
-   * to create a junction over a broken junction.
+   * Test of {@link FileAccessImpl#symlink(Path, Path, boolean)} when broken junctions exist. This simulates the scenario described in issue #1169 where mklink
+   * fails with "Cannot create a file when that file already exists" when trying to create a junction over a broken junction.
    */
   @Test
   @EnabledOnOs(OS.WINDOWS)
@@ -743,8 +742,8 @@ public class FileAccessImplTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Test of enhanced {@link FileAccessImpl#isJunction(Path)} method to ensure it handles broken junctions gracefully.
-   * This simulates the enhanced logic for detecting broken junctions on non-Windows systems.
+   * Test of enhanced {@link FileAccessImpl#isJunction(Path)} method to ensure it handles broken junctions gracefully. This simulates the enhanced logic for
+   * detecting broken junctions on non-Windows systems.
    */
   @Test
   public void testIsJunctionHandlesBrokenLinks(@TempDir Path tempDir) throws IOException {
