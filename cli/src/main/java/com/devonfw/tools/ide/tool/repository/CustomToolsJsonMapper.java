@@ -125,7 +125,7 @@ public class CustomToolsJsonMapper {
    * @return {@link CustomToolsJson}.
    */
   public static CustomToolsJson parseCustomToolsFromLegacyConfig(String customToolsContent, IdeContext context) {
-    List<String> customToolEntries = VariableLine.parseArray(customToolsContent);
+    List<String> customToolEntries = VariableLine.parseArray(customToolsContent, context);
     if (customToolEntries.isEmpty()) {
       return null;
     }

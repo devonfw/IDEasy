@@ -149,6 +149,11 @@ public class RepositoryCommandlet extends Commandlet {
       return this.context.newStep("Build repository via: " + buildCmd).run(() -> {
         String[] command = buildCmd.split("\\s+");
         ToolCommandlet commandlet = this.context.getCommandletManager().getRequiredToolCommandlet(command[0]);
+        if (commandlet == null) {
+          String displayName = (command[0] == null || command[0].isBlank()) ? "<empty>" : "'" + command[0] + "'";
+          this.context.error("Cannot build repository. Required tool '{}' not found. Please check your repository's build_cmd configuration value.", displayName);
+          return;
+        }
         commandlet.reset();
         for (int i = 1; i < command.length; i++) {
           commandlet.arguments.addValue(command[i]);
@@ -178,7 +183,10 @@ public class RepositoryCommandlet extends Commandlet {
       Step step = this.context.newStep("Importing repository " + repositoryId + " into " + ide);
       step.run(() -> {
         ToolCommandlet commandlet = this.context.getCommandletManager().getRequiredToolCommandlet(ide);
-        if (commandlet instanceof IdeToolCommandlet ideCommandlet) {
+        if (commandlet == null) {
+          String displayName = (ide == null || ide.isBlank()) ? "<empty>" : "'" + ide + "'";
+          step.error("Cannot import repository '{}'. Required IDE '{}' not found. Please check your repository's imports configuration.", repositoryId, displayName);
+        } else if (commandlet instanceof IdeToolCommandlet ideCommandlet) {
           ideCommandlet.importRepository(repositoryPath);
         } else {
           step.error("Repository {} has import {} configured that is not an IDE!", repositoryId, ide);
