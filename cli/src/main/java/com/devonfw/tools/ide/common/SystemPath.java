@@ -11,6 +11,8 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
@@ -202,28 +204,40 @@ public class SystemPath {
    *     was not found on PATH, the same {@link Path} instance is returned that was given as argument.
    */
   public Path findBinary(Path toolPath) {
+    return findBinary(toolPath, p -> true);
+  }
+
+  /**
+   * Finds a binary for {@code toolPath} but allows excluding candidates via {@code filter}. If the filter rejects a candidate, the search continues. If no
+   * acceptable candidate is found, the original {@code toolPath} is returned unchanged.
+   *
+   * @param toolPath the {@link Path} to the tool installation or a simple name (e.g., "git").
+   * @param filter a predicate that must return {@code true} for acceptable candidates; {@code false} rejects and continues searching.
+   * @return the first acceptable {@link Path} found; if none, the original {@code toolPath}.
+   */
+  public Path findBinary(Path toolPath, Predicate<Path> filter) {
+    Objects.requireNonNull(toolPath, "toolPath");
+    Objects.requireNonNull(filter, "filter");
 
     Path parent = toolPath.getParent();
     String fileName = toolPath.getFileName().toString();
 
     if (parent == null) {
-
       for (Path path : this.tool2pathMap.values()) {
         Path binaryPath = findBinaryInOrder(path, fileName);
-        if (binaryPath != null) {
+        if (binaryPath != null && filter.test(binaryPath)) {
           return binaryPath;
         }
       }
-
       for (Path path : this.paths) {
         Path binaryPath = findBinaryInOrder(path, fileName);
-        if (binaryPath != null) {
+        if (binaryPath != null && filter.test(binaryPath)) {
           return binaryPath;
         }
       }
     } else {
       Path binaryPath = findBinaryInOrder(parent, fileName);
-      if (binaryPath != null) {
+      if (binaryPath != null && filter.test(binaryPath)) {
         return binaryPath;
       }
     }
