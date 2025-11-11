@@ -1417,6 +1417,7 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
         debug("{} variable was found and points to: {}", IdeVariables.BASH_PATH, bashPathVariable);
       } else {
         warning("{} variable was found at: {} but is not pointing to an existing file", IdeVariables.BASH_PATH, bashPathVariable);
+        bash = null;
       }
       if (bash == null) {
         trace("{} not found. Trying to search in registry.", IdeVariables.BASH_PATH);
