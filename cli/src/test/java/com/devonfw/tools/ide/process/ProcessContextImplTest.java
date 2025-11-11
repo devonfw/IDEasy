@@ -242,4 +242,20 @@ public class ProcessContextImplTest extends AbstractIdeContextTest {
     };
   }
 
+  @Test
+  public void testModifyArgumentsOnBackgroundProcessWithBackgroundMode() throws Exception {
+
+    // This test verifies that modifyArgumentsOnBackgroundProcess works correctly
+    // with background process modes (it should not throw an exception or fail an assert)
+
+    // arrange
+    when(this.processMock.waitFor()).thenReturn(ProcessResult.SUCCESS);
+
+    // act & assert - this should not throw any exception
+    ProcessResult result = this.processContextUnderTest.run(ProcessMode.BACKGROUND);
+
+    // verify the result is successful
+    assertThat(result.isSuccessful()).isTrue();
+  }
+
 }
