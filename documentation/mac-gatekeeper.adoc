@@ -44,6 +44,12 @@ image::images/Gatekeeper-4-Use_password.png[Use password]
 +
 image::images/Gatekeeper-5-Password_OK.png[Enter password]
 
+=== IDEasy
+
+The easiest way is to run link:setup.adoc[setup] and let it fail.
+Then do the above workaround for `ideasy` and run the `setup` again.
+Finally, you need to accept the terms and conditions and allow it to modify the disk to finish the setup.
+
 == Status
 
 Currently, IDEasy itself is not properly signed for Mac and also various other tools supported by IDEasy such as `IntelliJ` or `VSCode`.
