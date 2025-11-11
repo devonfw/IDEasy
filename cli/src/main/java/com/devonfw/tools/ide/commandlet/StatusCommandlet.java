@@ -105,13 +105,7 @@ public class StatusCommandlet extends Commandlet {
   }
 
   private void logOnlineStatus() {
-    if (this.context.isOfflineMode()) {
-      this.context.warning("You have configured offline mode via CLI.");
-    } else if (this.context.isOnline()) {
-      this.context.success("You are online.");
-    } else {
-      this.context.warning("You are offline. Check your internet connection and potential proxy settings.");
-    }
+    this.context.getNetworkStatus().logStatusMessage();
   }
 
   private void logMigrationStatus() {
