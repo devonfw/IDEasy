@@ -1,0 +1,2 @@
+settings and workspaces folder need to exist to let "project" be detected as IDE Home.
+=> Refer to AbstractIdeContext#isIdeHome
