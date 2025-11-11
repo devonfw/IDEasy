@@ -37,7 +37,7 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
   }
 
   /**
-   * Tests the output if {@link StatusCommandlet} is run without internet connection.
+   * Tests the output if {@link StatusCommandlet} is run in enforced offline mode.
    */
   @Test
   public void testStatusWhenOfflineMode() {
