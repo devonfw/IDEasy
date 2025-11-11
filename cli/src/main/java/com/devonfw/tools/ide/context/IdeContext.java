@@ -17,6 +17,7 @@ import com.devonfw.tools.ide.io.IdeProgressBar;
 import com.devonfw.tools.ide.io.IdeProgressBarNone;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
+import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
 import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
@@ -199,17 +200,27 @@ public interface IdeContext extends IdeStartContext {
   String SETTINGS_REPOSITORY_KEYWORD = "settings";
 
   /**
+   * @return the {@link NetworkStatus} for online check and related operations.
+   */
+  NetworkStatus getNetworkStatus();
+
+  /**
    * @return {@code true} if {@link #isOfflineMode() offline mode} is active or we are NOT {@link #isOnline() online}, {@code false} otherwise.
+   * @deprecated use {@link #getNetworkStatus()}
    */
   default boolean isOffline() {
 
-    return isOfflineMode() || !isOnline();
+    return getNetworkStatus().isOffline();
   }
 
   /**
    * @return {@code true} if we are currently online (Internet access is available), {@code false} otherwise.
+   * @deprecated use {@link #getNetworkStatus()}
    */
-  boolean isOnline();
+  default boolean isOnline() {
+
+    return getNetworkStatus().isOnline();
+  }
 
   /**
    * Print the IDEasy {@link #LOGO logo}.

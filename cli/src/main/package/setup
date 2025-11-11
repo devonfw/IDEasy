@@ -1,3 +1,13 @@
 #!/bin/bash
 cd "$(dirname "${BASH_SOURCE:-$0}")" || exit 255
-./bin/ideasy -f install
+
+# Create logs directory if it doesn't exist
+LOGS_DIR="${HOME}/.ide/logs"
+mkdir -p "${LOGS_DIR}"
+
+# Generate timestamp for log file
+TIMESTAMP=$(date +"%Y-%m-%d_%H_%M_%S")
+LOG_FILE="${LOGS_DIR}/install-${TIMESTAMP}.log"
+
+# Run ideasy with trace logging and tee output to log file
+./bin/ideasy -ft install 2>&1 | tee "${LOG_FILE}"
