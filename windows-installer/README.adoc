@@ -56,7 +56,7 @@ Here you define the script that will be executed after installation:
 
       <SetProperty
             Id="RunSetupAction"
-            Value="&quot;[INSTALLFOLDER]bin\ideasy.exe&quot; -f install"
+            Value="&quot;[INSTALLFOLDER]bin\ideasy.exe&quot; -ft install"
             Before="RunSetupAction"
             Sequence="execute"
             />
