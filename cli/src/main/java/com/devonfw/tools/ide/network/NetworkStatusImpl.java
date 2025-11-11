@@ -110,7 +110,8 @@ public class NetworkStatusImpl implements NetworkStatus {
     if (error instanceof SSLException) {
       this.context.warning(
           "You are having TLS issues. We guess you are forced to use a VPN tool breaking end-to-end encryption causing this effect. As a workaround you can call the following command:");
-      this.context.interaction("ide fix-vpn-tls-problem");
+          "You are having TLS issues. We guess you are forced to use a VPN tool breaking end-to-end encryption causing this effect. As a workaround you can create and configure a truststore as described here:");
+      this.context.interaction("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues");
     } else {
       this.context.interaction("Please check potential proxy settings, ensure you are properly connected to the internet and retry this operation.");
     }

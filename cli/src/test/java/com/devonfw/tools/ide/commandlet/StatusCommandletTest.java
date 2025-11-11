@@ -95,8 +95,8 @@ public class StatusCommandletTest extends AbstractIdeContextTest {
     // assert
     assertThat(context).log().hasEntries(new IdeLogEntry(IdeLogLevel.ERROR, "You are offline because of the following error:", null, null, error, false),
         IdeLogEntry.ofWarning(
-            "You are having TLS issues. We guess you are forced to use a VPN tool breaking end-to-end encryption causing this effect. As a workaround you can call the following command:"),
-        IdeLogEntry.ofInteraction("ide fix-vpn-tls-problem"),
+            "You are having TLS issues. We guess you are forced to use a VPN tool breaking end-to-end encryption causing this effect. As a workaround you can create and configure a truststore as described here:"),
+        IdeLogEntry.ofInteraction("https://github.com/devonfw/IDEasy/blob/main/documentation/proxy-support.adoc#tls-certificate-issues"),
         IdeLogEntry.ofWarning("Skipping check for newer version of IDEasy because you are offline."));
   }
 
