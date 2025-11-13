@@ -37,7 +37,7 @@ image::images/Gatekeeper-2-Security-Open_anyway.png[Open anyway]
 4. Confirm the popup with `Open`
 +
 image::images/Gatekeeper-3-Open.png[Open]
-5. Select `Use Passwprd...`
+5. Select `Use Password...`
 +
 image::images/Gatekeeper-4-Use_password.png[Use password]
 6. Enter your password and confirm with `OK`
