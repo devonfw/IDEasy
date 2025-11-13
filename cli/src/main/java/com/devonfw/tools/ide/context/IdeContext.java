@@ -19,6 +19,7 @@ import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.merge.DirectoryMerger;
 import com.devonfw.tools.ide.network.NetworkStatus;
 import com.devonfw.tools.ide.os.SystemInfo;
+import com.devonfw.tools.ide.os.SystemInfoImpl;
 import com.devonfw.tools.ide.os.WindowsPathSyntax;
 import com.devonfw.tools.ide.process.ProcessContext;
 import com.devonfw.tools.ide.step.Step;
@@ -762,12 +763,16 @@ public interface IdeContext extends IdeStartContext {
    */
   default String findBashRequired() {
     String bash = findBash();
-    if (bash == null) {
-      String message = "Could not find bash what is a prerequisite of IDEasy.";
-      if (getSystemInfo().isWindows()) {
-        message = message + "\nPlease install Git for Windows and rerun.";
+    String message = "Git Bash is not installed on your computer but required by IDEasy. Please download and install git:\n"
+        + "https://git-scm.com/download/";
+    if (SystemInfoImpl.INSTANCE.isWindows()) {
+      if (bash == null || !Files.exists(Path.of(bash))) {
+        throw new CliException(message);
       }
-      throw new IllegalStateException(message);
+    } else {
+      if (bash == null) {
+        throw new CliException(message);
+      }
     }
     return bash;
   }
