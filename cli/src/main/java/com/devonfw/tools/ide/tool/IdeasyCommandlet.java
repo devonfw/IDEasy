@@ -227,7 +227,7 @@ public class IdeasyCommandlet extends MvnBasedLocalToolCommandlet {
             + "Otherwise all is correct and you can continue.");
         this.context.askToContinue("Are you sure you want to override your PATH?");
       } else {
-        path.removeEntries(s -> s.endsWith(IDE_BIN));
+        path.removeEntries(s -> s.endsWith(IDE_INSTALLATION_BIN));
       }
       path.getEntries().add(ideasyBinPath.toString());
       helper.setUserEnvironmentValue(IdeVariables.PATH.getName(), path.toString());
