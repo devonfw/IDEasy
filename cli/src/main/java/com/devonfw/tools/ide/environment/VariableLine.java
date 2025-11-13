@@ -3,6 +3,7 @@ package com.devonfw.tools.ide.environment;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.log.IdeLogger;
 
 /**
@@ -321,15 +322,21 @@ public abstract class VariableLine {
    * Returns a list of String Variables.
    *
    * @param value String to parse
+   * @param context the {@link IdeContext} for logging warnings (may be {@code null}).
    * @return List of variables.
    */
-  public static List<String> parseArray(String value) {
+  public static List<String> parseArray(String value, IdeContext context) {
     String csv = value;
     String separator = ",";
     // TODO: refactor with isBashArray method from VariableDefinitionStringList
     if (value.startsWith("(") && value.endsWith(")")) {
       csv = value.substring(1, value.length() - 1);
       separator = " ";
+      // Check once for any comma in the bash array string
+      if (context != null && csv.contains(",")) {
+        context.warning("Detected comma in bash array. Bash array syntax uses whitespace as separator, not commas. " +
+            "Please use format like 'IDE_TOOLS=(java maven python)' instead of 'IDE_TOOLS=(java, maven, python)'.");
+      }
     }
     String[] items = csv.split(separator);
     List<String> list = new ArrayList<>(items.length);
