@@ -52,7 +52,6 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.io.IOUtils;
 
 import com.devonfw.tools.ide.cli.CliException;
-import com.devonfw.tools.ide.cli.CliOfflineException;
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.io.ini.IniComment;
 import com.devonfw.tools.ide.io.ini.IniFile;
@@ -95,9 +94,6 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
   @Override
   public void download(String url, Path target) {
 
-    if (this.context.isOffline()) {
-      throw CliOfflineException.ofDownloadViaUrl(url);
-    }
     if (url.startsWith("http")) {
       downloadViaHttp(url, target);
     } else if (url.startsWith("ftp") || url.startsWith("sftp")) {
@@ -142,10 +138,14 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
     if (httpVersion == null) {
       this.context.info("Trying to download {} from {}", target.getFileName(), url);
     } else {
-      this.context.info("Trying to download: {} with HTTP protocol version: {}", url, httpVersion);
+      this.context.info("Trying to download {} from {} with HTTP protocol version {}", target.getFileName(), url, httpVersion);
     }
     mkdirs(target.getParent());
-    httpGet(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
+    this.context.getNetworkStatus().invokeNetworkTask(() ->
+    {
+      httpGet(url, httpVersion, (response) -> downloadFileWithProgressBar(url, target, response));
+      return null;
+    }, url);
   }
 
   /**
@@ -590,7 +590,7 @@ public class FileAccessImpl extends HttpDownloader implements FileAccess {
       return;
     }
     Path tmpDir = createTempDir("extract-" + archiveFile.getFileName());
-    this.context.trace("Trying to extract the downloaded file {} to {} and move it to {}.", archiveFile, tmpDir, targetDir);
+    this.context.trace("Trying to extract the file {} to {} and move it to {}.", archiveFile, tmpDir, targetDir);
     String filename = archiveFile.getFileName().toString();
     TarCompression tarCompression = TarCompression.of(filename);
     if (tarCompression != null) {
