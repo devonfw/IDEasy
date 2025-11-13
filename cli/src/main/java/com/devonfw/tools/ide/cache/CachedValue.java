@@ -9,7 +9,8 @@ import java.util.function.Supplier;
  */
 public class CachedValue<T> implements Supplier<T> {
 
-  private static final long DEFAULT_RETENTION = 20 * 1000; // 20 seconds
+  /** Default value for {@link #getRetention() retention}. */
+  public static final long DEFAULT_RETENTION = 20 * 1000; // 20 seconds
 
   private final Supplier<T> supplier;
 
@@ -33,12 +34,21 @@ public class CachedValue<T> implements Supplier<T> {
    * The constructor.
    *
    * @param supplier the {@link Supplier} function to compute the actual value.
+   * @param retention the {@link #getRetention() retention}.
    */
   public CachedValue(Supplier<T> supplier, long retention) {
 
     super();
     this.supplier = supplier;
     this.retention = retention;
+  }
+
+  /**
+   * @return the retention time as the duration in milliseconds when the {@link CachedValue} expires and its {@link #get() value} gets recomputed.
+   */
+  public long getRetention() {
+
+    return this.retention;
   }
 
   @Override
@@ -50,6 +60,16 @@ public class CachedValue<T> implements Supplier<T> {
       this.timestamp = now;
     }
     return this.value;
+  }
+
+  /**
+   * Explicitly set the cached value by-passing its internal computation. Only use this operation with care.
+   *
+   * @param value the explicit {@link #get() value} to set.
+   */
+  public void set(T value) {
+    this.value = value;
+    this.timestamp = System.currentTimeMillis();
   }
 
   /**
