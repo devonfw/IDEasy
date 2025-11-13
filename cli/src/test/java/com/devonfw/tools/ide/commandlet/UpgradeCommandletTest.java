@@ -31,7 +31,7 @@ class UpgradeCommandletTest extends AbstractIdeContextTest {
   public void testUpgradeWhenOffline() {
     // arrange
     IdeTestContext context = new IdeTestContext();
-    context.setOnline(false);
+    context.getNetworkStatus().simulateNetworkError();
     UpgradeCommandlet upgrade = context.getCommandletManager().getCommandlet(UpgradeCommandlet.class);
 
     // act
