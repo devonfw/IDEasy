@@ -35,8 +35,6 @@ public class SystemPath {
 
   private static final Pattern REGEX_WINDOWS_PATH = Pattern.compile("([a-zA-Z]:)?(\\\\[a-zA-Z0-9\\s_.-]+)+\\\\?");
 
-  private final String envPath;
-
   private final char pathSeparator;
 
   private final Map<String, Path> tool2pathMap;
@@ -95,7 +93,7 @@ public class SystemPath {
    */
   public SystemPath(IdeContext context, String envPath, Path ideRoot, Path softwarePath, char pathSeparator, List<Path> extraPathEntries) {
 
-    this(context, envPath, pathSeparator, extraPathEntries, new HashMap<>(), new ArrayList<>());
+    this(context, pathSeparator, extraPathEntries, new HashMap<>(), new ArrayList<>());
     String[] envPaths = envPath.split(Character.toString(pathSeparator));
     for (String segment : envPaths) {
       Path path = Path.of(segment);
@@ -107,11 +105,21 @@ public class SystemPath {
     collectToolPath(softwarePath);
   }
 
-  private SystemPath(IdeContext context, String envPath, char pathSeparator, List<Path> extraPathEntries, Map<String, Path> tool2PathMap, List<Path> paths) {
+  /**
+   * @param context {@link IdeContext} for the output of information.
+   * @param softwarePath the {@link IdeContext#getSoftwarePath() software path}.
+   * @param pathSeparator the path separator char (';' for Windows and ':' otherwise).
+   * @param paths the {@link List} of {@link Path}s to use in the PATH environment variable.
+   */
+  public SystemPath(IdeContext context, Path softwarePath, char pathSeparator, List<Path> paths) {
+    this(context, pathSeparator, new ArrayList<>(), new HashMap<>(), paths);
+    collectToolPath(softwarePath);
+  }
+
+  private SystemPath(IdeContext context, char pathSeparator, List<Path> extraPathEntries, Map<String, Path> tool2PathMap, List<Path> paths) {
 
     super();
     this.context = context;
-    this.envPath = envPath;
     this.pathSeparator = pathSeparator;
     this.extraPathEntries = extraPathEntries;
     this.tool2pathMap = tool2PathMap;
@@ -281,7 +289,7 @@ public class SystemPath {
     } else {
       separator = this.pathSeparator;
     }
-    StringBuilder sb = new StringBuilder(this.envPath.length() + 128);
+    StringBuilder sb = new StringBuilder(128);
     for (Path path : this.extraPathEntries) {
       appendPath(path, sb, separator, pathSyntax);
     }
@@ -304,7 +312,7 @@ public class SystemPath {
   public SystemPath withPath(String overriddenPath, List<Path> extraPathEntries) {
 
     if (overriddenPath == null) {
-      return new SystemPath(this.context, this.envPath, this.pathSeparator, extraPathEntries, this.tool2pathMap, this.paths);
+      return new SystemPath(this.context, this.pathSeparator, extraPathEntries, this.tool2pathMap, this.paths);
     } else {
       return new SystemPath(this.context, overriddenPath, null, null, this.pathSeparator, extraPathEntries);
     }
