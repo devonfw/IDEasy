@@ -136,6 +136,23 @@ public class RepositoryCommandletTest extends AbstractIdeContextTest {
     assertThat(this.context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
   }
 
+  @Test
+  public void testSetupRepositoryWithUnsupportedIdeImport() {
+
+    // arrange
+    RepositoryCommandlet rc = this.context.getCommandletManager().getCommandlet(RepositoryCommandlet.class);
+    this.properties.setProperty("import", "intellij");
+    this.properties.setProperty("active", "true");
+    saveProperties();
+    rc.repository.setValueAsString("test", this.context);
+    // act
+    rc.run();
+    // assert
+    assertThat(this.context).logAtWarning()
+        .hasMessage("Repository import is not supported for IDE intellij. Skipping automatic import of repository test.");
+    assertThat(this.context).logAtSuccess().hasMessage("Successfully ended step 'Setup of repository test'.");
+  }
+
   private void saveProperties() {
 
     FileAccess fileAccess = this.context.getFileAccess();
