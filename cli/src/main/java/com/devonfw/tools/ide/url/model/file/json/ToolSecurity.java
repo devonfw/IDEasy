@@ -8,8 +8,6 @@ import java.util.Collections;
 import java.util.List;
 
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.version.VersionIdentifier;
-import com.devonfw.tools.ide.version.VersionRange;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
@@ -22,33 +20,17 @@ public class ToolSecurity {
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
   private static final ToolSecurity EMPTY = new ToolSecurity(Collections.emptyList());
-  private List<CVE> issues;
+  private List<Cve> issues;
 
 
   public ToolSecurity() {
     this(new ArrayList<>());
   }
 
-  public ToolSecurity(List<CVE> issues) {
+  public ToolSecurity(List<Cve> issues) {
 
     super();
     this.issues = issues;
-  }
-
-  /**
-   * @param version the {@link VersionIdentifier} of the tool to install.
-   * @return The {@link List} of {@link CVE}s for the given tool version.
-   */
-  public List<CVE> findCVEs(VersionIdentifier version) {
-    List<CVE> cves = new ArrayList<>();
-    for (CVE cve : issues) {
-      for (VersionRange versionRange : cve.versions()) {
-        if (versionRange.contains(version)) {
-          cves.add(cve);
-        }
-      }
-    }
-    return cves;
   }
 
   /**
@@ -79,14 +61,14 @@ public class ToolSecurity {
   /**
    * @return the list of CVEs
    */
-  public List<CVE> getIssues() {
+  public List<Cve> getIssues() {
     return issues;
   }
 
   /**
    * @param issues the list of CVEs
    */
-  public void setIssues(List<CVE> issues) {
+  public void setIssues(List<Cve> issues) {
     this.issues = issues;
   }
 }

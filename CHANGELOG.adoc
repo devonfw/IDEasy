@@ -7,6 +7,8 @@ This file documents all notable changes to https://github.com/devonfw/IDEasy[IDE
 Release with new features and bugfixes:
 
 * https://github.com/devonfw/IDEasy/issues/536[#536]: IDEasy complete tries to match commandlets twice
+* https://github.com/devonfw/IDEasy/issues/1144[#1144]: CVE: adapt IDEasy to consider security.json files to warn user
+* https://github.com/devonfw/IDEasy/issues/1145[#1145]: CVE: suggest version update to user
 * https://github.com/devonfw/IDEasy/issues/1510[#1510]: Make icd more usable
 * https://github.com/devonfw/IDEasy/issues/1169[#1169]: mklink fails if link already exists
 * https://github.com/devonfw/IDEasy/issues/1553[#1553]: IDEasy is slow since 2025.09.001
