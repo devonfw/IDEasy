@@ -387,4 +387,9 @@ public class AbstractIdeTestContext extends AbstractIdeContext {
     }
     return null;
   }
+
+  @Override
+  public String getDefaultWindowsGitPath() {
+    return "";
+  }
 }
