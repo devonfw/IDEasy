@@ -50,7 +50,7 @@ import com.devonfw.tools.ide.context.IdeContextConsole;
 import com.devonfw.tools.ide.log.IdeLogLevel;
 import com.devonfw.tools.ide.url.model.UrlMetadata;
 import com.devonfw.tools.ide.url.model.file.UrlSecurityFile;
-import com.devonfw.tools.ide.url.model.file.json.CVE;
+import com.devonfw.tools.ide.url.model.file.json.Cve;
 import com.devonfw.tools.ide.url.model.folder.UrlRepository;
 import com.devonfw.tools.ide.url.model.folder.UrlVersion;
 import com.devonfw.tools.ide.url.model.report.UrlFinalReport;
@@ -267,7 +267,7 @@ public class BuildSecurityJsonFiles {
       return;
     }
 
-    CVE cve = new CVE(cveName, severity.doubleValue(), List.of(versionRange));
+    Cve cve = new Cve(cveName, severity.doubleValue(), List.of(versionRange));
     securityFile.addCve(cve);
   }
 

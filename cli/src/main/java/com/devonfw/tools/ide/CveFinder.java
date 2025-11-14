@@ -6,39 +6,24 @@ import java.util.List;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.tool.ToolCommandlet;
-import com.devonfw.tools.ide.url.model.file.json.CVE;
+import com.devonfw.tools.ide.url.model.file.json.Cve;
 import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
 import com.devonfw.tools.ide.variable.IdeVariables;
+import com.devonfw.tools.ide.version.GenericVersionRange;
 import com.devonfw.tools.ide.version.VersionIdentifier;
 import com.devonfw.tools.ide.version.VersionRange;
 
 /**
- * Class used to handle and get {@link ToolSecurity}, {@link CVE} for specific tool.
+ * Class used to handle and get {@link ToolSecurity}, {@link Cve} for specific tool.
  */
-public class CVEFinder {
+public class CveFinder {
 
   private final IdeContext context;
   private final ToolCommandlet tool;
   private final ToolSecurity toolSecurity;
   private final List<VersionIdentifier> allVersions;
   private final VersionIdentifier version;
-  private final List<CVE> cves;
-
-  /**
-   * The constructor
-   *
-   * @param context the {@link IdeContext}
-   * @param tool the {@link ToolCommandlet}
-   * @param version the {@link VersionIdentifier} of the tool.
-   */
-  public CVEFinder(IdeContext context, ToolCommandlet tool, VersionIdentifier version) {
-    this.context = context;
-    this.tool = tool;
-    this.toolSecurity = context.getDefaultToolRepository().findSecurity(tool.getName(), tool.getConfiguredEdition());
-    this.allVersions = tool.getVersions();
-    this.version = version;
-    this.cves = toolSecurity.getIssues();
-  }
+  private final List<Cve> cves;
 
   /**
    * The constructor
@@ -48,31 +33,35 @@ public class CVEFinder {
    * @param version the {@link VersionIdentifier} of the tool.
    * @param allowedVersions the {@link VersionRange} that is used to select version suggestions.
    */
-  public CVEFinder(IdeContext context, ToolCommandlet tool, VersionIdentifier version, VersionRange allowedVersions) {
+  public CveFinder(IdeContext context, ToolCommandlet tool, VersionIdentifier version, GenericVersionRange allowedVersions) {
     this.context = context;
     this.tool = tool;
     this.toolSecurity = context.getDefaultToolRepository().findSecurity(tool.getName(), tool.getConfiguredEdition());
-    List<VersionIdentifier> filterdAllVersions = new ArrayList<>();
-    for (VersionIdentifier toolVersion : tool.getVersions()) {
-      if (allowedVersions.contains(toolVersion)) {
-        filterdAllVersions.add(toolVersion);
+    List<VersionIdentifier> toolVersions = tool.getVersions();
+    if (allowedVersions != null) {
+      List<VersionIdentifier> filterdVersions = new ArrayList<>();
+      for (VersionIdentifier toolVersion : toolVersions) {
+        if (allowedVersions.contains(toolVersion)) {
+          filterdVersions.add(toolVersion);
+        }
       }
+      toolVersions = filterdVersions;
     }
-    this.allVersions = filterdAllVersions;
+    this.allVersions = toolVersions;
     this.version = version;
-    this.cves = toolSecurity.getIssues();
+    this.cves = this.toolSecurity.getIssues();
   }
 
   /**
-   * Prints all {@link CVE}s from a specific {@link VersionIdentifier}
+   * Prints all {@link Cve}s from a specific {@link VersionIdentifier}
    *
    * @param versionIdentifier {@link VersionIdentifier}.
    */
   public void listCVEs(VersionIdentifier versionIdentifier) {
-    if (getCVEs(versionIdentifier).size() == 0) {
+    if (getCves(versionIdentifier).isEmpty()) {
       context.info("No CVEs found for this version");
     }
-    for (CVE cve : getCVEs(versionIdentifier)) {
+    for (Cve cve : getCves(versionIdentifier)) {
       context.warning("CVE_ID: " + cve.id());
       context.warning("Severity: " + String.valueOf(cve.severity()));
       context.warning("Affected versions: " + cve.versions().toString());
@@ -81,14 +70,14 @@ public class CVEFinder {
   }
 
   /**
-   * @param versionIdentifier
-   * @return all {@link CVE}s from specific {@link VersionIdentifier}.
+   * @param version the {@link VersionIdentifier} to check.
+   * @return all {@link Cve}s from specific {@link VersionIdentifier}.
    */
-  public Collection<CVE> getCVEs(VersionIdentifier versionIdentifier) {
-    List<CVE> cvesOfVersion = new ArrayList<>();
-    for (CVE cve : cves) {
+  public Collection<Cve> getCves(VersionIdentifier version) {
+    List<Cve> cvesOfVersion = new ArrayList<>();
+    for (Cve cve : cves) {
       for (VersionRange range : cve.versions()) {
-        if (range.contains(versionIdentifier) && cve.severity() >= IdeVariables.CVE_MIN_SEVERIRY.get(context)) {
+        if (range.contains(version) && cve.severity() >= IdeVariables.CVE_MIN_SEVERITY.get(context)) {
           cvesOfVersion.add(cve);
         }
       }
@@ -101,11 +90,11 @@ public class CVEFinder {
    */
   public VersionIdentifier findSafestLatestVersion() {
     VersionIdentifier safestLatestVersion = allVersions.getFirst();
-    double severitySumLatestVersion = severitySum(getCVEs(safestLatestVersion));
+    double severitySumLatestVersion = severitySum(getCves(safestLatestVersion));
     double distancePunishment = (1d / allVersions.size()) * 5;
     for (int i = 0; i < allVersions.size(); i++) {
       VersionIdentifier current = allVersions.get(i);
-      double severitySumcurrent = severitySum(getCVEs(current));
+      double severitySumcurrent = severitySum(getCves(current));
       if (severitySumcurrent == 0) {
         return current;
       }
@@ -122,7 +111,7 @@ public class CVEFinder {
    */
   public VersionIdentifier findSafestNearestVersion() {
     VersionIdentifier safestNearestVersion = version;
-    double severitySumNearestVersion = severitySum(getCVEs(safestNearestVersion));
+    double severitySumNearestVersion = severitySum(getCves(safestNearestVersion));
     double distancePunishment = (1d / allVersions.size()) * 5;
     int upIndex = allVersions.indexOf(version);
     int downIndex = upIndex;
@@ -135,8 +124,8 @@ public class CVEFinder {
       }
       VersionIdentifier upVersion = allVersions.get(upIndex);
       VersionIdentifier downVersion = allVersions.get(downIndex);
-      double severityUp = severitySum(getCVEs(upVersion));
-      double severityDown = severitySum(getCVEs(downVersion));
+      double severityUp = severitySum(getCves(upVersion));
+      double severityDown = severitySum(getCves(downVersion));
       if (severityUp == 0) {
         return upVersion;
       }
@@ -155,12 +144,12 @@ public class CVEFinder {
   }
 
   /**
-   * @param cves list of {@link CVE}s
-   * @return sum of {@link CVE#severity()}
+   * @param cves list of {@link Cve}s
+   * @return sum of {@link Cve#severity()}
    */
-  public static double severitySum(Collection<CVE> cves) {
+  public static double severitySum(Collection<Cve> cves) {
     double severitySum = 0;
-    for (CVE cve : cves) {
+    for (Cve cve : cves) {
       severitySum += cve.severity();
     }
     return severitySum;

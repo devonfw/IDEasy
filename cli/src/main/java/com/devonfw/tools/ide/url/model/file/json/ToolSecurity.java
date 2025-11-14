@@ -20,14 +20,14 @@ public class ToolSecurity {
   private static final ObjectMapper MAPPER = JsonMapping.create();
 
   private static final ToolSecurity EMPTY = new ToolSecurity(Collections.emptyList());
-  private List<CVE> issues;
+  private List<Cve> issues;
 
 
   public ToolSecurity() {
     this(new ArrayList<>());
   }
 
-  public ToolSecurity(List<CVE> issues) {
+  public ToolSecurity(List<Cve> issues) {
 
     super();
     this.issues = issues;
@@ -61,14 +61,14 @@ public class ToolSecurity {
   /**
    * @return the list of CVEs
    */
-  public List<CVE> getIssues() {
+  public List<Cve> getIssues() {
     return issues;
   }
 
   /**
    * @param issues the list of CVEs
    */
-  public void setIssues(List<CVE> issues) {
+  public void setIssues(List<Cve> issues) {
     this.issues = issues;
   }
 }

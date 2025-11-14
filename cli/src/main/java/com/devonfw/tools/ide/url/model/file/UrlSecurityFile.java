@@ -7,7 +7,7 @@ import java.util.Objects;
 
 import com.devonfw.tools.ide.context.IdeContext;
 import com.devonfw.tools.ide.json.JsonMapping;
-import com.devonfw.tools.ide.url.model.file.json.CVE;
+import com.devonfw.tools.ide.url.model.file.json.Cve;
 import com.devonfw.tools.ide.url.model.file.json.ToolSecurity;
 import com.devonfw.tools.ide.url.model.folder.AbstractUrlToolOrEdition;
 import com.devonfw.tools.ide.url.model.folder.UrlEdition;
@@ -84,12 +84,12 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
    * Adds a new CVE warning with detailed information, such as severity, CVE ID and a versionRange
    */
 
-  public void addCve(CVE cve) {
+  public void addCve(Cve cve) {
     if (this.security == null || this.security == ToolSecurity.getEmpty()) {
       this.security = new ToolSecurity();
     }
 
-    List<CVE> issues = this.security.getIssues();
+    List<Cve> issues = this.security.getIssues();
     if (!issues.contains(cve)) {
       issues.add(cve);
       this.modified = true;
@@ -127,9 +127,9 @@ public class UrlSecurityFile extends AbstractUrlFile<AbstractUrlToolOrEdition<?,
           edition.getName(), edition.getName(), null);
     }
 
-    List<CVE> issues = this.security != null ? this.security.getIssues() : List.of();
+    List<Cve> issues = this.security != null ? this.security.getIssues() : List.of();
 
-    for (CVE cve : issues) {
+    for (Cve cve : issues) {
       for (VersionRange versionRange : cve.versions()) {
         if (ignoreWarningsThatAffectAllVersions) {
           boolean includesOldestVersion = versionRange.getMin() == null

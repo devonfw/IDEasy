@@ -23,13 +23,13 @@ public class ToolSecurityTest extends AbstractUrlModelTest {
     IdeContext context = newContext();
 
     // act
-    Collection<CVE> security = context.getDefaultToolRepository()
+    Collection<Cve> security = context.getDefaultToolRepository()
         .findSecurity("intellij", "intellij").getIssues();
     List<VersionRange> versionRanges = new ArrayList<>();
     versionRanges.add(VersionRange.of("(0,2.39.4)"));
     versionRanges.add(VersionRange.of("[2.40.0,2.40.2)"));
 
     // assert
-    assertThat(security).contains(new CVE("CVE-2024-32002", 9.0f, versionRanges));
+    assertThat(security).contains(new Cve("CVE-2024-32002", 9.0f, versionRanges));
   }
 }
