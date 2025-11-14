@@ -24,7 +24,7 @@ The following section documents a workaround how you can manually trust a single
 == Workaround
 
 Before applying this workaround please check that the application was downloaded from the proper source that you trust and verify its signature hash.
-Please note that if the application was downloaded by IDEasy it is automatically verifying the signature hash for you and will fail if the has does not match the expected value.
+Please note that if the application was downloaded by IDEasy it is automatically verifying the signature hash for you and will fail if the hash does not match the expected value.
 Then you can proceed as following:
 
 After you saw the screenshot above and pressed `Cancel`, you can do the following workaround:
