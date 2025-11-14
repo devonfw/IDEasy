@@ -13,6 +13,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 import com.devonfw.tools.ide.cli.CliAbortException;
 import com.devonfw.tools.ide.cli.CliArgument;
@@ -1393,14 +1394,16 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
           variable = IdeVariables.PATH.getName();
           if (variable != null) {
             Path plainBash = Path.of(BASH);
-            Path bashPath = getPath().findBinary(plainBash);
+            Predicate<Path> pathsToIgnore = p -> checkPathToIgnoreLowercase(p, "AppData\\Local\\Microsoft\\WindowsApps") && checkPathToIgnoreLowercase(p,
+                "Windows\\System32");
+            Path bashPath = getPath().findBinary(plainBash, pathsToIgnore);
             bash = bashPath.toAbsolutePath().toString();
-            if (bash.contains("AppData\\Local\\Microsoft\\WindowsApps")) {
+            if (bashPath.equals(plainBash)) {
               warning("Only found windows fake bash that is not usable!");
               bash = null;
             }
           } else {
-            debug("{} was not found", IdeVariables.PATH);
+            debug("{} was not found", IdeVariables.PATH.getName());
           }
         }
         if (bash == null) {
@@ -1409,6 +1412,16 @@ public abstract class AbstractIdeContext implements IdeContext, IdeLogArgFormatt
       }
     }
     return bash;
+  }
+
+  /**
+   * @param path the path to check.
+   * @param toIgnore the String sequence which needs to be checked and ignored.
+   * @return {@code true} if the sequence to ignore was not found, {@code false} if the path contained the sequence to ignore.
+   */
+  private boolean checkPathToIgnoreLowercase(Path path, String toIgnore) {
+    String s = path.toAbsolutePath().toString().toLowerCase(Locale.ROOT);
+    return !s.contains(toIgnore);
   }
 
   private String findBashOnWindows() {
